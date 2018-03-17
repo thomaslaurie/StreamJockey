@@ -15,6 +15,7 @@
 	} else {
 		// set scopes
 		// 'streaming', 'user-read-birthdate', 'user-read-email', 'user-read-private' are required for the web playback sdk
+		// 'user-modify-playback-state' is required to operate the playback
 
 		// scope contains an array of all scopes sent with the auth request
 		// show_dialog sets whether or not to force the user to approve the request each time
@@ -26,6 +27,7 @@
 				'user-read-birthdate',
 				'user-read-email',
 				'user-read-private',
+				'user-modify-playback-state',
 			],
 			'show_dialog' => true,
 			'state' => 'someString'
@@ -85,8 +87,13 @@
 	foreach($artistsTest as $artist) {
 		echo $artist->name;
 	}
-			
 
+?>
+	<input id='uri' type='text' placeholder='spotify uri'>
+	<button id='start'>Start</button>
+	<button id='play'>Play</button>
+	<button id='pause'>Pause</button>
+<?php
 	require_once('footer.php');
 ?>
 
