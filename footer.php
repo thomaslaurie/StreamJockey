@@ -2,7 +2,7 @@
 
 	<script src='jquery-3.3.1.js'></script>
 
-	<script src='https://sdk.scdn.co/spotify-player.js'></script>
+<!-- 	<script src='https://sdk.scdn.co/spotify-player.js'></script>
 	<script>
 		// this method must be defined immediately after spotify-player.js
 		window.onSpotifyWebPlaybackSDKReady = () => {
@@ -31,7 +31,7 @@
 			// connect to player
 			player.connect();
 		};
-	</script>
+	</script> -->
 	<script>
 		$(document).ready(function() {
 			$("#start").click(function() {
@@ -50,5 +50,5 @@
 			console.log("ready");
 		});
 	</script>
-	<script src="main.js"></script>
+	<script type='text/javascript;version=1.7' src="main.js"></script>
 </html>

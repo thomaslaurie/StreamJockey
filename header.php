@@ -1,6 +1,6 @@
 <!doctype html>
 
-<html lang='en' manifest='manifest.json'>
+<html lang='en' >
 	<head>
 		<meta charset='utf-8'>
 		<title>StreamJockey</title>
