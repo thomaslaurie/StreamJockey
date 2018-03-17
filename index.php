@@ -1,61 +1,93 @@
-<?php 
+<?php
 	// Composer created files containing dependencies (spotify api php wrapper)
 	require_once('vendor/autoload.php');
 
-	// creates a session
-	$session = new SpotifyWebAPI\Session(
-		'ba31691d69c84626a6e762d332060d7a',
-		'b142422ce75343cda3df02807a41b9c1',
-		'streamlist-protocol://callback'
-	);
+	// Credentials
+	$clientID = 'ba31691d69c84626a6e762d332060d7a';
+	$clientSecret = 'b142422ce75343cda3df02807a41b9c1';
+	$redirectURI = 'http://localhost/StreamJockey.git/index.php?authCallback=spotify';
 
-	// gets accessToken
-	$session->requestCredentialsToken();
+	// creates auth session object
+	$session = new SpotifyWebAPI\Session($clientID, $clientSecret, $redirectURI);
+
+	if (isset($_GET['authCallback']) && $_GET['authCallback'] === 'spotify') {
+		$code = $_GET['code'];
+	} else {
+		// set scopes
+		// 'streaming', 'user-read-birthdate', 'user-read-email', 'user-read-private' are required for the web playback sdk
+
+		// scope contains an array of all scopes sent with the auth request
+		// show_dialog sets whether or not to force the user to approve the request each time
+		// state gets returned back with the request, use with hashes to verfy that the response came from the expected source
+
+		$options = [
+			'scope' => [
+				'streaming',
+				'user-read-birthdate',
+				'user-read-email',
+				'user-read-private',
+			],
+			'show_dialog' => true,
+			'state' => 'someString'
+		];
+
+		header('Location: '.$session->getAuthorizeUrl($options));
+		exit();
+
+		// returns with 'code' and 'state' parameters on success, returns with 'error', and 'state' parameters on failure, 'access_denied' signifies that the user has denied the request
+	}
+
+	// access token
+
+	// Credential Flow: $session->requestCredentialsToken(); gets an access token using the credietials flow 'cannot use endpoints that use user data (including streaming)'
+	// true if success, false otherwise
+	// $session->requestCredentialsToken();
+	// $accessToken = $session->getAccessToken();
+
+	// Auth Flow
+	// $session->requestAccessToken(); using the authorization flow, use this for scopes
+	// true if success, false otherwise
+	$session->requestAccessToken($code);
 	$accessToken = $session->getAccessToken();
 
-	// gives accessToken to $api
+	// check current scopes
+	// $scopes = $session->getScope();
+
+	// refresh
+	// true if success, false otherwise
+	// $session->refreshAccessToken($refreshToken);
+
+	// get token expiration time
+	// unix timestamp indicating token expiration time
+	// $session->getTokenExpiration()
+	
+
+
+	// creates api object
 	$api = new SpotifyWebAPI\SpotifyWebAPI();
+
+	// gives accessToken to $api
 	$api->setAccessToken($accessToken);
 
+
+
+	// page
+	require_once('header.php');
+
 	// --> do stuff now
-
 	// It's now possible to request data from the Spotify catalog
-	print_r($api->getTrack('7EjyzZcbLxW7PaaLua9Ksb')->name);
 
-	// $api = new SpotifyWebAPI\SpotifyWebAPI();
+	$testTrack = '4bEcoz1OcfMgUbp2ft8ieQ';
 
-	// if (isset($_GET['code'])) {
-	// 	$session->requestAccessToken($_GET['code']);
-	// 	$api->setAccessToken($session->getAccessToken());
+	echo $api->getTrack($testTrack)->name;
+	echo '<br>';
+	$artistsTest = $api->getTrack($testTrack)->artists;
+	foreach($artistsTest as $artist) {
+		echo $artist->name;
+	}
+			
 
-	// 	print_r($api->me());
-	// } else {
-	// $options = ['scope' => ['user-read-email',],];
-
-	// header('Location: ' . $session->getAuthorizeUrl($options));
-	// die();
-	// }
+	require_once('footer.php');
 ?>
 
-<!-- <!doctype html>
 
-<html lang='en'>
-	<head>
-		<meta charset='utf-8'>
-		<title>StreamJockey</title>
-		<link rel='stylesheet' href='norm.css'>
-		<link rel='stylesheet' href='main.css'>
-	</head>
-
-	<body>
-		<?php 
-			echo '<p>Hello World!</p>';
-
-
-
-		?>
-		<p>Hello World!</p>
-	</body>
-
-	<script src='main.js'></script>
-</html> -->
