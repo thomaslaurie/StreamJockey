@@ -1,3 +1,5 @@
+console.log("ready2");
+
 $(document).ready(function() {
 	$("#start").click(function() {
 		console.log("#start.click() called");
@@ -12,5 +14,5 @@ $(document).ready(function() {
 	});
 
 
-	console.log("ready2");
+	
 });
