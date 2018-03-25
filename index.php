@@ -23,14 +23,23 @@
 
 		$options = [
 			'scope' => [
-				'streaming',
-				'user-read-birthdate',
-				'user-read-email',
+				// https://beta.developer.spotify.com/documentation/general/guides/scopes/
+
+				// users
 				'user-read-private',
+				'user-read-email',
+				'user-read-birthdate',
+				
+				// spotify connect
+				'user-read-currently-playing',
 				'user-modify-playback-state',
+				'user-read-playback-state',
+
+				// streaming
+				'streaming',		
 			],
 			'show_dialog' => true,
-			'state' => 'someString'
+			//'state' => 'someString'
 		];
 
 		header('Location: '.$session->getAuthorizeUrl($options));
@@ -90,9 +99,11 @@
 
 ?>
 	<input id='uri' type='text' placeholder='spotify uri'>
-	<button id='start'>Start</button>
-	<button id='play'>Play</button>
-	<button id='pause'>Pause</button>
+	<p>3BiIPNWmMeJAK9iwEFTeDX</p>
+	<button id='connectDevice'>Connect Device</button>
+	<button id='change'>Change</button>
+	<button id='toggle'>Toggle</button>
+	<button id='seek'>Seek</button>
 <?php
 	require_once('footer.php');
 ?>
