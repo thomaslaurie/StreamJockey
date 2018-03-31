@@ -2,18 +2,26 @@
 
 	<script>
 		// globals
-		var accessToken = <?php echo json_encode($accessToken); ?>;
+		<?php
+			if (isset($_SESSION['spotifyAccessToken'])) {
+				echo "var spotifyAccessToken = " . json_encode($_SESSION['spotifyAccessToken']);
+			} else {
+				echo "var spotifyAccessToken = ''";
+			}
+
+		?>
 
 		// constants
 		var WEB_PLAYER_NAME = 'StreamJockey Web Player';
 	</script>
 
+<!--
 	<script src='https://sdk.scdn.co/spotify-player.js'></script>
 	<script>
 		// this method must be defined immediately after spotify-player.js
 		window.onSpotifyWebPlaybackSDKReady = () => {
 			// initialize
-			const token = <?php echo "'".$accessToken."'"; ?>;
+			const token = spotifyAccessToken;
 			const player = new Spotify.Player({
 				name: WEB_PLAYER_NAME,
 				getOAuthToken: cb => { cb(token); }
@@ -40,6 +48,7 @@
 			player.connect();
 		};
 	</script>
+-->
 
 	<script src='jquery-3.3.1.js'></script>
 	<!-- javascript wrapper -->
