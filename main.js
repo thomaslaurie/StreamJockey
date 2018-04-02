@@ -5,6 +5,19 @@ $(document).ready(function() {
 	var spotifyAPI = new SpotifyWebApi();
 	spotifyAPI.setAccessToken(spotifyAccessToken);
 
+	// search object
+	var searchResults = {
+		// details
+		term: '',
+		tracksPerSource: 5,
+		page: 1,
+
+		// sources
+		spotify: [],
+		youtube: [],
+		soundcloud: [],
+	}
+
 
 	// functions
 
@@ -31,6 +44,7 @@ $(document).ready(function() {
 
 	function spotifyConnectPlayer() {
 		// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
+		// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
 		// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
 
 		// TODO requires spotifyAccessToken, if this changes (ie. token frefresh, account swap) how does player get updated? 
@@ -85,7 +99,7 @@ $(document).ready(function() {
 		// https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
 		spotifyAPI.transferMyPlayback([deviceID], {}, function(error, response) {
 			// this function doesn't send a callback, is that a bug or intentional?
-			
+
 			// if (error) {
 			// 	console.error('transferMyPlayback() failure');
 			// 	logError(error);
@@ -96,48 +110,6 @@ $(document).ready(function() {
 			// 	console.log(response);
 			// }
 		});
-
-
-		// old flow for connecting to the device by WEB_PLAYER_NAME, doesn't use deviceID parameter
-
-		// spotifyAPI.getMyDevices(function(error, response) {
-		// 	if (error) {
-		// 		console.error('getMyDevices() failure');
-		// 		logError(error);
-		// 	}
-
-		// 	if (response) {
-		// 		console.log('getMyDevices() success');
-		// 		console.log(response);
-
-		// 		var found = false;
-
-		// 		// find the specified device
-		// 		response.devices.forEach(function(d) {
-		// 			if (d.name == WEB_PLAYER_NAME) {
-		// 				found = d;
-		// 			}
-		// 		});
-
-		// 		// TODO none of these logs are appearing, but the device transfer still works
-		// 		if (found) {
-		// 			// https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
-		// 			spotifyAPI.transferMyPlayback([found.id], {}, function(error, response) {
-		// 				if (error) {
-		// 					console.error('transferMyPlayback() failure');
-		// 					logError(error);
-		// 				}
-
-		// 				if (response) {
-		// 					console.log('transferMyPlayback() success');
-		// 					console.log(response);
-		// 				}
-		// 			});
-		// 		} else {
-		// 			console.error('device not found');
-		// 		}
-		// 	}
-		// });
 	}
 
 
@@ -220,6 +192,151 @@ $(document).ready(function() {
 		});
 	}
 
+	function msFormat(ms) {
+		// extract
+		var minutes = Math.floor(ms / 60000);
+		var seconds = Math.ceil(ms % 60000);
+
+		// format
+		seconds = ('0' + seconds).slice(-2);
+
+		// returns ...0:00 format rounded up to the nearest second
+		return minutes + ':' + seconds;
+	}
+
+	// search
+	function search(term) {
+		var options = {
+			// max number of results to return, min 1, max 50, default 20
+			limit: searchResults.tracksPerSource,
+			// offset of first result, use with limit to get paged results min 0, max 100 000, default 0
+			offset: searchResults.tracksPerSource * (searchResults.page - 1),
+		};
+
+		spotifyAPI.searchTracks(term, options, function(error, response) {
+			if (error) {
+				console.error('search() failure');
+				logError(error);
+			}
+
+			if (response) {
+				console.log('search() success');
+				console.log(response);
+
+				// update searchResults
+				searchResults.term = term;
+				searchResults.spotify = formatSourceResult('spotify', response);
+
+				// update page
+				refreshSearchResults();
+			}
+		});
+	}
+
+	function refreshSearchResults() {
+		// delete old list
+		$(".searchResult").remove();
+
+		// arrange and display new list
+		var arrangedList = arrangeResults('mix', ['spotify']);
+		displayList(arrangedList);
+	}
+
+	function formatSourceResult(source, object) {
+		// array of track objects
+
+		var trackList = [];
+
+		// source cases
+		if (source == 'spotify') {
+			object.tracks.items.forEach(function (track, i) {
+				trackList[i] = {
+					// core
+					source: 'spotify',
+					id: track.id,
+					artists: [],
+					title: track.name,
+					duration: track.duration_ms,
+					
+					// extra
+					link: track.external_urls.spotify,
+				};	
+
+				track.artists.forEach(function (artist, j) {
+					trackList[i].artists[j] = artist.name;
+				});
+			});
+
+			return trackList;
+		}
+	}
+
+	function arrangeResults(type, selection) {
+		var combinedResults = [];
+		var totalLength = searchResults.tracksPerSource * searchResults.page * selection.length;
+		
+		// [a, b, c, a, b, c]
+		if (type == 'mix') {
+			// loop for at maximum the amount of tracks requested (incase only one source exists)
+			for (var i = 0; i < totalLength; i++) {
+				// loop through each source
+				selection.forEach(function(source) {
+					// if the source has a track at index i
+					if (searchResults[source][i]) {
+						// push it to combinedResults
+						combinedResults.push(searchResults[source][i]);
+					}
+				});
+
+				// old, not needed anymore, pushed values will be of known length
+				// once/if combinedResults is filled with the requested number of tracks, break
+				//if (combinedResults.length =< number) { break; }
+			}
+
+			return combinedResults;
+		}
+
+		// [a, a, b, b, c, c]
+		// if (type == 'sequence') {
+		// 	var fromEach = floor(number / selection.length);
+		// }
+	}
+
+	function displayList(trackList) {
+		trackList.forEach(function(track, index) {
+			$('#list').append(
+				$('<li/>')
+					.data('data', track)
+					.addClass('searchResult' + index)
+					.append([
+						$('<span/>')
+							.addClass('searchResultArtists')
+							.text(track.artists.join(', ')),
+						$('<span/>')
+							.addClass('searchResultTitle')
+							.text(track.title),
+						$('<span/>')
+							.addClass('searchResultDuration')
+							.text(msFormat(track.duration)),
+						$('<button/>')
+							.addClass('searchResultPreview')
+							.text('Preview'),
+					])
+			);
+		});
+	}
+
+	// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
+	// .on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
+	// TODO .on() should be bound to the closest non-dynamic element (cause its faster?)
+	$(document).on("click", ".searchResultPreview", function() {
+		console.log(".searchResultPreview.click() called");
+
+		var id = $(this).parent().data('data').id;
+
+		console.log(id);
+		start(id);
+	});
 
 	// page
 
@@ -227,6 +344,12 @@ $(document).ready(function() {
 		console.log("#connectPlayer.click() called");
 
 		spotifyConnectPlayer();
+	});
+
+	$("#search").click(function() {
+		console.log("#search.click() called");
+
+		search(getURI());
 	});
 
 	$("#change").click(function() {
@@ -247,6 +370,24 @@ $(document).ready(function() {
 		seek(20000);
 	});
 
+	$("#ajax").click(function() {
+		console.log("#ajax.click() called");
+	
+		$.ajax({
+			url: 'request.php',
+			type: "POST",
+			
+			data: {
+				request: 'refreshTokens',
+				name: 'blah',
+				blah: 'name',
+			},
+
+			success: function(data){
+				console.log('Result: ' + data);
+			}
+		});
+	});
 
 	// old
 

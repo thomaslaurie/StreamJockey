@@ -2,12 +2,8 @@
 	require_once('top.php');
 	// TODO validate GET variables
 
-	// initialize
-	$return = isset($_SESSION['pastPage']) ? $_SESSION['pastPage'] : 'index.php';
-
 	function goBack() {
-		//header('Location: ' . $_SERVER['DOCUMENT_ROOT'] . $return);
-		header('Location: ' . 'index.php');
+		header('Location: ' . $_SESSION['pastPage']);
 		exit;
 	}
 
@@ -15,7 +11,7 @@
 	if (isset($_GET['command'])) {
 		// service cases
 
-		if ($_GET['command']== 'spotify') {
+		if ($_GET['command'] == 'spotify') {
 			// https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
 			$options = [
 				'scope' => $_SESSION['spotifyScope'],

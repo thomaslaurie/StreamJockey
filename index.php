@@ -21,9 +21,13 @@
 	<button id='connectPlayer'>Connect Player</button>
 	<input id='uri' type='text' placeholder='spotify uri'>
 	<p>3BiIPNWmMeJAK9iwEFTeDX</p>
+	<p id='result'>Result</p>
+	<button id='search'>Search</button>
 	<button id='change'>Change</button>
 	<button id='toggle'>Toggle</button>
 	<button id='seek'>Seek</button>
+	<button id='ajax'>Ajax</button>
+	<ul id='list'></ul>
 <?php
 	require_once('footer.php');
 ?>

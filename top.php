@@ -7,12 +7,26 @@
 	session_start();
 
 	// site
-	// move current to past
-	$_SESSION['pastPage'] = isset($_SESSION['currentPage']) ? $_SESSION['currentPage'] : null;
-	// get name of current page
-	$_SESSION['currentPage'] = $_SERVER['PHP_SELF'];
 
-	// Credentials
+	// list of pages that should be passed on when returning to a page
+	$exclusionList = ['auth.php', ];
+	$excluded = false;
+	foreach($exclusionList as $uri) {
+		if (strpos($_SERVER['REQUEST_URI'], $uri)) {
+			$excluded = true;
+		}
+	}
+
+	// if this page is not excluded, update $_SESSION['pastPage'] and $_SESSION['currentPage']
+	if(!$excluded) {
+		// move current to past
+		$_SESSION['pastPage'] = isset($_SESSION['currentPage']) ? $_SESSION['currentPage'] : 'index.php';
+		// get name of current page
+		$_SESSION['currentPage'] = $_SERVER['REQUEST_URI'];
+	}
+
+
+	// credentials
 	$clientID = 'ba31691d69c84626a6e762d332060d7a';
 	$clientSecret = 'b142422ce75343cda3df02807a41b9c1';
 	// redirectURI has to be whitelisted on https://beta.developer.spotify.com/dashboard/applications/, URIs may have to have a slash at the end???
