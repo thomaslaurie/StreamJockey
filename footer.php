@@ -1,58 +1,39 @@
 	</body>
 
+	<!-- variables -->
 	<script>
-		// globals
+		// constants
+		var WEB_PLAYER_NAME = 'StreamJockey Web Player';
+
+		// pass php variables to javascript
 		<?php
 			if (isset($_SESSION['spotifyAccessToken'])) {
 				echo "var spotifyAccessToken = " . json_encode($_SESSION['spotifyAccessToken']);
 			} else {
 				echo "var spotifyAccessToken = ''";
 			}
-
 		?>
-
-		// constants
-		var WEB_PLAYER_NAME = 'StreamJockey Web Player';
 	</script>
 
-<!--
-	<script src='https://sdk.scdn.co/spotify-player.js'></script>
-	<script>
-		// this method must be defined immediately after spotify-player.js
-		window.onSpotifyWebPlaybackSDKReady = () => {
-			// initialize
-			const token = spotifyAccessToken;
-			const player = new Spotify.Player({
-				name: WEB_PLAYER_NAME,
-				getOAuthToken: cb => { cb(token); }
-			});
-
-			// configure listeners
-			// error handling
-			player.addListener('initialization_error', ({message}) => { console.error(message); });
-			player.addListener('authentication_error', ({message}) => { console.error(message); });
-			player.addListener('account_error', ({message}) => { console.error(message); });
-			player.addListener('playback_error', ({message}) => { console.error(message); });
-
-			// playback status updates
-			player.addListener('player_state_changed', state => { 
-				// console.log(state); 
-			});
-
-			// ready
-			player.addListener('ready', ({device_id}) => {
-				console.log('Ready with Device ID', device_id);
-			});
-
-			// connect to player
-			player.connect();
-		};
-	</script>
--->
-
+	<!-- jquery -->
 	<script src='jquery-3.3.1.js'></script>
-	<!-- javascript wrapper -->
+	<!-- moment, time functions -->
+	<script src='moment.js'></script>
+
+	<!-- spotify javascript wrapper -->
 	<script src='spotify-web-api.js'></script>
 
+	<!-- must after spotify javascript wrapper, but fefore youtube data api -->
 	<script src='main.js'></script>
+
+	<!-- youtube data api 		
+		async loads script at the same time html is being parsed, defer doesnt run the script until html has been fully parsed 
+		http://www.growingwiththeweb.com/2014/02/async-vs-defer-attributes.html
+		
+		google's extensive version: 
+		when this script loads, it changes its own onload attribute to an empty function, then calls handleClientLoad()
+		<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()" onreadystatechange="if (this.readyState === 'complete') this.onload()"></script> -->
+	<script src="https://apis.google.com/js/api.js" onload="loadYoutubeDataApi()"></script>
+
+	
 </html>

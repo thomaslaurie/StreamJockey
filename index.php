@@ -19,14 +19,17 @@
 ?>
 	<a href='auth.php?command=spotify'>Connect Account</a>
 	<button id='connectPlayer'>Connect Player</button>
-	<input id='uri' type='text' placeholder='spotify uri'>
+	<input id='uri' type='text' placeholder='search' value='tycho'>
 	<p>3BiIPNWmMeJAK9iwEFTeDX</p>
 	<p id='result'>Result</p>
 	<button id='search'>Search</button>
-	<button id='change'>Change</button>
 	<button id='toggle'>Toggle</button>
 	<button id='seek'>Seek</button>
 	<button id='ajax'>Ajax</button>
+	<button id='test'>Test</button>
+	<div id="youtubePlayerWrapper">
+        <div id="youtubePlayer"></div>
+    </div>
 	<ul id='list'></ul>
 <?php
 	require_once('footer.php');
