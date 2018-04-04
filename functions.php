@@ -22,6 +22,7 @@
 				"message" => "Failed to connect to database",
 				"origin" => ".php openDB()",
 				"target" => "",
+				"class" => "",
 			);
 
 			return $errorObject;
@@ -244,8 +245,8 @@
 							"type" => "forbidden",
 							"message" => "User already exists",
 							"origin" => ".php register()",
-							"target" => "",
-							"class" => "",
+							"target" => "registerUserName",
+							"class" => "inputError",
 						);
 			
 						return $errorObject;
@@ -275,6 +276,9 @@
 
 	// login
 	function login($userName, $password) {
+		// trim on login because it is also trimmed on register
+		$userName = trim($userName);
+
 		$db = openDB();
 		// check openDB success
 		if (getType($db) === 'object') {
@@ -310,6 +314,7 @@
 							"message" => "User logged in",
 							"origin" => ".php login()",
 							"target" => "",
+							"class" => "",
 						);
 
 						return $successObject;
@@ -323,6 +328,7 @@
 							"message" => "Password incorrect",
 							"origin" => ".php login()",
 							"target" => "loginPassword",
+							"class" => "",
 						);
 			
 						return $errorObject;
@@ -337,6 +343,7 @@
 						"message" => "User not found",
 						"origin" => ".php login()",
 						"target" => "loginUserName",
+						"class" => "",
 					);
 		
 					return $errorObject;
@@ -351,6 +358,7 @@
 					"message" => "Failed to query user list",
 					"origin" => ".php login()",
 					"target" => "",
+					"class" => "",
 				);
 
 				return $errorObject;			

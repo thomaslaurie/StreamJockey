@@ -3,6 +3,7 @@
 	// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
 	// .on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
 
+
 // Globals
 var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
 
@@ -24,16 +25,18 @@ $(document).on("click", "#ajax", function() {
 });
 
 
-// login
-$(document).on("click", "#loginSubmit", function() {
-	console.log("#loginSubmit.click() called");
-	serverCommand({
-		request: 'login',
-		userName: $('#loginUserName').val(),
-		password: $('#loginPassword').val(),
-	}, function (data) {
-		elementErrorList = [];
 
+function login(userName, password) {
+	clearElementErrorGroup([
+		'loginUserName',
+		'loginPassword',
+	]);
+
+	serverCommand({
+		'request': 'login',
+		'userName': userName,
+		'password': password,
+	}, function (data) {
 		if (data.objectType == 'success') {
 			// TODO handle success
 			$('body').append(
@@ -49,25 +52,25 @@ $(document).on("click", "#loginSubmit", function() {
 			}
 
 			addElementError(elementError);
-			updateElementErrors();
 		}
 	});
-});
+}
 
-// register
-$(document).on("click", "#registerSubmit", function() {
-	console.log("#registerSubmit.click() called");
+function register(email, userName, password1, password2) {
+	clearElementErrorGroup([
+		'registerEmail',
+		'registerUserName',
+		'registerPassword1',
+		'registerPassword2',
+	]);
+
 	serverCommand({
-		request: 'register',
-		email: $('#registerEmail').val(),
-		userName: $('#registerUserName').val(),
-		password1: $('#registerPassword1').val(),
-		password2: $('#registerPassword2').val(),
+		'request': 'register',
+		'email': email,
+		'userName': userName,
+		'password1': password1,
+		'password2': password2,
 	}, function (data) {
-		// reset list
-		// TODO no way of knowing what errors ARENT present, therefore no way of knowning which ones to remove on updateElementErrors, need to find a way of clearing groups of errors when it is known that the whole set is being checked
-		elementErrorList = [];
-
 		// !!! is array if validation error
 		if (!$.isArray(data)) {
 			if (data.objectType == 'success') {
@@ -76,11 +79,15 @@ $(document).on("click", "#registerSubmit", function() {
 					$('<p/>')
 						.text(data.message)
 				);
+
+				// login
+				login(userName, password1);
 			} else if (data.objectType == 'error') {
+				console.log(data);
 				// non validation error
 				var elementError = {
 					id: data.target,
-					storedState: $('#' + data.target).val(),
+					storedState: $(document.getElementById(data.target)).val(),
 					class: data.class,
 					message: data.message,
 				}
@@ -92,19 +99,35 @@ $(document).on("click", "#registerSubmit", function() {
 			data.forEach(function (dataItem) {
 				var elementError = {
 					id: dataItem.target,
-					storedState: $('#' + dataItem.target).val(),
+					storedState: $(document.getElementById(dataItem.target)).val(),
 					class: dataItem.class,
 					message: dataItem.message,
 				}
 				
 				addElementError(elementError);
-				updateElementErrors();
 			});
 		}
-
-		
-		
 	});
+}
+
+
+// login
+$(document).on("click", "#loginSubmit", function() {
+	console.log("#loginSubmit.click() called");
+	var userName = $('#loginUserName').val();
+	var password = $('#loginPassword').val();
+	login(userName, password);
+});
+
+// register
+$(document).on("click", "#registerSubmit", function() {
+	console.log("#registerSubmit.click() called");
+	var email = $('#registerEmail').val();
+	var userName = $('#registerUserName').val();
+	var password1 = $('#registerPassword1').val();
+	var password2 = $('#registerPassword2').val();
+
+	register(email, userName, password1, password2);
 });
 
 // page error display
@@ -124,34 +147,60 @@ var elementErrorClasses = [
 
 ];
 
+
+
 function clearElementError(elementError) {
-	elementErrorList.forEach(function(listItem, i) {
-		if (elementError.id === listItem.id) {
+	console.log('clearElementError(' + elementError.id + ') called');
+
+	// backwards delete loop
+	for (var i = elementErrorList.length - 1; 0 <= i; i--) {
+		if (elementError.id === elementErrorList[i].id) {
 			elementErrorList.splice(i, 1);
+		}
+	}
+}
+
+function clearElementErrorGroup(elementErrorIdArray) {
+	console.log('clearElementErrorGroup(' + elementErrorIdArray + ') called');
+
+	// any call that creates element errors must be responsible for cleaning them up
+	elementErrorIdArray.forEach(function(elementErrorId, i) {
+		// identifies by id instead of the entire element
+		
+		// backwards delete loop
+		for (var j = elementErrorList.length - 1; 0 <= j; j--) {
+			if (elementErrorId === elementErrorList[j].id) {
+				elementErrorList.splice(j, 1);
+			}
 		}
 	});
 }
 
 function addElementError(elementError) {
+	console.log('addElementError(' + elementError.id + ') called');
+
+	// replace existing with new info
 	clearElementError(elementError);
-	elementErrorList.push(elementError);
+	if (elementErrorList.id !== "") {
+		// only push to elementErrorList if the error has a target (and therefore is cleaned by a function)
+		elementErrorList.push(elementError);
+	}
 }
 
 function updateElementErrors() {
 	console.log('updateErrorElements() called');
-	console.log(elementErrorList);
-
+	
 	// remove all error messages
 	$('.elementErrorMessage').remove();
 		
 	// remove all error classes
 	elementErrorClasses.forEach(function (elementErrorClass, i) {
-		$('.' + elementErrorClass).removeClass(elementErrorClass);
+		$(document.getElementsByClassName(elementErrorClass)).removeClass(elementErrorClass);
 	});
 
 	// add for each
 	elementErrorList.forEach(function(elementError, i) {
-		$('#' + elementError.id)
+		$(document.getElementById(elementError.id))
 			// class
 			.addClass(elementError.class)
 			.after(
@@ -161,6 +210,8 @@ function updateElementErrors() {
 					.addClass('elementErrorMessage')
 			);
 	});
+
+	console.log('Updated List: ' + elementErrorList);
 }
 
 // utility
@@ -184,10 +235,15 @@ function serverCommand(data, callback) {
 				message: textStatus,
 				origin: 'serverCommand()',
 				target: '',
+				class: '',
 			}
 
 			console.log(errorObject.origin + " - " + errorObject.type + ": " + errorObject.message);
 			callback(errorObject);
+		},
+		complete: function(jqXHR, textStatus) {
+			// update any displayed errors
+			updateElementErrors();
 		}
 	});
 }

@@ -12,5 +12,9 @@ ul {
 
 button,
 input[type=submit] {
-	
+
+}
+
+.inputError {
+	background: red;
 }
