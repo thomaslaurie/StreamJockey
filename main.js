@@ -1,11 +1,246 @@
 // TODO go through and make error handlers for everything, including making callbacks all the way up function trees
+// TODO .on() should be bound to the closest non-dynamic element (cause its faster?)
+	// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
+	// .on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
 
+// Globals
+var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
+
+// test
 $("#test").click(function() {
 	console.log(youtubePlayer.getVideoUrl());
 });
 
-// Globals
-var YOUTUBE_ID_PREFIX = 'https\:\/\/www\.youtube\.com\/watch\?v\=';
+$(document).on("click", "#ajax", function() {
+	console.log("#ajax.click() called");
+
+	serverCommand({
+		request: 'refreshTokens',
+		name: 'blah',
+		blah: 'name',
+	}, function (data) {
+
+	});
+});
+
+
+// login
+$(document).on("click", "#loginSubmit", function() {
+	console.log("#loginSubmit.click() called");
+	serverCommand({
+		request: 'login',
+		userName: $('#loginUserName').val(),
+		password: $('#loginPassword').val(),
+	}, function (data) {
+		elementErrorList = [];
+
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+		} else if (data.objectType == 'error') {
+			var elementError = {
+				id: data.target,
+				storedState: $('#' + data.target).val(),
+				class: data.class,
+				message: data.message,
+			}
+
+			addElementError(elementError);
+			updateElementErrors();
+		}
+	});
+});
+
+// register
+$(document).on("click", "#registerSubmit", function() {
+	console.log("#registerSubmit.click() called");
+	serverCommand({
+		request: 'register',
+		email: $('#registerEmail').val(),
+		userName: $('#registerUserName').val(),
+		password1: $('#registerPassword1').val(),
+		password2: $('#registerPassword2').val(),
+	}, function (data) {
+		// reset list
+		// TODO no way of knowing what errors ARENT present, therefore no way of knowning which ones to remove on updateElementErrors, need to find a way of clearing groups of errors when it is known that the whole set is being checked
+		elementErrorList = [];
+
+		// !!! is array if validation error
+		if (!$.isArray(data)) {
+			if (data.objectType == 'success') {
+				// TODO handle success
+				$('body').append(
+					$('<p/>')
+						.text(data.message)
+				);
+			} else if (data.objectType == 'error') {
+				// non validation error
+				var elementError = {
+					id: data.target,
+					storedState: $('#' + data.target).val(),
+					class: data.class,
+					message: data.message,
+				}
+	
+				addElementError(elementError);
+			}
+		} else {
+			// validation errors
+			data.forEach(function (dataItem) {
+				var elementError = {
+					id: dataItem.target,
+					storedState: $('#' + dataItem.target).val(),
+					class: dataItem.class,
+					message: dataItem.message,
+				}
+				
+				addElementError(elementError);
+				updateElementErrors();
+			});
+		}
+
+		
+		
+	});
+});
+
+// page error display
+var elementErrorTemplate = {
+	id: '',
+	storedState: '',
+
+	class: '',
+	message: '',
+}
+
+var elementErrorList = [];
+
+// list of all elementErrorClasses
+var elementErrorClasses = [
+	'inputError',
+
+];
+
+function clearElementError(elementError) {
+	elementErrorList.forEach(function(listItem, i) {
+		if (elementError.id === listItem.id) {
+			elementErrorList.splice(i, 1);
+		}
+	});
+}
+
+function addElementError(elementError) {
+	clearElementError(elementError);
+	elementErrorList.push(elementError);
+}
+
+function updateElementErrors() {
+	console.log('updateErrorElements() called');
+	console.log(elementErrorList);
+
+	// remove all error messages
+	$('.elementErrorMessage').remove();
+		
+	// remove all error classes
+	elementErrorClasses.forEach(function (elementErrorClass, i) {
+		$('.' + elementErrorClass).removeClass(elementErrorClass);
+	});
+
+	// add for each
+	elementErrorList.forEach(function(elementError, i) {
+		$('#' + elementError.id)
+			// class
+			.addClass(elementError.class)
+			.after(
+				// error message
+				$('<div/>')
+					.text(elementError.message)
+					.addClass('elementErrorMessage')
+			);
+	});
+}
+
+// utility
+function serverCommand(data, callback) {
+	console.log("serverCommand("+ data.request + ") called");
+	$.ajax({
+		// http://api.jquery.com/jquery.ajax/
+		"url": "request.php",
+		"type": "POST",
+		"data": data,
+		success: function(data){
+			data = JSON.parse(data);
+			console.log("Server Data Returned: " + data);
+			callback(data);
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			var errorObject = {
+				objectType: 'error',
+				code: '',
+				type: 'Ajax error',
+				message: textStatus,
+				origin: 'serverCommand()',
+				target: '',
+			}
+
+			console.log(errorObject.origin + " - " + errorObject.type + ": " + errorObject.message);
+			callback(errorObject);
+		}
+	});
+}
+
+
+
+function logError(error) {
+	// TODO update this method to handle errors from different sources
+	var response = JSON.parse(error.response);
+
+	var status = response.error.status;
+	var message = response.error.message;
+
+	console.error('Status: ' + status);
+	console.error('Message: ' + message);
+	console.error(error);
+}
+
+function msFormat(ms) {
+	// extract
+	var minutes = Math.floor(ms / 60000);
+	var seconds = Math.ceil(ms % 60000);
+
+	// format
+	seconds = ('0' + seconds).slice(-2);
+
+	// returns ...0:00 format rounded up to the nearest second
+	return minutes + ':' + seconds;
+}
+
+// success object
+// only gets returned when function has no content to return on success
+var successObjectTemplate = {
+	objectType: 'success',
+	code: '200',
+	type: '',
+	message: '',
+	origin: '',
+	target: '',
+}
+
+// error object
+var errorObjectTemplate = {
+	objectType: 'error',
+	code: '',
+	type: '',
+	message: '',
+	origin: '',
+	target: '',
+	class: '',
+}
+
+
 
 // initialize
 
@@ -155,6 +390,8 @@ function onPlayerStateChange(event) {
 
 // playback
 var trackTemplate = {
+	objectType: 'track',
+
 	source: "",
 	id: "",
 	artists: [],
@@ -316,33 +553,6 @@ function updatePlaybackState() {
 			}
 		}
 	});
-}
-
-
-// functions
-
-function logError(error) {
-	// TODO update this method to handle errors from different sources
-	var response = JSON.parse(error.response);
-
-	var status = response.error.status;
-	var message = response.error.message;
-
-	console.error('Status: ' + status);
-	console.error('Message: ' + message);
-	console.error(error);
-}
-
-function msFormat(ms) {
-	// extract
-	var minutes = Math.floor(ms / 60000);
-	var seconds = Math.ceil(ms % 60000);
-
-	// format
-	seconds = ('0' + seconds).slice(-2);
-
-	// returns ...0:00 format rounded up to the nearest second
-	return minutes + ':' + seconds;
 }
 
 
@@ -647,9 +857,6 @@ function displayList(trackList) {
 	});
 }
 
-// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
-// .on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
-// TODO .on() should be bound to the closest non-dynamic element (cause its faster?)
 $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview.click() called");
 
@@ -658,7 +865,12 @@ $(document).on("click", ".searchResultPreview", function() {
 	updatePlaybackState();
 });
 
-// page
+// connect
+$(document).on("click", "#spotifyConnectAccount", function() {
+	console.log("#spotifyConnectAccount.click() called");
+	//serverCommand({request: 'spotifyConnectAccount'}, function (data) {});
+	window.location.href = "auth.php?source=spotify";
+});
 
 $(document).on("click", "#connectPlayer", function() {
 	console.log("#connectPlayer.click() called");
@@ -667,6 +879,7 @@ $(document).on("click", "#connectPlayer", function() {
 	youtubeSetupPlayer();
 });
 
+// page
 $(document).on("click", "#search", function() {
 	console.log("#search.click() called");
 
@@ -680,44 +893,8 @@ $(document).on("click", "#toggle", function() {
 	updatePlaybackState();
 });
 
-
-
-
 $(document).on("click", "#seek", function() {
 	console.log("#seek.click() called");
 
 	seek(20000);
 });
-
-$(document).on("click", "#ajax", function() {
-	console.log("#ajax.click() called");
-
-	$.ajax({
-		url: 'request.php',
-		type: "POST",
-		
-		data: {
-			request: 'refreshTokens',
-			name: 'blah',
-			blah: 'name',
-		},
-
-		success: function(data){
-			console.log('Result: ' + data);
-		}
-	});
-});
-
-// old
-
-// $("#reload").click(function() {
-// 	console.log("#reload.click() called");
-
-// 	window.location.reload();
-// });
-
-// $("#connectDevice").click(function() {
-// 	console.log("#connectDevice.click() called");
-
-// 	spotifyConnectAPI();
-// });

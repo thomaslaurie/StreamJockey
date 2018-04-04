@@ -8,10 +8,10 @@
 	}
 
 	// send to auth location
-	if (isset($_GET['command'])) {
+	if (isset($_GET['source'])) {
 		// service cases
 
-		if ($_GET['command'] == 'spotify') {
+		if ($_GET['source'] == 'spotify') {
 			// https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
 			$options = [
 				'scope' => $_SESSION['spotifyScope'],
@@ -24,7 +24,7 @@
 			exit();
 		}
 
-		if ($_GET['command'] == 'youtube') {
+		if ($_GET['source'] == 'youtube') {
 		}
 	}
 
@@ -73,6 +73,6 @@
 		goBack();
 	}
 
-	// if no authReturn or command, go back
+	// if no authReturn or source, go back
 	goBack();
 ?>

@@ -1,4 +1,6 @@
 <?php
+	// TODO fill in error targets
+
 	require_once('top.php');
 
 	// page
@@ -17,6 +19,7 @@
 	// }
 
 ?>
+	<button id='spotifyConnectAccount'>Spotify Connect Account</button>
 	<a href='auth.php?command=spotify'>Connect Account</a>
 	<button id='connectPlayer'>Connect Player</button>
 	<input id='uri' type='text' placeholder='search' value='tycho'>

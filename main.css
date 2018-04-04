@@ -9,3 +9,8 @@ ul {
 	height: 100px;
 	/* display: none; */
 }
+
+button,
+input[type=submit] {
+	
+}

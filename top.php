@@ -6,6 +6,12 @@
 
 	session_start();
 
+	// globals
+	// registration
+	$GLOBALS['stringMaxLength'] = 100;
+	$GLOBALS['nameMinLength'] = 2;
+	$GLOBALS['passwordMinLength'] = 6;
+
 	// site
 
 	// list of pages that should be passed on when returning to a page
