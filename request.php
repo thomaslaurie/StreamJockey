@@ -5,24 +5,22 @@
 	$dataEntries = [
 		'request',
 
-		// login
-		'userName',
-		'password',
+		// multiple
+		'id',
 
-		// register
-		'email',
+		// account
+		'name',
+		'password',
 		'password1',
 		'password2',
+		'email',
 
-		// addPlaylist
+		// playlist
 		'title',
 		'visibility',
 		'description',
 		'color',
 		'image',
-
-		// delete playlist
-		'id',
 	];
 
 	// process data
@@ -32,11 +30,11 @@
 
 	// handle request types
 	if ($request === 'register') {
-		$result = register($email, $userName, $password1, $password2);
+		$result = register($email, $name, $password1, $password2);
 		// !!! errorObject array if validation error
 		echo json_encode($result);
 	} else if ($request === 'login') {
-		$result = login($userName, $password);
+		$result = login($name, $password);
 		echo json_encode($result);
 	} else if ($request === 'logout') {
 		$result = logout();
@@ -46,6 +44,12 @@
 		echo json_encode($result);
 	} else if ($request === 'deletePlaylist') {
 		$result = deletePlaylist($id);
+		echo json_encode($result);
+	} else if ($request === 'getCurrentUser') {
+		$result = getCurrentUser();
+		echo json_encode($result);
+	} else if ($request === 'getUser') {
+		$result = getUser($id);
 		echo json_encode($result);
 	} else if ($request === null) {
 		$errorObject = array(

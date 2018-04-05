@@ -1,3 +1,11 @@
+//  ████████╗ ██████╗ ██████╗  ██████╗     ██╗     ██╗███████╗████████╗
+//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗    ██║     ██║██╔════╝╚══██╔══╝
+//     ██║   ██║   ██║██║  ██║██║   ██║    ██║     ██║███████╗   ██║   
+//     ██║   ██║   ██║██║  ██║██║   ██║    ██║     ██║╚════██║   ██║   
+//     ██║   ╚██████╔╝██████╔╝╚██████╔╝    ███████╗██║███████║   ██║   
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝     ╚══════╝╚═╝╚══════╝   ╚═╝   
+//                                                                     
+
 // TODO go through and make error handlers for everything, including making callbacks all the way up function trees
 // TODO .on() should be bound to the closest non-dynamic element (cause its faster?)
 	// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
@@ -5,24 +13,32 @@
 // TODO maxlength attribute can be used for input elements, use this to get real-time validation checks for max lenth
 
 
-// Globals
+//   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     ███████╗
+//  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝
+//  ██║  ███╗██║     ██║   ██║██████╔╝███████║██║     ███████╗
+//  ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║     ╚════██║
+//  ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗███████║
+//   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
+//                                                            
+
 var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
 
-// test
-$(".test").click(function() {
 
-	$(document.getElementById('loginPassword'))
-	// class
-	.addClass('inputError')
-	.after(
-		// error message
-		$('<div/>')
-			.text('Password incorrect')
-			.addClass('elementErrorMessage')
-	);
+//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ ███████╗
+//  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝
+//  █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝███████╗
+//  ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗╚════██║
+//  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║███████║
+//  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+//                                                   
+
+// test
+$("#test").click(function() {
+
+	getUser($('#testInput'));
 });
 
-// error
+// templates
 var successObjectTemplate = {
 	// only gets returned when function has no content to return on success
 	'objectType': 'success',
@@ -45,7 +61,7 @@ var errorObjectTemplate = {
 	'class': '',
 }
 
-// error display
+// display
 var elementErrorTemplate = {
 	'target': '',
 	'storedState': '',
@@ -55,12 +71,6 @@ var elementErrorTemplate = {
 }
 
 var elementErrorList = [];
-
-// list of all elementErrorClasses for updateElementErrors()
-var elementErrorClasses = [
-	'inputError',
-
-];
 
 function clearElementError(elementError) {
 	console.log('clearElementError(' + elementError.target + ') called');
@@ -102,6 +112,11 @@ function addElementError(elementError) {
 
 function updateElementErrors() {
 	console.log('updateErrorElements() called');
+
+	// list of all elementErrorClasses TODO keep me updated
+	var elementErrorClasses = [
+		'inputError',
+	];
 	
 	// remove all error messages
 	$('.elementErrorMessage').remove();
@@ -113,9 +128,6 @@ function updateElementErrors() {
 
 	// add for each
 	elementErrorList.forEach(function(elementError, i) {
-		console.log('Element Error Target: ' + elementError.target);
-		console.log('Element Error Class: ' + elementError.class);
-		console.log('Element Error Message: ' + elementError.message);
 		$(document.getElementById(elementError.target))
 			// class
 			.addClass(elementError.class)
@@ -126,11 +138,17 @@ function updateElementErrors() {
 					.addClass('elementErrorMessage')
 			);
 	});
-
-	console.log('Updated List: ' + elementErrorList);
 }
 
-// utility
+
+//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
+//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
+//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
+//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
+//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
+//                                                    
+
 function serverCommand(data, callback) {
 	console.log("serverCommand("+ data.request + ") called");
 	$.ajax({
@@ -165,6 +183,19 @@ function serverCommand(data, callback) {
 	});
 }
 
+function handleError(error) {
+	var elementError = {
+		target: error.target,
+		storedState: $(document.getElementById(error.target)).val(),
+		class: error.class,
+		message: error.message,
+	}
+	console.log(elementError);
+
+	addElementError(elementError);
+}
+
+// TODO implement api erros into new error format and handleError()
 function logError(error) {
 	// TODO update this method to handle errors from different sources
 	var response = JSON.parse(error.response);
@@ -189,23 +220,30 @@ function msFormat(ms) {
 	return minutes + ':' + seconds;
 }
 
-// functionality
-// accounts
-function register(email, userName, password1, password2) {
+
+//   █████╗  ██████╗ ██████╗ ██████╗ ██╗   ██╗███╗   ██╗████████╗███████╗
+//  ██╔══██╗██╔════╝██╔════╝██╔═══██╗██║   ██║████╗  ██║╚══██╔══╝██╔════╝
+//  ███████║██║     ██║     ██║   ██║██║   ██║██╔██╗ ██║   ██║   ███████╗
+//  ██╔══██║██║     ██║     ██║   ██║██║   ██║██║╚██╗██║   ██║   ╚════██║
+//  ██║  ██║╚██████╗╚██████╗╚██████╔╝╚██████╔╝██║ ╚████║   ██║   ███████║
+//  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+//                                                                       
+
+function register(name, password1, password2, email,) {
 	var inputs = [
-		email,
-		userName,
+		name,
 		password1,
 		password2,
+		email,
 	];
 	clearElementErrorGroup(inputs);
 
 	serverCommand({
 		'request': 'register',
-		'email': email.val(),
-		'userName': userName.val(),
+		'name': name.val(),
 		'password1': password1.val(),
 		'password2': password2.val(),
+		'email': email.val(),
 	}, function (data) {
 		// !!! is array if validation error
 		if (!$.isArray(data)) {
@@ -217,50 +255,34 @@ function register(email, userName, password1, password2) {
 				);
 
 				// login (must be before entries are wiped)
-				login(userName, password1);
+				login(name, password1);
 
 				// wipe entries
 				inputs.forEach(function(input) {
 					input.val('');
 				});
 			} else if (data.objectType == 'error') {
-				console.log(data);
-				// non validation error
-				var elementError = {
-					target: data.target,
-					storedState: $(document.getElementById(data.target)).val(),
-					class: data.class,
-					message: data.message,
-				}
-	
-				addElementError(elementError);
+				handleError(data);
 			}
 		} else {
 			// validation errors
-			data.forEach(function (dataItem) {
-				var elementError = {
-					target: dataItem.target,
-					storedState: $(document.getElementById(dataItem.target)).val(),
-					class: dataItem.class,
-					message: dataItem.message,
-				}
-				
-				addElementError(elementError);
+			data.forEach(function (item) {
+				handleError(item);
 			});
 		}
 	});
 }
 
-function login(userName, password) {
+function login(name, password) {
 	var inputs = [
-		userName,
+		name,
 		password,
 	];
 	clearElementErrorGroup(inputs);
 
 	serverCommand({
 		'request': 'login',
-		'userName': userName.val(),
+		'name': name.val(),
 		'password': password.val(),
 	}, function (data) {
 		if (data.objectType == 'success') {
@@ -279,15 +301,7 @@ function login(userName, password) {
 				input.val('');
 			});
 		} else if (data.objectType == 'error') {
-			var elementError = {
-				target: data.target,
-				storedState: $(document.getElementById(data.target)).val(),
-				class: data.class,
-				message: data.message,
-			}
-			console.log(elementError);
-
-			addElementError(elementError);
+			handleError(data);
 		}
 	});
 }
@@ -309,13 +323,74 @@ function logout() {
 
 			$("#statusUser")
 				.text('Guest');
-		} else {
-			// no other possible return type
+		} else if (data.objectType == 'error') {
+			handleError(data);
 		}
 	});
 }
 
-// playlists
+function getCurrentUser() {
+	var inputs = [
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'getCurrentUser',
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			console.log(
+				'id: ' + data.id,
+				'name: ' + data.name,
+				'email: ' + data.email,
+			);
+		} else if (data.objectType == 'error') {
+			handleError(data);
+		}
+	});
+}
+
+function getUser(id) {
+	var inputs = [
+		'id'
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'getUser',
+		'id': id.val(),
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			console.log(
+				'id: ' + data.id,
+				'name: ' + data.name,
+			);
+		} else if (data.objectType == 'error') {
+			handleError(data);
+		}
+	});
+}
+
+
+//  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗███████╗
+//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██║     ██║██╔════╝╚══██╔══╝██╔════╝
+//  ██████╔╝██║     ███████║ ╚████╔╝ ██║     ██║███████╗   ██║   ███████╗
+//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██║     ██║╚════██║   ██║   ╚════██║
+//  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   ███████║
+//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝
+//                                                                       
+
 function addPlaylist(title, visibility, description, color, image) {
 	var inputs = [
 		title,
@@ -346,15 +421,7 @@ function addPlaylist(title, visibility, description, color, image) {
 				input.val('');
 			});
 		} else if (data.objectType == 'error') {
-			var elementError = {
-				target: data.target,
-				storedState: $(document.getElementById(data.target)).val(),
-				class: data.class,
-				message: data.message,
-			}
-			console.log(elementError);
-
-			addElementError(elementError);
+			handleError(data);
 		}
 	});
 }
@@ -382,24 +449,20 @@ function deletePlaylist(id) {
 				input.val('');
 			});
 		} else if (data.objectType == 'error') {
-			var elementError = {
-				target: data.target,
-				storedState: $(document.getElementById(data.target)).val(),
-				class: data.class,
-				message: data.message,
-			}
-			console.log(elementError);
-
-			addElementError(elementError);
+			handleError(data);
 		}
 	});
 }
 
 
-// initialize
+//  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
+//  ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██║  ██║
+//  ███████╗█████╗  ███████║██████╔╝██║     ███████║
+//  ╚════██║██╔══╝  ██╔══██║██╔══██╗██║     ██╔══██║
+//  ███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║
+//  ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+//                                                  
 
-// search
-// object
 var searchResults = {
 	// details
 	'term': "",
@@ -439,369 +502,6 @@ function loadYoutubeDataApi() {
 		});
 	});
 }
-
-// player
-// spotify
-function spotifySetupPlayer() {
-	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
-	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
-	// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-
-	// TODO requires spotifyAccessToken, if this changes (ie. token frefresh, account swap) how does player get updated? 
-
-	// https://api.jquery.com/jquery.getscript/
-	$.getScript('https://sdk.scdn.co/spotify-player.js');
-	// must be defined immediately after spotify-player.js, acts as the callback function
-	window.onSpotifyWebPlaybackSDKReady = () => {
-		// stuff inside here is optional though
-
-		// initialize
-		var player = new Spotify.Player({
-			name: WEB_PLAYER_NAME,
-			getOAuthToken: cb => { cb(spotifyAccessToken); }
-		});
-
-		// configure listeners
-		// error handling
-		player.addListener('initialization_error', ({message}) => { console.error(message); });
-		player.addListener('authentication_error', ({message}) => { console.error(message); });
-		player.addListener('account_error', ({message}) => { console.error(message); });
-		player.addListener('playback_error', ({message}) => { console.error(message); });
-
-		// playback status updates
-		player.addListener('player_state_changed', state => { 
-			// console.log(state); 
-		});
-
-		// ready
-		player.addListener('ready', ({device_id}) => {
-			// returns a WebPlaybackPlayer object which just contains the created device_id
-			// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-
-			console.log('spotify player ready');
-			spotifyAPI.transferMyPlayback([device_id], {}, function(error, response) {
-				// https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
-				// this function doesn't send a callback, is that a bug or intentional?
-		
-				// if (error) {
-				// 	console.error('transferMyPlayback() failure');
-				// 	logError(error);
-				// }
-		
-				// if (response) {
-				// 	console.log('transferMyPlayback() success');
-				// 	console.log(response);
-				// }
-			});
-		});
-
-		// connect to player
-		player.connect().then(success => {
-			if (success) {
-				// connection success, but still might not be ready, will trigger the ready listener when ready
-				console.log('player.connect() spotify success');
-			} else {
-				// TODO player connect failed
-				console.log('player.connect() spotify failure');
-			}
-		});
-	};
-}
-
-// youtube
-var youtubePlayer;
-
-// youtubePlayer.destroy() kills the iframe
-
-function youtubeSetupPlayer() {
-	console.log('youtubeSetupPlayer() called');
-
-	$.getScript('https://www.youtube.com/iframe_api');
-}
-
-// script callback
-function onYouTubeIframeAPIReady() {
-	console.log('youTubeIframeAPIReady');
-	// https://developers.google.com/youtube/iframe_api_reference#Playback_status
-	// (DOM element, args)
-	youtubePlayer = new YT.Player('youtubePlayer', {
-		height: '100%',
-		width: '100%',
-		events: {
-			'onReady': onPlayerReady,
-			'onStateChange': onPlayerStateChange
-		}
-	});
-}
-
-// player callback
-function onPlayerReady(event) {
-	console.log('youtubePlayer ready');
-}
-
-function onPlayerStateChange(event) {
-}
-
-// playback
-var trackTemplate = {
-	objectType: 'track',
-
-	source: "",
-	id: "",
-	artists: [],
-	title: "",
-	duration: "",
-	link: "",
-};
-
-var desiredPlayback = {
-	playing: false,
-	progress: 0,
-	track: trackTemplate,
-};
-
-var actualPlayback = {
-	spotify: {
-		playing: false,
-		progress: 0,
-		track: trackTemplate,
-	},
-	youtube: {
-		playing: false,
-		progress: 0,
-		track: trackTemplate,
-	},
-};
-
-function youtubeGetTrackDetails(ids, callback) {
-	var all = ids.join(",");
-	var args = {
-		method: 'GET',
-		path: '/youtube/v3/videos',
-		params: {
-			id: all,
-			part: 'snippet,contentDetails',
-		}
-	};
-
-	// https://developers.google.com/youtube/v3/docs/videos/list
-	gapi.client.request(args).then(function(fufilled, rejected) {
-		if (fufilled) {
-			console.log('youtubeGetTrackDetails() success');
-			console.log(fufilled);
-
-			// cannot be empty, or else an empty array will be returned
-			var trackList = [trackTemplate];
-
-			fufilled.result.items.forEach(function (track, i) {
-				// convert ISO_8601 duration to milliseconds
-				var milliseconds = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
-
-				trackList[i] = {
-					source: 'youtube',
-					id: track.id,
-					artists: [],
-					title: track.snippet.title,
-					duration: milliseconds,
-					link: YOUTUBE_ID_PREFIX + track.id,
-				};
-
-				// fill artists
-				trackList[i].artists.push(track.snippet.channelTitle);	
-			});
-			
-			callback(trackList);
-		} else {
-			console.error('youtubeGetTrackDetails() failure');
-			console.error(rejected);
-
-			callback(false);
-		}
-	});
-}
-
-function checkPlaybackState(callback) {
-	// async part counting
-	var finished = 0;
-	var parts = 2;
-	function completeParts() {
-		finished++;
-		if (finished >= parts) {
-			callback();
-		}
-	}
-
-	// spotify
-	spotifyAPI.getMyCurrentPlaybackState({}, function(error, response) {
-		if (error) {
-			console.error('checkPlaybackState() spotify failure');
-			logError(error);
-
-			completeParts();
-		} else if (response) {
-			console.log('checkPlaybackState() spotify success');
-
-			actualPlayback.spotify.playing = response.is_playing;
-			actualPlayback.spotify.progress = response.progress_ms;
-			actualPlayback.spotify.track = {
-				source: 'spotify',
-				id: response.item.id,
-				artists: [],
-				title: response.item.name,
-				duration: response.item.duration_ms,
-				link: response.item.external_urls.spotify,
-			}
-
-			// fill artists
-			response.item.artists.forEach(function (artist, j) {
-				actualPlayback.spotify.track.artists[j] = artist.name;
-			});
-			completeParts();
-		}
-	});
-
-	// youtube
-	var state = youtubePlayer.getPlayerState();
-	if (state == 1 || state == 3) {
-		// playing or buffering
-		actualPlayback.youtube.playing = true;
-	} else {
-		actualPlayback.youtube.playing = false;
-	}
-	
-	actualPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
-
-	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-	var id = youtubePlayer.getVideoUrl().split("v=")[1];
-	if (!id) { id = ''; }
-	var andPosition = id.indexOf("&"); 
-	if (andPosition != -1) { id = id.substring(0, andPosition); }
-	console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
-
-	youtubeGetTrackDetails([id], function(trackList) {
-		console.log('checkPlaybackState() youtube success');
-		actualPlayback.youtube.track = trackList[0];
-		console.log(trackList[0]);
-		console.log(actualPlayback.youtube.track);
-		completeParts();
-	});
-}
-
-function updatePlaybackState() {
-	checkPlaybackState(function() {
-		// no progress comparison made here
-		if (!desiredPlayback.playing) {
-			if (actualPlayback.spotify.playing) { pause('spotify'); }
-			if (actualPlayback.youtube.playing) { pause('youtube'); }
-		} else if (desiredPlayback.playing) {
-			if (desiredPlayback.track.source == 'spotify') {
-				if (!actualPlayback.spotify.playing) { resume('spotify'); }
-				if (actualPlayback.youtube.playing) { pause('youtube'); }
-
-				if (desiredPlayback.track.id != actualPlayback.spotify.track.id) { start('spotify', desiredPlayback.track.id); };
-			} else if (desiredPlayback.track.source == 'youtube') {
-				if (!actualPlayback.youtube.playing) { resume('youtube'); }
-				if (actualPlayback.spotify.playing) { pause('spotify'); }
-				console.log('Desired id: ' + desiredPlayback.track.id + 'Actual id: ' + actualPlayback.youtube.track.id)
-				if (desiredPlayback.track.id != actualPlayback.youtube.track.id) { start('youtube', desiredPlayback.track.id); };
-			}
-		}
-	});
-}
-
-
-// playback control
-
-function start(source, id) {
-	if (source == 'spotify') {
-		console.log("start('spotify') called");
-
-		spotifyAPI.play({"uris":["spotify:track:" + id]}, function(error, response) {
-			if (error) {
-				console.error('start() failure');
-				logError(error);
-			}
-	
-			if (response) {
-				console.log('start() success');
-				console.log(response);
-			}
-		});
-	} else if (source == 'youtube') {
-		console.log("start('youtube') called");
-
-		youtubePlayer.loadVideoById(id);
-		youtubePlayer.playVideo();
-	}
-}
-
-function resume(source) {
-	if (source == 'spotify') {
-		console.log("resume('spotify') called");
-
-		spotifyAPI.play({}, function(error, response) {
-			if (error) {
-				console.error('resume() failure');
-				logError(error);
-			}
-	
-			if (response) {
-				console.log('resume() success');
-				console.log(response);
-			}
-		});
-	} else if (source == 'youtube') {
-		console.log("resume('youtube') called");
-
-		youtubePlayer.playVideo();
-	}
-}
-
-function pause(source) {
-	if (source == 'spotify') {
-		console.log("pause('spotify') called");
-
-		spotifyAPI.pause({}, function(error, response) {
-			if (error) {
-				console.error('pause() failure');
-				logError(error);
-			}
-
-			if (response) {
-				console.log('pause() success');
-				console.log(response);
-			}
-		});
-	} else if (source == 'youtube') {
-		console.log("pause('youtube') called");
-
-		youtubePlayer.pauseVideo();
-	}
-}
-
-function seek(source, ms) {
-	if (source == 'spotify') {
-		console.log("seek('spotify') called");
-
-		spotifyAPI.seek(ms, function(error, response) {
-			if (error) {
-				console.error('seek() failure');
-				logError(error);
-			}
-	
-			if (response) {
-				console.log('seek() success');
-				console.log(response);
-			}
-		});
-	} else if (source == 'youtube') {
-		console.log("seek('youtube') called");
-
-		// (seconds - number, allowSeekAhead of loading - boolean)
-		youtubePlayer.seekTo(Math.round(ms / 1000), true)
-	}
-}
-
 
 // search
 
@@ -939,6 +639,53 @@ function formatSourceResult(source, object, callback) {
 	}
 }
 
+function youtubeGetTrackDetails(ids, callback) {
+	var all = ids.join(",");
+	var args = {
+		method: 'GET',
+		path: '/youtube/v3/videos',
+		params: {
+			id: all,
+			part: 'snippet,contentDetails',
+		}
+	};
+
+	// https://developers.google.com/youtube/v3/docs/videos/list
+	gapi.client.request(args).then(function(fufilled, rejected) {
+		if (fufilled) {
+			console.log('youtubeGetTrackDetails() success');
+			console.log(fufilled);
+
+			// cannot be empty, or else an empty array will be returned
+			var trackList = [trackTemplate];
+
+			fufilled.result.items.forEach(function (track, i) {
+				// convert ISO_8601 duration to milliseconds
+				var milliseconds = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
+
+				trackList[i] = {
+					source: 'youtube',
+					id: track.id,
+					artists: [],
+					title: track.snippet.title,
+					duration: milliseconds,
+					link: YOUTUBE_ID_PREFIX + track.id,
+				};
+
+				// fill artists
+				trackList[i].artists.push(track.snippet.channelTitle);	
+			});
+			
+			callback(trackList);
+		} else {
+			console.error('youtubeGetTrackDetails() failure');
+			console.error(rejected);
+
+			callback(false);
+		}
+	});
+}
+
 function refreshSearchResults() {
 	console.log('refreshSearchResults() called');
 
@@ -1011,6 +758,351 @@ function displayList(trackList) {
 	});
 }
 
+
+//  ██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ ███████╗
+//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔════╝██╔══██╗██╔════╝
+//  ██████╔╝██║     ███████║ ╚████╔╝ █████╗  ██████╔╝███████╗
+//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██╔══╝  ██╔══██╗╚════██║
+//  ██║     ███████╗██║  ██║   ██║   ███████╗██║  ██║███████║
+//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
+//                                                           
+
+// spotify
+function spotifySetupPlayer() {
+	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
+	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
+	// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+
+	// TODO requires spotifyAccessToken, if this changes (ie. token frefresh, account swap) how does player get updated? 
+
+	// https://api.jquery.com/jquery.getscript/
+	$.getScript('https://sdk.scdn.co/spotify-player.js');
+	// must be defined immediately after spotify-player.js, acts as the callback function
+	window.onSpotifyWebPlaybackSDKReady = () => {
+		// stuff inside here is optional though
+
+		// initialize
+		var player = new Spotify.Player({
+			name: WEB_PLAYER_NAME,
+			getOAuthToken: cb => { cb(spotifyAccessToken); }
+		});
+
+		// configure listeners
+		// error handling
+		player.addListener('initialization_error', ({message}) => { console.error(message); });
+		player.addListener('authentication_error', ({message}) => { console.error(message); });
+		player.addListener('account_error', ({message}) => { console.error(message); });
+		player.addListener('playback_error', ({message}) => { console.error(message); });
+
+		// playback status updates
+		player.addListener('player_state_changed', state => { 
+			// console.log(state); 
+		});
+
+		// ready
+		player.addListener('ready', ({device_id}) => {
+			// returns a WebPlaybackPlayer object which just contains the created device_id
+			// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+
+			console.log('spotify player ready');
+			spotifyAPI.transferMyPlayback([device_id], {}, function(error, response) {
+				// https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
+				// this function doesn't send a callback, is that a bug or intentional?
+		
+				// if (error) {
+				// 	console.error('transferMyPlayback() failure');
+				// 	logError(error);
+				// }
+		
+				// if (response) {
+				// 	console.log('transferMyPlayback() success');
+				// 	console.log(response);
+				// }
+			});
+		});
+
+		// connect to player
+		player.connect().then(success => {
+			if (success) {
+				// connection success, but still might not be ready, will trigger the ready listener when ready
+				console.log('player.connect() spotify success');
+			} else {
+				// TODO player connect failed
+				console.log('player.connect() spotify failure');
+			}
+		});
+	};
+}
+
+// youtube
+var youtubePlayer;
+
+// youtubePlayer.destroy() kills the iframe
+
+function youtubeSetupPlayer() {
+	console.log('youtubeSetupPlayer() called');
+
+	$.getScript('https://www.youtube.com/iframe_api');
+}
+
+// script callback
+function onYouTubeIframeAPIReady() {
+	console.log('youTubeIframeAPIReady');
+	// https://developers.google.com/youtube/iframe_api_reference#Playback_status
+	// (DOM element, args)
+	youtubePlayer = new YT.Player('youtubePlayer', {
+		height: '100%',
+		width: '100%',
+		events: {
+			'onReady': onPlayerReady,
+			'onStateChange': onPlayerStateChange
+		}
+	});
+}
+
+// player callback
+function onPlayerReady(event) {
+	console.log('youtubePlayer ready');
+}
+
+function onPlayerStateChange(event) {
+}
+
+//  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
+//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
+//  ██████╔╝██║     ███████║ ╚████╔╝ ██████╔╝███████║██║     █████╔╝ 
+//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██╔══██╗██╔══██║██║     ██╔═██╗ 
+//  ██║     ███████╗██║  ██║   ██║   ██████╔╝██║  ██║╚██████╗██║  ██╗
+//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+//   
+
+var trackTemplate = {
+	'objectType': 'track',
+
+	'source': "",
+	'id': "",
+	'artists': [],
+	'title': "",
+	'duration': "",
+	'link': "",
+};
+
+var desiredPlayback = {
+	'playing': false,
+	'progress': 0,
+	'track': trackTemplate,
+};
+
+var actualPlayback = {
+	'spotify': {
+		playing: false,
+		progress: 0,
+		track: trackTemplate,
+	},
+	'youtube': {
+		playing: false,
+		progress: 0,
+		track: trackTemplate,
+	},
+};
+
+function checkPlaybackState(callback) {
+	// async part counting
+	var finished = 0;
+	var parts = 2;
+	function completeParts() {
+		finished++;
+		if (finished >= parts) {
+			callback();
+		}
+	}
+
+	// spotify
+	spotifyAPI.getMyCurrentPlaybackState({}, function(error, response) {
+		if (error) {
+			console.error('checkPlaybackState() spotify failure');
+			logError(error);
+
+			completeParts();
+		} else if (response) {
+			console.log('checkPlaybackState() spotify success');
+
+			actualPlayback.spotify.playing = response.is_playing;
+			actualPlayback.spotify.progress = response.progress_ms;
+			actualPlayback.spotify.track = {
+				source: 'spotify',
+				id: response.item.id,
+				artists: [],
+				title: response.item.name,
+				duration: response.item.duration_ms,
+				link: response.item.external_urls.spotify,
+			}
+
+			// fill artists
+			response.item.artists.forEach(function (artist, j) {
+				actualPlayback.spotify.track.artists[j] = artist.name;
+			});
+			completeParts();
+		}
+	});
+
+	// youtube
+	var state = youtubePlayer.getPlayerState();
+	if (state == 1 || state == 3) {
+		// playing or buffering
+		actualPlayback.youtube.playing = true;
+	} else {
+		actualPlayback.youtube.playing = false;
+	}
+	
+	actualPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
+
+	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
+	var id = youtubePlayer.getVideoUrl().split("v=")[1];
+	if (!id) { id = ''; }
+	var andPosition = id.indexOf("&"); 
+	if (andPosition != -1) { id = id.substring(0, andPosition); }
+	console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
+
+	youtubeGetTrackDetails([id], function(trackList) {
+		console.log('checkPlaybackState() youtube success');
+		actualPlayback.youtube.track = trackList[0];
+		console.log(trackList[0]);
+		console.log(actualPlayback.youtube.track);
+		completeParts();
+	});
+}
+
+function updatePlaybackState() {
+	checkPlaybackState(function() {
+		// no progress comparison made here
+		if (!desiredPlayback.playing) {
+			if (actualPlayback.spotify.playing) { pause('spotify'); }
+			if (actualPlayback.youtube.playing) { pause('youtube'); }
+		} else if (desiredPlayback.playing) {
+			if (desiredPlayback.track.source == 'spotify') {
+				if (!actualPlayback.spotify.playing) { resume('spotify'); }
+				if (actualPlayback.youtube.playing) { pause('youtube'); }
+
+				if (desiredPlayback.track.id != actualPlayback.spotify.track.id) { start('spotify', desiredPlayback.track.id); };
+			} else if (desiredPlayback.track.source == 'youtube') {
+				if (!actualPlayback.youtube.playing) { resume('youtube'); }
+				if (actualPlayback.spotify.playing) { pause('spotify'); }
+				console.log('Desired id: ' + desiredPlayback.track.id + 'Actual id: ' + actualPlayback.youtube.track.id)
+				if (desiredPlayback.track.id != actualPlayback.youtube.track.id) { start('youtube', desiredPlayback.track.id); };
+			}
+		}
+	});
+}
+
+
+//   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     
+//  ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔══██╗██╔═══██╗██║     
+//  ██║     ██║   ██║██╔██╗ ██║   ██║   ██████╔╝██║   ██║██║     
+//  ██║     ██║   ██║██║╚██╗██║   ██║   ██╔══██╗██║   ██║██║     
+//  ╚██████╗╚██████╔╝██║ ╚████║   ██║   ██║  ██║╚██████╔╝███████╗
+//   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+//                                                               
+
+function start(source, id) {
+	if (source == 'spotify') {
+		console.log("start('spotify') called");
+
+		spotifyAPI.play({"uris":["spotify:track:" + id]}, function(error, response) {
+			if (error) {
+				console.error('start() failure');
+				logError(error);
+			}
+	
+			if (response) {
+				console.log('start() success');
+				console.log(response);
+			}
+		});
+	} else if (source == 'youtube') {
+		console.log("start('youtube') called");
+
+		youtubePlayer.loadVideoById(id);
+		youtubePlayer.playVideo();
+	}
+}
+
+function resume(source) {
+	if (source == 'spotify') {
+		console.log("resume('spotify') called");
+
+		spotifyAPI.play({}, function(error, response) {
+			if (error) {
+				console.error('resume() failure');
+				logError(error);
+			}
+	
+			if (response) {
+				console.log('resume() success');
+				console.log(response);
+			}
+		});
+	} else if (source == 'youtube') {
+		console.log("resume('youtube') called");
+
+		youtubePlayer.playVideo();
+	}
+}
+
+function pause(source) {
+	if (source == 'spotify') {
+		console.log("pause('spotify') called");
+
+		spotifyAPI.pause({}, function(error, response) {
+			if (error) {
+				console.error('pause() failure');
+				logError(error);
+			}
+
+			if (response) {
+				console.log('pause() success');
+				console.log(response);
+			}
+		});
+	} else if (source == 'youtube') {
+		console.log("pause('youtube') called");
+
+		youtubePlayer.pauseVideo();
+	}
+}
+
+function seek(source, ms) {
+	if (source == 'spotify') {
+		console.log("seek('spotify') called");
+
+		spotifyAPI.seek(ms, function(error, response) {
+			if (error) {
+				console.error('seek() failure');
+				logError(error);
+			}
+	
+			if (response) {
+				console.log('seek() success');
+				console.log(response);
+			}
+		});
+	} else if (source == 'youtube') {
+		console.log("seek('youtube') called");
+
+		// (seconds - number, allowSeekAhead of loading - boolean)
+		youtubePlayer.seekTo(Math.round(ms / 1000), true)
+	}
+}
+
+
+//  ██████╗  █████╗  ██████╗ ███████╗
+//  ██╔══██╗██╔══██╗██╔════╝ ██╔════╝
+//  ██████╔╝███████║██║  ███╗█████╗  
+//  ██╔═══╝ ██╔══██║██║   ██║██╔══╝  
+//  ██║     ██║  ██║╚██████╔╝███████╗
+//  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+//                                   
+
 $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview clicked");
 
@@ -1057,7 +1149,7 @@ $(document).on("click", "#seek", function() {
 $(document).on("click", "#registerSubmit", function() {
 	console.log("#registerSubmit clicked");
 
-	register($('#registerEmail'), $('#registerUserName'), $('#registerPassword1'), $('#registerPassword2'));
+	register($('#registerUserName'), $('#registerPassword1'), $('#registerPassword2'), $('#registerEmail'));
 });
 
 $(document).on("click", "#loginSubmit", function() {

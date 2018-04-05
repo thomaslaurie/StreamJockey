@@ -23,7 +23,8 @@
 	<p id='statusUser'>Guest</p>
 </section>
 <section>
-	<button class='test'>Test</button>
+	<button id='test'>Test</button>
+	<input id='testInput' type='text' placeholder='test input'>
 </section>
 
 <section>

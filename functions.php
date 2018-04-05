@@ -570,6 +570,8 @@
 							$stmt->bind_param('isssss', $_SESSION['userId'], $title, $visibility, $description, $color, $image);
 
 							if ($stmt->execute()) {
+								close($stmt, $result, $db);
+
 								$successObject = array(
 									"objectType" => "success",
 									"code" => "200",
@@ -678,6 +680,8 @@
 				
 						// check query success
 						if ($stmt->execute()) {
+							close($stmt, $result, $db);
+
 							$successObject = array(
 								"objectType" => "success",
 								"code" => "200",
@@ -736,7 +740,7 @@
 					return $errorObject;	
 				}
 			} else {
-				return $errorObjectArray;
+				return $db;
 			}
 		} else {
 			$errorObject = array(
@@ -754,8 +758,160 @@
 	}
 
 	// get
-	function getUserInfo($userId) {
+	function getCurrentUser() {
+		// check if user is logged in
+		if (isset($_SESSION['userId'])) {
+			$db = openDB();
+			// check openDB success
+			if (getType($db) === 'object') {
+				// search for playlist
+				$stmt = $db->prepare("
+					SELECT *
+					FROM users
+					WHERE userId = ?
+				");
+				$stmt->bind_param('i', $_SESSION['userId']);
+		
+				// check query success
+				if ($stmt->execute()) {
+					// check that playlist exists
+					$result = $stmt->get_result();
+					if ($result->num_rows === 1) {
+						while($row = $result->fetch_assoc()) {
+							// !!! does not return password
+							$userObject = array(
+								"objectType" => "user",
+								"userId" => $row['userId'],
+								"userName" => $row['userName'],
+								"email" => $row['email'],
+							);
+						}
 
+						return $userObject;
+					} else {
+						close($stmt, $result, $db);
+
+						$errorObject = array(
+							"objectType" => "error",
+							"code" => "403",
+							"type" => "forbidden",
+							"message" => "User does not exist",
+							"origin" => ".php getCurrentUser()",
+							"target" => "",
+							"class" => "",
+						);
+			
+						return $errorObject;
+					}
+				} else {
+					close($stmt, $result, $db);
+
+					$errorObject = array(
+						"objectType" => "error",
+						"code" => "",
+						"type" => "sql failure",
+						"message" =>  $stmt->error,
+						"origin" => ".php getCurrentUser()",
+						"target" => "",
+						"class" => "",
+					);
+
+					return $errorObject;	
+				}
+			} else {
+				return $db;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "403",
+				"type" => "forbidden",
+				"message" => "No user logged in",
+				"origin" => ".php getCurrentUser()",
+				"target" => "",
+				"class" => "",
+			);
+
+			return $errorObject;
+		}
+	}
+
+	function getUser($id) {
+		// check if number
+		if (is_numeric($id)) {
+			$db = openDB();
+			// check openDB success
+			if (getType($db) === 'object') {
+				// search for playlist
+				$stmt = $db->prepare("
+					SELECT *
+					FROM users
+					WHERE userId = ?
+				");
+				$stmt->bind_param('i', $id);
+		
+				// check query success
+				if ($stmt->execute()) {
+					// check that playlist exists
+					$result = $stmt->get_result();
+					if ($result->num_rows === 1) {
+						while($row = $result->fetch_assoc()) {
+							// !!! does not return password or email
+							$userObject = array(
+								"objectType" => "user",
+								"userId" => $row['userId'],
+								"userName" => $row['userName'],
+							);
+						}
+	
+						return $userObject;
+					} else {
+						close($stmt, $result, $db);
+	
+						$errorObject = array(
+							"objectType" => "error",
+							"code" => "403",
+							"type" => "forbidden",
+							"message" => "User does not exist",
+							"origin" => ".php getUser()",
+							"target" => "",
+							"class" => "",
+						);
+			
+						return $errorObject;
+					}
+				} else {
+					close($stmt, $result, $db);
+	
+					$errorObject = array(
+						"objectType" => "error",
+						"code" => "",
+						"type" => "sql failure",
+						"message" =>  $stmt->error,
+						"origin" => ".php getUser()",
+						"target" => "",
+						"class" => "",
+					);
+	
+					return $errorObject;	
+				}
+			} else {
+				return $db;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "400",
+				"type" => "invalid",
+				"message" =>  "User ID must be a number",
+				"origin" => ".php getUser()",
+				"target" => "",
+				"class" => "",
+			);
+
+			return $errorObject;
+		}
+		
 	}
 
 ?>
