@@ -19,21 +19,61 @@
 	// }
 
 ?>
+<section>
+	<p id='statusUser'>Guest</p>
+</section>
+<section>
+	<button class='test'>Test</button>
+</section>
+
+<section>
+	<input id='loginUserName' type='text' placeholder='username' value='test4'>
+	<input id='loginPassword' type='password' name='password' placeholder='password' value='test4test4'>
+	<button id='loginSubmit'>Login</button>
+	<button id='logoutSubmit'>Logout</button>
+</section>
+
+<section>
+	<input id='registerEmail' type='text' placeholder='e-mail'>
+	<input id='registerUserName' type='text' placeholder='username'>
+	<input id='registerPassword1' type='password' placeholder='password'>
+	<input id='registerPassword2' type='password' placeholder='password again'>
+	<button id='registerSubmit'>Register</button>
+</section>
+
+<section>
+	<input id='playlistTitle' type='text' placeholder='title' value='playlist1'>
+	<input id='playlistVisibility' type='text' placeholder='visibility' value='public'>
+	<textarea id='playlistDescription' placeholder='description'></textarea>
+	<input id='playlistColor' type='text' placeholder='color'>
+	<input id='playlistImage' type='text' placeholder='image link'>
+	<button id='addPlaylistSubmit'>Add Playlist</button>
+</section>
+
+<section>
+	<input id='playlistId' type='text' placeholder='id'>	
+	<button id='deletePlaylistSubmit'>Delete Playlist</button>
+</section>
+
+<section>
 	<button id='spotifyConnectAccount'>Spotify Connect Account</button>
-	<a href='auth.php?command=spotify'>Connect Account</a>
 	<button id='connectPlayer'>Connect Player</button>
-	<input id='uri' type='text' placeholder='search' value='tycho'>
-	<p>3BiIPNWmMeJAK9iwEFTeDX</p>
-	<p id='result'>Result</p>
-	<button id='search'>Search</button>
+</section>
+
+<section>
 	<button id='toggle'>Toggle</button>
 	<button id='seek'>Seek</button>
-	<button id='ajax'>Ajax</button>
-	<button id='test'>Test</button>
 	<div id="youtubePlayerWrapper">
         <div id="youtubePlayer"></div>
     </div>
+</section>
+
+<section>
+	<input id='uri' type='text' placeholder='search' value='tycho'>
+	<button id='search'>Search</button>
 	<ul id='list'></ul>
+</section>
+	
 <?php
 	require_once('footer.php');
 ?>

@@ -2,174 +2,87 @@
 // TODO .on() should be bound to the closest non-dynamic element (cause its faster?)
 	// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
 	// .on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
+// TODO maxlength attribute can be used for input elements, use this to get real-time validation checks for max lenth
 
 
 // Globals
 var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
 
 // test
-$("#test").click(function() {
-	console.log(youtubePlayer.getVideoUrl());
+$(".test").click(function() {
+
+	$(document.getElementById('loginPassword'))
+	// class
+	.addClass('inputError')
+	.after(
+		// error message
+		$('<div/>')
+			.text('Password incorrect')
+			.addClass('elementErrorMessage')
+	);
 });
 
-$(document).on("click", "#ajax", function() {
-	console.log("#ajax.click() called");
-
-	serverCommand({
-		request: 'refreshTokens',
-		name: 'blah',
-		blah: 'name',
-	}, function (data) {
-
-	});
-});
-
-
-
-function login(userName, password) {
-	clearElementErrorGroup([
-		'loginUserName',
-		'loginPassword',
-	]);
-
-	serverCommand({
-		'request': 'login',
-		'userName': userName,
-		'password': password,
-	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
-		} else if (data.objectType == 'error') {
-			var elementError = {
-				id: data.target,
-				storedState: $('#' + data.target).val(),
-				class: data.class,
-				message: data.message,
-			}
-
-			addElementError(elementError);
-		}
-	});
+// error
+var successObjectTemplate = {
+	// only gets returned when function has no content to return on success
+	'objectType': 'success',
+	'code': '200',
+	'type': '',
+	'message': '',
+	'origin': '',
+	'target': '',
+	'class': '',
+	'content': '',
 }
 
-function register(email, userName, password1, password2) {
-	clearElementErrorGroup([
-		'registerEmail',
-		'registerUserName',
-		'registerPassword1',
-		'registerPassword2',
-	]);
-
-	serverCommand({
-		'request': 'register',
-		'email': email,
-		'userName': userName,
-		'password1': password1,
-		'password2': password2,
-	}, function (data) {
-		// !!! is array if validation error
-		if (!$.isArray(data)) {
-			if (data.objectType == 'success') {
-				// TODO handle success
-				$('body').append(
-					$('<p/>')
-						.text(data.message)
-				);
-
-				// login
-				login(userName, password1);
-			} else if (data.objectType == 'error') {
-				console.log(data);
-				// non validation error
-				var elementError = {
-					id: data.target,
-					storedState: $(document.getElementById(data.target)).val(),
-					class: data.class,
-					message: data.message,
-				}
-	
-				addElementError(elementError);
-			}
-		} else {
-			// validation errors
-			data.forEach(function (dataItem) {
-				var elementError = {
-					id: dataItem.target,
-					storedState: $(document.getElementById(dataItem.target)).val(),
-					class: dataItem.class,
-					message: dataItem.message,
-				}
-				
-				addElementError(elementError);
-			});
-		}
-	});
+var errorObjectTemplate = {
+	'objectType': 'error',
+	'code': '',
+	'type': '',
+	'message': '',
+	'origin': '',
+	'target': '',
+	'class': '',
 }
 
-
-// login
-$(document).on("click", "#loginSubmit", function() {
-	console.log("#loginSubmit.click() called");
-	var userName = $('#loginUserName').val();
-	var password = $('#loginPassword').val();
-	login(userName, password);
-});
-
-// register
-$(document).on("click", "#registerSubmit", function() {
-	console.log("#registerSubmit.click() called");
-	var email = $('#registerEmail').val();
-	var userName = $('#registerUserName').val();
-	var password1 = $('#registerPassword1').val();
-	var password2 = $('#registerPassword2').val();
-
-	register(email, userName, password1, password2);
-});
-
-// page error display
+// error display
 var elementErrorTemplate = {
-	id: '',
-	storedState: '',
+	'target': '',
+	'storedState': '',
 
-	class: '',
-	message: '',
+	'class': '',
+	'message': '',
 }
 
 var elementErrorList = [];
 
-// list of all elementErrorClasses
+// list of all elementErrorClasses for updateElementErrors()
 var elementErrorClasses = [
 	'inputError',
 
 ];
 
-
-
 function clearElementError(elementError) {
-	console.log('clearElementError(' + elementError.id + ') called');
+	console.log('clearElementError(' + elementError.target + ') called');
 
 	// backwards delete loop
 	for (var i = elementErrorList.length - 1; 0 <= i; i--) {
-		if (elementError.id === elementErrorList[i].id) {
+		if (elementError.target === elementErrorList[i].target) {
 			elementErrorList.splice(i, 1);
 		}
 	}
 }
 
-function clearElementErrorGroup(elementErrorIdArray) {
-	console.log('clearElementErrorGroup(' + elementErrorIdArray + ') called');
+function clearElementErrorGroup(elementErrorTargetArray) {
+	console.log('clearElementErrorGroup(' + elementErrorTargetArray + ') called');
 
 	// any call that creates element errors must be responsible for cleaning them up
-	elementErrorIdArray.forEach(function(elementErrorId, i) {
-		// identifies by id instead of the entire element
+	elementErrorTargetArray.forEach(function(elementErrorTarget, i) {
+		// identifies by id of jQuery DOM element instead of an elementErrorObject
 		
 		// backwards delete loop
 		for (var j = elementErrorList.length - 1; 0 <= j; j--) {
-			if (elementErrorId === elementErrorList[j].id) {
+			if (elementErrorTarget.attr('id') === elementErrorList[j].target) {
 				elementErrorList.splice(j, 1);
 			}
 		}
@@ -177,11 +90,11 @@ function clearElementErrorGroup(elementErrorIdArray) {
 }
 
 function addElementError(elementError) {
-	console.log('addElementError(' + elementError.id + ') called');
+	console.log('addElementError(' + elementError.target + ') called');
 
 	// replace existing with new info
 	clearElementError(elementError);
-	if (elementErrorList.id !== "") {
+	if (elementErrorList.target !== "") {
 		// only push to elementErrorList if the error has a target (and therefore is cleaned by a function)
 		elementErrorList.push(elementError);
 	}
@@ -200,7 +113,10 @@ function updateElementErrors() {
 
 	// add for each
 	elementErrorList.forEach(function(elementError, i) {
-		$(document.getElementById(elementError.id))
+		console.log('Element Error Target: ' + elementError.target);
+		console.log('Element Error Class: ' + elementError.class);
+		console.log('Element Error Message: ' + elementError.message);
+		$(document.getElementById(elementError.target))
 			// class
 			.addClass(elementError.class)
 			.after(
@@ -223,6 +139,7 @@ function serverCommand(data, callback) {
 		"type": "POST",
 		"data": data,
 		success: function(data){
+			console.log(data);
 			data = JSON.parse(data);
 			console.log("Server Data Returned: " + data);
 			callback(data);
@@ -248,8 +165,6 @@ function serverCommand(data, callback) {
 	});
 }
 
-
-
 function logError(error) {
 	// TODO update this method to handle errors from different sources
 	var response = JSON.parse(error.response);
@@ -274,28 +189,211 @@ function msFormat(ms) {
 	return minutes + ':' + seconds;
 }
 
-// success object
-// only gets returned when function has no content to return on success
-var successObjectTemplate = {
-	objectType: 'success',
-	code: '200',
-	type: '',
-	message: '',
-	origin: '',
-	target: '',
+// functionality
+// accounts
+function register(email, userName, password1, password2) {
+	var inputs = [
+		email,
+		userName,
+		password1,
+		password2,
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'register',
+		'email': email.val(),
+		'userName': userName.val(),
+		'password1': password1.val(),
+		'password2': password2.val(),
+	}, function (data) {
+		// !!! is array if validation error
+		if (!$.isArray(data)) {
+			if (data.objectType == 'success') {
+				// TODO handle success
+				$('body').append(
+					$('<p/>')
+						.text(data.message)
+				);
+
+				// login (must be before entries are wiped)
+				login(userName, password1);
+
+				// wipe entries
+				inputs.forEach(function(input) {
+					input.val('');
+				});
+			} else if (data.objectType == 'error') {
+				console.log(data);
+				// non validation error
+				var elementError = {
+					target: data.target,
+					storedState: $(document.getElementById(data.target)).val(),
+					class: data.class,
+					message: data.message,
+				}
+	
+				addElementError(elementError);
+			}
+		} else {
+			// validation errors
+			data.forEach(function (dataItem) {
+				var elementError = {
+					target: dataItem.target,
+					storedState: $(document.getElementById(dataItem.target)).val(),
+					class: dataItem.class,
+					message: dataItem.message,
+				}
+				
+				addElementError(elementError);
+			});
+		}
+	});
 }
 
-// error object
-var errorObjectTemplate = {
-	objectType: 'error',
-	code: '',
-	type: '',
-	message: '',
-	origin: '',
-	target: '',
-	class: '',
+function login(userName, password) {
+	var inputs = [
+		userName,
+		password,
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'login',
+		'userName': userName.val(),
+		'password': password.val(),
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			// update page status/permissions
+			$("#statusUser")
+				.text(data.content);
+
+			// wipe entries
+			inputs.forEach(function(input) {
+				input.val('');
+			});
+		} else if (data.objectType == 'error') {
+			var elementError = {
+				target: data.target,
+				storedState: $(document.getElementById(data.target)).val(),
+				class: data.class,
+				message: data.message,
+			}
+			console.log(elementError);
+
+			addElementError(elementError);
+		}
+	});
 }
 
+function logout() {
+	var inputs = [
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'logout',
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			$("#statusUser")
+				.text('Guest');
+		} else {
+			// no other possible return type
+		}
+	});
+}
+
+// playlists
+function addPlaylist(title, visibility, description, color, image) {
+	var inputs = [
+		title,
+		visibility,
+		description,
+		color,
+		image,
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'addPlaylist',
+		'title': title.val(),
+		'visibility': visibility.val(),
+		'description': description.val(),
+		'color': color.val(),
+		'image': image.val(),
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			// wipe entries
+			inputs.forEach(function(input) {
+				input.val('');
+			});
+		} else if (data.objectType == 'error') {
+			var elementError = {
+				target: data.target,
+				storedState: $(document.getElementById(data.target)).val(),
+				class: data.class,
+				message: data.message,
+			}
+			console.log(elementError);
+
+			addElementError(elementError);
+		}
+	});
+}
+
+function deletePlaylist(id) {
+	var inputs = [
+		id,
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'deletePlaylist',
+		'id': id.val(),
+
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			// wipe entries
+			inputs.forEach(function(input) {
+				input.val('');
+			});
+		} else if (data.objectType == 'error') {
+			var elementError = {
+				target: data.target,
+				storedState: $(document.getElementById(data.target)).val(),
+				class: data.class,
+				message: data.message,
+			}
+			console.log(elementError);
+
+			addElementError(elementError);
+		}
+	});
+}
 
 
 // initialize
@@ -304,14 +402,14 @@ var errorObjectTemplate = {
 // object
 var searchResults = {
 	// details
-	term: "",
-	tracksPerSource: 5,
-	page: 1,
+	'term': "",
+	'tracksPerSource': 5,
+	'page': 1,
 
 	// sources
-	spotify: [],
-	youtube: [],
-	soundcloud: [],
+	'spotify': [],
+	'youtube': [],
+	'soundcloud': [],
 }
 
 // spotify
@@ -914,7 +1012,7 @@ function displayList(trackList) {
 }
 
 $(document).on("click", ".searchResultPreview", function() {
-	console.log(".searchResultPreview.click() called");
+	console.log(".searchResultPreview clicked");
 
 	desiredPlayback.track = $(this).parent().data('data');
 	desiredPlayback.playing = true;
@@ -923,13 +1021,13 @@ $(document).on("click", ".searchResultPreview", function() {
 
 // connect
 $(document).on("click", "#spotifyConnectAccount", function() {
-	console.log("#spotifyConnectAccount.click() called");
+	console.log("#spotifyConnectAccount clicked");
 	//serverCommand({request: 'spotifyConnectAccount'}, function (data) {});
 	window.location.href = "auth.php?source=spotify";
 });
 
 $(document).on("click", "#connectPlayer", function() {
-	console.log("#connectPlayer.click() called");
+	console.log("#connectPlayer clicked");
 
 	spotifySetupPlayer();
 	youtubeSetupPlayer();
@@ -937,20 +1035,49 @@ $(document).on("click", "#connectPlayer", function() {
 
 // page
 $(document).on("click", "#search", function() {
-	console.log("#search.click() called");
+	console.log("#search clicked");
 
 	search($('#uri').val());
 });
 
 $(document).on("click", "#toggle", function() {
-	console.log("#toggle.click() called");
+	console.log("#toggle clicked");
 
 	desiredPlayback.playing = !desiredPlayback.playing;
 	updatePlaybackState();
 });
 
 $(document).on("click", "#seek", function() {
-	console.log("#seek.click() called");
+	console.log("#seek clicked");
 
 	seek(20000);
+});
+
+// account
+$(document).on("click", "#registerSubmit", function() {
+	console.log("#registerSubmit clicked");
+
+	register($('#registerEmail'), $('#registerUserName'), $('#registerPassword1'), $('#registerPassword2'));
+});
+
+$(document).on("click", "#loginSubmit", function() {
+	console.log("#loginSubmit clicked");
+
+	login($('#loginUserName'), $('#loginPassword'));
+});
+
+$(document).on("click", "#logoutSubmit", function() {
+	console.log("#logoutSubmit clicked");
+	logout();
+});
+
+// playlist
+$(document).on("click", "#addPlaylistSubmit", function() {
+	console.log("#addPlaylistSubmit clicked");
+	addPlaylist($('#playlistTitle'), $('#playlistVisibility'), $('#playlistDescription'), $('#playlistColor'), $('#playlistImage'));
+});
+
+$(document).on("click", "#deletePlaylistSubmit", function() {
+	console.log("#deletePlaylistSubmit clicked");
+	deletePlaylist($('#playlistId'));
 });

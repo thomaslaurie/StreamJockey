@@ -9,10 +9,20 @@
 		'userName',
 		'password',
 
-		//register
+		// register
 		'email',
 		'password1',
 		'password2',
+
+		// addPlaylist
+		'title',
+		'visibility',
+		'description',
+		'color',
+		'image',
+
+		// delete playlist
+		'id',
 	];
 
 	// process data
@@ -21,12 +31,21 @@
 	}
 
 	// handle request types
-	if ($request === 'login') {
-		$result = login($userName, $password);
-		echo json_encode($result);
-	} else if ($request === 'register') {
+	if ($request === 'register') {
 		$result = register($email, $userName, $password1, $password2);
 		// !!! errorObject array if validation error
+		echo json_encode($result);
+	} else if ($request === 'login') {
+		$result = login($userName, $password);
+		echo json_encode($result);
+	} else if ($request === 'logout') {
+		$result = logout();
+		echo json_encode($result);
+	} else if ($request === 'addPlaylist') {
+		$result = addPlaylist($title, $visibility, $description, $color, $image);
+		echo json_encode($result);
+	} else if ($request === 'deletePlaylist') {
+		$result = deletePlaylist($id);
 		echo json_encode($result);
 	} else if ($request === null) {
 		$errorObject = array(

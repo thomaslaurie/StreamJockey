@@ -37,7 +37,7 @@
 
 
 
-	// validation
+	// register validation
 	function validateEmail(&$email, &$errorObjectArray) {
 		$email = trim($email);
 
@@ -149,7 +149,7 @@
 					"objectType" => "error",
 					"code" => "400",
 					"type" => "invalid",
-					"message" => "Password must be between " . $GLOBALS['passwordMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters" ,
+					"message" => "Password must be between " . $GLOBALS['passwordMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters",
 					"origin" => ".php validatePassword()",
 					"target" => "registerPassword1",
 					"class" => "inputError",
@@ -188,11 +188,11 @@
 			if (getType($db) === 'object') {
 				// prep query
 				$stmt = $db->prepare("
-					SELECT email
+					SELECT userName
 					FROM users
-					WHERE email = ?
+					WHERE userName = ?
 				");
-				$stmt->bind_param('s', $email);
+				$stmt->bind_param('s', $userName);
 		
 				// check query success
 				if ($stmt->execute()) {
@@ -216,8 +216,10 @@
 								"code" => "200",
 								"type" => "finished",
 								"message" => "User registered",
-								"origin" => ".php login()",
+								"origin" => ".php register()",
 								"target" => "",
+								"class" => "",
+								"content" => $userName,
 							);
 	
 							return $successObject;
@@ -258,7 +260,7 @@
 						"objectType" => "error",
 						"code" => "",
 						"type" => "sql failure",
-						"message" => "Failed to query user list",
+						"message" => $stmt->error,
 						"origin" => ".php register()",
 						"target" => "",
 						"class" => "",
@@ -315,6 +317,7 @@
 							"origin" => ".php login()",
 							"target" => "",
 							"class" => "",
+							"content" => $_SESSION['userId'],
 						);
 
 						return $successObject;
@@ -328,7 +331,7 @@
 							"message" => "Password incorrect",
 							"origin" => ".php login()",
 							"target" => "loginPassword",
-							"class" => "",
+							"class" => "inputError",
 						);
 			
 						return $errorObject;
@@ -343,7 +346,7 @@
 						"message" => "User not found",
 						"origin" => ".php login()",
 						"target" => "loginUserName",
-						"class" => "",
+						"class" => "inputError",
 					);
 		
 					return $errorObject;
@@ -355,7 +358,7 @@
 					"objectType" => "error",
 					"code" => "",
 					"type" => "sql failure",
-					"message" => "Failed to query user list",
+					"message" => $stmt->error,
 					"origin" => ".php login()",
 					"target" => "",
 					"class" => "",
@@ -367,4 +370,392 @@
 			return $db;
 		}
 	}
+
+	function logout() {
+		session_regenerate_id();
+		unset($_SESSION['userId']);
+
+		$successObject = array(
+			"objectType" => "success",
+			"code" => "200",
+			"type" => "finished",
+			"message" => "User logged out",
+			"origin" => ".php logout()",
+			"target" => "",
+			"class" => "",
+			"content" => "",
+		);
+
+		return $successObject;
+	}
+
+	// addPlaylist validation
+
+	function validateTitle(&$title, &$errorObjectArray) {
+		$title = trim($title);
+
+		if (!empty($title)) {
+			if($GLOBALS['nameMinLength'] <= strlen($title) && strlen($title) <= $GLOBALS['stringMaxLength']) {
+				return true;
+			} else {
+				$errorObject = array(
+					"objectType" => "error",
+					"code" => "400",
+					"type" => "invalid",
+					"message" => "Title must be between " . $GLOBALS['nameMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters" ,
+					"origin" => ".php validateTitle()",
+					"target" => "playlistTitle",
+					"class" => "inputError",
+				);
+
+				array_push($errorObjectArray, $errorObject);
+				return false;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "400",
+				"type" => "invalid",
+				"message" => "Title is empty",
+				"origin" => ".php validateTitle()",
+				"target" => "playlistTitle",
+				"class" => "inputError",
+			);
+
+			array_push($errorObjectArray, $errorObject);
+			return false;
+		}
+	}
+
+	function validateVisibility(&$visibility, &$errorObjectArray) {
+		if (!empty($visibility)) {
+			if (in_array($visibility, $GLOBALS['visibilityStates'])) {
+				return true;
+			} else {
+				$errorObject = array(
+					"objectType" => "error",
+					"code" => "400",
+					"type" => "invalid",
+					"message" => "Invalid visibility selected",
+					"origin" => ".php validateVisibility()",
+					"target" => "playlistVisibility",
+					"class" => "inputError",
+				);
+	
+				array_push($errorObjectArray, $errorObject);
+				return false;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "400",
+				"type" => "invalid",
+				"message" => "Visibility is not selected",
+				"origin" => ".php validateVisibility()",
+				"target" => "playlistVisibility",
+				"class" => "inputError",
+			);
+
+			array_push($errorObjectArray, $errorObject);
+			return false;
+		}
+	}
+
+	function validateDescription(&$description, &$errorObjectArray) {
+		$description = trim($description);
+
+		if(strlen($description) <= $GLOBALS['bigStringMaxLength']) {
+			return true;
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "400",
+				"type" => "invalid",
+				"message" => "Description must be shorter than " . $GLOBALS['bigStringMaxLength'] . " characters",
+				"origin" => ".php validateDescription()",
+				"target" => "playlistDescription",
+				"class" => "inputError",
+			);
+
+			array_push($errorObjectArray, $errorObject);
+			return false;
+		}
+
+	}
+
+	function validateColor(&$color, &$errorObjectArray) {
+		$color = trim($color);
+
+		if (!empty($color)) {
+			#([a-f0-9]{3}){1,2}\b
+			
+			if(preg_match("/#([a-f0-9]{3}){1,2}\b/", $color) === 1) {
+				return true;
+			} else {
+				$errorObject = array(
+					"objectType" => "error",
+					"code" => "400",
+					"type" => "invalid",
+					"message" => "Color must be in hex format: #xxxxxx",
+					"origin" => ".php validateColor()",
+					"target" => "playlistColor",
+					"class" => "inputError",
+				);
+
+				array_push($errorObjectArray, $errorObject);
+				return false;
+			}
+		} else {
+			$color = $GLOBALS['defaultColor'];
+			return true;
+		}
+	}
+
+	function validateImage(&$image, &$errorObjectArray) {
+		$image = trim($image);
+
+		if(strlen($image) <= $GLOBALS['bigStringMaxLength']) {
+			return true;
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "400",
+				"type" => "invalid",
+				"message" => "Image link must be shorter than " . $GLOBALS['bigStringMaxLength'] . " characters",
+				"origin" => ".php validateImage()",
+				"target" => "playlistImage",
+				"class" => "inputError",
+			);
+
+			array_push($errorObjectArray, $errorObject);
+			return false;
+		}
+	}
+	
+	// addPlaylist
+	function addPlaylist($title, $visibility, $description, $color, $image) {
+		// check if user is logged in
+		if (isset($_SESSION['userId'])) {
+			$errorObjectArray = [];
+
+			validateTitle($title, $errorObjectArray);
+			validateVisibility($visibility, $errorObjectArray);
+			validateDescription($description, $errorObjectArray);
+			validateColor($color, $errorObjectArray);
+			validateImage($image, $errorObjectArray);
+
+			if (empty($errorObjectArray)) {
+				$db = openDB();
+				// check openDB success
+				if (getType($db) === 'object') {
+					// prep query
+					$stmt = $db->prepare("
+						SELECT userId, title
+						FROM playlists
+						WHERE userId = ? AND title = ?
+					");
+					$stmt->bind_param('is', $_SESSION['userId'], $title);
+			
+					// check query success
+					if ($stmt->execute()) {
+						$result = $stmt->get_result();
+						
+						// check for existing playlist
+						if ($result->num_rows == 0) {
+							// prep insert
+							$stmt = $db->prepare("
+							INSERT INTO playlists (userId, title, visibility, description, color, image)
+							VALUES (?, ?, ?, ?, ?, ?)
+							");
+							$stmt->bind_param('isssss', $_SESSION['userId'], $title, $visibility, $description, $color, $image);
+
+							if ($stmt->execute()) {
+								$successObject = array(
+									"objectType" => "success",
+									"code" => "200",
+									"type" => "finished",
+									"message" => "Playlist added",
+									"origin" => ".php addPlaylist()",
+									"target" => "",
+									"class" => "",
+									"content" => $title,
+								);
+
+								return $successObject;
+							} else {
+								echo 'result: ' . $stmt->error;
+								close($stmt, $result, $db);
+
+								$errorObject = array(
+									"objectType" => "error",
+									"code" => "",
+									"type" => "sql failure",
+									"message" => $stmt->error,
+									"origin" => ".php addPlaylist()",
+									"target" => "",
+									"class" => "",
+								);
+
+								return $errorObject;
+							}
+						} else {
+							close($stmt, $result, $db);
+
+							$errorObject = array(
+								"objectType" => "error",
+								"code" => "403",
+								"type" => "forbidden",
+								"message" => "Playlist already exists",
+								"origin" => ".php addPlaylist()",
+								"target" => "playlistTitle",
+								"class" => "inputError",
+							);
+				
+							return $errorObject;
+						}
+					} else {
+						close($stmt, $result, $db);
+
+						$errorObject = array(
+							"objectType" => "error",
+							"code" => "",
+							"type" => "sql failure",
+							"message" =>  $stmt->error,
+							"origin" => ".php addPlaylist()",
+							"target" => "",
+							"class" => "",
+						);
+		
+						return $errorObject;	
+					}
+				} else {
+					return $db;
+				}
+			} else {
+				return $errorObjectArray;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "403",
+				"type" => "forbidden",
+				"message" => "No user logged in",
+				"origin" => "addPlaylist()",
+				"target" => "",
+				"class" => "",
+			);
+
+			return $errorObject;
+		}
+	}
+
+	function deletePlaylist($id) {
+		// check if user is logged in
+		if (isset($_SESSION['userId'])) {
+			$db = openDB();
+			// check openDB success
+			if (getType($db) === 'object') {
+				// search for playlist
+				$stmt = $db->prepare("
+					SELECT playlistId
+					FROM playlists
+					WHERE playlistId = ? AND userId = ?
+				");
+				$stmt->bind_param('ii', $id, $_SESSION['userId']);
+		
+				// check query success
+				if ($stmt->execute()) {
+					$result = $stmt->get_result();
+						
+					// check that playlist exists
+					if ($result->num_rows === 1) {
+						// delete playlist
+						$stmt = $db->prepare("
+							DELETE FROM playlists
+							WHERE playlistId = ? AND userId = ?
+						");
+						$stmt->bind_param('ii', $id, $_SESSION['userId']);
+				
+						// check query success
+						if ($stmt->execute()) {
+							$successObject = array(
+								"objectType" => "success",
+								"code" => "200",
+								"type" => "finished",
+								"message" => "Playlist deleted",
+								"origin" => ".php deletedPlaylist()",
+								"target" => "",
+								"class" => "",
+								"content" => "",
+							);
+
+							return $successObject;
+						} else {
+							close($stmt, $result, $db);
+
+							$errorObject = array(
+								"objectType" => "error",
+								"code" => "",
+								"type" => "sql failure",
+								"message" =>  $stmt->error,
+								"origin" => ".php deletePlaylist()",
+								"target" => "",
+								"class" => "",
+							);
+			
+							return $errorObject;	
+						}
+					} else {
+						close($stmt, $result, $db);
+
+						$errorObject = array(
+							"objectType" => "error",
+							"code" => "403",
+							"type" => "forbidden",
+							"message" => "Playlist does not exist",
+							"origin" => ".php deletePlaylist()",
+							"target" => "",
+							"class" => "",
+						);
+			
+						return $errorObject;
+					}
+				} else {
+					close($stmt, $result, $db);
+
+					$errorObject = array(
+						"objectType" => "error",
+						"code" => "",
+						"type" => "sql failure",
+						"message" =>  $stmt->error,
+						"origin" => ".php addPlaylist()",
+						"target" => "",
+						"class" => "",
+					);
+
+					return $errorObject;	
+				}
+			} else {
+				return $errorObjectArray;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "403",
+				"type" => "forbidden",
+				"message" => "No user logged in",
+				"origin" => ".php deletePlaylist()",
+				"target" => "",
+				"class" => "",
+			);
+
+			return $errorObject;
+		}
+	}
+
+	// get
+	function getUserInfo($userId) {
+
+	}
+
 ?>

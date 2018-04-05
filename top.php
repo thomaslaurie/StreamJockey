@@ -12,10 +12,28 @@
 	$GLOBALS['nameMinLength'] = 2;
 	$GLOBALS['passwordMinLength'] = 6;
 
+	// playlist
+	$GLOBALS['defaultColor'] = '#ffffff';
+	$GLOBALS['bigStringMaxLength'] = 2000;
+
+	$GLOBALS['visibilityStates'] = array(
+		'public',
+		'private',
+		'linkOnly',
+	);
+
 	// site
 
-	// list of pages that should be passed on when returning to a page
-	$exclusionList = ['auth.php', ];
+	// list of pages that should not be returned to, put everything in here to be safe
+	$exclusionList = [
+		'auth.php',
+		'connect.php',
+		'footer.php',
+		'functions.php',
+		'header.php',
+		'request.php',
+		'top.php',
+	];
 	$excluded = false;
 	foreach($exclusionList as $uri) {
 		if (strpos($_SERVER['REQUEST_URI'], $uri)) {
