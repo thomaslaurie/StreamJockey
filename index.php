@@ -52,7 +52,8 @@
 </section>
 
 <section>
-	<input id='playlistId' type='text' placeholder='id'>	
+	<input id='playlistId' type='text' placeholder='id'>
+	<button id='getPlaylistSubmit'>Get Playlist</button>
 	<button id='deletePlaylistSubmit'>Delete Playlist</button>
 </section>
 

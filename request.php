@@ -21,6 +21,14 @@
 		'description',
 		'color',
 		'image',
+
+		// track
+		'playlistId',
+		'source',
+		'title',
+		'artists',
+		'duration',
+
 	];
 
 	// process data
@@ -50,6 +58,12 @@
 		echo json_encode($result);
 	} else if ($request === 'getUser') {
 		$result = getUser($id);
+		echo json_encode($result);
+	} else if ($request === 'getPlaylist') {
+		$result = getPlaylist($id);
+		echo json_encode($result);
+	} else if ($request === 'addTrack') {
+		$result = addTrack($playlistId, $source, $id, $title, $artists, $duration);
 		echo json_encode($result);
 	} else if ($request === null) {
 		$errorObject = array(

@@ -3,6 +3,15 @@
 	// 	return $_SERVER['DOCUMENT_ROOT'] . $_SERVER['PHP_SELF'];
 	// }
 
+	
+//  ██████╗  █████╗ ████████╗ █████╗ ██████╗  █████╗ ███████╗███████╗
+//  ██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝
+//  ██║  ██║███████║   ██║   ███████║██████╔╝███████║███████╗█████╗  
+//  ██║  ██║██╔══██║   ██║   ██╔══██║██╔══██╗██╔══██║╚════██║██╔══╝  
+//  ██████╔╝██║  ██║   ██║   ██║  ██║██████╔╝██║  ██║███████║███████╗
+//  ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
+//                                                                   
+
 	function openDB() {
 		// path
 		include('connect.php');
@@ -36,6 +45,13 @@
 	}
 
 
+//   █████╗  ██████╗ ██████╗ ██████╗ ██╗   ██╗███╗   ██╗████████╗
+//  ██╔══██╗██╔════╝██╔════╝██╔═══██╗██║   ██║████╗  ██║╚══██╔══╝
+//  ███████║██║     ██║     ██║   ██║██║   ██║██╔██╗ ██║   ██║   
+//  ██╔══██║██║     ██║     ██║   ██║██║   ██║██║╚██╗██║   ██║   
+//  ██║  ██║╚██████╗╚██████╗╚██████╔╝╚██████╔╝██║ ╚████║   ██║   
+//  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
+//                                                               
 
 	// register validation
 	function validateEmail(&$email, &$errorObjectArray) {
@@ -222,10 +238,9 @@
 								"content" => $userName,
 							);
 	
+							close($stmt, $result, $db);
 							return $successObject;
 						} else {
-							close($stmt, $result, $db);
-
 							$errorObject = array(
 								"objectType" => "error",
 								"code" => "",
@@ -236,11 +251,10 @@
 								"class" => "",
 							);
 			
+							close($stmt, $result, $db);
 							return $errorObject;
 						}
 					} else {
-						close($stmt, $result, $db);
-
 						$errorObject = array(
 							"objectType" => "error",
 							"code" => "403",
@@ -251,11 +265,10 @@
 							"class" => "inputError",
 						);
 			
+						close($stmt, $result, $db);
 						return $errorObject;
 					}
 				} else {
-					close($stmt, $result, $db);
-
 					$errorObject = array(
 						"objectType" => "error",
 						"code" => "",
@@ -266,6 +279,7 @@
 						"class" => "",
 					);
 	
+					close($stmt, $result, $db);
 					return $errorObject;	
 				}
 			} else {
@@ -307,8 +321,6 @@
 						session_regenerate_id();
 						$_SESSION['userId'] = $row['userId'];
 
-						close($stmt, $result, $db);
-
 						$successObject = array(
 							"objectType" => "success",
 							"code" => "200",
@@ -320,10 +332,9 @@
 							"content" => $_SESSION['userId'],
 						);
 
+						close($stmt, $result, $db);
 						return $successObject;
 					} else {
-						close($stmt, $result, $db);
-
 						$errorObject = array(
 							"objectType" => "error",
 							"code" => "400",
@@ -334,11 +345,10 @@
 							"class" => "inputError",
 						);
 			
+						close($stmt, $result, $db);
 						return $errorObject;
 					}
 				} else {
-					close($stmt, $result, $db);
-
 					$errorObject = array(
 						"objectType" => "error",
 						"code" => "404",
@@ -349,11 +359,10 @@
 						"class" => "inputError",
 					);
 		
+					close($stmt, $result, $db);
 					return $errorObject;
 				}
 			} else {
-				close($stmt, $result, $db);
-
 				$errorObject = array(
 					"objectType" => "error",
 					"code" => "",
@@ -364,6 +373,7 @@
 					"class" => "",
 				);
 
+				close($stmt, $result, $db);
 				return $errorObject;			
 			}
 		} else {
@@ -389,8 +399,170 @@
 		return $successObject;
 	}
 
-	// addPlaylist validation
+	// get
+	function getCurrentUser() {
+		// check if user is logged in
+		if (isset($_SESSION['userId'])) {
+			$db = openDB();
+			// check openDB success
+			if (getType($db) === 'object') {
+				// search for playlist
+				$stmt = $db->prepare("
+					SELECT *
+					FROM users
+					WHERE userId = ?
+				");
+				$stmt->bind_param('i', $_SESSION['userId']);
+		
+				// check query success
+				if ($stmt->execute()) {
+					// check that playlist exists
+					$result = $stmt->get_result();
+					if ($result->num_rows === 1) {
+						while($row = $result->fetch_assoc()) {
+							// !!! does not return password
+							$userObject = array(
+								"objectType" => "user",
+								"id" => $row['userId'],
+								"name" => $row['userName'],
+								"email" => $row['email'],
+							);
+						}
 
+						close($stmt, $result, $db);
+						return $userObject;
+					} else {
+						$errorObject = array(
+							"objectType" => "error",
+							"code" => "403",
+							"type" => "forbidden",
+							"message" => "User does not exist",
+							"origin" => ".php getCurrentUser()",
+							"target" => "",
+							"class" => "",
+						);
+			
+						close($stmt, $result, $db);
+						return $errorObject;
+					}
+				} else {
+					$errorObject = array(
+						"objectType" => "error",
+						"code" => "",
+						"type" => "sql failure",
+						"message" =>  $stmt->error,
+						"origin" => ".php getCurrentUser()",
+						"target" => "",
+						"class" => "",
+					);
+
+					close($stmt, $result, $db);
+					return $errorObject;	
+				}
+			} else {
+				return $db;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "403",
+				"type" => "forbidden",
+				"message" => "No user logged in",
+				"origin" => ".php getCurrentUser()",
+				"target" => "",
+				"class" => "",
+			);
+
+			return $errorObject;
+		}
+	}
+
+	function getUser($id) {
+		// check if number
+		if (is_numeric($id)) {
+			$db = openDB();
+			// check openDB success
+			if (getType($db) === 'object') {
+				// search for playlist
+				$stmt = $db->prepare("
+					SELECT *
+					FROM users
+					WHERE userId = ?
+				");
+				$stmt->bind_param('i', $id);
+		
+				// check query success
+				if ($stmt->execute()) {
+					// check that playlist exists
+					$result = $stmt->get_result();
+					if ($result->num_rows === 1) {
+						while($row = $result->fetch_assoc()) {
+							// !!! does not return password or email
+							$userObject = array(
+								"objectType" => "user",
+								"id" => $row['userId'],
+								"name" => $row['userName'],
+							);
+						}
+	
+						close($stmt, $result, $db);
+						return $userObject;
+					} else {
+						$errorObject = array(
+							"objectType" => "error",
+							"code" => "403",
+							"type" => "forbidden",
+							"message" => "User does not exist",
+							"origin" => ".php getUser()",
+							"target" => "",
+							"class" => "",
+						);
+			
+						close($stmt, $result, $db);
+						return $errorObject;
+					}
+				} else {
+					$errorObject = array(
+						"objectType" => "error",
+						"code" => "",
+						"type" => "sql failure",
+						"message" =>  $stmt->error,
+						"origin" => ".php getUser()",
+						"target" => "",
+						"class" => "",
+					);
+	
+					close($stmt, $result, $db);
+					return $errorObject;	
+				}
+			} else {
+				return $db;
+			}
+		} else {
+			$errorObject = array(
+				"objectType" => "error",
+				"code" => "400",
+				"type" => "invalid",
+				"message" =>  "User ID must be a number",
+				"origin" => ".php getUser()",
+				"target" => "",
+				"class" => "",
+			);
+
+			return $errorObject;
+		}	
+	}
+
+
+//  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
+//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██║     ██║██╔════╝╚══██╔══╝
+//  ██████╔╝██║     ███████║ ╚████╔╝ ██║     ██║███████╗   ██║   
+//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██║     ██║╚════██║   ██║   
+//  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
+//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
+//                                                               
+
+	// addPlaylist validation
 	function validateTitle(&$title, &$errorObjectArray) {
 		$title = trim($title);
 
@@ -570,8 +742,6 @@
 							$stmt->bind_param('isssss', $_SESSION['userId'], $title, $visibility, $description, $color, $image);
 
 							if ($stmt->execute()) {
-								close($stmt, $result, $db);
-
 								$successObject = array(
 									"objectType" => "success",
 									"code" => "200",
@@ -583,11 +753,9 @@
 									"content" => $title,
 								);
 
+								close($stmt, $result, $db);
 								return $successObject;
 							} else {
-								echo 'result: ' . $stmt->error;
-								close($stmt, $result, $db);
-
 								$errorObject = array(
 									"objectType" => "error",
 									"code" => "",
@@ -598,11 +766,10 @@
 									"class" => "",
 								);
 
+								close($stmt, $result, $db);
 								return $errorObject;
 							}
 						} else {
-							close($stmt, $result, $db);
-
 							$errorObject = array(
 								"objectType" => "error",
 								"code" => "403",
@@ -613,11 +780,10 @@
 								"class" => "inputError",
 							);
 				
+							close($stmt, $result, $db);
 							return $errorObject;
 						}
 					} else {
-						close($stmt, $result, $db);
-
 						$errorObject = array(
 							"objectType" => "error",
 							"code" => "",
@@ -628,6 +794,7 @@
 							"class" => "",
 						);
 		
+						close($stmt, $result, $db);
 						return $errorObject;	
 					}
 				} else {
@@ -680,8 +847,6 @@
 				
 						// check query success
 						if ($stmt->execute()) {
-							close($stmt, $result, $db);
-
 							$successObject = array(
 								"objectType" => "success",
 								"code" => "200",
@@ -693,10 +858,9 @@
 								"content" => "",
 							);
 
+							close($stmt, $result, $db);
 							return $successObject;
 						} else {
-							close($stmt, $result, $db);
-
 							$errorObject = array(
 								"objectType" => "error",
 								"code" => "",
@@ -707,11 +871,10 @@
 								"class" => "",
 							);
 			
+							close($stmt, $result, $db);
 							return $errorObject;	
 						}
 					} else {
-						close($stmt, $result, $db);
-
 						$errorObject = array(
 							"objectType" => "error",
 							"code" => "403",
@@ -722,11 +885,10 @@
 							"class" => "",
 						);
 			
+						close($stmt, $result, $db);
 						return $errorObject;
 					}
 				} else {
-					close($stmt, $result, $db);
-
 					$errorObject = array(
 						"objectType" => "error",
 						"code" => "",
@@ -737,6 +899,7 @@
 						"class" => "",
 					);
 
+					close($stmt, $result, $db);
 					return $errorObject;	
 				}
 			} else {
@@ -757,87 +920,8 @@
 		}
 	}
 
-	// get
-	function getCurrentUser() {
-		// check if user is logged in
-		if (isset($_SESSION['userId'])) {
-			$db = openDB();
-			// check openDB success
-			if (getType($db) === 'object') {
-				// search for playlist
-				$stmt = $db->prepare("
-					SELECT *
-					FROM users
-					WHERE userId = ?
-				");
-				$stmt->bind_param('i', $_SESSION['userId']);
-		
-				// check query success
-				if ($stmt->execute()) {
-					// check that playlist exists
-					$result = $stmt->get_result();
-					if ($result->num_rows === 1) {
-						while($row = $result->fetch_assoc()) {
-							// !!! does not return password
-							$userObject = array(
-								"objectType" => "user",
-								"userId" => $row['userId'],
-								"userName" => $row['userName'],
-								"email" => $row['email'],
-							);
-						}
-
-						return $userObject;
-					} else {
-						close($stmt, $result, $db);
-
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "403",
-							"type" => "forbidden",
-							"message" => "User does not exist",
-							"origin" => ".php getCurrentUser()",
-							"target" => "",
-							"class" => "",
-						);
-			
-						return $errorObject;
-					}
-				} else {
-					close($stmt, $result, $db);
-
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "",
-						"type" => "sql failure",
-						"message" =>  $stmt->error,
-						"origin" => ".php getCurrentUser()",
-						"target" => "",
-						"class" => "",
-					);
-
-					return $errorObject;	
-				}
-			} else {
-				return $db;
-			}
-		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "403",
-				"type" => "forbidden",
-				"message" => "No user logged in",
-				"origin" => ".php getCurrentUser()",
-				"target" => "",
-				"class" => "",
-			);
-
-			return $errorObject;
-		}
-	}
-
-	function getUser($id) {
-		// check if number
+	function getPlaylist($id) {
+		// check valid id
 		if (is_numeric($id)) {
 			$db = openDB();
 			// check openDB success
@@ -845,54 +929,119 @@
 				// search for playlist
 				$stmt = $db->prepare("
 					SELECT *
-					FROM users
-					WHERE userId = ?
+					FROM playlists
+					WHERE playlistId = ?
 				");
 				$stmt->bind_param('i', $id);
 		
 				// check query success
 				if ($stmt->execute()) {
-					// check that playlist exists
+					// check if exists
 					$result = $stmt->get_result();
 					if ($result->num_rows === 1) {
+						// fetch data
 						while($row = $result->fetch_assoc()) {
-							// !!! does not return password or email
-							$userObject = array(
-								"objectType" => "user",
+							$playlistObject = array(
+								"objectType" => "playlist",
+								"id" => $row['playlistId'],
 								"userId" => $row['userId'],
-								"userName" => $row['userName'],
+								"title" => $row['title'],
+								"visibility" => $row['visibility'],
+								"description" => $row['description'],
+								"color" => $row['color'],
+								"image" => $row['image'],
+								"tracks" => [],
 							);
 						}
-	
-						return $userObject;
+
+						// check valid permissions, public, linkOnly, or private and same user
+						if ($playlistObject['visibility'] === 'public' || $playlistObject['visibility'] === 'linkOnly' || ($playlistObject['visibility'] === 'private' && $playlistObject['userId'] === $_SESSION['userId'])) {
+							// retrieve tracks
+							$stmt = $db->prepare("
+								SELECT *
+								FROM tracks
+								WHERE playlistId = ?
+							");
+							$stmt->bind_param('i', $id);
+					
+							// check query success
+							if ($stmt->execute()) {
+								$result = $stmt->get_result();
+
+								// fetch data
+								$trackList = [];
+								while($row = $result->fetch_assoc()) {
+									array_push($trackList, [
+										"objectType" => "track",
+
+										"playlistId" => $row['playlistId'],
+										"position" => $row['position'],
+										"source" => $row['source'],
+										"id" => $row['trackId'],
+										"title" => $row['title'],
+										"artists" => explode('|||', $row['artists']),
+										"duration" => $row['duration'],
+									]);
+								}
+
+								$playlistObject['tracks'] = $trackList;
+
+								close($stmt, $result, $db);
+								return $playlistObject;
+							} else {
+								$errorObject = array(
+									"objectType" => "error",
+									"code" => "",
+									"type" => "sql failure",
+									"message" =>  $stmt->error,
+									"origin" => ".php getPlaylist()",
+									"target" => "",
+									"class" => "",
+								);
+				
+								close($stmt, $result, $db);
+								return $errorObject;	
+							}
+						} else {
+							$errorObject = array(
+								"objectType" => "error",
+								"code" => "403",
+								"type" => "forbidden",
+								"message" => "You don not permission to view this playlist",
+								"origin" => ".php getPlaylist()",
+								"target" => "",
+								"class" => "",
+							);
+				
+							close($stmt, $result, $db);
+							return $errorObject;
+						}
 					} else {
-						close($stmt, $result, $db);
-	
 						$errorObject = array(
 							"objectType" => "error",
 							"code" => "403",
 							"type" => "forbidden",
-							"message" => "User does not exist",
-							"origin" => ".php getUser()",
+							"message" => "Playlist does not exist",
+							"origin" => ".php getPlaylist()",
 							"target" => "",
 							"class" => "",
 						);
 			
+						close($stmt, $result, $db);
 						return $errorObject;
 					}
 				} else {
-					close($stmt, $result, $db);
-	
 					$errorObject = array(
 						"objectType" => "error",
 						"code" => "",
 						"type" => "sql failure",
 						"message" =>  $stmt->error,
-						"origin" => ".php getUser()",
+						"origin" => ".php getPlaylist()",
 						"target" => "",
 						"class" => "",
 					);
 	
+					close($stmt, $result, $db);
 					return $errorObject;	
 				}
 			} else {
@@ -903,15 +1052,82 @@
 				"objectType" => "error",
 				"code" => "400",
 				"type" => "invalid",
-				"message" =>  "User ID must be a number",
-				"origin" => ".php getUser()",
+				"message" =>  "Playlist ID must be a number",
+				"origin" => ".php getPlaylist()",
 				"target" => "",
 				"class" => "",
 			);
 
 			return $errorObject;
-		}
-		
+		}	
 	}
 
+	function addTrack($playlistId, $source, $id, $title, $artists, $duration) {
+		// TODO add validation for track details
+		
+		// get playlist (or error)
+		$playlistObject = getPlaylist($playlistId);
+		if ($playlistObject['objectType'] === 'playlist') {
+			$db = openDB();
+			// check openDB success
+			if (getType($db) === 'object') {
+				// set position
+				$count = 0;;
+				forEach($playlistObject['tracks'] as $track) {
+					$count++;
+				}
+				$position = $count + 1;
+
+				// implode array, tripple pipe delimiter
+				// TODO 
+				$artists = implode('|||', $artists);
+
+				// prep insert
+				$stmt = $db->prepare("
+				INSERT INTO tracks (playlistId, position, source, trackId, title, artists, duration)
+				VALUES (?, ?, ?, ?, ?, ?, ?)
+				");
+				$stmt->bind_param('iissssi', $playlistId, $position, $source, $id, $title, $artists, $duration);
+
+				if ($stmt->execute()) {
+					$successObject = array(
+						"objectType" => "success",
+						"code" => "200",
+						"type" => "finished",
+						"message" => "Track added",
+						"origin" => ".php addTrack()",
+						"target" => "",
+						"class" => "",
+						"content" => "",
+					);
+
+					close($stmt, $result, $db);
+					return $successObject;
+				} else {
+					$errorObject = array(
+						"objectType" => "error",
+						"code" => "",
+						"type" => "sql failure",
+						"message" => $stmt->error,
+						"origin" => ".php addTrack()",
+						"target" => "",
+						"class" => "",
+					);
+
+					close($stmt, $result, $db);	
+					return $errorObject;
+				}
+			} else {
+				return $db;
+			}
+		} else {
+			return $playlistObject;
+		}
+	}
+
+	// function addTrack($id, , , , ) {
+
+	// }
+
+	// function deleteTrack($id)
 ?>

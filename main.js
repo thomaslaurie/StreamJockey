@@ -73,7 +73,7 @@ var elementErrorTemplate = {
 var elementErrorList = [];
 
 function clearElementError(elementError) {
-	console.log('clearElementError(' + elementError.target + ') called');
+	//console.log('clearElementError(' + elementError.target + ') called');
 
 	// backwards delete loop
 	for (var i = elementErrorList.length - 1; 0 <= i; i--) {
@@ -84,7 +84,7 @@ function clearElementError(elementError) {
 }
 
 function clearElementErrorGroup(elementErrorTargetArray) {
-	console.log('clearElementErrorGroup(' + elementErrorTargetArray + ') called');
+	//console.log('clearElementErrorGroup(' + elementErrorTargetArray + ') called');
 
 	// any call that creates element errors must be responsible for cleaning them up
 	elementErrorTargetArray.forEach(function(elementErrorTarget, i) {
@@ -100,7 +100,7 @@ function clearElementErrorGroup(elementErrorTargetArray) {
 }
 
 function addElementError(elementError) {
-	console.log('addElementError(' + elementError.target + ') called');
+	//console.log('addElementError(' + elementError.target + ') called');
 
 	// replace existing with new info
 	clearElementError(elementError);
@@ -111,7 +111,7 @@ function addElementError(elementError) {
 }
 
 function updateElementErrors() {
-	console.log('updateErrorElements() called');
+	//console.log('updateErrorElements() called');
 
 	// list of all elementErrorClasses TODO keep me updated
 	var elementErrorClasses = [
@@ -157,9 +157,13 @@ function serverCommand(data, callback) {
 		"type": "POST",
 		"data": data,
 		success: function(data){
-			console.log(data);
-			data = JSON.parse(data);
-			console.log("Server Data Returned: " + data);
+			try {
+				data = JSON.parse(data);
+				console.log("Server data returned: " + data);
+			} catch (e) {
+				console.error("Parse error on data: " + data);
+				console.error(e);
+			}
 			callback(data);
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
@@ -184,13 +188,14 @@ function serverCommand(data, callback) {
 }
 
 function handleError(error) {
+	console.log(error);
+
 	var elementError = {
 		target: error.target,
 		storedState: $(document.getElementById(error.target)).val(),
 		class: error.class,
 		message: error.message,
 	}
-	console.log(elementError);
 
 	addElementError(elementError);
 }
@@ -230,6 +235,7 @@ function msFormat(ms) {
 //                                                                       
 
 function register(name, password1, password2, email,) {
+	// takes input DOM elements
 	var inputs = [
 		name,
 		password1,
@@ -274,6 +280,7 @@ function register(name, password1, password2, email,) {
 }
 
 function login(name, password) {
+	// takes input DOM elements
 	var inputs = [
 		name,
 		password,
@@ -356,6 +363,7 @@ function getCurrentUser() {
 }
 
 function getUser(id) {
+	// takes input DOM element
 	var inputs = [
 		'id'
 	];
@@ -392,6 +400,7 @@ function getUser(id) {
 //                                                                       
 
 function addPlaylist(title, visibility, description, color, image) {
+	// takes input DOM elements
 	var inputs = [
 		title,
 		visibility,
@@ -427,6 +436,7 @@ function addPlaylist(title, visibility, description, color, image) {
 }
 
 function deletePlaylist(id) {
+	// takes input DOM element
 	var inputs = [
 		id,
 	];
@@ -443,6 +453,66 @@ function deletePlaylist(id) {
 				$('<p/>')
 					.text(data.message)
 			);
+
+			// wipe entries
+			inputs.forEach(function(input) {
+				input.val('');
+			});
+		} else if (data.objectType == 'error') {
+			handleError(data);
+		}
+	});
+}
+
+function getPlaylist(id) {
+	// takes input DOM element
+	var inputs = [
+		id,
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'getPlaylist',
+		'id': id.val(),
+	}, function (data) {
+		if (data.objectType == 'playlist') {
+			// TODO handle success
+			console.log(data);
+
+			// wipe entries
+			inputs.forEach(function(input) {
+				input.val('');
+			});
+		} else if (data.objectType == 'error') {
+			handleError(data);
+		}
+	});
+}
+
+function addTrack(track, playlistId) {
+	// takes DOM element that has JQuery .data('track'), and an input for with the playlist Id TODO change this later
+	var inputs = [
+		playlistId
+	];
+	clearElementErrorGroup(inputs);
+	
+	serverCommand({
+		'request': 'addTrack',
+		'playlistId': playlistId.val(),
+		'source': track.data('track').source,
+		'id': track.data('track').id,
+		'title': track.data('track').title,
+		'artists': track.data('track').artists,
+		'duration': track.data('track').duration,
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			console.log('addTrack success');
 
 			// wipe entries
 			inputs.forEach(function(input) {
@@ -573,33 +643,13 @@ function search(term) {
 }
 
 function formatSourceResult(source, object, callback) {
-	// array of track objects
-
-	var trackList = [trackTemplate];
-
 	// source cases
 	if (source == 'spotify') {
-		object.tracks.items.forEach(function (track, i) {
-			trackList[i] = {
-				// core
-				source: 'spotify',
-				id: track.id,
-				artists: [],
-				title: track.name,
-				duration: track.duration_ms,
-				
-				// extra
-				link: track.external_urls.spotify,
-			};	
-
-			// fill array
-			track.artists.forEach(function (artist, j) {
-				trackList[i].artists[j] = artist.name;
-			});
+		getSpotifyTrackDetails(object.tracks.items, function(trackList) {
+			callback(trackList);
 		});
-
-		callback(trackList);
 	} else if (source == 'youtube') {
+		// this id array needs to stay outside of youtubeGetTrackDetails() because this function is used elsewhere with a specific id reference
 		var idArray = [];
 
 		object.items.forEach(function (track, i) {
@@ -609,37 +659,40 @@ function formatSourceResult(source, object, callback) {
 		youtubeGetTrackDetails(idArray, function(trackList) {
 			callback(trackList);
 		});
-
-		// object.items.forEach(function (track, i) {
-		// 	// TODO formatting for finding artist and title based on 'artist - title' syntax
-
-		// 	trackList[i] = {
-		// 		// core
-		// 		source: 'youtube',
-		// 		id: track.id.videoId,
-		// 		artists: [],
-		// 		title: track.snippet.title,
-		// 		// TODO must be retrieved with a separate call: https://developers.google.com/youtube/v3/docs/videos/list
-		// 		// ,contentDetails
-		// 		duration: '',
-				
-		// 		// extra
-		// 		link: YOUTUBE_ID_PREFIX + track.id.videoId,
-		// 	};	
-
-		// 	// fill array
-		// 	trackList[i].artists.push(track.snippet.channelTitle);
-		// });
-
-		// trackList.forEach(function (track, i) {
-
-		// });
-
-		// return trackList;
 	}
 }
 
+function getSpotifyTrackDetails(items, callback) {
+	// array of track objects
+	var trackList = [];
+
+	// takes spotify's response.tracks.items array
+	items.forEach(function (track, i) {
+		trackList[i] = {
+			// core
+			source: 'spotify',
+			id: track.id,
+			artists: [],
+			title: track.name,
+			duration: track.duration_ms,
+			
+			// extra
+			link: track.external_urls.spotify,
+		};	
+
+		// fill array
+		track.artists.forEach(function (artist, j) {
+			trackList[i].artists[j] = artist.name;
+		});
+	});
+
+	callback(trackList);
+}
+
 function youtubeGetTrackDetails(ids, callback) {
+	// array of track objects
+	var trackList = [];
+
 	var all = ids.join(",");
 	var args = {
 		method: 'GET',
@@ -656,24 +709,31 @@ function youtubeGetTrackDetails(ids, callback) {
 			console.log('youtubeGetTrackDetails() success');
 			console.log(fufilled);
 
-			// cannot be empty, or else an empty array will be returned
-			var trackList = [trackTemplate];
-
 			fufilled.result.items.forEach(function (track, i) {
+				trackList[i] = new Track();
+
+				trackList[i].source = 'youtube';
+				trackList[i].id = track.id;
+
+				// convert artist - title format
+				// TODO make better regex
+				var stringSplit = track.snippet.title.split(/( +- +)/);
+				if (stringSplit.length === 2) {
+					console.log('split on " - "');
+					var artistSplit = stringSplit[0].split(/( +[&x] +)/);
+					artistSplit.forEach(function(artist) {
+						// fill artists
+						trackList[i].artists.push(artist);
+					});
+					trackList[i].title = stringSplit[1];
+				} else {
+					trackList[i].artists = [track.snippet.channelTitle];
+					trackList[i].title = track.snippet.title;
+				}
+
 				// convert ISO_8601 duration to milliseconds
-				var milliseconds = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
-
-				trackList[i] = {
-					source: 'youtube',
-					id: track.id,
-					artists: [],
-					title: track.snippet.title,
-					duration: milliseconds,
-					link: YOUTUBE_ID_PREFIX + track.id,
-				};
-
-				// fill artists
-				trackList[i].artists.push(track.snippet.channelTitle);	
+				trackList[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
+				trackList[i].link = YOUTUBE_ID_PREFIX + trackList[i].id;	
 			});
 			
 			callback(trackList);
@@ -737,7 +797,7 @@ function displayList(trackList) {
 	trackList.forEach(function(track, index) {
 		$('#list').append(
 			$('<li/>')
-				.data('data', track)
+				.data('track', track)
 				.addClass('searchResult')
 				.addClass('resultNumber' + index)
 				.append([
@@ -753,6 +813,9 @@ function displayList(trackList) {
 					$('<button/>')
 						.addClass('searchResultPreview')
 						.text('Preview'),
+					$('<button/>')
+						.addClass('addTrack')
+						.text('Add'),
 				])
 		);
 	});
@@ -876,33 +939,33 @@ function onPlayerStateChange(event) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 //   
 
-var trackTemplate = {
-	'objectType': 'track',
-
-	'source': "",
-	'id': "",
-	'artists': [],
-	'title': "",
-	'duration': "",
-	'link': "",
-};
+// track object prototype
+function Track() {
+	this.objectType = 'track';
+	this.source = '';
+	this.id = '';
+	this.artists = [];
+	this.title = '';
+	this.duration = '';
+	this.link = '';
+}
 
 var desiredPlayback = {
 	'playing': false,
 	'progress': 0,
-	'track': trackTemplate,
+	'track': new Track(),
 };
 
 var actualPlayback = {
 	'spotify': {
 		playing: false,
 		progress: 0,
-		track: trackTemplate,
+		track: new Track(),
 	},
 	'youtube': {
 		playing: false,
 		progress: 0,
-		track: trackTemplate,
+		track: new Track(),
 	},
 };
 
@@ -927,6 +990,7 @@ function checkPlaybackState(callback) {
 		} else if (response) {
 			console.log('checkPlaybackState() spotify success');
 
+			// TODO will cause an error if no track is playing, will break this entire function
 			actualPlayback.spotify.playing = response.is_playing;
 			actualPlayback.spotify.progress = response.progress_ms;
 			actualPlayback.spotify.track = {
@@ -966,9 +1030,9 @@ function checkPlaybackState(callback) {
 
 	youtubeGetTrackDetails([id], function(trackList) {
 		console.log('checkPlaybackState() youtube success');
-		actualPlayback.youtube.track = trackList[0];
-		console.log(trackList[0]);
-		console.log(actualPlayback.youtube.track);
+		if (trackList.length !== 0) {
+			actualPlayback.youtube.track = trackList[0];
+		}
 		completeParts();
 	});
 }
@@ -988,7 +1052,7 @@ function updatePlaybackState() {
 			} else if (desiredPlayback.track.source == 'youtube') {
 				if (!actualPlayback.youtube.playing) { resume('youtube'); }
 				if (actualPlayback.spotify.playing) { pause('spotify'); }
-				console.log('Desired id: ' + desiredPlayback.track.id + 'Actual id: ' + actualPlayback.youtube.track.id)
+				console.log('Desired id: ' + desiredPlayback.track.id + 'Actual id: ' + actualPlayback.youtube.track.id);
 				if (desiredPlayback.track.id != actualPlayback.youtube.track.id) { start('youtube', desiredPlayback.track.id); };
 			}
 		}
@@ -1103,12 +1167,21 @@ function seek(source, ms) {
 //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 //                                   
 
+// list
 $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview clicked");
 
-	desiredPlayback.track = $(this).parent().data('data');
+	// TODO make a function that does this, and just pass the DOM elemetn that has .data('track'), like .addTrack does
+
+	desiredPlayback.track = $(this).parent().data('track');
 	desiredPlayback.playing = true;
 	updatePlaybackState();
+});
+
+$(document).on("click", ".addTrack", function() {
+	console.log(".addTrack clicked");
+
+	addTrack($(this).parent(), $('#playlistId'));
 });
 
 // connect
@@ -1173,3 +1246,9 @@ $(document).on("click", "#deletePlaylistSubmit", function() {
 	console.log("#deletePlaylistSubmit clicked");
 	deletePlaylist($('#playlistId'));
 });
+
+$(document).on("click", "#getPlaylistSubmit", function() {
+	console.log("#getPlaylistSubmit clicked");
+	getPlaylist($('#playlistId'));
+});
+
