@@ -65,6 +65,9 @@
 	} else if ($request === 'addTrack') {
 		$result = addTrack($playlistId, $source, $id, $title, $artists, $duration);
 		echo json_encode($result);
+	} else if ($request === 'orderPlaylist') {
+		$result = orderPlaylist($id);
+		echo json_encode($result);
 	} else if ($request === null) {
 		$errorObject = array(
 			"objectType" => "error",

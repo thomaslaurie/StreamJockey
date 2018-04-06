@@ -55,6 +55,7 @@
 	<input id='playlistId' type='text' placeholder='id'>
 	<button id='getPlaylistSubmit'>Get Playlist</button>
 	<button id='deletePlaylistSubmit'>Delete Playlist</button>
+	<button id='orderPlaylistSubmit'>Order Playlist</button>
 </section>
 
 <section>

@@ -14,7 +14,7 @@
 
 	function openDB() {
 		// path
-		include('connect.php');
+		require('connect.php');
 
 		// create new database object, @ suppresses errors
 		@$db = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);

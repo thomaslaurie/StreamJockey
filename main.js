@@ -435,35 +435,6 @@ function addPlaylist(title, visibility, description, color, image) {
 	});
 }
 
-function deletePlaylist(id) {
-	// takes input DOM element
-	var inputs = [
-		id,
-	];
-	clearElementErrorGroup(inputs);
-
-	serverCommand({
-		'request': 'deletePlaylist',
-		'id': id.val(),
-
-	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
-
-			// wipe entries
-			inputs.forEach(function(input) {
-				input.val('');
-			});
-		} else if (data.objectType == 'error') {
-			handleError(data);
-		}
-	});
-}
-
 function getPlaylist(id) {
 	// takes input DOM element
 	var inputs = [
@@ -488,6 +459,68 @@ function getPlaylist(id) {
 		}
 	});
 }
+
+function deletePlaylist(id) {
+	// takes input DOM element
+	var inputs = [
+		id,
+	];
+	clearElementErrorGroup(inputs);
+
+	serverCommand({
+		'request': 'deletePlaylist',
+		'id': id.val(),
+	}, function (data) {
+		if (data.objectType == 'success') {
+			// TODO handle success
+			$('body').append(
+				$('<p/>')
+					.text(data.message)
+			);
+
+			// wipe entries
+			inputs.forEach(function(input) {
+				input.val('');
+			});
+		} else if (data.objectType == 'error') {
+			handleError(data);
+		}
+	});
+}
+
+function orderPlaylist(id) {
+		// takes input DOM element
+		var inputs = [
+			id,
+		];
+		clearElementErrorGroup(inputs);
+	
+		serverCommand({
+			'request': 'deletePlaylist',
+			'id': id.val(),
+		}, function (data) {
+			if (data.objectType === 'success') {
+				// TODO handle success
+				$('body').append(
+					$('<p/>')
+						.text(data.message)
+				);
+	
+				// wipe entries
+				inputs.forEach(function(input) {
+					input.val('');
+				});
+			} else if (data.objectType === 'error') {
+				handleError(data);
+			} else if (data.objectType === 'errorList') {
+				forEach(data.errors, function(error) {
+					handleError(error);
+				});
+			}
+		});
+}
+
+
 
 function addTrack(track, playlistId) {
 	// takes DOM element that has JQuery .data('track'), and an input for with the playlist Id TODO change this later
@@ -1242,13 +1275,18 @@ $(document).on("click", "#addPlaylistSubmit", function() {
 	addPlaylist($('#playlistTitle'), $('#playlistVisibility'), $('#playlistDescription'), $('#playlistColor'), $('#playlistImage'));
 });
 
+$(document).on("click", "#getPlaylistSubmit", function() {
+	console.log("#getPlaylistSubmit clicked");
+	getPlaylist($('#playlistId'));
+});
+
 $(document).on("click", "#deletePlaylistSubmit", function() {
 	console.log("#deletePlaylistSubmit clicked");
 	deletePlaylist($('#playlistId'));
 });
 
-$(document).on("click", "#getPlaylistSubmit", function() {
-	console.log("#getPlaylistSubmit clicked");
-	getPlaylist($('#playlistId'));
+$(document).on("click", "#orderPlaylistSubmit", function() {
+	console.log("#orderPlaylistSubmit clicked");
+	orderPlaylist($('#playlistId'));
 });
 
