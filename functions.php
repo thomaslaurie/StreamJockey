@@ -14,7 +14,7 @@
 
 	function openDB() {
 		// path
-		include('connect.php');
+		include_once('connect.php');
 
 		// create new database object, @ suppresses errors
 		@$db = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
@@ -1062,6 +1062,95 @@
 		}	
 	}
 
+	// returns an error object, or an array of success and error objects
+	function orderPlaylist($id) {
+		$playlist = getPlaylist($id);
+
+		// check for no errors
+		if ($playlist['objectType'] == 'playlist') {
+			// get position list
+			$oldPositionList = [];
+			forEach($playlist['tracks'] as $track) {
+				array_push($oldPositionList, $track['position']);
+			}
+			sort($oldPositionList);
+
+			// copy values
+			$newPositionList = $oldPositionList;
+
+			// order
+
+			// set first item to first position
+			$newPositionList[0] = 1;
+
+			// if at least two items
+			if (sizeof($newPositionList) >= 2) {
+				// loop through all items, except last
+				for ($i = 0; $i < sizeof($newPositionList) - 1; $i++) {
+					$thisIndex = $newPositionList[$i];
+					$nextIndex = $newPositionList[$i + 1];
+	
+					// if next index is the same as this index
+					if ($nextIndex === $thisIndex) {
+						// loop through all items, starting at the next index
+						for ($j = $nextIndex; $j < sizeof($newPositionList); $j++) {
+							// increase
+							$newPositionList[$j]++;
+						}
+					// else if next inext is not this index + 1
+					} else if ($nextIndex !== $thisIndex + 1) {
+						// get difference from where it should be
+						$difference = $nextIndex - $thisIndex + 1;
+
+						// loop through all items, starting at the next index
+						for ($j = $nextIndex; $j < sizeof($newPositionList); $j++) {
+							// remove difference
+							$newPositionList[$j] = $newPositionList[$j] - $difference;
+						}
+					}
+				}
+			}
+
+			// apply
+			$errorList = [];
+			for ($i = 0; $i < sizeof($oldPositionList); $i++) {
+				$result = setTrackPosition($id, $oldPositionList[$i], 'position', $newPositionList[$i]);
+
+				if ($result['objectType'] !== 'success') {
+					push_array($errorList, $result);
+				}				
+			}
+
+			if (sizeof($errorList) === 0) {
+				$successObject = array(
+					"objectType" => "success",
+					"code" => "200",
+					"type" => "finished",
+					"message" => "Playlist ordered",
+					"origin" => ".php orderPlaylist()",
+					"target" => "",
+					"class" => "",
+					"content" => "",
+				);
+
+				return $successObject;
+			} else {
+				$errorObject = array(
+					"objectType" => "errorList",
+					"code" => "",
+					"type" => "",
+					"message" =>  "Some calls to setTrackPosition() returned an error",
+					"origin" => ".php orderPlaylist()",
+					"target" => "",
+					"class" => "",
+					"errors" => $errorList,
+				);
+	
+				return $errorOjbect;
+			}
+		}
+	}
+
 	function addTrack($playlistId, $source, $id, $title, $artists, $duration) {
 		// TODO add validation for track details
 		
@@ -1072,7 +1161,7 @@
 			// check openDB success
 			if (getType($db) === 'object') {
 				// set position
-				$count = 0;;
+				$count = 0;
 				forEach($playlistObject['tracks'] as $track) {
 					$count++;
 				}
@@ -1084,8 +1173,8 @@
 
 				// prep insert
 				$stmt = $db->prepare("
-				INSERT INTO tracks (playlistId, position, source, trackId, title, artists, duration)
-				VALUES (?, ?, ?, ?, ?, ?, ?)
+					INSERT INTO tracks (playlistId, position, source, trackId, title, artists, duration)
+					VALUES (?, ?, ?, ?, ?, ?, ?)
 				");
 				$stmt->bind_param('iissssi', $playlistId, $position, $source, $id, $title, $artists, $duration);
 
@@ -1122,6 +1211,56 @@
 			}
 		} else {
 			return $playlistObject;
+		}
+	}
+
+	function deleteTrack($playlistId, $position) {
+
+	}
+
+	function setTrackPosition($playlistId, $position, $attribute, $value) {
+		$db = openDB();
+		// check openDB success
+		if (getType($db) === 'object') {
+			// prep query
+			$stmt = $db->prepare("
+				UPDATE tracks
+				SET position = ?
+				WHERE playlistId = ? AND position = ?
+			");
+			$stmt->bind_param('iii', $value, $playlistId, $position);
+
+			// check query success
+			if ($stmt->execute()) {
+				$successObject = array(
+					"objectType" => "success",
+					"code" => "200",
+					"type" => "finished",
+					"message" => "Track position changed",
+					"origin" => ".php setTrackPosition()",
+					"target" => "",
+					"class" => "",
+					"content" => $title,
+				);
+
+				close($stmt, $result, $db);
+				return $successObject;
+			} else {
+				$errorObject = array(
+					"objectType" => "error",
+					"code" => "",
+					"type" => "sql failure",
+					"message" =>  $stmt->error,
+					"origin" => ".php setTrackPosition()",
+					"target" => "",
+					"class" => "",
+				);
+
+				close($stmt, $result, $db);
+				return $errorObject;	
+			}
+		} else {
+			return $db;
 		}
 	}
 
