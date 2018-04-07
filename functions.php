@@ -13,7 +13,7 @@
 //                                                                   
 
 	function openDB() {
-		// path
+		// path TODO ??? this breaks prepared statements if set to require_once
 		require('connect.php');
 
 		// create new database object, @ suppresses errors
@@ -961,6 +961,7 @@
 								SELECT *
 								FROM tracks
 								WHERE playlistId = ?
+								ORDER BY position ASC
 							");
 							$stmt->bind_param('i', $id);
 					
@@ -1087,23 +1088,23 @@
 			if (sizeof($newPositionList) >= 2) {
 				// loop through all items, except last
 				for ($i = 0; $i < sizeof($newPositionList) - 1; $i++) {
-					$thisIndex = $newPositionList[$i];
-					$nextIndex = $newPositionList[$i + 1];
+					$thisPosition = $newPositionList[$i];
+					$nextPosition = $newPositionList[$i + 1];
 	
 					// if next index is the same as this index
-					if ($nextIndex === $thisIndex) {
+					if ($nextPosition === $thisPosition) {
 						// loop through all items, starting at the next index
-						for ($j = $nextIndex; $j < sizeof($newPositionList); $j++) {
+						for ($j = $i + 1; $j < sizeof($newPositionList); $j++) {
 							// increase
 							$newPositionList[$j]++;
 						}
 					// else if next inext is not this index + 1
-					} else if ($nextIndex !== $thisIndex + 1) {
+					} else if ($nextPosition !== ($thisPosition + 1)) {
 						// get difference from where it should be
-						$difference = $nextIndex - $thisIndex + 1;
+						$difference = $nextPosition - ($thisPosition + 1);
 
 						// loop through all items, starting at the next index
-						for ($j = $nextIndex; $j < sizeof($newPositionList); $j++) {
+						for ($j = $i + 1; $j < sizeof($newPositionList); $j++) {
 							// remove difference
 							$newPositionList[$j] = $newPositionList[$j] - $difference;
 						}
@@ -1113,8 +1114,17 @@
 
 			// apply
 			$errorList = [];
+
+			// because two positions cant be the same, sending the old positions to negative before applying the new ones can solve this, TODO there has to be a better way to to this though
 			for ($i = 0; $i < sizeof($oldPositionList); $i++) {
-				$result = setTrackPosition($id, $oldPositionList[$i], 'position', $newPositionList[$i]);
+				$result = setTrackPosition($id, $oldPositionList[$i], 'position', (-1 * $oldPositionList[$i]));
+
+				if ($result['objectType'] !== 'success') {
+					push_array($errorList, $result);
+				}				
+			}
+			for ($i = 0; $i < sizeof($oldPositionList); $i++) {
+				$result = setTrackPosition($id, (-1 * $oldPositionList[$i]), 'position', $newPositionList[$i]);
 
 				if ($result['objectType'] !== 'success') {
 					push_array($errorList, $result);
@@ -1161,11 +1171,9 @@
 			// check openDB success
 			if (getType($db) === 'object') {
 				// set position
-				$count = 0;
-				forEach($playlistObject['tracks'] as $track) {
-					$count++;
-				}
-				$position = $count + 1;
+				$length = sizeof($playlistObject['tracks']);
+				// last track, position + 1;
+				$position = $playlistObject['tracks'][$length - 1]['position'] + 1;
 
 				// implode array, tripple pipe delimiter
 				// TODO 
@@ -1215,6 +1223,49 @@
 	}
 
 	function deleteTrack($playlistId, $position) {
+		$db = openDB();
+		// check openDB success
+		if (getType($db) === 'object') {
+			// prep query
+			$stmt = $db->prepare("
+				DELETE FROM tracks
+				WHERE playlistId = ? AND position = ?
+			");
+			$stmt->bind_param('ii', $playlistId, $position);
+
+			// check query success
+			if ($stmt->execute()) {
+				$successObject = array(
+					"objectType" => "success",
+					"code" => "200",
+					"type" => "finished",
+					"message" => "Track deleted",
+					"origin" => ".php deleteTrack()",
+					"target" => "",
+					"class" => "",
+					"content" => "",
+				);
+
+				close($stmt, $result, $db);
+				return $successObject;
+			} else {
+				$errorObject = array(
+					"objectType" => "error",
+					"code" => "",
+					"type" => "sql failure",
+					"message" =>  $stmt->error,
+					"origin" => ".php deleteTrack()",
+					"target" => "",
+					"class" => "",
+				);
+
+				close($stmt, $result, $db);
+				return $errorObject;	
+			}
+		} else {
+			return $db;
+		}
+
 
 	}
 
@@ -1240,7 +1291,7 @@
 					"origin" => ".php setTrackPosition()",
 					"target" => "",
 					"class" => "",
-					"content" => $title,
+					"content" => "",
 				);
 
 				close($stmt, $result, $db);

@@ -24,6 +24,7 @@
 
 		// track
 		'playlistId',
+		'position',
 		'source',
 		'title',
 		'artists',
@@ -64,6 +65,10 @@
 		echo json_encode($result);
 	} else if ($request === 'addTrack') {
 		$result = addTrack($playlistId, $source, $id, $title, $artists, $duration);
+		echo json_encode($result);
+	} else if ($request === 'deleteTrack') {
+		$result = deleteTrack($playlistId, $position);
+		orderPlaylist($playlistId);
 		echo json_encode($result);
 	} else if ($request === 'orderPlaylist') {
 		$result = orderPlaylist($id);

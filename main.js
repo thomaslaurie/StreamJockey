@@ -32,11 +32,142 @@ var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
 //  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 //                                                   
 
+
+
 // test
 $("#test").click(function() {
-
-	getUser($('#testInput'));
+	console.log(new Track({
+		'id': 'ahfisadhfweama',
+		'title': 'hi im a title',
+	}));
 });
+
+function SjObject(obj) {
+	this.objectType = 'SjObject';
+
+	// what
+	this.code = typeof obj.code === 'undefined' ? '' : obj.code;
+	this.type = typeof obj.type === 'undefined' ? '' : obj.type;
+	this.origin = typeof obj.origin === 'undefined' ? '' : obj.origin;
+
+	// return
+	this.message = typeof obj.message === 'undefined' ? '' : obj.message;
+	// if no reason is given, reason is the same as the message
+	this.reason = typeof obj.reason === 'undefined' ? this.message : obj.reason; 
+	this.content = typeof obj.content === 'undefined' ? '' : obj.content;
+
+	// element
+	this.target = typeof obj.target === 'undefined' ? '' : obj.target;
+	this.class = typeof obj.class === 'undefined' ? '' : obj.class;
+
+	this.onCreate = function () {
+		console.log(this.origin + ' returned ' + this.objectType + ', ' + this.reason);
+	}
+
+	// all child objects should call SjObject.call(this, obj);, this is like calling the super constructor
+	// "The call() method calls a function with a given this value and arguments provided individually."	
+}
+
+function Success(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// override inherited properties
+	this.objectType = 'success';
+
+	// what
+	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
+	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
+
+	// announce, don't announce successes
+	// this.onCreate();
+}
+
+function Error(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// override inherited properties
+	this.objectType = 'error';
+
+	// what
+	this.code = typeof obj.code === 'undefined' ? '400' : obj.code;
+	this.type = typeof obj.type === 'undefined' ? 'Bad Request' : obj.type;
+
+	// announce
+	this.onCreate();
+}
+
+function ErrorList(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// override inherited properties
+	this.objectType = 'errorList';
+
+	// what
+	this.code = typeof obj.code === 'undefined' ? '400' : obj.code;
+	this.type = typeof obj.type === 'undefined' ? 'Bad Request' : obj.type;
+
+	// return
+	this.reason = typeof obj.reason === 'undefined' ? 'One or more errors from multiple calls' : obj.reason; 
+	// content is an array of errors
+	this.content = typeof obj.content === 'undefined' ? [] : obj.content;
+
+	// announce
+	this.onCreate();
+}
+
+function Track(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// override inherited properties
+	this.objectType = 'track';
+
+	// what
+	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
+	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
+
+	// new properties
+	this.source = typeof obj.source === 'undefined' ? '' : obj.source;
+	this.id = typeof obj.id === 'undefined' ? '' : obj.id;
+	this.artists = typeof obj.artists === 'undefined' ? [] : obj.artists;
+	this.title = typeof obj.title === 'undefined' ? '' : obj.title;
+	this.duration = typeof obj.duration === 'undefined' ? '' : obj.duration;
+	this.link = typeof obj.link === 'undefined' ? '' : obj.link;
+
+	// announce, don't announce successes
+	// this.onCreate();
+}
+
+function Playlist(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// override inherited properties
+	this.objectType = 'playlist';
+
+	// what
+	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
+	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
+
+	// return
+	// content is an array of track objects
+	this.content = typeof obj.content === 'undefined' ? [] : obj.content;
+
+	// new properties
+	this.id = typeof obj.id === 'undefined' ? '' : obj.id;
+	this.userId = typeof obj.userId === 'undefined' ? '' : obj.userId;
+	this.title = typeof obj.title === 'undefined' ? '' : obj.title;
+	this.visibility = typeof obj.visibility === 'undefined' ? '' : obj.visibility;
+	this.description = typeof obj.description === 'undefined' ? '' : obj.description;
+	this.color = typeof obj.color === 'undefined' ? '' : obj.color;
+	this.image = typeof obj.image === 'undefined' ? '' : obj.image;
+
+	// announce, don't announce successes
+	// this.onCreate();
+}
 
 // templates
 var successObjectTemplate = {
@@ -496,7 +627,7 @@ function orderPlaylist(id) {
 		clearElementErrorGroup(inputs);
 	
 		serverCommand({
-			'request': 'deletePlaylist',
+			'request': 'orderPlaylist',
 			'id': id.val(),
 		}, function (data) {
 			if (data.objectType === 'success') {
@@ -557,6 +688,42 @@ function addTrack(track, playlistId) {
 	});
 }
 
+function deleteTrack(playlistId, position) {
+			// takes input DOM element
+			var inputs = [
+				playlistId,
+				position
+			];
+			clearElementErrorGroup(inputs);
+		
+			serverCommand({
+				'request': 'deleteTrack',
+				'playlistId': playlistId.val(),
+				'position': position.val(),
+			}, function (data) {
+				if (data.objectType === 'success') {
+					// TODO handle success
+					$('body').append(
+						$('<p/>')
+							.text(data.message)
+					);
+		
+					// wipe entries
+					inputs.forEach(function(input) {
+						input.val('');
+					});
+				} else if (data.objectType === 'error') {
+					handleError(data);
+				} else if (data.objectType === 'errorList') {
+					forEach(data.errors, function(error) {
+						handleError(error);
+					});
+				}
+			});
+}
+
+
+
 
 //  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
 //  ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██║  ██║
@@ -607,7 +774,6 @@ function loadYoutubeDataApi() {
 }
 
 // search
-
 function search(term) {
 	// spotify
 	var options = {
@@ -972,17 +1138,6 @@ function onPlayerStateChange(event) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 //   
 
-// track object prototype
-function Track() {
-	this.objectType = 'track';
-	this.source = '';
-	this.id = '';
-	this.artists = [];
-	this.title = '';
-	this.duration = '';
-	this.link = '';
-}
-
 var desiredPlayback = {
 	'playing': false,
 	'progress': 0,
@@ -1290,3 +1445,7 @@ $(document).on("click", "#orderPlaylistSubmit", function() {
 	orderPlaylist($('#playlistId'));
 });
 
+$(document).on("click", "#deleteTrackSubmit", function() {
+	console.log("#deleteTrackSubmit clicked");
+	deleteTrack($('#playlistId'), $('#position'));
+});
