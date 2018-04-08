@@ -59,7 +59,7 @@
 	// https://github.com/jwilsson/spotify-web-api-php/blob/master/docs/method-reference/Session.md
 	$_SESSION['spotifyAuth'] = isset($_SESSION['spotifyAuth']) ? $_SESSION['spotifyAuth'] : new SpotifyWebAPI\Session($clientID, $clientSecret, $redirectURI);
 	// https://github.com/jwilsson/spotify-web-api-php/blob/master/docs/method-reference/SpotifyWebAPI.md
-	$_SESSION['spotifyAPI'] = isset($_SESSION['spotifyAPI']) ? $_SESSION['spotifyAPI'] : new SpotifyWebAPI\SpotifyWebAPI();
+	$_SESSION['spotifyApi'] = isset($_SESSION['spotifyApi']) ? $_SESSION['spotifyApi'] : new SpotifyWebAPI\SpotifyWebAPI();
 
 	// https://beta.developer.spotify.com/documentation/general/guides/scopes/
 	// set scopes

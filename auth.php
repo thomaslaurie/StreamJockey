@@ -61,8 +61,8 @@
 			// unix timestamp indicating token expiration time
 			// $_SESSION['spotifyAuth']->getTokenExpiration()
 
-			// gives accessToken to $_SESSION['spotifyAPI']
-			$_SESSION['spotifyAPI']->setAccessToken($_SESSION['spotifyAccessToken']);
+			// gives accessToken to $_SESSION['spotifyApi']
+			$_SESSION['spotifyApi']->setAccessToken($_SESSION['spotifyAccessToken']);
 			//goBack();
 		}
 		

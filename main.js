@@ -20,13 +20,13 @@ $("#test").click(function() {
 });
 
 
-//   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     ███████╗
-//  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝
-//  ██║  ███╗██║     ██║   ██║██████╔╝███████║██║     ███████╗
-//  ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║     ╚════██║
-//  ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗███████║
-//   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
-//                                                            
+//   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
+//  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     
+//  ██║  ███╗██║     ██║   ██║██████╔╝███████║██║     
+//  ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║     
+//  ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗
+//   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+//                                                    
 
 // primitives
 var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
@@ -180,13 +180,13 @@ function SjUser(obj) {
 }
 
 
-//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ ███████╗
-//  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝
-//  █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝███████╗
-//  ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗╚════██║
-//  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║███████║
-//  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
-//                                                   
+//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
+//  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
+//  █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝
+//  ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗
+//  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║
+//  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+//                                           
 
 function handleError(error) {
 	console.error(error);
@@ -352,13 +352,13 @@ function msFormat(ms) {
 }
 
 
-//   █████╗  ██████╗ ██████╗ ██████╗ ██╗   ██╗███╗   ██╗████████╗███████╗
-//  ██╔══██╗██╔════╝██╔════╝██╔═══██╗██║   ██║████╗  ██║╚══██╔══╝██╔════╝
-//  ███████║██║     ██║     ██║   ██║██║   ██║██╔██╗ ██║   ██║   ███████╗
-//  ██╔══██║██║     ██║     ██║   ██║██║   ██║██║╚██╗██║   ██║   ╚════██║
-//  ██║  ██║╚██████╗╚██████╗╚██████╔╝╚██████╔╝██║ ╚████║   ██║   ███████║
-//  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚══════╝
-//                                                                       
+//  ██╗   ██╗███████╗███████╗██████╗ 
+//  ██║   ██║██╔════╝██╔════╝██╔══██╗
+//  ██║   ██║███████╗█████╗  ██████╔╝
+//  ██║   ██║╚════██║██╔══╝  ██╔══██╗
+//  ╚██████╔╝███████║███████╗██║  ██║
+//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
+//                                   
 
 function register(name, password1, password2, email,) {
 	// takes input DOM elements
@@ -508,13 +508,13 @@ function getUser(id) {
 }
 
 
-//  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗███████╗
-//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██║     ██║██╔════╝╚══██╔══╝██╔════╝
-//  ██████╔╝██║     ███████║ ╚████╔╝ ██║     ██║███████╗   ██║   ███████╗
-//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██║     ██║╚════██║   ██║   ╚════██║
-//  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   ███████║
-//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝
-//                                                                       
+//  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
+//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██║     ██║██╔════╝╚══██╔══╝
+//  ██████╔╝██║     ███████║ ╚████╔╝ ██║     ██║███████╗   ██║   
+//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██║     ██║╚════██║   ██║   
+//  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
+//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
+//                                                               
 
 // playlists
 function addPlaylist(title, visibility, description, color, image) {
@@ -702,33 +702,26 @@ function deleteTrack(playlistId, position) {
 }
 
 
-//  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
-//  ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██║  ██║
-//  ███████╗█████╗  ███████║██████╔╝██║     ███████║
-//  ╚════██║██╔══╝  ██╔══██║██╔══██╗██║     ██╔══██║
-//  ███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║
-//  ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
-//                                                  
+//   █████╗ ██████╗ ██╗
+//  ██╔══██╗██╔══██╗██║
+//  ███████║██████╔╝██║
+//  ██╔══██║██╔═══╝ ██║
+//  ██║  ██║██║     ██║
+//  ╚═╝  ╚═╝╚═╝     ╚═╝
+//                     
 
-var searchResults = {
-	// details
-	'term': '',
-	'tracksPerSource': 5,
-	'page': 1,
-
-	// sources
-	'spotify': [],
-	'youtube': [],
-	'soundcloud': [],
+var apiState = {
 }
 
-// spotify
-// https://beta.developer.spotify.com/documentation/web-api/
-var spotifyAPI = new SpotifyWebApi();
-spotifyAPI.setAccessToken(spotifyAccessToken);
+function initSpotifyWebApi() {
+	// https://beta.developer.spotify.com/documentation/web-api/
 
-// youtube
-function loadYoutubeDataApi() {
+	// window is basically the global object and is how to define variables within a function
+	window.spotifyApi = new SpotifyWebApi();
+	spotifyApi.setAccessToken(spotifyAccessToken);
+}
+
+function initYoutubeDataApi() {
 	// https://api.jquery.com/jquery.getscript/
 	$.getScript('https://apis.google.com/js/api.js', function() {
 		// original code: https://developers.google.com/youtube/v3/docs/search/list
@@ -750,262 +743,6 @@ function loadYoutubeDataApi() {
 	});
 }
 
-// search
-function search(term) {
-	// spotify
-	var options = {
-		// max number of results to return, min 1, max 50, default 20
-		limit: searchResults.tracksPerSource,
-		// offset of first result, use with limit to get paged results min 0, max 100 000, default 0
-		offset: searchResults.tracksPerSource * (searchResults.page - 1),
-	};
-
-	spotifyAPI.searchTracks(term, options, function(error, response) {
-		if (error) {
-			console.error('search() spotify failure');
-			logError(error);
-		}
-
-		if (response) {
-			console.log('search() spotify success');
-			console.log(response);
-
-			// update searchResults
-			searchResults.term = term;
-			formatSourceResult('spotify', response, function(trackList) {
-				searchResults.spotify = trackList;
-
-				// update page
-				refreshSearchResults();
-			});
-		}
-	});
-
-	// youtube
-	var args = {
-		method: 'GET',
-		path: '/youtube/v3/search',
-		params: {
-			// https://developers.google.com/youtube/v3/docs/search/list#parameters
-			part: 'snippet',
-			type: 'video',
-
-			// min 0, max 50, default 5
-			maxResults: searchResults.tracksPerSource,
-			// nextPageToken (and prevPageToken) are returned with each search result, fill this in to get to other pages
-			//pageToken: token,
-
-			q: term,
-		}
-	};
-
-	gapi.client.request(args).then(function(fufilled, rejected) {
-		if (fufilled) {
-			console.log('search() youtube success');
-			console.log(fufilled);
-
-			searchResults.term = term;
-			formatSourceResult('youtube', fufilled.result, function(trackList) {
-				searchResults.youtube = trackList;
-
-				// update page
-				refreshSearchResults();
-			});
-		} else {
-			console.error('search() youtube failure');
-			console.error(rejected);
-		}
-	});	
-}
-
-function formatSourceResult(source, object, callback) {
-	// source cases
-	if (source == 'spotify') {
-		getSpotifyTrackDetails(object.tracks.items, function(trackList) {
-			callback(trackList);
-		});
-	} else if (source == 'youtube') {
-		// this id array needs to stay outside of youtubeGetTrackDetails() because this function is used elsewhere with a specific id reference
-		var idArray = [];
-
-		object.items.forEach(function (track, i) {
-			idArray.push(track.id.videoId);
-		});
-
-		youtubeGetTrackDetails(idArray, function(trackList) {
-			callback(trackList);
-		});
-	}
-}
-
-function getSpotifyTrackDetails(items, callback) {
-	// array of track objects
-	var trackList = [];
-
-	// takes spotify's response.tracks.items array
-	items.forEach(function (track, i) {
-		trackList[i] = {
-			// core
-			source: 'spotify',
-			id: track.id,
-			artists: [],
-			title: track.name,
-			duration: track.duration_ms,
-			
-			// extra
-			link: track.external_urls.spotify,
-		};	
-
-		// fill array
-		track.artists.forEach(function (artist, j) {
-			trackList[i].artists[j] = artist.name;
-		});
-	});
-
-	callback(trackList);
-}
-
-function youtubeGetTrackDetails(ids, callback) {
-	// array of track objects
-	var trackList = [];
-
-	var all = ids.join(",");
-	var args = {
-		method: 'GET',
-		path: '/youtube/v3/videos',
-		params: {
-			id: all,
-			part: 'snippet,contentDetails',
-		}
-	};
-
-	// https://developers.google.com/youtube/v3/docs/videos/list
-	gapi.client.request(args).then(function(fufilled, rejected) {
-		if (fufilled) {
-			console.log('youtubeGetTrackDetails() success');
-			console.log(fufilled);
-
-			fufilled.result.items.forEach(function (track, i) {
-				trackList[i] = new SjTrack({});
-
-				trackList[i].source = 'youtube';
-				trackList[i].id = track.id;
-
-				// convert artist - title format
-				// TODO make better regex
-				var stringSplit = track.snippet.title.split(/( +- +)/);
-				if (stringSplit.length === 2) {
-					console.log('split on " - "');
-					var artistSplit = stringSplit[0].split(/( +[&x] +)/);
-					artistSplit.forEach(function(artist) {
-						// fill artists
-						trackList[i].artists.push(artist);
-					});
-					trackList[i].title = stringSplit[1];
-				} else {
-					trackList[i].artists = [track.snippet.channelTitle];
-					trackList[i].title = track.snippet.title;
-				}
-
-				// convert ISO_8601 duration to milliseconds
-				trackList[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
-				trackList[i].link = YOUTUBE_ID_PREFIX + trackList[i].id;	
-			});
-			
-			callback(trackList);
-		} else {
-			console.error('youtubeGetTrackDetails() failure');
-			console.error(rejected);
-
-			callback(false);
-		}
-	});
-}
-
-function refreshSearchResults() {
-	console.log('refreshSearchResults() called');
-
-	// delete old list
-	$(".searchResult").remove();
-
-	// arrange and display new list
-	var arrangedList = arrangeResults('mix', ['spotify', 'youtube']);
-	console.log(arrangedList);
-	displayList(arrangedList);
-}
-
-function arrangeResults(type, selection) {
-	console.log('arrangeResults() called');
-
-	var arrangedResults = [];
-	var totalLength = searchResults.tracksPerSource * searchResults.page * selection.length;
-	
-	// [a, b, c, a, b, c]
-	if (type == 'mix') {
-		// loop for at maximum the amount of tracks requested (incase only one source exists)
-		for (var i = 0; i < totalLength; i++) {
-			// loop through each source
-			selection.forEach(function(source) {
-				// if the source has a track at index i
-				if (searchResults[source][i]) {
-					// push it to arrangedResults
-					arrangedResults.push(searchResults[source][i]);
-				}
-			});
-
-			// old, not needed anymore, pushed values will be of known length
-			// once/if arrangedResults is filled with the requested number of tracks, break
-			//if (arrangedResults.length =< number) { break; }
-		}
-
-		return arrangedResults;
-	}
-
-	// [a, a, b, b, c, c]
-	// if (type == 'sequence') {
-	// 	var fromEach = floor(number / selection.length);
-	// }
-}
-
-function displayList(trackList) {
-	console.log('displayList() called');
-
-	trackList.forEach(function(track, index) {
-		$('#list').append(
-			$('<li/>')
-				.data('track', track)
-				.addClass('searchResult')
-				.addClass('resultNumber' + index)
-				.append([
-					$('<span/>')
-						.addClass('searchResultArtists')
-						.text(track.artists.join(', ')),
-					$('<span/>')
-						.addClass('searchResultTitle')
-						.text(track.title),
-					$('<span/>')
-						.addClass('searchResultDuration')
-						.text(msFormat(track.duration)),
-					$('<button/>')
-						.addClass('searchResultPreview')
-						.text('Preview'),
-					$('<button/>')
-						.addClass('addTrack')
-						.text('Add'),
-				])
-		);
-	});
-}
-
-
-//  ██████╗ ██╗      █████╗ ██╗   ██╗███████╗██████╗ ███████╗
-//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔════╝██╔══██╗██╔════╝
-//  ██████╔╝██║     ███████║ ╚████╔╝ █████╗  ██████╔╝███████╗
-//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██╔══╝  ██╔══██╗╚════██║
-//  ██║     ███████╗██║  ██║   ██║   ███████╗██║  ██║███████║
-//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚══════╝
-//                                                           
-
 // spotify
 function spotifySetupPlayer() {
 	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
@@ -1017,7 +754,7 @@ function spotifySetupPlayer() {
 	// https://api.jquery.com/jquery.getscript/
 	$.getScript('https://sdk.scdn.co/spotify-player.js');
 	// must be defined immediately after spotify-player.js, acts as the callback function
-	window.onSpotifyWebPlaybackSDKReady = () => {
+	window.onSpotifyWebPlaybackSDKReady = function () {
 		// stuff inside here is optional though
 
 		// initialize
@@ -1044,7 +781,7 @@ function spotifySetupPlayer() {
 			// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
 
 			console.log('spotify player ready');
-			spotifyAPI.transferMyPlayback([device_id], {}, function(error, response) {
+			spotifyApi.transferMyPlayback([device_id], {}, function(error, response) {
 				// https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
 				// this function doesn't send a callback, is that a bug or intentional?
 		
@@ -1073,39 +810,362 @@ function spotifySetupPlayer() {
 	};
 }
 
-// youtube
-var youtubePlayer;
-
-// youtubePlayer.destroy() kills the iframe
-
 function youtubeSetupPlayer() {
 	console.log('youtubeSetupPlayer() called');
 
 	$.getScript('https://www.youtube.com/iframe_api');
+
+	// callback
+	window.onYouTubeIframeAPIReady = function () {
+		console.log('youTubeIframeAPIReady');
+		// https://developers.google.com/youtube/iframe_api_reference#Playback_status
+		// (DOM element, args)
+		window.youtubePlayer = new YT.Player('youtubePlayer', {
+			height: '100%',
+			width: '100%',
+			events: {
+				'onReady': onPlayerReady,
+				'onStateChange': onPlayerStateChange
+			}
+		});
+	}
+
+	// player callback
+	window.onPlayerReady = function (event) {
+		console.log('youtubePlayer ready');
+	}
+
+	window.onPlayerStateChange = function (event) {
+	}
 }
 
-// script callback
-function onYouTubeIframeAPIReady() {
-	console.log('youTubeIframeAPIReady');
-	// https://developers.google.com/youtube/iframe_api_reference#Playback_status
-	// (DOM element, args)
-	youtubePlayer = new YT.Player('youtubePlayer', {
-		height: '100%',
-		width: '100%',
-		events: {
-			'onReady': onPlayerReady,
-			'onStateChange': onPlayerStateChange
+// youtubePlayer.destroy() kills the iframe
+
+
+//  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
+//  ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██║  ██║
+//  ███████╗█████╗  ███████║██████╔╝██║     ███████║
+//  ╚════██║██╔══╝  ██╔══██║██╔══██╗██║     ██╔══██║
+//  ███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║
+//  ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+//                                                  
+
+var searchResults = {
+	// details
+	'term': '',
+	'tracksPerSource': 5,
+	'page': 1,
+
+	// sources
+	'spotify': new SjPlaylist({}),
+	'youtube': new SjPlaylist({}),
+	'soundcloud': new SjPlaylist({}),
+
+	'all': new SjPlaylist({}),
+}
+
+// search
+function spotifySearch(term) {
+	var options = {
+		// max number of results to return, min 1, max 50, default 20
+		limit: searchResults.tracksPerSource,
+		// offset of first result, use with limit to get paged results min 0, max 100 000, default 0
+		offset: searchResults.tracksPerSource * (searchResults.page - 1),
+	};
+
+	spotifyApi.searchTracks(term, options, function(error, response) {
+		if (response) {
+			console.log('search() spotify success');
+			console.log(response);
+
+			// update searchResults
+			searchResults.term = term;
+
+			spotifyGetTracks(response.tracks.items, function(response) {
+				if (response.objectType === 'SjPlaylist') {
+					searchResults.spotify = playlist;
+					refreshSearchResults();
+
+					return new SjSuccess({
+						origin: 'spotifySearch()',
+						message: 'spotify tracks retrieved',
+					});
+				} else if (response.objectType === 'SjError') {
+					return new SjError({
+						origin: 'spotifySearch()',
+						message: 'spotify tracks could not be retrieved',
+					});
+				}
+			});
+		} else if (error) {
+			console.error('search() spotify failure');
+
+			return new SjError({
+				code: JSON.parse(error.response).error.status,
+				origin: 'spotifySearch()',
+
+				message: 'spotify tracks could not be retrieved',
+				reason: JSON.parse(error.response).error.message,
+				content: error,
+			});
 		}
 	});
 }
 
-// player callback
-function onPlayerReady(event) {
-	console.log('youtubePlayer ready');
+function youtubeSearch(term) {
+	var args = {
+		method: 'GET',
+		path: '/youtube/v3/search',
+		params: {
+			// https://developers.google.com/youtube/v3/docs/search/list#parameters
+			part: 'snippet',
+			type: 'video',
+
+			// min 0, max 50, default 5
+			maxResults: searchResults.tracksPerSource,
+			// nextPageToken (and prevPageToken) are returned with each search result, fill this in to get to other pages
+			//pageToken: token,
+
+			q: term,
+		}
+	};
+
+	gapi.client.request(args).then(function(fufilled, rejected) {
+		if (fufilled) {
+			console.log('search() youtube success');
+			console.log(fufilled);
+
+			// update searchResults
+			searchResults.term = term;
+
+			// create idArray
+			var idList = [];
+			fufilled.result.items.forEach(function (track, i) {
+				idList.push(track.id.videoId);
+			});
+
+			youtubeGetTracks(idList, function(response) {
+				if (response.objectType === 'SjPlaylist') {
+					searchResults.youtube = playlist;
+					refreshSearchResults();
+
+					return new SjSuccess({
+						origin: 'youtubeSearch()',
+						message: 'youtube tracks retrieved',
+					});
+				} else if (response.objectType === 'SjError') {
+					return new SjError({
+						origin: 'youtubeSearch()',
+						message: 'youtube tracks could not be retrieved',
+					});
+				}
+			});
+		} else {
+			console.error('search() youtube failure');
+			console.error(rejected);
+
+			return new SjError({
+				origin: 'youtubeSearch()',
+				message: 'youtube tracks could not be retrieved',
+				reason: 'api request was rejected'
+			});
+		}
+	});	
 }
 
-function onPlayerStateChange(event) {
+function search(term) {
+	var errorList = new SjErrorList({
+		origin: 'search()',
+	});
+
+	var spotifyResult = spotifySearch(term);
+	var youtubeResult = youtubeSearch(term);
+
+	if (spotifyResult.objectType === 'SjError' || spotifyResult === 'SjErrorList') {
+		errorList.content.push(spotifyResult);
+	}
+
+	if (youtubeResult === 'SjError' || youtubeResult === 'SjErrorList') {
+		errorList.content.push(youtubeResult)
+	}
+
+	if (errorList.content.length === 0) {
+		return new SjSuccess({
+			origin: 'search()',
+			message: 'search was successfull',
+		});
+	} else {
+		return errorList;
+	}
 }
+
+function spotifyGetTracks(items, callback) {
+	// takes spotify's response.tracks.items array
+
+	// array of track objects
+	var playlist = new SjPlaylist({});
+
+	items.forEach(function (track, i) {
+		playlist.content[i] = new SjTrack({
+			source: 'spotify',
+			id: track.id,
+			title: track.name,
+			duration: track.duration_ms,
+			link: track.external_urls.spotify,
+		});
+
+		// fill artists
+		track.artists.forEach(function (artist, j) {
+			playlist.content[i].artists[j] = artist.name;
+		});
+	});
+
+	callback(playlist);
+}
+
+function youtubeGetTracks(ids, callback) {
+	// takes array of youtube video ids
+
+	// prepare args
+	var args = {
+		method: 'GET',
+		path: '/youtube/v3/videos',
+		params: {
+			id: ids.join(","),
+			part: 'snippet,contentDetails',
+		}
+	};
+
+	// https://developers.google.com/youtube/v3/docs/videos/list
+	gapi.client.request(args).then(function(fufilled, rejected) {
+		if (fufilled) {
+			console.log('youtubeGetTracks() success');
+			console.log(fufilled);
+
+			// array of track objects
+			var playlist = new SjPlaylist({});
+
+			fufilled.result.items.forEach(function (track, i) {
+				playlist.content[i] = new SjTrack({});
+
+				playlist.content[i].source = 'youtube';
+				playlist.content[i].id = track.id;
+
+				// convert artist - title format
+				// TODO make better regex
+				var stringSplit = track.snippet.title.split(/( +- +)/);
+				if (stringSplit.length === 2) {
+					console.log('split on " - "');
+					var artistSplit = stringSplit[0].split(/( +[&x] +)/);
+					artistSplit.forEach(function(artist) {
+						// fill artists
+						playlist.content[i].artists.push(artist);
+					});
+					tplaylist.content[i].title = stringSplit[1];
+				} else {
+					playlist.content[i].artists = [track.snippet.channelTitle];
+					playlist.content[i].title = track.snippet.title;
+				}
+
+				// convert ISO_8601 duration to milliseconds
+				playlist.content[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
+				playlist.content[i].link = YOUTUBE_ID_PREFIX + playlist.content[i].id;	
+			});
+			
+			callback(playlist);
+		} else {
+			console.error('youtubeGetTracks() failure');
+			console.error(rejected);
+
+			var result = new SjError({
+				origin: 'youtubeGetTracks()',
+				reason: rejected,
+				message: 'could not retrieve youtube tracks'
+			});
+
+			callback(result);
+		}
+	});
+}
+
+function refreshSearchResults() {
+	console.log('refreshSearchResults() called');
+
+	// arrange and display
+	searchResults.all = arrangeResults('mix', ['spotify', 'youtube']);
+	displayList(searchResults.all);
+}
+
+function arrangeResults(type, selection) {
+	console.log('arrangeResults() called');
+
+	var arrangedResults = new SjPlaylist({
+		// no id or database relevant properties
+		title: 'Search Results',
+		visibility: 'public',
+	});
+	var totalLength = searchResults.tracksPerSource * searchResults.page * selection.length;
+	
+	// [a, b, c, a, b, c]
+	if (type == 'mix') {
+		// loop for at maximum the amount of tracks requested (incase only one source exists)
+		for (var i = 0; i < totalLength; i++) {
+			// loop through each source
+			selection.forEach(function(source) {
+				// if the source has a track at index i
+				if (searchResults[source][i]) {
+					// push it to arrangedResults
+					arrangedResults.content.push(searchResults[source][i]);
+				}
+			});
+
+			// old, not needed anymore, pushed values will be of known length
+			// once/if arrangedResults is filled with the requested number of tracks, break
+			//if (arrangedResults.length =< number) { break; }
+		}
+
+		return arrangedResults;
+	}
+
+	// [a, a, b, b, c, c]
+	// if (type == 'sequence') {
+	// 	var fromEach = floor(number / selection.length);
+	// }
+}
+
+function displayList(playlist) {
+	console.log('displayList() called');
+
+	// delete old list
+	$(".searchResult").remove();
+
+	playlist.content.forEach(function(track, i) {
+		$('#list').append(
+			$('<li/>')
+				.data('track', track)
+				.addClass('searchResult')
+				.addClass('resultNumber' + i)
+				.append([
+					$('<span/>')
+						.addClass('searchResultArtists')
+						.text(track.artists.join(', ')),
+					$('<span/>')
+						.addClass('searchResultTitle')
+						.text(track.title),
+					$('<span/>')
+						.addClass('searchResultDuration')
+						.text(msFormat(track.duration)),
+					$('<button/>')
+						.addClass('searchResultPreview')
+						.text('Preview'),
+					$('<button/>')
+						.addClass('addTrack')
+						.text('Add'),
+				])
+		);
+	});
+}
+
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
 //  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
@@ -1146,13 +1206,8 @@ function checkPlaybackState(callback) {
 	}
 
 	// spotify
-	spotifyAPI.getMyCurrentPlaybackState({}, function(error, response) {
-		if (error) {
-			console.error('checkPlaybackState() spotify failure');
-			logError(error);
-
-			completeParts();
-		} else if (response) {
+	spotifyApi.getMyCurrentPlaybackState({}, function(error, response) {
+		if (response) {
 			console.log('checkPlaybackState() spotify success');
 
 			// TODO will cause an error if no track is playing, will break this entire function
@@ -1172,6 +1227,19 @@ function checkPlaybackState(callback) {
 				actualPlayback.spotify.track.artists[j] = artist.name;
 			});
 			completeParts();
+		} else if (error) {
+			//console.error('checkPlaybackState() spotify failure');
+
+			completeParts();
+
+			return new SjError({
+				code: JSON.parse(error.response).error.status,
+				origin: 'youtubeSearch()',
+
+				message: 'spotify tracks could not be retrieved',
+				reason: JSON.parse(error.response).error.message,
+				content: error,
+			});
 		}
 	});
 
@@ -1193,7 +1261,7 @@ function checkPlaybackState(callback) {
 	if (andPosition != -1) { id = id.substring(0, andPosition); }
 	console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
 
-	youtubeGetTrackDetails([id], function(trackList) {
+	youtubeGetTracks([id], function(trackList) {
 		console.log('checkPlaybackState() youtube success');
 		if (trackList.length !== 0) {
 			actualPlayback.youtube.track = trackList[0];
@@ -1237,16 +1305,23 @@ function start(source, id) {
 	if (source == 'spotify') {
 		console.log("start('spotify') called");
 
-		spotifyAPI.play({"uris":["spotify:track:" + id]}, function(error, response) {
-			if (error) {
-				console.error('start() failure');
-				logError(error);
-			}
-	
+		spotifyApi.play({"uris":["spotify:track:" + id]}, function(error, response) {
 			if (response) {
 				console.log('start() success');
 				console.log(response);
+			} else if (error) {
+				console.error('start() failure');
+
+				return new SjError({
+					code: JSON.parse(error.response).error.status,
+					origin: 'spotifySearch()',
+	
+					reason: JSON.parse(error.response).error.message,
+					content: error,
+				});
 			}
+	
+			
 		});
 	} else if (source == 'youtube') {
 		console.log("start('youtube') called");
@@ -1260,15 +1335,21 @@ function resume(source) {
 	if (source == 'spotify') {
 		console.log("resume('spotify') called");
 
-		spotifyAPI.play({}, function(error, response) {
-			if (error) {
-				console.error('resume() failure');
-				logError(error);
-			}
-	
+		spotifyApi.play({}, function(error, response) {
 			if (response) {
 				console.log('resume() success');
 				console.log(response);
+			} else if (error) {
+				console.error('resume() failure');
+				
+				return new SjError({
+					code: JSON.parse(error.response).error.status,
+					origin: 'youtubeSearch()',
+	
+					message: 'spotify tracks could not be retrieved',
+					reason: JSON.parse(error.response).error.message,
+					content: error,
+				});
 			}
 		});
 	} else if (source == 'youtube') {
@@ -1282,15 +1363,21 @@ function pause(source) {
 	if (source == 'spotify') {
 		console.log("pause('spotify') called");
 
-		spotifyAPI.pause({}, function(error, response) {
-			if (error) {
-				console.error('pause() failure');
-				logError(error);
-			}
-
+		spotifyApi.pause({}, function(error, response) {
 			if (response) {
 				console.log('pause() success');
 				console.log(response);
+			} else if (error) {
+				console.error('pause() failure');
+				
+				return new SjError({
+					code: JSON.parse(error.response).error.status,
+					origin: 'youtubeSearch()',
+	
+					message: 'spotify tracks could not be retrieved',
+					reason: JSON.parse(error.response).error.message,
+					content: error,
+				});
 			}
 		});
 	} else if (source == 'youtube') {
@@ -1304,15 +1391,19 @@ function seek(source, ms) {
 	if (source == 'spotify') {
 		console.log("seek('spotify') called");
 
-		spotifyAPI.seek(ms, function(error, response) {
-			if (error) {
-				console.error('seek() failure');
-				logError(error);
-			}
-	
+		spotifyApi.seek(ms, function(error, response) {
 			if (response) {
 				console.log('seek() success');
 				console.log(response);
+			} else if (error) {
+				console.error('seek() failure');
+				return new SjError({
+					code: JSON.parse(error.response).error.status,
+					origin: 'spotifySeek()',
+	
+					reason: JSON.parse(error.response).error.message,
+					content: error,
+				});
 			}
 		});
 	} else if (source == 'youtube') {

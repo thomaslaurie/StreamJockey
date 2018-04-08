@@ -11,9 +11,9 @@
 
 	// $testTrack = '4bEcoz1OcfMgUbp2ft8ieQ';
 
-	// echo $_SESSION['spotifyAPI']->getTrack($testTrack)->name;
+	// echo $_SESSION['spotifyApi']->getTrack($testTrack)->name;
 	// echo '<br>';
-	// $artistsTest = $_SESSION['spotifyAPI']->getTrack($testTrack)->artists;
+	// $artistsTest = $_SESSION['spotifyApi']->getTrack($testTrack)->artists;
 	// foreach($artistsTest as $artist) {
 	// 	echo $artist->name;
 	// }

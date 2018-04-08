@@ -1289,8 +1289,6 @@
 					
 				}
 				
-				
-
 				// implode array, tripple pipe delimiter
 				// TODO 
 				$artists = implode('|||', $artists);
