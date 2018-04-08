@@ -111,6 +111,8 @@
 			$this->type = !isset($obj->type) ? 'Ok' : $obj->type;
 
 			// new properties
+			$this->playlistId = !isset($obj->playlistId) ? '' : $obj->playlistId;
+			$this->position = !isset($obj->position) ? '' : $obj->position;
 			$this->source = !isset($obj->source) ? '' : $obj->source;
 			$this->id = !isset($obj->id) ? '' : $obj->id;
 			$this->artists = !isset($obj->artists) ? [] : $obj->artists;
@@ -187,7 +189,6 @@
 			$result = new SjError(new class {
 				function __construct() {
 					$this->code = mysqli_connect_errno();
-					$this->code = 'database connection failure';
 					$this->origin = 'openDB()';
 					$this->message = 'could not connect to database';
 				}
@@ -213,7 +214,7 @@
 //  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
 //                                                               
 
-	// validation
+	// validation - returns true, or false and pushes SjError to &$errorList
 	function validateEmail(&$email, &$errorList) {
 		$email = trim($email);
 
@@ -342,6 +343,7 @@
 		}
 	}
 
+	// register - returns SjSuccess, SjError, or SjErrorList
 	function register($email, $userName, $password1, $password2) {
 		$errorList = new SjErrorList(new class{});
 
@@ -378,8 +380,8 @@
 						$stmt->bind_param('sss', $userName, $passwordHash, $email);
 		
 						if ($stmt->execute()) {
-							$result = new SjSuccess(new class {
-								function __construct() {
+							$result = new SjSuccess(new class($userName) {
+								function __construct($userName) {
 									$this->origin = 'register()';
 									$this->message = $userName.' registered';
 									$this->target = 'notify';
@@ -417,8 +419,8 @@
 						return $result;
 					}
 				} else {
-					$result = new SjError(new class {
-						function __construct() {
+					$result = new SjError(new class($stmt) {
+						function __construct($stmt) {
 							$this->origin = 'register()';
 							$this->message = "could not insert user";
 							$this->reason = $stmt->error;
@@ -564,8 +566,8 @@
 					if ($stmtResult->num_rows === 1) {
 						while($row = $stmtResult->fetch_assoc()) {
 							// !!! does not return password
-							$result = new SjUser(new class {
-								function __construct() {
+							$result = new SjUser(new class($row) {
+								function __construct($row) {
 									$this->id = $row['userId'];
 									$this->name = $row['userName'];
 									$this->email = $row['email'];
@@ -639,8 +641,8 @@
 					if ($stmtResult->num_rows === 1) {
 						while($row = $stmtResult->fetch_assoc()) {
 							// !!! does not return password or email
-							$result = new SjUser(new class {
-								function __construct() {
+							$result = new SjUser(new class($row) {
+								function __construct($row) {
 									$this->id = $row['userId'];
 									$this->name = $row['userName'];
 								}
@@ -1059,21 +1061,21 @@
 					if ($stmtResult->num_rows === 1) {
 						// fetch data
 						while($row = $stmtResult->fetch_assoc()) {
-							$playlist = new SjPlaylist(new class {
-								function __construct() {
-									$this->id => $row['playlistId'];
-									$this->userId => $row['userId'];
-									$this->title => $row['title'];
-									$this->visibility => $row['visibility'];
-									$this->description => $row['description'];
-									$this->color => $row['color'];
-									$this->image => $row['image'];
+							$playlist = new SjPlaylist(new class($row) {
+								function __construct($row) {
+									$this->id = $row['playlistId'];
+									$this->userId = $row['userId'];
+									$this->title = $row['title'];
+									$this->visibility = $row['visibility'];
+									$this->description = $row['description'];
+									$this->color = $row['color'];
+									$this->image = $row['image'];
 								}
 							});
 						}
 
 						// check valid permissions, public, linkOnly, or private and same user
-						if ($playlist['visibility'] === 'public' || $playlist['visibility'] === 'linkOnly' || ($playlist['visibility'] === 'private' && $playlist['userId'] === $_SESSION['userId'])) {
+						if ($playlist->visibility === 'public' || $playlist->visibility === 'linkOnly' || ($playlist->visibility === 'private' && $playlist->userId === $_SESSION['userId'])) {
 							// retrieve tracks
 							$stmt = $db->prepare("
 								SELECT *
@@ -1089,14 +1091,16 @@
 
 								// fetch data
 								while($row = $stmtResult->fetch_assoc()) {
-									array_push($playlist->content, new SjTrack(new class {
-										$this->playlistId = $row['playlistId'];
-										$this->position = $row['position'];
-										$this->source = $row['source'];
-										$this->id = $row['trackId'];
-										$this->title = $row['title'];
-										$this->artists = explode('|||', $row['artists']);
-										$this->duration = $row['duration'];
+									array_push($playlist->content, new SjTrack(new class($row) {
+										function __construct($row) {
+											$this->playlistId = $row['playlistId'];
+											$this->position = $row['position'];
+											$this->source = $row['source'];
+											$this->id = $row['trackId'];
+											$this->title = $row['title'];
+											$this->artists = explode('|||', $row['artists']);
+											$this->duration = $row['duration'];
+										}
 									}));
 								}
 
@@ -1176,11 +1180,11 @@
 		$playlist = getPlaylist($id);
 
 		// check for no errors
-		if ($playlist['objectType'] == 'playlist') {
+		if ($playlist->objectType == 'SjPlaylist') {
 			// get position list
 			$oldPositionList = [];
-			forEach($playlist['tracks'] as $track) {
-				array_push($oldPositionList, $track['position']);
+			forEach($playlist->content as $track) {
+				array_push($oldPositionList, $track->position);
 			}
 			sort($oldPositionList);
 
@@ -1235,14 +1239,14 @@
 			for ($i = 0; $i < sizeof($oldPositionList); $i++) {
 				$result = setTrackPosition($id, $oldPositionList[$i], 'position', (-1 * $oldPositionList[$i]));
 
-				if ($result['objectType'] !== 'success') {
+				if ($result->objectType !== 'SjSuccess') {
 					push_array($errorList->content, $result);
 				}				
 			}
 			for ($i = 0; $i < sizeof($oldPositionList); $i++) {
 				$result = setTrackPosition($id, (-1 * $oldPositionList[$i]), 'position', $newPositionList[$i]);
 
-				if ($result['objectType'] !== 'success') {
+				if ($result->objectType !== 'SjSuccess') {
 					push_array($errorList->content, $result);
 				}				
 			}
@@ -1271,14 +1275,21 @@
 		
 		// get playlist (or error)
 		$playlist = getPlaylist($playlistId);
-		if ($playlist['objectType'] === 'playlist') {
+		if ($playlist->objectType === 'SjPlaylist') {
 			$db = openDB();
 			// check openDB success
 			if (!isset($db->objectType)) {
 				// set position
-				$length = sizeof($playlist['tracks']);
-				// last track, position + 1;
-				$position = $playlist['tracks'][$length - 1]['position'] + 1;
+				$length = sizeof($playlist->content);
+				if ($length === 0) {
+					$position = 1;
+				} else {
+					// last track, position + 1;
+					$position = $playlist->content[$length - 1]->position + 1;
+					
+				}
+				
+				
 
 				// implode array, tripple pipe delimiter
 				// TODO 

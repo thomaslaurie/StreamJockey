@@ -12,28 +12,11 @@
 	// .on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
 // TODO maxlength attribute can be used for input elements, use this to get real-time validation checks for max lenth
 // TODO the property objectType may not be needed??? as there might be functions to access the name of the class already, but im not sure
+// TODO handle success messages on successful server commands
 
 // test
 $("#test").click(function() {
-		var inputs = [
-		];
-		clearElementErrorList(inputs);
-	
-		serverCommand({
-			'request': 'test',
-		}, function (data) {
-			console.log(data);
-			if (data.objectType == 'SjSuccess') {
-				console.log(data.objectType);
-	
-				// wipe entries
-				inputs.forEach(function(input) {
-					input.val('');
-				});
-			} else if (data.objectType == 'SjError') {
-				handleError(data);
-			}
-		});
+	getCurrentUser();
 });
 
 
@@ -136,6 +119,8 @@ function SjTrack(obj) {
 	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
 
 	// new properties
+	this.playlistId = typeof obj.playlistId === 'undefined' ? '' : obj.playlistId;
+	this.position = typeof obj.position === 'undefined' ? '' : obj.position;
 	this.source = typeof obj.source === 'undefined' ? '' : obj.source;
 	this.id = typeof obj.id === 'undefined' ? '' : obj.id;
 	this.artists = typeof obj.artists === 'undefined' ? [] : obj.artists;
@@ -202,6 +187,26 @@ function SjUser(obj) {
 //  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║███████║
 //  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 //                                                   
+
+function handleError(error) {
+	console.error(error);
+	addElementError(error);
+}
+
+// TODO implement api erros into new error format and handleError()
+function logError(error) {
+	// TODO update this method to handle errors from different sources
+	var response = JSON.parse(error.response);
+
+	var status = response.error.status;
+	var message = response.error.message;
+
+	console.error('Status: ' + status);
+	console.error('Message: ' + message);
+	console.error(error);
+}
+
+// element errors
 var elementErrorList = new SjErrorList({});
 
 function clearElementError(elementError) {
@@ -303,12 +308,13 @@ function serverCommand(data, callback) {
 					origin: 'serverCommand()',
 
 					message: 'server error occured',
-					reason: 'JSON.parse error on data',
+					reason: e,
 					content: data,
 
 					target: 'notify',
 					class: 'notifyError',
 				});
+				console.log(data);
 				callback(error);
 			}
 		},
@@ -331,24 +337,6 @@ function serverCommand(data, callback) {
 			updateElementErrors();
 		}
 	});
-}
-
-function handleError(error) {
-	console.error(error);
-	addElementError(error);
-}
-
-// TODO implement api erros into new error format and handleError()
-function logError(error) {
-	// TODO update this method to handle errors from different sources
-	var response = JSON.parse(error.response);
-
-	var status = response.error.status;
-	var message = response.error.message;
-
-	console.error('Status: ' + status);
-	console.error('Message: ' + message);
-	console.error(error);
 }
 
 function msFormat(ms) {
@@ -389,31 +377,24 @@ function register(name, password1, password2, email,) {
 		'password2': password2.val(),
 		'email': email.val(),
 	}, function (data) {
-		// !!! is array if validation error
-		if (!$.isArray(data)) {
-			if (data.objectType == 'SjSuccess') {
-				// TODO handle success
-				$('body').append(
-					$('<p/>')
-						.text(data.message)
-				);
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
 
-				// login (must be before entries are wiped)
-				login(name, password1);
+			// login
+			login(name, password1);
 
-				// wipe entries
-				inputs.forEach(function(input) {
-					input.val('');
-				});
-			} else if (data.objectType == 'SjError') {
-				handleError(data);
-			}
-		} else {
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
+			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
 			// validation errors
-			data.forEach(function (item) {
+			data.content.forEach(function (item) {
 				handleError(item);
 			});
 		}
+
+		return data;
 	});
 }
 
@@ -430,24 +411,24 @@ function login(name, password) {
 		'name': name.val(),
 		'password': password.val(),
 	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
 
 			// update page status/permissions
 			$("#statusUser")
 				.text(data.content);
 
-			// wipe entries
-			inputs.forEach(function(input) {
-				input.val('');
-			});
-		} else if (data.objectType == 'error') {
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
@@ -459,18 +440,20 @@ function logout() {
 	serverCommand({
 		'request': 'logout',
 	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
 
 			$("#statusUser")
 				.text('Guest');
-		} else if (data.objectType == 'error') {
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
@@ -482,28 +465,24 @@ function getCurrentUser() {
 	serverCommand({
 		'request': 'getCurrentUser',
 	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
-
-			console.log(
-				'id: ' + data.id,
-				'name: ' + data.name,
-				'email: ' + data.email,
-			);
-		} else if (data.objectType == 'error') {
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
 function getUser(id) {
 	// takes input DOM element
 	var inputs = [
-		'id'
+		id
 	];
 	clearElementErrorList(inputs);
 
@@ -511,20 +490,20 @@ function getUser(id) {
 		'request': 'getUser',
 		'id': id.val(),
 	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
 
-			console.log(
-				'id: ' + data.id,
-				'name: ' + data.name,
-			);
-		} else if (data.objectType == 'error') {
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
@@ -537,6 +516,7 @@ function getUser(id) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝
 //                                                                       
 
+// playlists
 function addPlaylist(title, visibility, description, color, image) {
 	// takes input DOM elements
 	var inputs = [
@@ -556,20 +536,20 @@ function addPlaylist(title, visibility, description, color, image) {
 		'color': color.val(),
 		'image': image.val(),
 	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
 
-			// wipe entries
-			inputs.forEach(function(input) {
-				input.val('');
-			});
-		} else if (data.objectType == 'error') {
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
@@ -584,17 +564,20 @@ function getPlaylist(id) {
 		'request': 'getPlaylist',
 		'id': id.val(),
 	}, function (data) {
-		if (data.objectType == 'playlist') {
-			// TODO handle success
-			console.log(data);
+		if (data.objectType === 'SjPlaylist') {
+			console.log('Success: ' + data);
 
-			// wipe entries
-			inputs.forEach(function(input) {
-				input.val('');
-			});
-		} else if (data.objectType == 'error') {
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
@@ -609,55 +592,52 @@ function deletePlaylist(id) {
 		'request': 'deletePlaylist',
 		'id': id.val(),
 	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
 
-			// wipe entries
-			inputs.forEach(function(input) {
-				input.val('');
-			});
-		} else if (data.objectType == 'error') {
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
 function orderPlaylist(id) {
-		// takes input DOM element
-		var inputs = [
-			id,
-		];
-		clearElementErrorList(inputs);
-	
-		serverCommand({
-			'request': 'orderPlaylist',
-			'id': id.val(),
-		}, function (data) {
-			if (data.objectType === 'success') {
-				// TODO handle success
-				$('body').append(
-					$('<p/>')
-						.text(data.message)
-				);
-	
-				// wipe entries
-				inputs.forEach(function(input) {
-					input.val('');
-				});
-			} else if (data.objectType === 'error') {
-				handleError(data);
-			} else if (data.objectType === 'errorList') {
-				forEach(data.content, function(error) {
-					handleError(error);
-				});
-			}
-		});
+	// takes input DOM element
+	var inputs = [
+		id,
+	];
+	clearElementErrorList(inputs);
+
+	serverCommand({
+		'request': 'orderPlaylist',
+		'id': id.val(),
+	}, function (data) {
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
+
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
+			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
+		}
+
+		return data;
+	});
 }
 
+// tracks
 function addTrack(track, playlistId) {
 	// takes DOM element that has JQuery .data('track'), and an input for with the playlist Id TODO change this later
 	var inputs = [
@@ -674,57 +654,51 @@ function addTrack(track, playlistId) {
 		'artists': track.data('track').artists,
 		'duration': track.data('track').duration,
 	}, function (data) {
-		if (data.objectType == 'success') {
-			// TODO handle success
-			$('body').append(
-				$('<p/>')
-					.text(data.message)
-			);
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
 
-			console.log('addTrack success');
-
-			// wipe entries
-			inputs.forEach(function(input) {
-				input.val('');
-			});
-		} else if (data.objectType == 'error') {
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
 			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
+			});
 		}
+
+		return data;
 	});
 }
 
 function deleteTrack(playlistId, position) {
-			// takes input DOM element
-			var inputs = [
-				playlistId,
-				position
-			];
-			clearElementErrorList(inputs);
-		
-			serverCommand({
-				'request': 'deleteTrack',
-				'playlistId': playlistId.val(),
-				'position': position.val(),
-			}, function (data) {
-				if (data.objectType === 'success') {
-					// TODO handle success
-					$('body').append(
-						$('<p/>')
-							.text(data.message)
-					);
-		
-					// wipe entries
-					inputs.forEach(function(input) {
-						input.val('');
-					});
-				} else if (data.objectType === 'error') {
-					handleError(data);
-				} else if (data.objectType === 'errorList') {
-					forEach(data.errors, function(error) {
-						handleError(error);
-					});
-				}
+	// takes input DOM element
+	var inputs = [
+		playlistId,
+		position
+	];
+	clearElementErrorList(inputs);
+
+	serverCommand({
+		'request': 'deleteTrack',
+		'playlistId': playlistId.val(),
+		'position': position.val(),
+	}, function (data) {
+		if (data.objectType === 'SjSuccess') {
+			console.log('Success: ' + data);
+
+			// finally, wipe inputs
+			inputs.forEach(function(input) { input.val(''); });
+		} else if (data.objectType === 'SjError') {
+			handleError(data);
+		} else if (data.objectType === 'SjErrorList') {
+			data.content.forEach(function (item) {
+				handleError(item);
 			});
+		}
+
+		return data;
+	});
 }
 
 
@@ -738,7 +712,7 @@ function deleteTrack(playlistId, position) {
 
 var searchResults = {
 	// details
-	'term': "",
+	'term': '',
 	'tracksPerSource': 5,
 	'page': 1,
 
