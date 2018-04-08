@@ -14,6 +14,8 @@
 // TODO the property objectType may not be needed??? as there might be functions to access the name of the class already, but im not sure
 // TODO handle success messages on successful server commands
 
+// TODO search testing, playback and control conversion and testing
+
 // test
 $("#test").click(function() {
 	getCurrentUser();
@@ -865,6 +867,32 @@ var searchResults = {
 }
 
 // search
+function search(term) {
+	var errorList = new SjErrorList({
+		origin: 'search()',
+	});
+
+	var spotifyResult = spotifySearch(term);
+	var youtubeResult = youtubeSearch(term);
+
+	if (spotifyResult.objectType === 'SjError' || spotifyResult === 'SjErrorList') {
+		errorList.content.push(spotifyResult);
+	}
+
+	if (youtubeResult === 'SjError' || youtubeResult === 'SjErrorList') {
+		errorList.content.push(youtubeResult)
+	}
+
+	if (errorList.content.length === 0) {
+		return new SjSuccess({
+			origin: 'search()',
+			message: 'search was successfull',
+		});
+	} else {
+		return errorList;
+	}
+}
+
 function spotifySearch(term) {
 	var options = {
 		// max number of results to return, min 1, max 50, default 20
@@ -971,32 +999,6 @@ function youtubeSearch(term) {
 			});
 		}
 	});	
-}
-
-function search(term) {
-	var errorList = new SjErrorList({
-		origin: 'search()',
-	});
-
-	var spotifyResult = spotifySearch(term);
-	var youtubeResult = youtubeSearch(term);
-
-	if (spotifyResult.objectType === 'SjError' || spotifyResult === 'SjErrorList') {
-		errorList.content.push(spotifyResult);
-	}
-
-	if (youtubeResult === 'SjError' || youtubeResult === 'SjErrorList') {
-		errorList.content.push(youtubeResult)
-	}
-
-	if (errorList.content.length === 0) {
-		return new SjSuccess({
-			origin: 'search()',
-			message: 'search was successfull',
-		});
-	} else {
-		return errorList;
-	}
 }
 
 function spotifyGetTracks(items, callback) {
