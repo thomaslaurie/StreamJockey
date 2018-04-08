@@ -11,6 +11,30 @@
 	// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
 	// .on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
 // TODO maxlength attribute can be used for input elements, use this to get real-time validation checks for max lenth
+// TODO the property objectType may not be needed??? as there might be functions to access the name of the class already, but im not sure
+
+// test
+$("#test").click(function() {
+		var inputs = [
+		];
+		clearElementErrorList(inputs);
+	
+		serverCommand({
+			'request': 'test',
+		}, function (data) {
+			console.log(data);
+			if (data.objectType == 'SjSuccess') {
+				console.log(data.objectType);
+	
+				// wipe entries
+				inputs.forEach(function(input) {
+					input.val('');
+				});
+			} else if (data.objectType == 'SjError') {
+				handleError(data);
+			}
+		});
+});
 
 
 //   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     ███████╗
@@ -21,27 +45,10 @@
 //   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
 //                                                            
 
+// primitives
 var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
 
-
-//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ ███████╗
-//  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝
-//  █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝███████╗
-//  ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗╚════██║
-//  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║███████║
-//  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
-//                                                   
-
-
-
-// test
-$("#test").click(function() {
-	console.log(new Track({
-		'id': 'ahfisadhfweama',
-		'title': 'hi im a title',
-	}));
-});
-
+// objects
 function SjObject(obj) {
 	this.objectType = 'SjObject';
 
@@ -68,12 +75,12 @@ function SjObject(obj) {
 	// "The call() method calls a function with a given this value and arguments provided individually."	
 }
 
-function Success(obj) {
+function SjSuccess(obj) {
 	// super
 	SjObject.call(this, obj);
 
-	// override inherited properties
-	this.objectType = 'success';
+	// overwritten properties
+	this.objectType = 'SjSuccess';
 
 	// what
 	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
@@ -83,12 +90,12 @@ function Success(obj) {
 	// this.onCreate();
 }
 
-function Error(obj) {
+function SjError(obj) {
 	// super
 	SjObject.call(this, obj);
 
-	// override inherited properties
-	this.objectType = 'error';
+	// overwritten properties
+	this.objectType = 'SjError';
 
 	// what
 	this.code = typeof obj.code === 'undefined' ? '400' : obj.code;
@@ -98,32 +105,31 @@ function Error(obj) {
 	this.onCreate();
 }
 
-function ErrorList(obj) {
+function SjErrorList(obj) {
 	// super
 	SjObject.call(this, obj);
 
-	// override inherited properties
-	this.objectType = 'errorList';
+	// overwritten properties
+	this.objectType = 'SjErrorList';
 
 	// what
 	this.code = typeof obj.code === 'undefined' ? '400' : obj.code;
 	this.type = typeof obj.type === 'undefined' ? 'Bad Request' : obj.type;
 
 	// return
-	this.reason = typeof obj.reason === 'undefined' ? 'One or more errors from multiple calls' : obj.reason; 
-	// content is an array of errors
+	this.reason = typeof obj.reason === 'undefined' ? 'One or more errors from multiple calls' : obj.reason;
 	this.content = typeof obj.content === 'undefined' ? [] : obj.content;
 
 	// announce
 	this.onCreate();
 }
 
-function Track(obj) {
+function SjTrack(obj) {
 	// super
 	SjObject.call(this, obj);
 
-	// override inherited properties
-	this.objectType = 'track';
+	// overwritten properties
+	this.objectType = 'SjTrack';
 
 	// what
 	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
@@ -141,19 +147,18 @@ function Track(obj) {
 	// this.onCreate();
 }
 
-function Playlist(obj) {
+function SjPlaylist(obj) {
 	// super
 	SjObject.call(this, obj);
 
-	// override inherited properties
-	this.objectType = 'playlist';
+	// overwritten properties
+	this.objectType = 'SjPlaylist';
 
 	// what
 	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
 	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
 
 	// return
-	// content is an array of track objects
 	this.content = typeof obj.content === 'undefined' ? [] : obj.content;
 
 	// new properties
@@ -169,84 +174,84 @@ function Playlist(obj) {
 	// this.onCreate();
 }
 
-// templates
-var successObjectTemplate = {
-	// only gets returned when function has no content to return on success
-	'objectType': 'success',
-	'code': '200',
-	'type': '',
-	'message': '',
-	'origin': '',
-	'target': '',
-	'class': '',
-	'content': '',
+function SjUser(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// overwritten properties
+	this.objectType = 'SjUser';
+
+	// what
+	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
+	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
+
+	// new properties
+	this.id = typeof obj.id === 'undefined' ? '' : obj.id;
+	this.name = typeof obj.name === 'undefined' ? '' : obj.name;
+	this.email = typeof obj.email === 'undefined' ? '' : obj.email;
+
+	// announce, don't announce successes
+	// this.onCreate();
 }
 
-var errorObjectTemplate = {
-	'objectType': 'error',
-	'code': '',
-	'type': '',
-	'message': '',
-	'origin': '',
-	'target': '',
-	'class': '',
-}
 
-// display
-var elementErrorTemplate = {
-	'target': '',
-	'storedState': '',
-
-	'class': '',
-	'message': '',
-}
-
-var elementErrorList = [];
+//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ ███████╗
+//  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝
+//  █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝███████╗
+//  ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗╚════██║
+//  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║███████║
+//  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+//                                                   
+var elementErrorList = new SjErrorList({});
 
 function clearElementError(elementError) {
-	//console.log('clearElementError(' + elementError.target + ') called');
+	// console.log('clearElementError('+elementError.target+') called');
 
-	// backwards delete loop
-	for (var i = elementErrorList.length - 1; 0 <= i; i--) {
-		if (elementError.target === elementErrorList[i].target) {
-			elementErrorList.splice(i, 1);
+	// reverse deletion loop
+	for (var i = elementErrorList.content.length - 1; i >= 0; i--) {
+		if (elementError.target === elementErrorList.content[i].target) {
+			// remove from array
+			elementErrorList.content.splice(i, 1);
 		}
 	}
 }
 
-function clearElementErrorGroup(elementErrorTargetArray) {
-	//console.log('clearElementErrorGroup(' + elementErrorTargetArray + ') called');
-
+function clearElementErrorList(elementList) {
 	// any call that creates element errors must be responsible for cleaning them up
-	elementErrorTargetArray.forEach(function(elementErrorTarget, i) {
-		// identifies by id of jQuery DOM element instead of an elementErrorObject
-		
+
+	// console.log('addElementError('+elementList+') called');
+	
+	elementList.forEach(function(element, i) {
 		// backwards delete loop
-		for (var j = elementErrorList.length - 1; 0 <= j; j--) {
-			if (elementErrorTarget.attr('id') === elementErrorList[j].target) {
-				elementErrorList.splice(j, 1);
+		for (var j = elementErrorList.content.length - 1; j >= 0; j--) {
+			// identifies by id of jQuery DOM element
+			if (element.attr('id') === elementErrorList.content[j].target) {
+				// remove from list
+				elementErrorList.content.splice(j, 1);
 			}
 		}
 	});
 }
 
 function addElementError(elementError) {
-	//console.log('addElementError(' + elementError.target + ') called');
+	// console.log('addElementError('+elementError.target+') called');
 
-	// replace existing with new info
-	clearElementError(elementError);
-	if (elementErrorList.target !== "") {
-		// only push to elementErrorList if the error has a target (and therefore is cleaned by a function)
-		elementErrorList.push(elementError);
+	// if the error has a target
+	if (elementError.target !== "") {
+		// delete old, push new
+		clearElementError(elementError);
+		elementErrorList.content.push(elementError);
 	}
 }
 
 function updateElementErrors() {
-	//console.log('updateErrorElements() called');
+	// console.log('updateErrorElements() called');
 
 	// list of all elementErrorClasses TODO keep me updated
 	var elementErrorClasses = [
 		'inputError',
+		'notifyError',
+		'notifySuccess', // ??? should notifySuccess go through the same flow as errors?
 	];
 	
 	// remove all error messages
@@ -258,7 +263,7 @@ function updateElementErrors() {
 	});
 
 	// add for each
-	elementErrorList.forEach(function(elementError, i) {
+	elementErrorList.content.forEach(function(elementError, i) {
 		$(document.getElementById(elementError.target))
 			// class
 			.addClass(elementError.class)
@@ -290,45 +295,47 @@ function serverCommand(data, callback) {
 		success: function(data){
 			try {
 				data = JSON.parse(data);
-				console.log("Server data returned: " + data);
+				console.log("data successfully returned and parsed: " + data);
+				callback(data);
 			} catch (e) {
-				console.error("Parse error on data: " + data);
-				console.error(e);
+				var error = new SjError({
+					type: 'parse error',
+					origin: 'serverCommand()',
+
+					message: 'server error occured',
+					reason: 'JSON.parse error on data',
+					content: data,
+
+					target: 'notify',
+					class: 'notifyError',
+				});
+				callback(error);
 			}
-			callback(data);
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			var errorObject = {
-				objectType: 'error',
-				code: '',
-				type: 'Ajax error',
-				message: textStatus,
+			var error = new SjError({
+				type: 'ajax error',
 				origin: 'serverCommand()',
-				target: '',
-				class: '',
-			}
 
-			console.log(errorObject.origin + " - " + errorObject.type + ": " + errorObject.message);
+				message: 'could not send command to server',
+				reason: textStatus,
+
+				target: 'notify',
+				class: 'notifyError',
+			});
+
 			callback(errorObject);
 		},
 		complete: function(jqXHR, textStatus) {
-			// update any displayed errors
+			// update any element errors
 			updateElementErrors();
 		}
 	});
 }
 
 function handleError(error) {
-	console.log(error);
-
-	var elementError = {
-		target: error.target,
-		storedState: $(document.getElementById(error.target)).val(),
-		class: error.class,
-		message: error.message,
-	}
-
-	addElementError(elementError);
+	console.error(error);
+	addElementError(error);
 }
 
 // TODO implement api erros into new error format and handleError()
@@ -373,7 +380,7 @@ function register(name, password1, password2, email,) {
 		password2,
 		email,
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'register',
@@ -384,7 +391,7 @@ function register(name, password1, password2, email,) {
 	}, function (data) {
 		// !!! is array if validation error
 		if (!$.isArray(data)) {
-			if (data.objectType == 'success') {
+			if (data.objectType == 'SjSuccess') {
 				// TODO handle success
 				$('body').append(
 					$('<p/>')
@@ -398,7 +405,7 @@ function register(name, password1, password2, email,) {
 				inputs.forEach(function(input) {
 					input.val('');
 				});
-			} else if (data.objectType == 'error') {
+			} else if (data.objectType == 'SjError') {
 				handleError(data);
 			}
 		} else {
@@ -416,7 +423,7 @@ function login(name, password) {
 		name,
 		password,
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'login',
@@ -447,7 +454,7 @@ function login(name, password) {
 function logout() {
 	var inputs = [
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'logout',
@@ -470,7 +477,7 @@ function logout() {
 function getCurrentUser() {
 	var inputs = [
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'getCurrentUser',
@@ -498,7 +505,7 @@ function getUser(id) {
 	var inputs = [
 		'id'
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'getUser',
@@ -539,7 +546,7 @@ function addPlaylist(title, visibility, description, color, image) {
 		color,
 		image,
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'addPlaylist',
@@ -571,7 +578,7 @@ function getPlaylist(id) {
 	var inputs = [
 		id,
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'getPlaylist',
@@ -596,7 +603,7 @@ function deletePlaylist(id) {
 	var inputs = [
 		id,
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 
 	serverCommand({
 		'request': 'deletePlaylist',
@@ -624,7 +631,7 @@ function orderPlaylist(id) {
 		var inputs = [
 			id,
 		];
-		clearElementErrorGroup(inputs);
+		clearElementErrorList(inputs);
 	
 		serverCommand({
 			'request': 'orderPlaylist',
@@ -644,21 +651,19 @@ function orderPlaylist(id) {
 			} else if (data.objectType === 'error') {
 				handleError(data);
 			} else if (data.objectType === 'errorList') {
-				forEach(data.errors, function(error) {
+				forEach(data.content, function(error) {
 					handleError(error);
 				});
 			}
 		});
 }
 
-
-
 function addTrack(track, playlistId) {
 	// takes DOM element that has JQuery .data('track'), and an input for with the playlist Id TODO change this later
 	var inputs = [
 		playlistId
 	];
-	clearElementErrorGroup(inputs);
+	clearElementErrorList(inputs);
 	
 	serverCommand({
 		'request': 'addTrack',
@@ -694,7 +699,7 @@ function deleteTrack(playlistId, position) {
 				playlistId,
 				position
 			];
-			clearElementErrorGroup(inputs);
+			clearElementErrorList(inputs);
 		
 			serverCommand({
 				'request': 'deleteTrack',
@@ -721,8 +726,6 @@ function deleteTrack(playlistId, position) {
 				}
 			});
 }
-
-
 
 
 //  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
@@ -909,7 +912,7 @@ function youtubeGetTrackDetails(ids, callback) {
 			console.log(fufilled);
 
 			fufilled.result.items.forEach(function (track, i) {
-				trackList[i] = new Track();
+				trackList[i] = new SjTrack({});
 
 				trackList[i].source = 'youtube';
 				trackList[i].id = track.id;
@@ -1141,19 +1144,19 @@ function onPlayerStateChange(event) {
 var desiredPlayback = {
 	'playing': false,
 	'progress': 0,
-	'track': new Track(),
+	'track': new SjTrack({}),
 };
 
 var actualPlayback = {
 	'spotify': {
 		playing: false,
 		progress: 0,
-		track: new Track(),
+		track: new SjTrack({}),
 	},
 	'youtube': {
 		playing: false,
 		progress: 0,
-		track: new Track(),
+		track: new SjTrack({}),
 	},
 };
 

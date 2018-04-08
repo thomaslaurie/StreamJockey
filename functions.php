@@ -3,6 +3,168 @@
 	// 	return $_SERVER['DOCUMENT_ROOT'] . $_SERVER['PHP_SELF'];
 	// }
 
+	// anonymous classes:
+	// ... (new class() {
+	// 	public $var = 'something';
+	// });
+
+	// TODO add back in error codes
+	// TODO add back in sql error reasons via $stmt->error
+
+	function test() {
+		$result = new SjError(new class {
+			function __construct() {
+				$this->message = "E-mail must be shorter thancharacters";
+				$this->origin = 'validateEmail()';
+				$this->target = 'registerEmail';
+				$this->class = 'inputError';
+			}
+		});
+
+		return $result;
+	}
+
+	// classes
+	class SjObject {
+		function __construct($obj) {
+			$this->objectType = 'SjObject';
+
+			// what
+			$this->code = !isset($obj->code) ? '' : $obj->code;
+			$this->type = !isset($obj->type) ? '' : $obj->type;
+			$this->origin = !isset($obj->origin) ? '' : $obj->origin;
+
+			// return
+			$this->message = !isset($obj->message) ? '' : $obj->message;
+			// if no reason is given, reason is the same as the message
+			$this->reason = !isset($obj->reason) ? $this->message : $obj->reason;
+			$this->content = !isset($obj->content) ? '' : $obj->content;
+
+			// element
+			$this->target = !isset($obj->target) ? '' : $obj->target;
+			$this->class = !isset($obj->class) ? '' : $obj->class;
+
+			//$ = !isset($obj->) ? '' : $obj->;
+			// all child object should call function __construct() { parent::__construct($obj); } to call the parent constructor
+		}
+	}
+
+	class SjSuccess extends SjObject {
+		function __construct($obj) {
+			// super
+			parent::__construct($obj);
+
+			// overwritten properties
+			$this->objectType = 'SjSuccess';
+
+			// what
+			$this->code = !isset($obj->code) ? '200' : $obj->code;
+			$this->type = !isset($obj->type) ? 'Ok' : $obj->type;
+
+		}
+	}
+
+	class SjError extends SjObject {
+		function __construct($obj) {
+			// super
+			parent::__construct($obj);
+
+			// overwritten properties
+			$this->objectType = 'SjError';
+
+			// what
+			$this->code = !isset($obj->code) ? '400' : $obj->code;
+			$this->type = !isset($obj->type) ? 'Invalid' : $obj->type;
+
+		}
+	}
+
+	class SjErrorList extends SjObject {
+		function __construct($obj) {
+			// super
+			parent::__construct($obj);
+
+			// overwritten properties
+			$this->objectType = 'SjErrorList';
+
+			// what
+			$this->code = !isset($obj->code) ? '400' : $obj->code;
+			$this->type = !isset($obj->type) ? 'Invalid' : $obj->type;
+
+			// return
+			$this->reason = !isset($obj->reason) ? 'One or more errors from multiple calls' : $obj->reason;
+			$this->content = !isset($obj->content) ? [] : $obj->content;
+
+		}
+	}
+
+	class SjTrack extends SjObject {
+		function __construct($obj) {
+			// super
+			parent::__construct($obj);
+
+			// overwritten properties
+			$this->objectType = 'SjTrack';
+
+			// what
+			$this->code = !isset($obj->code) ? '200' : $obj->code;
+			$this->type = !isset($obj->type) ? 'Ok' : $obj->type;
+
+			// new properties
+			$this->source = !isset($obj->source) ? '' : $obj->source;
+			$this->id = !isset($obj->id) ? '' : $obj->id;
+			$this->artists = !isset($obj->artists) ? [] : $obj->artists;
+			$this->title = !isset($obj->title) ? '' : $obj->title;
+			$this->duration = !isset($obj->duration) ? '' : $obj->duration;
+			$this->link = !isset($obj->link) ? '' : $obj->link;
+		}
+	}
+
+	class SjPlaylist extends SjObject {
+		function __construct($obj) {
+			// super
+			parent::__construct($obj);
+
+			// overwritten properties
+			$this->objectType = 'SjPlaylist';
+
+			// what
+			$this->code = !isset($obj->code) ? '200' : $obj->code;
+			$this->type = !isset($obj->type) ? 'Ok' : $obj->type;
+
+			// return
+			$this->content = !isset($obj->content) ? [] : $obj->content;
+
+			// new properties
+			$this->id = !isset($obj->id) ? '' : $obj->id;
+			$this->userId = !isset($obj->userId) ? '' : $obj->userId;
+			$this->title = !isset($obj->title) ? '' : $obj->title;
+			$this->visibility = !isset($obj->visibility) ? '' : $obj->visibility;
+			$this->description = !isset($obj->description) ? '' : $obj->description;
+			$this->color = !isset($obj->color) ? '' : $obj->color;
+			$this->image = !isset($obj->image) ? '' : $obj->image;
+		}
+	}
+
+	class SjUser extends SjObject {
+		function __construct($obj) {
+			// super
+			parent::__construct($obj);
+
+			// overwritten properties
+			$this->objectType = 'SjUser';
+
+			// what
+			$this->code = !isset($obj->code) ? '200' : $obj->code;
+			$this->type = !isset($obj->type) ? 'Ok' : $obj->type;
+
+			// new properties
+			$this->id = !isset($obj->id) ? '' : $obj->id;
+			$this->name = !isset($obj->name) ? '' : $obj->name;
+			$this->email = !isset($obj->email) ? '' : $obj->email;
+		}
+	}
+
 	
 //  ██████╗  █████╗ ████████╗ █████╗ ██████╗  █████╗ ███████╗███████╗
 //  ██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝
@@ -22,25 +184,23 @@
 		if(!mysqli_connect_errno()) {
 			return $db;
 		} else {
-			close($stmt, $result, $db);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->code = mysqli_connect_errno();
+					$this->code = 'database connection failure';
+					$this->origin = 'openDB()';
+					$this->message = 'could not connect to database';
+				}
+			});
 
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => mysqli_connect_errno(),
-				"type" => "connection failure",
-				"message" => "Failed to connect to database",
-				"origin" => ".php openDB()",
-				"target" => "",
-				"class" => "",
-			);
-
-			return $errorObject;
+			close($stmt, $stmtResult, $db);
+			return $result;
 		}
 	}
 
-	function close(&$stmt, &$result, &$db) {
+	function close(&$stmt, &$stmtResult, &$db) {
 		if(isset($stmt)) { $stmt->close(); }
-		if(isset($result) && $result != true && $result != false) { $result->free(); }
+		if(isset($stmtResult) && $stmtResult != true && $stmtResult != false) { $stmtResult->free(); }
 		if(isset($db)) { $db->close(); }
 	}
 
@@ -53,8 +213,8 @@
 //  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
 //                                                               
 
-	// register validation
-	function validateEmail(&$email, &$errorObjectArray) {
+	// validation
+	function validateEmail(&$email, &$errorList) {
 		$email = trim($email);
 
 		if (!empty($email)) {
@@ -62,146 +222,137 @@
 				if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
 					return true;
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "400",
-						"type" => "invalid",
-						"message" => "E-mail format is invalid",
-						"origin" => ".php validateEmail()",
-						"target" => "registerEmail",
-						"class" => "inputError",
-					);
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'validateEmail()';
+							$this->message = 'field must be a valid e-mail';
+							$this->target = 'registerEmail';
+							$this->class = 'inputError';
+						}
+					});
 	
-					array_push($errorObjectArray, $errorObject);
+					array_push($errorList->content, $result);
 					return false;
 				}
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "400",
-					"type" => "invalid",
-					"message" => "E-mail must be shorter than " . $GLOBALS['stringMaxLength'] . " characters",
-					"origin" => ".php validateEmail()",
-					"target" => "registerEmail",
-					"class" => "inputError",
-				);
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'validateEmail()';
+						$this->message = "e-mail must be shorter than " . $GLOBALS['stringMaxLength'] . " characters";
+						$this->target = 'registerEmail';
+						$this->class = 'inputError';
+					}
+				});
 
-				array_push($errorObjectArray, $errorObject);
+				array_push($errorList->content, $result);
 				return false;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" => "E-mail is empty",
-				"origin" => ".php validateEmail()",
-				"target" => "registerEmail",
-				"class" => "inputError",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'validateEmail()';
+					$this->message = "e-mail cannot be empty";
+					$this->target = 'registerEmail';
+					$this->class = 'inputError';
+				}
+			});
 
-			array_push($errorObjectArray, $errorObject);
+			array_push($errorList->content, $result);
 			return false;
 		}
 	}
 
-	function validateUserName(&$userName, &$errorObjectArray) {
+	function validateUserName(&$userName, &$errorList) {
 		$userName = trim($userName);
 
 		if(!empty($userName)) {
 			if ($GLOBALS['nameMinLength'] <= strlen($userName) && strlen($userName) <= $GLOBALS['stringMaxLength']) {
 				return true;
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "400",
-					"type" => "invalid",
-					"message" => "Username must be between " . $GLOBALS['nameMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters" ,
-					"origin" => ".php validateUserName()",
-					"target" => "registerUserName",
-					"class" => "inputError",
-				);
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'validateUserName()';
+						$this->message = "username must be between " . $GLOBALS['nameMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters";
+						$this->target = 'registerUserName';
+						$this->class = 'inputError';
+					}
+				});
 	
-				array_push($errorObjectArray, $errorObject);
+				array_push($errorList->content, $result);
 				return false;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" => "Username is empty",
-				"origin" => ".php validateUserName()",
-				"target" => "registerUserName",
-				"class" => "inputError",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'validateUserName()';
+					$this->message = 'username cannot be empty';
+					$this->target = 'registerUserName';
+					$this->class = 'inputError';
+				}
+			});
 
-			array_push($errorObjectArray, $errorObject);
+			array_push($errorList->content, $result);
 			return false;
 		}
 	}
 
-	function validatePassword(&$password1, &$password2, &$errorObjectArray) {
+	function validatePassword(&$password1, &$password2, &$errorList) {
 		if (!empty($password1)) {
 			if ($GLOBALS['passwordMinLength'] <= strlen($password1) && strlen($password1) <= $GLOBALS['stringMaxLength']) {
 				if ($password1 === $password2) {
 					return true;
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "400",
-						"type" => "invalid",
-						"message" => "Passwords do not match" ,
-						"origin" => ".php validatePassword()",
-						"target" => "registerPassword2",
-						"class" => "inputError",
-					);
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'validatePassword()';
+							$this->message = 'passwords must match';
+							$this->target = 'registerPassword2';
+							$this->class = 'inputError';
+						}
+					});
 		
-					array_push($errorObjectArray, $errorObject);
+					array_push($errorList->content, $result);
 					return false;
 				}
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "400",
-					"type" => "invalid",
-					"message" => "Password must be between " . $GLOBALS['passwordMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters",
-					"origin" => ".php validatePassword()",
-					"target" => "registerPassword1",
-					"class" => "inputError",
-				);
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'validatePassword()';
+						$this->message = "password must be between " . $GLOBALS['passwordMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters";
+						$this->target = 'registerPassword1';
+						$this->class = 'inputError';
+					}
+				});
 	
-				array_push($errorObjectArray, $errorObject);
+				array_push($errorList->content, $result);
 				return false;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" => "Password is empty",
-				"origin" => ".php validatePassword()",
-				"target" => "registerPassword1",
-				"class" => "inputError",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'validatePassword()';
+					$this->message = 'password cannot be empty';
+					$this->target = 'registerPassword';
+					$this->class = 'inputError';
+				}
+			});
 
-			array_push($errorObjectArray, $errorObject);
+			array_push($errorList->content, $result);
 			return false;
 		}
 	}
 
-	// !!! returns errorObject array on validation error
 	function register($email, $userName, $password1, $password2) {
-		$errorObjectArray = [];
+		$errorList = new SjErrorList(new class{});
 
-		validateEmail($email, $errorObjectArray);
-		validateUserName($userName, $errorObjectArray);
-		validatePassword($password1, $password2, $errorObjectArray);
+		validateEmail($email, $errorList);
+		validateUserName($userName, $errorList);
+		validatePassword($password1, $password2, $errorList);
 
-		if (empty($errorObjectArray)) {
+		if (empty($errorList->content)) {
 			$db = openDB();
 			// check openDB success
-			if (getType($db) === 'object') {
+			if (!isset($db->objectType)) {
 				// prep query
 				$stmt = $db->prepare("
 					SELECT userName
@@ -212,10 +363,10 @@
 		
 				// check query success
 				if ($stmt->execute()) {
-					$result = $stmt->get_result();
+					$stmtResult = $stmt->get_result();
 					
 					// check for existing user
-					if ($result->num_rows == 0) {
+					if ($stmtResult->num_rows == 0) {
 						// add user
 						$passwordHash = password_hash($password1, PASSWORD_DEFAULT);
 		
@@ -227,66 +378,63 @@
 						$stmt->bind_param('sss', $userName, $passwordHash, $email);
 		
 						if ($stmt->execute()) {
-							$successObject = array(
-								"objectType" => "success",
-								"code" => "200",
-								"type" => "finished",
-								"message" => "User registered",
-								"origin" => ".php register()",
-								"target" => "",
-								"class" => "",
-								"content" => $userName,
-							);
+							$result = new SjSuccess(new class {
+								function __construct() {
+									$this->origin = 'register()';
+									$this->message = $userName.' registered';
+									$this->target = 'notify';
+									$this->class = 'notifySuccess';
+									$this->content = $userName;
+								}
+							});
 	
-							close($stmt, $result, $db);
-							return $successObject;
+							close($stmt, $stmtResult, $db);
+							return $result;
 						} else {
-							$errorObject = array(
-								"objectType" => "error",
-								"code" => "",
-								"type" => "sql failure",
-								"message" => "Failed to insert user",
-								"origin" => ".php register()",
-								"target" => "",
-								"class" => "",
-							);
+							$result = new SjError(new class {
+								function __construct() {
+									$this->origin = 'register()';
+									$this->message = "could not insert user";
+									$this->target = 'notify';
+									$this->class = 'notifyError';
+								}
+							});
 			
-							close($stmt, $result, $db);
-							return $errorObject;
+							close($stmt, $stmtResult, $db);
+							return $result;
 						}
 					} else {
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "403",
-							"type" => "forbidden",
-							"message" => "User already exists",
-							"origin" => ".php register()",
-							"target" => "registerUserName",
-							"class" => "inputError",
-						);
-			
-						close($stmt, $result, $db);
-						return $errorObject;
+						$result = new SjError(new class {
+							function __construct() {
+								$this->origin = 'register()';
+								$this->message = "user already exists";
+								$this->target = 'registerUserName';
+								$this->class = 'inputError';
+							}
+						});
+		
+						close($stmt, $stmtResult, $db);
+						return $result;
 					}
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "",
-						"type" => "sql failure",
-						"message" => $stmt->error,
-						"origin" => ".php register()",
-						"target" => "",
-						"class" => "",
-					);
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'register()';
+							$this->message = "could not insert user";
+							$this->reason = $stmt->error;
+							$this->target = 'notify';
+							$this->class = 'notifyError';
+						}
+					});
 	
-					close($stmt, $result, $db);
-					return $errorObject;	
+					close($stmt, $stmtResult, $db);
+					return $result;
 				}
 			} else {
 				return $db;
 			}
 		} else {
-			return $errorObjectArray;
+			return $errorList;
 		} 		
 	}
 
@@ -297,7 +445,7 @@
 
 		$db = openDB();
 		// check openDB success
-		if (getType($db) === 'object') {
+		if (!isset($db->objectType)) {
 			// prep query
 			$stmt = $db->prepare("
 				SELECT userId, userName, password
@@ -308,11 +456,11 @@
 
 			// check query success
 			if ($stmt->execute()) {
-				$result = $stmt->get_result();
+				$stmtResult = $stmt->get_result();
 
 				// check if found
-				if ($result->num_rows == 1) {
-					$row = $result->fetch_assoc();
+				if ($stmtResult->num_rows == 1) {
+					$row = $stmtResult->fetch_assoc();
 					$DBpassword = $row['password'];
 
 					// check password
@@ -321,60 +469,56 @@
 						session_regenerate_id();
 						$_SESSION['userId'] = $row['userId'];
 
-						$successObject = array(
-							"objectType" => "success",
-							"code" => "200",
-							"type" => "finished",
-							"message" => "User logged in",
-							"origin" => ".php login()",
-							"target" => "",
-							"class" => "",
-							"content" => $_SESSION['userId'],
-						);
+						$result = new SjSuccess(new class {
+							function __construct() {
+								$this->origin = 'login()';
+								$this->message = 'user logged in';
+								$this->target = 'notify';
+								$this->class = 'notifySuccess';
+								$this->content = $_SESSION['userId'];
+							}
+						});
 
-						close($stmt, $result, $db);
-						return $successObject;
+						close($stmt, $stmtResult, $db);
+						return $result;
 					} else {
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "400",
-							"type" => "invalid",
-							"message" => "Password incorrect",
-							"origin" => ".php login()",
-							"target" => "loginPassword",
-							"class" => "inputError",
-						);
-			
-						close($stmt, $result, $db);
-						return $errorObject;
+						$result = new SjError(new class {
+							function __construct() {
+								$this->origin = 'login()';
+								$this->message = "incorrect password";
+								$this->target = 'loginPassword';
+								$this->class = 'inputError';
+							}
+						});
+		
+						close($stmt, $stmtResult, $db);
+						return $result;
 					}
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "404",
-						"type" => "not found",
-						"message" => "User not found",
-						"origin" => ".php login()",
-						"target" => "loginUserName",
-						"class" => "inputError",
-					);
-		
-					close($stmt, $result, $db);
-					return $errorObject;
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'login()';
+							$this->message = "user does not exist";
+							$this->target = 'loginUserName';
+							$this->class = 'inputError';
+						}
+					});
+	
+					close($stmt, $stmtResult, $db);
+					return $result;
 				}
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "",
-					"type" => "sql failure",
-					"message" => $stmt->error,
-					"origin" => ".php login()",
-					"target" => "",
-					"class" => "",
-				);
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'login()';
+						$this->message = "could not login user";
+						$this->target = 'notify';
+						$this->class = 'notifyError';
+					}
+				});
 
-				close($stmt, $result, $db);
-				return $errorObject;			
+				close($stmt, $stmtResult, $db);
+				return $result;
 			}
 		} else {
 			return $db;
@@ -385,18 +529,17 @@
 		session_regenerate_id();
 		unset($_SESSION['userId']);
 
-		$successObject = array(
-			"objectType" => "success",
-			"code" => "200",
-			"type" => "finished",
-			"message" => "User logged out",
-			"origin" => ".php logout()",
-			"target" => "",
-			"class" => "",
-			"content" => "",
-		);
+		$result = new SjSuccess(new class {
+			function __construct() {
+				$this->origin = 'logout()';
+				$this->message = 'user logged out';
+				$this->target = 'notify';
+				$this->class = 'notifySuccess';
+			}
+		});
 
-		return $successObject;
+		close($stmt, $stmtResult, $db);
+		return $result;
 	}
 
 	// get
@@ -405,7 +548,7 @@
 		if (isset($_SESSION['userId'])) {
 			$db = openDB();
 			// check openDB success
-			if (getType($db) === 'object') {
+			if (!isset($db->objectType)) {
 				// search for playlist
 				$stmt = $db->prepare("
 					SELECT *
@@ -417,63 +560,61 @@
 				// check query success
 				if ($stmt->execute()) {
 					// check that playlist exists
-					$result = $stmt->get_result();
-					if ($result->num_rows === 1) {
-						while($row = $result->fetch_assoc()) {
+					$stmtResult = $stmt->get_result();
+					if ($stmtResult->num_rows === 1) {
+						while($row = $stmtResult->fetch_assoc()) {
 							// !!! does not return password
-							$userObject = array(
-								"objectType" => "user",
-								"id" => $row['userId'],
-								"name" => $row['userName'],
-								"email" => $row['email'],
-							);
+							$result = new SjUser(new class {
+								function __construct() {
+									$this->id = $row['userId'];
+									$this->name = $row['userName'];
+									$this->email = $row['email'];
+								}
+							});
 						}
 
-						close($stmt, $result, $db);
-						return $userObject;
+						close($stmt, $stmtResult, $db);
+						return $result;
 					} else {
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "403",
-							"type" => "forbidden",
-							"message" => "User does not exist",
-							"origin" => ".php getCurrentUser()",
-							"target" => "",
-							"class" => "",
-						);
-			
-						close($stmt, $result, $db);
-						return $errorObject;
+						$result = new SjError(new class {
+							function __construct() {
+								$this->origin = 'getCurrentUser()';
+								$this->message = "user does not exist";
+								$this->target = 'notify';
+								$this->class = 'notifyError';
+							}
+						});
+		
+						close($stmt, $stmtResult, $db);
+						return $result;
 					}
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "",
-						"type" => "sql failure",
-						"message" =>  $stmt->error,
-						"origin" => ".php getCurrentUser()",
-						"target" => "",
-						"class" => "",
-					);
-
-					close($stmt, $result, $db);
-					return $errorObject;	
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'getCurrentUser()';
+							$this->message = "could not retrieve user information";
+							$this->target = 'notify';
+							$this->class = 'notifyError';
+						}
+					});
+	
+					close($stmt, $stmtResult, $db);
+					return $result;
 				}
 			} else {
 				return $db;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "403",
-				"type" => "forbidden",
-				"message" => "No user logged in",
-				"origin" => ".php getCurrentUser()",
-				"target" => "",
-				"class" => "",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'getCurrentUser()';
+					$this->message = 'no user logged in';
+					$this->target = 'notify';
+					$this->class = 'notifyError';
+				}
+			});
 
-			return $errorObject;
+			return $result;
 		}
 	}
 
@@ -482,7 +623,7 @@
 		if (is_numeric($id)) {
 			$db = openDB();
 			// check openDB success
-			if (getType($db) === 'object') {
+			if (!isset($db->objectType)) {
 				// search for playlist
 				$stmt = $db->prepare("
 					SELECT *
@@ -494,62 +635,60 @@
 				// check query success
 				if ($stmt->execute()) {
 					// check that playlist exists
-					$result = $stmt->get_result();
-					if ($result->num_rows === 1) {
-						while($row = $result->fetch_assoc()) {
+					$stmtResult = $stmt->get_result();
+					if ($stmtResult->num_rows === 1) {
+						while($row = $stmtResult->fetch_assoc()) {
 							// !!! does not return password or email
-							$userObject = array(
-								"objectType" => "user",
-								"id" => $row['userId'],
-								"name" => $row['userName'],
-							);
+							$result = new SjUser(new class {
+								function __construct() {
+									$this->id = $row['userId'];
+									$this->name = $row['userName'];
+								}
+							});
 						}
 	
-						close($stmt, $result, $db);
-						return $userObject;
+						close($stmt, $stmtResult, $db);
+						return $result;
 					} else {
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "403",
-							"type" => "forbidden",
-							"message" => "User does not exist",
-							"origin" => ".php getUser()",
-							"target" => "",
-							"class" => "",
-						);
-			
-						close($stmt, $result, $db);
-						return $errorObject;
+						$result = new SjError(new class {
+							function __construct() {
+								$this->origin = 'getUser()';
+								$this->message = 'user does not exist';
+								$this->target = 'notify';
+								$this->class = 'notifyError';
+							}
+						});
+		
+						close($stmt, $stmtResult, $db);
+						return $result;
 					}
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "",
-						"type" => "sql failure",
-						"message" =>  $stmt->error,
-						"origin" => ".php getUser()",
-						"target" => "",
-						"class" => "",
-					);
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'getUser()';
+							$this->message = 'could not retrieve user information';
+							$this->target = 'notify';
+							$this->class = 'notifyError';
+						}
+					});
 	
-					close($stmt, $result, $db);
-					return $errorObject;	
+					close($stmt, $stmtResult, $db);
+					return $result;
 				}
 			} else {
 				return $db;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" =>  "User ID must be a number",
-				"origin" => ".php getUser()",
-				"target" => "",
-				"class" => "",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'getUser()';
+					$this->message = 'user id is invalid';
+					$this->target = 'notify';
+					$this->class = 'notifyError';
+				}
+			});
 
-			return $errorObject;
+			return $result;
 		}	
 	}
 
@@ -562,119 +701,110 @@
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 //                                                               
 
-	// addPlaylist validation
-	function validateTitle(&$title, &$errorObjectArray) {
+	// validation
+	function validateTitle(&$title, &$errorList) {
 		$title = trim($title);
 
 		if (!empty($title)) {
 			if($GLOBALS['nameMinLength'] <= strlen($title) && strlen($title) <= $GLOBALS['stringMaxLength']) {
 				return true;
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "400",
-					"type" => "invalid",
-					"message" => "Title must be between " . $GLOBALS['nameMinLength'] . " and " . $GLOBALS['stringMaxLength'] . " characters" ,
-					"origin" => ".php validateTitle()",
-					"target" => "playlistTitle",
-					"class" => "inputError",
-				);
-
-				array_push($errorObjectArray, $errorObject);
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'validateTitle()';
+						$this->message = 'title must be between ' . $GLOBALS['nameMinLength'] . ' and ' . $GLOBALS['stringMaxLength'] . ' characters';
+						$this->target = 'playlistTitle';
+						$this->class = 'inputError';
+					}
+				});
+	
+				array_push($errorList->content, $result);
 				return false;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" => "Title is empty",
-				"origin" => ".php validateTitle()",
-				"target" => "playlistTitle",
-				"class" => "inputError",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'validateTitle()';
+					$this->message = 'title cannot be empty';
+					$this->target = 'playlistTitle';
+					$this->class = 'inputError';
+				}
+			});
 
-			array_push($errorObjectArray, $errorObject);
+			array_push($errorList->content, $result);
 			return false;
 		}
 	}
 
-	function validateVisibility(&$visibility, &$errorObjectArray) {
+	function validateVisibility(&$visibility, &$errorList) {
 		if (!empty($visibility)) {
 			if (in_array($visibility, $GLOBALS['visibilityStates'])) {
 				return true;
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "400",
-					"type" => "invalid",
-					"message" => "Invalid visibility selected",
-					"origin" => ".php validateVisibility()",
-					"target" => "playlistVisibility",
-					"class" => "inputError",
-				);
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'validateVisibility()';
+						$this->message = 'visibility is not valid';
+						$this->target = 'playlistVisibility';
+						$this->class = 'inputError';
+					}
+				});
 	
-				array_push($errorObjectArray, $errorObject);
+				array_push($errorList->content, $result);
 				return false;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" => "Visibility is not selected",
-				"origin" => ".php validateVisibility()",
-				"target" => "playlistVisibility",
-				"class" => "inputError",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'validateVisibility()';
+					$this->message = 'must select a visibility';
+					$this->target = 'playlistVisibility';
+					$this->class = 'inputError';
+				}
+			});
 
-			array_push($errorObjectArray, $errorObject);
+			array_push($errorList->content, $result);
 			return false;
 		}
 	}
 
-	function validateDescription(&$description, &$errorObjectArray) {
+	function validateDescription(&$description, &$errorList) {
 		$description = trim($description);
 
 		if(strlen($description) <= $GLOBALS['bigStringMaxLength']) {
 			return true;
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" => "Description must be shorter than " . $GLOBALS['bigStringMaxLength'] . " characters",
-				"origin" => ".php validateDescription()",
-				"target" => "playlistDescription",
-				"class" => "inputError",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'validateDescription()';
+					$this->message = 'Description must be shorter than ' . $GLOBALS['bigStringMaxLength'];
+					$this->target = 'playlistDescription';
+					$this->class = 'inputError';
+				}
+			});
 
-			array_push($errorObjectArray, $errorObject);
+			array_push($errorList->content, $result);
 			return false;
 		}
-
 	}
 
-	function validateColor(&$color, &$errorObjectArray) {
+	function validateColor(&$color, &$errorList) {
 		$color = trim($color);
 
 		if (!empty($color)) {
-			#([a-f0-9]{3}){1,2}\b
-			
 			if(preg_match("/#([a-f0-9]{3}){1,2}\b/", $color) === 1) {
 				return true;
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "400",
-					"type" => "invalid",
-					"message" => "Color must be in hex format: #xxxxxx",
-					"origin" => ".php validateColor()",
-					"target" => "playlistColor",
-					"class" => "inputError",
-				);
-
-				array_push($errorObjectArray, $errorObject);
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'validateColor()';
+						$this->message = 'color must be hex format: #xxxxxx';
+						$this->target = 'playlistColor';
+						$this->class = 'inputError';
+					}
+				});
+	
+				array_push($errorList->content, $result);
 				return false;
 			}
 		} else {
@@ -683,43 +813,42 @@
 		}
 	}
 
-	function validateImage(&$image, &$errorObjectArray) {
+	function validateImage(&$image, &$errorList) {
 		$image = trim($image);
 
 		if(strlen($image) <= $GLOBALS['bigStringMaxLength']) {
 			return true;
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" => "Image link must be shorter than " . $GLOBALS['bigStringMaxLength'] . " characters",
-				"origin" => ".php validateImage()",
-				"target" => "playlistImage",
-				"class" => "inputError",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'validateImage()';
+					$this->message = 'image link must be shorter than ' . $GLOBALS['bigStringMaxLength'] . ' characters';
+					$this->target = 'playlistImage';
+					$this->class = 'inputError';
+				}
+			});
 
-			array_push($errorObjectArray, $errorObject);
+			array_push($errorList->content, $result);
 			return false;
 		}
 	}
 	
-	// addPlaylist
+	// playlist
 	function addPlaylist($title, $visibility, $description, $color, $image) {
 		// check if user is logged in
 		if (isset($_SESSION['userId'])) {
-			$errorObjectArray = [];
+			$errorList = new SjErrorList(new class{});
 
-			validateTitle($title, $errorObjectArray);
-			validateVisibility($visibility, $errorObjectArray);
-			validateDescription($description, $errorObjectArray);
-			validateColor($color, $errorObjectArray);
-			validateImage($image, $errorObjectArray);
+			validateTitle($title, $errorList);
+			validateVisibility($visibility, $errorList);
+			validateDescription($description, $errorList);
+			validateColor($color, $errorList);
+			validateImage($image, $errorList);
 
-			if (empty($errorObjectArray)) {
+			if (empty($errorList->content)) {
 				$db = openDB();
 				// check openDB success
-				if (getType($db) === 'object') {
+				if (!isset($db->objectType)) {
 					// prep query
 					$stmt = $db->prepare("
 						SELECT userId, title
@@ -730,10 +859,10 @@
 			
 					// check query success
 					if ($stmt->execute()) {
-						$result = $stmt->get_result();
+						$stmtResult = $stmt->get_result();
 						
 						// check for existing playlist
-						if ($result->num_rows == 0) {
+						if ($stmtResult->num_rows == 0) {
 							// prep insert
 							$stmt = $db->prepare("
 							INSERT INTO playlists (userId, title, visibility, description, color, image)
@@ -742,79 +871,73 @@
 							$stmt->bind_param('isssss', $_SESSION['userId'], $title, $visibility, $description, $color, $image);
 
 							if ($stmt->execute()) {
-								$successObject = array(
-									"objectType" => "success",
-									"code" => "200",
-									"type" => "finished",
-									"message" => "Playlist added",
-									"origin" => ".php addPlaylist()",
-									"target" => "",
-									"class" => "",
-									"content" => $title,
-								);
-
-								close($stmt, $result, $db);
-								return $successObject;
+								$result = new SjSuccess(new class {
+									function __construct() {
+										$this->origin = 'addPlaylist()';
+										$this->message = 'playlist added';
+										$this->target = 'notify';
+										$this->class = 'notifySuccess';
+									}
+								});
+						
+								close($stmt, $stmtResult, $db);
+								return $result;
 							} else {
-								$errorObject = array(
-									"objectType" => "error",
-									"code" => "",
-									"type" => "sql failure",
-									"message" => $stmt->error,
-									"origin" => ".php addPlaylist()",
-									"target" => "",
-									"class" => "",
-								);
-
-								close($stmt, $result, $db);
-								return $errorObject;
+								$result = new SjError(new class {
+									function __construct() {
+										$this->origin = 'addPlaylist()';
+										$this->message = 'could not add playlist';
+										$this->target = 'notify';
+										$this->class = 'notifyError';
+									}
+								});
+				
+								close($stmt, $stmtResult, $db);
+								return $result;
 							}
 						} else {
-							$errorObject = array(
-								"objectType" => "error",
-								"code" => "403",
-								"type" => "forbidden",
-								"message" => "Playlist already exists",
-								"origin" => ".php addPlaylist()",
-								"target" => "playlistTitle",
-								"class" => "inputError",
-							);
-				
-							close($stmt, $result, $db);
-							return $errorObject;
+							$result = new SjError(new class {
+								function __construct() {
+									$this->origin = 'addPlaylist()';
+									$this->message = 'playlist already exists';
+									$this->target = 'playlistTitle';
+									$this->class = 'inputError';
+								}
+							});
+			
+							close($stmt, $stmtResult, $db);
+							return $result;
 						}
 					} else {
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "",
-							"type" => "sql failure",
-							"message" =>  $stmt->error,
-							"origin" => ".php addPlaylist()",
-							"target" => "",
-							"class" => "",
-						);
+						$result = new SjError(new class {
+							function __construct() {
+								$this->origin = 'addPlaylist()';
+								$this->message = 'could not add playlist';
+								$this->target = 'notify';
+								$this->class = 'notifyError';
+							}
+						});
 		
-						close($stmt, $result, $db);
-						return $errorObject;	
+						close($stmt, $stmtResult, $db);
+						return $result;
 					}
 				} else {
 					return $db;
 				}
 			} else {
-				return $errorObjectArray;
+				return $errorList;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "403",
-				"type" => "forbidden",
-				"message" => "No user logged in",
-				"origin" => "addPlaylist()",
-				"target" => "",
-				"class" => "",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'addPlaylist()';
+					$this->message = 'you must be logged in';
+					$this->target = 'notify';
+					$this->class = 'notifyError';
+				}
+			});
 
-			return $errorObject;
+			return $result;
 		}
 	}
 
@@ -823,7 +946,7 @@
 		if (isset($_SESSION['userId'])) {
 			$db = openDB();
 			// check openDB success
-			if (getType($db) === 'object') {
+			if (!isset($db->objectType)) {
 				// search for playlist
 				$stmt = $db->prepare("
 					SELECT playlistId
@@ -834,10 +957,10 @@
 		
 				// check query success
 				if ($stmt->execute()) {
-					$result = $stmt->get_result();
+					$stmtResult = $stmt->get_result();
 						
 					// check that playlist exists
-					if ($result->num_rows === 1) {
+					if ($stmtResult->num_rows === 1) {
 						// delete playlist
 						$stmt = $db->prepare("
 							DELETE FROM playlists
@@ -847,76 +970,71 @@
 				
 						// check query success
 						if ($stmt->execute()) {
-							$successObject = array(
-								"objectType" => "success",
-								"code" => "200",
-								"type" => "finished",
-								"message" => "Playlist deleted",
-								"origin" => ".php deletedPlaylist()",
-								"target" => "",
-								"class" => "",
-								"content" => "",
-							);
-
-							close($stmt, $result, $db);
-							return $successObject;
+							$result = new SjSuccess(new class {
+								function __construct() {
+									$this->origin = 'deletePlaylist()';
+									$this->message = 'playlist deleted';
+									$this->target = 'notify';
+									$this->class = 'notifySuccess';
+								}
+							});
+					
+							close($stmt, $stmtResult, $db);
+							return $result;
 						} else {
-							$errorObject = array(
-								"objectType" => "error",
-								"code" => "",
-								"type" => "sql failure",
-								"message" =>  $stmt->error,
-								"origin" => ".php deletePlaylist()",
-								"target" => "",
-								"class" => "",
-							);
-			
-							close($stmt, $result, $db);
-							return $errorObject;	
+							$result = new SjError(new class {
+								function __construct() {
+									$this->origin = 'deletePlaylist()';
+									$this->message = 'could not delete playlist';
+									$this->target = 'notify';
+									$this->class = 'notifyError';
+								}
+							});
+				
+							close($stmt, $stmtResult, $db);
+							return $result;
 						}
 					} else {
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "403",
-							"type" => "forbidden",
-							"message" => "Playlist does not exist",
-							"origin" => ".php deletePlaylist()",
-							"target" => "",
-							"class" => "",
-						);
+						$result = new SjError(new class {
+							function __construct() {
+								$this->origin = 'deletePlaylist()';
+								$this->message = 'playlist does not exist';
+								$this->target = 'notify';
+								$this->class = 'notifyError';
+							}
+						});
 			
-						close($stmt, $result, $db);
-						return $errorObject;
+						close($stmt, $stmtResult, $db);
+						return $result;
 					}
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "",
-						"type" => "sql failure",
-						"message" =>  $stmt->error,
-						"origin" => ".php addPlaylist()",
-						"target" => "",
-						"class" => "",
-					);
-
-					close($stmt, $result, $db);
-					return $errorObject;	
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'deletePlaylist()';
+							$this->message = 'could not delete playlist';
+							$this->target = 'notify';
+							$this->class = 'notifyError';
+						}
+					});
+		
+					close($stmt, $stmtResult, $db);
+					return $result;
 				}
 			} else {
 				return $db;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "403",
-				"type" => "forbidden",
-				"message" => "No user logged in",
-				"origin" => ".php deletePlaylist()",
-				"target" => "",
-				"class" => "",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'deletePlaylist()';
+					$this->message = 'you are not logged in';
+					$this->target = 'notify';
+					$this->class = 'notifyError';
+				}
+			});
 
-			return $errorObject;
+			close($stmt, $stmtResult, $db);
+			return $result;
 		}
 	}
 
@@ -925,7 +1043,7 @@
 		if (is_numeric($id)) {
 			$db = openDB();
 			// check openDB success
-			if (getType($db) === 'object') {
+			if (!isset($db->objectType)) {
 				// search for playlist
 				$stmt = $db->prepare("
 					SELECT *
@@ -937,25 +1055,25 @@
 				// check query success
 				if ($stmt->execute()) {
 					// check if exists
-					$result = $stmt->get_result();
-					if ($result->num_rows === 1) {
+					$stmtResult = $stmt->get_result();
+					if ($stmtResult->num_rows === 1) {
 						// fetch data
-						while($row = $result->fetch_assoc()) {
-							$playlistObject = array(
-								"objectType" => "playlist",
-								"id" => $row['playlistId'],
-								"userId" => $row['userId'],
-								"title" => $row['title'],
-								"visibility" => $row['visibility'],
-								"description" => $row['description'],
-								"color" => $row['color'],
-								"image" => $row['image'],
-								"tracks" => [],
-							);
+						while($row = $stmtResult->fetch_assoc()) {
+							$playlist = new SjPlaylist(new class {
+								function __construct() {
+									$this->id => $row['playlistId'];
+									$this->userId => $row['userId'];
+									$this->title => $row['title'];
+									$this->visibility => $row['visibility'];
+									$this->description => $row['description'];
+									$this->color => $row['color'];
+									$this->image => $row['image'];
+								}
+							});
 						}
 
 						// check valid permissions, public, linkOnly, or private and same user
-						if ($playlistObject['visibility'] === 'public' || $playlistObject['visibility'] === 'linkOnly' || ($playlistObject['visibility'] === 'private' && $playlistObject['userId'] === $_SESSION['userId'])) {
+						if ($playlist['visibility'] === 'public' || $playlist['visibility'] === 'linkOnly' || ($playlist['visibility'] === 'private' && $playlist['userId'] === $_SESSION['userId'])) {
 							// retrieve tracks
 							$stmt = $db->prepare("
 								SELECT *
@@ -967,103 +1085,93 @@
 					
 							// check query success
 							if ($stmt->execute()) {
-								$result = $stmt->get_result();
+								$stmtResult = $stmt->get_result();
 
 								// fetch data
-								$trackList = [];
-								while($row = $result->fetch_assoc()) {
-									array_push($trackList, [
-										"objectType" => "track",
-
-										"playlistId" => $row['playlistId'],
-										"position" => $row['position'],
-										"source" => $row['source'],
-										"id" => $row['trackId'],
-										"title" => $row['title'],
-										"artists" => explode('|||', $row['artists']),
-										"duration" => $row['duration'],
-									]);
+								while($row = $stmtResult->fetch_assoc()) {
+									array_push($playlist->content, new SjTrack(new class {
+										$this->playlistId = $row['playlistId'];
+										$this->position = $row['position'];
+										$this->source = $row['source'];
+										$this->id = $row['trackId'];
+										$this->title = $row['title'];
+										$this->artists = explode('|||', $row['artists']);
+										$this->duration = $row['duration'];
+									}));
 								}
 
-								$playlistObject['tracks'] = $trackList;
-
-								close($stmt, $result, $db);
-								return $playlistObject;
+								close($stmt, $stmtResult, $db);
+								return $playlist;
 							} else {
-								$errorObject = array(
-									"objectType" => "error",
-									"code" => "",
-									"type" => "sql failure",
-									"message" =>  $stmt->error,
-									"origin" => ".php getPlaylist()",
-									"target" => "",
-									"class" => "",
-								);
-				
-								close($stmt, $result, $db);
-								return $errorObject;	
+								$result = new SjError(new class {
+									function __construct() {
+										$this->origin = 'getPlaylist()';
+										$this->message = 'could not retrieve playlist';
+										$this->target = 'notify';
+										$this->class = 'notifyError';
+									}
+								});
+					
+								close($stmt, $stmtResult, $db);
+								return $result;
 							}
 						} else {
-							$errorObject = array(
-								"objectType" => "error",
-								"code" => "403",
-								"type" => "forbidden",
-								"message" => "You don not permission to view this playlist",
-								"origin" => ".php getPlaylist()",
-								"target" => "",
-								"class" => "",
-							);
+							$result = new SjError(new class {
+								function __construct() {
+									$this->origin = 'getPlaylist()';
+									$this->message = 'you do not have permission to view this playlist';
+									$this->target = 'notify';
+									$this->class = 'notifyError';
+								}
+							});
 				
-							close($stmt, $result, $db);
-							return $errorObject;
+							close($stmt, $stmtResult, $db);
+							return $result;
 						}
 					} else {
-						$errorObject = array(
-							"objectType" => "error",
-							"code" => "403",
-							"type" => "forbidden",
-							"message" => "Playlist does not exist",
-							"origin" => ".php getPlaylist()",
-							"target" => "",
-							"class" => "",
-						);
+						$result = new SjError(new class {
+							function __construct() {
+								$this->origin = 'getPlaylist()';
+								$this->message = 'playlist does not exist';
+								$this->target = 'notify';
+								$this->class = 'notifyError';
+							}
+						});
 			
-						close($stmt, $result, $db);
-						return $errorObject;
+						close($stmt, $stmtResult, $db);
+						return $result;
 					}
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "",
-						"type" => "sql failure",
-						"message" =>  $stmt->error,
-						"origin" => ".php getPlaylist()",
-						"target" => "",
-						"class" => "",
-					);
-	
-					close($stmt, $result, $db);
-					return $errorObject;	
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'getPlaylist()';
+							$this->message = 'could not retrieve playlist';
+							$this->target = 'notify';
+							$this->class = 'notifyError';
+						}
+					});
+		
+					close($stmt, $stmtResult, $db);
+					return $result;
 				}
 			} else {
 				return $db;
 			}
 		} else {
-			$errorObject = array(
-				"objectType" => "error",
-				"code" => "400",
-				"type" => "invalid",
-				"message" =>  "Playlist ID must be a number",
-				"origin" => ".php getPlaylist()",
-				"target" => "",
-				"class" => "",
-			);
+			$result = new SjError(new class {
+				function __construct() {
+					$this->origin = 'getPlaylist()';
+					$this->message = 'playlist id is invalid';
+					$this->target = 'notify';
+					$this->class = 'notifyError';
+				}
+			});
 
-			return $errorObject;
+			close($stmt, $stmtResult, $db);
+			return $result;
 		}	
 	}
 
-	// returns an error object, or an array of success and error objects
 	function orderPlaylist($id) {
 		$playlist = getPlaylist($id);
 
@@ -1113,50 +1221,47 @@
 			}
 
 			// apply
-			$errorList = [];
+			$errorList = new SjErrorList(new class {
+				function __construct() {
+					$this->origin = 'orderPlaylist()';
+					$this->message = 'could not order playlist';
+					$this->target = 'notify';
+					$this->class = 'notifyError';
+					$this->content = [];
+				}
+			});
 
 			// because two positions cant be the same, sending the old positions to negative before applying the new ones can solve this, TODO there has to be a better way to to this though
 			for ($i = 0; $i < sizeof($oldPositionList); $i++) {
 				$result = setTrackPosition($id, $oldPositionList[$i], 'position', (-1 * $oldPositionList[$i]));
 
 				if ($result['objectType'] !== 'success') {
-					push_array($errorList, $result);
+					push_array($errorList->content, $result);
 				}				
 			}
 			for ($i = 0; $i < sizeof($oldPositionList); $i++) {
 				$result = setTrackPosition($id, (-1 * $oldPositionList[$i]), 'position', $newPositionList[$i]);
 
 				if ($result['objectType'] !== 'success') {
-					push_array($errorList, $result);
+					push_array($errorList->content, $result);
 				}				
 			}
 
-			if (sizeof($errorList) === 0) {
-				$successObject = array(
-					"objectType" => "success",
-					"code" => "200",
-					"type" => "finished",
-					"message" => "Playlist ordered",
-					"origin" => ".php orderPlaylist()",
-					"target" => "",
-					"class" => "",
-					"content" => "",
-				);
-
-				return $successObject;
+			if (sizeof($errorList->content) === 0) {
+				$result = new SjSuccess(new class {
+					function __construct() {
+						$this->origin = 'orderPlaylist()';
+						$this->message = 'playlist ordered';
+						$this->target = 'notify';
+						$this->class = 'notifySuccess';
+					}
+				});
+		
+				close($stmt, $stmtResult, $db);
+				return $result;
 			} else {
-				$errorObject = array(
-					"objectType" => "errorList",
-					"code" => "",
-					"type" => "",
-					"message" =>  "Some calls to setTrackPosition() returned an error",
-					"origin" => ".php orderPlaylist()",
-					"target" => "",
-					"class" => "",
-					"errors" => $errorList,
-				);
-	
-				return $errorOjbect;
+				close($stmt, $stmtResult, $db);
+				return $errorList;
 			}
 		}
 	}
@@ -1165,15 +1270,15 @@
 		// TODO add validation for track details
 		
 		// get playlist (or error)
-		$playlistObject = getPlaylist($playlistId);
-		if ($playlistObject['objectType'] === 'playlist') {
+		$playlist = getPlaylist($playlistId);
+		if ($playlist['objectType'] === 'playlist') {
 			$db = openDB();
 			// check openDB success
-			if (getType($db) === 'object') {
+			if (!isset($db->objectType)) {
 				// set position
-				$length = sizeof($playlistObject['tracks']);
+				$length = sizeof($playlist['tracks']);
 				// last track, position + 1;
-				$position = $playlistObject['tracks'][$length - 1]['position'] + 1;
+				$position = $playlist['tracks'][$length - 1]['position'] + 1;
 
 				// implode array, tripple pipe delimiter
 				// TODO 
@@ -1187,45 +1292,42 @@
 				$stmt->bind_param('iissssi', $playlistId, $position, $source, $id, $title, $artists, $duration);
 
 				if ($stmt->execute()) {
-					$successObject = array(
-						"objectType" => "success",
-						"code" => "200",
-						"type" => "finished",
-						"message" => "Track added",
-						"origin" => ".php addTrack()",
-						"target" => "",
-						"class" => "",
-						"content" => "",
-					);
-
-					close($stmt, $result, $db);
-					return $successObject;
+					$result = new SjSuccess(new class {
+						function __construct() {
+							$this->origin = 'addTrack()';
+							$this->message = 'track added';
+							$this->target = 'notify';
+							$this->class = 'notifySuccess';
+						}
+					});
+			
+					close($stmt, $stmtResult, $db);
+					return $result;
 				} else {
-					$errorObject = array(
-						"objectType" => "error",
-						"code" => "",
-						"type" => "sql failure",
-						"message" => $stmt->error,
-						"origin" => ".php addTrack()",
-						"target" => "",
-						"class" => "",
-					);
-
-					close($stmt, $result, $db);	
-					return $errorObject;
+					$result = new SjError(new class {
+						function __construct() {
+							$this->origin = 'addTrack()';
+							$this->message = 'could not add track';
+							$this->target = 'notify';
+							$this->class = 'notifyError';
+						}
+					});
+		
+					close($stmt, $stmtResult, $db);
+					return $result;
 				}
 			} else {
 				return $db;
 			}
 		} else {
-			return $playlistObject;
+			return $playlist;
 		}
 	}
 
 	function deleteTrack($playlistId, $position) {
 		$db = openDB();
 		// check openDB success
-		if (getType($db) === 'object') {
+		if (!isset($db->objectType)) {
 			// prep query
 			$stmt = $db->prepare("
 				DELETE FROM tracks
@@ -1235,44 +1337,39 @@
 
 			// check query success
 			if ($stmt->execute()) {
-				$successObject = array(
-					"objectType" => "success",
-					"code" => "200",
-					"type" => "finished",
-					"message" => "Track deleted",
-					"origin" => ".php deleteTrack()",
-					"target" => "",
-					"class" => "",
-					"content" => "",
-				);
-
-				close($stmt, $result, $db);
-				return $successObject;
-			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "",
-					"type" => "sql failure",
-					"message" =>  $stmt->error,
-					"origin" => ".php deleteTrack()",
-					"target" => "",
-					"class" => "",
-				);
-
-				close($stmt, $result, $db);
-				return $errorObject;	
+				$result = new SjSuccess(new class {
+					function __construct() {
+						$this->origin = 'deleteTrack()';
+						$this->message = 'track deleted';
+						$this->target = 'notify';
+						$this->class = 'notifySuccess';
+					}
+				});
+		
+				close($stmt, $stmtResult, $db);
+				return $result;
+			} else {		
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'deleteTrack()';
+						$this->message = 'could not delete track';
+						$this->target = 'notify';
+						$this->class = 'notifyError';
+					}
+				});
+	
+				close($stmt, $stmtResult, $db);
+				return $result;
 			}
 		} else {
 			return $db;
 		}
-
-
 	}
 
 	function setTrackPosition($playlistId, $position, $attribute, $value) {
 		$db = openDB();
 		// check openDB success
-		if (getType($db) === 'object') {
+		if (!isset($db->objectType)) {
 			// prep query
 			$stmt = $db->prepare("
 				UPDATE tracks
@@ -1283,41 +1380,32 @@
 
 			// check query success
 			if ($stmt->execute()) {
-				$successObject = array(
-					"objectType" => "success",
-					"code" => "200",
-					"type" => "finished",
-					"message" => "Track position changed",
-					"origin" => ".php setTrackPosition()",
-					"target" => "",
-					"class" => "",
-					"content" => "",
-				);
-
-				close($stmt, $result, $db);
-				return $successObject;
+				$result = new SjSuccess(new class {
+					function __construct() {
+						$this->origin = 'setTrackPosition()';
+						$this->message = 'track moved';
+						$this->target = 'notify';
+						$this->class = 'notifySuccess';
+					}
+				});
+		
+				close($stmt, $stmtResult, $db);
+				return $result;
 			} else {
-				$errorObject = array(
-					"objectType" => "error",
-					"code" => "",
-					"type" => "sql failure",
-					"message" =>  $stmt->error,
-					"origin" => ".php setTrackPosition()",
-					"target" => "",
-					"class" => "",
-				);
-
-				close($stmt, $result, $db);
-				return $errorObject;	
+				$result = new SjError(new class {
+					function __construct() {
+						$this->origin = 'setTrackPosition()';
+						$this->message = 'could not move track';
+						$this->target = 'notify';
+						$this->class = 'notifyError';
+					}
+				});
+	
+				close($stmt, $stmtResult, $db);
+				return $result;
 			}
 		} else {
 			return $db;
 		}
 	}
-
-	// function addTrack($id, , , , ) {
-
-	// }
-
-	// function deleteTrack($id)
 ?>

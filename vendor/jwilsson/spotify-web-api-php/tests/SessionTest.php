@@ -166,9 +166,9 @@ class SessionTest extends PHPUnit\Framework\TestCase
         );
 
         $session = new SpotifyWebAPI\Session($this->clientID, $this->clientSecret, $this->redirectURI, $stub);
-        $result = $session->requestAccessToken($authorizationCode);
+        $stmtResult = $session->requestAccessToken($authorizationCode);
 
-        $this->assertTrue($result);
+        $this->assertTrue($stmtResult);
         $this->assertNotEmpty($session->getAccessToken());
         $this->assertNotEmpty($session->getRefreshToken());
         $this->assertEquals(time() + 3600, $session->getTokenExpiration());
@@ -198,9 +198,9 @@ class SessionTest extends PHPUnit\Framework\TestCase
         );
 
         $session = new SpotifyWebAPI\Session($this->clientID, $this->clientSecret, $this->redirectURI, $stub);
-        $result = $session->requestCredentialsToken();
+        $stmtResult = $session->requestCredentialsToken();
 
-        $this->assertTrue($result);
+        $this->assertTrue($stmtResult);
         $this->assertNotEmpty($session->getAccessToken());
         $this->assertEquals(time() + 3600, $session->getTokenExpiration());
     }

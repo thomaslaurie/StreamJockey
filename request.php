@@ -38,7 +38,10 @@
 	}
 
 	// handle request types
-	if ($request === 'register') {
+	if ($request === 'test') {
+		$result = test();
+		echo json_encode($result);
+	} else if ($request === 'register') {
 		$result = register($email, $name, $password1, $password2);
 		// !!! errorObject array if validation error
 		echo json_encode($result);
@@ -68,33 +71,34 @@
 		echo json_encode($result);
 	} else if ($request === 'deleteTrack') {
 		$result = deleteTrack($playlistId, $position);
+		// TODO handle this
 		orderPlaylist($playlistId);
 		echo json_encode($result);
 	} else if ($request === 'orderPlaylist') {
 		$result = orderPlaylist($id);
 		echo json_encode($result);
 	} else if ($request === null) {
-		$errorObject = array(
-			"objectType" => "error",
-			"code" => "400",
-			"type" => "no content",
-			"message" => "No request was made",
-			"origin" => "request.php",
-			"target" => "",
-		);
+		$result = new SjError(new class {
+			function __construct() {
+				$this->origin = 'request.php';
+				$this->message = 'no request made';
+				$this->target = 'notify';
+				$this->class = 'notifySuccess';
+			}
+		});
 
-		echo json_encode($errorObject);
+		echo json_encode($result);
 	} else {
-		$errorObject = array(
-			"objectType" => "error",
-			"code" => "405",
-			"type" => "invalid",
-			"message" => "Request not supported",
-			"origin" => "request.php",
-			"target" => "",
-		);
+		$result = new SjSuccess(new class {
+			function __construct() {
+				$this->origin = 'request.php';
+				$this->message = 'request not supported';
+				$this->target = 'notify';
+				$this->class = 'notifySuccess';
+			}
+		});
 
-		echo json_encode($errorObject);
+		echo json_encode($result);
 	}
 
 	// finally
