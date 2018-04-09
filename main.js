@@ -872,28 +872,42 @@ function search(term) {
 		origin: 'search()',
 	});
 
-	var spotifyResult = spotifySearch(term);
-	var youtubeResult = youtubeSearch(term);
+	var complete = 0;
 
-	if (spotifyResult.objectType === 'SjError' || spotifyResult === 'SjErrorList') {
-		errorList.content.push(spotifyResult);
+	function complete() {
+		complete++;
+		if (errorList.content.length === 0) {
+			return new SjSuccess({
+				origin: 'search()',
+				message: 'search was successfull',
+			});
+		} else {
+			return errorList;
+		}
 	}
 
-	if (youtubeResult === 'SjError' || youtubeResult === 'SjErrorList') {
-		errorList.content.push(youtubeResult)
-	}
+	spotifySearch(term, function(result) {
+		var spotifyResult = (result);
 
-	if (errorList.content.length === 0) {
-		return new SjSuccess({
-			origin: 'search()',
-			message: 'search was successfull',
-		});
-	} else {
-		return errorList;
-	}
+		if (spotifyResult.objectType === 'SjError' || spotifyResult === 'SjErrorList') {
+			errorList.content.push(spotifyResult);
+		}
+
+		complete();
+	});
+
+	youtubeSearch(term, function(result) {
+		var youtubeResult = result;
+
+		if (youtubeResult === 'SjError' || youtubeResult === 'SjErrorList') {
+			errorList.content.push(youtubeResult)
+		}
+
+		complete();
+	});
 }
 
-function spotifySearch(term) {
+function spotifySearch(term, callback) {
 	var options = {
 		// max number of results to return, min 1, max 50, default 20
 		limit: searchResults.tracksPerSource,
@@ -911,36 +925,36 @@ function spotifySearch(term) {
 
 			spotifyGetTracks(response.tracks.items, function(response) {
 				if (response.objectType === 'SjPlaylist') {
-					searchResults.spotify = playlist;
+					searchResults.spotify = response;
 					refreshSearchResults();
 
-					return new SjSuccess({
+					callback(new SjSuccess({
 						origin: 'spotifySearch()',
 						message: 'spotify tracks retrieved',
-					});
+					}));
 				} else if (response.objectType === 'SjError') {
-					return new SjError({
+					callback(new SjError({
 						origin: 'spotifySearch()',
 						message: 'spotify tracks could not be retrieved',
-					});
+					}));
 				}
 			});
 		} else if (error) {
 			console.error('search() spotify failure');
 
-			return new SjError({
+			callback(new SjError({
 				code: JSON.parse(error.response).error.status,
 				origin: 'spotifySearch()',
 
 				message: 'spotify tracks could not be retrieved',
 				reason: JSON.parse(error.response).error.message,
 				content: error,
-			});
+			}));
 		}
 	});
 }
 
-function youtubeSearch(term) {
+function youtubeSearch(term, callback) {
 	var args = {
 		method: 'GET',
 		path: '/youtube/v3/search',
@@ -974,29 +988,29 @@ function youtubeSearch(term) {
 
 			youtubeGetTracks(idList, function(response) {
 				if (response.objectType === 'SjPlaylist') {
-					searchResults.youtube = playlist;
+					searchResults.youtube = response;
 					refreshSearchResults();
 
-					return new SjSuccess({
+					callback(new SjSuccess({
 						origin: 'youtubeSearch()',
 						message: 'youtube tracks retrieved',
-					});
+					}));
 				} else if (response.objectType === 'SjError') {
-					return new SjError({
+					callback(new SjError({
 						origin: 'youtubeSearch()',
 						message: 'youtube tracks could not be retrieved',
-					});
+					}));
 				}
 			});
 		} else {
 			console.error('search() youtube failure');
 			console.error(rejected);
 
-			return new SjError({
+			callback(new SjError({
 				origin: 'youtubeSearch()',
 				message: 'youtube tracks could not be retrieved',
 				reason: 'api request was rejected'
-			});
+			}));
 		}
 	});	
 }
