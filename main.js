@@ -6,6 +6,7 @@
 //     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝     ╚══════╝╚═╝╚══════╝   ╚═╝   
 //                                                                     
 
+// TODO break every part of the code, see if errors are handled properly
 // TODO go through and make error handlers for everything, including making callbacks all the way up function trees
 // TODO .on() should be bound to the closest non-dynamic element (cause its faster?)
 	// .on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
@@ -33,7 +34,7 @@ $("#test").click(function() {
 // primitives
 var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
 
-// objects
+// data objects
 function SjObject(obj) {
 	this.objectType = 'SjObject';
 
@@ -181,6 +182,26 @@ function SjUser(obj) {
 	// this.onCreate();
 }
 
+// function objects
+function AsyncList(obj) {
+	this.count = 0;
+	this.maxCount = typeof obj.maxCount === 'undefined' ? 0 : obj.maxCount;
+	this.success = typeof obj.success === 'undefined' ? new SjSuccess({}) : obj.success;
+	this.errorList = typeof obj.errorList === 'undefined' ? new SjErrorList({}) : obj.errorList;
+
+	this.complete = function () {	
+		if (this.count >= this.maxCount) {
+			if (this.errorList.content.length === 0) {
+				return this.success;
+			} else {
+				return this.errorList;
+			}
+		} else {
+			return false;
+		}
+	}
+}
+
 
 //  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
 //  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
@@ -246,7 +267,7 @@ function addElementError(elementError) {
 	// console.log('addElementError('+elementError.target+') called');
 
 	// if the error has a target
-	if (elementError.target !== "") {
+	if (elementError.target !== '') {
 		// delete old, push new
 		clearElementError(elementError);
 		elementErrorList.content.push(elementError);
@@ -869,49 +890,59 @@ var searchResults = {
 	'all': new SjPlaylist({}),
 }
 
-
-
 // search
 function search(term) {
-	var errorList = new SjErrorList({
-		origin: 'search()',
+	var asyncList = new AsyncList({
+		maxCount: 2,
+		success: new SjSuccess({
+				origin: 'search()',
+				message: 'search was successful',
+			}),
+		errorList: new SjErrorList({
+				origin: 'search()',
+			}),
 	});
-
-	var completeCount = 0;
-
-	function complete() {
-		completeCount++;
-		if (completeCount >= 2) {
-			if (errorList.content.length === 0) {
-				return new SjSuccess({
-					origin: 'search()',
-					message: 'search was successfull',
-				});
-			} else {
-				return errorList;
-			}
-		}
-	}
 
 	spotifySearch(term, function(result) {
 		var spotifyResult = (result);
 
 		if (spotifyResult.objectType === 'SjError' || spotifyResult === 'SjErrorList') {
-			errorList.content.push(spotifyResult);
+			asyncList.errorList.content.push(spotifyResult);
 		}
-
-		complete();
+		
+		// count finished
+		asyncList.count++;
+		// check if all are finished
+		if (asyncList.complete()) {
+			// send result
+			handleResult(asyncList.complete());
+		}
 	});
 
 	youtubeSearch(term, function(result) {
 		var youtubeResult = result;
 
 		if (youtubeResult === 'SjError' || youtubeResult === 'SjErrorList') {
-			errorList.content.push(youtubeResult)
+			asyncList.errorList.content.push(youtubeResult)
 		}
 
-		complete();
+		asyncList.count++;
+		if (asyncList.complete()) {
+			handleResult(asyncList.complete());
+		}
 	});
+
+	// handle, dont callback as this is an endpoint
+	// TODO maybe put this handler as part of the SjAsyncList?
+	function handleResult(result) {
+		if (result.objectType === 'SjSuccess') {
+			console.log('search() success');
+		} else if (result.objectType === 'SjErrorList') {
+			result.content.forEach(function (item) {
+				handleError(item);
+			});
+		}
+	}
 }
 
 function spotifySearch(term, callback) {
@@ -924,8 +955,7 @@ function spotifySearch(term, callback) {
 
 	spotifyApi.searchTracks(term, options, function(error, response) {
 		if (response) {
-			console.log('search() spotify success');
-			console.log(response);
+			console.log('spotifySearch() success');
 
 			// update searchResults
 			searchResults.term = term;
@@ -980,10 +1010,8 @@ function youtubeSearch(term, callback) {
 	};
 
 	gapi.client.request(args).then(function(fufilled, rejected) {
-		console.log('test');
 		if (fufilled) {
-			console.log('search() youtube success');
-			console.log(fufilled);
+			console.log('youtubeSearch() success');
 
 			// update searchResults
 			searchResults.term = term;
@@ -1064,7 +1092,6 @@ function youtubeGetTracks(ids, callback) {
 	gapi.client.request(args).then(function(fufilled, rejected) {
 		if (fufilled) {
 			console.log('youtubeGetTracks() success');
-			console.log(fufilled);
 
 			// array of track objects
 			var playlist = new SjPlaylist({});
@@ -1482,7 +1509,9 @@ $(document).on("click", "#connectPlayer", function() {
 $(document).on("click", "#search", function() {
 	console.log("#search clicked");
 
-	search($('#uri').val());
+	search($('#uri').val(), function(){
+		//do nothing
+	});
 });
 
 $(document).on("click", "#toggle", function() {
