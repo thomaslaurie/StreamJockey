@@ -209,7 +209,9 @@ function logError(error) {
 }
 
 // element errors
-var elementErrorList = new SjErrorList({});
+var elementErrorList = new SjErrorList({
+	origin: 'global variable elementErrorList',
+});
 
 function clearElementError(elementError) {
 	// console.log('clearElementError('+elementError.target+') called');
@@ -734,6 +736,7 @@ function initYoutubeDataApi() {
 			// Initialize the gapi.client object, which app uses to make API requests.
 			// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
 			gapi.client.init({
+					'apiKey': 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
 					'clientId': '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
 					'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
 					// at least one scope is needed, this is the bare minimum scope
@@ -866,23 +869,27 @@ var searchResults = {
 	'all': new SjPlaylist({}),
 }
 
+
+
 // search
 function search(term) {
 	var errorList = new SjErrorList({
 		origin: 'search()',
 	});
 
-	var complete = 0;
+	var completeCount = 0;
 
 	function complete() {
-		complete++;
-		if (errorList.content.length === 0) {
-			return new SjSuccess({
-				origin: 'search()',
-				message: 'search was successfull',
-			});
-		} else {
-			return errorList;
+		completeCount++;
+		if (completeCount >= 2) {
+			if (errorList.content.length === 0) {
+				return new SjSuccess({
+					origin: 'search()',
+					message: 'search was successfull',
+				});
+			} else {
+				return errorList;
+			}
 		}
 	}
 
@@ -973,6 +980,7 @@ function youtubeSearch(term, callback) {
 	};
 
 	gapi.client.request(args).then(function(fufilled, rejected) {
+		console.log('test');
 		if (fufilled) {
 			console.log('search() youtube success');
 			console.log(fufilled);
