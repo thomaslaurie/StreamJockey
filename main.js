@@ -15,7 +15,7 @@
 // TODO the property objectType may not be needed??? as there might be functions to access the name of the class already, but im not sure
 // TODO handle success messages on successful server commands
 
-// TODO search testing, playback and control conversion and testing
+// TODO playback and control conversion and testing
 
 // test
 $("#test").click(function() {
@@ -106,8 +106,8 @@ function SjErrorList(obj) {
 	this.reason = typeof obj.reason === 'undefined' ? 'One or more errors from multiple calls' : obj.reason;
 	this.content = typeof obj.content === 'undefined' ? [] : obj.content;
 
-	// announce
-	this.onCreate();
+	// announce, don't announce empty errorLists?
+	// this.onCreate();
 }
 
 function SjTrack(obj) {
@@ -1164,9 +1164,9 @@ function arrangeResults(type, selection) {
 			// loop through each source
 			selection.forEach(function(source) {
 				// if the source has a track at index i
-				if (searchResults[source][i]) {
+				if (searchResults[source].content[i]) {
 					// push it to arrangedResults
-					arrangedResults.content.push(searchResults[source][i]);
+					arrangedResults.content.push(searchResults[source].content[i]);
 				}
 			});
 
@@ -1174,7 +1174,7 @@ function arrangeResults(type, selection) {
 			// once/if arrangedResults is filled with the requested number of tracks, break
 			//if (arrangedResults.length =< number) { break; }
 		}
-
+		console.log(arrangedResults);
 		return arrangedResults;
 	}
 
