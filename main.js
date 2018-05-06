@@ -15,6 +15,7 @@
 // TODO the property objectType may not be needed??? as there might be functions to access the name of the class already, but im not sure
 // TODO handle success messages on successful server commands
 
+// TODO some playback/control errors probably to do with the checking
 // TODO playback and control conversion and testing
 
 // test
@@ -188,16 +189,34 @@ function AsyncList(obj) {
 	this.maxCount = typeof obj.maxCount === 'undefined' ? 0 : obj.maxCount;
 	this.success = typeof obj.success === 'undefined' ? new SjSuccess({}) : obj.success;
 	this.errorList = typeof obj.errorList === 'undefined' ? new SjErrorList({}) : obj.errorList;
+	this.endAll = typeof obj.endAll === 'undefined' ? function (result) {} : obj.endAll;
 
-	this.complete = function () {	
+	this.addIfError = function (obj) {
+		if (obj.objectType === 'SjError' || obj === 'SjErrorList') {
+			this.errorList.content.push(obj);
+		}
+	}
+
+	this.isComplete = function () {
 		if (this.count >= this.maxCount) {
-			if (this.errorList.content.length === 0) {
-				return this.success;
-			} else {
-				return this.errorList;
-			}
+			return true;
 		} else {
 			return false;
+		}
+	}
+
+	this.result = function () {
+		if (this.errorList.content.length === 0) {
+			return this.success;
+		} else {
+			return this.errorList;
+		}
+	}
+
+	this.endPart = function () {
+		this.count++;
+		if (this.isComplete) {
+			this.endAll(this.result);
 		}
 	}
 }
@@ -901,48 +920,27 @@ function search(term) {
 		errorList: new SjErrorList({
 				origin: 'search()',
 			}),
+		endAll: function (result) {
+			if (result.objectType === 'SjSuccess') {
+				console.log('search() success');
+			} else if (result.objectType === 'SjErrorList') {
+				result.content.forEach(function (item) {
+					handleError(item);
+				});
+			}
+		},
 	});
 
-	spotifySearch(term, function(result) {
-		var spotifyResult = (result);
 
-		if (spotifyResult.objectType === 'SjError' || spotifyResult === 'SjErrorList') {
-			asyncList.errorList.content.push(spotifyResult);
-		}
-		
-		// count finished
-		asyncList.count++;
-		// check if all are finished
-		if (asyncList.complete()) {
-			// send result
-			handleResult(asyncList.complete());
-		}
+	spotifySearch(term, function(result) {
+		asyncList.addIfError(result);
+		asyncList.endPart();
 	});
 
 	youtubeSearch(term, function(result) {
-		var youtubeResult = result;
-
-		if (youtubeResult === 'SjError' || youtubeResult === 'SjErrorList') {
-			asyncList.errorList.content.push(youtubeResult)
-		}
-
-		asyncList.count++;
-		if (asyncList.complete()) {
-			handleResult(asyncList.complete());
-		}
+		asyncList.addIfError(result);
+		asyncList.endPart();
 	});
-
-	// handle, dont callback as this is an endpoint
-	// TODO maybe put this handler as part of the SjAsyncList?
-	function handleResult(result) {
-		if (result.objectType === 'SjSuccess') {
-			console.log('search() success');
-		} else if (result.objectType === 'SjErrorList') {
-			result.content.forEach(function (item) {
-				handleError(item);
-			});
-		}
-	}
 }
 
 function spotifySearch(term, callback) {
@@ -1246,17 +1244,33 @@ var actualPlayback = {
 };
 
 function checkPlaybackState(callback) {
-	// async part counting
-	var finished = 0;
-	var parts = 2;
-	function completeParts() {
-		finished++;
-		if (finished >= parts) {
-			callback();
-		}
-	}
+	// TODO response is not passed in callback, deal with this
+	var asyncList = new AsyncList({
+		maxCount: 2,
+		success: new SjSuccess({
+				origin: 'checkPlaybackState()',
+				message: 'checkPlaybackState was successful',
+			}),
+		errorList: new SjErrorList({
+				origin: 'checkPlaybackState()',
+			}),
+		endAll: function (result) {
+			callback(result);
+		},
+	});
 
-	// spotify
+	spotifyCheck(function(result) {
+		asyncList.addIfError(result);
+		asyncList.endPart();
+	});
+
+	youtubeCheck(function(result) {
+		asyncList.addIfError(result);
+		asyncList.endPart();
+	});
+}
+
+function spotifyCheck(callback) {
 	spotifyApi.getMyCurrentPlaybackState({}, function(error, response) {
 		if (response) {
 			console.log('checkPlaybackState() spotify success');
@@ -1277,24 +1291,26 @@ function checkPlaybackState(callback) {
 			response.item.artists.forEach(function (artist, j) {
 				actualPlayback.spotify.track.artists[j] = artist.name;
 			});
-			completeParts();
+
+			callback(new SjSuccess({
+				origin: 'spotifyCheck()',
+				message: 'spotify playback state checked',
+			}));
 		} else if (error) {
-			//console.error('checkPlaybackState() spotify failure');
-
-			completeParts();
-
-			return new SjError({
+			callback(new SjError({
 				code: JSON.parse(error.response).error.status,
-				origin: 'youtubeSearch()',
+				origin: 'spotifyCheck()',
 
-				message: 'spotify tracks could not be retrieved',
+				message: 'failed to check spotify playback state',
 				reason: JSON.parse(error.response).error.message,
 				content: error,
-			});
+			}));
 		}
 	});
 
-	// youtube
+}
+
+function youtubeCheck(callback) {
 	var state = youtubePlayer.getPlayerState();
 	if (state == 1 || state == 3) {
 		// playing or buffering
@@ -1305,6 +1321,7 @@ function checkPlaybackState(callback) {
 	
 	actualPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
 
+	// convert youtube video url to id
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
 	var id = youtubePlayer.getVideoUrl().split("v=")[1];
 	if (!id) { id = ''; }
@@ -1312,17 +1329,33 @@ function checkPlaybackState(callback) {
 	if (andPosition != -1) { id = id.substring(0, andPosition); }
 	console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
 
-	youtubeGetTracks([id], function(trackList) {
+	youtubeGetTracks([id], function(result) {
 		console.log('checkPlaybackState() youtube success');
-		if (trackList.length !== 0) {
-			actualPlayback.youtube.track = trackList[0];
-		}
-		completeParts();
+		if (result.objectType === 'SjPlaylist') {
+			if (result.length === 1) {
+				actualPlayback.youtube.track = result[0];
+
+				callback(new SjSuccess({
+					origin: 'youtubeCheck()',
+					message: 'youtube playback state checked',
+				}));
+			} else {
+				callback(new SjError({
+					code: '404',
+					origin: 'youtubeCheck()',
+					message: 'track not found',
+				}));
+			}
+		} else if (result.objectType === 'SjError' || result.objectType ==='SjErrorList') {
+			callback(result);
+		}	
 	});
 }
 
 function updatePlaybackState() {
-	checkPlaybackState(function() {
+	checkPlaybackState(function(result) {
+		// TODO what if some of the checks fail?, need to handle this when the result is an SjErrorList
+
 		// no progress comparison made here
 		if (!desiredPlayback.playing) {
 			if (actualPlayback.spotify.playing) { pause('spotify'); }
