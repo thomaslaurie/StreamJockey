@@ -18,6 +18,7 @@
 // TODO some playback/control errors probably to do with the checking
 // TODO playback and control conversion and testing
 
+
 // test
 $("#test").click(function() {
 	getCurrentUser();
@@ -32,12 +33,18 @@ $("#test").click(function() {
 //   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 //                                                    
 
-// primitives
+// constants
+var SOURCE_LIST = [
+	'spotify',
+	'youtube',
+];
+
 var YOUTUBE_ID_PREFIX = 'https://www.youtube.com/watch?v=';
 
 // data objects
 function SjObject(obj) {
 	this.objectType = 'SjObject';
+	this.announce = typeof obj.announce === 'undefined' ? true : obj.announce;
 
 	// what
 	this.code = typeof obj.code === 'undefined' ? '' : obj.code;
@@ -55,7 +62,14 @@ function SjObject(obj) {
 	this.class = typeof obj.class === 'undefined' ? '' : obj.class;
 
 	this.onCreate = function () {
-		console.log(this.origin + ' returned ' + this.objectType + ', ' + this.reason);
+		if (this.announce === true) {
+			var string = '\norigin:\n   ' +this.origin +'\nobjectType:\n   ' +this.objectType +'\nreason:\n   ' +this.reason;
+			if (isError(this)) {
+				console.error(string);
+			} else {
+				console.log(string);
+			}
+		}
 	}
 
 	// all child objects should call SjObject.call(this, obj);, this is like calling the super constructor
@@ -73,8 +87,8 @@ function SjSuccess(obj) {
 	this.code = typeof obj.code === 'undefined' ? '200' : obj.code;
 	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
 
-	// announce, don't announce successes
-	// this.onCreate();
+	// announce
+	this.onCreate();
 }
 
 function SjError(obj) {
@@ -107,8 +121,8 @@ function SjErrorList(obj) {
 	this.reason = typeof obj.reason === 'undefined' ? 'One or more errors from multiple calls' : obj.reason;
 	this.content = typeof obj.content === 'undefined' ? [] : obj.content;
 
-	// announce, don't announce empty errorLists?
-	// this.onCreate();
+	// announce
+	this.onCreate();
 }
 
 function SjTrack(obj) {
@@ -132,8 +146,8 @@ function SjTrack(obj) {
 	this.duration = typeof obj.duration === 'undefined' ? '' : obj.duration;
 	this.link = typeof obj.link === 'undefined' ? '' : obj.link;
 
-	// announce, don't announce successes
-	// this.onCreate();
+	// announce
+	this.onCreate();
 }
 
 function SjPlaylist(obj) {
@@ -159,8 +173,8 @@ function SjPlaylist(obj) {
 	this.color = typeof obj.color === 'undefined' ? '' : obj.color;
 	this.image = typeof obj.image === 'undefined' ? '' : obj.image;
 
-	// announce, don't announce successes
-	// this.onCreate();
+	// announce
+	this.onCreate();
 }
 
 function SjUser(obj) {
@@ -179,26 +193,30 @@ function SjUser(obj) {
 	this.name = typeof obj.name === 'undefined' ? '' : obj.name;
 	this.email = typeof obj.email === 'undefined' ? '' : obj.email;
 
-	// announce, don't announce successes
-	// this.onCreate();
+	// announce
+	this.onCreate();
 }
 
 // function objects
 function AsyncList(obj) {
+	// counts completed async functions, when all are finished callsback a function that passes the result which is either a SjSuccess object (if all succeeded) or an SjErrorList object (if some failed)
+	// TODO add timeout?
+	// TODO when SjSuccess and SjErrorList objects are created, they are placeholders, we dont want to annouce them yet, so when creating any AsyncList object, both need properties of announce: false, there must be a better way to do this automatically -> maybe by not passing the specific object but by passsing a basic object that just contains the properties that then gets converted inside here???
+
 	this.count = 0;
-	this.maxCount = typeof obj.maxCount === 'undefined' ? 0 : obj.maxCount;
-	this.success = typeof obj.success === 'undefined' ? new SjSuccess({}) : obj.success;
-	this.errorList = typeof obj.errorList === 'undefined' ? new SjErrorList({}) : obj.errorList;
-	this.endAll = typeof obj.endAll === 'undefined' ? function (result) {} : obj.endAll;
+	this.totalCount = typeof obj.totalCount === 'undefined' ? 0 : obj.totalCount;
+	this.success = typeof obj.success === 'undefined' ? new SjSuccess({announce: false,}) : obj.success;
+	this.errorList = typeof obj.errorList === 'undefined' ? new SjErrorList({announce: false,}) : obj.errorList;
+	this.callback = typeof obj.callback === 'undefined' ? function (result) {} : obj.callback;
 
 	this.addIfError = function (obj) {
-		if (obj.objectType === 'SjError' || obj === 'SjErrorList') {
+		if (isError(obj)) {
 			this.errorList.content.push(obj);
 		}
 	}
 
 	this.isComplete = function () {
-		if (this.count >= this.maxCount) {
+		if (this.count >= this.totalCount) {
 			return true;
 		} else {
 			return false;
@@ -207,8 +225,10 @@ function AsyncList(obj) {
 
 	this.result = function () {
 		if (this.errorList.content.length === 0) {
+			this.success.onCreate();
 			return this.success;
 		} else {
+			this.errorList.onCreate();
 			return this.errorList;
 		}
 	}
@@ -216,7 +236,7 @@ function AsyncList(obj) {
 	this.endPart = function () {
 		this.count++;
 		if (this.isComplete) {
-			this.endAll(this.result);
+			this.callback(this.result);
 		}
 	}
 }
@@ -230,26 +250,65 @@ function AsyncList(obj) {
 //  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
 //                                           
 
+// top level error handling, only call after error has propegated to a top level function
 function handleError(error) {
-	console.error(error);
-	addElementError(error);
+	if (typeof error.objectType === undefined || error.objectType.indexOf('Sj') !== 0) {
+		console.error('handleError() was passed a non Sj object');
+	} else if (error.objectType === 'SjError') {
+		console.error(error);
+		addElementError(error);
+	} else if (error.objectType === 'SjErrorList') {
+		error.content.forEach(function (item) {
+			console.error(error);
+			addElementError(error);
+		});
+	} else {
+		console.error('handleError() was passed a non-error Sj object');
+	}
 }
 
-// TODO implement api erros into new error format and handleError()
-function logError(error) {
-	// TODO update this method to handle errors from different sources
-	var response = JSON.parse(error.response);
+function propagateError(obj) {
+	// wrapper code for repeated error handling where: one or many SjObject responses are expected, SjErrors are propagated, and anything else needs to be caught and transformed into a proper SjError
+	if (isError(obj)) {
+		return obj;
+	} else {
+		catchUnexpected(obj);
+	}
+}
 
-	var status = response.error.status;
-	var message = response.error.message;
+function catchUnexpected(obj) {
+	// catches all objects that havent been caught yet, triggers an error message, and transforms them into a proper SjError object
+	var reason = '';
 
-	console.error('Status: ' + status);
-	console.error('Message: ' + message);
-	console.error(error);
+	if (typeof obj === undefined) {
+		reason = 'object is undefined';
+	} else if (typeof obj === null) {
+		reason = 'object is null';
+	} else if (typeof obj.objectType === undefined || obj.objectType.indexOf('Sj') !== 0) {
+		reason = 'object is not an Sj object'
+	} else {
+		reason = 'object is of unexpected objectType: ' + obj.objectType;
+	}
+
+	return new SjError({
+		message: 'function received unexpected response',
+		reason: reason,
+		content: obj,
+	});
+}
+
+function isError(obj) {
+	// checks for proper SjObject error types
+	if (obj.objectType === 'SjError' || obj.objectType === 'SjErrorList') {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 // element errors
 var elementErrorList = new SjErrorList({
+	announce: false,
 	origin: 'global variable elementErrorList',
 });
 
@@ -429,13 +488,8 @@ function register(name, password1, password2, email,) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			// validation errors
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -464,12 +518,8 @@ function login(name, password) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -489,12 +539,8 @@ function logout() {
 
 			$("#statusUser")
 				.text('Guest');
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -511,12 +557,8 @@ function getCurrentUser() {
 	}, function (data) {
 		if (data.objectType === 'SjSuccess') {
 			console.log('Success: ' + data);
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -539,12 +581,8 @@ function getUser(id) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -585,12 +623,8 @@ function addPlaylist(title, visibility, description, color, image) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -613,12 +647,8 @@ function getPlaylist(id) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -641,12 +671,8 @@ function deletePlaylist(id) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -669,12 +695,8 @@ function orderPlaylist(id) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -703,12 +725,8 @@ function addTrack(track, playlistId) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -733,12 +751,8 @@ function deleteTrack(playlistId, position) {
 
 			// finally, wipe inputs
 			inputs.forEach(function(input) { input.val(''); });
-		} else if (data.objectType === 'SjError') {
+		} else {
 			handleError(data);
-		} else if (data.objectType === 'SjErrorList') {
-			data.content.forEach(function (item) {
-				handleError(item);
-			});
 		}
 
 		return data;
@@ -902,25 +916,27 @@ var searchResults = {
 	'page': 1,
 
 	// sources
-	'spotify': new SjPlaylist({}),
-	'youtube': new SjPlaylist({}),
-	'soundcloud': new SjPlaylist({}),
+	'spotify': new SjPlaylist({origin: 'searchResults', announce: false,}),
+	'youtube': new SjPlaylist({origin: 'searchResults', announce: false,}),
+	'soundcloud': new SjPlaylist({origin: 'searchResults', announce: false,}),
 
-	'all': new SjPlaylist({}),
+	'all': new SjPlaylist({origin: 'searchResults', announce: false,}),
 }
 
 // search
 function search(term) {
 	var asyncList = new AsyncList({
-		maxCount: 2,
+		totalCount: 2,
 		success: new SjSuccess({
+				announce: false,
 				origin: 'search()',
 				message: 'search was successful',
 			}),
 		errorList: new SjErrorList({
+				announce: false,
 				origin: 'search()',
 			}),
-		endAll: function (result) {
+		callback: function (result) {
 			if (result.objectType === 'SjSuccess') {
 				console.log('search() success');
 			} else if (result.objectType === 'SjErrorList') {
@@ -967,11 +983,8 @@ function spotifySearch(term, callback) {
 						origin: 'spotifySearch()',
 						message: 'spotify tracks retrieved',
 					}));
-				} else if (response.objectType === 'SjError') {
-					callback(new SjError({
-						origin: 'spotifySearch()',
-						message: 'spotify tracks could not be retrieved',
-					}));
+				} else {
+					callback(propagateError(response));
 				}
 			});
 		} else if (error) {
@@ -1029,11 +1042,8 @@ function youtubeSearch(term, callback) {
 						origin: 'youtubeSearch()',
 						message: 'youtube tracks retrieved',
 					}));
-				} else if (response.objectType === 'SjError') {
-					callback(new SjError({
-						origin: 'youtubeSearch()',
-						message: 'youtube tracks could not be retrieved',
-					}));
+				} else {
+					callback(propagateError(response));
 				}
 			});
 		} else {
@@ -1053,7 +1063,7 @@ function spotifyGetTracks(items, callback) {
 	// takes spotify's response.tracks.items array
 
 	// array of track objects
-	var playlist = new SjPlaylist({});
+	var playlist = new SjPlaylist({announce: false,});
 
 	items.forEach(function (track, i) {
 		playlist.content[i] = new SjTrack({
@@ -1150,6 +1160,7 @@ function arrangeResults(type, selection) {
 
 	var arrangedResults = new SjPlaylist({
 		// no id or database relevant properties
+		announce: false,
 		title: 'Search Results',
 		visibility: 'public',
 	});
@@ -1227,34 +1238,36 @@ function displayList(playlist) {
 var desiredPlayback = {
 	'playing': false,
 	'progress': 0,
-	'track': new SjTrack({}),
+	'track': new SjTrack({announce: false,}),
 };
 
 var actualPlayback = {
 	'spotify': {
 		playing: false,
 		progress: 0,
-		track: new SjTrack({}),
+		track: new SjTrack({announce: false,}),
 	},
 	'youtube': {
 		playing: false,
 		progress: 0,
-		track: new SjTrack({}),
+		track: new SjTrack({announce: false,}),
 	},
 };
 
 function checkPlaybackState(callback) {
 	// TODO response is not passed in callback, deal with this
 	var asyncList = new AsyncList({
-		maxCount: 2,
+		totalCount: 2,
 		success: new SjSuccess({
+				announce: false,
 				origin: 'checkPlaybackState()',
 				message: 'checkPlaybackState was successful',
 			}),
 		errorList: new SjErrorList({
+				announce: false,
 				origin: 'checkPlaybackState()',
 			}),
-		endAll: function (result) {
+		callback: function (result) {
 			callback(result);
 		},
 	});
@@ -1346,32 +1359,47 @@ function youtubeCheck(callback) {
 					message: 'track not found',
 				}));
 			}
-		} else if (result.objectType === 'SjError' || result.objectType ==='SjErrorList') {
-			callback(result);
+		} else {
+			callback(propagateError(response));
 		}	
 	});
 }
 
-function updatePlaybackState() {
+function updatePlaybackState(callback) {
 	checkPlaybackState(function(result) {
-		// TODO what if some of the checks fail?, need to handle this when the result is an SjErrorList
+		if (!isError(result)) {
+			// TODO asynclist here for updating multiple playback state types at a time
 
-		// no progress comparison made here
-		if (!desiredPlayback.playing) {
-			if (actualPlayback.spotify.playing) { pause('spotify'); }
-			if (actualPlayback.youtube.playing) { pause('youtube'); }
-		} else if (desiredPlayback.playing) {
-			if (desiredPlayback.track.source == 'spotify') {
-				if (!actualPlayback.spotify.playing) { resume('spotify'); }
-				if (actualPlayback.youtube.playing) { pause('youtube'); }
+			// no progress comparison made here
+			if (!desiredPlayback.playing) {
+				// pause everything
+				SOURCE_LIST.forEach(function(source) {
+					if (actualPlayback[source].playing) {
+						pause(source, function(result) {
 
-				if (desiredPlayback.track.id != actualPlayback.spotify.track.id) { start('spotify', desiredPlayback.track.id); };
-			} else if (desiredPlayback.track.source == 'youtube') {
-				if (!actualPlayback.youtube.playing) { resume('youtube'); }
-				if (actualPlayback.spotify.playing) { pause('spotify'); }
-				console.log('Desired id: ' + desiredPlayback.track.id + 'Actual id: ' + actualPlayback.youtube.track.id);
-				if (desiredPlayback.track.id != actualPlayback.youtube.track.id) { start('youtube', desiredPlayback.track.id); };
+						});
+					}
+				});
+			} else if (desiredPlayback.playing) {
+				// 
+
+
+				if (desiredPlayback.track.source == 'spotify') {
+					if (!actualPlayback.spotify.playing) { resume('spotify'); }
+					if (actualPlayback.youtube.playing) { pause('youtube'); }
+
+					if (desiredPlayback.track.id != actualPlayback.spotify.track.id) { start('spotify', desiredPlayback.track.id); };
+				} else if (desiredPlayback.track.source == 'youtube') {
+					if (!actualPlayback.youtube.playing) { resume('youtube'); }
+					if (actualPlayback.spotify.playing) { pause('spotify'); }
+					console.log('Desired id: ' + desiredPlayback.track.id + 'Actual id: ' + actualPlayback.youtube.track.id);
+					if (desiredPlayback.track.id != actualPlayback.youtube.track.id) { start('youtube', desiredPlayback.track.id); };
+				}
 			}
+		} else {
+			// TODO what if some of the checks fail?, need to handle this when the result is an SjErrorList
+			// TODO make better handling of checkPlaybackState, maybe keep a list of all unknown states based on the SjErrorList? then only fail if the desired state requires knowing one of the unknowns
+			callback(propagateError(result));
 		}
 	});
 }
@@ -1385,14 +1413,18 @@ function updatePlaybackState() {
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 //                                                               
 
-function start(source, id) {
+// TODO control functions should manage redundant requests, not updatePlaybackState
+function start(source, id, callback) {
 	if (source == 'spotify') {
 		console.log("start('spotify') called");
 
 		spotifyApi.play({"uris":["spotify:track:" + id]}, function(error, response) {
 			if (response) {
 				console.log('start() success');
-				console.log(response);
+				
+
+
+
 			} else if (error) {
 				console.error('start() failure');
 
@@ -1415,7 +1447,7 @@ function start(source, id) {
 	}
 }
 
-function resume(source) {
+function resume(source, callback) {
 	if (source == 'spotify') {
 		console.log("resume('spotify') called");
 
@@ -1443,7 +1475,7 @@ function resume(source) {
 	}
 }
 
-function pause(source) {
+function pause(source, callback) {
 	if (source == 'spotify') {
 		console.log("pause('spotify') called");
 
@@ -1471,7 +1503,7 @@ function pause(source) {
 	}
 }
 
-function seek(source, ms) {
+function seek(source, ms, callback) {
 	if (source == 'spotify') {
 		console.log("seek('spotify') called");
 
