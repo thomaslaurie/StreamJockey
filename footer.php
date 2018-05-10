@@ -26,7 +26,7 @@
 	
 
 	<!-- spotify javascript wrapper -->
-	<script src='spotify-web-api.js' onload="initSpotifyWebApi()"></script>
+	<script src='spotify-web-api.js' onload="spotify.loadApi()"></script>
 
 	<!-- youtube data api 		
 		async loads script at the same time html is being parsed, defer doesnt run the script until html has been fully parsed 
@@ -35,7 +35,7 @@
 		google's extensive version: 
 		when this script loads, it changes its own onload attribute to an empty function, then calls handleClientLoad()
 		<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()" onreadystatechange="if (this.readyState === 'complete') this.onload()"></script> -->
-	<script src="https://apis.google.com/js/api.js" onload="initYoutubeDataApi()"></script>
+	<script src="https://apis.google.com/js/api.js" onload="youtube.loadApi()"></script>
 
 	
 </html>
