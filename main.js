@@ -45,6 +45,7 @@ var youtube = new SjSource({
 //	name: 'youtube',
 });
 
+// reference is required here because these SjSource objects can be accessed either through the sourceList or by their own name
 var sourceList = {
 	// TODO requires no prototype properties, or else will require different loop interactions
 	'spotify': spotify,
@@ -60,14 +61,14 @@ function SjObject(obj) {
 	// debug
 	// include log: true, in parameter list if object should be announced on creation, else just call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new SjObject()), doing it the other way (boolean for not annoucning on create) creats more problems and still requires writing lines and patches ---> its just better to do a positive action
 	this.log = typeof obj.log === 'undefined' ? false : obj.log;
-
 	this.announce = function () {
-		var string = '\norigin:\n   ' +this.origin +'\nobjectType:\n   ' +this.objectType +'\nreason:\n   ' +this.reason;
-			if (isError(this)) {
-				console.error(string);
-			} else {
-				console.log(string);
-			}
+		//var string = 'origin:\n     ' +this.origin +'\nobjectType:\n     ' +this.objectType +'\nreason:\n     ' +this.reason;
+		var string = this.origin +'\n' +this.objectType +'\n' +this.reason;
+		if (isError(this)) {
+			console.error(string);
+		} else {
+			console.log(string);
+		}
 	}
 
 	this.onCreate = function () {
@@ -107,7 +108,7 @@ function SjSuccess(obj) {
 	this.type = typeof obj.type === 'undefined' ? 'Ok' : obj.type;
 
 	// return
-	this.reason = typeof obj.reason === 'undefined' ? 'success' : obj.reason;
+	this.reason = typeof obj.reason === 'undefined' ? '' : obj.reason;
 
 	this.onCreate();
 }
@@ -159,7 +160,7 @@ function SjTrack(obj) {
 	this.playlistId = typeof obj.playlistId === 'undefined' ? '' : obj.playlistId;
 	this.position = typeof obj.position === 'undefined' ? '' : obj.position;
 	this.source = typeof obj.source === 'undefined' ? '' : obj.source;
-	this.id = typeof obj.id === 'undefined' ? '' : obj.id;
+	this.id = typeof obj.id === 'undefined' ? '' : obj.id; // !!! assumes ids are unique, even across all sources
 	this.artists = typeof obj.artists === 'undefined' ? [] : obj.artists;
 	this.title = typeof obj.title === 'undefined' ? '' : obj.title;
 	this.duration = typeof obj.duration === 'undefined' ? '' : obj.duration;
@@ -818,6 +819,7 @@ function deleteTrack(playlistId, position) {
 //  ╚═╝  ╚═╝╚═╝     ╚═╝
 //                     
 
+// api
 spotify.loadApi = function () {
 	// https://beta.developer.spotify.com/documentation/web-api/
 
@@ -849,6 +851,7 @@ youtube.loadApi = function () {
 	});
 }
 
+// player
 spotify.loadPlayer = function () {
 	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
 	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
@@ -1028,11 +1031,11 @@ spotify.search = function (term, callback) {
 		} else if (error) {
 			callback(new SjError({
 				log: true,
-				code: JSON.parse(error.result).error.status,
+				code: JSON.parse(error.response).error.status,
 				origin: 'spotify.search()  spotifyApi.searchTracks()',
 
 				message: 'tracks could not be retrieved',
-				reason: JSON.parse(error.result).error.message,
+				reason: JSON.parse(error.response).error.message,
 				content: error,
 			}));
 		}
@@ -1186,6 +1189,7 @@ youtube.getTracks = function (ids, callback) {
 		}
 	});
 }
+
 
 function refreshSearchResults() {
 	console.log('refreshSearchResults() called');
@@ -1349,11 +1353,11 @@ spotify.checkPlayback = function (callback) {
 		} else if (error) {
 			callback(new SjError({
 				log: true,
-				code: JSON.parse(error.result).error.status,
+				code: JSON.parse(error.response).error.status,
 				origin: 'spotify.checkPlayback() spotifyApi.getMyCurrentPlaybackState()',
 
 				message: 'failed to check spotify playback state',
-				reason: JSON.parse(error.result).error.message,
+				reason: JSON.parse(error.response).error.message,
 				content: error,
 			}));
 		}
@@ -1372,36 +1376,50 @@ youtube.checkPlayback = function (callback) {
 	
 	actualPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
 
-	// convert youtube video url to id
-	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-	var id = youtubePlayer.getVideoUrl().split("v=")[1];
-	if (!id) { id = ''; }
-	var andPosition = id.indexOf("&"); 
-	if (andPosition != -1) { id = id.substring(0, andPosition); }
-	console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
+	if (id) {
+		// if not empty
 
-	youtube.getTracks([id], function(result) {
-		if (result.objectType === 'SjPlaylist') {
-			if (result.length === 1) {
-				actualPlayback.youtube.track = result[0];
+		// convert youtube video url to id
+		// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
+		var id = youtubePlayer.getVideoUrl().split("v=")[1];
+		if (!id) { id = ''; }
+		var andPosition = id.indexOf("&"); 
+		if (andPosition != -1) { id = id.substring(0, andPosition); }
+		//console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
 
-				callback(new SjSuccess({
-					log: true,
-					origin: 'youtube.checkPlayback() youtube.getTracks()',
-					message: 'youtube playback state checked',
-				}));
+		youtube.getTracks([id], function(result) {
+			if (result.objectType === 'SjPlaylist') {
+				if (result.length === 1) {
+					actualPlayback.youtube.track = result[0];
+
+					callback(new SjSuccess({
+						log: true,
+						origin: 'youtube.checkPlayback() youtube.getTracks()',
+						message: 'youtube playback state checked',
+					}));
+				} else {
+					console.log(actualPlayback);
+					callback(new SjError({
+						log: true,
+						code: '404',
+						origin: 'youtube.checkPlayback() youtube.getTracks()',
+						message: 'track not found',
+						reason: 'id: ' +id +' was not found',
+					}));
+				}
 			} else {
-				callback(new SjError({
-					log: true,
-					code: '404',
-					origin: 'youtube.checkPlayback() youtube.getTracks()',
-					message: 'track not found',
-				}));
-			}
-		} else {
-			callback(propagateError(result));
-		}	
-	});
+				callback(propagateError(result));
+			}	
+		});
+	} else {
+		// no track is playing
+		callback(new SjSuccess({
+			log: true,
+			origin: 'youtube.checkPlayback()',
+			message: 'youtube playback state checked',
+		}));
+	}
+
 }
 
 // TODO --------- rework all of this
@@ -1411,36 +1429,42 @@ function updatePlaybackState(callback) {
 			// TODO asynclist here for updating multiple playback state types at a time
 
 			// no progress comparison made here
-			if (!desiredPlayback.playing) {
-				// pause everything
+
+			// play/pause & track selection
+			if (desiredPlayback.playing) {
+				// if play is desired
 				for (var key in sourceList) {
-					if (actualPlayback[key].playing) {
-						sourceList[key].pause(function (result) {
-							// TODO error/success handling
+					// loop through all sources
+					if (key === desiredPlayback.track.source) {
+						// play desired source
+						if (desiredPlayback.track.id === actualPlayback[key].track.id) {
+							// resume if same track loaded
+							resume(key, function (result) {
+								// TODO ...
+							});
+						} else {
+							// start if different track
+							start(key, desiredPlayback.track.id, function (result) {
+								// TODO ...
+							});
+						}
+					} else {
+						// pause all other sources
+						pause(key, function (result) {
+							// TODO ...
 						});
 					}
 				}
-
-				sourceList.forEach(function(source) {
-					if (actualPlayback[source.name].playing) {
-						pause(source.name, function(result) {
-
-						});
-					}
-				});
-			} else if (desiredPlayback.playing) {
-				if (desiredPlayback.track.source == 'spotify') {
-					if (!actualPlayback.spotify.playing) { resume('spotify'); }
-					if (actualPlayback.youtube.playing) { pause('youtube'); }
-
-					if (desiredPlayback.track.id != actualPlayback.spotify.track.id) { start('spotify', desiredPlayback.track.id); };
-				} else if (desiredPlayback.track.source == 'youtube') {
-					if (!actualPlayback.youtube.playing) { resume('youtube'); }
-					if (actualPlayback.spotify.playing) { pause('spotify'); }
-					console.log('Desired id: ' + desiredPlayback.track.id + 'Actual id: ' + actualPlayback.youtube.track.id);
-					if (desiredPlayback.track.id != actualPlayback.youtube.track.id) { start('youtube', desiredPlayback.track.id); };
+			} else {
+				// pause is desired, pause everything
+				for (var key in sourceList) {
+					pause(key, function (result) {
+						// TODO ...
+					});
 				}
 			}
+
+
 		} else {
 			// TODO make better handling of checkPlaybackState, maybe keep a list of all unknown states based on the SjErrorList? then only fail if the desired state requires knowing one of the unknowns
 			callback(propagateError(result));
@@ -1457,12 +1481,13 @@ function updatePlaybackState(callback) {
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 //                                                               
 
-// status checks shouldnt go in individual functions because that requires multiple api calls, each of which send all the data needed for all functions
+// TODO control functions don't know the actualPlaybackState - assume that when they are called they are being called properly (which also assumes that the actualPlaybackState has been checked), why not just implement the actualPlaybackState into these functions so they dont have to be managed by the function that calls them, so that they only require the actualPlaybackState to be recently checked::: they shouldnt check this themselves though because: that requires multiple api calls, each of which send all the data needed for all functions, 
 
-// TODO control functions should manage redundant requests, not updatePlaybackState
+// !!! dont directly use source.control functions because they dont check if their calls are redundant
+
 function start(source, id, callback) {
 	if (source in sourceList) {
-		sourceList[source].start(function (result) {
+		sourceList[source].start(id, function (result) {
 			callback(result);
 		});
 	} else {
@@ -1475,7 +1500,7 @@ function start(source, id, callback) {
 	}
 }
 
-spotify.start = function (callback) {
+spotify.start = function (id, callback) {
 	spotifyApi.play({"uris":["spotify:track:" + id]}, function(error, result) {
 		if (result) {
 			callback(new SjSuccess({
@@ -1487,17 +1512,17 @@ spotify.start = function (callback) {
 		} else if (error) {
 			callback(new SjError({
 				log: true,
-				code: JSON.parse(error.result).error.status,
+				code: JSON.parse(error.response).error.status,
 				origin: 'start(spotify, ...)',
 				message: 'spotify track could not be started',
-				reason: JSON.parse(error.result).error.message,
+				reason: JSON.parse(error.response).error.message,
 				content: error,
 			}));
 		}
 	});
 }
 
-youtube.start = function (callback) {
+youtube.start = function (id, callback) {
 	youtubePlayer.loadVideoById(id);
 	youtubePlayer.playVideo();
 
@@ -1511,9 +1536,18 @@ youtube.start = function (callback) {
 
 function resume(source, callback) {
 	if (source in sourceList) {
-		sourceList[source].resume(function (result) {
-			callback(result);
-		});
+		// check if already playing	
+		if (!actualPlayback[source].playing) { 
+			sourceList[source].resume(function (result) {
+				callback(result);
+			});
+		} else {
+			callback(new SjSuccess({
+				log: true,
+				origin: 'resume()',
+				message: 'track was already playing',
+			}));
+		}
 	} else {
 		callback(new SjError({
 			log: true,
@@ -1536,10 +1570,10 @@ spotify.resume = function (callback) {
 		} else if (error) {
 			callback(new SjError({
 				log: true,
-				code: JSON.parse(error.result).error.status,
+				code: JSON.parse(error.response).error.status,
 				origin: 'resume(spotify, ...)',
 				message: 'spotify track could not be resumed',
-				reason: JSON.parse(error.result).error.message,
+				reason: JSON.parse(error.response).error.message,
 				content: error,
 			}));
 		}
@@ -1559,9 +1593,17 @@ youtube.resume = function (callback) {
 
 function pause(source, callback) {
 	if (source in sourceList) {
-		sourceList[source].pause(function (result) {
-			callback(result);
-		});
+		if (actualPlayback[source].playing) {
+			sourceList[source].pause(function (result) {
+				callback(result);
+			});
+		} else {
+			callback(new SjSuccess({
+				log: true,
+				origin: 'pause()',
+				message: 'track was already paused',
+			}));
+		}
 	} else {
 		callback(new SjError({
 			log: true,
@@ -1582,12 +1624,13 @@ spotify.pause = function (callback) {
 				content: result,
 			}));
 		} else if (error) {
+			console.log(error);
 			callback(new SjError({
 				log: true,
-				code: JSON.parse(error.result).error.status,
+				code: JSON.parse(error.response).error.status,
 				origin: 'pause(spotify, ...)',
 				message: 'spotify track could not be paused',
-				reason: JSON.parse(error.result).error.message,
+				reason: JSON.parse(error.response).error.message,
 				content: error,
 			}));
 		}
@@ -1632,10 +1675,10 @@ spotify.seek = function (ms, callback) {
 		} else if (error) {
 			callback(new SjError({
 				log: true,
-				code: JSON.parse(error.result).error.status,
+				code: JSON.parse(error.response).error.status,
 				origin: 'seek(spotify, ...)',
 				message: 'spotify track could not be seeked',
-				reason: JSON.parse(error.result).error.message,
+				reason: JSON.parse(error.response).error.message,
 				content: error,
 			}));
 		}
