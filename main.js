@@ -299,7 +299,7 @@ function AsyncList(obj) {
 
 // top level error handling, only call after error has propegated to a top level function
 function handleError(error) {
-	if (typeof error.objectType === undefined || error.objectType.indexOf('Sj') !== 0) {
+	if (typeof error.objectType === 'undefined' || error.objectType.indexOf('Sj') !== 0) {
 		console.error('handleError() was passed a non Sj object');
 	} else if (error.objectType === 'SjError') {
 		console.error(error);
@@ -324,17 +324,18 @@ function propagateError(obj) {
 }
 
 function catchUnexpected(obj) {
+	// TODO if called after the first if, this still wont catch any undefined variables
 	// catches all objects that havent been caught yet, triggers an error message, and transforms them into a proper SjError object
 	var error = new SjError({
 		message: 'function received unexpected result',
 		content: obj,
 	});
 
-	if (typeof obj === undefined) {
+	if (typeof obj === 'undefined') {
 		error.reason = 'object is undefined';
-	} else if (typeof obj === null) {
+	} else if (typeof obj === 'null') {
 		error.reason = 'object is null';
-	} else if (typeof obj.objectType === undefined || obj.objectType.indexOf('Sj') !== 0) {
+	} else if (typeof obj.objectType === 'undefined' || obj.objectType.indexOf('Sj') !== 0) {
 		error.reason = 'object is not an Sj object'
 	} else {
 		error.reason = 'object is of unexpected objectType: ' + obj.objectType;
@@ -493,6 +494,7 @@ function serverCommand(data, callback) {
 	});
 }
 
+
 function msFormat(ms) {
 	// extract
 	var minutes = Math.floor(ms / 60000);
@@ -505,6 +507,24 @@ function msFormat(ms) {
 	return minutes + ':' + seconds;
 }
 
+function matchType(input, match) {
+	if (typeof input === match) {
+		// if base object type is matched
+		return true;
+	} else if (typeof input.objectType === 'string') {
+		// if input has an objectType property
+		if (input.objectType === match) {
+			// if objectType is matched
+			return true;
+		} else {
+			// if objectType cannot be matched
+			return false;
+		}
+	} else {
+		// if base type cannot be matched and has no objectType
+		return false;
+	}
+};
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
@@ -1100,6 +1120,7 @@ youtube.search = function (term, callback) {
 
 spotify.getTracks = function (items, callback) {
 	// takes spotify's result.tracks.items array
+	// !!! doesnt actually get tracks, just converts tracks from spotify.search
 
 	// array of track objects
 	var playlist = new SjPlaylist({
@@ -1280,21 +1301,26 @@ function displayList(playlist) {
 //   
 
 var desiredPlayback = {
+	track: new SjTrack({}),
 	playing: false,
 	progress: 0,
-	track: new SjTrack({}),
 };
+
+// TODO 
+// seek issue: there will be a discrepancy between the api progress (actual) and the calculated desired progress, and when updatePlaybackState() is called, if they are different then seek() will be called - this will cause a stutter in the track, which we dont want.
+// how do we signal when we want seek to update and when we dont? (we dont want to simply not call seek() if the two values are close enough because then clicking the same spot on the seek bar multiple times would loose feedback and only trigger a re-wind once every x times when the actualPlayback gets far enough away) - is this an issue specific to seek()???
+// also mayb emake a playback object???
 
 var actualPlayback = {
 	spotify: {
+		track: new SjTrack({}),
 		playing: false,
 		progress: 0,
-		track: new SjTrack({}),
 	},
 	youtube: {
+		track: new SjTrack({}),
 		playing: false,
 		progress: 0,
-		track: new SjTrack({}),
 	},
 };
 
@@ -1324,6 +1350,8 @@ function checkPlaybackState(callback) {
 }
 
 spotify.checkPlayback = function (callback) {
+	// 1 api call
+
 	spotifyApi.getMyCurrentPlaybackState({}, function(error, result) {
 		if (result) {
 			console.log('checkPlaybackState() spotify success');
@@ -1366,24 +1394,29 @@ spotify.checkPlayback = function (callback) {
 }
 
 youtube.checkPlayback = function (callback) {
-	var state = youtubePlayer.getPlayerState();
-	if (state == 1 || state == 3) {
-		// playing or buffering
+	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
+	// 1 api call
+
+	//https://developers.google.com/youtube/iframe_api_reference#Functions
+
+	// playing?
+	if (youtubePlayer.getPlayerState() == 1 || youtubePlayer.getPlayerState() == 3) {
+		/*	Returns the state of the player. Possible values are:
+			-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
 		actualPlayback.youtube.playing = true;
 	} else {
 		actualPlayback.youtube.playing = false;
 	}
 	
+	// progress?
 	actualPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
 
+	// id?
+	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
+	var id = youtubePlayer.getVideoUrl().split("v=")[1];
 	if (id) {
 		// if not empty
-
-		// convert youtube video url to id
-		// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-		var id = youtubePlayer.getVideoUrl().split("v=")[1];
-		if (!id) { id = ''; }
-		var andPosition = id.indexOf("&"); 
+		var andPosition = id.indexOf('&'); 
 		if (andPosition != -1) { id = id.substring(0, andPosition); }
 		//console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
 
@@ -1427,8 +1460,7 @@ function updatePlaybackState(callback) {
 	checkPlaybackState(function(result) {
 		if (!isError(result)) {
 			// TODO asynclist here for updating multiple playback state types at a time
-
-			// no progress comparison made here
+			// TODO update track progress
 
 			// play/pause & track selection
 			if (desiredPlayback.playing) {
@@ -1472,6 +1504,71 @@ function updatePlaybackState(callback) {
 	});
 }
 
+// TODO -----------
+
+// check proper track 
+// then
+// check proper playing state ( toggle)
+// then
+// check proper progress
+
+function checkPlaybackTrack(callback) {
+	// switch
+	if (desiredPlayback.track.id === actualPlayback[key].track.id) {
+		callback(new SjSuccess({
+			log: true,
+			origin: 'checkPlaybackTrack()',
+			message: 'track is same',
+		}));
+	} else {
+		// start if different track
+		start(desiredPlayback.track.source, desiredPlayback.track.id, function (result) {
+			if (result.objectType === 'SjSuccess') {
+				callback(new SjSuccess({
+					log: true,
+					origin: 'checkPlaybackTrack()',
+					message: 'track changed',
+				}));
+			} else {
+				callback(propagateError(result));
+			}
+		});	
+	}
+}
+
+// same for these two 
+
+function checkPlaybackPlaying(callback) {
+	// TODO async list here
+
+	if (desiredPlayback.playing) {
+		for (var key in sourceList) {
+			if (key === desiredPlayback.track.source) {
+				// resume desired source
+				resume(key, function (result) {
+					// TODO ...
+				});
+			} else {
+				// pause all other sources
+				pause(key, function (result) {
+					// TODO ...
+				});
+			}
+		}
+	} else {
+		// pause all sources
+		for (var key in sourceList) {
+			pause(key, function (result) {
+				// TODO ...
+			});
+		}
+	}
+}
+
+function checkPlaybackProgress() {
+
+}
+
 
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     
 //  ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔══██╗██╔═══██╗██║     
@@ -1481,10 +1578,15 @@ function updatePlaybackState(callback) {
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 //                                                               
 
-// TODO control functions don't know the actualPlaybackState - assume that when they are called they are being called properly (which also assumes that the actualPlaybackState has been checked), why not just implement the actualPlaybackState into these functions so they dont have to be managed by the function that calls them, so that they only require the actualPlaybackState to be recently checked::: they shouldnt check this themselves though because: that requires multiple api calls, each of which send all the data needed for all functions, 
+// SjSource control functions do not check against redundant calls and should not be called directly. The aggregator functions do this and sould be the only way this functionality is accessed. 
+// Redundancy checks are done here and not in the larger updatePlaybackState because: the same assumptions are being made in both cases, readability is improved, and now control functions can be safely called else where.
 
-// !!! dont directly use source.control functions because they dont check if their calls are redundant
+// !!! dont direclty use source.control functions, they don't have redundancy checks (against actualPlaybackState)
+// !!! regular control functions assume actualPlaybackState has been checked recently and will act accordingly
 
+// TODO maybe just pass the source object instead of the source name?
+
+// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
 function start(source, id, callback) {
 	if (source in sourceList) {
 		sourceList[source].start(id, function (result) {
