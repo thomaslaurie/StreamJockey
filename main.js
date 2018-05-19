@@ -256,9 +256,15 @@ function AsyncList(obj) {
 	this.errorList = typeof obj.errorList === 'undefined' ? new SjErrorList({}) : obj.errorList;
 	this.callback = typeof obj.callback === 'undefined' ? function (result) {} : obj.callback;
 
-	this.addIfError = function (obj) {
-		if (isError(obj)) {
-			this.errorList.content.push(obj);
+	this.addError = function (obj) {
+		// add anything to the error list
+		this.errorList.content.push(propagateError(obj));
+	}
+
+	this.nonSuccessCheck = function (result) {
+		// adds anything that isnt a SjSuccess object
+		if (!matchType(result, 'SjSuccess')) {
+			this.addError(result);
 		}
 	}
 
@@ -272,19 +278,29 @@ function AsyncList(obj) {
 
 	this.result = function () {
 		if (this.errorList.content.length === 0) {
+			// if errorList is empty, return success
 			this.success.announce();
 			return this.success;
 		} else {
+			// else return the list
 			this.errorList.announce();
 			return this.errorList;
 		}
 	}
 
 	this.endPart = function () {
+		// increment part count
 		this.count++;
+		// callback result if all parts are complete
 		if (this.isComplete) {
 			this.callback(this.result);
 		}
+	}
+
+	this.endPartQuick = function (result) {
+		// handle part result in one function: checking only for non-SjSuccess objects
+		this.nonSuccessCheck(result);
+		this.endPart();
 	}
 }
 
@@ -497,7 +513,6 @@ function serverCommand(data, callback) {
 		}
 	});
 }
-
 
 function msFormat(ms) {
 	// extract
@@ -1019,8 +1034,7 @@ function search(term) {
 
 	for (var key in sourceList) {
 		sourceList[key].search(term, function(result) {
-			asyncList.addIfError(result);
-			asyncList.endPart();
+			asyncList.endPartQuick(result);
 		});
 	}
 }
@@ -1064,6 +1078,34 @@ spotify.search = function (term, callback) {
 			}));
 		}
 	});
+}
+
+spotify.getTracks = function (items, callback) {
+	// takes spotify's result.tracks.items array
+	// !!! doesnt actually get tracks, just converts tracks from spotify.search
+
+	// array of track objects
+	var playlist = new SjPlaylist({
+		origin: 'spotify.getTracks()',
+	});
+
+	items.forEach(function (track, i) {
+		playlist.content[i] = new SjTrack({
+			source: 'spotify',
+			id: track.id,
+			title: track.name,
+			duration: track.duration_ms,
+			link: track.external_urls.spotify,
+		});
+
+		// fill artists
+		track.artists.forEach(function (artist, j) {
+			playlist.content[i].artists[j] = artist.name;
+		});
+	});
+
+	playlist.announce();
+	callback(playlist);
 }
 
 youtube.search = function (term, callback) {
@@ -1120,34 +1162,6 @@ youtube.search = function (term, callback) {
 			}));
 		}
 	});	
-}
-
-spotify.getTracks = function (items, callback) {
-	// takes spotify's result.tracks.items array
-	// !!! doesnt actually get tracks, just converts tracks from spotify.search
-
-	// array of track objects
-	var playlist = new SjPlaylist({
-		origin: 'spotify.getTracks()',
-	});
-
-	items.forEach(function (track, i) {
-		playlist.content[i] = new SjTrack({
-			source: 'spotify',
-			id: track.id,
-			title: track.name,
-			duration: track.duration_ms,
-			link: track.external_urls.spotify,
-		});
-
-		// fill artists
-		track.artists.forEach(function (artist, j) {
-			playlist.content[i].artists[j] = artist.name;
-		});
-	});
-
-	playlist.announce();
-	callback(playlist);
 }
 
 youtube.getTracks = function (ids, callback) {
@@ -1304,16 +1318,13 @@ function displayList(playlist) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 //   
 
+// TODO consider making a playback object
+
 var desiredPlayback = {
 	track: new SjTrack({}),
 	playing: false,
 	progress: 0,
 };
-
-// TODO 
-// seek issue: there will be a discrepancy between the api progress (actual) and the calculated desired progress, and when updatePlaybackState() is called, if they are different then seek() will be called - this will cause a stutter in the track, which we dont want.
-// how do we signal when we want seek to update and when we dont? (we dont want to simply not call seek() if the two values are close enough because then clicking the same spot on the seek bar multiple times would loose feedback and only trigger a re-wind once every x times when the actualPlayback gets far enough away) - is this an issue specific to seek()???
-// also mayb emake a playback object???
 
 var actualPlayback = {
 	spotify: {
@@ -1328,8 +1339,9 @@ var actualPlayback = {
 	},
 };
 
+
 function checkPlaybackState(callback) {
-	// TODO result is not passed in callback, deal with this
+	// TODO ??? result is not passed in callback, deal with this
 	var asyncList = new AsyncList({
 		totalCount: Object.keys(sourceList).length,
 		success: new SjSuccess({
@@ -1347,8 +1359,7 @@ function checkPlaybackState(callback) {
 
 	for (var key in sourceList) {
 		sourceList[key].checkPlayback(function(result) {
-			asyncList.addIfError(result);
-			asyncList.endPart();
+			asyncList.endPartQuick(result);
 		});
 	}
 }
@@ -1459,73 +1470,17 @@ youtube.checkPlayback = function (callback) {
 
 }
 
-// TODO --------- rework all of this
-function updatePlaybackState(callback) {
-	checkPlaybackState(function(result) {
-		if (!isError(result)) {
-			// TODO asynclist here for updating multiple playback state types at a time
-			// TODO update track progress
 
-			// play/pause & track selection
-			if (desiredPlayback.playing) {
-				// if play is desired
-				for (var key in sourceList) {
-					// loop through all sources
-					if (key === desiredPlayback.track.source) {
-						// play desired source
-						if (desiredPlayback.track.id === actualPlayback[key].track.id) {
-							// resume if same track loaded
-							resume(key, function (result) {
-								// TODO ...
-							});
-						} else {
-							// start if different track
-							start(key, desiredPlayback.track.id, function (result) {
-								// TODO ...
-							});
-						}
-					} else {
-						// pause all other sources
-						pause(key, function (result) {
-							// TODO ...
-						});
-					}
-				}
-			} else {
-				// pause is desired, pause everything
-				for (var key in sourceList) {
-					pause(key, function (result) {
-						// TODO ...
-					});
-				}
-			}
-
-
-		} else {
-			// TODO make better handling of checkPlaybackState, maybe keep a list of all unknown states based on the SjErrorList? then only fail if the desired state requires knowing one of the unknowns
-			callback(propagateError(result));
-		}
-	});
-}
-
-// TODO -----------
-
-// check proper track 
-// then
-// check proper playing state ( toggle)
-// then
-// check proper progress
-
-function checkPlaybackTrack(callback) {
-	// switch
-	if (desiredPlayback.track.id === actualPlayback[key].track.id) {
+function updatePlaybackTrack(callback) {
+	if (desiredPlayback.track.id === actualPlayback[desiredPlayback.track.source].track.id) {
+		// if same track, do nothing
 		callback(new SjSuccess({
 			log: true,
 			origin: 'checkPlaybackTrack()',
 			message: 'track is same',
 		}));
 	} else {
-		// start if different track
+		// else, start desired track
 		start(desiredPlayback.track.source, desiredPlayback.track.id, function (result) {
 			if (matchType(result, 'SjSuccess')) {
 				callback(new SjSuccess({
@@ -1540,22 +1495,33 @@ function checkPlaybackTrack(callback) {
 	}
 }
 
-// same for these two 
-
-function checkPlaybackPlaying(callback) {
-	// TODO async list here
+function updatePlaybackPlaying(callback) {
+	var asyncList = new AsyncList({
+		totalCount: Object.keys(sourceList).length,
+		success: new SjSuccess({
+				origin: 'checkPlaybackPlaying()',
+				message: 'checked if playback is playing',
+			}),
+		errorList: new SjErrorList({
+				origin: 'checkPlaybackPlaying()',
+				message: 'failed to check if playback is playing',
+			}),
+		callback: function (result) {
+			callback(result);
+		},
+	});
 
 	if (desiredPlayback.playing) {
 		for (var key in sourceList) {
 			if (key === desiredPlayback.track.source) {
 				// resume desired source
 				resume(key, function (result) {
-					// TODO ...
+					asyncList.endPartQuick(result);
 				});
 			} else {
 				// pause all other sources
 				pause(key, function (result) {
-					// TODO ...
+					asyncList.endPartQuick(result);
 				});
 			}
 		}
@@ -1563,14 +1529,56 @@ function checkPlaybackPlaying(callback) {
 		// pause all sources
 		for (var key in sourceList) {
 			pause(key, function (result) {
-				// TODO ...
+				asyncList.endPartQuick(result);
 			});
 		}
 	}
 }
 
-function checkPlaybackProgress() {
+function updatePlaybackProgress(callback) {
+	// TODO everything in here
+	// seek issue: there will be a discrepancy between the api progress (actual) and the calculated desired progress, and when updatePlaybackState() is called, if they are different then seek() will be called - this will cause a stutter in the track, which we dont want.
+	// how do we signal when we want seek to update and when we dont? (we dont want to simply not call seek() if the two values are close enough because then clicking the same spot on the seek bar multiple times would loose feedback and only trigger a re-wind once every x times when the actualPlayback gets far enough away) - is this an issue specific to seek()???
 
+	callback(new SjSuccess({
+		log: true,
+		origin: 'checkPlaybackProgress()',
+		message: 'checked playback progress',
+	}));
+}
+
+
+function updatePlaybackState(callback) {
+	checkPlaybackState(function(result) {
+		if (matchType(result, 'SjSuccess')) {
+			updatePlaybackTrack(function (result) {
+				if (matchType('SjSuccess')) {
+					updatePlaybackPlaying(function (result) {
+						if (matchType('SjSuccess')) {
+							updatePlaybackProgress(function (result) {
+								if (matchType('SjSuccess')) {
+									callback(new SjSuccess({
+										log: true,
+										source: 'updatePlaybackState()',
+										message: 'playback state updated',
+									}));
+								} else {
+									callback(propagateError(result));
+								}
+							});
+						} else {
+							callback(propagateError(result));
+						}
+					});
+				} else {
+					callback(propagateError(result));
+				}
+			});
+		} else {
+			// TODO make better handling of checkPlaybackState, maybe keep a list of all unknown states based on the SjErrorList? then only fail if the desired state requires knowing one of the unknowns
+			callback(propagateError(result));
+		}
+	});
 }
 
 
@@ -1588,10 +1596,9 @@ function checkPlaybackProgress() {
 // !!! dont direclty use source.control functions, they don't have redundancy checks (against actualPlaybackState)
 // !!! regular control functions assume actualPlaybackState has been checked recently and will act accordingly
 
-// TODO maybe just pass the source object instead of the source name?
-
-// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
 function start(source, id, callback) {
+	// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
+
 	if (source in sourceList) {
 		sourceList[source].start(id, function (result) {
 			callback(result);
@@ -1817,7 +1824,6 @@ $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview clicked");
 
 	// TODO make a function that does this, and just pass the DOM elemetn that has .data('track'), like .addTrack does
-
 	desiredPlayback.track = $(this).parent().data('track');
 	desiredPlayback.playing = true;
 	updatePlaybackState();
