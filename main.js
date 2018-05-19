@@ -299,18 +299,17 @@ function AsyncList(obj) {
 
 // top level error handling, only call after error has propegated to a top level function
 function handleError(error) {
-	if (typeof error.objectType === 'undefined' || error.objectType.indexOf('Sj') !== 0) {
-		console.error('handleError() was passed a non Sj object');
-	} else if (error.objectType === 'SjError') {
+	if (matchType(error, 'SjError')) {
 		console.error(error);
 		addElementError(error);
-	} else if (error.objectType === 'SjErrorList') {
+	} else if (matchType(error, 'SjErrorList')) {
 		error.content.forEach(function (item) {
 			console.error(error);
 			addElementError(error);
 		});
 	} else {
-		console.error('handleError() was passed a non-error Sj object');
+		console.error(catchUnexpected(error));
+		addElementError(catchUnexpected(error));
 	}
 }
 
@@ -319,26 +318,31 @@ function propagateError(obj) {
 	if (isError(obj)) {
 		return obj;
 	} else {
-		catchUnexpected(obj);
+		return catchUnexpected(obj);
 	}
 }
 
 function catchUnexpected(obj) {
-	// TODO if called after the first if, this still wont catch any undefined variables
-	// catches all objects that havent been caught yet, triggers an error message, and transforms them into a proper SjError object
+	// determines type of input, creates, announces, and returns a proper SjError object
+	// use in final else {} to catch any objects(or variables) that havent been caught yet (those that are unexpected)
+
 	var error = new SjError({
 		message: 'function received unexpected result',
 		content: obj,
 	});
 
-	if (typeof obj === 'undefined') {
+	if (matchType(obj, 'undefined')) {
 		error.reason = 'object is undefined';
-	} else if (typeof obj === 'null') {
+	} else if (matchType(obj, 'null')) {
 		error.reason = 'object is null';
-	} else if (typeof obj.objectType === 'undefined' || obj.objectType.indexOf('Sj') !== 0) {
-		error.reason = 'object is not an Sj object'
+	} else if (matchType(obj), 'object') {
+		if (typeof obj.objectType === 'undefined' || typeof obj.objectType === 'null' || obj.objectType.indexOf('Sj') !== 0) {
+			error.reason = 'object is a non Sj object';
+		} else {
+			error.reason = 'object is of unexpected Sj objectType: ' + obj.objectType;
+		}
 	} else {
-		error.reason = 'object is of unexpected objectType: ' + obj.objectType;
+		error.reason = 'object is of unexpected type: ' + typeof obj;
 	}
 
 	error.announce();
@@ -347,7 +351,7 @@ function catchUnexpected(obj) {
 
 function isError(obj) {
 	// checks for proper SjObject error types
-	if (obj.objectType === 'SjError' || obj.objectType === 'SjErrorList') {
+	if (matchType(obj, 'SjError') || matchType(obj, 'SjErrorList')) {
 		return true;
 	} else {
 		return false;
@@ -508,6 +512,8 @@ function msFormat(ms) {
 }
 
 function matchType(input, match) {
+	// this function is needed for convinience and to catch undefined variables, simply checking obj.objectType === 'Sj___' does not catch unexpected variables (such as non-SJ objects or just non-objects, let alone possible undefined variables)
+
 	if (typeof input === match) {
 		// if base object type is matched
 		return true;
@@ -551,7 +557,7 @@ function register(name, password1, password2, email,) {
 		'password2': password2.val(),
 		'email': email.val(),
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// login
@@ -580,7 +586,7 @@ function login(name, password) {
 		'name': name.val(),
 		'password': password.val(),
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// update page status/permissions
@@ -605,7 +611,7 @@ function logout() {
 	serverCommand({
 		'request': 'logout',
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			$("#statusUser")
@@ -626,7 +632,7 @@ function getCurrentUser() {
 	serverCommand({
 		'request': 'getCurrentUser',
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 		} else {
 			handleError(data);
@@ -647,7 +653,7 @@ function getUser(id) {
 		'request': 'getUser',
 		'id': id.val(),
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// finally, wipe inputs
@@ -689,7 +695,7 @@ function addPlaylist(title, visibility, description, color, image) {
 		'color': color.val(),
 		'image': image.val(),
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// finally, wipe inputs
@@ -713,7 +719,7 @@ function getPlaylist(id) {
 		'request': 'getPlaylist',
 		'id': id.val(),
 	}, function (data) {
-		if (data.objectType === 'SjPlaylist') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// finally, wipe inputs
@@ -737,7 +743,7 @@ function deletePlaylist(id) {
 		'request': 'deletePlaylist',
 		'id': id.val(),
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// finally, wipe inputs
@@ -761,7 +767,7 @@ function orderPlaylist(id) {
 		'request': 'orderPlaylist',
 		'id': id.val(),
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// finally, wipe inputs
@@ -791,7 +797,7 @@ function addTrack(track, playlistId) {
 		'artists': track.data('track').artists,
 		'duration': track.data('track').duration,
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// finally, wipe inputs
@@ -817,7 +823,7 @@ function deleteTrack(playlistId, position) {
 		'playlistId': playlistId.val(),
 		'position': position.val(),
 	}, function (data) {
-		if (data.objectType === 'SjSuccess') {
+		if (matchType(data, 'SjSuccess')) {
 			console.log('Success: ' + data);
 
 			// finally, wipe inputs
@@ -1003,12 +1009,10 @@ function search(term) {
 				origin: 'search()',
 			}),
 		callback: function (result) {
-			if (result.objectType === 'SjSuccess') {
+			if (matchType(result, 'SjSuccess')) {
 				console.log('search() success');
-			} else if (result.objectType === 'SjErrorList') {
-				result.content.forEach(function (item) {
-					handleError(item);
-				});
+			} else {
+				handleError(result);
 			}
 		},
 	});
@@ -1035,7 +1039,7 @@ spotify.search = function (term, callback) {
 			searchResults.term = term;
 
 			spotify.getTracks(result.tracks.items, function(result) {
-				if (result.objectType === 'SjPlaylist') {
+				if (matchType(result, 'SjPlaylist')) {
 					searchResults.spotify = result;
 					refreshSearchResults();
 
@@ -1092,7 +1096,7 @@ youtube.search = function (term, callback) {
 			});
 
 			youtube.getTracks(idList, function(result) {
-				if (result.objectType === 'SjPlaylist') {
+				if (matchType(result, 'SjPlaylist')) {
 					searchResults.youtube = result;
 					refreshSearchResults();
 
@@ -1421,7 +1425,7 @@ youtube.checkPlayback = function (callback) {
 		//console.log('original: ' + youtubePlayer.getVideoUrl() + '\nid: ' + id);
 
 		youtube.getTracks([id], function(result) {
-			if (result.objectType === 'SjPlaylist') {
+			if (matchType(result, 'SjPlaylist')) {
 				if (result.length === 1) {
 					actualPlayback.youtube.track = result[0];
 
@@ -1523,7 +1527,7 @@ function checkPlaybackTrack(callback) {
 	} else {
 		// start if different track
 		start(desiredPlayback.track.source, desiredPlayback.track.id, function (result) {
-			if (result.objectType === 'SjSuccess') {
+			if (matchType(result, 'SjSuccess')) {
 				callback(new SjSuccess({
 					log: true,
 					origin: 'checkPlaybackTrack()',
