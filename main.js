@@ -1544,14 +1544,14 @@ youtube.checkPlayback = function (callback) {
 
 					callback(new SjSuccess({
 						log: true,
-						origin: 'youtube.checkPlayback() youtube.getTracks()',
+						origin: 'youtube.checkPlayback()',
 						message: 'youtube playback state checked',
 					}));
 				} else {
 					callback(new SjError({
 						log: true,
 						code: '404',
-						origin: 'youtube.checkPlayback() youtube.getTracks()',
+						origin: 'youtube.checkPlayback()',
 						message: 'track not found',
 						reason: 'id: ' + id +' was not found',
 					}));
@@ -1573,6 +1573,8 @@ youtube.checkPlayback = function (callback) {
 
 
 function updatePlaybackTrack(callback) {
+	// TODO switching back to an already progressed track from another source will resume the track, not start it again (this contrasts with switching to a track of the same source which then starts the track), need to find a way to (re)start the track if its not the same as what (was) playing 
+
 	if (desiredPlayback.track.id === actualPlayback[desiredPlayback.track.source].track.id) {
 		// if same track, do nothing
 		callback(new SjSuccess({
