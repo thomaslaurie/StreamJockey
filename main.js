@@ -866,7 +866,7 @@ spotify.loadApi = function () {
 	// TODO is there any way this could fail?
 }
 
-youtube.loadApi = function (callback) {
+youtube.loadApi = function () {
 	// TODO polish $.getScript() success/error handling
 
 	// Get Script
@@ -933,7 +933,7 @@ youtube.loadApi = function (callback) {
 }
 
 // player
-spotify.loadPlayer = function (callback) {
+spotify.loadPlayer = function () {
 	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
 	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
 	// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
@@ -1044,7 +1044,7 @@ spotify.loadPlayer = function (callback) {
 	// TODO any way onSpotifyWebPlaybackSDKReady() could fail?
 }
 
-youtube.loadPlayer = function (callback) {
+youtube.loadPlayer = function () {
 	$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
 		// TODO fill in reason information
 		callback(new SjError({
