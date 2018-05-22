@@ -846,8 +846,10 @@ function deleteTrack(playlistId, position) {
 //  ╚═╝  ╚═╝╚═╝     ╚═╝
 //                     
 
+// most of these functions define their own listeners - which dont allow for callback returns, replaced with var result for now
+
 // api
-spotify.loadApi = function (callback) {
+spotify.loadApi = function () {
 	// https://beta.developer.spotify.com/documentation/web-api/
 	// https://doxdox.org/jmperez/spotify-web-api-js
 
@@ -855,11 +857,11 @@ spotify.loadApi = function (callback) {
 	window.spotifyApi = new SpotifyWebApi();
 	spotifyApi.setAccessToken(spotifyAccessToken);
 
-	callback(new SjSuccess({
+	var result = new SjSuccess({
 		log: true,
 		origin: 'spotify.loadApi()',
 		message: 'spotify api ready',
-	}));
+	});
 
 	// TODO is there any way this could fail?
 }
@@ -888,31 +890,31 @@ youtube.loadApi = function (callback) {
 					// at least one scope is needed, this is the bare minimum scope
 					'scope': 'https://www.googleapis.com/auth/youtube.readonly'
 				}).then(function (response) {
-					callback(new SjSuccess({
+					var result = new SjSuccess({
 						log: true,
 						origin: 'youtube.loadApi()',
 						message: 'youtube api ready',
-					}));
+					});
 				}, function (reason) {
 					// TODO fill in reason information
-					callback(new SjError({
+					var result = new SjError({
 						log: true,
 						origin: 'youtube.loadApi()',
 						message: 'failed to load youtube api',
 						reason: 'gapi.client.init rejected',
 						content: reason,
-					}));
+					});
 				});
 			},
 			onerror: function() {
 				// TODO fill in reason information
-				callback(new SjError({
+				var result = new SjError({
 					log: true,
 					origin: 'youtube.loadApi()',
 					message: 'failed to load youtube libraries',
 					reason: 'gapi.load error',
 					content: reason,
-				}));
+				});
 			},
 			//timeout: 5000, // 5 seconds.
 			//ontimeout: function() {
@@ -921,12 +923,12 @@ youtube.loadApi = function (callback) {
 		});
 	}).fail(function (jqxhr, settings, exception) {
 		// TODO fill in reason information
-		callback(new SjError({
+		var result = new SjError({
 			log: true,
 			origin: 'youtube.loadApi()',
 			message: 'failed to load youtube api',
 			reason: '$.getScript() for youtube api failed',
-		}));
+		});
 	});
 }
 
@@ -940,12 +942,12 @@ spotify.loadPlayer = function (callback) {
 
 	$.getScript('https://sdk.scdn.co/spotify-player.js').fail(function (jqxhr, settings, exception) {
 		// TODO fill in reason information
-		callback(new SjError({
+		var result = new SjError({
 			log: true,
 			origin: 'spotify.loadPlayer()',
 			message: 'failed to load spotify player',
 			reason: '$.getScript() for spotify player failed',
-		}));
+		});
 	});
 	// onSpotifyWebPlaybackSDKReady must be defined immediately after spotify-player.js, acts as the callback function
 	window.onSpotifyWebPlaybackSDKReady = function () {
@@ -959,20 +961,20 @@ spotify.loadPlayer = function (callback) {
 		// error handling
 		// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
 		player.addListener('initialization_error', function ({message}) { 
-			callback(new SjError({
+			var result = new SjError({
 				log: true,
 				origin: 'spotify.loadPlayer()',
 				message: 'spotify player encountered an initialization error',
 				reason: message,
-			}));
+			});
 		});
 		player.addListener('authentication_error', function ({message}) { 
-			callback(new SjError({
+			var result = new SjError({
 				log: true,
 				origin: 'spotify.loadPlayer()',
 				message: 'spotify player encountered an authentication error',
 				reason: message,
-			})); 
+			}); 
 		});
 
 		player.addListener('account_error', function ({message}) { 
@@ -998,27 +1000,27 @@ spotify.loadPlayer = function (callback) {
 				// https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
 
 				if (!matchType(response, 'null')) {
-					callback(new SjSuccess({
+					var result = new SjSuccess({
 						log: true,
 						origin: 'spotify.loadPlayer()',
 						message: 'spotify player loaded',
-					}));
+					});
 				} else if (!matchType(error, 'null')) {
-					callback(new SjError({
+					var result = new SjError({
 						log: true,
 						code: JSON.parse(error.response).error.status,
 						origin: 'spotify.loadPlayer()',
 						message: 'spotify player could not be loaded',
 						reason: JSON.parse(error.response).error.message,
 						content: error,
-					}));
+					});
 				} else {
-					callback(new SjError({
+					var result = new SjError({
 						log: true,
 						origin: 'spotify.loadPlayer()',
 						message: 'spotify player could not be loaded',
 						reason: 'no response',
-					}));
+					});
 				}
 			});
 		});
@@ -1073,17 +1075,17 @@ youtube.loadPlayer = function (callback) {
 
 	// player callback
 	window.onPlayerReady = function (event) {
-		callback(new SjSuccess({
+		var result = new SjSuccess({
 			log: true,
 			origin: 'youtube.loadPlayer()',
 			message: 'youtube player loaded',
-		}));
+		});
 	}
 
 	window.onPlayerStateChange = function (event) {
 	}
 
-	window.onError = function (event) {
+	window.onPlayerError = function (event) {
 		console.error(event);
 	}
 }
