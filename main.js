@@ -20,8 +20,10 @@
 
 // TODO maybe make source objects with all their respective functions so that they can be called dynamically: globalSourceObject[source].play(callback);
 
+
+
 // test
-$("#test").click(function() {
+$('#test').click(function() {
 	
 });
 
@@ -988,7 +990,7 @@ spotify.loadPlayer = function () {
 
 		// playback status updates
 		player.addListener('player_state_changed', function (state) { 
-			// TODO maybe implement this with actualPlaybackState ???
+			// TODO maybe implement this with knownPlaybackState ???
 		});
 
 		// ready
@@ -1005,6 +1007,9 @@ spotify.loadPlayer = function () {
 						origin: 'spotify.loadPlayer()',
 						message: 'spotify player loaded',
 					});
+
+					// TODO checkPlaybackState() gets an empty response when this is called here - Why???
+					// updatePlaybackState();
 				} else if (!matchType(error, 'null')) {
 					var result = new SjError({
 						log: true,
@@ -1080,6 +1085,8 @@ youtube.loadPlayer = function () {
 			origin: 'youtube.loadPlayer()',
 			message: 'youtube player loaded',
 		});
+
+		// TODO updatePlaybackState();
 	}
 
 	window.onPlayerStateChange = function (event) {
@@ -1421,21 +1428,41 @@ function displayList(playlist) {
 // TODO consider making a playback object
 
 var desiredPlayback = {
-	track: new SjTrack({}),
+	track: new SjTrack({
+		source: 'none',
+	}),
 	playing: false,
 	progress: 0,
+	pendingSeek: false,
+	timeStamp: Date.now(),
 };
 
-var actualPlayback = {
-	spotify: {
-		track: new SjTrack({}),
+// TODO maybe include an estimated playback object too?
+
+var knownPlayback = {
+	none: {
+		track: new SjTrack({
+			source: 'none',
+		}),
 		playing: false,
 		progress: 0,
+		timeStamp: Date.now(),
+	},
+	spotify: {
+		track: new SjTrack({
+			source: 'spotify',
+		}),
+		playing: false,
+		progress: 0,
+		timeStamp: Date.now(),
 	},
 	youtube: {
-		track: new SjTrack({}),
+		track: new SjTrack({
+			source: 'youtube',
+		}),
 		playing: false,
 		progress: 0,
+		timeStamp: Date.now(),
 	},
 };
 
@@ -1463,15 +1490,18 @@ function checkPlaybackState(callback) {
 	}
 }
 
+// !!! checkPlayback functions must save timeStamp immediately after progress is avaliable
 spotify.checkPlayback = function (callback) {
-	// 1 api call
+	// 1 api call (all)
 
 	spotifyApi.getMyCurrentPlaybackState({}, function(error, response) {
 		if (!matchType(response, 'null')) {
+			knownPlayback.spotify.timeStamp = Date.now();
+			
 			// TODO will cause an error if no track is playing, will break this entire function
-			actualPlayback.spotify.playing = response.is_playing;
-			actualPlayback.spotify.progress = response.progress_ms;
-			actualPlayback.spotify.track = {
+			knownPlayback.spotify.playing = response.is_playing;
+			knownPlayback.spotify.progress = response.progress_ms;
+			knownPlayback.spotify.track = {
 				source: 'spotify',
 				id: response.item.id,
 				artists: [],
@@ -1482,7 +1512,7 @@ spotify.checkPlayback = function (callback) {
 
 			// fill artists
 			response.item.artists.forEach(function (artist, j) {
-				actualPlayback.spotify.track.artists[j] = artist.name;
+				knownPlayback.spotify.track.artists[j] = artist.name;
 			});
 
 			callback(new SjSuccess({
@@ -1513,7 +1543,7 @@ spotify.checkPlayback = function (callback) {
 
 youtube.checkPlayback = function (callback) {
 	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
-	// 1 api call
+	// 1 api call (track)
 
 	//https://developers.google.com/youtube/iframe_api_reference#Functions
 
@@ -1521,13 +1551,14 @@ youtube.checkPlayback = function (callback) {
 	if (youtubePlayer.getPlayerState() == 1 || youtubePlayer.getPlayerState() == 3) {
 		/*	Returns the state of the player. Possible values are:
 			-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
-		actualPlayback.youtube.playing = true;
+		knownPlayback.youtube.playing = true;
 	} else {
-		actualPlayback.youtube.playing = false;
+		knownPlayback.youtube.playing = false;
 	}
 	
 	// progress?
-	actualPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
+	knownPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
+	knownPlayback.youtube.timeStamp = Date.now();
 
 	// id?
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
@@ -1540,7 +1571,7 @@ youtube.checkPlayback = function (callback) {
 		youtube.getTracks([id], function(result) {
 			if (matchType(result, 'SjPlaylist')) {
 				if (result.content.length === 1) {
-					actualPlayback.youtube.track = result.content[0];
+					knownPlayback.youtube.track = result.content[0];
 
 					callback(new SjSuccess({
 						log: true,
@@ -1575,7 +1606,10 @@ youtube.checkPlayback = function (callback) {
 function updatePlaybackTrack(callback) {
 	// TODO switching back to an already progressed track from another source will resume the track, not start it again (this contrasts with switching to a track of the same source which then starts the track), need to find a way to (re)start the track if its not the same as what (was) playing 
 
-	if (desiredPlayback.track.id === actualPlayback[desiredPlayback.track.source].track.id) {
+	// also clicking preview doesnt restart the track, it just 'resumes'??? basically need a trigger to say 'restart' the track regardless if its the same
+
+	// TODO need a better handler for no source/track desired, right now the 'none' source (not in sourceList) sort of deals with this, but not perfectly
+	if (desiredPlayback.track.id === knownPlayback[desiredPlayback.track.source].track.id) {
 		// if same track, do nothing
 		callback(new SjSuccess({
 			log: true,
@@ -1639,15 +1673,30 @@ function updatePlaybackPlaying(callback) {
 }
 
 function updatePlaybackProgress(callback) {
-	// TODO everything in here
-	// seek issue: there will be a discrepancy between the api progress (actual) and the calculated desired progress, and when updatePlaybackState() is called, if they are different then seek() will be called - this will cause a stutter in the track, which we dont want.
-	// how do we signal when we want seek to update and when we dont? (we dont want to simply not call seek() if the two values are close enough because then clicking the same spot on the seek bar multiple times would loose feedback and only trigger a re-wind once every x times when the actualPlayback gets far enough away) - is this an issue specific to seek()???
-
-	callback(new SjSuccess({
-		log: true,
-		origin: 'updatePlaybackProgress()',
-		message: 'updated playback progress',
-	}));
+	if (desiredPlayback.pendingSeek) {
+		for (var key in sourceList) {
+			if (key === desiredPlayback.track.source) {
+				console.log(desiredPlayback.progress);
+				seek(key, desiredPlayback.progress, function (result) {
+					if (matchType(result, 'SjSuccess')) {
+						callback(new SjSuccess({
+							log: true,
+							origin: 'updatePlaybackProgress()',
+							message: 'playback progress changed',
+						}));
+					} else {
+						callback(propagateError(result));
+					}
+				});
+			}
+		}
+	} else {
+		callback(new SjSuccess({
+			log: true,
+			origin: 'updatePlaybackProgress()',
+			message: 'playback progress unchanged',
+		}));
+	}
 }
 
 
@@ -1703,8 +1752,8 @@ function updatePlaybackState() {
 // SjSource control functions do not check against redundant calls and should not be called directly. The aggregator functions do this and sould be the only way this functionality is accessed. 
 // Redundancy checks are done here and not in the larger updatePlaybackState because: the same assumptions are being made in both cases, readability is improved, and now control functions can be safely called else where.
 
-// !!! dont direclty use source.control functions, they don't have redundancy checks (against actualPlaybackState), use the aggregator functions instead
-// !!! regular control functions assume actualPlaybackState has been checked recently and will act accordingly, 
+// !!! dont direclty use source.control functions, they don't have redundancy checks (against knownPlaybackState), use the aggregator functions instead
+// !!! regular control functions assume knownPlaybackState has been checked recently and will act accordingly, 
 
 function start(source, id, callback) {
 	// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
@@ -1766,7 +1815,7 @@ youtube.start = function (id, callback) {
 function resume(source, callback) {
 	if (source in sourceList) {
 		// check if already playing	
-		if (!actualPlayback[source].playing) { 
+		if (!knownPlayback[source].playing) { 
 			sourceList[source].resume(function (result) {
 				callback(result);
 			});
@@ -1829,7 +1878,7 @@ youtube.resume = function (callback) {
 
 function pause(source, callback) {
 	if (source in sourceList) {
-		if (actualPlayback[source].playing) {
+		if (knownPlayback[source].playing) {
 			sourceList[source].pause(function (result) {
 				callback(result);
 			});
@@ -1955,6 +2004,8 @@ youtube.seek = function (ms, callback) {
 //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 //                                   
 
+// TODO $(document).on('x') uses a lot of resources - on() is the only way to access dynamically generated elements, should change all of these to be more specific than just document to reduce search time
+
 // list
 $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview clicked");
@@ -1985,7 +2036,7 @@ $(document).on("click", "#connectPlayer", function() {
 	youtube.loadPlayer();
 });
 
-// page
+// playback
 $(document).on("click", "#search", function() {
 	console.log("#search clicked");
 
@@ -2001,11 +2052,63 @@ $(document).on("click", "#toggle", function() {
 	updatePlaybackState();
 });
 
-$(document).on("click", "#seek", function() {
-	console.log("#seek clicked");
+// TODO distinguish between user move and time move, so that time move doesnt trigger a player seek
 
-	seek(20000);
+$('#progressBar').slider({
+	// http://api.jqueryui.com/slider/
+	min: 0,
+	max: 100,
+	step: 1, // must be 1 if dealing later with milliseconds or else spotify api will spit back NaN if flaot
+	change: onProgressChange,
+	stop: onSliderMove,
 });
+
+// 'Triggered after the user slides a handle, if the value has changed, or if the value is changed programmatically via the value method.'
+function onProgressChange(event, {handle, handleIndex, value}) {
+	$('#val').html(value);
+}
+
+// 'Triggered after the user slides a handle.'
+function onSliderMove(event, {handle, handleIndex, value}) {
+	desiredPlayback.progress = $('#progressBar').slider('option', 'value');
+	desiredPlayback.pendingSeek = true;
+	updatePlaybackState();
+}
+
+$('#update').click(function () {
+	$('#progressBar').slider('option', 'value', $('#seekTo').val());
+});
+
+var playing = true;
+
+function updateProgress() {
+	var currentSource = knownPlayback[desiredPlayback.track.source]; // TODO find better way of knowing what the currently playing source is
+	var now = Date.now();
+
+	currentSource.progress = currentSource.progress + now - currentSource.timeStamp;
+	currentSource.timeStamp = now;
+}
+
+function displayProgress() {
+	updateProgress();
+
+	var currentSource = knownPlayback[desiredPlayback.track.source];
+
+	$('#progressBar').slider('option', 'max', currentSource.track.duration);
+
+	
+	var timeSignature = currentSource.progress;
+	$('#progressBar').slider('option', 'value', timeSignature);
+}
+
+var timer = setInterval(function () {
+	if (desiredPlayback.playing) {
+		displayProgress();
+	}
+}, 1000);
+
+//clearInterval(timer);
+
 
 // account
 $(document).on("click", "#registerSubmit", function() {

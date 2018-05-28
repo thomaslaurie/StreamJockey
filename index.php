@@ -67,9 +67,19 @@
 
 <section>
 	<button id='toggle'>Toggle</button>
-	<button id='seek'>Seek</button>
-	<div id="youtubePlayerWrapper">
-        <div id="youtubePlayer"></div>
+
+	<div id='progressBar'></div>
+	Seek To : 
+	<input id='seekTo' type='text' value='10' />
+	<button id='update'>Update</button>
+	Current Value : 
+	<span id='val'>0</span>
+</section>
+
+<section>
+	
+	<div id='youtubePlayerWrapper'>
+        <div id='youtubePlayer'></div>
     </div>
 </section>
 

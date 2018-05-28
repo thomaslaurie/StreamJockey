@@ -15,27 +15,22 @@
 		?>
 	</script>
 
-	<!-- jquery -->
+	<!-- libraries -->
 	<script src='jquery-3.3.1.js'></script>
-	<!-- moment, time functions -->
+	<script src='jquery-ui/jquery-ui.js'></script>
+
 	<script src='moment.js'></script>
 
-
-	<!-- must after spotify javascript wrapper, but fefore youtube data api -->
+	<!-- own -->
 	<script src='main.js'></script>
 	
-
-	<!-- spotify javascript wrapper -->
-	<script src='spotify-web-api.js' onload="spotify.loadApi()"></script>
-
-	<!-- youtube data api 		
+	<!-- APIs -->
+	<script src='spotify-web-api.js' onload="spotify.loadApi()"></script> <!-- spotify javascript wrapper -->
+	<script src="https://apis.google.com/js/api.js" onload="youtube.loadApi()"></script> <!-- youtube data api 		
 		async loads script at the same time html is being parsed, defer doesnt run the script until html has been fully parsed 
 		http://www.growingwiththeweb.com/2014/02/async-vs-defer-attributes.html
 		
 		google's extensive version: 
 		when this script loads, it changes its own onload attribute to an empty function, then calls handleClientLoad()
 		<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()" onreadystatechange="if (this.readyState === 'complete') this.onload()"></script> -->
-	<script src="https://apis.google.com/js/api.js" onload="youtube.loadApi()"></script>
-
-	
 </html>
