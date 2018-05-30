@@ -84,7 +84,7 @@
 </section>
 
 <section>
-	<input id='uri' type='text' placeholder='search' value='tycho'>
+	<input id='uri' type='text' placeholder='search' value='lorn'>
 	<button id='search'>Search</button>
 	<ul id='list'></ul>
 </section>

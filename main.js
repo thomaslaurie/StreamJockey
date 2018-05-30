@@ -1466,6 +1466,11 @@ var knownPlayback = {
 	},
 };
 
+// TODO find better way of knowing what the currently playing source is
+function desiredSource() {
+	return knownPlayback[desiredPlayback.track.source];
+}
+
 function checkPlaybackState(callback) {
 	// TODO ??? result is not passed in callback, deal with this
 	var asyncList = new AsyncList({
@@ -1755,6 +1760,8 @@ function updatePlaybackState() {
 // !!! dont direclty use source.control functions, they don't have redundancy checks (against knownPlaybackState), use the aggregator functions instead
 // !!! regular control functions assume knownPlaybackState has been checked recently and will act accordingly, 
 
+// TODO consider instead of updating playback state here (in each source function), do a second checkPlaybackState() once updatePlaybackState() is finished? (this would require two api calls, but would be simpler (but would it?))
+
 function start(source, id, callback) {
 	// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
 	if (source in sourceList) {
@@ -1774,6 +1781,8 @@ function start(source, id, callback) {
 spotify.start = function (id, callback) {
 	spotifyApi.play({"uris":["spotify:track:" + id]}, function(error, response) {
 		if (!matchType(response, 'null')) {
+			knownPlayback.spotify.playing = true;
+
 			callback(new SjSuccess({
 				log: true,
 				origin: 'start(spotify, ...)',
@@ -1805,6 +1814,8 @@ youtube.start = function (id, callback) {
 	youtubePlayer.playVideo();
 
 	// TODO check if successful?
+	knownPlayback.youtube.playing = true;
+
 	callback(new SjSuccess({
 		log: true,
 		origin: 'start(youtube, ...)',
@@ -1839,6 +1850,8 @@ function resume(source, callback) {
 spotify.resume = function (callback) {
 	spotifyApi.play({}, function(error, response) {
 		if (!matchType(response, 'null')) {
+			knownPlayback.spotify.playing = true;
+
 			callback(new SjSuccess({
 				log: true,
 				origin: 'resume(spotify, ...)',
@@ -1869,6 +1882,8 @@ youtube.resume = function (callback) {
 	youtubePlayer.playVideo();
 
 	// TODO check if successful?
+	knownPlayback.youtube.playing = true;
+
 	callback(new SjSuccess({
 		log: true,
 		origin: 'resume(youtube, ...)',
@@ -1902,6 +1917,8 @@ function pause(source, callback) {
 spotify.pause = function (callback) {
 	spotifyApi.pause({}, function(error, response) {
 		if (!matchType(response, 'null')) {
+			knownPlayback.spotify.playing = false;
+
 			callback(new SjSuccess({
 				log: true,
 				origin: 'pause(spotify, ...)',
@@ -1932,6 +1949,8 @@ youtube.pause = function (callback) {
 	youtubePlayer.pauseVideo();
 
 	// TODO check if successful?
+	knownPlayback.youtube.playing = false;
+
 	callback(new SjSuccess({
 		log: true,
 		origin: 'pause(youtube, ...)',
@@ -1957,6 +1976,8 @@ function seek(source, ms, callback) {
 spotify.seek = function (ms, callback) {
 	spotifyApi.seek(ms, function(error, response) {
 		if (!matchType(response, 'null')) {
+			knownPlayback.spotify.progress = ms;
+
 			callback(new SjSuccess({
 				log: true,
 				origin: 'seek(spotify, ...)',
@@ -1988,6 +2009,8 @@ youtube.seek = function (ms, callback) {
 	youtubePlayer.seekTo(Math.round(ms / 1000), true);
 
 	// TODO check if successful?
+	knownPlayback.youtube.progress = ms;
+
 	callback(new SjSuccess({
 		log: true,
 		origin: 'seek(youtube, ...)',
@@ -2052,7 +2075,6 @@ $(document).on("click", "#toggle", function() {
 	updatePlaybackState();
 });
 
-// TODO distinguish between user move and time move, so that time move doesnt trigger a player seek
 
 $('#progressBar').slider({
 	// http://api.jqueryui.com/slider/
@@ -2063,13 +2085,16 @@ $('#progressBar').slider({
 	stop: onSliderMove,
 });
 
-// 'Triggered after the user slides a handle, if the value has changed, or if the value is changed programmatically via the value method.'
+
+// TODO issues: progress isnt being updated, progress slider swaps back to the previously clicked location - not the current one
+
 function onProgressChange(event, {handle, handleIndex, value}) {
+	// 'Triggered after the user slides a handle, if the value has changed, or if the value is changed programmatically via the value method.'
 	$('#val').html(value);
 }
 
-// 'Triggered after the user slides a handle.'
 function onSliderMove(event, {handle, handleIndex, value}) {
+	// 'Triggered after the user slides a handle.'
 	desiredPlayback.progress = $('#progressBar').slider('option', 'value');
 	desiredPlayback.pendingSeek = true;
 	updatePlaybackState();
@@ -2079,32 +2104,27 @@ $('#update').click(function () {
 	$('#progressBar').slider('option', 'value', $('#seekTo').val());
 });
 
-var playing = true;
 
-function updateProgress() {
-	var currentSource = knownPlayback[desiredPlayback.track.source]; // TODO find better way of knowing what the currently playing source is
+function inferProgress() {
 	var now = Date.now();
-
-	currentSource.progress = currentSource.progress + now - currentSource.timeStamp;
-	currentSource.timeStamp = now;
+	desiredSource().progress += now - desiredSource().timeStamp;
+	desiredSource().timeStamp = now;
 }
 
 function displayProgress() {
-	updateProgress();
+	// TODO put this some where else
+	// Set slider range to track duration
+	$('#progressBar').slider('option', 'max', desiredSource().track.duration);
 
-	var currentSource = knownPlayback[desiredPlayback.track.source];
-
-	$('#progressBar').slider('option', 'max', currentSource.track.duration);
-
-	
-	var timeSignature = currentSource.progress;
-	$('#progressBar').slider('option', 'value', timeSignature);
+	// Update element
+	$('#progressBar').slider('option', 'value', desiredSource().progress);
 }
 
 var timer = setInterval(function () {
-	if (desiredPlayback.playing) {
-		displayProgress();
+	if (desiredSource().playing) {
+		inferProgress();
 	}
+	displayProgress();
 }, 1000);
 
 //clearInterval(timer);
