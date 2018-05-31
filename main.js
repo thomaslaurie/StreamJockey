@@ -1684,6 +1684,8 @@ function updatePlaybackProgress(callback) {
 				console.log(desiredPlayback.progress);
 				seek(key, desiredPlayback.progress, function (result) {
 					if (matchType(result, 'SjSuccess')) {
+						desiredPlayback.pendingSeek = false;
+
 						callback(new SjSuccess({
 							log: true,
 							origin: 'updatePlaybackProgress()',
@@ -2075,6 +2077,9 @@ $(document).on("click", "#toggle", function() {
 	updatePlaybackState();
 });
 
+// TODO progress bar jumps back sometimes when seeking as playing
+// TODO progress bar does not respond to external progress changes (implement api listener handling for this)
+// TODO progress doesnt change between tracks, youtube might be starting at 0 and doesnt start updating?
 
 $('#progressBar').slider({
 	// http://api.jqueryui.com/slider/
@@ -2082,28 +2087,41 @@ $('#progressBar').slider({
 	max: 100,
 	step: 1, // must be 1 if dealing later with milliseconds or else spotify api will spit back NaN if flaot
 	change: onProgressChange,
-	stop: onSliderMove,
+	slide: onSliderMove,
+	start: onSliderGrip,
+	stop: onSliderDrop,
 });
-
-
-// TODO issues: progress isnt being updated, progress slider swaps back to the previously clicked location - not the current one
 
 function onProgressChange(event, {handle, handleIndex, value}) {
 	// 'Triggered after the user slides a handle, if the value has changed, or if the value is changed programmatically via the value method.'
+
+	// Update timeMarker according to slider position, whenver slider position changes
 	$('#val').html(value);
 }
 
 function onSliderMove(event, {handle, handleIndex, value}) {
+	// 'Triggered on every mouse move during slide. The value provided in the event as ui.value represents the value that the handle will have as a result of the current movement.'
+
+	// Update timeMarker according to slider position, when dragging
+	$('#val').html(value);
+}
+
+var sliderDrag = false;
+
+function onSliderGrip(event, {handle, handleIndex, value}) {
+	// 'Triggered when the user starts sliding.'
+	sliderDrag = true;
+}
+
+function onSliderDrop(event, {handle, handleIndex, value}) {
 	// 'Triggered after the user slides a handle.'
+	sliderDrag = false;
+
+	// store and trigger playback request based on slider position
 	desiredPlayback.progress = $('#progressBar').slider('option', 'value');
 	desiredPlayback.pendingSeek = true;
 	updatePlaybackState();
 }
-
-$('#update').click(function () {
-	$('#progressBar').slider('option', 'value', $('#seekTo').val());
-});
-
 
 function inferProgress() {
 	var now = Date.now();
@@ -2121,10 +2139,13 @@ function displayProgress() {
 }
 
 var timer = setInterval(function () {
-	if (desiredSource().playing) {
+	if (desiredSource().playing) { 
+		// TODO playing should not be the trigger for inferProgress, as this doesnt keep track of when playback is paused and then resumed (inferProgress will assume all that time it as been playing as well), should instead be a startInfer, and stopInfer function
 		inferProgress();
 	}
-	displayProgress();
+	if (!sliderDrag) {
+		displayProgress();
+	}
 }, 1000);
 
 //clearInterval(timer);

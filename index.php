@@ -69,9 +69,6 @@
 	<button id='toggle'>Toggle</button>
 
 	<div id='progressBar'></div>
-	Seek To : 
-	<input id='seekTo' type='text' value='10' />
-	<button id='update'>Update</button>
 	Current Value : 
 	<span id='val'>0</span>
 </section>
