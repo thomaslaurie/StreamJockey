@@ -1432,8 +1432,9 @@ var desiredPlayback = {
 		source: 'none',
 	}),
 	playing: false,
-	progress: 0,
+
 	pendingSeek: false,
+	progress: 0,
 	timeStamp: Date.now(),
 };
 
@@ -1445,6 +1446,7 @@ var knownPlayback = {
 			source: 'none',
 		}),
 		playing: false,
+
 		progress: 0,
 		timeStamp: Date.now(),
 	},
@@ -1453,6 +1455,7 @@ var knownPlayback = {
 			source: 'spotify',
 		}),
 		playing: false,
+
 		progress: 0,
 		timeStamp: Date.now(),
 	},
@@ -1461,6 +1464,7 @@ var knownPlayback = {
 			source: 'youtube',
 		}),
 		playing: false,
+
 		progress: 0,
 		timeStamp: Date.now(),
 	},
@@ -1567,7 +1571,7 @@ youtube.checkPlayback = function (callback) {
 
 	// id?
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-	var id = youtubePlayer.getVideoUrl().split("v=")[1];
+	var id = youtubePlayer.getVideoUrl().split("v=")[1]; // TODO potential uncaught TypeError here
 	if (id) {
 		// if not empty
 		var andPosition = id.indexOf('&'); 
@@ -1623,7 +1627,7 @@ function updatePlaybackTrack(callback) {
 		}));
 	} else {
 		// else, start desired track
-		start(desiredPlayback.track.source, desiredPlayback.track.id, function (result) {
+		start(desiredPlayback.track, function (result) {
 			if (matchType(result, 'SjSuccess')) {
 				callback(new SjSuccess({
 					log: true,
@@ -1708,8 +1712,12 @@ function updatePlaybackProgress(callback) {
 
 
 function updatePlaybackState() {
+	// TODO desiredPlayback states do not reset if unsuccessful
+
+	// get most current info
 	checkPlaybackState(function(result) {
 		if (matchType(result, 'SjSuccess')) {
+			// update three playback types
 			updatePlaybackTrack(function (result) {
 				if (matchType(result, 'SjSuccess')) {
 					updatePlaybackPlaying(function (result) {
@@ -1763,11 +1771,19 @@ function updatePlaybackState() {
 // !!! regular control functions assume knownPlaybackState has been checked recently and will act accordingly, 
 
 // TODO consider instead of updating playback state here (in each source function), do a second checkPlaybackState() once updatePlaybackState() is finished? (this would require two api calls, but would be simpler (but would it?))
+// I thought because track info is also needed (in addition to playback state) that a final (and second) checkPlaybackState would be needed to verify the post-update playback state, however this info should already be known from the fetched and displayed track (object), so all of these functions do have the ability to update information when resolved
+// furthermore this should sugggest using track objects everywhere as parameters rather than ids (this shoul be possible because the user is never going to be blindly playing id strings without the app first searching and tieing down its additional metadata)
 
-function start(source, id, callback) {
+// TODO setting knownPlayback.progress upon start() and seek() may be an issue, as the actual progress might have changed in the time it took for the success response to send - therefore any real updates (via listener) or checks that return before then will be wiped out with less-accurate information
+
+// TODO start new track always starts at ~200ms is this an error or just a symptom of the first timer frames???
+
+// TODO sometimes when starting a new track (of the same same source?) after being on a different source, the seek bar will jump to where the old track was previously playing? seems to only happen with spotify
+
+function start(track, callback) {
 	// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
-	if (source in sourceList) {
-		sourceList[source].start(id, function (result) {
+	if (track.source in sourceList) {
+		sourceList[track.source].start(track, function (result) {
 			callback(result);
 		});
 	} else {
@@ -1780,10 +1796,12 @@ function start(source, id, callback) {
 	}
 }
 
-spotify.start = function (id, callback) {
-	spotifyApi.play({"uris":["spotify:track:" + id]}, function(error, response) {
+spotify.start = function (track, callback) {
+	spotifyApi.play({"uris":["spotify:track:" + track.id]}, function(error, response) {
 		if (!matchType(response, 'null')) {
 			knownPlayback.spotify.playing = true;
+			knownPlayback.spotify.track = track;
+			knownPlayback.spotify.progress = 0;
 
 			callback(new SjSuccess({
 				log: true,
@@ -1811,12 +1829,14 @@ spotify.start = function (id, callback) {
 	});
 }
 
-youtube.start = function (id, callback) {
-	youtubePlayer.loadVideoById(id);
+youtube.start = function (track, callback) {
+	youtubePlayer.loadVideoById(track.id);
 	youtubePlayer.playVideo();
 
 	// TODO check if successful?
 	knownPlayback.youtube.playing = true;
+	knownPlayback.youtube.track = track;
+	knownPlayback.youtube.progress = 0;
 
 	callback(new SjSuccess({
 		log: true,
@@ -2134,17 +2154,20 @@ function displayProgress() {
 	// Set slider range to track duration
 	$('#progressBar').slider('option', 'max', desiredSource().track.duration);
 
+	console.log(desiredSource().track.duration);
 	// Update element
 	$('#progressBar').slider('option', 'value', desiredSource().progress);
 }
 
 var timer = setInterval(function () {
+	console.log(desiredSource().playing);
 	if (desiredSource().playing) { 
 		// TODO playing should not be the trigger for inferProgress, as this doesnt keep track of when playback is paused and then resumed (inferProgress will assume all that time it as been playing as well), should instead be a startInfer, and stopInfer function
 		inferProgress();
 	}
 	if (!sliderDrag) {
 		displayProgress();
+		console.log('display');
 	}
 }, 1000);
 
