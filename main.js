@@ -1013,6 +1013,7 @@ spotify.loadPlayer = function () {
 		});
 
 		// configure listeners
+		// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
 		// error handling
 		// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
 		player.addListener('initialization_error', function ({message}) { 
@@ -1042,8 +1043,23 @@ spotify.loadPlayer = function () {
 		});
 
 		// playback status updates
-		player.addListener('player_state_changed', function (state) { 
-			// TODO maybe implement this with knownPlaybackState ???
+		player.addListener('player_state_changed', function (state) {
+			// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+			spotify.playback.timeStamp = state.timestamp;
+			spotify.playback.playing = !state.paused;
+			spotify.playback.progress = state.position;
+			spotify.playback.track = {
+				source: spotify,
+				id: state.track_window.current_track.id,
+				artists: [],
+				title: state.track_window.current_track.name,
+				duration: state.track_window.current_track.duration_ms,
+			}
+
+			// fill artists
+			state.track_window.current_track.artists.forEach(function (artist, i) {
+				spotify.playback.track.artists[i] = artist.name;
+			});
 		});
 
 		// ready
@@ -1143,6 +1159,13 @@ youtube.loadPlayer = function () {
 	}
 
 	window.onPlayerStateChange = function (event) {
+		// TODO 3 - buffering counts as 'playing' for play/pause but should count as paused for progression, need to figure out out to handle this as right now it always counts as playing
+
+		if (event.data === 1 || event.data === 3) {
+			youtube.playback.playing = true;
+		} else {
+			youtube.playback.playing = false;
+		}
 	}
 
 	window.onPlayerError = function (event) {
@@ -1480,17 +1503,37 @@ function displayList(playlist) {
 var desiredPlayback = new SjPlayback({
 	pendingStart: false,
 	pendingSeek: false,
-
-	// TODO triggering change of playback state is combined in updatePlaybackState() to conserve api requests, and therefore anything triggering a request should be wrappped up into time period chunks and queued that way, or else simply doing them individually would work just as well
-
-
-	// the goal of calling multiple things at the same time is to conserve api requests via checkPlaybackState(), additionally api calls sould not interfere or overlap with each other and must be called in sequence, not in parallel (maby add a queue?)
-	// however it is unlikely these requests will happen at the same time (but maybe very close to each other), so updatePlaybackState() doesnt really help with that anyways
-
-
-	// everything is done on update for redundancy checks
-	// maybe add a queue but have it mesh into the sequential updatePlaybackState() if its too slow
 });
+
+desiredPlayback.start = function (track) {
+	this.track = track;
+	this.pendingStart = true;
+	this.playing = true;
+
+	// Set slider range to track duration
+	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
+
+	updatePlaybackState();
+}
+
+desiredPlayback.toggle = function () {
+	this.playing = !this.playing;
+	updatePlaybackState();
+}
+
+desiredPlayback.seek = function (ms) {
+	this.progress = ms;
+	this.pendingSeek = true;
+	updatePlaybackState();
+}
+
+// TODO
+// the goal of calling multiple things at the same time is to conserve api requests via checkPlaybackState(), additionally api calls sould not interfere or overlap with each other and must be called in sequence, not in parallel (maby add a queue?)
+// however it is unlikely these requests will happen at the same time (but maybe very close to each other), so updatePlaybackState() doesnt really help with that anyways
+
+
+// everything is done on update for redundancy checks
+// maybe add a queue but have it mesh into the sequential updatePlaybackState() if its too slow
 
 
 
@@ -1528,10 +1571,10 @@ function checkPlaybackState(callback) {
 spotify.checkPlayback = function (callback) {
 	// 1 api call (all)
 
+	
 	spotifyApi.getMyCurrentPlaybackState({}, function(error, response) {
 		if (!matchType(response, 'null')) {
-			spotify.playback.timeStamp = Date.now();
-			
+			spotify.playback.timeStamp = response.timestamp;
 			// TODO will cause an error if no track is playing, will break this entire function
 			spotify.playback.playing = response.is_playing;
 			spotify.playback.progress = response.progress_ms;
@@ -1582,7 +1625,7 @@ youtube.checkPlayback = function (callback) {
 	//https://developers.google.com/youtube/iframe_api_reference#Functions
 
 	// playing?
-	if (youtubePlayer.getPlayerState() == 1 || youtubePlayer.getPlayerState() == 3) {
+	if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
 		/*	Returns the state of the player. Possible values are:
 			-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
 		youtube.playback.playing = true;
@@ -2085,17 +2128,16 @@ youtube.seek = function (ms, callback) {
 //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 //                                   
 
+
+
+
 // TODO $(document).on('x') uses a lot of resources - on() is the only way to access dynamically generated elements, should change all of these to be more specific than just document to reduce search time
 
 // list
 $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview clicked");
 
-	// TODO make a function that does this, and just pass the DOM elemetn that has .data('track'), like .addTrack does
-	desiredPlayback.track = $(this).parent().data('track');
-	desiredPlayback.pendingStart = true;
-	desiredPlayback.playing = true;
-	updatePlaybackState();
+	desiredPlayback.start($(this).parent().data('track'));
 });
 
 $(document).on("click", ".addTrack", function() {
@@ -2130,53 +2172,44 @@ $(document).on("click", "#search", function() {
 $(document).on("click", "#toggle", function() {
 	console.log("#toggle clicked");
 
-	desiredPlayback.playing = !desiredPlayback.playing;
-	updatePlaybackState();
+	desiredPlayback.toggle();
 });
 
 // TODO progress bar does not respond to external progress changes (implement api listener handling for this)
+
+var dragging = false;
 
 $('#progressBar').slider({
 	// http://api.jqueryui.com/slider/
 	min: 0,
 	max: 100,
 	step: 1, // must be 1 if dealing later with milliseconds or else spotify api will spit back NaN if flaot
-	change: onProgressChange,
-	slide: onSliderMove,
-	start: onSliderGrip,
-	stop: onSliderDrop,
+	change: function (event, {handle, handleIndex, value}) {
+		// 'Triggered after the user slides a handle, if the value has changed, or if the value is changed programmatically via the value method.'
+
+		// Update timeMarker according to slider position, whenver slider position changes
+		$('#val').html(value);
+	},
+	slide: function (event, {handle, handleIndex, value}) {
+		// 'Triggered on every mouse move during slide. The value provided in the event as ui.value represents the value that the handle will have as a result of the current movement.'
+
+		// Update timeMarker according to slider position, when dragging
+		$('#val').html(value);
+	},
+	start: function (event, {handle, handleIndex, value}) {
+		// 'Triggered when the user starts sliding.'
+		dragging = true;
+	},
+	stop: function (event, {handle, handleIndex, value}) {
+		// 'Triggered after the user slides a handle.'
+		dragging = false;
+
+		// store and trigger playback request based on slider position
+		desiredPlayback.seek($('#progressBar').slider('option', 'value'));
+	},
 });
 
-function onProgressChange(event, {handle, handleIndex, value}) {
-	// 'Triggered after the user slides a handle, if the value has changed, or if the value is changed programmatically via the value method.'
-
-	// Update timeMarker according to slider position, whenver slider position changes
-	$('#val').html(value);
-}
-
-function onSliderMove(event, {handle, handleIndex, value}) {
-	// 'Triggered on every mouse move during slide. The value provided in the event as ui.value represents the value that the handle will have as a result of the current movement.'
-
-	// Update timeMarker according to slider position, when dragging
-	$('#val').html(value);
-}
-
-var sliderDrag = false;
-
-function onSliderGrip(event, {handle, handleIndex, value}) {
-	// 'Triggered when the user starts sliding.'
-	sliderDrag = true;
-}
-
-function onSliderDrop(event, {handle, handleIndex, value}) {
-	// 'Triggered after the user slides a handle.'
-	sliderDrag = false;
-
-	// store and trigger playback request based on slider position
-	desiredPlayback.progress = $('#progressBar').slider('option', 'value');
-	desiredPlayback.pendingSeek = true;
-	updatePlaybackState();
-}
+/* ----------------- */
 
 function inferProgress() {
 	var now = Date.now();
@@ -2185,13 +2218,6 @@ function inferProgress() {
 }
 
 function displayProgress() {
-	// TODO put this some where else
-	// Set slider range to track duration
-	$('#progressBar').slider('option', 'max', desiredSourcePlayback().track.duration);
-
-	// Update element
-
-
 	// TODO this is slightly crude and untested, but prevents the slider from jumping back sometimes when seeking during play, prevents infered progress from interupting between a requested progress and its result, however should consider making this 'pendingSeek' a larger state witha  system
 	if (desiredPlayback.pendingSeek) {
 		$('#progressBar').slider('option', 'value', desiredPlayback.progress);
@@ -2208,7 +2234,7 @@ function progressCheck() {
 		// TODO playing should not be the trigger for inferProgress, as this doesnt keep track of when playback is paused and then resumed (inferProgress will assume all that time it as been playing as well), should instead be a startInfer, and stopInfer function
 		inferProgress();
 	}
-	if (!sliderDrag) {
+	if (!dragging) {
 		displayProgress();
 	}
 }
@@ -2222,7 +2248,6 @@ function resetProgressTimer(ms) {
 }
 
 resetProgressTimer(1000);
-
 
 // account
 $(document).on("click", "#registerSubmit", function() {
