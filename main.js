@@ -24,7 +24,6 @@
 
 // test
 $('#test').click(function() {
-	
 });
 
 
@@ -36,6 +35,20 @@ $('#test').click(function() {
 //   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 //                                                    
 
+// no objects
+var noTrack = new SjTrack({
+});
+
+var noSource = new SjSource({
+	realSource: false,
+});
+
+noTrack.source = noSource; // will be undefined if defined in noTrack (before noSource is defined) and vice versa
+
+
+// sources
+var sourceList = [];
+
 var spotify = new SjSource({
 });
 
@@ -43,13 +56,7 @@ var youtube = new SjSource({
 	idPrefix: 'https://www.youtube.com/watch?v=',
 });
 
-var sourceList = {
-	// !!! pass-by-reference is required here because SjSource objects can be accessed either through the sourceList or by their own name
-	// TODO !!! SjSource objects require having 0 prototype properties, or else they will need different loop interactions
-	'spotify': spotify,
-	'youtube': youtube,
-};
-
+// TODO work out objects/classes/prototypes
 // data objects
 function SjObject(obj) {
 	this.objectType = 'SjObject';
@@ -92,7 +99,7 @@ function SjObject(obj) {
 	// "The call() method calls a function with a given this value and arguments provided individually."	
 }
 
-
+// error handling
 function SjSuccess(obj) {
 	// super
 	SjObject.call(this, obj);
@@ -157,7 +164,7 @@ function SjTrack(obj) {
 	// new properties
 	this.playlistId = typeof obj.playlistId === 'undefined' ? '' : obj.playlistId;
 	this.position = typeof obj.position === 'undefined' ? '' : obj.position;
-	this.source = typeof obj.source === 'undefined' ? '' : obj.source;
+	this.source = typeof obj.source === 'undefined' ? noSource : obj.source;
 	this.id = typeof obj.id === 'undefined' ? '' : obj.id; // !!! assumes ids are unique, even across all sources
 	this.artists = typeof obj.artists === 'undefined' ? [] : obj.artists;
 	this.title = typeof obj.title === 'undefined' ? '' : obj.title;
@@ -212,7 +219,10 @@ function SjUser(obj) {
 	this.onCreate();
 }
 
+
 function SjSource(obj) {
+	// TODO current methods of looping through SjSource object properties may fail if they have any prototype properties
+
 	// super
 	SjObject.call(this, obj);
 
@@ -236,6 +246,44 @@ function SjSource(obj) {
 	this.resume = typeof obj.resume === 'undefined' ? function (){} : obj.resume;
 	this.pause = typeof obj.pause === 'undefined' ? function (){} : obj.pause;
 	this.seek = typeof obj.seek === 'undefined' ? function (){} : obj.seek;
+
+	// !!! cyclical reference - has SjPlayback object which has SjTrack object which has this SjSource object
+	this.playback = typeof obj.playback === 'undefined' ? new SjPlayback({}) : obj.playback;
+
+	// sourceList
+	this.realSource = typeof obj.realSource === 'undefined' ? true : obj.realSource;
+	
+	this.addToSourceList = function () {
+		// TODO figure out how to call super.onCreate();
+		if (this.realSource) {
+			sourceList.push(this);
+		}
+	}
+
+	this.onCreate();
+	this.addToSourceList();
+}
+
+function SjPlayback(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// overwritten properties
+	this.objectType = 'SjPlayback';
+
+	// new properties
+	// track
+	this.track = typeof obj.track === 'undefined' ? noTrack : obj.track;
+
+	// playing
+	this.playing = typeof obj.playing === 'undefined' ? false : obj.playing;
+
+	// progress
+	this.progress = typeof obj.progress === 'undefined' ? 0 : obj.progress;
+	this.timeStamp = typeof obj.timeStamp === 'undefined' ? Date.now() : obj.timeStamp;
+
+	// volume
+	// TODO add volume
 
 	this.onCreate();
 }
@@ -690,6 +738,8 @@ function getUser(id) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 //                                                               
 
+// TODO convert track.source reference to string when sending to server
+
 // playlists
 function addPlaylist(title, visibility, description, color, image) {
 	// takes input DOM elements
@@ -848,7 +898,7 @@ function deleteTrack(playlistId, position) {
 //  ╚═╝  ╚═╝╚═╝     ╚═╝
 //                     
 
-// most of these functions define their own listeners - which dont allow for callback returns, replaced with var result for now
+// TODO most of these functions define their own listeners - which dont allow for callback returns, replaced with var result for now, find a way to handle errors
 
 // api
 spotify.loadApi = function () {
@@ -935,6 +985,9 @@ youtube.loadApi = function () {
 }
 
 // player
+
+// TODO is there a significant discrepancy between potential synchrounous/local sources (listeners) and asynchronous api calls for progress checks? WHich information sources are synchronous/local? Should their information override the api information?
+
 spotify.loadPlayer = function () {
 	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
 	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
@@ -1115,7 +1168,6 @@ var searchResults = {
 	// sources
 	'spotify': new SjPlaylist({origin: 'searchResults',}),
 	'youtube': new SjPlaylist({origin: 'searchResults',}),
-	'soundcloud': new SjPlaylist({origin: 'searchResults',}),
 
 	'all': new SjPlaylist({origin: 'searchResults',}),
 }
@@ -1123,7 +1175,7 @@ var searchResults = {
 // search
 function search(term) {
 	var asyncList = new AsyncList({
-		totalCount: Object.keys(sourceList).length,
+		totalCount: sourceList.length,
 		success: new SjSuccess({
 				origin: 'search()',
 			}),
@@ -1139,11 +1191,11 @@ function search(term) {
 		},
 	});
 
-	for (var key in sourceList) {
-		sourceList[key].search(term, function(result) {
+	sourceList.forEach(function (source) {
+		source.search(term, function(result) {
 			asyncList.endPartQuick(result);
 		});
-	}
+	});
 }
 
 spotify.search = function (term, callback) {
@@ -1203,7 +1255,7 @@ spotify.getTracks = function (items, callback) {
 
 	items.forEach(function (track, i) {
 		playlist.content[i] = new SjTrack({
-			source: 'spotify',
+			source: spotify,
 			id: track.id,
 			title: track.name,
 			duration: track.duration_ms,
@@ -1298,7 +1350,7 @@ youtube.getTracks = function (ids, callback) {
 			fufilled.result.items.forEach(function (track, i) {
 				playlist.content[i] = new SjTrack({});
 
-				playlist.content[i].source = 'youtube';
+				playlist.content[i].source = youtube;
 				playlist.content[i].id = track.id;
 
 				// convert artist - title format
@@ -1425,60 +1477,33 @@ function displayList(playlist) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 //   
 
-// TODO consider making a playback object
-
-var desiredPlayback = {
-	track: new SjTrack({
-		source: 'none',
-	}),
-	playing: false,
-
+var desiredPlayback = new SjPlayback({
+	pendingStart: false,
 	pendingSeek: false,
-	progress: 0,
-	timeStamp: Date.now(),
-};
 
-// TODO maybe include an estimated playback object too?
+	// TODO triggering change of playback state is combined in updatePlaybackState() to conserve api requests, and therefore anything triggering a request should be wrappped up into time period chunks and queued that way, or else simply doing them individually would work just as well
 
-var knownPlayback = {
-	none: {
-		track: new SjTrack({
-			source: 'none',
-		}),
-		playing: false,
 
-		progress: 0,
-		timeStamp: Date.now(),
-	},
-	spotify: {
-		track: new SjTrack({
-			source: 'spotify',
-		}),
-		playing: false,
+	// the goal of calling multiple things at the same time is to conserve api requests via checkPlaybackState(), additionally api calls sould not interfere or overlap with each other and must be called in sequence, not in parallel (maby add a queue?)
+	// however it is unlikely these requests will happen at the same time (but maybe very close to each other), so updatePlaybackState() doesnt really help with that anyways
 
-		progress: 0,
-		timeStamp: Date.now(),
-	},
-	youtube: {
-		track: new SjTrack({
-			source: 'youtube',
-		}),
-		playing: false,
 
-		progress: 0,
-		timeStamp: Date.now(),
-	},
-};
+	// everything is done on update for redundancy checks
+	// maybe add a queue but have it mesh into the sequential updatePlaybackState() if its too slow
+});
 
-// TODO find better way of knowing what the currently playing source is
-function desiredSource() {
-	return knownPlayback[desiredPlayback.track.source];
+
+
+function desiredSourcePlayback() {
+	// shorthand, TODO is there a better way?
+	return desiredPlayback.track.source.playback;
 }
+
 
 function checkPlaybackState(callback) {
 	// TODO ??? result is not passed in callback, deal with this
 	var asyncList = new AsyncList({
-		totalCount: Object.keys(sourceList).length,
+		totalCount: sourceList.length,
 		success: new SjSuccess({
 				origin: 'checkPlaybackState()',
 				message: 'checked playback state',
@@ -1492,11 +1517,11 @@ function checkPlaybackState(callback) {
 		},
 	});
 
-	for (var key in sourceList) {
-		sourceList[key].checkPlayback(function(result) {
+	sourceList.forEach(function (source) {
+		source.checkPlayback(function(result) {
 			asyncList.endPartQuick(result);
 		});
-	}
+	});
 }
 
 // !!! checkPlayback functions must save timeStamp immediately after progress is avaliable
@@ -1505,13 +1530,13 @@ spotify.checkPlayback = function (callback) {
 
 	spotifyApi.getMyCurrentPlaybackState({}, function(error, response) {
 		if (!matchType(response, 'null')) {
-			knownPlayback.spotify.timeStamp = Date.now();
+			spotify.playback.timeStamp = Date.now();
 			
 			// TODO will cause an error if no track is playing, will break this entire function
-			knownPlayback.spotify.playing = response.is_playing;
-			knownPlayback.spotify.progress = response.progress_ms;
-			knownPlayback.spotify.track = {
-				source: 'spotify',
+			spotify.playback.playing = response.is_playing;
+			spotify.playback.progress = response.progress_ms;
+			spotify.playback.track = {
+				source: spotify,
 				id: response.item.id,
 				artists: [],
 				title: response.item.name,
@@ -1521,7 +1546,7 @@ spotify.checkPlayback = function (callback) {
 
 			// fill artists
 			response.item.artists.forEach(function (artist, j) {
-				knownPlayback.spotify.track.artists[j] = artist.name;
+				spotify.playback.track.artists[j] = artist.name;
 			});
 
 			callback(new SjSuccess({
@@ -1560,14 +1585,14 @@ youtube.checkPlayback = function (callback) {
 	if (youtubePlayer.getPlayerState() == 1 || youtubePlayer.getPlayerState() == 3) {
 		/*	Returns the state of the player. Possible values are:
 			-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
-		knownPlayback.youtube.playing = true;
+		youtube.playback.playing = true;
 	} else {
-		knownPlayback.youtube.playing = false;
+		youtube.playback.playing = false;
 	}
 	
 	// progress?
-	knownPlayback.youtube.progress = youtubePlayer.getCurrentTime() * 1000;
-	knownPlayback.youtube.timeStamp = Date.now();
+	youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+	youtube.playback.timeStamp = Date.now();
 
 	// id?
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
@@ -1580,7 +1605,7 @@ youtube.checkPlayback = function (callback) {
 		youtube.getTracks([id], function(result) {
 			if (matchType(result, 'SjPlaylist')) {
 				if (result.content.length === 1) {
-					knownPlayback.youtube.track = result.content[0];
+					youtube.playback.track = result.content[0];
 
 					callback(new SjSuccess({
 						log: true,
@@ -1613,22 +1638,16 @@ youtube.checkPlayback = function (callback) {
 
 
 function updatePlaybackTrack(callback) {
-	// TODO switching back to an already progressed track from another source will resume the track, not start it again (this contrasts with switching to a track of the same source which then starts the track), need to find a way to (re)start the track if its not the same as what (was) playing 
+	// TODO need a better handler for no source/track desired, right now the 'none' source (not in sourceList) sort of deals with this, but not perfectly	
+	if (desiredPlayback.track.id !== desiredSourcePlayback().track.id || desiredPlayback.pendingStart) {
+		// desired track changed & pending start --> normal start different track request
+		// desired track unchanged & pending start --> 'start' same track request
+		// desired track changed & no pending start --> shouldn't technically happen, but start track anyways to reflect proper values
 
-	// also clicking preview doesnt restart the track, it just 'resumes'??? basically need a trigger to say 'restart' the track regardless if its the same
-
-	// TODO need a better handler for no source/track desired, right now the 'none' source (not in sourceList) sort of deals with this, but not perfectly
-	if (desiredPlayback.track.id === knownPlayback[desiredPlayback.track.source].track.id) {
-		// if same track, do nothing
-		callback(new SjSuccess({
-			log: true,
-			origin: 'updatePlaybackTrack()',
-			message: 'track is same',
-		}));
-	} else {
-		// else, start desired track
 		start(desiredPlayback.track, function (result) {
 			if (matchType(result, 'SjSuccess')) {
+				desiredPlayback.pendingStart = false;
+
 				callback(new SjSuccess({
 					log: true,
 					origin: 'updatePlaybackTrack()',
@@ -1638,12 +1657,20 @@ function updatePlaybackTrack(callback) {
 				callback(propagateError(result));
 			}
 		});	
+	} else {
+		// desired track unchanged & no pending start --> don't do anything
+
+		callback(new SjSuccess({
+			log: true,
+			origin: 'updatePlaybackTrack()',
+			message: 'track is same',
+		}));
 	}
 }
 
 function updatePlaybackPlaying(callback) {
 	var asyncList = new AsyncList({
-		totalCount: Object.keys(sourceList).length,
+		totalCount: sourceList.length,
 		success: new SjSuccess({
 				origin: 'updatePlaybackPlaying()',
 				message: 'updated playback playing',
@@ -1658,35 +1685,35 @@ function updatePlaybackPlaying(callback) {
 	});
 
 	if (desiredPlayback.playing) {
-		for (var key in sourceList) {
-			if (key === desiredPlayback.track.source) {
+		sourceList.forEach(function (source) {
+			if (source === desiredPlayback.track.source) {
 				// resume desired source
-				resume(key, function (result) {
+				resume(source, function (result) {
 					asyncList.endPartQuick(result);
 				});
 			} else {
 				// pause all other sources
-				pause(key, function (result) {
+				pause(source, function (result) {
 					asyncList.endPartQuick(result);
 				});
 			}
-		}
+		});
 	} else {
 		// pause all sources
-		for (var key in sourceList) {
-			pause(key, function (result) {
+		sourceList.forEach(function (source) {
+			pause(source, function (result) {
 				asyncList.endPartQuick(result);
 			});
-		}
+		});
 	}
 }
 
 function updatePlaybackProgress(callback) {
 	if (desiredPlayback.pendingSeek) {
-		for (var key in sourceList) {
-			if (key === desiredPlayback.track.source) {
+		sourceList.forEach(function (source) {
+			if (source === desiredPlayback.track.source) {
 				console.log(desiredPlayback.progress);
-				seek(key, desiredPlayback.progress, function (result) {
+				seek(source, desiredPlayback.progress, function (result) {
 					if (matchType(result, 'SjSuccess')) {
 						desiredPlayback.pendingSeek = false;
 
@@ -1700,7 +1727,7 @@ function updatePlaybackProgress(callback) {
 					}
 				});
 			}
-		}
+		});
 	} else {
 		callback(new SjSuccess({
 			log: true,
@@ -1709,6 +1736,8 @@ function updatePlaybackProgress(callback) {
 		}));
 	}
 }
+
+// TODO add volume
 
 
 function updatePlaybackState() {
@@ -1764,26 +1793,41 @@ function updatePlaybackState() {
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 //                                                               
 
-// SjSource control functions do not check against redundant calls and should not be called directly. The aggregator functions do this and sould be the only way this functionality is accessed. 
-// Redundancy checks are done here and not in the larger updatePlaybackState because: the same assumptions are being made in both cases, readability is improved, and now control functions can be safely called else where.
+/* !!!
+	Don't directly use source.control() functions, they dont have redundancy checks (against knownPlaybackState) or anything else, they simply interface the api to the app. They assume the knownPlaybackState info is correct and will act accordingly.
 
-// !!! dont direclty use source.control functions, they don't have redundancy checks (against knownPlaybackState), use the aggregator functions instead
-// !!! regular control functions assume knownPlaybackState has been checked recently and will act accordingly, 
+	Use the aggregator functions in conjunction with checkPlaybackState() (like in updatePlaybackState()) to control playback.
+*/
 
-// TODO consider instead of updating playback state here (in each source function), do a second checkPlaybackState() once updatePlaybackState() is finished? (this would require two api calls, but would be simpler (but would it?))
-// I thought because track info is also needed (in addition to playback state) that a final (and second) checkPlaybackState would be needed to verify the post-update playback state, however this info should already be known from the fetched and displayed track (object), so all of these functions do have the ability to update information when resolved
-// furthermore this should sugggest using track objects everywhere as parameters rather than ids (this shoul be possible because the user is never going to be blindly playing id strings without the app first searching and tieing down its additional metadata)
+/* REFLECTION
+	 I considered instead of updating playback state in each source function upon SjSuccess, to do a second and final checkPlaybackState() once updatePlaybackState() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
+	
+	 I thought because track info is also needed (in addition to playback state) that a final checkPlaybackState() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
-// TODO setting knownPlayback.progress upon start() and seek() may be an issue, as the actual progress might have changed in the time it took for the success response to send - therefore any real updates (via listener) or checks that return before then will be wiped out with less-accurate information
+	This resolution sugggests using track objects everywhere as parameters rather than ids; this should be possible because the user is never going to be blindly playing id strings without the app first searching and tying down its additional metadata.
 
-// TODO start new track always starts at ~200ms is this an error or just a symptom of the first timer frames???
+*/
 
-// TODO sometimes when starting a new track (of the same same source?) after being on a different source, the seek bar will jump to where the old track was previously playing? seems to only happen with spotify
+/* REFLECTION
+	I considered that setting knownPlayback.progress upon start() (0) and seek() (ms) may wipeout any offical information from checkPlaybackState() or listeners, as any information that arrives between sending and receiving the request will be wiped out upon resolution (with less valuable, infered information). 
+	
+	However unless the information is being sent from a synchronous or local source (which actually is likely), that information should not be sent and received between the timespan it takes for the playback request to be sent and received - therefore it must be sent before and therefore less accurate/valuable than even the inferred progress information.
+
+	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlaybackState() to get more accurate information.
+*/
 
 function start(track, callback) {
 	// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
-	if (track.source in sourceList) {
-		sourceList[track.source].start(track, function (result) {
+
+	// source is only checked for here because the track could possibly have a 'none' source, for no track, maybe this isnt the best way to handle none tracks though
+	if (sourceList.includes(track.source)) {
+		track.source.start(track, function (result) {
+			if (matchType(result, 'SjSuccess')) {
+				track.source.playback.playing = true;
+				track.source.playback.track = track;
+				track.source.playback.progress = 0;
+				track.source.playback.timeStamp = Date.now();
+			}
 			callback(result);
 		});
 	} else {
@@ -1799,10 +1843,6 @@ function start(track, callback) {
 spotify.start = function (track, callback) {
 	spotifyApi.play({"uris":["spotify:track:" + track.id]}, function(error, response) {
 		if (!matchType(response, 'null')) {
-			knownPlayback.spotify.playing = true;
-			knownPlayback.spotify.track = track;
-			knownPlayback.spotify.progress = 0;
-
 			callback(new SjSuccess({
 				log: true,
 				origin: 'start(spotify, ...)',
@@ -1834,10 +1874,6 @@ youtube.start = function (track, callback) {
 	youtubePlayer.playVideo();
 
 	// TODO check if successful?
-	knownPlayback.youtube.playing = true;
-	knownPlayback.youtube.track = track;
-	knownPlayback.youtube.progress = 0;
-
 	callback(new SjSuccess({
 		log: true,
 		origin: 'start(youtube, ...)',
@@ -1846,10 +1882,13 @@ youtube.start = function (track, callback) {
 }
 
 function resume(source, callback) {
-	if (source in sourceList) {
-		// check if already playing	
-		if (!knownPlayback[source].playing) { 
-			sourceList[source].resume(function (result) {
+	if (sourceList.includes(source)) {
+		if (!source.playback.playing) { 
+			source.resume(function (result) {
+				if (matchType(result, 'SjSuccess')) {
+					source.playback.playing = true;
+				}
+
 				callback(result);
 			});
 		} else {
@@ -1872,8 +1911,6 @@ function resume(source, callback) {
 spotify.resume = function (callback) {
 	spotifyApi.play({}, function(error, response) {
 		if (!matchType(response, 'null')) {
-			knownPlayback.spotify.playing = true;
-
 			callback(new SjSuccess({
 				log: true,
 				origin: 'resume(spotify, ...)',
@@ -1904,8 +1941,6 @@ youtube.resume = function (callback) {
 	youtubePlayer.playVideo();
 
 	// TODO check if successful?
-	knownPlayback.youtube.playing = true;
-
 	callback(new SjSuccess({
 		log: true,
 		origin: 'resume(youtube, ...)',
@@ -1914,9 +1949,13 @@ youtube.resume = function (callback) {
 }
 
 function pause(source, callback) {
-	if (source in sourceList) {
-		if (knownPlayback[source].playing) {
-			sourceList[source].pause(function (result) {
+	if (sourceList.includes(source)) {
+		if (source.playback.playing) {
+			source.pause(function (result) {
+				if (matchType(result, 'SjSuccess')) {
+					source.playback.playing = false;
+				}
+
 				callback(result);
 			});
 		} else {
@@ -1939,8 +1978,6 @@ function pause(source, callback) {
 spotify.pause = function (callback) {
 	spotifyApi.pause({}, function(error, response) {
 		if (!matchType(response, 'null')) {
-			knownPlayback.spotify.playing = false;
-
 			callback(new SjSuccess({
 				log: true,
 				origin: 'pause(spotify, ...)',
@@ -1971,8 +2008,6 @@ youtube.pause = function (callback) {
 	youtubePlayer.pauseVideo();
 
 	// TODO check if successful?
-	knownPlayback.youtube.playing = false;
-
 	callback(new SjSuccess({
 		log: true,
 		origin: 'pause(youtube, ...)',
@@ -1981,8 +2016,13 @@ youtube.pause = function (callback) {
 }
 
 function seek(source, ms, callback) {
-	if (source in sourceList) {
-		sourceList[source].seek(ms, function (result) {
+	if (sourceList.includes(source)) {
+		source.seek(ms, function (result) {
+			if (matchType(result, 'SjSuccess')) {
+				source.playback.progress = ms;
+				source.playback.timeStamp = Date.now();
+			}
+
 			callback(result);
 		});
 	} else {
@@ -1998,8 +2038,6 @@ function seek(source, ms, callback) {
 spotify.seek = function (ms, callback) {
 	spotifyApi.seek(ms, function(error, response) {
 		if (!matchType(response, 'null')) {
-			knownPlayback.spotify.progress = ms;
-
 			callback(new SjSuccess({
 				log: true,
 				origin: 'seek(spotify, ...)',
@@ -2031,8 +2069,6 @@ youtube.seek = function (ms, callback) {
 	youtubePlayer.seekTo(Math.round(ms / 1000), true);
 
 	// TODO check if successful?
-	knownPlayback.youtube.progress = ms;
-
 	callback(new SjSuccess({
 		log: true,
 		origin: 'seek(youtube, ...)',
@@ -2057,6 +2093,7 @@ $(document).on("click", ".searchResultPreview", function() {
 
 	// TODO make a function that does this, and just pass the DOM elemetn that has .data('track'), like .addTrack does
 	desiredPlayback.track = $(this).parent().data('track');
+	desiredPlayback.pendingStart = true;
 	desiredPlayback.playing = true;
 	updatePlaybackState();
 });
@@ -2097,9 +2134,7 @@ $(document).on("click", "#toggle", function() {
 	updatePlaybackState();
 });
 
-// TODO progress bar jumps back sometimes when seeking as playing
 // TODO progress bar does not respond to external progress changes (implement api listener handling for this)
-// TODO progress doesnt change between tracks, youtube might be starting at 0 and doesnt start updating?
 
 $('#progressBar').slider({
 	// http://api.jqueryui.com/slider/
@@ -2145,33 +2180,48 @@ function onSliderDrop(event, {handle, handleIndex, value}) {
 
 function inferProgress() {
 	var now = Date.now();
-	desiredSource().progress += now - desiredSource().timeStamp;
-	desiredSource().timeStamp = now;
+	desiredSourcePlayback().progress += now - desiredSourcePlayback().timeStamp;
+	desiredSourcePlayback().timeStamp = now;
 }
 
 function displayProgress() {
 	// TODO put this some where else
 	// Set slider range to track duration
-	$('#progressBar').slider('option', 'max', desiredSource().track.duration);
+	$('#progressBar').slider('option', 'max', desiredSourcePlayback().track.duration);
 
-	console.log(desiredSource().track.duration);
 	// Update element
-	$('#progressBar').slider('option', 'value', desiredSource().progress);
+
+
+	// TODO this is slightly crude and untested, but prevents the slider from jumping back sometimes when seeking during play, prevents infered progress from interupting between a requested progress and its result, however should consider making this 'pendingSeek' a larger state witha  system
+	if (desiredPlayback.pendingSeek) {
+		$('#progressBar').slider('option', 'value', desiredPlayback.progress);
+	} else {
+		$('#progressBar').slider('option', 'value', desiredSourcePlayback().progress);
+	}
 }
 
-var timer = setInterval(function () {
-	console.log(desiredSource().playing);
-	if (desiredSource().playing) { 
+function progressCheck() {
+	// entire function takes roughly 180ms to complete, and will never sync with perfect fractions of the interval
+	// because of this ive decided to not bother syncing the timer with progress actions (to do this: reset the interval on every SjSuccess result of a progress action)
+
+	if (desiredSourcePlayback().playing) { 
 		// TODO playing should not be the trigger for inferProgress, as this doesnt keep track of when playback is paused and then resumed (inferProgress will assume all that time it as been playing as well), should instead be a startInfer, and stopInfer function
 		inferProgress();
 	}
 	if (!sliderDrag) {
 		displayProgress();
-		console.log('display');
 	}
-}, 1000);
+}
 
-//clearInterval(timer);
+var progressTimer = null;
+
+function resetProgressTimer(ms) {
+	clearInterval(progressTimer);
+	progressCheck(); // also call immediately
+	progressTimer = setInterval(progressCheck, ms);
+}
+
+resetProgressTimer(1000);
 
 
 // account

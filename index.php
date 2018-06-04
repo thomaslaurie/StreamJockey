@@ -67,7 +67,7 @@
 
 <section>
 	<button id='toggle'>Toggle</button>
-
+	
 	<div id='progressBar'></div>
 	Current Value : 
 	<span id='val'>0</span>
