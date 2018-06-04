@@ -1166,6 +1166,10 @@ youtube.loadPlayer = function () {
 		} else {
 			youtube.playback.playing = false;
 		}
+
+		// TODO progress bar does not respond to external progress changes (implement api listener handling for this)
+		// nothing other than playing is given information here, however beacause the api functions are synchronous (except for the track) could we not just call them here too? even though the actions of play/pause and seeking are infrequent enough to warrent checking everytime - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
+		// spotify's responsiveness is done though, super nice, all state data comes with the event (thanks spotify)
 	}
 
 	window.onPlayerError = function (event) {
@@ -2174,8 +2178,6 @@ $(document).on("click", "#toggle", function() {
 
 	desiredPlayback.toggle();
 });
-
-// TODO progress bar does not respond to external progress changes (implement api listener handling for this)
 
 var dragging = false;
 
