@@ -1078,7 +1078,7 @@ spotify.loadPlayer = function () {
 					});
 
 					// TODO checkPlaybackState() gets an empty response when this is called here - Why???
-					// updatePlaybackState();
+					// updatePlayback();
 				} else if (!matchType(error, 'null')) {
 					var result = new SjError({
 						log: true,
@@ -1155,21 +1155,26 @@ youtube.loadPlayer = function () {
 			message: 'youtube player loaded',
 		});
 
-		// TODO updatePlaybackState();
+		// TODO updatePlayback();
 	}
 
 	window.onPlayerStateChange = function (event) {
 		// TODO 3 - buffering counts as 'playing' for play/pause but should count as paused for progression, need to figure out out to handle this as right now it always counts as playing
 
+		// playing
 		if (event.data === 1 || event.data === 3) {
 			youtube.playback.playing = true;
 		} else {
 			youtube.playback.playing = false;
 		}
 
-		// TODO progress bar does not respond to external progress changes (implement api listener handling for this)
 		// nothing other than playing is given information here, however beacause the api functions are synchronous (except for the track) could we not just call them here too? even though the actions of play/pause and seeking are infrequent enough to warrent checking everytime - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
-		// spotify's responsiveness is done though, super nice, all state data comes with the event (thanks spotify)
+
+		// progress
+		if (event.data === 1 || event.data === 2) {
+			youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+			youtube.playback.timeStamp = Date.now();
+		}
 	}
 
 	window.onPlayerError = function (event) {
@@ -1506,8 +1511,29 @@ function displayList(playlist) {
 
 var desiredPlayback = new SjPlayback({
 	pendingStart: false,
+	pendingToggle: false, // why is this needed? to prevent duplicate (very fast) requests from reaching the api (that get past the 'waves' of checkPlaybackState() within updatePlayback()), if this is uses why are redundancy checks still needed in the source functions? because they still prevent internal calls to the functions???
 	pendingSeek: false,
 });
+
+/*
+action: type,
+pendingAction: boolean,
+
+queuedAction: type,
+
+TODO CONTINUE FROM HERE, BUT WAIT, NO ERRORS ARE FORMING FROM THE CURRENT VERSION??? WHY? THAT SHOULD BE HAPPENING
+send action, change pendingAction to true, wait
+	if success: change pendingAction to false
+		if queuedAction exists: change action to queuedAction, clear queued action, repeat...
+		else: nothing
+	if failure: 
+		if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+		else: trigger auto-retry process
+			if success: repeat...
+			if failure: change pendingAction to false, trigger manual-retry process which bascially sends a completely new request...
+
+
+*/
 
 desiredPlayback.start = function (track) {
 	this.track = track;
@@ -1517,27 +1543,33 @@ desiredPlayback.start = function (track) {
 	// Set slider range to track duration
 	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
 
-	updatePlaybackState();
+	updatePlayback();
 }
 
 desiredPlayback.toggle = function () {
 	this.playing = !this.playing;
-	updatePlaybackState();
+	this.pendingToggle = !this.pendingToggle; // if already pending, remove pending (-1 * -1 = 1); if not pending, add pending
+	
+	updatePlayback();
 }
 
 desiredPlayback.seek = function (ms) {
 	this.progress = ms;
 	this.pendingSeek = true;
-	updatePlaybackState();
+	updatePlayback();
+}
+
+desiredPlayback.volume = function (volume) {
+	this.volume = volume;
+	updatePlaybackVolume();
 }
 
 // TODO
 // the goal of calling multiple things at the same time is to conserve api requests via checkPlaybackState(), additionally api calls sould not interfere or overlap with each other and must be called in sequence, not in parallel (maby add a queue?)
-// however it is unlikely these requests will happen at the same time (but maybe very close to each other), so updatePlaybackState() doesnt really help with that anyways
-
+// however it is unlikely these requests will happen at the same time (but maybe very close to each other), so updatePlayback() doesnt really help with that anyways
 
 // everything is done on update for redundancy checks
-// maybe add a queue but have it mesh into the sequential updatePlaybackState() if its too slow
+// maybe add a queue but have it mesh into the sequential updatePlayback() if its too slow
 
 
 
@@ -1575,13 +1607,8 @@ function checkPlaybackState(callback) {
 spotify.checkPlayback = function (callback) {
 	// 1 api call (all)
 
-	
 	spotifyApi.getMyCurrentPlaybackState({}, function(error, response) {
 		if (!matchType(response, 'null')) {
-			spotify.playback.timeStamp = response.timestamp;
-			// TODO will cause an error if no track is playing, will break this entire function
-			spotify.playback.playing = response.is_playing;
-			spotify.playback.progress = response.progress_ms;
 			spotify.playback.track = {
 				source: spotify,
 				id: response.item.id,
@@ -1596,6 +1623,11 @@ spotify.checkPlayback = function (callback) {
 				spotify.playback.track.artists[j] = artist.name;
 			});
 
+			spotify.playback.playing = response.is_playing; // TODO will cause an error if no track is playing, will break this entire function
+
+			spotify.playback.progress = response.progress_ms;
+			spotify.playback.timeStamp = response.timestamp;
+			
 			callback(new SjSuccess({
 				log: true,
 				origin: 'spotify.checkPlayback()',
@@ -1625,21 +1657,6 @@ spotify.checkPlayback = function (callback) {
 youtube.checkPlayback = function (callback) {
 	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
 	// 1 api call (track)
-
-	//https://developers.google.com/youtube/iframe_api_reference#Functions
-
-	// playing?
-	if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
-		/*	Returns the state of the player. Possible values are:
-			-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
-		youtube.playback.playing = true;
-	} else {
-		youtube.playback.playing = false;
-	}
-	
-	// progress?
-	youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-	youtube.playback.timeStamp = Date.now();
 
 	// id?
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
@@ -1681,6 +1698,20 @@ youtube.checkPlayback = function (callback) {
 		}));
 	}
 
+	//https://developers.google.com/youtube/iframe_api_reference#Functions
+
+	// playing
+	if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
+		/*	Returns the state of the player. Possible values are:
+			-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
+		youtube.playback.playing = true;
+	} else {
+		youtube.playback.playing = false;
+	}
+	
+	// progress
+	youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+	youtube.playback.timeStamp = Date.now();
 }
 
 
@@ -1691,26 +1722,43 @@ function updatePlaybackTrack(callback) {
 		// desired track unchanged & pending start --> 'start' same track request
 		// desired track changed & no pending start --> shouldn't technically happen, but start track anyways to reflect proper values
 
-		start(desiredPlayback.track, function (result) {
-			if (matchType(result, 'SjSuccess')) {
-				desiredPlayback.pendingStart = false;
-
-				callback(new SjSuccess({
-					log: true,
+		// TODO some sequencing with pause & start, what order? parallel or in sequence?
+		var asyncList = new AsyncList({
+			totalCount: sourceList.length + 1, // pause all + start one
+			success: new SjSuccess({
 					origin: 'updatePlaybackTrack()',
 					message: 'track changed',
-				}));
-			} else {
-				callback(propagateError(result));
-			}
+				}),
+			errorList: new SjErrorList({
+					origin: 'updatePlaybackTrack()',
+					message: 'failed to update playback track',
+				}),
+			callback: function (result) {
+				if (matchType(result, 'SjSuccess')) {
+					desiredPlayback.pendingStart = false;
+				}
+	
+				callback(result);
+			},
+		});
+
+		// pause all
+		sourceList.forEach(function (source) {
+			pause(source, function (result) {
+				asyncList.endPartQuick(result);
+			});
+		});
+
+		// start 1 track
+		start(desiredPlayback.track, function (result) {
+				asyncList.endPartQuick(result);
 		});	
 	} else {
 		// desired track unchanged & no pending start --> don't do anything
-
 		callback(new SjSuccess({
 			log: true,
 			origin: 'updatePlaybackTrack()',
-			message: 'track is same',
+			message: 'track is same & start update undesired',
 		}));
 	}
 }
@@ -1727,31 +1775,42 @@ function updatePlaybackPlaying(callback) {
 				message: 'failed to update playback playing',
 			}),
 		callback: function (result) {
+			if (matchType(result, 'SjSuccess')) {
+				desiredPlayback.pendingtoggle = false;
+			}
+
 			callback(result);
 		},
 	});
 
-	if (desiredPlayback.playing) {
-		sourceList.forEach(function (source) {
-			if (source === desiredPlayback.track.source) {
-				// resume desired source
-				resume(source, function (result) {
-					asyncList.endPartQuick(result);
-				});
-			} else {
-				// pause all other sources
+	if (desiredPlayback.pendingToggle) {
+		if (desiredPlayback.playing) {
+			sourceList.forEach(function (source) {
+				if (source === desiredPlayback.track.source) {
+					// resume desired source
+					resume(source, function (result) {
+						asyncList.endPartQuick(result);
+					});
+				} else {
+					// pause all other sources
+					pause(source, function (result) {
+						asyncList.endPartQuick(result);
+					});
+				}
+			});
+		} else {
+			// pause all sources
+			sourceList.forEach(function (source) {
 				pause(source, function (result) {
 					asyncList.endPartQuick(result);
 				});
-			}
-		});
-	} else {
-		// pause all sources
-		sourceList.forEach(function (source) {
-			pause(source, function (result) {
-				asyncList.endPartQuick(result);
 			});
-		});
+		}
+	} else {
+		callback(new SjSuccess({
+			origin: 'updatePlaybackPlaying()',
+			message: 'playing update undesired',
+		}));
 	}
 }
 
@@ -1779,15 +1838,19 @@ function updatePlaybackProgress(callback) {
 		callback(new SjSuccess({
 			log: true,
 			origin: 'updatePlaybackProgress()',
-			message: 'playback progress unchanged',
+			message: 'progress update undesired',
 		}));
 	}
 }
 
-// TODO add volume
+function updatePlaybackVolume(callback) {
+	// TODO add volume
+}
 
 
-function updatePlaybackState() {
+
+// TODO imagine all playback types being changed meaningfully at the same time: new track, playing, progress, and volume - is there a specific order that these must be in to avoid stuttering? its complicated - have to draw it out
+function updatePlayback() {
 	// TODO desiredPlayback states do not reset if unsuccessful
 
 	// get most current info
@@ -1801,11 +1864,11 @@ function updatePlaybackState() {
 							updatePlaybackProgress(function (result) {
 								if (matchType(result, 'SjSuccess')) {
 									// TODO success handle
-									console.log('updatePlaybackState() finished');
+									console.log('updatePlayback() finished');
 
 									// callback(new SjSuccess({
 									// 	log: true,
-									// 	source: 'updatePlaybackState()',
+									// 	source: 'updatePlayback()',
 									// 	message: 'playback state updated',
 									// }));
 								} else {
@@ -1843,11 +1906,11 @@ function updatePlaybackState() {
 /* !!!
 	Don't directly use source.control() functions, they dont have redundancy checks (against knownPlaybackState) or anything else, they simply interface the api to the app. They assume the knownPlaybackState info is correct and will act accordingly.
 
-	Use the aggregator functions in conjunction with checkPlaybackState() (like in updatePlaybackState()) to control playback.
+	Use the aggregator functions in conjunction with checkPlaybackState() (like in updatePlayback()) to control playback.
 */
 
 /* REFLECTION
-	 I considered instead of updating playback state in each source function upon SjSuccess, to do a second and final checkPlaybackState() once updatePlaybackState() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
+	 I considered instead of updating playback state in each source function upon SjSuccess, to do a second and final checkPlaybackState() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
 	
 	 I thought because track info is also needed (in addition to playback state) that a final checkPlaybackState() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
@@ -2121,6 +2184,18 @@ youtube.seek = function (ms, callback) {
 		origin: 'seek(youtube, ...)',
 		message: 'track seeked',
 	}));
+}
+
+function volume(source, volume, callback) {
+
+}
+
+spotify.volume = function (volume, callback) {
+
+}
+
+youtube.volume = function (volume, callback) {
+
 }
 
 
