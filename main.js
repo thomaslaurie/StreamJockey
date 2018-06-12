@@ -19,11 +19,33 @@
 // TODO playback and control conversion and testing
 
 // TODO maybe make source objects with all their respective functions so that they can be called dynamically: globalSourceObject[source].play(callback);
+var test = 0;
+var prom = new Promise(function (resolve, reject) {
+	console.log('resolver');
+	var dilly = function () {
+		console.log('timer');
+		test = test + 1;
+		if (test >= 2) {
+			resolve(test);
+		} else {
+			reject(test + ' rejected');
+		}
+	}
 
+	setTimeout(dilly, 1000);
+	
+});
+
+// TODO fuck promises what is going on
 
 
 // test
 $('#test').click(function() {
+	prom.then(function (num) {
+		console.log(num);
+	}).catch(function (error) {
+		console.error(error);
+	});
 });
 
 
@@ -1534,6 +1556,9 @@ send action, change pendingAction to true, wait
 
 
 */
+
+
+// TODO TODO TODO IMPLEMENT PROMISES, NO IMPLEMENT ASYNC & AWAIT, I THINK THEY'LL BE BETTER & AVOID CALLBACK HELL, (asyncList can actually be converted to promise.all too) TODO TODO TODO
 
 desiredPlayback.start = function (track) {
 	this.track = track;
