@@ -19,33 +19,73 @@
 // TODO playback and control conversion and testing
 
 // TODO maybe make source objects with all their respective functions so that they can be called dynamically: globalSourceObject[source].play(callback);
-var test = 0;
-var prom = new Promise(function (resolve, reject) {
-	console.log('resolver');
-	var dilly = function () {
-		console.log('timer');
-		test = test + 1;
-		if (test >= 2) {
-			resolve(test);
+
+
+
+// wait ms milliseconds
+async function wait(ms) {
+	return new Promise(function (resolve, reject) {
+		setTimeout(function () {
+			if (Math.random() > .5) {
+				resolve('success')
+			} else {
+				reject('failure')
+			}
+		}, ms)
+	}).then(function (resolve) {
+		if (Math.random() > .5) {
+			return 'success2';
 		} else {
-			reject(test + ' rejected');
+			throw 'failure2';
 		}
-	}
+	}, function (reject) {
+		throw 'failure3';
+	});
+}
 
-	setTimeout(dilly, 1000);
+function test2() {
+	return new Promise(function () {resolve('this')});
+}
 	
-});
+async function hello() {
+	new Promise(function (resolved, rejected) {
+		resolve('dicks');
+	}).then(function (resolved) {
+		console.log('resolved');
+	}).catch(function (rejected) {
+		console.log('rejected');
+	});
+}
 
-// TODO fuck promises what is going on
-
+// promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
 
 // test
 $('#test').click(function() {
-	prom.then(function (num) {
-		console.log(num);
-	}).catch(function (error) {
-		console.error(error);
+	hello();
+	/*
+	hello().then(function (resolve) {
+		console.log(resolve);
+	}).catch(function (reject) {
+		console.log(reject);
+	});	
+	*/
+
+	/*
+	doSomething().then(function (resolve) {
+		console.log(resolve);
+		throw 'dicks';
+	}).catch(function (reject) {
+		console.error(reject);
+		return 'resolved';
+	}).then(function (resolve) {
+		console.log(resolve);
+	}).then(function (resolve) {
+		console.log(resolve + 'empty?');
+	}).catch(function (reject) {
+		console.error(reject);
+		console.log('finished');
 	});
+	*/
 });
 
 
@@ -624,6 +664,15 @@ function matchType(input, match) {
 		return false;
 	}
 };
+
+
+function resolveBoth(resolved, rejected) {
+	if (resolved) {
+		return resolved;
+	} else if (rejected) {
+		return rejected;
+	}
+}
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
@@ -1227,7 +1276,8 @@ var searchResults = {
 }
 
 // search
-function search(term) {
+async function search(term) {
+	/*
 	var asyncList = new AsyncList({
 		totalCount: sourceList.length,
 		success: new SjSuccess({
@@ -1250,9 +1300,47 @@ function search(term) {
 			asyncList.endPartQuick(result);
 		});
 	});
+	*/
+
+	// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
+
+
+
+	function sortErrors(resolvedList, origin) {
+		var errorList = new SjErrorList({
+			origin: origin,
+			content: resolvedList,
+		});
+
+		resolvedList.forEach(function (item) {
+			if (!matchType(item, 'SjSuccess')) {
+				errorList.content.push(propagateError(item));
+			}
+		});
+
+		if (errorList.content.length === 0) {
+			// if errorList is empty, return success
+			return new SjSuccess({
+				log: true,
+				origin: origin,
+				content: resolvedList,
+			});
+		} else {
+			// else throw the list
+			errorList.announce();
+			throw errorList;
+		}
+	}
+
+	return Promise.all(sourceList.map(function (source) {
+		source.search(term).then(resolveBoth);
+	})).then(function (resolved) {
+		// TODO will this throw the errorList if it has errors? will this return the list if it has no errors?
+		return sortErrors(resolved, 'search()');
+	});
 }
 
-spotify.search = function (term, callback) {
+spotify.search = async function (term) {
 	var options = {
 		// max number of results to return, min 1, max 50, default 20
 		limit: searchResults.tracksPerSource,
@@ -1265,40 +1353,38 @@ spotify.search = function (term, callback) {
 			// update searchResults
 			searchResults.term = term;
 
-			spotify.getTracks(response.tracks.items, function(result) {
-				if (matchType(result, 'SjPlaylist')) {
-					searchResults.spotify = result;
+			spotify.getTracks(response.tracks.items).then(function (resolved) {
+				searchResults.spotify = resolved;
 
-					callback(new SjSuccess({
-						log: true,
-						origin: 'spotify.search()',
-						message: 'tracks retrieved',
-					}));
-				} else {
-					callback(propagateError(result));
-				}
+				return new SjSuccess({
+					log: true,
+					origin: 'spotify.search()',
+					message: 'tracks retrieved',
+				});
+			}, function (rejected) {
+				throw propagateError(rejected);
 			});
 		} else if (!matchType(error, 'null')) {
-			callback(new SjError({
+			throw new SjError({
 				log: true,
 				code: JSON.parse(error.response).error.status,
 				origin: 'spotify.search()',
 				message: 'tracks could not be retrieved',
 				reason: JSON.parse(error.response).error.message,
 				content: error,
-			}));
+			});
 		} else {
-			callback(new SjError({
+			throw new SjError({
 				log: true,
 				origin: 'spotify.search()',
 				message: 'tracks could not be retrieved',
 				reason: 'empty response',
-			}));
+			});
 		}
 	});
 }
 
-spotify.getTracks = function (items, callback) {
+spotify.getTracks = async function (items) {
 	// takes spotify's response.tracks.items array
 	// !!! doesnt actually get tracks, just converts tracks from spotify.search
 
@@ -1323,10 +1409,10 @@ spotify.getTracks = function (items, callback) {
 	});
 
 	playlist.announce();
-	callback(playlist);
+	return playlist;
 }
 
-youtube.search = function (term, callback) {
+youtube.search = async function (term) {
 	var args = {
 		method: 'GET',
 		path: '/youtube/v3/search',
@@ -1344,43 +1430,39 @@ youtube.search = function (term, callback) {
 		}
 	};
 
-	gapi.client.request(args).then(function(fufilled, rejected) {
-		if (fufilled) {
-			// update searchResults
-			searchResults.term = term;
+	return gapi.client.request(args).then(function (resolved) {
+		// update searchResults
+		searchResults.term = term;
 
-			// create idArray
-			var idList = [];
-			fufilled.result.items.forEach(function (track, i) {
-				idList.push(track.id.videoId);
-			});
+		// create idArray
+		var idList = [];
+		resolved.result.items.forEach(function (track, i) {
+			idList.push(track.id.videoId);
+		});
 
-			youtube.getTracks(idList, function(result) {
-				if (matchType(result, 'SjPlaylist')) {
-					searchResults.youtube = result;
-					callback(new SjSuccess({
-						log: true,
-						origin: 'youtube.search()',
-						message: 'tracks retrieved',
-					}));
-				} else {
-					callback(propagateError(result));
-				}
+		youtube.getTracks(idList, function (resolved) {
+			searchResults.youtube = resolved;
+			return new SjSuccess({
+				log: true,
+				origin: 'youtube.search()',
+				message: 'tracks retrieved',
 			});
-		} else {
-			callback(new SjError({
-				log: true, 
-				origin: 'youtube.search() gapi.client.request().then()',
-				message: 'tracks could not be retrieved',
-				// TODO get actual reason and code from rejected object
-				reason: 'gapi request was rejected',
-				content: rejected,
-			}));
-		}
-	});	
+		}, function (rejected) {
+			throw propagateError(rejected);
+		});
+	}, function (rejected) {
+		throw new SjError({
+			log: true, 
+			origin: 'youtube.search() gapi.client.request().then()',
+			message: 'tracks could not be retrieved',
+			// TODO get actual reason and code from rejected object
+			reason: 'gapi request was rejected',
+			content: rejected,
+		});
+	});
 }
 
-youtube.getTracks = function (ids, callback) {
+youtube.getTracks = async function (ids) {
 	// takes array of youtube video ids
 
 	// prepare args
@@ -1394,51 +1476,49 @@ youtube.getTracks = function (ids, callback) {
 	};
 
 	// https://developers.google.com/youtube/v3/docs/videos/list
-	gapi.client.request(args).then(function(fufilled, rejected) {
-		if (fufilled) {
-			// array of track objects
-			var playlist = new SjPlaylist({
-				origin: 'youtube.getTracks() gapi.client.request().then()',
-			});
+	return gapi.client.request(args).then(function(resolved) {
+		// array of track objects
+		var playlist = new SjPlaylist({
+			origin: 'youtube.getTracks() gapi.client.request().then()',
+		});
 
-			fufilled.result.items.forEach(function (track, i) {
-				playlist.content[i] = new SjTrack({});
+		resolved.result.items.forEach(function (track, i) {
+			playlist.content[i] = new SjTrack({});
 
-				playlist.content[i].source = youtube;
-				playlist.content[i].id = track.id;
+			playlist.content[i].source = youtube;
+			playlist.content[i].id = track.id;
 
-				// convert artist - title format
-				// TODO make better regex
-				var stringSplit = track.snippet.title.split(/( +- +)/);
-				if (stringSplit.length === 2) {
-					var artistSplit = stringSplit[0].split(/( +[&x] +)/);
-					artistSplit.forEach(function(artist) {
-						// fill artists
-						playlist.content[i].artists.push(artist);
-					});
-					tplaylist.content[i].title = stringSplit[1];
-				} else {
-					playlist.content[i].artists = [track.snippet.channelTitle];
-					playlist.content[i].title = track.snippet.title;
-				}
+			// convert artist - title format
+			// TODO make better regex
+			var stringSplit = track.snippet.title.split(/( +- +)/);
+			if (stringSplit.length === 2) {
+				var artistSplit = stringSplit[0].split(/( +[&x] +)/);
+				artistSplit.forEach(function(artist) {
+					// fill artists
+					playlist.content[i].artists.push(artist);
+				});
+				tplaylist.content[i].title = stringSplit[1];
+			} else {
+				playlist.content[i].artists = [track.snippet.channelTitle];
+				playlist.content[i].title = track.snippet.title;
+			}
 
-				// convert ISO_8601 duration to milliseconds
-				playlist.content[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
-				playlist.content[i].link = youtube.idPrefix + playlist.content[i].id;	
-			});
-			
-			playlist.announce();
-			callback(playlist);
-		} else {
-			callback(new SjError({
-				log: true, 
-				origin: 'youtube.getTracks() gapi.client.request().then()',
-				message: 'tracks could not be retrieved',
-				// TODO get actual reason and code from rejected object
-				reason: 'gapi request was rejected',
-				content: rejected,
-			}));
-		}
+			// convert ISO_8601 duration to milliseconds
+			playlist.content[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
+			playlist.content[i].link = youtube.idPrefix + playlist.content[i].id;	
+		});
+
+		playlist.announce();
+		return playlist;
+	}, function (rejected) {
+		throw new SjError({
+			log: true, 
+			origin: 'youtube.getTracks() gapi.client.request().then()',
+			message: 'tracks could not be retrieved',
+			// TODO get actual reason and code from rejected object
+			reason: 'gapi request was rejected',
+			content: rejected,
+		});
 	});
 }
 
@@ -1556,6 +1636,9 @@ send action, change pendingAction to true, wait
 
 
 */
+
+// Regardless of whether or not two actions have different desired outcomes depending on their order, !!!the user expects that their actions are handled in the same order that they requested them, therefore the only way to do multiple actions (is not in parallel) but in the queue system -> merge all action type's queues into a single one where only one type of action is pending at a time, but multiple types of actions are next in the same queue, queued actions of the same type replace another, queued actions the same as the pending action of the same type annihilate, (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
+// but first update with async functions
 
 
 // TODO TODO TODO IMPLEMENT PROMISES, NO IMPLEMENT ASYNC & AWAIT, I THINK THEY'LL BE BETTER & AVOID CALLBACK HELL, (asyncList can actually be converted to promise.all too) TODO TODO TODO
