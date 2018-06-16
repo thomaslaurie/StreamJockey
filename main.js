@@ -20,7 +20,7 @@
 
 // TODO maybe make source objects with all their respective functions so that they can be called dynamically: globalSourceObject[source].play(callback);
 
-
+// TODO behavior, playing in spotify manually, then start up app, previewing a song updates the playback to the current already playing song not the clicked preview song
 
 // wait ms milliseconds
 async function wait(ms) {
@@ -420,20 +420,12 @@ function AsyncList(obj) {
 //  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
 //                                           
 
-// top level error handling, only call after error has propegated to a top level function
-function handleError(error) {
-	if (matchType(error, 'SjError')) {
-		console.error(error);
-		addElementError(error);
-	} else if (matchType(error, 'SjErrorList')) {
-		error.content.forEach(function (item) {
-			console.error(error);
-			addElementError(error);
-		});
+function isError(obj) {
+	// checks for proper SjObject error types
+	if (matchType(obj, 'SjError') || matchType(obj, 'SjErrorList')) {
+		return true;
 	} else {
-		var newError = catchUnexpected(error);
-		console.error(newError);
-		addElementError(newError);
+		return false;
 	}
 }
 
@@ -473,12 +465,46 @@ function catchUnexpected(obj) {
 	return error;
 }
 
-function isError(obj) {
-	// checks for proper SjObject error types
-	if (matchType(obj, 'SjError') || matchType(obj, 'SjErrorList')) {
-		return true;
+function filterList(resolvedList, type, origin) {
+	var errorList = new SjErrorList({
+		origin: origin,
+		content: [],
+	});
+
+	resolvedList.forEach(function (item) {
+		if (!matchType(item, type)) {
+			errorList.content.push(propagateError(item));
+		}
+	});
+
+	return new Promise(function (resolve, reject) {
+		if (errorList.content.length === 0) {
+			resolve(new SjSuccess({
+				log: true,
+				origin: origin,
+				content: resolvedList,
+			}));
+		} else {
+			errorList.announce();
+			reject(errorList);
+		}
+	});
+}
+
+// top level error handling, only call after error has propegated to a top level function
+function handleError(error) {
+	if (matchType(error, 'SjError')) {
+		console.error(error);
+		addElementError(error);
+	} else if (matchType(error, 'SjErrorList')) {
+		error.content.forEach(function (item) {
+			console.error(error);
+			addElementError(error);
+		});
 	} else {
-		return false;
+		var newError = catchUnexpected(error);
+		console.error(newError);
+		addElementError(newError);
 	}
 }
 
@@ -639,18 +665,19 @@ function matchType(input, match) {
 
 	// typeof null is 'object', must be accounted for
 	// https://bitsofco.de/javascript-typeof/
-	if (match === 'null') {
+	if (match === 'null') { // filter out null, as typeof null returns object
 		if (input === null) {
 			return true;
 		} else {
 			return false;
 		}
-	}
-
-	if (typeof input === match) {
+	} else if (typeof input === match) { // check direct type
 		// if base object type is matched
 		return true;
-	} else if (typeof input.objectType === 'string') {
+	} else if (typeof input !== 'object') { // filter out non-objects
+		// if not matched and not an object
+		return false;
+	} else if (typeof input.objectType === 'string') { // check objectType
 		// if input has an objectType property
 		if (input.objectType === match) {
 			// if objectType is matched
@@ -665,8 +692,9 @@ function matchType(input, match) {
 	}
 };
 
-
 function resolveBoth(resolved, rejected) {
+	// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
+
 	if (resolved) {
 		return resolved;
 	} else if (rejected) {
@@ -1277,66 +1305,14 @@ var searchResults = {
 
 // search
 async function search(term) {
-	/*
-	var asyncList = new AsyncList({
-		totalCount: sourceList.length,
-		success: new SjSuccess({
-				origin: 'search()',
-			}),
-		errorList: new SjErrorList({
-				origin: 'search()',
-			}),
-		callback: function (result) {
-			if (matchType(result, 'SjSuccess')) {
-				refreshSearchResults();
-			} else {
-				handleError(result);
-			}
-		},
-	});
-
-	sourceList.forEach(function (source) {
-		source.search(term, function(result) {
-			asyncList.endPartQuick(result);
-		});
-	});
-	*/
-
-	// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
-
-
-
-	function sortErrors(resolvedList, origin) {
-		var errorList = new SjErrorList({
-			origin: origin,
-			content: resolvedList,
-		});
-
-		resolvedList.forEach(function (item) {
-			if (!matchType(item, 'SjSuccess')) {
-				errorList.content.push(propagateError(item));
-			}
-		});
-
-		if (errorList.content.length === 0) {
-			// if errorList is empty, return success
-			return new SjSuccess({
-				log: true,
-				origin: origin,
-				content: resolvedList,
-			});
-		} else {
-			// else throw the list
-			errorList.announce();
-			throw errorList;
-		}
-	}
-
-	return Promise.all(sourceList.map(function (source) {
-		source.search(term).then(resolveBoth);
+	Promise.all(sourceList.map(function (source) {
+		return source.search(term).then(resolveBoth);
 	})).then(function (resolved) {
-		// TODO will this throw the errorList if it has errors? will this return the list if it has no errors?
-		return sortErrors(resolved, 'search()');
+		return filterList(resolved, 'SjSuccess', 'search()');
+	}).then(function (resolved) {
+		refreshSearchResults();
+	}, function (rejected) {
+		handleError(rejected);
 	});
 }
 
@@ -1348,39 +1324,32 @@ spotify.search = async function (term) {
 		offset: searchResults.tracksPerSource * (searchResults.page - 1),
 	};
 
-	spotifyApi.searchTracks(term, options, function(error, response) {
-		if (!matchType(response, 'null')) {
-			// update searchResults
-			searchResults.term = term;
+	return spotifyApi.searchTracks(term, options).catch(function (rejected) {
+		throw new SjError({
+			log: true,
+			code: JSON.parse(rejected.response).error.status,
+			origin: 'spotify.search()',
+			message: 'tracks could not be retrieved',
+			reason: JSON.parse(rejected.response).error.message,
+			content: rejected,
+		});
+	}).then(function (resolved) {
+		// save term
+		searchResults.term = term;
 
-			spotify.getTracks(response.tracks.items).then(function (resolved) {
-				searchResults.spotify = resolved;
+		// retrieve track data
+		return spotify.getTracks(resolved.tracks.items);
+	}).then(function (resolved) {
+		// save SjPlaylist
+		searchResults.spotify = resolved;
 
-				return new SjSuccess({
-					log: true,
-					origin: 'spotify.search()',
-					message: 'tracks retrieved',
-				});
-			}, function (rejected) {
-				throw propagateError(rejected);
-			});
-		} else if (!matchType(error, 'null')) {
-			throw new SjError({
-				log: true,
-				code: JSON.parse(error.response).error.status,
-				origin: 'spotify.search()',
-				message: 'tracks could not be retrieved',
-				reason: JSON.parse(error.response).error.message,
-				content: error,
-			});
-		} else {
-			throw new SjError({
-				log: true,
-				origin: 'spotify.search()',
-				message: 'tracks could not be retrieved',
-				reason: 'empty response',
-			});
-		}
+		return new SjSuccess({
+			log: true,
+			origin: 'spotify.search()',
+			message: 'tracks retrieved',
+		});
+	}).catch(function (rejected) {
+		throw propagateError(rejected);
 	});
 }
 
@@ -1430,56 +1399,77 @@ youtube.search = async function (term) {
 		}
 	};
 
-	return gapi.client.request(args).then(function (resolved) {
-		// update searchResults
+	return new Promise(function (resolve, reject) {
+		// convert gapi.client.request() to promise
+		gapi.client.request(args).then(function (resolved) {
+			resolve(resolved);
+		}, function (rejected) {
+			reject(new SjError({
+				log: true, 
+				origin: 'youtube.search()',
+				message: 'tracks could not be retrieved',
+				// TODO get actual reason and code from rejected object
+				reason: 'gapi request was rejected',
+				content: rejected,
+			}));
+		});
+	}).then(function (resolved) {
+		// save term
 		searchResults.term = term;
 
-		// create idArray
-		var idList = [];
+		// create list of ids
+		var ids = [];
 		resolved.result.items.forEach(function (track, i) {
-			idList.push(track.id.videoId);
+			ids[i] = track.id.videoId;
 		});
 
-		youtube.getTracks(idList, function (resolved) {
-			searchResults.youtube = resolved;
-			return new SjSuccess({
-				log: true,
-				origin: 'youtube.search()',
-				message: 'tracks retrieved',
-			});
-		}, function (rejected) {
-			throw propagateError(rejected);
+		return youtube.getTracks(ids);
+	}).then(function (resolved) {
+		// save SjPlaylist
+		searchResults.youtube = resolved;
+		return new SjSuccess({
+			log: true,
+			origin: 'youtube.search()',
+			message: 'tracks retrieved',
+			content: resolved,
 		});
-	}, function (rejected) {
-		throw new SjError({
-			log: true, 
-			origin: 'youtube.search() gapi.client.request().then()',
-			message: 'tracks could not be retrieved',
-			// TODO get actual reason and code from rejected object
-			reason: 'gapi request was rejected',
-			content: rejected,
-		});
+	}).catch(function (rejected) {
+		throw propagateError(rejected);
 	});
 }
 
 youtube.getTracks = async function (ids) {
-	// takes array of youtube video ids
+	// takes list of ids from youtubes' resolved.result.items.id.videoId
 
 	// prepare args
 	var args = {
 		method: 'GET',
 		path: '/youtube/v3/videos',
 		params: {
-			id: ids.join(","),
+			id: ids.join(','),
 			part: 'snippet,contentDetails',
 		}
 	};
 
 	// https://developers.google.com/youtube/v3/docs/videos/list
-	return gapi.client.request(args).then(function(resolved) {
+	return new Promise(function (resolve, reject) {
+		// convert gapi.client.request() to promise
+		gapi.client.request(args).then(function (resolved) {
+			resolve(resolved);
+		}, function (rejected) {
+			reject(new SjError({
+				log: true, 
+				origin: 'youtube.getTracks() gapi.client.request().then()',
+				message: 'tracks could not be retrieved',
+				// TODO get actual reason and code from rejected object
+				reason: 'gapi request was rejected',
+				content: rejected,
+			}));
+		});
+	}).then(function(resolved) {
 		// array of track objects
 		var playlist = new SjPlaylist({
-			origin: 'youtube.getTracks() gapi.client.request().then()',
+			origin: 'youtube.getTracks()',
 		});
 
 		resolved.result.items.forEach(function (track, i) {
@@ -1510,15 +1500,9 @@ youtube.getTracks = async function (ids) {
 
 		playlist.announce();
 		return playlist;
-	}, function (rejected) {
-		throw new SjError({
-			log: true, 
-			origin: 'youtube.getTracks() gapi.client.request().then()',
-			message: 'tracks could not be retrieved',
-			// TODO get actual reason and code from rejected object
-			reason: 'gapi request was rejected',
-			content: rejected,
-		});
+	}).catch(function (rejected) { 
+		// TODO if propagateError is used often enough as a final catch statement, could it not itself be (or at least have an alternate) a rejected promise handler?
+		throw propagateError(rejected);
 	});
 }
 
@@ -2351,9 +2335,7 @@ $(document).on("click", "#connectPlayer", function() {
 $(document).on("click", "#search", function() {
 	console.log("#search clicked");
 
-	search($('#uri').val(), function(){
-		//do nothing
-	});
+	search($('#uri').val());
 });
 
 $(document).on("click", "#toggle", function() {
