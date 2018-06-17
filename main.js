@@ -48,12 +48,8 @@ function test2() {
 }
 	
 async function hello() {
-	new Promise(function (resolved, rejected) {
-		resolve('dicks');
-	}).then(function (resolved) {
-		console.log('resolved');
-	}).catch(function (rejected) {
-		console.log('rejected');
+	return new Promise(function (resolve, reject) {
+		throw 'jack';
 	});
 }
 
@@ -61,7 +57,11 @@ async function hello() {
 
 // test
 $('#test').click(function() {
-	hello();
+	hello().then(function (resolved) {
+		console.log('resolved');
+	}).catch(function (rejected) {
+		console.log('rejected');
+	});
 	/*
 	hello().then(function (resolve) {
 		console.log(resolve);
@@ -465,28 +465,24 @@ function catchUnexpected(obj) {
 	return error;
 }
 
-function filterList(resolvedList, type, origin) {
-	var errorList = new SjErrorList({
-		origin: origin,
-		content: [],
-	});
+function filterList(resolvedList, type, resolvedObj, rejectedObj) {
+	resolvedObj.content = resolvedList;
+	rejectedObj.content = [];
+
 
 	resolvedList.forEach(function (item) {
 		if (!matchType(item, type)) {
-			errorList.content.push(propagateError(item));
+			rejectedObj.content.push(propagateError(item));
 		}
 	});
 
 	return new Promise(function (resolve, reject) {
-		if (errorList.content.length === 0) {
-			resolve(new SjSuccess({
-				log: true,
-				origin: origin,
-				content: resolvedList,
-			}));
+		if (rejectedObj.content.length === 0) {
+			resolvedObj.announce();
+			resolve(resolvedObj);
 		} else {
-			errorList.announce();
-			reject(errorList);
+			rejectedObj.announce();
+			reject(rejectedObj);
 		}
 	});
 }
@@ -594,8 +590,30 @@ function updateElementErrors() {
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 //                                                    
 
+function recreateObject(obj) {
+	// TODO untested
+	if (obj.objectType === 'SjSuccess') {
+		return new SjSuccess(obj);
+	} else if (obj.objectType === 'SjError') {
+		return new SjError(obj);
+	} else if (obj.objectType === 'SjErrorList') {
+		return new SjErrorList(obj);
+	} else if (obj.objectType === 'SjTrack') {
+		return new SjTrack(obj);
+	} else if (obj.objectType === 'SjPlaylist') {
+		return new SjPlaylist(obj);
+	} else if (obj.objectType === 'SjUser') {
+		return new SjUser(obj);
+	} else if (obj.objectType === 'SjSource') {
+		return new SjSource(obj);
+	} else if (obj.objectType === 'SjPlayback') {
+		return new SjPlayback(obj);
+	}
+}
+
 function serverCommand(data, callback) {
-	console.log("serverCommand("+ data.request + ") called");
+	console.log('serverCommand('+ data.request + ') called');
+
 	$.ajax({
 		// http://api.jquery.com/jquery.ajax/
 		url: 'request.php',
@@ -607,7 +625,7 @@ function serverCommand(data, callback) {
 				data = JSON.parse(data);
 				// TODO announce received data
 				console.log('Data Received: ' + data);
-				callback(data);
+				resolve(data);
 			} catch (e) {
 				var error = new SjError({
 					log: true,
@@ -658,6 +676,23 @@ function msFormat(ms) {
 
 	// returns ...0:00 format rounded up to the nearest second
 	return minutes + ':' + seconds;
+}
+
+function typeOf(input) {
+	// TODO untested
+	// used nowhere yet
+
+	if (input === null) {
+		return 'null';
+	} else if (typeof input === 'object') {
+		if (typeof input.objectType === 'string') {
+			return input.objectType;
+		} else {
+			return 'object';
+		}
+	} else {
+		return typeof input;
+	}
 }
 
 function matchType(input, match) {
@@ -1308,7 +1343,13 @@ async function search(term) {
 	Promise.all(sourceList.map(function (source) {
 		return source.search(term).then(resolveBoth);
 	})).then(function (resolved) {
-		return filterList(resolved, 'SjSuccess', 'search()');
+		return filterList(resolved, 'SjSuccess', new SjSuccess({
+			origin: 'search()',
+			message: 'search succeeded',
+		}), new SjErrorList( {
+			origin: 'search()',
+			message: 'search failed',
+		}));
 	}).then(function (resolved) {
 		refreshSearchResults();
 	}, function (rejected) {
@@ -1671,123 +1712,107 @@ function desiredSourcePlayback() {
 }
 
 
-function checkPlaybackState(callback) {
-	// TODO ??? result is not passed in callback, deal with this
-	var asyncList = new AsyncList({
-		totalCount: sourceList.length,
-		success: new SjSuccess({
-				origin: 'checkPlaybackState()',
-				message: 'checked playback state',
-			}),
-		errorList: new SjErrorList({
-				origin: 'checkPlaybackState()',
-				message: 'failed to check playback state',
-			}),
-		callback: function (result) {
-			callback(result);
-		},
-	});
-
-	sourceList.forEach(function (source) {
-		source.checkPlayback(function(result) {
-			asyncList.endPartQuick(result);
-		});
+async function checkPlaybackState() {
+	Promise.all(sourceList.map(function (source) {
+		return source.checkPlayback().then(resolveBoth);
+	})).then(function (resolved) {
+		return filterList(resolved, 'SjSuccess', new SjSuccess({
+			origin: 'checkPlaybackState()',
+			message: 'checked playback state',
+		}), new SjErrorList({
+			origin: 'checkPlaybackState()',
+			message: 'failed to check playback state',
+		}));
+	}).then(function (resolved) {
+		return resolved;
+	}, function (rejected) {
+		throw rejected;
 	});
 }
 
 // !!! checkPlayback functions must save timeStamp immediately after progress is avaliable
-spotify.checkPlayback = function (callback) {
+spotify.checkPlayback = async function () {
 	// 1 api call (all)
 
-	spotifyApi.getMyCurrentPlaybackState({}, function(error, response) {
-		if (!matchType(response, 'null')) {
-			spotify.playback.track = {
-				source: spotify,
-				id: response.item.id,
-				artists: [],
-				title: response.item.name,
-				duration: response.item.duration_ms,
-				link: response.item.external_urls.spotify,
-			}
-
-			// fill artists
-			response.item.artists.forEach(function (artist, j) {
-				spotify.playback.track.artists[j] = artist.name;
-			});
-
-			spotify.playback.playing = response.is_playing; // TODO will cause an error if no track is playing, will break this entire function
-
-			spotify.playback.progress = response.progress_ms;
-			spotify.playback.timeStamp = response.timestamp;
-			
-			callback(new SjSuccess({
-				log: true,
-				origin: 'spotify.checkPlayback()',
-				message: 'spotify playback state checked',
-			}));
-		} else if (!matchType(error, 'null')) {
-			callback(new SjError({
-				log: true,
-				code: JSON.parse(error.response).error.status,
-				origin: 'spotify.checkPlayback()',
-				message: 'failed to check spotify playback state',
-				reason: JSON.parse(error.response).error.message,
-				content: error,
-			}));
-		} else {
-			callback(new SjError({
-				log: true,
-				origin: 'spotify.checkPlayback()',
-				message: 'failed to check spotify playback state',
-				reason: 'no response',
-			}));
+	return spotifyApi.getMyCurrentPlaybackState({}).catch(function (rejected) {
+		throw new SjError({
+			log: true,
+			code: JSON.parse(error.response).error.status,
+			origin: 'spotify.checkPlayback()',
+			message: 'failed to check spotify playback state',
+			reason: JSON.parse(error.response).error.message,
+			content: error,
+		});
+	}).then(function (resolved) {
+		spotify.playback.track = {
+			source: spotify,
+			id: response.item.id,
+			artists: [],
+			title: response.item.name,
+			duration: response.item.duration_ms,
+			link: response.item.external_urls.spotify,
 		}
-	});
 
+		// fill artists
+		response.item.artists.forEach(function (artist, j) {
+			spotify.playback.track.artists[j] = artist.name;
+		});
+
+		spotify.playback.playing = response.is_playing; // TODO will cause an error if no track is playing, will break this entire function
+
+		spotify.playback.progress = response.progress_ms;
+		spotify.playback.timeStamp = response.timestamp;
+		
+		return new SjSuccess({
+			log: true,
+			origin: 'spotify.checkPlayback()',
+			message: 'spotify playback state checked',
+		});
+	}).catch(function (rejected) {
+		throw propagateError(rejected);
+	});
 }
 
-youtube.checkPlayback = function (callback) {
+youtube.checkPlayback = async function () {
 	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
 	// 1 api call (track)
 
 	// id?
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-	var id = youtubePlayer.getVideoUrl().split("v=")[1]; // TODO potential uncaught TypeError here
+	var id = youtubePlayer.getVideoUrl().split('v=')[1]; // TODO potential uncaught TypeError here
 	if (id) {
 		// if not empty
 		var andPosition = id.indexOf('&'); 
 		if (andPosition != -1) { id = id.substring(0, andPosition); }
 
-		youtube.getTracks([id], function(result) {
-			if (matchType(result, 'SjPlaylist')) {
-				if (result.content.length === 1) {
-					youtube.playback.track = result.content[0];
+		return youtube.getTracks([id]).then(function (resolved) {
+			if (resolved.content.length === 1) {
+				youtube.playback.track = resolved.content[0];
 
-					callback(new SjSuccess({
-						log: true,
-						origin: 'youtube.checkPlayback()',
-						message: 'youtube playback state checked',
-					}));
-				} else {
-					callback(new SjError({
-						log: true,
-						code: '404',
-						origin: 'youtube.checkPlayback()',
-						message: 'track not found',
-						reason: 'id: ' + id +' was not found',
-					}));
-				}
+				return new SjSuccess({
+					log: true,
+					origin: 'youtube.checkPlayback()',
+					message: 'youtube playback state checked',
+				});
 			} else {
-				callback(propagateError(result));
-			}	
+				throw new SjError({
+					log: true,
+					code: '404',
+					origin: 'youtube.checkPlayback()',
+					message: 'track not found',
+					reason: 'id: ' + id +' was not found',
+				});
+			}
+		}).catch(function (rejected) {
+			throw propagateError(rejected);
 		});
 	} else {
 		// no track is playing
-		callback(new SjSuccess({
+		return new SjSuccess({
 			log: true,
 			origin: 'youtube.checkPlayback()',
 			message: 'youtube playback state checked',
-		}));
+		});
 	}
 
 	//https://developers.google.com/youtube/iframe_api_reference#Functions
@@ -1807,135 +1832,118 @@ youtube.checkPlayback = function (callback) {
 }
 
 
-function updatePlaybackTrack(callback) {
+async function updatePlaybackTrack() {
 	// TODO need a better handler for no source/track desired, right now the 'none' source (not in sourceList) sort of deals with this, but not perfectly	
 	if (desiredPlayback.track.id !== desiredSourcePlayback().track.id || desiredPlayback.pendingStart) {
 		// desired track changed & pending start --> normal start different track request
 		// desired track unchanged & pending start --> 'start' same track request
 		// desired track changed & no pending start --> shouldn't technically happen, but start track anyways to reflect proper values
 
-		// TODO some sequencing with pause & start, what order? parallel or in sequence?
-		var asyncList = new AsyncList({
-			totalCount: sourceList.length + 1, // pause all + start one
-			success: new SjSuccess({
-					origin: 'updatePlaybackTrack()',
-					message: 'track changed',
-				}),
-			errorList: new SjErrorList({
-					origin: 'updatePlaybackTrack()',
-					message: 'failed to update playback track',
-				}),
-			callback: function (result) {
-				if (matchType(result, 'SjSuccess')) {
-					desiredPlayback.pendingStart = false;
-				}
-	
-				callback(result);
-			},
+		// TODO some sequencing with pause & start, what order? parallel or in sequence? (remember that pendingStart follows the start command, not just at the end)
+		Promise.all(sourceList.map(function (source) {
+			return source.pause().then(resolveBoth);
+		})).then(function (resolved) {
+			return filterList(resolved, 'SjSuccess', new SjSuccess({
+				origin: 'updatePlaybackTrack()',
+				message: 'changed track',
+			}), new SjErrorList({
+				origin: 'updatePlaybackTrack()',
+				message: 'failed to change track',
+			}));
+		}).then(function (resolved) {
+			return start(desiredPlayback.track);
+		}).then(function (resolved) {
+			desiredPlayback.pendingStart = false;
+			return resolved;
+		}, function (rejected) {
+			throw rejected;
 		});
-
-		// pause all
-		sourceList.forEach(function (source) {
-			pause(source, function (result) {
-				asyncList.endPartQuick(result);
-			});
-		});
-
-		// start 1 track
-		start(desiredPlayback.track, function (result) {
-				asyncList.endPartQuick(result);
-		});	
 	} else {
 		// desired track unchanged & no pending start --> don't do anything
-		callback(new SjSuccess({
+		return new SjSuccess({
 			log: true,
 			origin: 'updatePlaybackTrack()',
 			message: 'track is same & start update undesired',
-		}));
+		});
 	}
 }
 
-function updatePlaybackPlaying(callback) {
-	var asyncList = new AsyncList({
-		totalCount: sourceList.length,
-		success: new SjSuccess({
-				origin: 'updatePlaybackPlaying()',
-				message: 'updated playback playing',
-			}),
-		errorList: new SjErrorList({
-				origin: 'updatePlaybackPlaying()',
-				message: 'failed to update playback playing',
-			}),
-		callback: function (result) {
-			if (matchType(result, 'SjSuccess')) {
-				desiredPlayback.pendingtoggle = false;
-			}
-
-			callback(result);
-		},
-	});
-
+async function updatePlaybackPlaying() {
 	if (desiredPlayback.pendingToggle) {
 		if (desiredPlayback.playing) {
-			sourceList.forEach(function (source) {
+			Promise.all(sourceList.map(function (source) {
 				if (source === desiredPlayback.track.source) {
 					// resume desired source
-					resume(source, function (result) {
-						asyncList.endPartQuick(result);
-					});
+					return resume(source).then(resolveBoth);
 				} else {
 					// pause all other sources
-					pause(source, function (result) {
-						asyncList.endPartQuick(result);
-					});
+					return pause(source).then(resolveBoth);
 				}
+			})).then(function (resolved) {
+				return filterList(resolved, 'SjSuccess', new SjSuccess({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing updated',
+				}), new SjErrorList({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing failed to update',
+				}));
+			}).then(function (resolved) {
+				desiredPlayback.pendingtoggle = false;
+				return resolved;
+			}, function (rejected) {
+				throw rejected;
 			});
 		} else {
-			// pause all sources
-			sourceList.forEach(function (source) {
-				pause(source, function (result) {
-					asyncList.endPartQuick(result);
-				});
+			Promise.all(sourceList.map(function (source) {
+				// pause all sources
+				return pause(source).then(resolveBoth);
+			})).then(function (resolved) {
+				return filterList(resolved, 'SjSuccess', new SjSuccess({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing updated',
+				}), new SjErrorList({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing failed to update',
+				}));
+			}).then(function (resolved) {
+				desiredPlayback.pendingtoggle = false;
+				return resolved;
+			}, function (rejected) {
+				throw rejected;
 			});
 		}
 	} else {
-		callback(new SjSuccess({
+		return new SjSuccess({
+			log: true,
 			origin: 'updatePlaybackPlaying()',
 			message: 'playing update undesired',
-		}));
+		});
 	}
 }
 
-function updatePlaybackProgress(callback) {
+async function updatePlaybackProgress() {
 	if (desiredPlayback.pendingSeek) {
-		sourceList.forEach(function (source) {
-			if (source === desiredPlayback.track.source) {
-				console.log(desiredPlayback.progress);
-				seek(source, desiredPlayback.progress, function (result) {
-					if (matchType(result, 'SjSuccess')) {
-						desiredPlayback.pendingSeek = false;
+		// TODO is desiredPlayback.track.source the best way to determine which source to seek?
+		return seek(desiredPlayback.track.source).then(function (resolved) {
+			desiredPlayback.pendingSeek = false;
 
-						callback(new SjSuccess({
-							log: true,
-							origin: 'updatePlaybackProgress()',
-							message: 'playback progress changed',
-						}));
-					} else {
-						callback(propagateError(result));
-					}
-				});
-			}
+			return new SjSuccess({
+				log: true,
+				origin: 'updatePlaybackProgress()',
+				message: 'playback progress changed',
+			});
+		}).catch(function (rejected) {
+			throw propagateError(rejected);
 		});
 	} else {
-		callback(new SjSuccess({
-			log: true,
+		return new SjSuccess({
 			origin: 'updatePlaybackProgress()',
-			message: 'progress update undesired',
-		}));
+			message: 'playing update undesired',
+		});
 	}
 }
 
-function updatePlaybackVolume(callback) {
+async function updatePlaybackVolume() {
 	// TODO add volume
 }
 
@@ -1945,44 +1953,24 @@ function updatePlaybackVolume(callback) {
 function updatePlayback() {
 	// TODO desiredPlayback states do not reset if unsuccessful
 
-	// get most current info
-	checkPlaybackState(function(result) {
-		if (matchType(result, 'SjSuccess')) {
-			// update three playback types
-			updatePlaybackTrack(function (result) {
-				if (matchType(result, 'SjSuccess')) {
-					updatePlaybackPlaying(function (result) {
-						if (matchType(result, 'SjSuccess')) {
-							updatePlaybackProgress(function (result) {
-								if (matchType(result, 'SjSuccess')) {
-									// TODO success handle
-									console.log('updatePlayback() finished');
+	checkPlaybackState().then(function (resolved) {
+		return updatePlaybackTrack();
+	}).then(function (resolved) {
+		return updatePlaybackPlaying();
+	}).then(function (resolved) {
+		return updatePlaybackProgress();
+	}).then(function (resolved) {
+		// TODO success handle
+		console.log('updatePlayback() finished');
 
-									// callback(new SjSuccess({
-									// 	log: true,
-									// 	source: 'updatePlayback()',
-									// 	message: 'playback state updated',
-									// }));
-								} else {
-									handleError(result);
-									//callback(propagateError(result));
-								}
-							});
-						} else {
-							handleError(result);
-							//callback(propagateError(result));
-						}
-					});
-				} else {
-					handleError(result);
-					//callback(propagateError(result));
-				}
-			});
-		} else {
-			// TODO make better handling of checkPlaybackState, maybe keep a list of all unknown states based on the SjErrorList? then only fail if the desired state requires knowing one of the unknowns
-			handleError(result);
-			//callback(propagateError(result));
-		}
+		// callback(new SjSuccess({
+		// 	log: true,
+		// 	source: 'updatePlayback()',
+		// 	message: 'playback state updated',
+		// }));
+	}).catch(function (rejected) {
+		// TODO make better handling of checkPlaybackState, maybe keep a list of all unknown states based on the SjErrorList? then only fail if the desired state requires knowing one of the unknowns
+		handleError(rejected);
 	});
 }
 
@@ -2018,138 +2006,143 @@ function updatePlayback() {
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlaybackState() to get more accurate information.
 */
 
-function start(track, callback) {
+async function start(track) {
 	// TODO start doesnt actually need to 'play' the track, it just needs to make it the currently playing track and would be better to start paused to avoid an initial stutter (incase somehow we want to start the track paused)
 
 	// source is only checked for here because the track could possibly have a 'none' source, for no track, maybe this isnt the best way to handle none tracks though
 	if (sourceList.includes(track.source)) {
-		track.source.start(track, function (result) {
-			if (matchType(result, 'SjSuccess')) {
-				track.source.playback.playing = true;
-				track.source.playback.track = track;
-				track.source.playback.progress = 0;
-				track.source.playback.timeStamp = Date.now();
-			}
-			callback(result);
+		return track.source.start(track).then(function (resolved) {
+			track.source.playback.playing = true;
+			track.source.playback.track = track;
+			track.source.playback.progress = 0;
+			track.source.playback.timeStamp = Date.now();
+
+			return resolved;
+		}).catch(function (rejected) {
+			throw propagateError(rejected);
 		});
 	} else {
-		callback(new SjError({
+		throw new SjError({
 			log: true,
 			origin: 'start()',
 			message: 'track could not be started',
 			reason: 'unknown source',
-		}));
+		});
 	}
 }
 
-spotify.start = function (track, callback) {
-	spotifyApi.play({"uris":["spotify:track:" + track.id]}, function(error, response) {
-		if (!matchType(response, 'null')) {
-			callback(new SjSuccess({
-				log: true,
-				origin: 'start(spotify, ...)',
-				message: 'track started',
-				content: response,
-			}));
-		} else if (!matchType(error, 'null')) {
-			callback(new SjError({
-				log: true,
-				code: JSON.parse(error.response).error.status,
-				origin: 'start(spotify, ...)',
-				message: 'spotify track could not be started',
-				reason: JSON.parse(error.response).error.message,
-				content: error,
-			}));
-		} else {
-			callback(new SjError({
-				log: true,
-				origin: 'start(spotify, ...)',
-				message: 'spotify track could not be started',
-				reason: 'no response',
-			}));
-		}
+spotify.start = async function (track) {
+	return spotifyApi.play({"uris":["spotify:track:" + track.id]}).then(function (resolved) {
+		return new SjSuccess({
+			log: true,
+			origin: 'start(spotify, ...)',
+			message: 'track started',
+			content: response,
+		});
+	}, function (rejected) {
+		throw new SjError({
+			log: true,
+			code: JSON.parse(error.response).error.status,
+			origin: 'start(spotify, ...)',
+			message: 'spotify track could not be started',
+			reason: JSON.parse(error.response).error.message,
+			content: error,
+		});
+	}).catch(function (rejected) {
+		throw propagateError(rejected);
 	});
 }
 
-youtube.start = function (track, callback) {
-	youtubePlayer.loadVideoById(track.id);
-	youtubePlayer.playVideo();
+youtube.start = async function (track) {
+	return new Promise(function (resolve, reject) {
+		try {
+			youtubePlayer.loadVideoById(track.id);
+			youtubePlayer.playVideo();
+		} catch (e) {
+			reject(new SjError({
+				origin: 'youtube.start()',
+				message: 'failed to start youtube track',
+				content: e,
+			}));
+		}
 
-	// TODO check if successful?
-	callback(new SjSuccess({
-		log: true,
-		origin: 'start(youtube, ...)',
-		message: 'track started',
-	}));
+		resolve(new SjSuccess({
+			log: true,
+			origin: 'start(youtube, ...)',
+			message: 'track started',
+		}));
+	});
 }
 
-function resume(source, callback) {
+async function resume(source) {
 	if (sourceList.includes(source)) {
 		if (!source.playback.playing) { 
-			source.resume(function (result) {
-				if (matchType(result, 'SjSuccess')) {
-					source.playback.playing = true;
-				}
-
-				callback(result);
+			return source.resume().then(function (resolved) {
+				source.playback.playing = true;
+				return resolved;
+			}).catch(function (rejected) {
+				throw rejected;
 			});
 		} else {
-			callback(new SjSuccess({
+			return new SjSuccess({
 				log: true,
 				origin: 'resume()',
 				message: 'track was already playing',
-			}));
+			});
 		}
 	} else {
-		callback(new SjError({
+		throw new SjError({
 			log: true,
 			origin: 'resume()',
 			message: 'track could not be resumed',
 			reason: 'unknown source',
-		}));
+		});
 	}
 }
 
-spotify.resume = function (callback) {
-	spotifyApi.play({}, function(error, response) {
-		if (!matchType(response, 'null')) {
-			callback(new SjSuccess({
-				log: true,
-				origin: 'resume(spotify, ...)',
-				message: 'track resumed',
-				content: response,
-			}));
-		} else if (!matchType(error, 'null')) {
-			callback(new SjError({
-				log: true,
-				code: JSON.parse(error.response).error.status,
-				origin: 'resume(spotify, ...)',
-				message: 'spotify track could not be resumed',
-				reason: JSON.parse(error.response).error.message,
-				content: error,
-			}));
-		} else {
-			callback(new SjError({
-				log: true,
-				origin: 'resume(spotify, ...)',
-				message: 'spotify track could not be resumed',
-				reason: 'no response',
-			}));
-		}
+spotify.resume = async function () {
+	return spotifyApi.play({}).then(function (resolved) {
+		return new SjSuccess({
+			log: true,
+			origin: 'resume(spotify, ...)',
+			message: 'track resumed',
+			content: response,
+		});
+	}, function (rejected) {
+		throw new SjError({
+			log: true,
+			code: JSON.parse(error.response).error.status,
+			origin: 'resume(spotify, ...)',
+			message: 'spotify track could not be resumed',
+			reason: JSON.parse(error.response).error.message,
+			content: error,
+		});
+	}).catch(function (rejected) {
+		throw propagateError(rejected);
 	});
 }
 
-youtube.resume = function (callback) {
-	youtubePlayer.playVideo();
+youtube.resume = function () {
+	return new Promise(function (resolve, reject) {
+		try {
+			youtubePlayer.playVideo();
+		} catch (e) {
+			reject(new SjError({
+				origin: 'youtube.resume()',
+				message: 'failed to resume youtube track',
+				content: e,
+			}));
+		}
 
-	// TODO check if successful?
-	callback(new SjSuccess({
-		log: true,
-		origin: 'resume(youtube, ...)',
-		message: 'track started',
-	}));
+		resolve(new SjSuccess({
+			log: true,
+			origin: 'resume(youtube, ...)',
+			message: 'track started',
+		}));
+	});
 }
 
+// TODO continue converting here ----
 function pause(source, callback) {
 	if (sourceList.includes(source)) {
 		if (source.playback.playing) {
