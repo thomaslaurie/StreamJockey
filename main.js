@@ -24,6 +24,8 @@
 
 // TODO make error messages and origins consistent, fill out content
 
+// TODO consider namespacing
+
 // wait ms milliseconds
 async function wait(ms) {
 	return new Promise(function (resolve, reject) {
@@ -66,6 +68,13 @@ async function hello() {
 // test
 $('#test').click(function() {
 	console.log(desiredPlayback.pendingToggle);
+
+	var test = {
+		blah1: 'blah1s',
+		blah2: 'blah2s',
+	}
+
+	console.log(JSON.parse('{"blah": "blah1s", "blah2": "blah2s"}'));
 
 	/*
 	hello().then(function (resolved) {
@@ -132,7 +141,23 @@ var youtube = new SjSource({
 	idPrefix: 'https://www.youtube.com/watch?v=',
 });
 
+// TODO consider making an action object? for server requests, and playback requests
 // TODO work out objects/classes/prototypes
+
+// TODO must be a better way
+// list of all valid objects
+var objectList = [
+	'SjObject',
+	'SjSuccess',
+	'SjError',
+	'SjErrorList',
+	'SjTrack',
+	'SjPlaylist',
+	'SjUser',
+	'SjSource',
+	'SjPlayback',
+];
+
 // data objects
 function SjObject(obj) {
 	this.objectType = 'SjObject';
@@ -609,79 +634,92 @@ function updateElementErrors() {
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 //                                                    
 
-function recreateObject(obj) {
+function recreateSjObject(obj) {
 	// TODO untested
-	if (obj.objectType === 'SjSuccess') {
-		return new SjSuccess(obj);
-	} else if (obj.objectType === 'SjError') {
-		return new SjError(obj);
-	} else if (obj.objectType === 'SjErrorList') {
-		return new SjErrorList(obj);
-	} else if (obj.objectType === 'SjTrack') {
-		return new SjTrack(obj);
-	} else if (obj.objectType === 'SjPlaylist') {
-		return new SjPlaylist(obj);
-	} else if (obj.objectType === 'SjUser') {
-		return new SjUser(obj);
-	} else if (obj.objectType === 'SjSource') {
-		return new SjSource(obj);
-	} else if (obj.objectType === 'SjPlayback') {
-		return new SjPlayback(obj);
-	}
+
+	return new Promise(function (resolve, reject) {
+		if (typeOf(obj) === 'string') {
+			try {
+				var parsedObj = JSON.parse(obj);
+				// if parsedObj has a valid objectType
+				if (objectList.indexOf(parsedObj.objectType) !== -1) {
+					// create a new SjObject based on it's objectType
+					resolve(new window[parsedObj.objectType](obj));
+				} else {
+					reject(new SjError({
+						log: true,
+						origin: 'recreateSjObject()',
+						message: 'failed to recreate object',
+						reason: 'object is non-SjObject',
+						content: obj,
+					}));
+				}
+			} catch (e) {
+				reject(new SjError({
+					log: true,
+					origin: 'recreateSjObject()',
+					message: 'failed to recreate object',
+					reason: e,
+					content: obj,
+				}));
+			}
+		} else if (typeOf(obj) === 'object') {
+			// if obj has a valid objectType
+			if (objectList.indexOf(obj.objectType) !== -1) {
+				// create a new SjObject based on it's objectType
+				resolve(new window[obj.objectType](obj));
+			} else {
+				reject(new SjError({
+					log: true,
+					origin: 'recreateSjObject()',
+					message: 'failed to recreate object',
+					reason: 'object is non-SjObject',
+					content: obj,
+				}));
+			}
+		} else {
+			reject(new SjError({
+				log: true,
+				origin: 'recreateSjObject()',
+				message: 'failed to recreate object',
+				reason: 'data is not an object',
+				content: obj,
+			}));
+		}
+	});
 }
 
-function serverCommand(data, callback) {
+// TODO everything converted to async functions, however serverCommands aren't working
+async function serverCommand(data) {
+	
 	console.log('serverCommand('+ data.request + ') called');
 
-	$.ajax({
+	return $.ajax({
 		// http://api.jquery.com/jquery.ajax/
 		url: 'request.php',
 		type: 'POST',
 		data: data,
-		success: function(data){
-			try {
-				// TODO convert data objects from php to javascript (php objects are not true Sj objects and wont inherit functions)
-				data = JSON.parse(data);
-				// TODO announce received data
-				console.log('Data Received: ' + data);
-				resolve(data);
-			} catch (e) {
-				var error = new SjError({
-					log: true,
+	}).then(function (data, textStatus, jqXHR) {
+		// TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
+		let temp = recreateSjObject(data);
+		updateElementErrors();
+		return temp;
+	}, function (jqXHR, textStatus, errorThrown) {
+		let temp = new SjError({
+			log: true,
 
-					type: 'parse error',
-					origin: 'serverCommand()',
+			type: 'ajax error',
+			origin: 'serverCommand()',
 
-					message: 'server error occured',
-					reason: e,
-					content: data,
+			message: 'could not send command to server',
+			reason: textStatus,
+			content: errorThrown,
 
-					target: 'notify',
-					class: 'notifyError',
-				});
-				callback(error);
-			}
-		},
-		error: function(jqXHR, textStatus, errorThrown) {
-			var error = new SjError({
-				log: true,
-
-				type: 'ajax error',
-				origin: 'serverCommand()',
-
-				message: 'could not send command to server',
-				reason: textStatus,
-
-				target: 'notify',
-				class: 'notifyError',
-			});
-
-			callback(errorObject);
-		},
-		complete: function(jqXHR, textStatus) {
-			// update any element errors
-			updateElementErrors();
-		}
+			target: 'notify',
+			class: 'notifyError',
+		});
+		recreateSjObject(data);
+		throw temp;
 	});
 }
 
@@ -699,12 +737,11 @@ function msFormat(ms) {
 
 function typeOf(input) {
 	// TODO untested
-	// used nowhere yet
 
 	if (input === null) {
 		return 'null';
 	} else if (typeof input === 'object') {
-		if (typeof input.objectType === 'string') {
+		if (objectList.indexOf(input.objectType) !== -1) {
 			return input.objectType;
 		} else {
 			return 'object';
@@ -766,7 +803,7 @@ function resolveBoth(resolved, rejected) {
 
 // TODO convert serverCommands to async (why do these work using return statements???)
 
-function register(name, password1, password2, email,) {
+async function register(name, password1, password2, email) {
 	// takes input DOM elements
 	var inputs = [
 		name,
@@ -776,28 +813,34 @@ function register(name, password1, password2, email,) {
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'register',
-		'name': name.val(),
-		'password1': password1.val(),
-		'password2': password2.val(),
-		'email': email.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// login
-			login(name, password1);
+	var registerResult = await serverCommand({
+		request: 'register',
+		name: name.val(),
+		password1: password1.val(),
+		password2: password2.val(),
+		email: email.val(),
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) {
+			input.val('');
+		});
 
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
+	});
 
-		return data;
+	// TODO rethink this behavior
+	// regardless of login's result, resolve registration if successful
+	return login(name, password1).then(function (resolved) {
+		return registerResult;
+	}, function (rejected) {
+		return registerResult;
 	});
 }
 
-function login(name, password) {
+async function login(name, password) {
 	// takes input DOM elements
 	var inputs = [
 		name,
@@ -805,80 +848,74 @@ function login(name, password) {
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'login',
-		'name': name.val(),
-		'password': password.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// update page status/permissions
-			$("#statusUser")
-				.text(data.content);
+	return serverCommand({
+		request: 'login',
+		name: name.val(),
+		password: password.val(),
+	}).then(function (resolved) {
+		// update page status/permissions
+		$("#statusUser")
+			.text(resolved.content);
 
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
-
-		return data;
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
-function logout() {
+async function logout() {
 	var inputs = [
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'logout',
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			$("#statusUser")
+	return serverCommand({
+		request: 'logout',
+	}).then(function (resolved) {
+		$("#statusUser")
 				.text('Guest');
-		} else {
-			handleError(data);
-		}
-
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
-function getCurrentUser() {
+async function getCurrentUser() {
 	var inputs = [
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'getCurrentUser',
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-		} else {
-			handleError(data);
-		}
-		return data;
+	return serverCommand({
+		request: 'getCurrentUser',
+	}).then(function (resolved) {
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
-function getUser(id) {
+async function getUser(id) {
 	// takes input DOM element
 	var inputs = [
 		id
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'getUser',
-		'id': id.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+	return serverCommand({
+		request: 'getUser',
+		id: id.val(),
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
 
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
@@ -894,7 +931,7 @@ function getUser(id) {
 // TODO convert track.source reference to string when sending to server
 
 // playlists
-function addPlaylist(title, visibility, description, color, image) {
+async function addPlaylist(title, visibility, description, color, image) {
 	// takes input DOM elements
 	var inputs = [
 		title,
@@ -905,120 +942,115 @@ function addPlaylist(title, visibility, description, color, image) {
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'addPlaylist',
-		'title': title.val(),
-		'visibility': visibility.val(),
-		'description': description.val(),
-		'color': color.val(),
-		'image': image.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+	return serverCommand({
+		request: 'addPlaylist',
+		title: title.val(),
+		visibility: visibility.val(),
+		description: description.val(),
+		color: color.val(),
+		image: image.val(),
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
 
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
-function getPlaylist(id) {
+async function getPlaylist(id) {
 	// takes input DOM element
 	var inputs = [
 		id,
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'getPlaylist',
-		'id': id.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+	return serverCommand({
+		request: 'getPlaylist',
+		id: id.val(),
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
 
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
-function deletePlaylist(id) {
+async function deletePlaylist(id) {
 	// takes input DOM element
 	var inputs = [
 		id,
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'deletePlaylist',
-		'id': id.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+	return serverCommand({
+		request: 'deletePlaylist',
+		id: id.val(),
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
 
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
-function orderPlaylist(id) {
+async function orderPlaylist(id) {
 	// takes input DOM element
 	var inputs = [
 		id,
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'orderPlaylist',
-		'id': id.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+	return serverCommand({
+		request: 'orderPlaylist',
+		id: id.val(),
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
 
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
 // tracks
-function addTrack(track, playlistId) {
+async function addTrack(track, playlistId) {
 	// takes DOM element that has JQuery .data('track'), and an input for with the playlist Id TODO change this later
 	var inputs = [
 		playlistId
 	];
 	clearElementErrorList(inputs);
 	
-	serverCommand({
-		'request': 'addTrack',
-		'playlistId': playlistId.val(),
-		'source': track.data('track').source,
-		'id': track.data('track').id,
-		'title': track.data('track').title,
-		'artists': track.data('track').artists,
-		'duration': track.data('track').duration,
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+	return serverCommand({
+		request: 'addTrack',
+		playlistId: playlistId.val(),
+		source: track.data('track').source,
+		id: track.data('track').id,
+		title: track.data('track').title,
+		artists: track.data('track').artists,
+		duration: track.data('track').duration,
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
 
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
-function deleteTrack(playlistId, position) {
+async function deleteTrack(playlistId, position) {
 	// takes input DOM element
 	var inputs = [
 		playlistId,
@@ -1026,19 +1058,18 @@ function deleteTrack(playlistId, position) {
 	];
 	clearElementErrorList(inputs);
 
-	serverCommand({
-		'request': 'deleteTrack',
-		'playlistId': playlistId.val(),
-		'position': position.val(),
-	}, function (data) {
-		if (matchType(data, 'SjSuccess')) {
-			// finally, wipe inputs
-			inputs.forEach(function(input) { input.val(''); });
-		} else {
-			handleError(data);
-		}
+	return serverCommand({
+		request: 'deleteTrack',
+		playlistId: playlistId.val(),
+		position: position.val(),
+	}).then(function (resolved) {
+		// finally, wipe inputs
+		inputs.forEach(function(input) { input.val(''); });
 
-		return data;
+		return resolved;
+	}).catch(function (rejected) {
+		handleError(rejected);
+		throw rejected;
 	});
 }
 
