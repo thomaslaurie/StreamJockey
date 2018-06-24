@@ -129,9 +129,10 @@ var youtube = new SjSource({
 // TODO consider making an action object? for server requests, and playback requests
 // TODO work out objects/classes/prototypes
 
-// TODO must be a better way
+
 // list of all valid objects
 var objectList = [
+	// TODO must be a better way
 	'SjObject',
 	'SjSuccess',
 	'SjError',
@@ -307,8 +308,6 @@ function SjUser(obj) {
 
 
 function SjSource(obj) {
-	// TODO current methods of looping through SjSource object properties may fail if they have any prototype properties
-
 	// super
 	SjObject.call(this, obj);
 
@@ -378,68 +377,6 @@ function SjPlayback(obj) {
 
 	this.onCreate();
 }
-
-// function objects
-function AsyncList(obj) {
-	// counts completed async functions, when all are finished callsback a function that passes the result which is either a SjSuccess object (if all succeeded) or an SjErrorList object (if some failed)
-	// don't need to set log: true, for success and errorList objects, they are announced on completion
-
-	// TODO add timeout?
-
-	this.count = 0;
-	this.totalCount = typeof obj.totalCount === 'undefined' ? 0 : obj.totalCount;
-	this.success = typeof obj.success === 'undefined' ? new SjSuccess({}) : obj.success;
-	this.errorList = typeof obj.errorList === 'undefined' ? new SjErrorList({}) : obj.errorList;
-	this.callback = typeof obj.callback === 'undefined' ? function (result) {} : obj.callback;
-
-	this.addError = function (obj) {
-		// add anything to the error list
-		this.errorList.content.push(propagateError(obj));
-	}
-
-	this.nonSuccessCheck = function (result) {
-		// adds anything that isnt a SjSuccess object
-		if (!matchType(result, 'SjSuccess')) {
-			this.addError(result);
-		}
-	}
-
-	this.isComplete = function () {
-		if (this.count >= this.totalCount) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	this.result = function () {
-		if (this.errorList.content.length === 0) {
-			// if errorList is empty, return success
-			this.success.announce();
-			return this.success;
-		} else {
-			// else return the list
-			this.errorList.announce();
-			return this.errorList;
-		}
-	}
-
-	this.endPart = function () {
-		// increment part count
-		this.count++;
-		// callback result if all parts are complete
-		if (this.isComplete()) {
-			this.callback(this.result());
-		}
-	}
-
-	this.endPartQuick = function (result) {
-		// handle part result in one function: checking only for non-SjSuccess objects
-		this.nonSuccessCheck(result);
-		this.endPart();
-	}
-}
-
 
 //  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
 //  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
@@ -620,7 +557,6 @@ function updateElementErrors() {
 //                                                    
 
 function recreateSjObject(obj) {
-	// TODO untested
 	if (typeOf(obj) === 'string') {
 		try {
 			var parsedObj = JSON.parse(obj);
@@ -671,11 +607,8 @@ function recreateSjObject(obj) {
 	}
 }
 
-// TODO everything converted to async functions, however serverCommands aren't working
 async function serverCommand(data) {
-	
 	console.log('serverCommand('+ data.request + ') called');
-
 	return $.ajax({
 		// http://api.jquery.com/jquery.ajax/
 		url: 'request.php',
@@ -685,6 +618,7 @@ async function serverCommand(data) {
 		var temp = recreateSjObject(data);
 		// TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
 		updateElementErrors(); 
+		console.warn(temp);
 		return temp;
 	}, function (jqXHR, textStatus, errorThrown) {
 		console.warn('command rejected');
@@ -702,6 +636,7 @@ async function serverCommand(data) {
 			class: 'notifyError',
 		});
 		updateElementErrors();
+		console.warn(temp);
 		throw temp;
 	});
 }
@@ -719,8 +654,6 @@ function msFormat(ms) {
 }
 
 function typeOf(input) {
-	// TODO untested
-
 	if (input === null) {
 		return 'null';
 	} else if (typeof input === 'object') {
@@ -783,8 +716,6 @@ function resolveBoth(resolved, rejected) {
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
 //                                   
-
-// TODO convert serverCommands to async (why do these work using return statements???)
 
 async function register(name, password1, password2, email) {
 	// takes input DOM elements
@@ -911,8 +842,6 @@ async function getUser(id) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 //                                                               
 
-// TODO convert track.source reference to string when sending to server
-
 // playlists
 async function addPlaylist(title, visibility, description, color, image) {
 	// takes input DOM elements
@@ -1007,7 +936,7 @@ async function orderPlaylist(id) {
 
 // tracks
 async function addTrack(track, playlistId) {
-	// takes DOM element that has JQuery .data('track'), and an input for with the playlist Id TODO change this later
+	// takes DOM element.data('track'), and an input for with the playlist Id
 	var inputs = [
 		playlistId
 	];
@@ -1016,11 +945,11 @@ async function addTrack(track, playlistId) {
 	return serverCommand({
 		request: 'addTrack',
 		playlistId: playlistId.val(),
-		source: track.data('track').source,
-		id: track.data('track').id,
-		title: track.data('track').title,
-		artists: track.data('track').artists,
-		duration: track.data('track').duration,
+		source: track.source.name,
+		id: track.id,
+		title: track.title,
+		artists: track.artists,
+		duration: track.duration,
 	}).then(function (resolved) {
 		// finally, wipe inputs
 		inputs.forEach(function(input) { input.val(''); });
@@ -1063,10 +992,6 @@ async function deleteTrack(playlistId, position) {
 //  ██║  ██║██║     ██║
 //  ╚═╝  ╚═╝╚═╝     ╚═╝
 //                     
-
-// TODO most of these functions define their own listeners - which dont allow for callback returns, replaced with var result for now, find a way to handle errors
-
-// TODO seek updates when changed externally, however play/pause seems to get messed up for the next desiredPlayback call, also how to update track changes?
 
 // api
 spotify.loadApi = async function () {
@@ -1347,7 +1272,8 @@ youtube.loadPlayer = function () {
 			log: true,
 			origin: 'youtube.loadPlayer()',
 			message: 'failed to load youtube player',
-			reason: '$.getScript() for youtube player failed',
+			reason: exception,
+			content: exception,
 		}));
 	});
 
@@ -1631,8 +1557,7 @@ youtube.getTracks = async function (ids) {
 
 		playlist.announce();
 		return playlist;
-	}).catch(function (rejected) { 
-		// TODO if propagateError is used often enough as a final catch statement, could it not itself be (or at least have an alternate) a rejected promise handler?
+	}).catch(function (rejected) {
 		throw propagateError(rejected);
 	});
 }
@@ -1757,9 +1682,6 @@ send action, change pendingAction to true, wait
 // Regardless of whether or not two actions have different desired outcomes depending on their order, !!!the user expects that their actions are handled in the same order that they requested them, therefore the only way to do multiple actions (is not in parallel) but in the queue system -> merge all action type's queues into a single one where only one type of action is pending at a time, but multiple types of actions are next in the same queue, queued actions of the same type replace another, queued actions the same as the pending action of the same type annihilate, (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
 // but first update with async functions
 
-
-// TODO TODO TODO IMPLEMENT PROMISES, NO IMPLEMENT ASYNC & AWAIT, I THINK THEY'LL BE BETTER & AVOID CALLBACK HELL, (asyncList can actually be converted to promise.all too) TODO TODO TODO
-
 desiredPlayback.start = async function (track) {
 	this.track = track;
 	this.pendingStart = true;
@@ -1881,56 +1803,65 @@ youtube.checkPlayback = async function () {
 
 	// id?
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-	var id = youtubePlayer.getVideoUrl().split('v=')[1]; // TODO potential uncaught TypeError here
-	if (id) {
-		// if not empty
-		var andPosition = id.indexOf('&'); 
-		if (andPosition != -1) { id = id.substring(0, andPosition); }
+	try {
+		var id = youtubePlayer.getVideoUrl().split('v=')[1]; // TODO potential uncaught TypeError here
+		if (id) {
+			// if not empty
+			var andPosition = id.indexOf('&'); 
+			if (andPosition != -1) { id = id.substring(0, andPosition); }
 
-		return youtube.getTracks([id]).then(function (resolved) {
-			if (resolved.content.length === 1) {
-				youtube.playback.track = resolved.content[0];
+			return youtube.getTracks([id]).then(function (resolved) {
+				if (resolved.content.length === 1) {
+					youtube.playback.track = resolved.content[0];
 
-				return new SjSuccess({
-					log: true,
-					origin: 'youtube.checkPlayback()',
-					message: 'youtube playback state checked',
-				});
-			} else {
-				throw new SjError({
-					log: true,
-					code: '404',
-					origin: 'youtube.checkPlayback()',
-					message: 'track not found',
-					reason: 'id: ' + id +' was not found',
-				});
-			}
-		}).catch(function (rejected) {
-			throw propagateError(rejected);
-		});
-	} else {
-		// no track is playing
-		return new SjSuccess({
+					return new SjSuccess({
+						log: true,
+						origin: 'youtube.checkPlayback()',
+						message: 'youtube playback state checked',
+					});
+				} else {
+					throw new SjError({
+						log: true,
+						code: '404',
+						origin: 'youtube.checkPlayback()',
+						message: 'track not found',
+						reason: 'id: ' + id +' was not found',
+					});
+				}
+			}).catch(function (rejected) {
+				throw propagateError(rejected);
+			});
+		} else {
+			// no track is playing
+			return new SjSuccess({
+				log: true,
+				origin: 'youtube.checkPlayback()',
+				message: 'youtube playback state checked',
+			});
+		}
+
+		//https://developers.google.com/youtube/iframe_api_reference#Functions
+
+		// playing
+		if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
+			/*	Returns the state of the player. Possible values are:
+				-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
+			youtube.playback.playing = true;
+		} else {
+			youtube.playback.playing = false;
+		}
+		
+		// progress
+		youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+		youtube.playback.timeStamp = Date.now();
+	} catch (e) {
+		throw new SjError({
 			log: true,
 			origin: 'youtube.checkPlayback()',
-			message: 'youtube playback state checked',
+			message: 'could not check youtube playback',
+			reason: e,
 		});
 	}
-
-	//https://developers.google.com/youtube/iframe_api_reference#Functions
-
-	// playing
-	if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
-		/*	Returns the state of the player. Possible values are:
-			-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
-		youtube.playback.playing = true;
-	} else {
-		youtube.playback.playing = false;
-	}
-	
-	// progress
-	youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-	youtube.playback.timeStamp = Date.now();
 }
 
 
@@ -2410,7 +2341,7 @@ $(document).on("click", ".searchResultPreview", function() {
 $(document).on("click", ".addTrack", function() {
 	console.log(".addTrack clicked");
 
-	addTrack($(this).parent(), $('#playlistId'));
+	addTrack($(this).parent().data('track'), $('#playlistId'));
 });
 
 // connect
