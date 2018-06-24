@@ -621,57 +621,54 @@ function updateElementErrors() {
 
 function recreateSjObject(obj) {
 	// TODO untested
-
-	return new Promise(function (resolve, reject) {
-		if (typeOf(obj) === 'string') {
-			try {
-				var parsedObj = JSON.parse(obj);
-				// if parsedObj has a valid objectType
-				if (objectList.indexOf(parsedObj.objectType) !== -1) {
-					// create a new SjObject based on it's objectType
-					resolve(new window[parsedObj.objectType](obj));
-				} else {
-					reject(new SjError({
-						log: true,
-						origin: 'recreateSjObject()',
-						message: 'failed to recreate object',
-						reason: 'object is non-SjObject',
-						content: obj,
-					}));
-				}
-			} catch (e) {
-				reject(new SjError({
-					log: true,
-					origin: 'recreateSjObject()',
-					message: 'failed to recreate object',
-					reason: e,
-					content: obj,
-				}));
-			}
-		} else if (typeOf(obj) === 'object') {
-			// if obj has a valid objectType
-			if (objectList.indexOf(obj.objectType) !== -1) {
+	if (typeOf(obj) === 'string') {
+		try {
+			var parsedObj = JSON.parse(obj);
+			// if parsedObj has a valid objectType
+			if (objectList.indexOf(parsedObj.objectType) !== -1) {
 				// create a new SjObject based on it's objectType
-				resolve(new window[obj.objectType](obj));
+				return new window[parsedObj.objectType](parsedObj);
 			} else {
-				reject(new SjError({
+				return new SjError({
 					log: true,
 					origin: 'recreateSjObject()',
 					message: 'failed to recreate object',
 					reason: 'object is non-SjObject',
 					content: obj,
-				}));
+				});
 			}
-		} else {
-			reject(new SjError({
+		} catch (e) {
+			return new SjError({
 				log: true,
 				origin: 'recreateSjObject()',
 				message: 'failed to recreate object',
-				reason: 'data is not an object',
+				reason: e,
 				content: obj,
-			}));
+			});
 		}
-	});
+	} else if (typeOf(obj) === 'object') {
+		// if obj has a valid objectType
+		if (objectList.indexOf(obj.objectType) !== -1) {
+			// create a new SjObject based on it's objectType
+			return new window[obj.objectType](obj);
+		} else {
+			return new SjError({
+				log: true,
+				origin: 'recreateSjObject()',
+				message: 'failed to recreate object',
+				reason: 'object is non-SjObject',
+				content: obj,
+			});
+		}
+	} else {
+		return new SjError({
+			log: true,
+			origin: 'recreateSjObject()',
+			message: 'failed to recreate object',
+			reason: 'data is not an object',
+			content: obj,
+		});
+	}
 }
 
 // TODO everything converted to async functions, however serverCommands aren't working
@@ -685,12 +682,13 @@ async function serverCommand(data) {
 		type: 'POST',
 		data: data,
 	}).then(function (data, textStatus, jqXHR) {
+		var temp = recreateSjObject(data);
 		// TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
-		let temp = recreateSjObject(data);
-		updateElementErrors();
+		updateElementErrors(); 
 		return temp;
 	}, function (jqXHR, textStatus, errorThrown) {
-		let temp = new SjError({
+		console.warn('command rejected');
+		var temp =  new SjError({
 			log: true,
 
 			type: 'ajax error',
@@ -703,7 +701,7 @@ async function serverCommand(data) {
 			target: 'notify',
 			class: 'notifyError',
 		});
-		recreateSjObject(data);
+		updateElementErrors();
 		throw temp;
 	});
 }
@@ -958,7 +956,6 @@ async function getPlaylist(id) {
 	}).then(function (resolved) {
 		// finally, wipe inputs
 		inputs.forEach(function(input) { input.val(''); });
-
 		return resolved;
 	}).catch(function (rejected) {
 		handleError(rejected);

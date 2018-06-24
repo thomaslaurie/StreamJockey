@@ -28,8 +28,8 @@
 </section>
 
 <section>
-	<input id='loginUserName' type='text' placeholder='username' value='test4'>
-	<input id='loginPassword' type='password' name='password' placeholder='password' value='test4test4'>
+	<input id='loginUserName' type='text' placeholder='username' value='test5'>
+	<input id='loginPassword' type='password' name='password' placeholder='password' value='test5test5'>
 	<button id='loginSubmit'>Login</button>
 	<button id='logoutSubmit'>Logout</button>
 </section>
