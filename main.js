@@ -26,6 +26,8 @@
 
 // TODO consider namespacing
 
+// TODO workout api keys & info storage between server & client, its kind of a mixed back right now between youtube and spotify
+
 // wait ms milliseconds
 async function wait(ms) {
 	return new Promise(function (resolve, reject) {
@@ -63,50 +65,33 @@ async function hello() {
 	});
 }
 
+async function test2() {
+	return new Promise(function (resolve, reject) {
+		window.test11 = function () {
+			setTimeout(function () {
+				if (Math.random() > .5) {
+					//something
+				} else {
+					//something
+				}
+			}, 1000);
+
+
+		}
+	});
+}
+
 // promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
 
 // test
 $('#test').click(function() {
-	console.log(desiredPlayback.pendingToggle);
-
-	var test = {
-		blah1: 'blah1s',
-		blah2: 'blah2s',
-	}
-
-	console.log(JSON.parse('{"blah": "blah1s", "blah2": "blah2s"}'));
-
-	/*
-	hello().then(function (resolved) {
-		console.log('resolved');
+	
+	spotify.loadPlayer().then(function (resolved) {
+		console.log(resolved);
 	}).catch(function (rejected) {
-		console.log('rejected');
+		console.log(rejected);
 	});
-	*/
-	/*
-	hello().then(function (resolve) {
-		console.log(resolve);
-	}).catch(function (reject) {
-		console.log(reject);
-	});	
-	*/
 
-	/*
-	doSomething().then(function (resolve) {
-		console.log(resolve);
-		throw 'dicks';
-	}).catch(function (reject) {
-		console.error(reject);
-		return 'resolved';
-	}).then(function (resolve) {
-		console.log(resolve);
-	}).then(function (resolve) {
-		console.log(resolve + 'empty?');
-	}).catch(function (reject) {
-		console.error(reject);
-		console.log('finished');
-	});
-	*/
 });
 
 
@@ -1087,85 +1072,90 @@ async function deleteTrack(playlistId, position) {
 // TODO seek updates when changed externally, however play/pause seems to get messed up for the next desiredPlayback call, also how to update track changes?
 
 // api
-spotify.loadApi = function () {
-	// https://beta.developer.spotify.com/documentation/web-api/
-	// https://doxdox.org/jmperez/spotify-web-api-js
+spotify.loadApi = async function () {
+	return new Promise(function (resolve, reject) {
+		try {
+			// https://beta.developer.spotify.com/documentation/web-api/
+			// https://doxdox.org/jmperez/spotify-web-api-js
 
-	// window is basically the global object and is how to define variables within a function
-	window.spotifyApi = new SpotifyWebApi();
-	spotifyApi.setAccessToken(spotifyAccessToken);
+			// window is basically the global object and is how to define variables within a function
+			window.spotifyApi = new SpotifyWebApi();
+			spotifyApi.setAccessToken(spotifyAccessToken);
 
-	var result = new SjSuccess({
-		log: true,
-		origin: 'spotify.loadApi()',
-		message: 'spotify api ready',
+			resolve(new SjSuccess({
+				log: true,
+				origin: 'spotify.loadApi()',
+				message: 'spotify api ready',
+			}));
+		} catch (e) {
+			reject(new SjError({
+				log: true,
+				origin: 'spotify.loadApi()',
+				message: 'spotify api failed to load',
+				reason: e,
+				content: e,
+			}));
+		}
 	});
-
-	// TODO is there any way this could fail?
 }
 
-youtube.loadApi = function () {
-	// TODO polish $.getScript() success/error handling
-
+youtube.loadApi = async function () {
 	// Get Script
 	// https://api.jquery.com/jquery.getscript/
-	$.getScript('https://apis.google.com/js/api.js', function() {
-		// original code: https://developers.google.com/youtube/v3/docs/search/list
-	
+	return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
 		// Load libraries
 		// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiloadlibraries-callbackorconfig
-		gapi.load('client:auth2', {
-			callback: function() {
-			  // if success
-
-				// Initialize the gapi.client object, which app uses to make API requests.
-				// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
-				// Promises: https://developers.google.com/api-client-library/javascript/features/promises
-				gapi.client.init({
-					'apiKey': 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
-					'clientId': '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
-					'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
-					// at least one scope is needed, this is the bare minimum scope
-					'scope': 'https://www.googleapis.com/auth/youtube.readonly'
-				}).then(function (resolved) {
-					var result = new SjSuccess({
+		// original code: https://developers.google.com/youtube/v3/docs/search/list
+		return new Promise(function(resolve, reject) {
+			gapi.load('client:auth2', {
+				callback: function() {
+					// Initialize the gapi.client object, which app uses to make API requests.
+					// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
+					// Promises: https://developers.google.com/api-client-library/javascript/features/promises
+					gapi.client.init({
+						apiKey: 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
+						clientId: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
+						discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
+						// at least one scope is needed, this is the bare minimum scope
+						scope: 'https://www.googleapis.com/auth/youtube.readonly'
+					}).then(function (resolved) {
+						resolve(new SjSuccess({
+							log: true,
+							origin: 'youtube.loadApi()',
+							message: 'youtube api ready',
+						}));
+					}, function (rejected) {
+						reject(new SjError({
+							log: true,
+							origin: 'youtube.loadApi()',
+							message: 'failed to load youtube api',
+							reason: 'client initialization failed',
+							content: rejected,
+						}));
+					});
+				},
+				onerror: function() {
+					reject(new SjError({
 						log: true,
 						origin: 'youtube.loadApi()',
-						message: 'youtube api ready',
-					});
-				}, function (rejected) {
-					// TODO fill in reason information
-					var result = new SjError({
-						log: true,
-						origin: 'youtube.loadApi()',
-						message: 'failed to load youtube api',
-						reason: 'gapi.client.init rejected',
-						content: rejected,
-					});
-				});
-			},
-			onerror: function() {
-				// TODO fill in reason information
-				var result = new SjError({
-					log: true,
-					origin: 'youtube.loadApi()',
-					message: 'failed to load youtube libraries',
-					reason: 'gapi.load error',
-					content: reason,
-				});
-			},
-			//timeout: 5000, // 5 seconds.
-			//ontimeout: function() {
-			  // Handle timeout.
-			  //alert('gapi.client could not load in a timely manner!');
+						message: 'failed to load youtube libraries',
+						reason: 'gapi.load error',
+						content: reason,
+					}));
+				},
+				// TODO timeout
+				//timeout: 5000, // 5 seconds.
+				//ontimeout: function() {
+				// Handle timeout.
+				//alert('gapi.client could not load in a timely manner!');
+			});
 		});
-	}).fail(function (jqxhr, settings, exception) {
-		// TODO fill in reason information
-		var result = new SjError({
+	}, function (jqxhr, settings, exception) {
+		throw new SjError({
 			log: true,
 			origin: 'youtube.loadApi()',
 			message: 'failed to load youtube api',
-			reason: '$.getScript() for youtube api failed',
+			reason: exception,
 		});
 	});
 }
@@ -1174,134 +1164,183 @@ youtube.loadApi = function () {
 
 // TODO is there a significant discrepancy between potential synchronous/local sources (listeners) and asynchronous api calls for progress checks? Which information sources are synchronous/local? Should their information override the api information?
 
-spotify.loadPlayer = function () {
+spotify.loadPlayer = async function () {
 	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
 	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
 	// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
 
-	// TODO requires spotifyAccessToken, if this changes (ie. token frefresh, account swap) how does player get updated? 
+	// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
 
-	$.getScript('https://sdk.scdn.co/spotify-player.js').fail(function (jqxhr, settings, exception) {
-		// TODO fill in reason information
-		var result = new SjError({
-			log: true,
-			origin: 'spotify.loadPlayer()',
-			message: 'failed to load spotify player',
-			reason: '$.getScript() for spotify player failed',
-		});
-	});
-	// onSpotifyWebPlaybackSDKReady must be defined immediately after spotify-player.js, acts as the callback function
-	window.onSpotifyWebPlaybackSDKReady = function () {
-		// initialize
-		var player = new Spotify.Player({
-			name: WEB_PLAYER_NAME,
-			getOAuthToken: cb => { cb(spotifyAccessToken); }
+	return new Promise(function (resolve, reject) {
+		// setup resolve/reject listeners
+		window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
+			resolve(e.detail);
+			e.currentTarget.removeEventListener(e.type, function () {});
 		});
 
-		// configure listeners
-		// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-		// error handling
-		// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
-		player.addListener('initialization_error', function ({message}) { 
-			var result = new SjError({
-				log: true,
-				origin: 'spotify.loadPlayer()',
-				message: 'spotify player encountered an initialization error',
-				reason: message,
-			});
-		});
-		player.addListener('authentication_error', function ({message}) { 
-			var result = new SjError({
-				log: true,
-				origin: 'spotify.loadPlayer()',
-				message: 'spotify player encountered an authentication error',
-				reason: message,
-			}); 
+		window.addEventListener('spotifyLoadPlayerFailure', function (e) {
+			reject(e.detail);
+			e.currentTarget.removeEventListener(e.type, function () {});
 		});
 
-		player.addListener('account_error', function ({message}) { 
-			console.error(message); 
-			// TODO non callback
-		});
-		player.addListener('playback_error', function ({message}) { 
-			console.error(message); 
-			// TODO non callback
-		});
+		// simplify event triggers
+		function triggerResolve(data) {
+			window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {'detail': data}));
+		}
 
-		// playback status updates
-		player.addListener('player_state_changed', function (state) {
-			// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-			spotify.playback.timeStamp = state.timestamp;
-			spotify.playback.playing = !state.paused;
-			spotify.playback.progress = state.position;
-			spotify.playback.track = {
-				source: spotify,
-				id: state.track_window.current_track.id,
-				artists: [],
-				title: state.track_window.current_track.name,
-				duration: state.track_window.current_track.duration_ms,
-			}
+		function triggerReject(data) {
+			window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {'detail': data}));
+		}
+		
+		
+		window.onSpotifyWebPlaybackSDKReady = function () {
+			// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
+			try {
+				// initialize
+				var player = new Spotify.Player({
+					name: WEB_PLAYER_NAME,
+					getOAuthToken: cb => { cb(spotifyAccessToken); }
+				});
 
-			// fill artists
-			state.track_window.current_track.artists.forEach(function (artist, i) {
-				spotify.playback.track.artists[i] = artist.name;
-			});
-		});
+				// configure listeners
+				// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+				
+				// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
 
-		// ready
-		player.addListener('ready', function ({device_id}) {
-			// returns a WebPlaybackPlayer object which just contains the created device_id
-			// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+				player.addListener('playback_error', function ({message}) { 
+					console.error(message); 
+					// TODO handle me
+				});
 
-			spotifyApi.transferMyPlayback([device_id], {}, function(error, response) {
-				// https://beta.developer.spotify.com/documentation/web-api/reference/player/transfer-a-users-playback/
+				// playback status updates
+				player.addListener('player_state_changed', function (state) {
+					// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+					spotify.playback.timeStamp = state.timestamp;
+					spotify.playback.playing = !state.paused;
+					spotify.playback.progress = state.position;
+					spotify.playback.track = {
+						source: spotify,
+						id: state.track_window.current_track.id,
+						artists: [],
+						title: state.track_window.current_track.name,
+						duration: state.track_window.current_track.duration_ms,
+					}
 
-				if (!matchType(response, 'null')) {
-					var result = new SjSuccess({
+					// fill artists
+					state.track_window.current_track.artists.forEach(function (artist, i) {
+						spotify.playback.track.artists[i] = artist.name;
+					});
+				});
+
+				// error handling
+				player.addListener('initialization_error', function ({message}) { 
+					//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+					triggerReject(new SjError({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player encountered an initialization error',
+							reason: message,
+						})
+					);
+				});
+
+				player.addListener('authentication_error', function ({message}) { 
+					// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+					triggerReject(new SjError({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player encountered an authentication error',
+							reason: message,
+						})
+					);
+				});
+
+				player.addListener('account_error', function ({message}) {
+					// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+					triggerReject(new SjError({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'this account does not have a valid Spotify Premium subscription',
+							reason: message,
+						})
+					);
+				});
+
+				// ready
+				player.addListener('ready', function ({device_id}) {
+					// returns a WebPlaybackPlayer object which just contains the created device_id
+					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+
+					spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
+						triggerResolve(new SjSuccess({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player loaded',
+						}));
+
+						// TODO updatePlayback(); ?
+					}, function (rejected) {
+						triggerReject(new SjError({
+							log: true,
+							code: JSON.parse(error.response).error.status,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player could not be loaded',
+							reason: JSON.parse(error.response).error.message,
+							content: error,
+						}));
+					}).catch(function (rejected) {
+						triggerReject(new SjError({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player could not be loaded',
+							content: rejected,
+						}));
+					});
+				});
+
+				// connect to player
+				player.connect().then(function (resolved) {
+					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+					// returns a promise with a boolean for whether or not the connection was successful
+					// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
+					if (!resolved) {
+						triggerReject(new SjError({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player failed to connect',
+							reason: 'spotify.connect() failed',
+						}));
+					}
+				}, function (rejected) {
+					// should not be possible to get here, but handle it either way
+					triggerReject(new SjError({
 						log: true,
 						origin: 'spotify.loadPlayer()',
-						message: 'spotify player loaded',
-					});
-
-					// TODO checkPlaybackState() gets an empty response when this is called here - Why???
-					// updatePlayback();
-				} else if (!matchType(error, 'null')) {
-					var result = new SjError({
-						log: true,
-						code: JSON.parse(error.response).error.status,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player could not be loaded',
-						reason: JSON.parse(error.response).error.message,
-						content: error,
-					});
-				} else {
-					var result = new SjError({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player could not be loaded',
-						reason: 'no response',
-					});
-				}
-			});
-		});
-
-		// connect to player
-		player.connect().then(function (success) {
-			// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-			// returns a promise with a boolean for whether or not the connection was successful
-			// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
-			if (!success) {
-				callback(new SjError({
+						message: 'spotify player failed to connect',
+						reason: 'spotify.connect() failed',
+						content: rejected,
+					}));
+				});
+			} catch (e) {
+				triggerReject(new SjError({
 					log: true,
 					origin: 'spotify.loadPlayer()',
 					message: 'spotify player failed to connect',
-					reason: 'spotify.connect() failed',
+					reason: e,
+					content: e,
 				}));
 			}
-		});
-	}
+		}
 
-	// TODO any way onSpotifyWebPlaybackSDKReady() could fail?
+		$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
+			triggerReject(new SjError({
+				log: true,
+				origin: 'spotify.loadPlayer()',
+				message: 'failed to load spotify player',
+				reason: exception,
+			}));
+		});
+	});
 }
 
 youtube.loadPlayer = function () {
