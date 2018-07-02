@@ -1,3 +1,8 @@
+// NOTES
+
+// promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
+
+
 //  ████████╗ ██████╗ ██████╗  ██████╗     ██╗     ██╗███████╗████████╗
 //  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗    ██║     ██║██╔════╝╚══██╔══╝
 //     ██║   ██║   ██║██║  ██║██║   ██║    ██║     ██║███████╗   ██║   
@@ -28,6 +33,8 @@
 
 // TODO workout api keys & info storage between server & client, its kind of a mixed back right now between youtube and spotify
 
+// Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future
+
 // wait ms milliseconds
 async function wait(ms) {
 	return new Promise(function (resolve, reject) {
@@ -49,48 +56,22 @@ async function wait(ms) {
 	});
 }
 
-function test() {
+async function delay(ms) {
 	return new Promise(function (resolve, reject) {
-		throw 'jack';
+		setTimeout(function() {
+			resolve(true);
+		}, ms);
 	});
 }
-	
-async function hello() {
-	return test().then(function (resolved) {
-		return resolved;
-	}, function (rejected) {
-		throw propagateError(rejected);
-	}).catch(function (rejected) {
-		throw propagateError(rejected);
-	});
-}
-
-async function test2() {
-	return new Promise(function (resolve, reject) {
-		window.test11 = function () {
-			setTimeout(function () {
-				if (Math.random() > .5) {
-					//something
-				} else {
-					//something
-				}
-			}, 1000);
-
-
-		}
-	});
-}
-
-// promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
 
 // test
 $('#test').click(function() {
-	
-	spotify.loadPlayer().then(function (resolved) {
-		console.log(resolved);
-	}).catch(function (rejected) {
-		console.log(rejected);
-	});
+	clearInterval(temp);
+	// spotify.loadPlayer().then(function (resolved) {
+	// 	console.log(resolved);
+	// }).catch(function (rejected) {
+	// 	console.log(rejected);
+	// });
 
 });
 
@@ -111,7 +92,8 @@ var noSource = new SjSource({
 	realSource: false,
 });
 
-noTrack.source = noSource; // will be undefined if defined in noTrack (before noSource is defined) and vice versa
+// n+1 definition for recursive reference
+noTrack.source = noSource;
 
 
 // sources
@@ -373,7 +355,8 @@ function SjPlayback(obj) {
 	this.pendingSeek = typeof obj.pendingSeek === 'undefined' ? false : obj.pendingSeek;
 
 	// volume
-	// TODO add volume
+	this.volume = typeof obj.volume === 'undefined' ? 0 : obj.volume;
+	this.pendingVolume = typeof obj.pendingVolume === 'undefined' ? false : obj.pendingVolume;
 
 	this.onCreate();
 }
@@ -395,18 +378,9 @@ function isError(obj) {
 	}
 }
 
-function propagateError(obj) {
-	// wrapper code for repeated error handling where: one or many SjObject results are expected, SjErrors are propagated, and anything else needs to be caught and transformed into a proper SjError
-	if (isError(obj)) {
-		return obj;
-	} else {
-		return catchUnexpected(obj);
-	}
-}
-
 function catchUnexpected(obj) {
 	// determines type of input, creates, announces, and returns a proper SjError object
-	// use in final else {} to catch any objects(or variables) that havent been caught yet (those that are unexpected)
+	// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 
 	var error = new SjError({
 		message: 'function received unexpected result',
@@ -426,15 +400,24 @@ function catchUnexpected(obj) {
 	} else {
 		error.reason = 'object is of unexpected type: ' + typeof obj;
 	}
-	console.error(obj);
 	error.announce();
 	return error;
 }
 
+function propagateError(obj) {
+	// wrapper code for repeated error handling where: one or many SjObject results are expected, SjErrors are propagated, and anything else needs to be caught and transformed into a proper SjError
+	if (isError(obj)) {
+		return obj;
+	} else {
+		return catchUnexpected(obj);
+	}
+}
+
 function filterList(resolvedList, type, resolvedObj, rejectedObj) {
+	// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an SjErrorList with all objects that aren't of that type
+
 	resolvedObj.content = resolvedList;
 	rejectedObj.content = [];
-
 
 	resolvedList.forEach(function (item) {
 		if (!matchType(item, type)) {
@@ -555,6 +538,12 @@ function updateElementErrors() {
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 //                                                    
+
+function clone(obj) {
+	// TODO unused so far
+	// !!! cannot clone circular references
+	return JSON.parse(JSON.stringify(obj));
+}
 
 function recreateSjObject(obj) {
 	if (typeOf(obj) === 'string') {
@@ -1544,7 +1533,7 @@ youtube.getTracks = async function (ids) {
 					// fill artists
 					playlist.content[i].artists.push(artist);
 				});
-				tplaylist.content[i].title = stringSplit[1];
+				playlist.content[i].title = stringSplit[1];
 			} else {
 				playlist.content[i].artists = [track.snippet.channelTitle];
 				playlist.content[i].title = track.snippet.title;
@@ -1655,9 +1644,11 @@ var desiredPlayback = new SjPlayback({
 	pendingStart: false,
 	pendingToggle: false, // why is this needed? to prevent duplicate (very fast) requests from reaching the api (that get past the 'waves' of checkPlaybackState() within updatePlayback()), if this is uses why are redundancy checks still needed in the source functions? because they still prevent internal calls to the functions???
 	pendingSeek: false,
+	pendingVolume: false,
 });
 
 
+// sent action stays at front of queue so that 
 
 /*
 action: type,
@@ -1682,43 +1673,58 @@ send action, change pendingAction to true, wait
 // Regardless of whether or not two actions have different desired outcomes depending on their order, !!!the user expects that their actions are handled in the same order that they requested them, therefore the only way to do multiple actions (is not in parallel) but in the queue system -> merge all action type's queues into a single one where only one type of action is pending at a time, but multiple types of actions are next in the same queue, queued actions of the same type replace another, queued actions the same as the pending action of the same type annihilate, (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
 // but first update with async functions
 
+// desiredPlayback properties reflect CURRENT desires, these are used to give SjActions their state and add them to the queue
+
 desiredPlayback.start = async function (track) {
 	this.track = track;
-	this.pendingStart = true;
+
+	//this.pendingStart = true;
+
 	this.playing = true;
+	this.progress = 0; // I didn't have this here before here before, why not???
 
 	// Set slider range to track duration
 	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
 
-	updatePlayback().catch(function (rejected) {
-		handleError(rejected);
-	});
+	// updatePlayback().catch(function (rejected) {
+	// 	handleError(rejected);
+	// });
+
+	playbackQueue.push(new SjStart({}));
 }
 
 desiredPlayback.toggle = async function () {
 	this.playing = !this.playing;
-	this.pendingToggle = !this.pendingToggle; // if already pending, remove pending (-1 * -1 = 1); if not pending, add pending
-	updatePlayback().then(function (resolved) {
-	}).catch(function (rejected) {
-		handleError(rejected);
-	});
+
+	//this.pendingToggle = !this.pendingToggle; // if already pending, remove pending (-1 * -1 = 1); if not pending, add pending
+
+	// updatePlayback().catch(function (rejected) {
+	// 	handleError(rejected);
+	// });
+
+	playbackQueue.push(new SjToggle({}));
 }
 
 desiredPlayback.seek = function (ms) {
 	this.progress = ms;
-	this.pendingSeek = true;
 
-	updatePlayback().catch(function (rejected) {
-		handleError(rejected);
-	});
+	// this.pendingSeek = true;
+
+	// updatePlayback().catch(function (rejected) {
+	// 	handleError(rejected);
+	// });
+
+	playbackQueue.push(new SjSeek({}));
 }
 
 desiredPlayback.volume = function (volume) {
 	this.volume = volume;
 
-	updatePlayback().catch(function (rejected) {
-		handleError(rejected);
-	});
+	// updatePlayback().catch(function (rejected) {
+	// 	handleError(rejected);
+	// });
+
+	playbackQueue.push(new SjVolume({}));
 }
 
 // TODO
@@ -1786,7 +1792,7 @@ spotify.checkPlayback = async function () {
 
 		spotify.playback.progress = resolved.progress_ms;
 		spotify.playback.timeStamp = resolved.timestamp;
-		
+
 		return new SjSuccess({
 			log: true,
 			origin: 'spotify.checkPlayback()',
@@ -1804,7 +1810,24 @@ youtube.checkPlayback = async function () {
 	// id?
 	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
 	try {
-		var id = youtubePlayer.getVideoUrl().split('v=')[1]; // TODO potential uncaught TypeError here
+		//https://developers.google.com/youtube/iframe_api_reference#Functions
+
+		// playing
+		if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
+			/*	Returns the state of the player. Possible values are:
+				-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
+			youtube.playback.playing = true;
+		} else {
+			youtube.playback.playing = false;
+		}
+		
+		// progress
+		youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+		youtube.playback.timeStamp = Date.now();
+
+
+		var url = youtubePlayer.getVideoUrl(); // !!! can sometimes return undefined
+		var id = typeOf(url) === 'string' ? url.split('v=')[1] : '';
 		if (id) {
 			// if not empty
 			var andPosition = id.indexOf('&'); 
@@ -1839,21 +1862,6 @@ youtube.checkPlayback = async function () {
 				message: 'youtube playback state checked',
 			});
 		}
-
-		//https://developers.google.com/youtube/iframe_api_reference#Functions
-
-		// playing
-		if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
-			/*	Returns the state of the player. Possible values are:
-				-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
-			youtube.playback.playing = true;
-		} else {
-			youtube.playback.playing = false;
-		}
-		
-		// progress
-		youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-		youtube.playback.timeStamp = Date.now();
 	} catch (e) {
 		throw new SjError({
 			log: true,
@@ -1864,7 +1872,8 @@ youtube.checkPlayback = async function () {
 	}
 }
 
-
+// behavioral functions
+/*
 async function updatePlaybackTrack() {
 	// TODO need a better handler for no source/track desired, right now the 'none' source (not in sourceList) sort of deals with this, but not perfectly	
 	if (desiredPlayback.track.id !== desiredSourcePlayback().track.id || desiredPlayback.pendingStart) {
@@ -1982,7 +1991,6 @@ async function updatePlaybackVolume() {
 
 
 
-// TODO imagine all playback types being changed meaningfully at the same time: new track, playing, progress, and volume - is there a specific order that these must be in to avoid stuttering? its complicated - have to draw it out
 async function updatePlayback() {
 	// TODO desiredPlayback states do not reset if unsuccessful
 
@@ -2006,6 +2014,267 @@ async function updatePlayback() {
 	});
 }
 
+*/
+
+// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
+// TODO this queue system removes the need for pendingX variables correct?
+function SjAction(obj) {
+	// super
+	SjObject.call(this, obj);
+
+	// overwritten properties
+	this.objectType = 'SjAction';
+	this.state = typeof obj.state === 'undefined' ? undefined : obj.state;
+
+	// action comparisons
+	this.isSimilarAction = function (item) {
+		if (this.objectType === item.objectType) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	this.isIdenticalAction = function (item) {
+		// TODO image could be different but that shouldn't matter because in: toggle > track > toggle, track should remove the first toggle
+		if (this.isSimilarAction(item) && this.state === item.state) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	this.isParentAction = function (item) {
+		return false;
+	}
+
+	// queue management
+	this.removeOld = function (queue) {
+		// backwards deletion loop
+		for (var i = queue.length - 1; i < -1; i--) {
+			if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
+				queue.splice(i, 1);
+			}
+		}
+	}
+
+	// action
+	this.trigger = function () {
+		return new Promise(resolve => {
+			resolve(new SjSuccess({
+				log: true,
+				origin: 'SjAction.trigger',
+			}));
+		});
+	}
+
+	this.onCreate();
+}
+
+function SjStart(obj) {
+	// super
+	SjAction.call(this, obj);
+
+
+	this.objectType = 'SjStart';
+	this.state = desiredPlayback.track;
+	this.source = desiredPlayback.track.source;
+
+	this.isParentAction = function (item) {
+		if (item.objectType === 'SjToggle' || item.objectType === 'SjSeek') {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	this.trigger = async function () {
+		// TODO some sequencing with pause & start, what order? parallel or in sequence? (remember that pendingStart follows the start command, not just at the end)
+		return Promise.all(sourceList.map(source => {
+			// pause all
+			return pause(source).then(resolveBoth);
+		})).then(resolved => {
+			// filter errors
+			return filterList(resolved, 'SjSuccess', new SjSuccess({
+				origin: 'SjStart.trigger()',
+				message: 'changed track',
+			}), new SjErrorList({
+				origin: 'SjStart.trigger()',
+				message: 'failed to change track',
+			}));
+		}).then(resolved => {
+			// start
+			return start(this.state);
+		}).then(resolved => {
+			return resolved;
+		}, rejected => {
+			throw propagateError(rejected);
+		});
+	}
+
+
+	this.onCreate();
+}
+// toggle or pause & play?, toggle is post-behavior, should behavior be inside these actions or outside?
+function SjToggle(obj) {
+	// super
+	SjAction.call(this, obj);
+
+
+	// overwritten properties
+	this.objectType = 'SjToggle';
+	this.state = desiredPlayback.playing;
+	this.source = desiredPlayback.track.source;
+	
+	this.trigger = async function () {
+		if (this.state) {
+			return Promise.all(sourceList.map(source => {
+				if (source === this.source) {
+					// resume desired source
+					return resume(source).then(resolveBoth);
+				} else {
+					// pause all other sources
+					return pause(source).then(resolveBoth);
+				}
+			})).then(resolved => {
+				return filterList(resolved, 'SjSuccess', new SjSuccess({
+					origin: 'SjToggle.trigger()',
+					message: 'playing updated',
+				}), new SjErrorList({
+					origin: 'SjToggle.trigger()',
+					message: 'playing failed to update',
+				}));
+			}).then(resolved => {
+				return resolved;
+			}, rejected => {
+				throw propagateError(rejected);
+			});
+		} else {
+			return Promise.all(sourceList.map(source => {
+				// pause all sources
+				return pause(source).then(resolveBoth);
+			})).then(resolved => {
+				return filterList(resolved, 'SjSuccess', new SjSuccess({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing updated',
+				}), new SjErrorList({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing failed to update',
+				}));
+			}).then(resolved => {
+				return resolved;
+			}, rejected => {
+				throw propagateError(rejected);
+			});
+		}
+	}
+
+
+	this.onCreate();
+}
+
+function SjSeek(obj) {
+	// super
+	SjAction.call(this, obj);
+
+
+	this.objectType = 'SjSeek';
+	this.state = desiredPlayback.progress;
+	this.source = desiredPlayback.track.source;
+
+	this.trigger = async function () {
+		// TODO is desiredPlayback.track.source the best way to determine which source to seek?
+		return seek(this.source, this.state).then(resolved => {
+			return new SjSuccess({
+				log: true,
+				origin: 'SjSeek.trigger()',
+				message: 'playback progress changed',
+			});
+		}).catch(rejected => {
+			throw propagateError(rejected);
+		});
+	}
+
+
+	this.onCreate();
+}
+
+function SjVolume(obj) {
+	// super
+	SjAction.call(this, obj);
+
+
+	this.objectType = 'SjVolume';
+	this.state = desiredPlayback.volume;
+	this.source = desiredPlayback.track.source;
+
+	this.trigger = async function () {
+		// TODO
+	}
+
+
+	this.onCreate();
+}
+
+var noAction = new SjAction({});
+
+var playbackQueue = {
+	sent: noAction,
+	queue: [],
+
+	push: async function (action) {
+		// redundancy checks
+		action.removeOld(this.queue);
+
+		// count parents in queue
+		var parents = 0;
+		this.queue.forEach(function (item) {
+			if (item.isParentAction(action)) {
+				parents++;
+			}
+		});
+
+		// push only if action has a parent in the way or if action is different from sentAction
+		if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
+			this.queue.push(action);
+			this.sendNext();
+		}
+	},
+
+	// TODO spotify collapsing doesn't work, track collapsing doesn't work, youtube does though
+
+
+	/* REFLECTION
+		Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
+		Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
+					Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
+		Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
+		Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
+					Putting a short delay between playbackQueue calls gives enough time for the apis to sort themselves out.
+	*/
+	sendNext: async function () {
+		// restart if finished sent action && queue not empty
+		if (this.sent === noAction && this.queue.length > 0) {
+			this.sent = this.queue[0];
+			this.queue.splice(0, 1);
+
+			// TODO checkPlaybackState every action just like before, find a better way
+			checkPlaybackState().then(resolved => {
+				// !!! why arrow functions? because of lexical scoping, this is able to refer to playbackQueue not just the function's body
+				return this.sent.trigger();
+			}).then(resolved => {
+				// TODO temporary delay
+				return delay(2000);
+			}).then(resolved => {
+				// TODO handle resolved, nothing needed to be handled before???
+				this.sent = noAction;
+				this.sendNext();
+			}, rejected => {
+				// TODO handle action rejected
+				handleError(rejected);
+				this.sent = noAction;
+			});
+		}
+	}
+}
 
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     
 //  ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔══██╗██╔═══██╗██║     
@@ -2092,6 +2361,7 @@ youtube.start = async function (track) {
 		try {
 			youtubePlayer.loadVideoById(track.id);
 			youtubePlayer.playVideo();
+			youtubePlayer.pauseVideo();
 
 			resolve(new SjSuccess({
 				log: true,
@@ -2160,7 +2430,7 @@ youtube.resume = async function () {
 	return new Promise(function (resolve, reject) {
 		try {
 			youtubePlayer.playVideo();
-
+			
 			resolve(new SjSuccess({
 				log: true,
 				origin: 'youtube.resume()',
@@ -2228,7 +2498,6 @@ youtube.pause = async function () {
 	return new Promise(function (resolve, reject) {
 		try {
 			youtubePlayer.pauseVideo();
-
 			resolve(new SjSuccess({
 				log: true,
 				origin: 'youtube.pause()',
@@ -2377,11 +2646,11 @@ $('#progressBar').slider({
 	// http://api.jqueryui.com/slider/
 	min: 0,
 	max: 100,
-	step: 1, // must be 1 if dealing later with milliseconds or else spotify api will spit back NaN if flaot
+	step: 1, // must be 1 if dealing later with milliseconds or else spotify api will spit back NaN if float
 	change: function (event, {handle, handleIndex, value}) {
 		// 'Triggered after the user slides a handle, if the value has changed, or if the value is changed programmatically via the value method.'
 
-		// Update timeMarker according to slider position, whenver slider position changes
+		// Update timeMarker according to slider position, whenever slider position changes
 		$('#val').html(value);
 	},
 	slide: function (event, {handle, handleIndex, value}) {
@@ -2442,6 +2711,14 @@ function resetProgressTimer(ms) {
 }
 
 resetProgressTimer(1000);
+
+/*
+var temp = setInterval(function () {
+	spotify.checkPlayback().then(resolved => {
+		console.warn(spotify.playback.playing);
+	});
+}, 200);
+*/
 
 // account
 $(document).on("click", "#registerSubmit", function() {
