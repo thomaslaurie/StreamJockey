@@ -2049,7 +2049,7 @@ function SjAction(obj) {
 	// queue management
 	this.removeOld = function (queue) {
 		// backwards deletion loop
-		for (var i = queue.length - 1; i < -1; i--) {
+		for (var i = queue.length - 1; i > -1; i--) {
 			if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
 				queue.splice(i, 1);
 			}
@@ -2223,7 +2223,7 @@ var playbackQueue = {
 	push: async function (action) {
 		// redundancy checks
 		action.removeOld(this.queue);
-
+		
 		// count parents in queue
 		var parents = 0;
 		this.queue.forEach(function (item) {
@@ -2238,9 +2238,6 @@ var playbackQueue = {
 			this.sendNext();
 		}
 	},
-
-	// TODO spotify collapsing doesn't work, track collapsing doesn't work, youtube does though
-
 
 	/* REFLECTION
 		Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
