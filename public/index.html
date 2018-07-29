@@ -1,0 +1,130 @@
+<!doctype html>
+
+<html lang='en' >
+	<head>
+		<meta charset='utf-8'>
+		<title>StreamJockey</title>
+
+		<link rel='stylesheet' href='js/jquery-ui/jquery-ui.css'>
+		<link rel='stylesheet' href='js/jquery-ui/jquery-ui.structure.css'>
+		<link rel='stylesheet' href='js/jquery-ui/jquery-ui.theme.css'>
+
+		<link rel='stylesheet' href='css/norm.css'>
+		<link rel='stylesheet' href='css/main.css'>
+	</head>
+
+	<body>
+        <!-- ^header -->
+
+
+
+        <!-- body -->
+        <section>
+            <p id='statusUser'>Guest</p>
+        </section>
+        <section>
+            <button id='test'>Test</button>
+            <input id='testInput' type='text' placeholder='test input'>
+        </section>
+
+        <section>
+            <input id='loginUserName' type='text' placeholder='username' value='test5'>
+            <input id='loginPassword' type='password' name='password' placeholder='password' value='test5test5'>
+            <button id='loginSubmit'>Login</button>
+            <button id='logoutSubmit'>Logout</button>
+        </section>
+
+        <section>
+            <input id='registerEmail' type='text' placeholder='e-mail'>
+            <input id='registerUserName' type='text' placeholder='username'>
+            <input id='registerPassword1' type='password' placeholder='password'>
+            <input id='registerPassword2' type='password' placeholder='password again'>
+            <button id='registerSubmit'>Register</button>
+        </section>
+
+        <section>
+            <input id='playlistTitle' type='text' placeholder='title' value='playlist1'>
+            <input id='playlistVisibility' type='text' placeholder='visibility' value='public'>
+            <textarea id='playlistDescription' placeholder='description'></textarea>
+            <input id='playlistColor' type='text' placeholder='color'>
+            <input id='playlistImage' type='text' placeholder='image link'>
+            <button id='addPlaylistSubmit'>Add Playlist</button>
+        </section>
+
+        <section>
+            <input id='playlistId' type='text' placeholder='id'>
+            <button id='getPlaylistSubmit'>Get Playlist</button>
+            <button id='deletePlaylistSubmit'>Delete Playlist</button>
+            <button id='orderPlaylistSubmit'>Order Playlist</button>
+            <input id='position' type='text' placeholder='id'>
+            <button id='deleteTrackSubmit'>Delete Track</button>
+        </section>
+
+        <section>
+            <button id='spotifyConnectAccount'>Spotify Connect Account</button>
+            <button id='connectPlayer'>Connect Player</button>
+        </section>
+
+        <section>
+            <button id='toggle'>Toggle</button>
+            
+            <div id='progressBar'></div>
+            Current Value : 
+            <span id='val'>0</span>
+        </section>
+
+        <section>
+            
+            <div id='youtubePlayerWrapper'>
+                <div id='youtubePlayer'></div>
+            </div>
+        </section>
+
+        <section>
+            <input id='uri' type='text' placeholder='search' value='alison wonderland'>
+            <button id='search'>Search</button>
+            <ul id='list'></ul>
+        </section>
+        <!-- ^body -->
+
+
+
+    <!-- footer -->
+	</body>
+
+	<!-- variables -->
+	<script>
+		// constants
+		var WEB_PLAYER_NAME = 'StreamJockey Web Player';
+
+		// pass php variables to javascript
+        
+        // TODO figure out how to pass these
+        /*<?php
+			if (isset($_SESSION['spotifyAccessToken'])) {
+				echo "var spotifyAccessToken = " . json_encode($_SESSION['spotifyAccessToken']);
+			} else {
+				echo "var spotifyAccessToken = ''";
+			}
+		?> */
+	</script>
+
+	<!-- libraries -->
+	<script src='js/jquery-3.3.1.js'></script>
+	<script src='js/jquery-ui/jquery-ui.js'></script>
+
+	<script src='js/moment.js'></script>
+
+	<!-- own -->
+	<script src='js/main.js'></script>
+	
+	<!-- APIs -->
+	<script src='js/spotify-web-api.js' onload="spotify.loadApi()"></script> <!-- spotify javascript wrapper -->
+	<script src="https://apis.google.com/js/api.js" onload="youtube.loadApi()"></script> <!-- youtube data api 		
+		async loads script at the same time html is being parsed, defer doesnt run the script until html has been fully parsed 
+		http://www.growingwiththeweb.com/2014/02/async-vs-defer-attributes.html
+		
+		google's extensive version: 
+		when this script loads, it changes its own onload attribute to an empty function, then calls handleClientLoad()
+		<script async defer src="https://apis.google.com/js/api.js" onload="this.onload=function(){};handleClientLoad()" onreadystatechange="if (this.readyState === 'complete') this.onload()"></script> -->
+</html>

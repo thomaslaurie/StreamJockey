@@ -1,0 +1,29 @@
+section {
+	margin: 10px;
+	padding: 10px;
+	background: rgb(240, 240, 240);
+}
+
+
+ul {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+#youtubePlayerWrapper {
+	width: 400px;
+	height: 300px;
+	/* display: none; */
+}
+
+/*
+button,
+input[type=submit] {
+
+}
+*/
+
+.inputError {
+	background: red;
+}
