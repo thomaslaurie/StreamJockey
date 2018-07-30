@@ -547,8 +547,122 @@
 		}
 	}
 
+	sj.Conditions = class extends sj.Object {
+		constructor(options) {
+			super(sj.Object.tellParent(options));
+
+			this.objectType = 'sj.Validate';
+
+			sj.Object.init(this, options, {
+				// new properties
+				name: 'input',
+				min: 0,
+				max: Infinity,
+				dataType: 'string',
+				trim: false,
+				against: false, // !!! will not be able to checkAgainst() boolean false
+				againstMessage: `${name} did not match against valid inputs`,
+				filter: false,
+				filterMessage: `${name} did not pass required filter`,
+			});
+		}
+
+		checkType() {
+			return sj.typeOf(this.content) === this.dataType;
+		}
+		checkSize() {
+			if (sj.typeOf(this.content) === 'string' || sj.typeOf(this.content) === 'array') {
+				return this.content.length >= this.min && this.content.length <= this.max;
+			} else if (sj.typeOf(this.content) === 'number') {
+				return this.content >= this.min && this.content <= this.max;
+			} else {
+				return true;
+			}
+		}
+		
+		checkAgainst() {
+			if (sj.typeOf(against) === 'array') {
+				return against.indexOf(this.content) !== -1;
+			} else {
+				return this.content === against;
+			}
+		}
+		checkFilter() {
+			// TODO regex
+			return true;
+		}
+		
+
+		async checkAll() {
+			// Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+
+			if (!this.checkType()) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: `${this.name} must be a ${this.dataType}`,
+				})
+			}
+			if (trim && sj.typeOf(this.content) === 'string') {
+				this.content = this.content.trim();
+			}
+			if (!this.checkSize()) {
+				let message = `${this.name} must be between ${this.min} and ${this.max}`;
+				if (sj.typeOf(this.content) === 'string') {
+					message = `${message} characters long`;
+				} else if (sj.typeOf(this.content) === 'array') {
+					message = `${message} items long`;
+				}
+
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: message,
+				});
+			}
+			if (against && !this.checkAgainst()) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.againstMessage,
+				});
+			}
+			if (filter && !this.checkFilter()) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.filterMessage,
+				});
+			}
+
+			
+			// remove error-related properties
+			// TODO consider inputCorrect styling, change these if so
+			this.target = undefined;
+			this.cssClass = undefined;
+			return new sj.Success(this); // transform object (this will strip any irrelevant properties away)
+		}
+	}
+
 	// object related variables
-	sj.objectList = [ // list of all valid objects
+	sj.sourceList = [];
+
+	// null objects
+	sj.noTrack = new sj.Track();
+	sj.noSource = new sj.Source({realSource: false});
+	sj.noTrack.source = noSource; // cyclical reference
+	sj.noAction = new sj.Action();
+
+
+	//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+	//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
+	//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
+	//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
+	//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
+	//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
+
+	// type
+	sj.objectList = [ // list of all valid sj objects
 		// TODO must be a better way
 		'sj.Object',
 		'sj.Success',
@@ -565,21 +679,167 @@
 		'sj.Seek',
 		'sj.Volume',
 	];
+	sj.isValidObjectType = function(input) {
+		return objectList.indexOf(input.objectType) !== -1;
+	}
+	sj.typeOf = function (input) {
+		if (input === null) {
+			return 'null';
+		} else if (typeof input === 'object') {
+			if (sj.isValidObjectType(input.objectType)) {
+				return input.objectType;
+			} else {
+				return 'object';
+			}
+		} else {
+			return typeof input;
+		}
+	}
 
-	sj.sourceList = [];
-	sj.spotify = new sj.Source({
-		name: 'spotify',
-	});
-	sj.youtube = new sj.Source({
-		name: 'youtube',
-		idPrefix: 'https://www.youtube.com/watch?v=',
-	});
+	// rebuild
+	sj.buildConfirmed = function (obj) {
+		// create a new sj.Object based on it's valid objectType
+		return new window.sj[obj.objectType.replace('sj.', '')](obj);
+	}
+	sj.rebuildObject = function (obj) {
+		if (sj.typeOf(obj) === 'string') {
+			try {
+				let parsedObj = JSON.parse(obj);
+				if (sj.isValidObjectType(parsedObj.objectType)) {
+					return sj.buildConfirmed(parsedObj);
+				} else {
+					return new SjError({
+						log: true,
+						origin: 'sj.rebuildObject()',
+						message: 'failed to recreate object',
+						reason: 'object is non-SjObject',
+						content: obj,
+					});
+				}
+			} catch (e) {
+				return new SjError({
+					log: true,
+					origin: 'sj.rebuildObject()',
+					message: 'failed to recreate object',
+					reason: e,
+					content: obj,
+				});
+			}
+		} else if (sj.typeOf(obj) === 'object') {
+			if (sj.isValidObjectType(obj.objectType)) {
+				return sj.buildConfirmed(obj);
+			} else {
+				return new SjError({
+					log: true,
+					origin: 'sj.rebuildObject()',
+					message: 'failed to recreate object',
+					reason: 'object is non-SjObject',
+					content: obj,
+				});
+			}
+		} else {
+			return new SjError({
+				log: true,
+				origin: 'sj.rebuildObject()',
+				message: 'failed to recreate object',
+				reason: 'data is not an object',
+				content: obj,
+			});
+		}
+	}
 
-	// null objects
-	sj.noTrack = new sj.Track();
-	sj.noSource = new sj.Source({realSource: false});
-	sj.noTrack.source = noSource; // cyclical reference
-	sj.noAction = new sj.Action();
+	// format
+	sj.msFormat = function (ms) {
+		// extract
+		var minutes = Math.floor(ms / 60000);
+		var seconds = Math.ceil(ms % 60000);
+
+		// format
+		seconds = ('0' + seconds).slice(-2);
+
+		// returns ...0:00 format rounded up to the nearest second
+		return minutes + ':' + seconds;
+	}
+
+	// promises
+	sj.resolveBoth = function (resolved, rejected) {
+		// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
+
+		if (resolved) {
+			return resolved;
+		} else if (rejected) {
+			return rejected;
+		}
+	}
+
+
+	//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
+	//  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
+	//  █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝
+	//  ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗
+	//  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║
+	//  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+
+	// sorting
+	sj.isError = function (obj) {
+		// checks for proper SjObject error types
+		return sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.ErrorList';
+	}
+	sj.catchUnexpected = function (obj) {
+		// determines type of input, creates, announces, and returns a proper sj.Error object
+		// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
+
+		var error = new sj.Error({
+			message: 'function received unexpected result',
+			content: obj,
+		});
+
+		if (sj.typeOf(obj) === 'undefined') {
+			error.reason = 'object is undefined';
+		} else if (sj.typeOf(obj) === 'null') {
+			error.reason = 'object is null';
+		} else if (sj.typeOf(obj) === 'object') {
+			if (sj.isValidObjectType(obj)) {
+				error.reason = 'object is of unexpected Sj objectType: ' + obj.objectType;
+			} else {
+				error.reason = 'object is not an sj object';
+			}
+		} else {
+			error.reason = 'object is of unexpected type: ' + sj.typeOf(obj);
+		}
+		error.announce();
+		return error;
+	}
+	sj.propagateError = function (obj) {
+		// wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
+		if (isError(obj)) {
+			return obj;
+		} else {
+			return catchUnexpected(obj);
+		}
+	}
+	sj.filterList = function (resolvedList, type, resolvedObj, rejectedObj) {
+		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an SjErrorList with all objects that aren't of that type
+
+		resolvedObj.content = resolvedList;
+		rejectedObj.content = [];
+
+		resolvedList.forEach(function (item) {
+			if (sj.typeOf(item) !== type) {
+				rejectedObj.content.push(sj.propagateError(item));
+			}
+		});
+
+		return new Promise(function (resolve, reject) {
+			if (rejectedObj.content.length === 0) {
+				resolvedObj.announce();
+				resolve(resolvedObj);
+			} else {
+				rejectedObj.announce();
+				reject(rejectedObj);
+			}
+		});
+	}
 
 
 }(typeof exports !== 'undefined' ? exports : this.sj = {}));
@@ -592,9 +852,9 @@
 
 	https://stackoverflow.com/questions/3225251/how-can-i-share-code-between-node-js-and-the-browser
 
-	!!! requires that the 'exports' name is not used in client-side js, and that when required in server-side js, the var name 'should' be the same as this.'name' in the conditional argument (in order to have the same namespace as the client code
+	!!! requires that the 'exports' name is not used in client-side js, and that when required in server-side js, the var name 'should' (see rebuildObject()) be the same as this.'name' in the conditional argument (in order to have the same namespace as the client code
 
-	TODO should this be integrated in a namespace-ing fashion? (sj..Success(), sj..typeOf()), how does that then influence other non-global.js functions in index.js and such?
+	TODO should this be integrated in a namespace-ing fashion? (sj..Success(), sj..sj.typeOf()), how does that then influence other non-global.js functions in index.js and such?
 
 	TODO consider broswerify: https://github.com/browserify/browserify
 	, watchify, webpack, rollup

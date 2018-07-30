@@ -29,7 +29,7 @@ Model:
 
 Big:
 	Break every single part of every module, see if all possible outcomes are caught and handled properly.
-	Ensure everything has an error handler - most of the time 'throw propagateError(rejected);'.
+	Ensure everything has an error handler - most of the time 'throw sj.propagateError(rejected);'.
 	Fill in and make consistent content for all success, error, data objects.
 
 	Add timeouts to async functions.
@@ -65,396 +65,395 @@ async function delay(ms) {
 $('#test').click(function() {
 });
 
-
-//   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
-//  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     
-//  ██║  ███╗██║     ██║   ██║██████╔╝███████║██║     
-//  ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║     
-//  ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗
-//   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
-
 /*
-// no objects
-var noTrack = new SjTrack({});
+	//   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
+	//  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     
+	//  ██║  ███╗██║     ██║   ██║██████╔╝███████║██║     
+	//  ██║   ██║██║     ██║   ██║██╔══██╗██╔══██║██║     
+	//  ╚██████╔╝███████╗╚██████╔╝██████╔╝██║  ██║███████╗
+	//   ╚═════╝ ╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
 
-var noSource = new SjSource({
-	realSource: false,
-});
+	// no objects
+	var noTrack = new SjTrack({});
 
-// n+1 definition for recursive reference
-noTrack.source = noSource;
+	var noSource = new SjSource({
+		realSource: false,
+	});
 
-var noAction = new SjAction({});
-*/
+	// n+1 definition for recursive reference
+	noTrack.source = noSource;
 
-/*
-// sources
-var sourceList = [];
+	var noAction = new SjAction({});
+	*/
 
-var spotify = new SjSource({
-	name: 'spotify',
-});
+	/*
+	// sources
+	var sj.sourceList = [];
 
-var youtube = new SjSource({
-	name: 'youtube',
-	idPrefix: 'https://www.youtube.com/watch?v=',
-});
+	var spotify = new SjSource({
+		name: 'spotify',
+	});
 
-// list of all valid objects
-var objectList = [
-	// TODO must be a better way
-	'SjObject',
-	'SjSuccess',
-	'SjError',
-	'SjErrorList',
-	'SjTrack',
-	'SjPlaylist',
-	'SjUser',
-	'SjSource',
-	'SjPlayback',
-	'SjAction',
-	'SjStart',
-	'SjToggle',
-	'SjSeek',
-	'SjVolume',
-];
+	var youtube = new SjSource({
+		name: 'youtube',
+		idPrefix: 'https://www.youtube.com/watch?v=',
+	});
 
-function SjObject({log = false, code = 400, type = '', origin = '', message = '', reason = '', content = {}, target = '', cssClass = ''}) {
-	this.objectType = 'SjObject';
+	// list of all valid objects
+	var objectList = [
+		// TODO must be a better way
+		'SjObject',
+		'SjSuccess',
+		'SjError',
+		'SjErrorList',
+		'SjTrack',
+		'SjPlaylist',
+		'SjUser',
+		'SjSource',
+		'SjPlayback',
+		'SjAction',
+		'SjStart',
+		'SjToggle',
+		'SjSeek',
+		'SjVolume',
+	];
 
-	// debug
-	// include log: true, in parameter list if object should be announced on creation, else just call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new SjObject()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
-	this.log = log;
-	this.announce = function () {
-		//var string = 'origin:\n     ' +this.origin +'\nobjectType:\n     ' +this.objectType +'\nreason:\n     ' +this.reason;
-		var string = this.origin +'\n' +this.objectType +'\n' +this.reason;
-		if (isError(this)) {
-			console.error(string);
-		} else {
-			console.log(string);
+	function SjObject({log = false, code = 400, type = '', origin = '', message = '', reason = '', content = {}, target = '', cssClass = ''}) {
+		this.objectType = 'SjObject';
+
+		// debug
+		// include log: true, in parameter list if object should be announced on creation, else just call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new SjObject()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
+		this.log = log;
+		this.announce = function () {
+			//var string = 'origin:\n     ' +this.origin +'\nobjectType:\n     ' +this.objectType +'\nreason:\n     ' +this.reason;
+			var string = this.origin +'\n' +this.objectType +'\n' +this.reason;
+			if (sj.isError(this)) {
+				console.error(string);
+			} else {
+				console.log(string);
+			}
+		}
+
+		// what
+		this.code = code;
+		this.type = type;
+		this.origin = origin;
+
+		// return
+		this.message = message;
+		this.reason = reason;
+		this.content = content;
+
+		// element
+		this.target = target;
+		this.cssClass = cssClass;
+
+		// all child objects should call SjObject.call(this, obj);, this is like calling the super constructor
+		// "The call() method calls a function with a given this value and arguments provided individually."	
+
+		this.onCreate = function () {
+			if (this.log === true) {
+				this.announce();
+			}
 		}
 	}
 
-	// what
-	this.code = code;
-	this.type = type;
-	this.origin = origin;
+	// error handling
+	function sj.Success({code = 200, type = 'Ok'}) {
+		// !!! arguments will only represent the parameter values at invocation (when default, destructured, or rest parameters are used) https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments
 
-	// return
-	this.message = message;
-	this.reason = reason;
-	this.content = content;
+		// super
+		SjObject.call(this, arguments[0]);
 
-	// element
-	this.target = target;
-	this.cssClass = cssClass;
+		// overwritten properties
+		this.objectType = 'SjSuccess';
 
-	// all child objects should call SjObject.call(this, obj);, this is like calling the super constructor
-	// "The call() method calls a function with a given this value and arguments provided individually."	
+		// what
+		this.code = code;
+		this.type = type;
 
-	this.onCreate = function () {
-		if (this.log === true) {
-			this.announce();
-		}
+		this.onCreate();
 	}
-}
+	function sj.Error({code = 400, type = 'Bad Request'}) {
+		// super
+		SjObject.call(this, arguments[0]);
 
-// error handling
-function SjSuccess({code = 200, type = 'Ok'}) {
-	// !!! arguments will only represent the parameter values at invocation (when default, destructured, or rest parameters are used) https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments
+		// overwritten properties
+		this.objectType = 'SjError';
 
-	// super
-	SjObject.call(this, arguments[0]);
+		// what
+		this.code = code;
+		this.type = type;
 
-	// overwritten properties
-	this.objectType = 'SjSuccess';
+		this.onCreate();
+	}
+	function sj.ErrorList({code = 400, type = 'Bad Request', reason = 'One or more errors thrown', content = []}) {
+		// super
+		SjObject.call(this, arguments[0]);
 
-	// what
-	this.code = code;
-	this.type = type;
+		// overwritten properties
+		this.objectType = 'SjErrorList';
 
-	this.onCreate();
-}
-function SjError({code = 400, type = 'Bad Request'}) {
-	// super
-	SjObject.call(this, arguments[0]);
+		// what
+		this.code = code;
+		this.type = type;
 
-	// overwritten properties
-	this.objectType = 'SjError';
+		// return
+		this.reason = reason;
+		this.content = content;
 
-	// what
-	this.code = code;
-	this.type = type;
+		this.onCreate();
+	}
 
-	this.onCreate();
-}
-function SjErrorList({code = 400, type = 'Bad Request', reason = 'One or more errors thrown', content = []}) {
-	// super
-	SjObject.call(this, arguments[0]);
+	function SjTrack({code = 200, type = 'Ok', playlistId = null, position = null, source = noSource, id = '', artists = [], title = '', duration = 0, link = ''}) {
+		// super
+		SjObject.call(this, arguments[0]);
 
-	// overwritten properties
-	this.objectType = 'SjErrorList';
+		// overwritten properties
+		this.objectType = 'SjTrack';
 
-	// what
-	this.code = code;
-	this.type = type;
+		// what
+		this.code = code;
+		this.type = type;
 
-	// return
-	this.reason = reason;
-	this.content = content;
+		// new properties
+		this.playlistId = playlistId;
+		this.position = position;
+		this.source = source;
+		this.id = id // !!! assumes ids are unique, even across all sources
+		this.artists = artists;
+		this.title = title;
+		this.duration = duration;
+		this.link = link;
 
-	this.onCreate();
-}
+		this.onCreate();
+	}
+	function SjPlaylist({code = 200, type = 'Ok', content = [], id = null, userId = null, title= '', visibility = '', description = '', color = '', image = ''}) {
+		// super
+		SjObject.call(this, arguments[0]);
 
-function SjTrack({code = 200, type = 'Ok', playlistId = null, position = null, source = noSource, id = '', artists = [], title = '', duration = 0, link = ''}) {
-	// super
-	SjObject.call(this, arguments[0]);
+		// overwritten properties
+		this.objectType = 'SjPlaylist';
 
-	// overwritten properties
-	this.objectType = 'SjTrack';
+		// what
+		this.code = code;
+		this.type = type;
 
-	// what
-	this.code = code;
-	this.type = type;
+		// return
+		this.content = content;
 
-	// new properties
-	this.playlistId = playlistId;
-	this.position = position;
-	this.source = source;
-	this.id = id // !!! assumes ids are unique, even across all sources
-	this.artists = artists;
-	this.title = title;
-	this.duration = duration;
-	this.link = link;
+		// new properties
+		this.id = id;
+		this.userId = userId;
+		this.title = title;
+		this.visibility = visibility;
+		this.description = description;
+		this.color = color;
+		this.image = image;
 
-	this.onCreate();
-}
-function SjPlaylist({code = 200, type = 'Ok', content = [], id = null, userId = null, title= '', visibility = '', description = '', color = '', image = ''}) {
-	// super
-	SjObject.call(this, arguments[0]);
+		this.onCreate();
+	}
 
-	// overwritten properties
-	this.objectType = 'SjPlaylist';
+	function SjSource({title = '', idPrefix = '',  playback = new SjPlayback({}), realSource = true}) {
+		// super
+		SjObject.call(this, arguments[0]);
 
-	// what
-	this.code = code;
-	this.type = type;
+		// overwritten properties
+		this.objectType = 'SjSource';
 
-	// return
-	this.content = content;
+		// new properties
+		// !!! don't use this unless the source string is needed, always use the SjSource object reference
+		this.title = title;
+		this.idPrefix = idPrefix;
+		
+		// api
+		this.loadApi = typeof obj.loadApi === 'undefined' ? async function () {throw new sj.Error({
+			log: true,
+			origin: 'loadApi()',
+			message: 'api could not be loaded',
+			reason: 'no source',
+		})} : obj.loadApi;
+		this.loadPlayer = typeof obj.loadPlayer === 'undefined' ? async function () {throw new sj.Error({
+			log: true,
+			origin: 'loadPlayer()',
+			message: 'player could not be loaded',
+			reason: 'no source',
+		})} : obj.loadPlayer;
 
-	// new properties
-	this.id = id;
-	this.userId = userId;
-	this.title = title;
-	this.visibility = visibility;
-	this.description = description;
-	this.color = color;
-	this.image = image;
+		// search
+		this.search = typeof obj.search === 'undefined' ? async function () {throw new sj.Error({
+			log: true,
+			origin: 'search()',
+			message: 'unable to search',
+			reason: 'no source',
+		})} : obj.search;
+		this.getTracks = typeof obj.getTracks === 'undefined' ? async function () {throw new sj.Error({
+			log: true,
+			origin: 'getTracks()',
+			message: 'unable to get tracks',
+			reason: 'no source',
+		})} : obj.getTracks;
 
-	this.onCreate();
-}
+		// !!! cyclical reference - has SjPlayback object which has SjTrack object which has this SjSource object
+		this.playback = playback;
 
-function SjSource({title = '', idPrefix = '',  playback = new SjPlayback({}), realSource = true}) {
-	// super
-	SjObject.call(this, arguments[0]);
+		// playback
+		this.checkPlayback = typeof obj.checkPlayback === 'undefined' ? async function () {throw new sj.Error({
+			log: true,
+			origin: 'apiStart()',
+			message: 'could not check playback',
+			reason: 'no source',
+		})} : obj.checkPlayback;
 
-	// overwritten properties
-	this.objectType = 'SjSource';
-
-	// new properties
-	// !!! don't use this unless the source string is needed, always use the SjSource object reference
-	this.title = title;
-	this.idPrefix = idPrefix;
-	
-	// api
-	this.loadApi = typeof obj.loadApi === 'undefined' ? async function () {throw new SjError({
-		log: true,
-		origin: 'loadApi()',
-		message: 'api could not be loaded',
-		reason: 'no source',
-	})} : obj.loadApi;
-	this.loadPlayer = typeof obj.loadPlayer === 'undefined' ? async function () {throw new SjError({
-		log: true,
-		origin: 'loadPlayer()',
-		message: 'player could not be loaded',
-		reason: 'no source',
-	})} : obj.loadPlayer;
-
-	// search
-	this.search = typeof obj.search === 'undefined' ? async function () {throw new SjError({
-		log: true,
-		origin: 'search()',
-		message: 'unable to search',
-		reason: 'no source',
-	})} : obj.search;
-	this.getTracks = typeof obj.getTracks === 'undefined' ? async function () {throw new SjError({
-		log: true,
-		origin: 'getTracks()',
-		message: 'unable to get tracks',
-		reason: 'no source',
-	})} : obj.getTracks;
-
-	// !!! cyclical reference - has SjPlayback object which has SjTrack object which has this SjSource object
-	this.playback = playback;
-
-	// playback
-	this.checkPlayback = typeof obj.checkPlayback === 'undefined' ? async function () {throw new SjError({
-		log: true,
-		origin: 'apiStart()',
-		message: 'could not check playback',
-		reason: 'no source',
-	})} : obj.checkPlayback;
-
-	this.start = async function (track) {
-		return this.apiStart(track).then(resolved => {
-			this.playback.playing = true;
-			this.playback.track = track;
-			this.playback.progress = 0;
-			this.playback.timeStamp = Date.now();
-
-			return resolved;
-		}).catch(rejected => {
-			throw propagateError(rejected);
-		});
-	};
-	this.resume = async function () {
-		if (!this.playback.playing) { 
-			return this.apiResume().then(resolved => {
+		this.start = async function (track) {
+			return this.apiStart(track).then(resolved => {
 				this.playback.playing = true;
+				this.playback.track = track;
+				this.playback.progress = 0;
+				this.playback.timeStamp = Date.now();
+
 				return resolved;
 			}).catch(rejected => {
-				throw rejected;
+				throw sj.propagateError(rejected);
 			});
-		} else {
-			return new SjSuccess({
-				log: true,
-				origin: this.name + '.resume()',
-				message: 'track already playing',
-			});
-		}
-	};
-	this.pause = async function () {
-		if (this.playback.playing) {
-			return this.apiPause().then(resolved => {
-				this.playback.playing = false;
+		};
+		this.resume = async function () {
+			if (!this.playback.playing) { 
+				return this.apiResume().then(resolved => {
+					this.playback.playing = true;
+					return resolved;
+				}).catch(rejected => {
+					throw rejected;
+				});
+			} else {
+				return new sj.Success({
+					log: true,
+					origin: this.name + '.resume()',
+					message: 'track already playing',
+				});
+			}
+		};
+		this.pause = async function () {
+			if (this.playback.playing) {
+				return this.apiPause().then(resolved => {
+					this.playback.playing = false;
+					return resolved;
+				}).catch(rejected => {
+					throw sj.propagateError(rejected);
+				});
+			} else {
+				return new sj.Success({
+					log: true,
+					origin: this.name + '.pause()',
+					message: 'track already paused',
+				});
+			}
+		};
+		this.seek = async function (ms) {
+			return this.apiSeek(ms).then(resolved => {
+				this.playback.progress = ms;
+				this.playback.timeStamp = Date.now();
 				return resolved;
 			}).catch(rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
-		} else {
-			return new SjSuccess({
-				log: true,
-				origin: this.name + '.pause()',
-				message: 'track already paused',
+		};
+		this.volume = async function (volume) {
+			return this.apiVolume(volume).then(resolved => {
+				this.playback.volume = volume;
+				return resolved;
+			}).catch(rejected => {
+				throw sj.propagateError(rejected);
 			});
+		};
+
+		this.apiStart = typeof obj.apiStart === 'undefined' ? async function () {throw new sj.Error({
+			log: true,
+			origin: 'apiStart()',
+			message: 'track could not be started',
+			reason: 'no source',
+		})} : obj.apiStart;
+		this.apiResume = typeof obj.apiResume === 'undefined' ? async function (){throw new sj.Error({
+			log: true,
+			origin: 'apiResume()',
+			message: 'track could not be resumed',
+			reason: 'no source',
+		});} : obj.apiResume;
+		this.apiPause = typeof obj.apiPause === 'undefined' ? async function (){throw new sj.Error({
+			log: true,
+			origin: 'apiPause()',
+			message: 'track could not be paused',
+			reason: 'no source',
+		});} : obj.apiPause;
+		this.apiSeek = typeof obj.apiSeek === 'undefined' ? async function (){throw new sj.Error({
+			log: true,
+			origin: 'apiSeek()',
+			message: 'track could not be seeked',
+			reason: 'no source',
+		});} : obj.apiSeek;
+		this.apiVolume = typeof obj.apiVolume === 'undefined' ? async function (){throw new sj.Error({
+			log: true,
+			origin: 'apiVolume()',
+			message: 'volume could not be changed',
+			reason: 'no source',
+		});} : obj.apiVolume;
+
+
+		// sj.sourceList
+		this.realSource = realSource;
+		
+		this.addToSourceList = function () {
+			// TODO figure out how to call super.onCreate();
+			if (this.realSource) {
+				sj.sourceList.push(this);
+			}
 		}
-	};
-	this.seek = async function (ms) {
-		return this.apiSeek(ms).then(resolved => {
-			this.playback.progress = ms;
-			this.playback.timeStamp = Date.now();
-			return resolved;
-		}).catch(rejected => {
-			throw propagateError(rejected);
-		});
-	};
-	this.volume = async function (volume) {
-		return this.apiVolume(volume).then(resolved => {
-			this.playback.volume = volume;
-			return resolved;
-		}).catch(rejected => {
-			throw propagateError(rejected);
-		});
-	};
 
-	this.apiStart = typeof obj.apiStart === 'undefined' ? async function () {throw new SjError({
-		log: true,
-		origin: 'apiStart()',
-		message: 'track could not be started',
-		reason: 'no source',
-	})} : obj.apiStart;
-	this.apiResume = typeof obj.apiResume === 'undefined' ? async function (){throw new SjError({
-		log: true,
-		origin: 'apiResume()',
-		message: 'track could not be resumed',
-		reason: 'no source',
-	});} : obj.apiResume;
-	this.apiPause = typeof obj.apiPause === 'undefined' ? async function (){throw new SjError({
-		log: true,
-		origin: 'apiPause()',
-		message: 'track could not be paused',
-		reason: 'no source',
-	});} : obj.apiPause;
-	this.apiSeek = typeof obj.apiSeek === 'undefined' ? async function (){throw new SjError({
-		log: true,
-		origin: 'apiSeek()',
-		message: 'track could not be seeked',
-		reason: 'no source',
-	});} : obj.apiSeek;
-	this.apiVolume = typeof obj.apiVolume === 'undefined' ? async function (){throw new SjError({
-		log: true,
-		origin: 'apiVolume()',
-		message: 'volume could not be changed',
-		reason: 'no source',
-	});} : obj.apiVolume;
+		this.onCreate();
+		this.addToSourceList();
+	}
+	function SjPlayback({track = noTrack, playing = false, progress = 0, timeStamp = Date.now(), volume = 0}) {
+		// super
+		SjObject.call(this, arguments[0]);
 
+		// overwritten properties
+		this.objectType = 'SjPlayback';
 
-	// sourceList
-	this.realSource = realSource;
-	
-	this.addToSourceList = function () {
-		// TODO figure out how to call super.onCreate();
-		if (this.realSource) {
-			sourceList.push(this);
-		}
+		// new properties
+		// track
+		this.track = track;
+
+		// playing
+		this.playing = playing;
+
+		// progress
+		this.progress = progress;
+		this.timeStamp = timeStamp;
+
+		// volume
+		this.volume = volume;
+
+		this.onCreate();
 	}
 
-	this.onCreate();
-	this.addToSourceList();
-}
-function SjPlayback({track = noTrack, playing = false, progress = 0, timeStamp = Date.now(), volume = 0}) {
-	// super
-	SjObject.call(this, arguments[0]);
+	function SjUser({code = 200, type = 'Ok', id = null, name = '', email = ''}) {
+		// super
+		SjObject.call(this, arguments[0]);
 
-	// overwritten properties
-	this.objectType = 'SjPlayback';
+		// overwritten properties
+		this.objectType = 'SjUser';
 
-	// new properties
-	// track
-	this.track = track;
+		// what
+		this.code = code;
+		this.type = type;
 
-	// playing
-	this.playing = playing;
+		// new properties
+		this.id = id;
+		this.name = name;
+		this.email = email;
 
-	// progress
-	this.progress = progress;
-	this.timeStamp = timeStamp;
-
-	// volume
-	this.volume = volume;
-
-	this.onCreate();
-}
-
-function SjUser({code = 200, type = 'Ok', id = null, name = '', email = ''}) {
-	// super
-	SjObject.call(this, arguments[0]);
-
-	// overwritten properties
-	this.objectType = 'SjUser';
-
-	// what
-	this.code = code;
-	this.type = type;
-
-	// new properties
-	this.id = id;
-	this.name = name;
-	this.email = email;
-
-	this.onCreate();
-}
+		this.onCreate();
+	}
 */
 
 
@@ -465,80 +464,82 @@ function SjUser({code = 200, type = 'Ok', id = null, name = '', email = ''}) {
 //  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║
 //  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
 
-// sorting
-function isError(obj) {
-	// checks for proper SjObject error types
-	if (typeOf(obj) === 'SjError' || typeOf(obj) === 'SjErrorList') {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-function catchUnexpected(obj) {
-	// determines type of input, creates, announces, and returns a proper SjError object
-	// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
-
-	var error = new SjError({
-		message: 'function received unexpected result',
-		content: obj,
-	});
-
-	if (typeOf(obj) === 'undefined') {
-		error.reason = 'object is undefined';
-	} else if (typeOf(obj) === 'null') {
-		error.reason = 'object is null';
-	} else if (typeOf(obj) === 'object') {
-		if (typeof obj.objectType === 'undefined' || typeof obj.objectType === 'null' || obj.objectType.indexOf('Sj') !== 0) {
-			error.reason = 'object is a non Sj object';
+/*
+	// sorting
+	function isError(obj) {
+		// checks for proper SjObject error types
+		if (sj.typeOf(obj) === 'SjError' || sj.typeOf(obj) === 'SjErrorList') {
+			return true;
 		} else {
-			error.reason = 'object is of unexpected Sj objectType: ' + obj.objectType;
+			return false;
 		}
-	} else {
-		error.reason = 'object is of unexpected type: ' + typeof obj;
 	}
-	error.announce();
-	return error;
-}
 
-function propagateError(obj) {
-	// wrapper code for repeated error handling where: one or many SjObject results are expected, SjErrors are propagated, and anything else needs to be caught and transformed into a proper SjError
-	if (isError(obj)) {
-		return obj;
-	} else {
-		return catchUnexpected(obj);
-	}
-}
+	function catchUnexpected(obj) {
+		// determines type of input, creates, announces, and returns a proper SjError object
+		// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 
-function filterList(resolvedList, type, resolvedObj, rejectedObj) {
-	// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an SjErrorList with all objects that aren't of that type
+		var error = new sj.Error({
+			message: 'function received unexpected result',
+			content: obj,
+		});
 
-	resolvedObj.content = resolvedList;
-	rejectedObj.content = [];
-
-	resolvedList.forEach(function (item) {
-		if (typeOf(item) !== type) {
-			rejectedObj.content.push(propagateError(item));
-		}
-	});
-
-	return new Promise(function (resolve, reject) {
-		if (rejectedObj.content.length === 0) {
-			resolvedObj.announce();
-			resolve(resolvedObj);
+		if (sj.typeOf(obj) === 'undefined') {
+			error.reason = 'object is undefined';
+		} else if (sj.typeOf(obj) === 'null') {
+			error.reason = 'object is null';
+		} else if (sj.typeOf(obj) === 'object') {
+			if (typeof obj.objectType === 'undefined' || typeof obj.objectType === 'null' || obj.objectType.indexOf('Sj') !== 0) {
+				error.reason = 'object is a non Sj object';
+			} else {
+				error.reason = 'object is of unexpected Sj objectType: ' + obj.objectType;
+			}
 		} else {
-			rejectedObj.announce();
-			reject(rejectedObj);
+			error.reason = 'object is of unexpected type: ' + typeof obj;
 		}
-	});
-}
+		error.announce();
+		return error;
+	}
+
+	function sj.propagateError(obj) {
+		// wrapper code for repeated error handling where: one or many SjObject results are expected, SjErrors are propagated, and anything else needs to be caught and transformed into a proper SjError
+		if (sj.isError(obj)) {
+			return obj;
+		} else {
+			return catchUnexpected(obj);
+		}
+	}
+
+	function sj.filterList(resolvedList, type, resolvedObj, rejectedObj) {
+		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an SjErrorList with all objects that aren't of that type
+
+		resolvedObj.content = resolvedList;
+		rejectedObj.content = [];
+
+		resolvedList.forEach(function (item) {
+			if (sj.typeOf(item) !== type) {
+				rejectedObj.content.push(sj.propagateError(item));
+			}
+		});
+
+		return new Promise(function (resolve, reject) {
+			if (rejectedObj.content.length === 0) {
+				resolvedObj.announce();
+				resolve(resolvedObj);
+			} else {
+				rejectedObj.announce();
+				reject(rejectedObj);
+			}
+		});
+	}
+*/
 
 // handling
 function handleError(error) {
-	if (typeOf(error) === 'SjError') {
+	if (sj.typeOf(error) === 'SjError') {
 		console.error(error);
 		addElementError(error);
-	} else if (typeOf(error) === 'SjErrorList') {
+	} else if (sj.typeOf(error) === 'SjErrorList') {
 		error.content.forEach(function (item) {
 			console.error(error);
 			addElementError(error);
@@ -551,7 +552,7 @@ function handleError(error) {
 }
 
 // element errors
-var elementErrorList = new SjErrorList({
+var elementErrorList = new sj.ErrorList({
 	origin: 'global variable elementErrorList',
 });
 
@@ -628,45 +629,68 @@ function updateElementErrors() {
 	});
 }
 
+/*
+	//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+	//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
+	//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
+	//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
+	//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
+	//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
-//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-
-function typeOf(input) {
-	if (input === null) {
-		return 'null';
-	} else if (typeof input === 'object') {
-		if (objectList.indexOf(input.objectType) !== -1) {
-			return input.objectType;
-		} else {
-			return 'object';
-		}
-	} else {
-		return typeof input;
-	}
-}
-
-// objects
-function clone(obj) {
-	// TODO unused so far
-	// !!! cannot clone circular references
-	return JSON.parse(JSON.stringify(obj));
-}
-
-function recreateSjObject(obj) {
-	if (typeOf(obj) === 'string') {
-		try {
-			var parsedObj = JSON.parse(obj);
-			// if parsedObj has a valid objectType
-			if (objectList.indexOf(parsedObj.objectType) !== -1) {
-				// create a new SjObject based on it's objectType
-				return new window[parsedObj.objectType](parsedObj);
+	function sj.typeOf(input) {
+		if (input === null) {
+			return 'null';
+		} else if (typeof input === 'object') {
+			if (objectList.indexOf(input.objectType) !== -1) {
+				return input.objectType;
 			} else {
-				return new SjError({
+				return 'object';
+			}
+		} else {
+			return typeof input;
+		}
+	}
+
+	// objects
+	function clone(obj) {
+		// TODO unused so far
+		// !!! cannot clone circular references
+		return JSON.parse(JSON.stringify(obj));
+	}
+
+	function recreateSjObject(obj) {
+		if (sj.typeOf(obj) === 'string') {
+			try {
+				var parsedObj = JSON.parse(obj);
+				// if parsedObj has a valid objectType
+				if (objectList.indexOf(parsedObj.objectType) !== -1) {
+					// create a new SjObject based on it's objectType
+					return new window[parsedObj.objectType](parsedObj);
+				} else {
+					return new sj.Error({
+						log: true,
+						origin: 'recreateSjObject()',
+						message: 'failed to recreate object',
+						reason: 'object is non-SjObject',
+						content: obj,
+					});
+				}
+			} catch (e) {
+				return new sj.Error({
+					log: true,
+					origin: 'recreateSjObject()',
+					message: 'failed to recreate object',
+					reason: e,
+					content: obj,
+				});
+			}
+		} else if (sj.typeOf(obj) === 'object') {
+			// if obj has a valid objectType
+			if (objectList.indexOf(obj.objectType) !== -1) {
+				// create a new SjObject based on it's objectType
+				return new window[obj.objectType](obj);
+			} else {
+				return new sj.Error({
 					log: true,
 					origin: 'recreateSjObject()',
 					message: 'failed to recreate object',
@@ -674,64 +698,41 @@ function recreateSjObject(obj) {
 					content: obj,
 				});
 			}
-		} catch (e) {
-			return new SjError({
-				log: true,
-				origin: 'recreateSjObject()',
-				message: 'failed to recreate object',
-				reason: e,
-				content: obj,
-			});
-		}
-	} else if (typeOf(obj) === 'object') {
-		// if obj has a valid objectType
-		if (objectList.indexOf(obj.objectType) !== -1) {
-			// create a new SjObject based on it's objectType
-			return new window[obj.objectType](obj);
 		} else {
-			return new SjError({
+			return new sj.Error({
 				log: true,
 				origin: 'recreateSjObject()',
 				message: 'failed to recreate object',
-				reason: 'object is non-SjObject',
+				reason: 'data is not an object',
 				content: obj,
 			});
 		}
-	} else {
-		return new SjError({
-			log: true,
-			origin: 'recreateSjObject()',
-			message: 'failed to recreate object',
-			reason: 'data is not an object',
-			content: obj,
-		});
 	}
-}
-
-// format
-function msFormat(ms) {
-	// extract
-	var minutes = Math.floor(ms / 60000);
-	var seconds = Math.ceil(ms % 60000);
 
 	// format
-	seconds = ('0' + seconds).slice(-2);
+	function msFormat(ms) {
+		// extract
+		var minutes = Math.floor(ms / 60000);
+		var seconds = Math.ceil(ms % 60000);
 
-	// returns ...0:00 format rounded up to the nearest second
-	return minutes + ':' + seconds;
-}
+		// format
+		seconds = ('0' + seconds).slice(-2);
 
-// promises
-function resolveBoth(resolved, rejected) {
-	// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
-
-	if (resolved) {
-		return resolved;
-	} else if (rejected) {
-		return rejected;
+		// returns ...0:00 format rounded up to the nearest second
+		return minutes + ':' + seconds;
 	}
-}
 
+	// promises
+	function resolveBoth(resolved, rejected) {
+		// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
+
+		if (resolved) {
+			return resolved;
+		} else if (rejected) {
+			return rejected;
+		}
+	}
+*/
 
 //  ███████╗███████╗██████╗ ██╗   ██╗███████╗██████╗ 
 //  ██╔════╝██╔════╝██╔══██╗██║   ██║██╔════╝██╔══██╗
@@ -743,7 +744,7 @@ function resolveBoth(resolved, rejected) {
 async function serverCommand(data) {
 	return $.ajax({
 		// http://api.jquery.com/jquery.ajax/
-		url: 'request.php',
+		url: 'request.php', // TODO
 		type: 'POST',
 		data: data,
 	}).then(function (data, textStatus, jqXHR) {
@@ -755,7 +756,7 @@ async function serverCommand(data) {
 
 		return obj;
 	}, function (jqXHR, textStatus, errorThrown) {
-		var temp =  new SjError({
+		var temp =  new sj.Error({
 			log: true,
 
 			type: 'ajax error',
@@ -1071,6 +1072,14 @@ async function deleteTrack(playlistId, position) {
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
 */
 
+spotify = new sj.Source({
+	name: 'spotify',
+});
+youtube = new sj.Source({
+	name: 'youtube',
+	idPrefix: 'https://www.youtube.com/watch?v=',
+});
+
 // api
 spotify.loadApi = async function () {
 	return new Promise(function (resolve, reject) {
@@ -1082,13 +1091,13 @@ spotify.loadApi = async function () {
 			window.spotifyApi = new SpotifyWebApi();
 			spotifyApi.setAccessToken(spotifyAccessToken);
 
-			resolve(new SjSuccess({
+			resolve(new sj.Success({
 				log: true,
 				origin: 'spotify.loadApi()',
 				message: 'spotify api ready',
 			}));
 		} catch (e) {
-			reject(new SjError({
+			reject(new sj.Error({
 				log: true,
 				origin: 'spotify.loadApi()',
 				message: 'spotify api failed to load',
@@ -1119,13 +1128,13 @@ youtube.loadApi = async function () {
 						// at least one scope is needed, this is the bare minimum scope
 						scope: 'https://www.googleapis.com/auth/youtube.readonly'
 					}).then(function (resolved) {
-						resolve(new SjSuccess({
+						resolve(new sj.Success({
 							log: true,
 							origin: 'youtube.loadApi()',
 							message: 'youtube api ready',
 						}));
 					}, function (rejected) {
-						reject(new SjError({
+						reject(new sj.Error({
 							log: true,
 							origin: 'youtube.loadApi()',
 							message: 'failed to load youtube api',
@@ -1135,7 +1144,7 @@ youtube.loadApi = async function () {
 					});
 				},
 				onerror: function() {
-					reject(new SjError({
+					reject(new sj.Error({
 						log: true,
 						origin: 'youtube.loadApi()',
 						message: 'failed to load youtube libraries',
@@ -1151,7 +1160,7 @@ youtube.loadApi = async function () {
 			});
 		});
 	}, function (jqxhr, settings, exception) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			origin: 'youtube.loadApi()',
 			message: 'failed to load youtube api',
@@ -1232,7 +1241,7 @@ spotify.loadPlayer = async function () {
 				// error handling
 				player.addListener('initialization_error', function ({message}) { 
 					//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-					triggerReject(new SjError({
+					triggerReject(new sj.Error({
 							log: true,
 							origin: 'spotify.loadPlayer()',
 							message: 'spotify player encountered an initialization error',
@@ -1243,7 +1252,7 @@ spotify.loadPlayer = async function () {
 
 				player.addListener('authentication_error', function ({message}) { 
 					// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-					triggerReject(new SjError({
+					triggerReject(new sj.Error({
 							log: true,
 							origin: 'spotify.loadPlayer()',
 							message: 'spotify player encountered an authentication error',
@@ -1254,7 +1263,7 @@ spotify.loadPlayer = async function () {
 
 				player.addListener('account_error', function ({message}) {
 					// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-					triggerReject(new SjError({
+					triggerReject(new sj.Error({
 							log: true,
 							origin: 'spotify.loadPlayer()',
 							message: 'this account does not have a valid Spotify Premium subscription',
@@ -1269,7 +1278,7 @@ spotify.loadPlayer = async function () {
 					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
 
 					spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-						triggerResolve(new SjSuccess({
+						triggerResolve(new sj.Success({
 							log: true,
 							origin: 'spotify.loadPlayer()',
 							message: 'spotify player loaded',
@@ -1277,7 +1286,7 @@ spotify.loadPlayer = async function () {
 
 						// TODO updatePlayback(); ?
 					}, function (rejected) {
-						triggerReject(new SjError({
+						triggerReject(new sj.Error({
 							log: true,
 							code: JSON.parse(error.response).error.status,
 							origin: 'spotify.loadPlayer()',
@@ -1286,7 +1295,7 @@ spotify.loadPlayer = async function () {
 							content: error,
 						}));
 					}).catch(function (rejected) {
-						triggerReject(new SjError({
+						triggerReject(new sj.Error({
 							log: true,
 							origin: 'spotify.loadPlayer()',
 							message: 'spotify player could not be loaded',
@@ -1301,7 +1310,7 @@ spotify.loadPlayer = async function () {
 					// returns a promise with a boolean for whether or not the connection was successful
 					// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
 					if (!resolved) {
-						triggerReject(new SjError({
+						triggerReject(new sj.Error({
 							log: true,
 							origin: 'spotify.loadPlayer()',
 							message: 'spotify player failed to connect',
@@ -1310,7 +1319,7 @@ spotify.loadPlayer = async function () {
 					}
 				}, function (rejected) {
 					// should not be possible to get here, but handle it either way
-					triggerReject(new SjError({
+					triggerReject(new sj.Error({
 						log: true,
 						origin: 'spotify.loadPlayer()',
 						message: 'spotify player failed to connect',
@@ -1319,7 +1328,7 @@ spotify.loadPlayer = async function () {
 					}));
 				});
 			} catch (e) {
-				triggerReject(new SjError({
+				triggerReject(new sj.Error({
 					log: true,
 					origin: 'spotify.loadPlayer()',
 					message: 'spotify player failed to connect',
@@ -1330,7 +1339,7 @@ spotify.loadPlayer = async function () {
 		}
 
 		$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
-			triggerReject(new SjError({
+			triggerReject(new sj.Error({
 				log: true,
 				origin: 'spotify.loadPlayer()',
 				message: 'failed to load spotify player',
@@ -1342,7 +1351,7 @@ spotify.loadPlayer = async function () {
 
 youtube.loadPlayer = function () {
 	$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
-		callback(new SjError({
+		callback(new sj.Error({
 			log: true,
 			origin: 'youtube.loadPlayer()',
 			message: 'failed to load youtube player',
@@ -1368,7 +1377,7 @@ youtube.loadPlayer = function () {
 
 	// player callback
 	window.onPlayerReady = function (event) {
-		var result = new SjSuccess({
+		var result = new sj.Success({
 			log: true,
 			origin: 'youtube.loadPlayer()',
 			message: 'youtube player loaded',
@@ -1427,13 +1436,13 @@ var searchResults = {
 
 // search
 async function search(term) {
-	return Promise.all(sourceList.map(function (source) {
+	return Promise.all(sj.sourceList.map(function (source) {
 		return source.search(term).then(resolveBoth);
 	})).then(function (resolved) {
-		return filterList(resolved, 'SjSuccess', new SjSuccess({
+		return sj.filterList(resolved, 'SjSuccess', new sj.Success({
 			origin: 'search()',
 			message: 'search succeeded',
-		}), new SjErrorList( {
+		}), new sj.ErrorList( {
 			origin: 'search()',
 			message: 'search failed',
 		}));
@@ -1455,7 +1464,7 @@ spotify.search = async function (term) {
 	};
 
 	return spotifyApi.searchTracks(term, options).catch(function (rejected) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			code: JSON.parse(rejected.response).error.status,
 			origin: 'spotify.search()',
@@ -1473,13 +1482,13 @@ spotify.search = async function (term) {
 		// save SjPlaylist
 		searchResults.spotify = resolved;
 
-		return new SjSuccess({
+		return new sj.Success({
 			log: true,
 			origin: 'spotify.search()',
 			message: 'tracks retrieved',
 		});
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 
@@ -1535,7 +1544,7 @@ youtube.search = async function (term) {
 		gapi.client.request(args).then(function (resolved) {
 			resolve(resolved);
 		}, function (rejected) {
-			reject(new SjError({
+			reject(new sj.Error({
 				log: true, 
 				origin: 'youtube.search()',
 				message: 'tracks could not be retrieved',
@@ -1557,14 +1566,14 @@ youtube.search = async function (term) {
 	}).then(function (resolved) {
 		// save SjPlaylist
 		searchResults.youtube = resolved;
-		return new SjSuccess({
+		return new sj.Success({
 			log: true,
 			origin: 'youtube.search()',
 			message: 'tracks retrieved',
 			content: resolved,
 		});
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 
@@ -1587,7 +1596,7 @@ youtube.getTracks = async function (ids) {
 		gapi.client.request(args).then(function (resolved) {
 			resolve(resolved);
 		}, function (rejected) {
-			reject(new SjError({
+			reject(new sj.Error({
 				log: true, 
 				origin: 'youtube.getTracks() gapi.client.request().then()',
 				message: 'tracks could not be retrieved',
@@ -1630,7 +1639,7 @@ youtube.getTracks = async function (ids) {
 		playlist.announce();
 		return playlist;
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 
@@ -1767,13 +1776,13 @@ desiredPlayback.current = function () {
 }
 
 async function checkPlayback() {
-	return Promise.all(sourceList.map(function (source) {
+	return Promise.all(sj.sourceList.map(function (source) {
 		return source.checkPlayback().then(resolveBoth);
 	})).then(function (resolved) {
-		return filterList(resolved, 'SjSuccess', new SjSuccess({
+		return sj.filterList(resolved, 'SjSuccess', new sj.Success({
 			origin: 'checkPlayback()',
 			message: 'checked playback state',
-		}), new SjErrorList({
+		}), new sj.ErrorList({
 			origin: 'checkPlayback()',
 			message: 'failed to check playback state',
 		}));
@@ -1789,7 +1798,7 @@ spotify.checkPlayback = async function () {
 	// 1 api call (all)
 
 	return spotifyApi.getMyCurrentPlaybackState({}).catch(function (rejected) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			code: JSON.parse(rejected.response).error.status,
 			origin: 'spotify.checkPlayback()',
@@ -1817,13 +1826,13 @@ spotify.checkPlayback = async function () {
 		spotify.playback.progress = resolved.progress_ms;
 		spotify.playback.timeStamp = resolved.timestamp;
 
-		return new SjSuccess({
+		return new sj.Success({
 			log: true,
 			origin: 'spotify.checkPlayback()',
 			message: 'spotify playback state checked',
 		});
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 
@@ -1851,7 +1860,7 @@ youtube.checkPlayback = async function () {
 
 
 		var url = youtubePlayer.getVideoUrl(); // !!! can sometimes return undefined
-		var id = typeOf(url) === 'string' ? url.split('v=')[1] : '';
+		var id = sj.typeOf(url) === 'string' ? url.split('v=')[1] : '';
 		if (id) {
 			// if not empty
 			var andPosition = id.indexOf('&'); 
@@ -1861,13 +1870,13 @@ youtube.checkPlayback = async function () {
 				if (resolved.content.length === 1) {
 					youtube.playback.track = resolved.content[0];
 
-					return new SjSuccess({
+					return new sj.Success({
 						log: true,
 						origin: 'youtube.checkPlayback()',
 						message: 'youtube playback state checked',
 					});
 				} else {
-					throw new SjError({
+					throw new sj.Error({
 						log: true,
 						code: '404',
 						origin: 'youtube.checkPlayback()',
@@ -1876,18 +1885,18 @@ youtube.checkPlayback = async function () {
 					});
 				}
 			}).catch(function (rejected) {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		} else {
 			// no track is playing
-			return new SjSuccess({
+			return new sj.Success({
 				log: true,
 				origin: 'youtube.checkPlayback()',
 				message: 'youtube playback state checked',
 			});
 		}
 	} catch (e) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			origin: 'youtube.checkPlayback()',
 			message: 'could not check youtube playback',
@@ -1938,7 +1947,7 @@ function SjAction(obj) {
 	// action
 	this.trigger = async function () {
 		return new Promise(resolve => {
-			resolve(new SjSuccess({
+			resolve(new sj.Success({
 				log: true,
 				origin: 'SjAction.trigger',
 			}));
@@ -1965,15 +1974,15 @@ function SjStart(obj) {
 	}
 
 	this.trigger = async function () {
-		return Promise.all(sourceList.map(source => {
+		return Promise.all(sj.sourceList.map(source => {
 			// pause all
 			return source.pause().then(resolveBoth);
 		})).then(resolved => {
 			// filter errors
-			return filterList(resolved, 'SjSuccess', new SjSuccess({
+			return sj.filterList(resolved, 'SjSuccess', new sj.Success({
 				origin: 'SjStart.trigger()',
 				message: 'changed track',
-			}), new SjErrorList({
+			}), new sj.ErrorList({
 				origin: 'SjStart.trigger()',
 				message: 'failed to change track',
 			}));
@@ -1983,7 +1992,7 @@ function SjStart(obj) {
 		}).then(resolved => {
 			return resolved;
 		}, rejected => {
-			throw propagateError(rejected);
+			throw sj.propagateError(rejected);
 		});
 	}
 
@@ -2001,7 +2010,7 @@ function SjToggle(obj) {
 	
 	this.trigger = async function () {
 		if (this.state) {
-			return Promise.all(sourceList.map(source => {
+			return Promise.all(sj.sourceList.map(source => {
 				if (source === this.source) {
 					// resume desired source
 					return source.resume().then(resolveBoth);
@@ -2010,34 +2019,34 @@ function SjToggle(obj) {
 					return source.pause().then(resolveBoth);
 				}
 			})).then(resolved => {
-				return filterList(resolved, 'SjSuccess', new SjSuccess({
+				return sj.filterList(resolved, 'SjSuccess', new sj.Success({
 					origin: 'SjToggle.trigger()',
 					message: 'playing updated',
-				}), new SjErrorList({
+				}), new sj.ErrorList({
 					origin: 'SjToggle.trigger()',
 					message: 'playing failed to update',
 				}));
 			}).then(resolved => {
 				return resolved;
 			}, rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		} else {
-			return Promise.all(sourceList.map(source => {
+			return Promise.all(sj.sourceList.map(source => {
 				// pause all sources
 				return source.pause().then(resolveBoth);
 			})).then(resolved => {
-				return filterList(resolved, 'SjSuccess', new SjSuccess({
+				return sj.filterList(resolved, 'SjSuccess', new sj.Success({
 					origin: 'updatePlaybackPlaying()',
 					message: 'playing updated',
-				}), new SjErrorList({
+				}), new sj.ErrorList({
 					origin: 'updatePlaybackPlaying()',
 					message: 'playing failed to update',
 				}));
 			}).then(resolved => {
 				return resolved;
 			}, rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		}
 	}
@@ -2055,13 +2064,13 @@ function SjSeek(obj) {
 
 	this.trigger = async function () {
 		return this.source.seek(this.state).then(resolved => {
-			return new SjSuccess({
+			return new sj.Success({
 				log: true,
 				origin: 'SjSeek.trigger()',
 				message: 'playback progress changed',
 			});
 		}).catch(rejected => {
-			throw propagateError(rejected);
+			throw sj.propagateError(rejected);
 		});
 	}
 
@@ -2199,14 +2208,14 @@ var playbackQueue = {
 
 spotify.apiStart = async function (track) {
 	return spotifyApi.play({"uris":["spotify:track:" + track.id]}).then(function (resolved) {
-		return new SjSuccess({
+		return new sj.Success({
 			log: true,
 			origin: 'spotify.start()',
 			message: 'track started',
 			content: resolved,
 		});
 	}, function (rejected) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			code: JSON.parse(rejected.response).error.status,
 			origin: 'spotify.start()',
@@ -2215,7 +2224,7 @@ spotify.apiStart = async function (track) {
 			content: rejected,
 		});
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 youtube.apiStart = async function (track) {
@@ -2225,13 +2234,13 @@ youtube.apiStart = async function (track) {
 			youtubePlayer.playVideo();
 			youtubePlayer.pauseVideo();
 
-			resolve(new SjSuccess({
+			resolve(new sj.Success({
 				log: true,
 				origin: 'youtube.start()',
 				message: 'track started',
 			}));
 		} catch (e) {
-			reject(new SjError({
+			reject(new sj.Error({
 				origin: 'youtube.start()',
 				message: 'failed to start youtube track',
 				content: e,
@@ -2242,14 +2251,14 @@ youtube.apiStart = async function (track) {
 
 spotify.apiResume = async function () {
 	return spotifyApi.play({}).then(function (resolved) {
-		return new SjSuccess({
+		return new sj.Success({
 			log: true,
 			origin: 'spotify.resume()',
 			message: 'track resumed',
 			content: resolved,
 		});
 	}, function (rejected) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			code: JSON.parse(rejected.response).error.status,
 			origin: 'spotify.resume()',
@@ -2258,7 +2267,7 @@ spotify.apiResume = async function () {
 			content: rejected,
 		});
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 youtube.apiResume = async function () {
@@ -2266,13 +2275,13 @@ youtube.apiResume = async function () {
 		try {
 			youtubePlayer.playVideo();
 			
-			resolve(new SjSuccess({
+			resolve(new sj.Success({
 				log: true,
 				origin: 'youtube.resume()',
 				message: 'track started',
 			}));
 		} catch (e) {
-			reject(new SjError({
+			reject(new sj.Error({
 				origin: 'youtube.resume()',
 				message: 'failed to resume youtube track',
 				content: e,
@@ -2283,14 +2292,14 @@ youtube.apiResume = async function () {
 
 spotify.apiPause = async function () {
 	return spotifyApi.pause({}).then(function (resolved) {
-		return new SjSuccess({
+		return new sj.Success({
 			log: true,
 			origin: 'spotify.pause()',
 			message: 'track paused',
 			content: resolved,
 		});
 	}, function (rejected) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			code: JSON.parse(rejected.response).error.status,
 			origin: 'spotify.pause()',
@@ -2299,20 +2308,20 @@ spotify.apiPause = async function () {
 			content: rejected,
 		});
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 youtube.apiPause = async function () {
 	return new Promise(function (resolve, reject) {
 		try {
 			youtubePlayer.pauseVideo();
-			resolve(new SjSuccess({
+			resolve(new sj.Success({
 				log: true,
 				origin: 'youtube.pause()',
 				message: 'track paused',
 			}));
 		} catch (e) {
-			reject(new SjError({
+			reject(new sj.Error({
 				log: true,
 				origin: 'youtube.pause()',
 				message: 'failed to pause',
@@ -2324,14 +2333,14 @@ youtube.apiPause = async function () {
 
 spotify.apiSeek = async function (ms) {
 	return spotifyApi.seek(ms, {}).then(function (resolved) {
-		return new SjSuccess({
+		return new sj.Success({
 			log: true,
 			origin: 'spotify.seek()',
 			message: 'track seeked',
 			content: resolved,
 		});
 	}, function (rejected) {
-		throw new SjError({
+		throw new sj.Error({
 			log: true,
 			code: JSON.parse(rejected.response).error.status,
 			origin: 'spotify.seek()',
@@ -2340,7 +2349,7 @@ spotify.apiSeek = async function (ms) {
 			content: rejected,
 		});
 	}).catch(function (rejected) {
-		throw propagateError(rejected);
+		throw sj.propagateError(rejected);
 	});
 }
 youtube.apiSeek = async function (ms) {
@@ -2349,13 +2358,13 @@ youtube.apiSeek = async function (ms) {
 			// (seconds - number, allowSeekAhead of loading - boolean)
 			youtubePlayer.seekTo(Math.round(ms / 1000), true);
 
-			resolve(new SjSuccess({
+			resolve(new sj.Success({
 				log: true,
 				origin: 'youtube.seek()',
 				message: 'track seeked',
 			}));
 		} catch (e) {
-			reject(new SjError({
+			reject(new sj.Error({
 				log: true,
 				origin: 'youtube.seek()',
 				message: 'failed to seek',

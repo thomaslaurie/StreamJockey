@@ -2,11 +2,12 @@ const sj = require('../public/js/global.js');
 const db = require('./database/db.js');
 
 const stringMaxLength = 100;
-const nameMinLength = 2;
-const passwordMinLength = 6;
+const bigStringMaxLength = 2000;
+
+const nameMinLength = 3;
+const nameMaxLength = 16;
 
 const defaultColor = '#ffffff';
-const bigStringMaxLength = 2000;
 
 const visibilityStates = [
     'public',
@@ -32,115 +33,60 @@ async function filterEmail(email) {
 
 // TODO consider converting these if statements to promise functions, consider making field requirements part of an object?
 async function validateEmail(email) {
-    // TODO ensure email is string
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validateEmail()',
+        message: 'email validated',
+        target: 'registerEmail',
+        cssClass: 'inputError',
 
-    email = email.trim;
+        content: email,
 
-    if (email) {
-        if (email.length <= stringMaxLength) {
-            if (filterEmail(email)) {
-                return new SjSuccess({
-                    log: true,
-                    origin: 'validateEmail()',
-                    message: 'email validated',
-                    // TODO consider inputCorrect styling?
-                });
-            } else {
-                throw new SjError({
-                    log: true,
-                    origin: 'validateEmail()',
-                    message: 'field must be a valid e-mail',
-                    target: 'registerEmail',
-                    cssClass: 'inputError',
-                });
-            }
-        } else {
-            throw new SjError({
-                log: true,
-                origin: 'validateEmail()',
-                message: `e-mail must be shorter than ${stringMaxLength} characters`,
-                target: 'registerEmail',
-                cssClass: 'inputError',
-            });
-        }
-    } else {
-        throw new SjError({
-            log: true,
-            origin: 'validateEmail()',
-            message: 'e-mail cannot be empty',
-            target: 'registerEmail',
-            cssClass: 'inputError',
-        });
-    }
+        name: 'E-mail',
+        min: 3,
+        max: stringMaxLength,
+        trim: true,
+        // TODO filter: ___, filterMessage: ___,
+    });
+
+    return await conditions.checkAll();
 }
-
 async function validateUserName(name) {
-    name = name.trim();
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validateUserName()',
+        message: 'username validated',
+        target: 'registerUserName',
+        cssClass: 'inputError',
 
-    if (name) {
-        if (name.length >= nameMinLength && name.length <= stringMaxLength) {
-            return new SjSuccess({
-                log: true,
-                origin: 'validateName()',
-                message: 'username validated',
-            });
-        } else {
-            throw new SjError({
-                log: true,
-                origin: 'validateName()',
-                message: `username must between ${nameMinLength} and ${stringMaxLength} characters`,
-                target: 'registerName',
-                cssClass: 'inputError',
-            });
-        }
-    } else {
-        throw new SjError({
-            log: true,
-            origin: 'validateName()',
-            message: 'username cannot be empty',
-            target: 'registerName',
-            cssClass: 'inputError',
-        });
-    }
+        content: name,
 
+        name: 'Username',
+        min: nameMinLength,
+        max: nameMaxLength,
+        trim: true,
+    });
+
+   return await conditions.checkAll();
 }
-
 async function validatePassword(password1, password2) {
-    if (password1) {
-        if (password.length >= passwordMinLength && password.length <= stringMaxLength) {
-            if (password1 === password2) {
-                return new SjSuccess({
-                    log: true,
-                    origin: 'validatePassword()',
-                    message: 'password validated',
-                });
-            } else {
-                throw new SjError({
-                    log: true,
-                    origin: 'validatePassword()',
-                    message: 'passwords do not match',
-                    target: 'registerPassword',
-                    cssClass: 'inputError',
-                });
-            }
-        } else {
-            throw new SjError({
-                log: true,
-                origin: 'validatePassword()',
-                message: `password must between ${passwordMinLength} and ${stringMaxLength} characters`,
-                target: 'registerPassword',
-                cssClass: 'inputError',
-            });
-        }
-    } else {
-        throw new SjError({
-            log: true,
-            origin: 'validatePassword()',
-            message: 'password cannot be empty',
-            target: 'registerPassword',
-            cssClass: 'inputError',
-        });
-    }
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validatePassword()',
+        message: 'password validated',
+        target: 'registerPassword',
+        cssClass: 'inputError',
+
+        content: password1,
+
+        name: 'Password',
+        min: 6,
+        max: stringMaxLength,
+        against: password2,
+        againstMessage: 'Passwords do not match',
+    });
+   
+    return await conditions.checkAll();
 }
 
 async function register(email, name, password1, password2) {
@@ -150,22 +96,26 @@ async function register(email, name, password1, password2) {
         reason: 'validation functions returned one or more errors',
     });
 
-    // TODO is there a better way to do this?
-    // TODO !!! use trimmed inputs instead of the originals
-    await validateEmail(email).catch(rejected => {
+    email = await validateEmail(email).then(resolved => {
+        return resolved.content;
+    }, rejected => {
         errorList.content.push(rejected);
-        return;
+        return rejected.content;
     });
-    await validateUserName(name).catch(rejected => {
+    name = await validateUserName(name).then(resolved => {
+        return resolved.content;
+    }, rejected => {
         errorList.content.push(rejected);
-        return;
+        return rejected.content;
     });
-    await validatePassword(password1, password2).catch(rejected => {
+    password1 = await validatePassword(password1, password2).then(resolved => {
+        return resolved.content;
+    }, rejected => {
         errorList.content.push(rejected);
-        return;
+        return rejected.content;
     });
 
-    if (!errorList.content.length) {
+    if (errorList.content.length !== 0) {
         // TODO this isn't correct - what we're checking for here is if there is not a name already in the table
         return  db.one('SELECT name FROM users WHERE name = $1', [name])
         .then(resolved => {
@@ -174,7 +124,7 @@ async function register(email, name, password1, password2) {
 
             return db.none('INSERT INTO users(email, name, password) VALUES ($1, $2, $3)', [email, name, passwordHashed]);
         }, rejected => {
-            throw new SjError({
+            throw new sj.Error({
                 log: true,
                 origin: 'register()',
                 message: 'database error',
@@ -182,7 +132,7 @@ async function register(email, name, password1, password2) {
                 content: rejected,
             });
         }).then (resolved => {
-            return new SjSuccess({
+            return new sj.Success({
                 log: true,
                 origin: 'register()',
                 message: `${name} registered`,
@@ -190,7 +140,7 @@ async function register(email, name, password1, password2) {
                 content: name,
             });
         }, rejected => {
-            throw new SjError({
+            throw new sj.Error({
                 log: true,
                 origin: 'register()',
                 message: 'could not register user',
@@ -217,7 +167,7 @@ async function login(name, password) {
         if (true) {
             // TODO login user
             // TODO return SjUser
-            return new SjSuccess({
+            return new sj.Success({
                 log: true,
                 origin: 'login()',
                 message: 'user logged in',
@@ -226,7 +176,7 @@ async function login(name, password) {
                 content: id, // TODO
             });
         } else {
-            throw new SjError({
+            throw new sj.Error({
                 log: true,
                 origin: 'login()',
                 message: 'incorrect password',
@@ -235,7 +185,7 @@ async function login(name, password) {
             });
         }
     }, rejected => {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'login()',
             message: 'database error',
@@ -250,7 +200,7 @@ async function login(name, password) {
 async function logout(ctx) {
     ctx.session = undefined; // TODO is this the proper way to unset session?
 
-    return new SjSuccess({
+    return new sj.Success({
         log: true,
         origin: 'logout()',
         message: 'user logged out',
@@ -271,7 +221,7 @@ async function getUser(id) {
         .then(resolved => {
             return recreateObject(resolved); // TODO check if this is right
         }, rejected => {
-            throw new SjError({
+            throw new sj.Error({
                 log: true,
                 origin: 'getUser()',
                 message: 'could not get user information',
@@ -281,7 +231,7 @@ async function getUser(id) {
             });
         });
     } else {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'getUser()',
             message: 'user id is not a number',
@@ -300,130 +250,93 @@ async function getUser(id) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
 async function validatePlaylistName(name) {
-    name = trim(name);
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validatePlaylistName()',
+        message: 'name validated',
+        target: 'playlistName',
+        cssClass: 'inputError',
 
-    if (name) {
-        if (name.length >= nameMinLength && name.length <= stringMaxLength) {
-            return new SjSuccess({
-                log: true,
-                origin: 'validatePlaylistName()',
-                content: name,
-            });
-        } else {
-            return new SjError({
-                log: true,
-                origin: 'validatePlaylistName()',
-                message: `name must be between ${nameMinLength} and ${stringMaxLength} characters`,
-                target: 'playlistName',
-                cssClass: 'inputError',
-            });
-        }
-    } else {
-        throw new SjError({
-            log: true,
-            origin: 'validatePlaylistName()',
-            message: 'name cannot be empty',
-            target: 'playlistName',
-            cssClass: 'inputError',
-        });
-    }
+        content: name,
+
+        name: 'Name',
+        min: nameMinLength,
+        max: stringMaxLength,
+        trim: true,
+    });
+
+    return await conditions.checkAll();
 }
-
 async function validateVisibility(visibility) {
-    if (visibility) {
-        if (visibilityStates.indexOf(visibility) !== -1) {
-            return new SjSuccess({
-                log: true,
-                origin: 'validateVisibility()',
-                content: visibility,
-            });
-        } else {
-            throw new SjError({
-                log: true,
-                origin: 'validateVisibility()',
-                message: 'please select a visibility',
-                target: 'playlistVisibility',
-                cssClass: 'inputError',
-            });
-        }
-    } else {
-        throw new SjError({
-            log: true,
-            origin: 'validateVisibility()',
-            message: 'please select a visibility',
-            target: 'playlistVisibility',
-            cssClass: 'inputError',
-        });
-    }
-}
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validateVisibility()',
+        message: 'visibility validated',
+        target: 'playlistVisibility',
+        cssClass: 'inputError',
 
+        content: visibility,
+
+        name: 'Visibility',
+        against: visibilityStates,
+        againstMessage: 'please select a valid visibility level',
+    });
+
+    return await conditions.checkAll();
+}
 async function validateDescription(description) {
-    description = trim(description);
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validateDescription()',
+        message: 'description validated',
+        target: 'playlistDescription',
+        cssClass: 'inputError',
 
-    if (description.length <= bigStringMaxLength) {
-        return new SjSuccess({
-            log: true,
-            origin: 'validateDescription()',
-            content: description,
-        });
-    } else {
-        throw new SjError({
-            log: true,
-            origin: 'validateDescription()',
-            message: `description mus be shorter than ${bigStringMaxLength} characters`,
-            target: 'playlistDescription',
-            cssClass: 'inputError',
-        });
-    }
+        content: description,
+
+        name: 'Visibility',
+        max: bigStringMaxLength,
+        trim: true,
+    });
+
+    return await conditions.checkAll();
 }
-
 async function validateColor(color) {
-    color = trim(color);
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validateColor()',
+        message: 'color validated',
+        target: 'playlistColor',
+        cssClass: 'inputError',
 
-    if (color) {
-        // TODO is this regExp implementation correct?
-        if (regExp('/#([a-f0-9]{3}){1,2}\b/', color) === 1) {
-            return new SjSuccess({
-                log: true,
-                origin: 'validateColor()',
-                content: color,
-            });
-        } else {
-            throw new SjError({
-                log: true,
-                origin: 'validateColor()',
-                message: 'color must be in hex format: #xxxxxx',
-                target: 'playlistColor',
-                cssClass: 'inputError',
-            });
-        }
-    } else {
-        return new SjSuccess({
-            log: true,
-            origin: 'validateColor()',
-            content: defaultColor
-        });
-    }
+        content: color,
+
+        name: 'Color',
+        trim: true,
+        filter: '/#([a-f0-9]{3}){1,2}\b/', // TODO is this correct?
+        filterMessage: 'Color must be in hex format #XXXXXX',
+    });
+
+    return await conditions.checkAll();
 }
-
 async function validateImage(image) {
-    image = trim(image);
+    let conditions = new sj.Conditions({
+        log: true,
+        origin: 'validateColor()',
+        message: 'image validated',
+        target: 'playlistImage',
+        cssClass: 'inputError',
 
-    if (image.length <= bigStringMaxLength) {
-        return new SjSuccess({
-            log: true,
-            origin: 'validateImage',
-            content: image,
-        });
-    } else {
-        throw new SjError({
-            log: true,
-            origin: 'validateImage()',
-            message: `image link must be shorter than ${bigStringMaxLength} characters`,
-            target: 'playlistImage',
-            cssClass: 'inputError',
-        });
-    }
+        content: image,
+
+        name: 'Image',
+        max: bigStringMaxLength,
+        trim: true,
+        // TODO filter: ___,
+        filterMessage: 'Image must be a valid url',
+    });
+
+    return await conditions.checkAll();
 }
 
 // playlist
@@ -437,34 +350,44 @@ async function addPlaylist(name, visibility, description, color, image) {
     
         // TODO is there a better way to do this?
         // TODO !!! use trimmed inputs instead of the originals
-        await validatePlaylistName(name).catch(rejected => {
+        name = await validatePlaylistName(name).then(resolved => {
+            return resolved.content;
+        }, rejected => {
             errorList.content.push(rejected);
-            return;
+            return rejected.content;
         });
-        await validateVisibility(visibility).catch(rejected => {
+        visibility = await validateVisibility(visibility).then(resolved => {
+            return resolved.content;
+        }, rejected => {
             errorList.content.push(rejected);
-            return;
+            return rejected.content;
         });
-        await validateDescription(description).catch(rejected => {
+        description = await validateDescription(description).then(resolved => {
+            return resolved.content;
+        }, rejected => {
             errorList.content.push(rejected);
-            return;
+            return rejected.content;
         });
-        await validateColor(color).catch(rejected => {
+        color = await validateColor(color).then(resolved => {
+            return resolved.content;
+        }, rejected => {
             errorList.content.push(rejected);
-            return;
-        });
-        await validateImage(image).catch(rejected => {
+            return rejected.content;
+        });;
+        image = await validateImage(image).then(resolved => {
+            return resolved.content;
+        }, rejected => {
             errorList.content.push(rejected);
-            return;
+            return rejected.content;
         });
 
-        if (!errorList.content.length) {
+        if (errorList.content.length !== 0) {
              // TODO this isn't correct - what we're checking for here is if there is not a playlist already in the table
             return  db.one('SELECT name FROM playlists WHERE name = $1 AND user = $2', [name, userId]) // TODO get user id from session
             .then(resolved => {
                 return db.none('INSERT INTO playlists(name, visibility, description, color, image) VALUES ($1, $2, $3, $4, $5)', [name, visibility, description, color, image]);
             }, rejected => {
-                throw new SjError({
+                throw new sj.Error({
                     log: true,
                     origin: 'addPlaylist()',
                     message: 'playlist already exists',
@@ -472,7 +395,7 @@ async function addPlaylist(name, visibility, description, color, image) {
                     content: rejected,
                 });
             }).then (resolved => {
-                return new SjSuccess({
+                return new sj.Success({
                     log: true,
                     origin: 'addPlaylist()',
                     message: `${name} added`,
@@ -480,7 +403,7 @@ async function addPlaylist(name, visibility, description, color, image) {
                     content: '', // TODO return playlist object
                 });
             }, rejected => {
-                throw new SjError({
+                throw new sj.Error({
                     log: true,
                     origin: 'addPlaylist()',
                     message: 'could not addPlaylist()',
@@ -497,7 +420,7 @@ async function addPlaylist(name, visibility, description, color, image) {
             throw errorList;
         }
     } else {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'addPlaylist()',
             message: 'you must be logged in to add a playlist',
@@ -513,7 +436,7 @@ async function deletePlaylist(id) {
     if (true) { // TODO check that correct user is logged in
         return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [id, userId]) // TODO get user id
         .then(resolved => {
-            return new SjSuccess({
+            return new sj.Success({
                 log: true,
                 origin: 'deletePlaylist()',
                 message: 'playlist deleted',
@@ -521,7 +444,7 @@ async function deletePlaylist(id) {
                 cssClass: 'notify success',
             });
         }, rejected => {
-            throw new SjError({
+            throw new sj.Error({
                 log: true,
                 origin: 'deletePlaylist()',
                 message: 'playlist could not be deleted',
@@ -533,7 +456,7 @@ async function deletePlaylist(id) {
             throw propagateError(rejected);
         });
     } else {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'deletePlaylist()',
             message: 'you must be logged in to delete this playlist',
@@ -555,7 +478,7 @@ async function getPlaylist(id) {
             if (resolved.visibility === 'public' || resolved.visibility === 'linkOnly' || resolved.visibility === 'private' && true) {
                 return resolved;
             } else {
-                throw new SjError({
+                throw new sj.Error({
                     log: true,
                     origin: 'getPlaylist()',
                     message: 'you do not have permission to access this playlist',
@@ -564,7 +487,7 @@ async function getPlaylist(id) {
                 });
             }
         }, rejected => {
-            throw new SjError({
+            throw new sj.Error({
                 log: true,
                 origin: 'getPlaylist()',
                 message: 'could not retrieve playlist',
@@ -573,7 +496,7 @@ async function getPlaylist(id) {
             });
         })
     } else {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'getPlaylist()',
             message: 'invalid playlist id',
@@ -638,7 +561,7 @@ async function orderPlaylist(id) {
             return a.position - b.position;
         });
     } catch (e) {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'orderPlaylist()',
             message: 'playlist sort failed',
@@ -667,7 +590,7 @@ async function orderPlaylist(id) {
 
         return playlist;
     }).catch(rejected => {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: orderPlaylist(),
             message: 'database error when re-ordering playlist',
@@ -693,7 +616,7 @@ async function addTrack(track) {
 
     db.none('INSERT INTO tracks (playlistId, position, source, id, title, artists, duration) VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.artists, track.duration])
     .then(resolved => {
-        return new SjSuccess({
+        return new sj.Success({
             log: true,
             origin: 'addTrack()',
             target: 'notify',
@@ -701,7 +624,7 @@ async function addTrack(track) {
             content: track,
         });
     }, rejected => {
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'addTrack()',
             message: 'failed to add track',
@@ -716,7 +639,7 @@ async function addTrack(track) {
 async function deleteTrack(track) {
     db.none('DELETE FROM tracks WHERE playlistId = $1 AND position = $2', [track.playlistId, track.position])
     .then(resolved => {
-        return new SjSuccess({
+        return new sj.Success({
             log: true,
             origin: 'deleteTrack()',
             target: 'notify',
@@ -725,7 +648,7 @@ async function deleteTrack(track) {
         });
     }, rejected => {
         // TODO re-order tracks afterwards
-        throw new SjError({
+        throw new sj.Error({
             log: true,
             origin: 'deleteTrack()',
             target: 'notify',
