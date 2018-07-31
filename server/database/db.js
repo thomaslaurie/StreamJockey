@@ -2,6 +2,12 @@ const pgp = require('pg-promise')({
     // initialization options here: http://vitaly-t.github.io/pg-promise/module-pg-promise.html
 });
 
+/* notes
+    basic query functions: any(manyOrNone) many none one oneOrNone
+
+*/
+
+
 
 const config = {
     // https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax#configuration-object

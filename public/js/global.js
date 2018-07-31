@@ -760,6 +760,43 @@
 		// returns ...0:00 format rounded up to the nearest second
 		return minutes + ':' + seconds;
 	}
+	// TODO will this carry over through exports? it should: https://stackoverflow.com/questions/46427232/export-import-custom-function-of-built-in-object-in-es6
+	Array.prototype.stableSort = function(compare) {
+		// https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+		
+		// pass in compareFunction or default
+		compare = TypeOf(compare) === 'function' ? compare : (a, b) => {
+			if (a < b) return -1;
+			if (a > b) return 1;
+			return 0;
+		};
+
+		// 'this' refers to the array in [].stableSort()
+		let frozenThis = this.map(function (item, index) {
+			return {value: item, index: index};
+		}); 
+
+		let stableCompare = function (a, b) {
+			let order = compare(a.value, b.value);
+			if (order !== 0) {
+				// if not equal, return the regular compared order
+				return order;
+			} else {
+				// else return their existing order
+				return a.index - b.index;
+			}
+		}
+
+		// apply stable sort
+		frozenThis.sort(stableCompare);
+
+		// replace this with stabilized array
+		for (let i = 0; i < this.length; i++) {
+			this[i] = frozenThis[i][0];
+		}
+
+		return this;
+	}
 
 	// promises
 	sj.resolveBoth = function (resolved, rejected) {
