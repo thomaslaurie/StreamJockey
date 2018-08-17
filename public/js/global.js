@@ -592,9 +592,9 @@
 			return true;
 		}
 		
-
 		async checkAll() {
 			// Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+			// Guard clauses are (also) positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
 			if (!this.checkType()) {
 				throw new sj.Error({

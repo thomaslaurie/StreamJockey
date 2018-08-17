@@ -20,16 +20,16 @@ const router = require('./routes.js');
 const db = require('./database/db.js');
 
 const sessionConfig = {
-	key: 'koa:sess', /* (string) cookie key (default is koa:sess) */
-	maxAge: 86400000, /* (number || 'session') maxAge in ms (default is 1 days)
-	'session' will result in a cookie that expires when session/browser is closed 
+	// https://randomkeygen.com/
+	key: 'koa:sess', /* (string)(default is koa:sess) cookie key  */
+	maxAge: 86400000, /* (number || 'session')(default is 1 days) maxAge in ms, 
+	'session' will result in a cookie that expires when session/browser is closed, 
 	Warning: If a session cookie is stolen, this cookie will never expire */
-	overwrite: true, /* (boolean) can overwrite or not (default true) */
-	httpOnly: true, /* (boolean) httpOnly or not (default true) */
-	signed: true, /* (boolean) signed or not (default true) */
-	rolling: false, /* (boolean) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. (default is false) */
-	renew: false, /* (boolean) renew session when session is nearly expired, so we can always keep user logged in. (default is false)*/
-	// TODO encode/decode user id? so it cant be inserted?
+	overwrite: true, /* (boolean)(default true) can overwrite or not  */
+	httpOnly: true, /* (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side scripts (so that they can only be opened by the server) */
+	signed: true, /* (boolean)(default true) signed or not , signed cookies verify that the data is unchanged on the client side */
+	rolling: true, /* (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request) */
+	renew: false, /* (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in. , does this mean never expiring sessions? */
 };
 
 // constants

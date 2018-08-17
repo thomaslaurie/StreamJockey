@@ -92,7 +92,6 @@ async function register(email, name, password1, password2) {
         message: 'one or more issues with fields',
         reason: 'validation functions returned one or more errors',
     });
-
     email = await validateEmail(email).then(resolved => {
         return resolved.content;
     }, rejected => {
@@ -111,60 +110,59 @@ async function register(email, name, password1, password2) {
         errorList.content.push(rejected);
         return rejected.content;
     });
-
-    if (errorList.content.length !== 0) {
-        return  db.none('SELECT name FROM users WHERE name = $1', [name])
-        .then(resolved => {
-            return bcrypt.hash(myPlaintextPassword, saltRounds);
-        }, rejected => {
-            // TODO how to distinguish sql error from failure?, pg-promise see error types: http://vitaly-t.github.io/pg-promise/errors.html
-
-            throw new sj.Error({
-                log: true,
-                origin: 'register()',
-                code: rejected.code,
-                message: 'database error',
-                reason: rejected.message,
-                content: rejected,
-            });
-        }).then(resolved => {
-            return db.none('INSERT INTO users(email, name, password) VALUES ($1, $2, $3)', [email, name, resolved]);
-        }, rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'register()',
-                message: 'failed to register user',
-                reason: 'hash failed',
-                content: rejected,
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        }).then (resolved => {
-            return new sj.Success({
-                log: true,
-                origin: 'register()',
-                message: `${name} registered`,
-                cssClass: 'notifySuccess',
-                content: name,
-            });
-        }, rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'register()',
-                code: rejected.code,
-                message: 'could not register user',
-                reason: rejected.message,
-                content: rejected,
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        }).catch(rejected => {
-            throw sj.propagateError(rejected);
-        });
-    } else {
+    if (!(errorList.content.length !== 0)) {
         errorList.announce();
         throw errorList;
     }
+
+    return  db.none('SELECT name FROM users WHERE name = $1', [name])
+    .then(resolved => {
+        return bcrypt.hash(myPlaintextPassword, saltRounds);
+    }, rejected => {
+        // TODO how to distinguish sql error from failure?, pg-promise see error types: http://vitaly-t.github.io/pg-promise/errors.html
+
+        throw new sj.Error({
+            log: true,
+            origin: 'register()',
+            code: rejected.code,
+            message: 'database error',
+            reason: rejected.message,
+            content: rejected,
+        });
+    }).then(resolved => {
+        return db.none('INSERT INTO users(email, name, password) VALUES ($1, $2, $3)', [email, name, resolved]);
+    }, rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'register()',
+            message: 'failed to register user',
+            reason: 'hash failed',
+            content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then (resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'register()',
+            message: `${name} registered`,
+            cssClass: 'notifySuccess',
+            content: name,
+        });
+    }, rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'register()',
+            code: rejected.code,
+            message: 'could not register user',
+            reason: rejected.message,
+            content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
 }
 
 async function login(ctx, name, password) { 
@@ -228,6 +226,11 @@ async function logout(ctx) {
     });
 }
 
+function isLoggedIn(ctx) {
+    // TODO is this the proper way to check being logged in? what about verifying user.id type, or if they exist?
+    return sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined';
+}
+
 // get
 /*
 async function getCurrentUser() {
@@ -235,11 +238,9 @@ async function getCurrentUser() {
 }
 */
 
-// ----------------- TODO
-
 async function getUser(id) {
-    if (typeOf(id) === 'number') {
-        db.one('SELECT * FROM users WHERE id = $1', [id]) // TODO don't retrieve all columns (privacy)
+    if (sj.typeOf(id) === 'number') {
+        db.one('SELECT * FROM users WHERE id = $1', [id]) // TODO don't retrieve all columns (privacy) (ie password), actually another option could be creating two different child classes of sj.User: sj.PublicUser and sj.PrivateUser so that they only initialize proper values, and is cleaner than making a custom query
         .then(resolved => {
             return new sj.User(resolved);
         }, rejected => {
@@ -362,10 +363,8 @@ async function validateImage(image) {
 }
 
 // playlist
-async function addPlaylist(name, visibility, description, color, image) {
-    if (true) { // TODO if user is logged in (session)
-
-    } else {
+async function addPlaylist(ctx, name, visibility, description, color, image) {
+    if(!(isLoggedIn(ctx))) {
         throw new sj.Error({
             log: true,
             origin: 'addPlaylist()',
@@ -380,7 +379,6 @@ async function addPlaylist(name, visibility, description, color, image) {
         message: 'one or more issues with fields',
         reason: 'validation functions returned one or more errors',
     });
-
     name = await validatePlaylistName(name).then(resolved => {
         return resolved.content;
     }, rejected => {
@@ -411,115 +409,93 @@ async function addPlaylist(name, visibility, description, color, image) {
         errorList.content.push(rejected);
         return rejected.content;
     });
-
-    if (errorList.content.length !== 0) {
-        return  db.none('SELECT name FROM playlists WHERE name = $1 AND user = $2', [name, userId]) // TODO get user id from session
-        .then(resolved => {
-            return db.none('INSERT INTO playlists(name, visibility, description, color, image) VALUES ($1, $2, $3, $4, $5)', [name, visibility, description, color, image]);
-        }, rejected => {
-            // TODO see register()
-            throw new sj.Error({
-                log: true,
-                origin: 'addPlaylist()',
-                code: rejected.code,
-                message: 'playlist already exists',
-                reason: rejected.message,
-                content: rejected,
-            });
-        }).then (resolved => {
-            return new sj.Success({
-                log: true,
-                origin: 'addPlaylist()',
-                message: `${name} added`,
-                cssClass: 'notifySuccess',
-                content: '', // TODO return playlist object
-            });
-        }, rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'addPlaylist()',
-                code: rejected.message,
-                message: 'could not addPlaylist()',
-                reason: rejected.message,
-                content: rejected,
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        }).catch(rejected => {
-            throw sj.propagateError(rejected);
-        });
-    } else {
+    if (!(errorList.content.length !== 0)) {
         errorList.announce();
         throw errorList;
     }
+
+    return  db.none('SELECT name FROM playlists WHERE name = $1 AND user = $2', [name, ctx.session.user.id])
+    .then(resolved => {
+        return db.none('INSERT INTO playlists(name, visibility, description, color, image) VALUES ($1, $2, $3, $4, $5)', [name, visibility, description, color, image]);
+    }, rejected => {
+        // TODO see register()
+        throw new sj.Error({
+            log: true,
+            origin: 'addPlaylist()',
+            code: rejected.code,
+            message: 'playlist already exists',
+            reason: rejected.message,
+            content: rejected,
+        });
+    }).then (resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'addPlaylist()',
+            message: `${name} added`,
+            cssClass: 'notifySuccess',
+            content: new sj.Playlist({
+                // property value shorthand
+                name,
+                visibility,
+                description,
+                color,
+                image,
+            }),
+        });
+    }, rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'addPlaylist()',
+            code: rejected.message,
+            message: 'failed to add playlist',
+            reason: rejected.message,
+            content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
 }
 
 // TODO consider using id inside of object instead?
-async function deletePlaylist(id) {
-    // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist?
-    if (true) { // TODO check that correct user is logged in
-        return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [id, userId]) // TODO get user id
-        .then(resolved => {
-            return new sj.Success({
-                log: true,
-                origin: 'deletePlaylist()',
-                message: 'playlist deleted',
-                target: 'notify',
-                cssClass: 'notify success',
-            });
-        }, rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'deletePlaylist()',
-                message: 'playlist could not be deleted',
-                reason: rejected.message, // TODO
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        }).catch(rejected => {
-            throw sj.propagateError(rejected);
-        });
-    } else {
+async function deletePlaylist(ctx, id) {
+    if(!(isLoggedIn(ctx))) {
         throw new sj.Error({
             log: true,
             origin: 'deletePlaylist()',
-            message: 'you must be logged in to delete this playlist',
+            message: 'you must be logged in to delete a playlist',
             target: 'notify',
             cssClass: 'notifyError',
         });
     }
+
+    // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist? what happens if the user tries to delete a playlist that isn't theirs? it will return successful but nothing will happen - 0 feedback telling them it isn't theirs
+    return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [id, ctx.session.user.id])
+    .then(resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'deletePlaylist()',
+            message: 'playlist deleted',
+            target: 'notify',
+            cssClass: 'notify success',
+        });
+    }, rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'deletePlaylist()',
+            message: 'playlist could not be deleted',
+            reason: rejected.message, // TODO
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
 }
 
-async function getPlaylist(id) {
-    if (typeOf(id) === 'number') {
-        db.one('SELECT * FROM playlists WHERE id = $1', [id])
-        .then(resolved => {
-            // TODO properly convert database object to js object
-            // TODO check visibility & user permissions
-            resolved = recreateObject(resolved);
-
-            // TODO update these visibility settings
-            if (resolved.visibility === 'public' || resolved.visibility === 'linkOnly' || resolved.visibility === 'private' && true) {
-                return resolved;
-            } else {
-                throw new sj.Error({
-                    log: true,
-                    origin: 'getPlaylist()',
-                    message: 'you do not have permission to access this playlist',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-                });
-            }
-        }, rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'getPlaylist()',
-                message: 'could not retrieve playlist',
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        })
-    } else {
+async function getPlaylist(ctx, id) {
+    if (!(sj.typeOf(id) === 'number')) {
         throw new sj.Error({
             log: true,
             origin: 'getPlaylist()',
@@ -528,17 +504,53 @@ async function getPlaylist(id) {
             cssClass: 'notifyError',
         });
     }
-}
 
-// TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its one in the right order, if delete is called after an order it will delete the wrong track)
-async function orderPlaylist(id) {
-    // get
-    var playlist = await getPlaylist(id).catch(rejected => {
+    db.one('SELECT * FROM playlists WHERE id = $1', [id])
+    .then(resolved => {
+        // TODO properly convert database object to js object
+        // TODO check visibility & user permissions
+        resolved = recreateObject(resolved);
+
+        if (resolved.visibility === 'public' || resolved.visibility === 'linkOnly' || (resolved.visibility === 'private' && resolved.userId === ctx.session.user.id)) {
+            return resolved;
+        } else {
+            throw new sj.Error({
+                log: true,
+                origin: 'getPlaylist()',
+                message: 'you do not have permission to access this playlist',
+                target: 'notify',
+                cssClass: 'notifyError',
+            });
+        }
+    }, rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'getPlaylist()',
+            message: 'could not retrieve playlist',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then(resolved => {
+        return await orderPlaylist(ctx, resolved);
+    }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
+}
 
-    try { // TODO can this fail?
-        // sort 
+// TODO no check that playlist has proper permission
+
+
+// TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its done in the right order, if delete is called after an order it will delete the wrong track)
+async function orderPlaylist(ctx, playlist) { // playlist can be the playlistId number (for ordering an existing playlist) or a sj.Playlist object (for updating a playlist's order)
+    if (sj.typeOf(playlist) === 'number') { // guard clause
+        
+        // !!! semi-recursive, calls getPlaylist() before orderPlaylist() (built-in)
+        return await getPlaylist(ctx, playlist).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+    }
+
+    try {
         playlist.content.stableSort(function (a, b) {
             // https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
             // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
@@ -547,6 +559,7 @@ async function orderPlaylist(id) {
             return a.position - b.position;
         });
     } catch (e) {
+        // TODO is this necessary? can this even fail?
         throw new sj.Error({
             log: true,
             origin: 'orderPlaylist()',
@@ -558,13 +571,14 @@ async function orderPlaylist(id) {
     // update
     return db.tx(async function (task) {
         // pg-promise transactions: https://github.com/vitaly-t/pg-promise#transactions
-        // deferrable constraints: https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html, https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
 
+        // deferrable constraints: https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html, https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
         await task.none('SET CONSTRAINTS playlist_position_unique DEFERRED');
 
         // update position based on index
+        // !!! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
         playlist.content.map(function (item, index) {
-            await task.none('UPDATE tracks SET pos = $1 WHERE pos = $2 AND playlist = $3', [index, item.pos, item.playlist]);
+            await task.none('UPDATE tracks SET "position" = $1 WHERE "position" = $2 AND playlistId = $3', [index, item.position, item.playlistId]);
         });
     }).then(resolved => {
         // TODO any use for transaction resolved data? isn't this just what the callback function returns?
@@ -573,34 +587,27 @@ async function orderPlaylist(id) {
         playlist.content.map(function(item, index) {
             item.position = index;
         });
-
         return playlist;
     }).catch(rejected => {
         throw new sj.Error({
             log: true,
-            origin: orderPlaylist(),
+            origin: 'orderPlaylist()',
             message: 'database error when re-ordering playlist',
             content: rejected,
         });
     });
 }
 
-async function addTrack(track) {
-    var playlist = await getPlaylist(track.playlistId).catch(rejected => {
+async function addTrack(ctx, track, playlistId) {
+    // TODO how does this interact, does the track already have playlistId attached? or does it get added on function call? or on success? how does this interfere by adding tracks already in another playlist?
+    var playlist = await getPlaylist(playlistId).catch(rejected => {
         throw sj.propagateError(rejected);
     });
+    track.playlistId = playlist.id; 
+    track.position = playlist.content.length;
 
-    // set position as +1 from last track (not just the length +1 because the playlist could have gaps), TODO instead maybe consider ordering the playlist every time the playlist is retrieved? then no checks like this need to be made as it is automatically done
-    var l = playlist.content.length;
-    if (l === 0) {
-        track.position = 0;
-    } else {
-        track.position = playlist.content[l - 1].position + 1;
-    }
-
-    // implode artists ? TODO better way to store arrays in postgres?, no, the 'artists' array will never need to be separated from the track entity and therefore functionality gained from it being in a separate table is not needed, therefore arrays are fine and simplify the database
-
-    db.none('INSERT INTO tracks (playlistId, position, source, id, title, artists, duration) VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.artists, track.duration])
+    // !!! artists is simply stored as an array, eg. TEXT[]
+    db.none('INSERT INTO tracks (playlistId, "position", source, id, title, artists, duration) VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.artists, track.duration])
     .then(resolved => {
         return new sj.Success({
             log: true,
@@ -619,12 +626,21 @@ async function addTrack(track) {
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
-
 }
 
-async function deleteTrack(track) {
-    db.none('DELETE FROM tracks WHERE playlistId = $1 AND position = $2', [track.playlistId, track.position])
+async function deleteTrack(ctx, track) {
+    db.none('DELETE FROM tracks WHERE playlistId = $1 AND "position" = $2', [track.playlistId, track.position])
     .then(resolved => {
+        return await orderPlaylist(ctx, track.playlistId);
+    }, rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'deleteTrack()',
+            message: 'failed to delete track, or does not exist',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then(resolved => {
         return new sj.Success({
             log: true,
             origin: 'deleteTrack()',
@@ -632,15 +648,34 @@ async function deleteTrack(track) {
             cssClass: 'notifySuccess',
             content: track,
         });
-    }, rejected => {
-        // TODO re-order tracks afterwards
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+}
+
+async function moveTrack(ctx, track, position) {
+    let playlist = await getPlaylist(ctx, track.playlistId).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+
+    if (position >= playlist.content.length) {
+        track.position = playlist.content.length;
+    } else if (position >= 0) {
+        track.position = position;
+        playlist.content.map(item => {
+            if (item.position >= position) {
+                item.position++;
+            }
+        });
+    } else {
         throw new sj.Error({
             log: true,
-            origin: 'deleteTrack()',
-            target: 'notify',
-            cssClass: 'notifyError',
+            origin: 'moveTrack()',
+            message: 'track position cannot be negative',
         });
-    }).catch(rejected => {
+    }
+
+    playlist = orderPlaylist(ctx, playlist).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 }
