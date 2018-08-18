@@ -36,19 +36,18 @@ const sessionConfig = {
 const PORT = process.env.PORT || 3000;
 
 
-
 // response timer
 app.use(async (ctx, next) => {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  ctx.response.set('response-time', `${ms}ms`);
+	const start = Date.now();
+	await next();
+	const ms = Date.now() - start;
+	ctx.response.set('response-time', `${ms}ms`);
 });
 
 // logger
 app.use(async (ctx, next) => {
-  console.log(`${ctx.request.method} ${ctx.request.path}`);
-  await next();
+	console.log(`${ctx.request.method} ${ctx.request.path}`);
+	await next();
 });
 
 // session
@@ -59,18 +58,18 @@ app.use(bodyParser());
 
 
 app.use(async (ctx, next) => {
-  console.log('reached');
-  db.one('SELECT * FROM public.test_table WHERE title = $1', ['title3'])
-    .then(function(resolved) {
-        console.log(JSON.stringify(resolved));
-        resolved.forEach(item => {
-          console.log('resolved: ' + JSON.stringify(item));
-        });
-    })
-    .catch(function(rejected) {
-        console.log('rejected: ' +rejected);
-  });
-  await next();
+	// console.log('reached');
+	// db.one('SELECT * FROM public.test_table WHERE title = $1', ['title3'])
+	// 	.then(function(resolved) {
+	// 		console.log(JSON.stringify(resolved));
+	// 		resolved.forEach(item => {
+	// 			console.log('resolved: ' + JSON.stringify(item));
+	// 		});
+    // 	})
+	// 	.catch(function(rejected) {
+	// 		console.log('rejected: ' +rejected);
+	// 	});
+	await next();
 });
 
 
@@ -86,8 +85,6 @@ app.use(async (ctx, next) => {
 });
 
 app.use(router.routes()); // use the routes defined in router
-
-
 
 app.listen(PORT, () => {
 	console.log(`Server listening on port: ${PORT}`);

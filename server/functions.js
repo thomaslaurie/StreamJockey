@@ -19,6 +19,30 @@ const visibilityStates = [
     'linkOnly',
 ]
 
+
+
+// ---------- other stuff from top.php
+
+// last page history (I think this goes in routing or something???)
+const exclusionList = [
+    // since pages are no longer php and the page/code difference is bigger, this isnt really relevant
+]
+let excluded = false;
+exclusionList.forEach(item => {
+    if (false /* strpos($_SERVER['REQUEST_URI'], $uri) */) {
+        excluded = true;
+    }
+});
+
+// if this page is not excluded, shift page history
+if (!excluded) {
+    ctx.session.pastPage = ctx.session.currentPage !== 'undefined' ? ctx.session.currentPage : 'index.html';
+    ctx.session.currentPage = ''; /* $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; */
+}
+
+
+
+
 // TODO session_regenerate_id() ? if using, add in same locations as php version
 // TODO consider changing target: 'notify' to target: 'general' ?
 
@@ -362,6 +386,8 @@ async function validateImage(image) {
     return await conditions.checkAll();
 }
 
+// TODO add in a ton of redundancy and checks for permissions, data types, validation, etc.
+
 // playlist
 async function addPlaylist(ctx, name, visibility, description, color, image) {
     if(!(isLoggedIn(ctx))) {
@@ -537,9 +563,6 @@ async function getPlaylist(ctx, id) {
     });
 }
 
-// TODO no check that playlist has proper permission
-
-
 // TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its done in the right order, if delete is called after an order it will delete the wrong track)
 async function orderPlaylist(ctx, playlist) { // playlist can be the playlistId number (for ordering an existing playlist) or a sj.Playlist object (for updating a playlist's order)
     if (sj.typeOf(playlist) === 'number') { // guard clause
@@ -679,5 +702,3 @@ async function moveTrack(ctx, track, position) {
         throw sj.propagateError(rejected);
     });
 }
-
-// TODO insertTrack() (kind of like setTrackPosition but also moves other items in playlist, this should be used to undo deleteTrack)
