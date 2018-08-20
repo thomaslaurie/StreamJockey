@@ -15,7 +15,7 @@
 	// TODO consider default values for '' and null, specifically ids (what are the semantics?)
 
 	sj.Object = class {
-		constructor(options) {
+		constructor(options = {}) {
 			this.objectType = 'sj.Object';
 
 			sj.Object.init(this, options, {
@@ -59,7 +59,7 @@
 		announce() {
 			// include 'log: true' in options if object should be announced on creation, call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new sj.Object()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
 			var string = this.origin + '\n' + this.objectType + '\n' + this.message;
-			if (isError(this)) {
+			if (sj.isError(this)) {
 				console.error(string);
 			} else {
 				console.log(string);
@@ -73,7 +73,7 @@
 	}
 
 	sj.Success = class extends sj.Object {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Success';
@@ -84,7 +84,7 @@
 		}
 	}
 	sj.Error = class extends sj.Object {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Error';
@@ -98,7 +98,7 @@
 		}
 	}
 	sj.ErrorList = class extends sj.Object {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.ErrorList';
@@ -115,7 +115,7 @@
 	}
 
 	sj.Track = class extends sj.Object {
-		constructor(object) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Track';
@@ -136,7 +136,7 @@
 		}
 	}
 	sj.Playlist = class extends sj.Object {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Playlist';
@@ -158,8 +158,122 @@
 		}
 	}
 
+	sj.User = class extends sj.Object {
+		constructor(options = {}) {
+			super(sj.Options.tellParent(options));
+
+			this.objectType = 'sj.User';
+
+			sj.Object.init(this, options, {
+				// new properties
+				id: null,
+				name: '',
+				email: '',
+			});
+
+			this.onCreate();
+		}
+	}
+
+	sj.Conditions = class extends sj.Object {
+		constructor(options = {}) {
+			super(sj.Object.tellParent(options));
+
+			this.objectType = 'sj.Validate';
+
+			sj.Object.init(this, options, {
+				// new properties
+				name: 'input',
+				min: 0,
+				max: Infinity,
+				dataType: 'string',
+				trim: false,
+				against: false, // !!! will not be able to checkAgainst() boolean false
+				againstMessage: `${name} did not match against valid inputs`,
+				filter: false,
+				filterMessage: `${name} did not pass required filter`,
+			});
+		}
+
+		checkType() {
+			return sj.typeOf(this.content) === this.dataType;
+		}
+		checkSize() {
+			if (sj.typeOf(this.content) === 'string' || sj.typeOf(this.content) === 'array') {
+				return this.content.length >= this.min && this.content.length <= this.max;
+			} else if (sj.typeOf(this.content) === 'number') {
+				return this.content >= this.min && this.content <= this.max;
+			} else {
+				return true;
+			}
+		}
+		
+		checkAgainst() {
+			if (sj.typeOf(against) === 'array') {
+				return against.indexOf(this.content) !== -1;
+			} else {
+				return this.content === against;
+			}
+		}
+		checkFilter() {
+			// TODO regex
+			return true;
+		}
+		
+		async checkAll() {
+			// Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+			// Guard clauses are (also) positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
+
+			if (!this.checkType()) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: `${this.name} must be a ${this.dataType}`,
+				})
+			}
+			if (trim && sj.typeOf(this.content) === 'string') {
+				this.content = this.content.trim();
+			}
+			if (!this.checkSize()) {
+				let message = `${this.name} must be between ${this.min} and ${this.max}`;
+				if (sj.typeOf(this.content) === 'string') {
+					message = `${message} characters long`;
+				} else if (sj.typeOf(this.content) === 'array') {
+					message = `${message} items long`;
+				}
+
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: message,
+				});
+			}
+			if (against && !this.checkAgainst()) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.againstMessage,
+				});
+			}
+			if (filter && !this.checkFilter()) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.filterMessage,
+				});
+			}
+
+			
+			// remove error-related properties
+			// TODO consider inputCorrect styling, change these if so
+			this.target = undefined;
+			this.cssClass = undefined;
+			return new sj.Success(this); // transform object (this will strip any irrelevant properties away)
+		}
+	}
+
 	sj.Source = class extends sj.Object {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Source',
@@ -332,7 +446,7 @@
 		}
 	}
 	sj.Playback = class extends sj.Object {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Playback';
@@ -351,12 +465,13 @@
 	}
 
 	// TODO consider if all actions should actually be in main.js instead
+	/* TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
 	sj.Action = class extends sj.Object {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Action';
-			source = desiredPlayback.track.source;
+			source = sj.desiredPlayback.track.source;
 
 			sj.Object.init(this, options, {
 				// new properties
@@ -396,7 +511,7 @@
 		}
 	}
 	sj.Start = class extends sj.Action {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Start';
@@ -435,7 +550,7 @@
 		}
 	}
 	sj.Toggle = class extends sj.Action {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Toggle';
@@ -490,7 +605,7 @@
 		}
 	}
 	sj.Seek = class extends sj.Action {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Seek';
@@ -514,7 +629,7 @@
 		}
 	}
 	sj.Volume = class extends sj.Action {
-		constructor(options) {
+		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.Volume';
@@ -529,120 +644,7 @@
 			// TODO
 		}
 	}
-
-	sj.User = class extends sj.Object {
-		constructor(options) {
-			super(sj.Options.tellParent(options));
-
-			this.objectType = 'sj.User';
-
-			sj.Object.init(this, options, {
-				// new properties
-				id: null,
-				name: '',
-				email: '',
-			});
-
-			this.onCreate();
-		}
-	}
-
-	sj.Conditions = class extends sj.Object {
-		constructor(options) {
-			super(sj.Object.tellParent(options));
-
-			this.objectType = 'sj.Validate';
-
-			sj.Object.init(this, options, {
-				// new properties
-				name: 'input',
-				min: 0,
-				max: Infinity,
-				dataType: 'string',
-				trim: false,
-				against: false, // !!! will not be able to checkAgainst() boolean false
-				againstMessage: `${name} did not match against valid inputs`,
-				filter: false,
-				filterMessage: `${name} did not pass required filter`,
-			});
-		}
-
-		checkType() {
-			return sj.typeOf(this.content) === this.dataType;
-		}
-		checkSize() {
-			if (sj.typeOf(this.content) === 'string' || sj.typeOf(this.content) === 'array') {
-				return this.content.length >= this.min && this.content.length <= this.max;
-			} else if (sj.typeOf(this.content) === 'number') {
-				return this.content >= this.min && this.content <= this.max;
-			} else {
-				return true;
-			}
-		}
-		
-		checkAgainst() {
-			if (sj.typeOf(against) === 'array') {
-				return against.indexOf(this.content) !== -1;
-			} else {
-				return this.content === against;
-			}
-		}
-		checkFilter() {
-			// TODO regex
-			return true;
-		}
-		
-		async checkAll() {
-			// Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-			// Guard clauses are (also) positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
-
-			if (!this.checkType()) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: `${this.name} must be a ${this.dataType}`,
-				})
-			}
-			if (trim && sj.typeOf(this.content) === 'string') {
-				this.content = this.content.trim();
-			}
-			if (!this.checkSize()) {
-				let message = `${this.name} must be between ${this.min} and ${this.max}`;
-				if (sj.typeOf(this.content) === 'string') {
-					message = `${message} characters long`;
-				} else if (sj.typeOf(this.content) === 'array') {
-					message = `${message} items long`;
-				}
-
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: message,
-				});
-			}
-			if (against && !this.checkAgainst()) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.againstMessage,
-				});
-			}
-			if (filter && !this.checkFilter()) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.filterMessage,
-				});
-			}
-
-			
-			// remove error-related properties
-			// TODO consider inputCorrect styling, change these if so
-			this.target = undefined;
-			this.cssClass = undefined;
-			return new sj.Success(this); // transform object (this will strip any irrelevant properties away)
-		}
-	}
+	*/
 
 	// object related variables
 	sj.sourceList = [];
@@ -650,8 +652,8 @@
 	// null objects
 	sj.noTrack = new sj.Track();
 	sj.noSource = new sj.Source({realSource: false});
-	sj.noTrack.source = noSource; // cyclical reference
-	sj.noAction = new sj.Action();
+	sj.noTrack.source = sj.noSource; // cyclical reference
+	// TODO move with actions sj.noAction = new sj.Action();
 
 
 	//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
@@ -671,6 +673,7 @@
 		'sj.Track',
 		'sj.Playlist',
 		'sj.User',
+		'sj.Conditions',
 		'sj.Source',
 		'sj.Playback',
 		'sj.Action',
@@ -680,7 +683,7 @@
 		'sj.Volume',
 	];
 	sj.isValidObjectType = function(input) {
-		return objectList.indexOf(input.objectType) !== -1;
+		return sj.objectList.indexOf(input) !== -1;
 	}
 	sj.typeOf = function (input) {
 		if (input === null) {
@@ -827,6 +830,7 @@
 		// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 
 		var error = new sj.Error({
+			origin: 'sj.catchUnexpected()',
 			message: 'function received unexpected result',
 			content: obj,
 		});
@@ -849,10 +853,10 @@
 	}
 	sj.propagateError = function (obj) {
 		// wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
-		if (isError(obj)) {
+		if (sj.isError(obj)) {
 			return obj;
 		} else {
-			return catchUnexpected(obj);
+			return sj.catchUnexpected(obj);
 		}
 	}
 	sj.filterList = function (resolvedList, type, resolvedObj, rejectedObj) {

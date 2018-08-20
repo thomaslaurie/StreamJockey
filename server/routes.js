@@ -5,14 +5,28 @@ const send = require('koa-send'); // https://github.com/koajs/send
 
 const router = new Router();
 
+const functions = require('./functions.js');
+
 // TODO handle favicon.ico request https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
 router
 	//
-	.get('/data/:d', async (ctx, next) => {
+	.get('/data/:type/:id', async (ctx, next) => {
+		// data is accessed through the /data/ path
+
+		// path parameters vs query parameters: https://stackoverflow.com/questions/3198492/rest-standard-path-parameters-or-request-parameters
+		// use path parameters to retrieve a specific item (via unique identifier)
+		// use query parameters to retrieve a list of items (via 'query parameters')
+
+		// /:type/:id 	are accessed via ctx.params.x
+		// /type?id=123	are accessed via ctx.query.x
+
+
 		// https://github.com/alexmingoia/koa-router#url-parameters
-		console.log(ctx.params.d);
+		console.log(ctx.query);
+		ctx.response.body = ctx.params.type + ' ' + ctx.params.id;
 	})
 	.get('/*', async (ctx, next) => { // retrieve data
+		// pages are accessed through the base GET method
 		// serve /public files
 		if(ctx.request.path.lastIndexOf('.') === -1) {
 			// TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
@@ -21,9 +35,19 @@ router
 		}
 		await send(ctx, ctx.request.path, {root: path.join(__dirname, '..', 'public')});
 	})
-	.post('/*', async (ctx, next) => { // add new data (not idempotent)
-		console.log(ctx.request.body);
-		ctx.response.body = ctx.request.body;
+	.post('/:type', async (ctx, next) => { // add new data (not idempotent)
+		if (ctx.params.type === 'user') {
+			let b = ctx.request.body;
+			ctx.response.body = await functions.register(b.email, b.name, b.password1, b.password2)
+			.catch(rejected => {
+				return rejected;
+			});
+			console.log('REACHED');
+			console.log(ctx.response.body);
+		} else {
+			console.log('no');
+		}
+		
 	})
 	.put('/*', async (ctx, next) => { // update data
 
