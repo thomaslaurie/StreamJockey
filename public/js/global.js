@@ -14,6 +14,8 @@
 
 	// TODO consider default values for '' and null, specifically ids (what are the semantics?)
 
+	// TODO possibly a cyclical reference preservation function between client and server that replaces a reference to self with 'self1' keyword and also can find lower-level cyclical references by recursively calling the function on each layer with memory for which layer its on
+
 	sj.Object = class {
 		constructor(options = {}) {
 			this.objectType = 'sj.Object';
@@ -160,7 +162,7 @@
 
 	sj.User = class extends sj.Object {
 		constructor(options = {}) {
-			super(sj.Options.tellParent(options));
+			super(sj.Object.tellParent(options));
 
 			this.objectType = 'sj.User';
 
@@ -169,6 +171,8 @@
 				id: null,
 				name: '',
 				email: '',
+				password: '',
+				password2: '',
 			});
 
 			this.onCreate();
@@ -189,9 +193,9 @@
 				dataType: 'string',
 				trim: false,
 				against: false, // !!! will not be able to checkAgainst() boolean false
-				againstMessage: `${name} did not match against valid inputs`,
+				againstMessage: 'input did not match against valid inputs', // TODO cannot include name in string in fail message by default
 				filter: false,
-				filterMessage: `${name} did not pass required filter`,
+				filterMessage: 'input did not pass required filter', // TODO
 			});
 		}
 
@@ -209,10 +213,10 @@
 		}
 		
 		checkAgainst() {
-			if (sj.typeOf(against) === 'array') {
-				return against.indexOf(this.content) !== -1;
+			if (sj.typeOf(this.against) === 'array') {
+				return this.against.indexOf(this.content) !== -1;
 			} else {
-				return this.content === against;
+				return this.content === this.against;
 			}
 		}
 		checkFilter() {
@@ -221,55 +225,61 @@
 		}
 		
 		async checkAll() {
-			// Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-			// Guard clauses are (also) positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
+			try {
+				// Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+				// Guard clauses are (also) positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
-			if (!this.checkType()) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: `${this.name} must be a ${this.dataType}`,
-				})
-			}
-			if (trim && sj.typeOf(this.content) === 'string') {
-				this.content = this.content.trim();
-			}
-			if (!this.checkSize()) {
-				let message = `${this.name} must be between ${this.min} and ${this.max}`;
-				if (sj.typeOf(this.content) === 'string') {
-					message = `${message} characters long`;
-				} else if (sj.typeOf(this.content) === 'array') {
-					message = `${message} items long`;
+				if (!this.checkType()) {
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: `${this.name} must be a ${this.dataType}`,
+					})
 				}
+				if (this.trim && sj.typeOf(this.content) === 'string') {
+					this.content = this.content.trim();
+				}
+				if (!this.checkSize()) {
+					let message = `${this.name} must be between ${this.min} and ${this.max}`;
+					if (sj.typeOf(this.content) === 'string') {
+						message = `${message} characters long`;
+					} else if (sj.typeOf(this.content) === 'array') {
+						message = `${message} items long`;
+					}
 
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: message,
-				});
-			}
-			if (against && !this.checkAgainst()) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.againstMessage,
-				});
-			}
-			if (filter && !this.checkFilter()) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.filterMessage,
-				});
-			}
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: message,
+					});
+				}
+				if (this.against && !this.checkAgainst()) {
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: this.againstMessage,
+					});
+				}
+				if (this.filter && !this.checkFilter()) {
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: this.filterMessage,
+					});
+				}
+				
+				// remove error-related properties
+				// TODO consider inputCorrect styling, change these if so
+				this.target = undefined;
+				this.cssClass = undefined;
+				return new sj.Success(this); // transform object (this will strip any irrelevant properties away)
 
-			
-			// remove error-related properties
-			// TODO consider inputCorrect styling, change these if so
-			this.target = undefined;
-			this.cssClass = undefined;
-			return new sj.Success(this); // transform object (this will strip any irrelevant properties away)
+			} catch (e) {
+				// TODO afaik this shouldn't fail anymore
+				throw sj.propagateError(e);
+			}
 		}
+		
 	}
 
 	sj.Source = class extends sj.Object {
@@ -465,7 +475,7 @@
 	}
 
 	// TODO consider if all actions should actually be in main.js instead
-	/* TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
+	/* // TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
 	sj.Action = class extends sj.Object {
 		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
@@ -542,9 +552,7 @@
 			}).then(resolved => {
 				// start
 				return this.source.start(this.state);
-			}).then(resolved => {
-				return resolved;
-			}, rejected => {
+			}).catch(rejected => {
 				throw propagateError(rejected);
 			});
 		}
@@ -562,7 +570,7 @@
 		}
 
 		async trigger() {
-			if (this.state) {
+			if (this.state) { // if playing
 				return Promise.all(sourceList.map(source => {
 					if (source === this.source) {
 						// resume desired source
@@ -579,12 +587,10 @@
 						origin: 'sj.Toggle.trigger()',
 						message: 'playing failed to update',
 					}));
-				}).then(resolved => {
-					return resolved;
-				}, rejected => {
+				}).catch(rejected => {
 					throw propagateError(rejected);
 				});
-			} else {
+			} else { // if not playing
 				return Promise.all(sourceList.map(source => {
 					// pause all sources
 					return source.pause().then(resolveBoth);
@@ -596,9 +602,7 @@
 						origin: 'updatePlaybackPlaying()',
 						message: 'playing failed to update',
 					}));
-				}).then(resolved => {
-					return resolved;
-				}, rejected => {
+				}).catch(rejected => {
 					throw propagateError(rejected);
 				});
 			}
@@ -645,6 +649,7 @@
 		}
 	}
 	*/
+	
 
 	// object related variables
 	sj.sourceList = [];
@@ -688,15 +693,23 @@
 	sj.typeOf = function (input) {
 		if (input === null) {
 			return 'null';
-		} else if (typeof input === 'object') {
+		}
+
+		let t = typeof input;
+
+		if (t === 'object') {
 			if (sj.isValidObjectType(input.objectType)) {
 				return input.objectType;
 			} else {
 				return 'object';
 			}
-		} else {
-			return typeof input;
 		}
+
+		if (t === 'number' && isNaN(input)) {
+				return 'NaN';
+		}
+
+		return typeof input;
 	}
 
 	// rebuild
@@ -802,6 +815,10 @@
 	}
 
 	// promises
+	sj.andResolve = function (rejected) {
+		// use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
+		return rejected;
+	}
 	sj.resolveBoth = function (resolved, rejected) {
 		// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
 
@@ -811,6 +828,7 @@
 			return rejected;
 		}
 	}
+
 
 
 	//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
@@ -829,6 +847,7 @@
 		// determines type of input, creates, announces, and returns a proper sj.Error object
 		// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 
+		// !!! TODO JSON.stringify() does not work on native Error objects as they have no enumerable properties: https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify, therefore these cannot be passed between client & server - find a way to do this so content doesn't just show up as an empty object {}
 		var error = new sj.Error({
 			origin: 'sj.catchUnexpected()',
 			message: 'function received unexpected result',

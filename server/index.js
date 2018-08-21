@@ -85,7 +85,16 @@ app.use(async (ctx, next) => {
 });
 
 app.use(router.routes()); // use the routes defined in router
+app.use(router.allowedMethods()); // https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
 
 app.listen(PORT, () => {
 	console.log(`Server listening on port: ${PORT}`);
+});
+
+
+// Error listening
+// https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at:', p, '\n Reason:', reason);
+    // TODO handle
 });

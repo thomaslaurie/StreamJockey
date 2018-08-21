@@ -8,6 +8,7 @@
 // Promises: promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
 // Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
 
+
 /* .on()
 	.on() should be bound to the closest non-dynamic element (because its faster?)
 	.on('click'... is a delegated event (?) and is needed to work on dynamically generated elements

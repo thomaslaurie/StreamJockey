@@ -19,7 +19,7 @@ const visibilityStates = [
     'linkOnly',
 ]
 
-// TODO ------------------------------------ fix ALL promise chains, !!! REFLECTION catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
+// !!! REFLECTION catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
 
 // ---------- other stuff from top.php
 
@@ -91,7 +91,7 @@ exports.validateUserName = async function (name) {
 
    return await conditions.checkAll();
 }
-exports.validatePassword = async function (password1, password2) {
+exports.validatePassword = async function (password, password2) {
     let conditions = new sj.Conditions({
         log: true,
         origin: 'validatePassword()',
@@ -99,7 +99,7 @@ exports.validatePassword = async function (password1, password2) {
         target: 'registerPassword',
         cssClass: 'inputError',
 
-        content: password1,
+        content: password,
 
         name: 'Password',
         min: 6,
@@ -111,37 +111,36 @@ exports.validatePassword = async function (password1, password2) {
     return await conditions.checkAll();
 }
 
-exports.register = async function (email, name, password1, password2) {
+exports.register = async function (user) {
     var errorList = new sj.ErrorList({
         origin: 'validatePassword()',
         message: 'one or more issues with fields',
         reason: 'validation functions returned one or more errors',
     });
-    email = await exports.validateEmail(email).then(resolved => {
+    user.email = await exports.validateEmail(user.email).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });
-    name = await exports.validateUserName(name).then(resolved => {
+    user.name = await exports.validateUserName(user.name).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });
-    password1 = await exports.validatePassword(password1, password2).then(resolved => {
+    user.password = user.password2 = await exports.validatePassword(user.password, user.password2).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });
-    if (!(errorList.content.length !== 0)) {
+    if (!(errorList.content.length === 0)) {
         errorList.announce();
         throw errorList;
     }
 
-    return db.none('SELECT name FROM users WHERE name = $1', [name])
-    .catch(rejected => {
+    return db.none('SELECT name FROM users WHERE name = $1', [user.name]).catch(rejected => {
         // TODO how to distinguish sql error from failure?, pg-promise see error types: http://vitaly-t.github.io/pg-promise/errors.html
 
         throw new sj.Error({
@@ -152,10 +151,8 @@ exports.register = async function (email, name, password1, password2) {
             reason: rejected.message,
             content: rejected,
         });
-    })
-    .then(resolved => {
-        return bcrypt.hash(myPlaintextPassword, saltRounds)
-        .catch(rejected => {
+    }).then(resolved => {
+        return bcrypt.hash(user.password, saltRounds).catch(rejected => {
             throw new sj.Error({
                 log: true,
                 origin: 'register()',
@@ -166,10 +163,8 @@ exports.register = async function (email, name, password1, password2) {
                 cssClass: 'notifyError',
             });
         });  
-    })
-    .then(resolved => {
-        return db.none('INSERT INTO users(email, name, password) VALUES ($1, $2, $3)', [email, name, resolved])
-        .catch(rejected => {
+    }).then(resolved => {
+        return db.none('INSERT INTO users(email, name, password) VALUES ($1, $2, $3)', [user.email, user.name, resolved]).catch(rejected => {
             throw new sj.Error({
                 log: true,
                 origin: 'register()',
@@ -194,10 +189,11 @@ exports.register = async function (email, name, password1, password2) {
     });
 }
 
-exports.login = async function (ctx, name, password) { 
-    name = name.trim();
 
-    db.one('SELECT id, name, password FROM users WHERE name = $1', [name]).catch(rejected => {
+exports.login = async function (ctx, user) { 
+    user.name = user.name.trim();
+
+    return db.one('SELECT id, name, password FROM users WHERE name = $1', [user.name]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'login()',
@@ -205,14 +201,22 @@ exports.login = async function (ctx, name, password) {
             reason: rejected.message,
             content: rejected,
         });
-    }) // -------- continue here TODO
-    .then(resolved => {
-        return bcrypt.compare(password, resolved.password);     
-    }, rejected => {
-        
+    }).then(resolved => {
+        return bcrypt.compare(password, resolved.password).catch(rejected => {
+            throw new sj.Error({
+                log: true,
+                origin: 'login()',
+                message: 'server error',
+                reason: 'hash compare failed',
+                content: rejected,
+                target: 'loginPassword',
+                cssClass: 'inputError',
+            });
+        });
     }).then(resolved => {
         if (resolved) {
-            ctx.session.user = new sj.User(resolved); // TODO ensure nothing sensitive is being passed here (back to client)
+            ctx.session.user = new sj.User();;// TODO get user specifically from db here (and only here?) (not with getUser() (public), not with getMe() (requires already logged in))
+             // TODO ensure nothing sensitive is being passed here (back to client)
             // TODO user id is basically their access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out
             return new sj.Success({
                 log: true,
@@ -231,16 +235,6 @@ exports.login = async function (ctx, name, password) {
                 cssClass: 'inputError',
             });
         }
-    }, rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'login()',
-            message: 'server error',
-            reason: 'hash compare failed',
-            content: rejected,
-            target: 'loginPassword',
-            cssClass: 'inputError',
-        });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
@@ -270,21 +264,7 @@ async function getCurrentUser() {
 */
 
 exports.getUser = async function (id) {
-    if (sj.typeOf(id) === 'number') {
-        db.one('SELECT * FROM users WHERE id = $1', [id]) // TODO don't retrieve all columns (privacy) (ie password), actually another option could be creating two different child classes of sj.User: sj.PublicUser and sj.PrivateUser so that they only initialize proper values, and is cleaner than making a custom query
-        .then(resolved => {
-            return new sj.User(resolved);
-        }, rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'getUser()',
-                message: 'could not get user information',
-                reason: '', // TODO
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        });
-    } else {
+    if (!(sj.typeOf(parseInt(id) === 'number'))) {
         throw new sj.Error({
             log: true,
             origin: 'getUser()',
@@ -293,6 +273,35 @@ exports.getUser = async function (id) {
             cssClass: 'notifyError',
         });
     }
+
+    // TODO don't retrieve all columns (privacy) (ie password), actually another option could be creating two different child classes of sj.User: sj.PublicUser and sj.PrivateUser so that they only initialize proper values, and is cleaner than making a custom query
+    return db.one('SELECT * FROM users WHERE id = $1', [id]).catch(rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'getUser()',
+            message: 'could not get user information',
+            reason: rejected.message,
+            content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then(resolved => {
+        return new sj.User(resolved);
+    });
+}
+exports.getMe = async function (ctx) {
+    if (sj.typeOf(ctx.session.user) === 'undefined') {
+        throw new sj.Error({
+            log: true,
+            origin: 'getMe()',
+            message: 'you are not logged in',
+            reason: 'no user in session',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }
+
+    return ctx.session.user;
 }
 
 
@@ -396,8 +405,9 @@ exports.validateImage = async function (image) {
 // TODO add in a ton of redundancy and checks for permissions, data types, validation, etc.
 
 // playlist
-exports.addPlaylist = async function (ctx, name, visibility, description, color, image) {
-    if(!(isLoggedIn(ctx))) {
+exports.addPlaylist = async function (ctx, playlist) {
+    // TODO create static isLoggedIn sj.Conditions to add to errorList?
+    if(!(exports.isLoggedIn(ctx))) {
         throw new sj.Error({
             log: true,
             origin: 'addPlaylist()',
@@ -412,45 +422,42 @@ exports.addPlaylist = async function (ctx, name, visibility, description, color,
         message: 'one or more issues with fields',
         reason: 'validation functions returned one or more errors',
     });
-    name = await exports.validatePlaylistName(name).then(resolved => {
+    playlist.name = await exports.validatePlaylistName(playlist.name).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });
-    visibility = await exports.validateVisibility(visibility).then(resolved => {
+    playlist.visibility = await exports.validateVisibility(playlist.visibility).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });
-    description = await exports.validateDescription(description).then(resolved => {
+    playlist.description = await exports.validateDescription(playlist.description).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });
-    color = await exports.validateColor(color).then(resolved => {
+    playlist.color = await exports.validateColor(playlist.color).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });;
-    image = await exports.validateImage(image).then(resolved => {
+    playlist.image = await exports.validateImage(playlist.image).then(resolved => {
         return resolved.content;
     }, rejected => {
         errorList.content.push(rejected);
         return rejected.content;
     });
-    if (!(errorList.content.length !== 0)) {
+    if (!(errorList.content.length === 0)) {
         errorList.announce();
         throw errorList;
     }
 
-    return  db.none('SELECT name FROM playlists WHERE name = $1 AND user = $2', [name, ctx.session.user.id])
-    .then(resolved => {
-        return db.none('INSERT INTO playlists(name, visibility, description, color, image) VALUES ($1, $2, $3, $4, $5)', [name, visibility, description, color, image]);
-    }, rejected => {
+    return  db.none('SELECT name FROM playlists WHERE name = $1 AND user = $2', [playlist.name, ctx.session.user.id]).catch(rejected => {
         // TODO see register()
         throw new sj.Error({
             log: true,
@@ -460,40 +467,34 @@ exports.addPlaylist = async function (ctx, name, visibility, description, color,
             reason: rejected.message,
             content: rejected,
         });
+    }).then(resolved => {
+        return db.none('INSERT INTO playlists(name, visibility, description, color, image) VALUES ($1, $2, $3, $4, $5)', [playlist.name, playlist.visibility, playlist.description, playlist.color, playlist.image]).catch(rejected => {
+            throw new sj.Error({
+                log: true,
+                origin: 'addPlaylist()',
+                code: rejected.message,
+                message: 'failed to add playlist',
+                reason: rejected.message,
+                content: rejected,
+                target: 'notify',
+                cssClass: 'notifyError',
+            });
+        });
     }).then (resolved => {
         return new sj.Success({
             log: true,
             origin: 'addPlaylist()',
             message: `${name} added`,
             cssClass: 'notifySuccess',
-            content: new sj.Playlist({
-                // property value shorthand
-                name,
-                visibility,
-                description,
-                color,
-                image,
-            }),
-        });
-    }, rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'addPlaylist()',
-            code: rejected.message,
-            message: 'failed to add playlist',
-            reason: rejected.message,
-            content: rejected,
-            target: 'notify',
-            cssClass: 'notifyError',
+            content: playlist,
         });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 }
 
-// TODO consider using id inside of object instead?
-exports.deletePlaylist = async function (ctx, id) {
-    if(!(isLoggedIn(ctx))) {
+exports.deletePlaylist = async function (ctx, playlist) {
+    if(!(exports.isLoggedIn(ctx))) {
         throw new sj.Error({
             log: true,
             origin: 'deletePlaylist()',
@@ -504,16 +505,7 @@ exports.deletePlaylist = async function (ctx, id) {
     }
 
     // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist? what happens if the user tries to delete a playlist that isn't theirs? it will return successful but nothing will happen - 0 feedback telling them it isn't theirs
-    return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [id, ctx.session.user.id])
-    .then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'deletePlaylist()',
-            message: 'playlist deleted',
-            target: 'notify',
-            cssClass: 'notify success',
-        });
-    }, rejected => {
+    return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [playist.id, ctx.session.user.id]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'deletePlaylist()',
@@ -521,6 +513,14 @@ exports.deletePlaylist = async function (ctx, id) {
             reason: rejected.message, // TODO
             target: 'notify',
             cssClass: 'notifyError',
+        });
+    }).then(resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'deletePlaylist()',
+            message: 'playlist deleted',
+            target: 'notify',
+            cssClass: 'notify success',
         });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
@@ -538,14 +538,21 @@ exports.getPlaylist = async function (ctx, id) {
         });
     }
 
-    db.one('SELECT * FROM playlists WHERE id = $1', [id])
-    .then(resolved => {
+    return db.one('SELECT * FROM playlists WHERE id = $1', [id]).catch(rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'getPlaylist()',
+            message: 'could not retrieve playlist',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then(resolved => {
         // TODO properly convert database object to js object
         // TODO check visibility & user permissions
         resolved = sj.recreateObject(resolved);
 
         if (resolved.visibility === 'public' || resolved.visibility === 'linkOnly' || (resolved.visibility === 'private' && resolved.userId === ctx.session.user.id)) {
-            return resolved;
+            return exports.orderPlaylist(ctx, resolved);
         } else {
             throw new sj.Error({
                 log: true,
@@ -555,16 +562,6 @@ exports.getPlaylist = async function (ctx, id) {
                 cssClass: 'notifyError',
             });
         }
-    }, rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'getPlaylist()',
-            message: 'could not retrieve playlist',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }).then(resolved => {
-        return orderPlaylist(ctx, resolved);
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
@@ -573,30 +570,17 @@ exports.getPlaylist = async function (ctx, id) {
 // TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its done in the right order, if delete is called after an order it will delete the wrong track)
 exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the playlistId number (for ordering an existing playlist) or a sj.Playlist object (for updating a playlist's order)
     if (sj.typeOf(playlist) === 'number') { // guard clause
-        
         // !!! semi-recursive, calls getPlaylist() before orderPlaylist() (built-in)
-        return await exports.getPlaylist(ctx, playlist).catch(rejected => {
-            throw sj.propagateError(rejected);
-        });
+        return await exports.getPlaylist(ctx, playlist);
     }
 
-    try {
-        playlist.content.stableSort(function (a, b) {
-            // https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-            // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+    playlist.content.stableSort(function (a, b) {
+        // https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
+        // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
 
-            // numeric & property compare
-            return a.position - b.position;
-        });
-    } catch (e) {
-        // TODO is this necessary? can this even fail?
-        throw new sj.Error({
-            log: true,
-            origin: 'orderPlaylist()',
-            message: 'playlist sort failed',
-            content: e,
-        });
-    }
+        // numeric & property compare
+        return a.position - b.position;
+    });
 
     // update
     return db.tx(async function (task) {
@@ -607,9 +591,16 @@ exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the 
 
         // update position based on index
         // !!! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
-        // TODO memory leak error here playlist.content.map(function (item, index) {
+        // TODO ------------- memory leak error here playlist.content.map(function (item, index) {
         //     await task.none('UPDATE tracks SET "position" = $1 WHERE "position" = $2 AND playlistId = $3', [index, item.position, item.playlistId]);
         // });
+    }).catch(rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'orderPlaylist()',
+            message: 'database error when re-ordering playlist',
+            content: rejected,
+        });
     }).then(resolved => {
         // TODO any use for transaction resolved data? isn't this just what the callback function returns?
 
@@ -619,26 +610,28 @@ exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the 
         });
         return playlist;
     }).catch(rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'orderPlaylist()',
-            message: 'database error when re-ordering playlist',
-            content: rejected,
-        });
+        throw sj.propagateError(rejected);
     });
 }
 
-exports.addTrack = async function (ctx, track, playlistId) {
-    // TODO how does this interact, does the track already have playlistId attached? or does it get added on function call? or on success? how does this interfere by adding tracks already in another playlist?
-    var playlist = await exports.getPlaylist(playlistId).catch(rejected => {
+exports.addTrack = async function (ctx, track) {
+    // tracks should be added in the api via new sj.Track(originalTrack), to duplicate the reference by copying over the attributes
+
+    // assign a position
+    var playlist = await exports.getPlaylist(track.playlistId).catch(rejected => {
         throw sj.propagateError(rejected);
     });
-    track.playlistId = playlist.id; 
     track.position = playlist.content.length;
 
     // !!! artists is simply stored as an array, eg. TEXT[]
-    db.none('INSERT INTO tracks (playlistId, "position", source, id, title, artists, duration) VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.artists, track.duration])
-    .then(resolved => {
+    return db.none('INSERT INTO tracks (playlistId, "position", source, id, title, artists, duration) VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.artists, track.duration]).catch(rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'addTrack()',
+            message: 'failed to add track',
+            content: rejected,
+        });
+    }).then(resolved => {
         return new sj.Success({
             log: true,
             origin: 'addTrack()',
@@ -646,23 +639,13 @@ exports.addTrack = async function (ctx, track, playlistId) {
             cssClass: 'notifySuccess',
             content: track,
         });
-    }, rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'addTrack()',
-            message: 'failed to add track',
-            content: rejected,
-        });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 }
 
 exports.deleteTrack = async function (ctx, track) {
-    db.none('DELETE FROM tracks WHERE playlistId = $1 AND "position" = $2', [track.playlistId, track.position])
-    .then(resolved => {
-        return exports.orderPlaylist(ctx, track.playlistId);
-    }, rejected => {
+    return db.none('DELETE FROM tracks WHERE playlistId = $1 AND "position" = $2', [track.playlistId, track.position]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'deleteTrack()',
@@ -670,6 +653,9 @@ exports.deleteTrack = async function (ctx, track) {
             target: 'notify',
             cssClass: 'notifyError',
         });
+    })
+    .then(resolved => {
+        return exports.orderPlaylist(ctx, track.playlistId);
     }).then(resolved => {
         return new sj.Success({
             log: true,
@@ -684,9 +670,7 @@ exports.deleteTrack = async function (ctx, track) {
 }
 
 exports.moveTrack = async function (ctx, track, position) {
-    let playlist = await exports.getPlaylist(ctx, track.playlistId).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
+    let playlist = await exports.getPlaylist(ctx, track.playlistId);
 
     if (position >= playlist.content.length) {
         track.position = playlist.content.length;
@@ -705,7 +689,5 @@ exports.moveTrack = async function (ctx, track, position) {
         });
     }
 
-    playlist = exports.orderPlaylist(ctx, playlist).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
+    playlist = exports.orderPlaylist(ctx, playlist);
 }
