@@ -42,7 +42,7 @@ const visibilityStates = [
 // }
 
 
-
+// TODO check that all parameters exist & handle if they dont
 
 // TODO session_regenerate_id() ? if using, add in same locations as php version
 // TODO consider changing target: 'notify' to target: 'general' ?
@@ -150,6 +150,8 @@ exports.register = async function (user) {
             message: 'database error',
             reason: rejected.message,
             content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
         });
     }).then(resolved => {
         return bcrypt.hash(user.password, saltRounds).catch(rejected => {
@@ -197,9 +199,12 @@ exports.login = async function (ctx, user) {
         throw new sj.Error({
             log: true,
             origin: 'login()',
+            code: rejected.code,
             message: 'database error',
             reason: rejected.message,
             content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
         });
     }).then(resolved => {
         return bcrypt.compare(password, resolved.password).catch(rejected => {
@@ -279,6 +284,7 @@ exports.getUser = async function (id) {
         throw new sj.Error({
             log: true,
             origin: 'getUser()',
+            code: rejected.code,
             message: 'could not get user information',
             reason: rejected.message,
             content: rejected,
@@ -407,7 +413,7 @@ exports.validateImage = async function (image) {
 // playlist
 exports.addPlaylist = async function (ctx, playlist) {
     // TODO create static isLoggedIn sj.Conditions to add to errorList?
-    if(!(exports.isLoggedIn(ctx))) {
+    if (!(exports.isLoggedIn(ctx))) {
         throw new sj.Error({
             log: true,
             origin: 'addPlaylist()',
@@ -431,7 +437,6 @@ exports.addPlaylist = async function (ctx, playlist) {
     playlist.visibility = await exports.validateVisibility(playlist.visibility).then(resolved => {
         return resolved.content;
     }, rejected => {
-        errorList.content.push(rejected);
         return rejected.content;
     });
     playlist.description = await exports.validateDescription(playlist.description).then(resolved => {
@@ -456,7 +461,7 @@ exports.addPlaylist = async function (ctx, playlist) {
         errorList.announce();
         throw errorList;
     }
-
+    
     return  db.none('SELECT name FROM playlists WHERE name = $1 AND user = $2', [playlist.name, ctx.session.user.id]).catch(rejected => {
         // TODO see register()
         throw new sj.Error({
@@ -466,13 +471,15 @@ exports.addPlaylist = async function (ctx, playlist) {
             message: 'playlist already exists',
             reason: rejected.message,
             content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
         });
     }).then(resolved => {
         return db.none('INSERT INTO playlists(name, visibility, description, color, image) VALUES ($1, $2, $3, $4, $5)', [playlist.name, playlist.visibility, playlist.description, playlist.color, playlist.image]).catch(rejected => {
             throw new sj.Error({
                 log: true,
                 origin: 'addPlaylist()',
-                code: rejected.message,
+                code: rejected.code,
                 message: 'failed to add playlist',
                 reason: rejected.message,
                 content: rejected,
@@ -503,14 +510,15 @@ exports.deletePlaylist = async function (ctx, playlist) {
             cssClass: 'notifyError',
         });
     }
-
     // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist? what happens if the user tries to delete a playlist that isn't theirs? it will return successful but nothing will happen - 0 feedback telling them it isn't theirs
-    return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [playist.id, ctx.session.user.id]).catch(rejected => {
+    return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'deletePlaylist()',
+            code: rejected.code,
             message: 'playlist could not be deleted',
-            reason: rejected.message, // TODO
+            reason: rejected.message,
+            content: rejected,
             target: 'notify',
             cssClass: 'notifyError',
         });
@@ -528,7 +536,7 @@ exports.deletePlaylist = async function (ctx, playlist) {
 }
 
 exports.getPlaylist = async function (ctx, id) {
-    if (!(sj.typeOf(id) === 'number')) {
+    if (!(sj.typeOf(parseInt(id) === 'number'))) {
         throw new sj.Error({
             log: true,
             origin: 'getPlaylist()',
@@ -542,7 +550,10 @@ exports.getPlaylist = async function (ctx, id) {
         throw new sj.Error({
             log: true,
             origin: 'getPlaylist()',
+            code: rejected.code,
             message: 'could not retrieve playlist',
+            reason: rejected.message,
+            content: rejected,
             target: 'notify',
             cssClass: 'notifyError',
         });
@@ -598,8 +609,12 @@ exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the 
         throw new sj.Error({
             log: true,
             origin: 'orderPlaylist()',
+            code: rejected.code,
             message: 'database error when re-ordering playlist',
+            reason: rejected.message,
             content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
         });
     }).then(resolved => {
         // TODO any use for transaction resolved data? isn't this just what the callback function returns?
@@ -628,8 +643,12 @@ exports.addTrack = async function (ctx, track) {
         throw new sj.Error({
             log: true,
             origin: 'addTrack()',
+            code: rejected.code,
             message: 'failed to add track',
+            reason: rejected.message,
             content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
         });
     }).then(resolved => {
         return new sj.Success({
@@ -649,7 +668,10 @@ exports.deleteTrack = async function (ctx, track) {
         throw new sj.Error({
             log: true,
             origin: 'deleteTrack()',
+            code: rejected.code,
             message: 'failed to delete track, or does not exist',
+            reason: rejected.message,
+            content: rejected,
             target: 'notify',
             cssClass: 'notifyError',
         });

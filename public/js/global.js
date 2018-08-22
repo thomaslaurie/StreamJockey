@@ -213,7 +213,7 @@
 		}
 		
 		checkAgainst() {
-			if (sj.typeOf(this.against) === 'array') {
+			if (Array.isArray(this.against)) {
 				return this.against.indexOf(this.content) !== -1;
 			} else {
 				return this.content === this.against;
@@ -817,7 +817,8 @@
 	// promises
 	sj.andResolve = function (rejected) {
 		// use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
-		return rejected;
+		// non-sj errors should also be converted here
+		return sj.propagateError(rejected);
 	}
 	sj.resolveBoth = function (resolved, rejected) {
 		// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
@@ -825,7 +826,7 @@
 		if (resolved) {
 			return resolved;
 		} else if (rejected) {
-			return rejected;
+			return sj.propagateError(rejected);
 		}
 	}
 
@@ -846,8 +847,7 @@
 	sj.catchUnexpected = function (obj) {
 		// determines type of input, creates, announces, and returns a proper sj.Error object
 		// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
-
-		// !!! TODO JSON.stringify() does not work on native Error objects as they have no enumerable properties: https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify, therefore these cannot be passed between client & server - find a way to do this so content doesn't just show up as an empty object {}
+		
 		var error = new sj.Error({
 			origin: 'sj.catchUnexpected()',
 			message: 'function received unexpected result',
@@ -861,6 +861,14 @@
 		} else if (sj.typeOf(obj) === 'object') {
 			if (sj.isValidObjectType(obj)) {
 				error.reason = 'object is of unexpected Sj objectType: ' + obj.objectType;
+			} else if (obj instanceof Error) {
+				/* 
+					!!! JSON.stringify() does not work on native Error objects as they have no enumerable properties
+					therefore these cannot be passed between client & server,so when catching a native Error object
+					properly convert it to a string with Error.toString() then save that in reason
+					https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
+				*/
+				error.reason = obj.toString();
 			} else {
 				error.reason = 'object is not an sj object';
 			}

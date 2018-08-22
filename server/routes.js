@@ -38,11 +38,13 @@ apiRouter
 
 // TODO add CRUD for all types
 
+// TODO if eventually its found that no additional data is needed to be sent alongside sj.Objects for api requests, just make the entire body the object for simplification
+
 	// user
 	.post('/user', async (ctx, next) => {
 		ctx.response.body = await sjs.register(ctx.request.body.user).catch(sj.andResolve);
 		console.log(ctx.response.body);
-	}) // TODO --------------- lightly test each api method, register is done
+	})
 	.get('/user/:id', async (ctx, next) => {
 		ctx.response.body = await sjs.getUser(ctx.params.id).catch(sj.andResolve);
 	})
@@ -62,7 +64,7 @@ apiRouter
 	.get('/me', async (ctx, next) => {
 		ctx.response.body = await sjs.getMe(ctx).catch(sj.andResolve);
 	})
-	// TODO what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie?
+	// TODO what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 	.delete('/logout', async (ctx, next) => {
 		ctx.response.body = await sjs.logout(ctx).catch(sj.andResolve);
 	})
@@ -70,9 +72,10 @@ apiRouter
 	// playlist
 	.post('/playlist', async (ctx, next) => {
 		ctx.response.body = await sjs.addPlaylist(ctx, ctx.request.body.playlist).catch(sj.andResolve);
+		console.log(ctx.response.body);
 	})
 	.get('/playlist/:id', async (ctx, next) => {
-		ctx.response.body = await sjs.getPlaylist(ctx, ctx.params.id);
+		ctx.response.body = await sjs.getPlaylist(ctx, ctx.params.id).catch(sj.andResolve);
 	})
 	.patch('/playlist', async (ctx, next) => {
 		// TODO update playlist
@@ -84,12 +87,12 @@ apiRouter
 
 	// track
 	.post('/track', async (ctx, next) => {
-		ctx.response.body = await sjs.addTrack(ctx, ctx.request.body.track);
+		ctx.response.body = await sjs.addTrack(ctx, ctx.request.body.track).catch(sj.andResolve);
 	})
 	// TODO tracks can only be retrieved from the context of a playlist, right? tracks will only ever be played or stored within playlists, right?
 	// TODO not at the moment, but eventually users will be able to have track specific settings? (paired video, crop points, volume/cross fade, plays?)
 	.delete('/track', async (ctx, next) => {
-		ctx.response.body = await sjs.deleteTrack(ctx, ctx.request.body.track);
+		ctx.response.body = await sjs.deleteTrack(ctx, ctx.request.body.track).catch(sj.andResolve);
 	})
 
 	// catch
