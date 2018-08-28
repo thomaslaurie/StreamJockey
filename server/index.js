@@ -1,3 +1,5 @@
+// TODO some best practices: https://www.codementor.io/mattgoldspink/nodejs-best-practices-du1086jja
+
 /*	process.env: https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
 	for global storage in process.env, consider dotenv:  https://www.npmjs.com/package/dotenv	*/
 // TODO put api keys into this as well after creating methods to access them

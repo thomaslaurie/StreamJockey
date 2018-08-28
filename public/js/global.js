@@ -668,6 +668,19 @@
 	//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 	//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
+	sj.deepFreeze = function (obj) {
+		// TODO test me
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+
+		// freeze nested objects
+		Object.keys(obj).forEach(function(key) {
+			obj[key] = obj[key] && typeof value === 'object' ? sj.deepFreeze(obj[key]) : obj[key];
+		});
+		
+		// then freeze self
+		return Object.freeze(object);
+	}
+	
 	// type
 	sj.objectList = [ // list of all valid sj objects
 		// TODO must be a better way

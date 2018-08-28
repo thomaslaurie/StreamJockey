@@ -140,9 +140,10 @@ exports.register = async function (user) {
         throw errorList;
     }
 
-    return db.none('SELECT name FROM users WHERE name = $1', [user.name]).catch(rejected => {
+    return db.none('SELECT "name" FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
         // TODO how to distinguish sql error from failure?, pg-promise see error types: http://vitaly-t.github.io/pg-promise/errors.html
 
+        // TODO custom already exists error (or replace with constraint-based error)
         throw new sj.Error({
             log: true,
             origin: 'register()',
@@ -166,7 +167,7 @@ exports.register = async function (user) {
             });
         });  
     }).then(resolved => {
-        return db.none('INSERT INTO users(email, name, password) VALUES ($1, $2, $3)', [user.email, user.name, resolved]).catch(rejected => {
+        return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
             throw new sj.Error({
                 log: true,
                 origin: 'register()',
@@ -182,9 +183,9 @@ exports.register = async function (user) {
         return new sj.Success({
             log: true,
             origin: 'register()',
-            message: `${name} registered`,
+            message: `${user.name} registered`,
             cssClass: 'notifySuccess',
-            content: name,
+            content: user, // TODO don't return plaintext password
         });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
@@ -195,7 +196,7 @@ exports.register = async function (user) {
 exports.login = async function (ctx, user) { 
     user.name = user.name.trim();
 
-    return db.one('SELECT id, name, password FROM users WHERE name = $1', [user.name]).catch(rejected => {
+    return db.one('SELECT "id", "name", "password" FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'login()',
@@ -207,7 +208,7 @@ exports.login = async function (ctx, user) {
             cssClass: 'notifyError',
         });
     }).then(resolved => {
-        return bcrypt.compare(password, resolved.password).catch(rejected => {
+        return bcrypt.compare(user.password, resolved.password).catch(rejected => {
             throw new sj.Error({
                 log: true,
                 origin: 'login()',
@@ -220,8 +221,11 @@ exports.login = async function (ctx, user) {
         });
     }).then(resolved => {
         if (resolved) {
-            ctx.session.user = new sj.User();;// TODO get user specifically from db here (and only here?) (not with getUser() (public), not with getMe() (requires already logged in))
+            ctx.session.user = new sj.User({
+                id: 1,
+            }); // TODO get user specifically from db here (and only here?) (not with getUser() (public), not with getMe() (requires already logged in))
              // TODO ensure nothing sensitive is being passed here (back to client)
+             // ID must be part of this
             // TODO user id is basically their access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out
             return new sj.Success({
                 log: true,
@@ -280,7 +284,7 @@ exports.getUser = async function (id) {
     }
 
     // TODO don't retrieve all columns (privacy) (ie password), actually another option could be creating two different child classes of sj.User: sj.PublicUser and sj.PrivateUser so that they only initialize proper values, and is cleaner than making a custom query
-    return db.one('SELECT * FROM users WHERE id = $1', [id]).catch(rejected => {
+    return db.one('SELECT * FROM "sj"."users" WHERE "id" = $1', [id]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'getUser()',
@@ -461,8 +465,8 @@ exports.addPlaylist = async function (ctx, playlist) {
         errorList.announce();
         throw errorList;
     }
-    
-    return  db.none('SELECT name FROM playlists WHERE name = $1 AND user = $2', [playlist.name, ctx.session.user.id]).catch(rejected => {
+
+    return  db.none('SELECT "name" FROM "sj"."playlists" WHERE "name" = $1 AND "user_id" = $2', [playlist.name, ctx.session.user.id]).catch(rejected => {
         // TODO see register()
         throw new sj.Error({
             log: true,
@@ -475,7 +479,7 @@ exports.addPlaylist = async function (ctx, playlist) {
             cssClass: 'notifyError',
         });
     }).then(resolved => {
-        return db.none('INSERT INTO playlists(name, visibility, description, color, image) VALUES ($1, $2, $3, $4, $5)', [playlist.name, playlist.visibility, playlist.description, playlist.color, playlist.image]).catch(rejected => {
+        return db.none('INSERT INTO "sj"."playlists" ("user_id", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
             throw new sj.Error({
                 log: true,
                 origin: 'addPlaylist()',
@@ -491,7 +495,7 @@ exports.addPlaylist = async function (ctx, playlist) {
         return new sj.Success({
             log: true,
             origin: 'addPlaylist()',
-            message: `${name} added`,
+            message: `${playlist.name} added`,
             cssClass: 'notifySuccess',
             content: playlist,
         });
@@ -511,7 +515,7 @@ exports.deletePlaylist = async function (ctx, playlist) {
         });
     }
     // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist? what happens if the user tries to delete a playlist that isn't theirs? it will return successful but nothing will happen - 0 feedback telling them it isn't theirs
-    return db.none('DELETE FROM playlists WHERE id = $1 AND userId = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
+    return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1 AND "user_id" = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'deletePlaylist()',
@@ -546,7 +550,7 @@ exports.getPlaylist = async function (ctx, id) {
         });
     }
 
-    return db.one('SELECT * FROM playlists WHERE id = $1', [id]).catch(rejected => {
+    return db.one('SELECT * FROM "sj"."playlists" WHERE "id" = $1', [id]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'getPlaylist()',
@@ -598,12 +602,12 @@ exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the 
         // pg-promise transactions: https://github.com/vitaly-t/pg-promise#transactions
 
         // deferrable constraints: https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html, https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-        await task.none('SET CONSTRAINTS playlist_position_unique DEFERRED');
+        await task.none('SET CONSTRAINTS "sj"."playlists_position_key" DEFERRED');
 
         // update position based on index
         // !!! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
         // TODO ------------- memory leak error here playlist.content.map(function (item, index) {
-        //     await task.none('UPDATE tracks SET "position" = $1 WHERE "position" = $2 AND playlistId = $3', [index, item.position, item.playlistId]);
+        //     await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "position" = $2 AND "playlist_id" = $3', [index, item.position, item.playlistId]);
         // });
     }).catch(rejected => {
         throw new sj.Error({
@@ -639,7 +643,7 @@ exports.addTrack = async function (ctx, track) {
     track.position = playlist.content.length;
 
     // !!! artists is simply stored as an array, eg. TEXT[]
-    return db.none('INSERT INTO tracks (playlistId, "position", source, id, title, artists, duration) VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.artists, track.duration]).catch(rejected => {
+    return db.none('INSERT INTO "sj"."tracks" ("playlist_id", "position", "source", "source_id", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.duration, track.artists]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'addTrack()',
@@ -664,7 +668,7 @@ exports.addTrack = async function (ctx, track) {
 }
 
 exports.deleteTrack = async function (ctx, track) {
-    return db.none('DELETE FROM tracks WHERE playlistId = $1 AND "position" = $2', [track.playlistId, track.position]).catch(rejected => {
+    return db.none('DELETE FROM "sj"."tracks" WHERE "playlist_id" = $1 AND "position" = $2', [track.playlistId, track.position]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'deleteTrack()',
