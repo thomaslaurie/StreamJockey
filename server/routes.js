@@ -32,6 +32,8 @@ apiRouter
 // /type?id=123	are accessed via ctx.query.x
 // https://github.com/alexmingoia/koa-router#url-parameters
 
+// https://stackoverflow.com/questions/630453/put-vs-post-in-rest
+
 // TODO add user, playlist, etc. should instead by added via their sj.Object (like addTrack()) and not just the set of parameters
 // TODO deletes should be like this too
 // TODO why cant get be like this either?
@@ -42,7 +44,7 @@ apiRouter
 
 	// user
 	.post('/user', async (ctx, next) => {
-		ctx.response.body = await sjs.register(ctx.request.body.user).catch(sj.andResolve);
+		ctx.response.body = await sjs.registerUser(ctx.request.body).catch(sj.andResolve);
 		console.log(ctx.response.body);
 	})
 	.get('/user/:id', async (ctx, next) => {
@@ -59,7 +61,7 @@ apiRouter
 
 	// session
 	.put('/login', async (ctx, next) => {
-		ctx.response.body = await sjs.login(ctx, ctx.request.body.user).catch(sj.andResolve);
+		ctx.response.body = await sjs.login(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	.get('/me', async (ctx, next) => {
 		ctx.response.body = await sjs.getMe(ctx).catch(sj.andResolve);
@@ -71,8 +73,7 @@ apiRouter
 	
 	// playlist
 	.post('/playlist', async (ctx, next) => {
-		ctx.response.body = await sjs.addPlaylist(ctx, ctx.request.body.playlist).catch(sj.andResolve);
-		console.log(ctx.response.body);
+		ctx.response.body = await sjs.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	.get('/playlist/:id', async (ctx, next) => {
 		ctx.response.body = await sjs.getPlaylist(ctx, ctx.params.id).catch(sj.andResolve);
@@ -82,17 +83,17 @@ apiRouter
 		await next();
 	})
 	.delete('/playlist', async (ctx, next) => {
-		ctx.response.body = await sjs.deletePlaylist(ctx, ctx.request.body.playlist).catch(sj.andResolve);
+		ctx.response.body = await sjs.deletePlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 
 	// track
 	.post('/track', async (ctx, next) => {
-		ctx.response.body = await sjs.addTrack(ctx, ctx.request.body.track).catch(sj.andResolve);
+		ctx.response.body = await sjs.addTrack(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	// TODO tracks can only be retrieved from the context of a playlist, right? tracks will only ever be played or stored within playlists, right?
 	// TODO not at the moment, but eventually users will be able to have track specific settings? (paired video, crop points, volume/cross fade, plays?)
 	.delete('/track', async (ctx, next) => {
-		ctx.response.body = await sjs.deleteTrack(ctx, ctx.request.body.track).catch(sj.andResolve);
+		ctx.response.body = await sjs.deleteTrack(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 
 	// catch

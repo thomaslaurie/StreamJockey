@@ -111,7 +111,9 @@ exports.validatePassword = async function (password, password2) {
     return await conditions.checkAll();
 }
 
-exports.register = async function (user) {
+exports.registerUser = async function (user) {
+    console.log(user);
+
     var errorList = new sj.ErrorList({
         origin: 'validatePassword()',
         message: 'one or more issues with fields',
@@ -191,6 +193,35 @@ exports.register = async function (user) {
         throw sj.propagateError(rejected);
     });
 }
+exports.getUser = async function (id) {
+    id = parseInt(id);
+    // TODO use a user object instead here (even if its just a shell for id) (for consistency)
+    if (!(sj.typeOf(id) === 'number')) {
+        throw new sj.Error({
+            log: true,
+            origin: 'getUser()',
+            message: 'user id is not a number',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }
+
+    // TODO don't retrieve all columns (privacy) (ie password), actually another option could be creating two different child classes of sj.User: sj.PublicUser and sj.PrivateUser so that they only initialize proper values, and is cleaner than making a custom query
+    return db.one('SELECT * FROM "sj"."users" WHERE "id" = $1', [id]).catch(rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'getUser()',
+            code: rejected.code,
+            message: 'could not get user information',
+            reason: rejected.message,
+            content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then(resolved => {
+        return new sj.User(resolved);
+    });
+}
 
 
 exports.login = async function (ctx, user) { 
@@ -260,45 +291,6 @@ exports.logout = async function (ctx) {
     });
 }
 
-exports.isLoggedIn = function (ctx) {
-    // TODO is this the proper way to check being logged in? what about verifying user.id type, or if they exist?
-    return sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined';
-}
-
-// get
-/*
-async function getCurrentUser() {
-    // TODO this shouldn't be needed with the new sj.User login (entire user object is stored in session, not just userId)
-}
-*/
-
-exports.getUser = async function (id) {
-    if (!(sj.typeOf(parseInt(id) === 'number'))) {
-        throw new sj.Error({
-            log: true,
-            origin: 'getUser()',
-            message: 'user id is not a number',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
-
-    // TODO don't retrieve all columns (privacy) (ie password), actually another option could be creating two different child classes of sj.User: sj.PublicUser and sj.PrivateUser so that they only initialize proper values, and is cleaner than making a custom query
-    return db.one('SELECT * FROM "sj"."users" WHERE "id" = $1', [id]).catch(rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'getUser()',
-            code: rejected.code,
-            message: 'could not get user information',
-            reason: rejected.message,
-            content: rejected,
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }).then(resolved => {
-        return new sj.User(resolved);
-    });
-}
 exports.getMe = async function (ctx) {
     if (sj.typeOf(ctx.session.user) === 'undefined') {
         throw new sj.Error({
@@ -312,6 +304,12 @@ exports.getMe = async function (ctx) {
     }
 
     return ctx.session.user;
+}
+
+
+exports.isLoggedIn = function (ctx) {
+    // TODO is this the proper way to check being logged in? what about verifying user.id type, or if they exist?
+    return sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined';
 }
 
 
@@ -540,11 +538,15 @@ exports.deletePlaylist = async function (ctx, playlist) {
 }
 
 exports.getPlaylist = async function (ctx, id) {
-    if (!(sj.typeOf(parseInt(id) === 'number'))) {
+    console.log(id);
+    id = parseInt(id);
+    console.log(id);
+    if (!(sj.typeOf(id) === 'number')) {
         throw new sj.Error({
             log: true,
             origin: 'getPlaylist()',
             message: 'invalid playlist id',
+            content: id,
             target: 'notify',
             cssClass: 'notifyError',
         });
@@ -562,9 +564,9 @@ exports.getPlaylist = async function (ctx, id) {
             cssClass: 'notifyError',
         });
     }).then(resolved => {
-        // TODO properly convert database object to js object
+        // TODO properly convert database object to sj object
         // TODO check visibility & user permissions
-        resolved = sj.recreateObject(resolved);
+        resolved = sj.rebuildObject(resolved, 'sj.Playlist');
 
         if (resolved.visibility === 'public' || resolved.visibility === 'linkOnly' || (resolved.visibility === 'private' && resolved.userId === ctx.session.user.id)) {
             return exports.orderPlaylist(ctx, resolved);
@@ -584,7 +586,8 @@ exports.getPlaylist = async function (ctx, id) {
 
 // TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its done in the right order, if delete is called after an order it will delete the wrong track)
 exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the playlistId number (for ordering an existing playlist) or a sj.Playlist object (for updating a playlist's order)
-    if (sj.typeOf(playlist) === 'number') { // guard clause
+    // TODO verify parsed int
+    if (sj.typeOf(parseInt(playlist)) === 'number') { // guard clause
         // !!! semi-recursive, calls getPlaylist() before orderPlaylist() (built-in)
         return await exports.getPlaylist(ctx, playlist);
     }
@@ -602,13 +605,14 @@ exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the 
         // pg-promise transactions: https://github.com/vitaly-t/pg-promise#transactions
 
         // deferrable constraints: https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html, https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-        await task.none('SET CONSTRAINTS "sj"."playlists_position_key" DEFERRED');
+        await task.none('SET CONSTRAINTS "sj"."tracks_position_key" DEFERRED');
 
         // update position based on index
         // !!! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
-        // TODO ------------- memory leak error here playlist.content.map(function (item, index) {
-        //     await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "position" = $2 AND "playlist_id" = $3', [index, item.position, item.playlistId]);
-        // });
+        // TODO ------------- memory leak error here 
+        playlist.content.map(async function (item, index) {
+            await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlist_id" = $2 AND "position" = $3', [index, item.playlistId, item.position]);
+        });
     }).catch(rejected => {
         throw new sj.Error({
             log: true,
@@ -637,7 +641,8 @@ exports.addTrack = async function (ctx, track) {
     // tracks should be added in the api via new sj.Track(originalTrack), to duplicate the reference by copying over the attributes
 
     // assign a position
-    var playlist = await exports.getPlaylist(track.playlistId).catch(rejected => {
+    console.log('HERE', track);
+    var playlist = await exports.getPlaylist(ctx, track.playlistId).catch(rejected => {
         throw sj.propagateError(rejected);
     });
     track.position = playlist.content.length;
@@ -668,7 +673,9 @@ exports.addTrack = async function (ctx, track) {
 }
 
 exports.deleteTrack = async function (ctx, track) {
-    return db.none('DELETE FROM "sj"."tracks" WHERE "playlist_id" = $1 AND "position" = $2', [track.playlistId, track.position]).catch(rejected => {
+    // TODO verify data (number, parse if not number)
+
+    return db.none('DELETE FROM "sj"."tracks" WHERE "playlist_id" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'deleteTrack()',

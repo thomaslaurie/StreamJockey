@@ -163,12 +163,10 @@ const db = pgp(config);
         }).then(resolved => {
             // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
             return task.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
-                "id" SERIAL PRIMARY KEY,
-                "name" text UNIQUE,
+                "id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
+                "name" text CONSTRAINT "users_name_key" UNIQUE,
                 "password" text,
-                "email" text UNIQUE,
-                "image" text,
-                "color" text
+                "email" text CONSTRAINT "users_email_key" UNIQUE
             );`).catch(rejected => {
                 throw new sj.Error({
                     log: true,
@@ -182,15 +180,15 @@ const db = pgp(config);
             });
         }).then(resolved => {
             return task.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
-                "id" SERIAL PRIMARY KEY,
-                "user_id" integer REFERENCES "sj"."users" ON DELETE CASCADE,
+                "id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
+                "user_id" integer CONSTRAINT "playlists_user_id_fkey" REFERENCES "sj"."users" ON DELETE CASCADE,
                 "name" text,
-                "description" text,
                 "visibility" text,
+                "description" text,
                 "image" text,
                 "color" text,
                 
-                UNIQUE ("user_id", "name")
+                CONSTRAINT playlists_user_id_name_key UNIQUE ("user_id", "name")
             );`).catch(rejected => {
                 throw new sj.Error({
                     log: true,
@@ -204,9 +202,9 @@ const db = pgp(config);
             });
         }).then(resolved => {
             return task.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
-                "id" SERIAL PRIMARY KEY,
-                "playlist_id" integer REFERENCES "sj"."playlists" ON DELETE CASCADE,
-                "position" integer UNIQUE,
+                "id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
+                "playlist_id" integer CONSTRAINT "tracks_playlist_id_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE,
+                "position" integer CONSTRAINT "tracks_position_key" UNIQUE DEFERRABLE INITIALLY IMMEDIATE,
                 "source" text,
                 "source_id" text,
                 "name" text,

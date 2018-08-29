@@ -60,11 +60,10 @@
 	
 		announce() {
 			// include 'log: true' in options if object should be announced on creation, call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new sj.Object()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
-			var string = this.origin + '\n' + this.objectType + '\n' + this.message;
 			if (sj.isError(this)) {
-				console.error(string);
+				console.error(this);
 			} else {
-				console.log(string);
+				console.log(this.origin, this.objectType, this.message);
 			}	
 		}
 		onCreate() {
@@ -115,7 +114,7 @@
 			this.onCreate();
 		}
 	}
-
+	// TODO swap track.id to track.sourceId
 	sj.Track = class extends sj.Object {
 		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
@@ -728,16 +727,25 @@
 	// rebuild
 	sj.buildConfirmed = function (obj) {
 		// create a new sj.Object based on it's valid objectType
-		return new window.sj[obj.objectType.replace('sj.', '')](obj);
+		// !!! used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
+		return new sj[obj.objectType.replace('sj.', '')](obj);
 	}
-	sj.rebuildObject = function (obj) {
+	sj.rebuildObject = function (obj, objectType) {
 		if (sj.typeOf(obj) === 'string') {
 			try {
+				// parse
 				let parsedObj = JSON.parse(obj);
+
+				// cast (optional)
+				if (sj.isValidObjectType(objectType)) {
+					obj.objectType = objectType;
+				}
+				
+				// check if valid
 				if (sj.isValidObjectType(parsedObj.objectType)) {
 					return sj.buildConfirmed(parsedObj);
 				} else {
-					return new SjError({
+					return new sj.Error({
 						log: true,
 						origin: 'sj.rebuildObject()',
 						message: 'failed to recreate object',
@@ -746,7 +754,7 @@
 					});
 				}
 			} catch (e) {
-				return new SjError({
+				return new sj.Error({
 					log: true,
 					origin: 'sj.rebuildObject()',
 					message: 'failed to recreate object',
@@ -755,10 +763,16 @@
 				});
 			}
 		} else if (sj.typeOf(obj) === 'object') {
+			// cast (optional)
+			if (sj.isValidObjectType(objectType)) {
+				obj.objectType = objectType;
+			}
+
+			// check if valid
 			if (sj.isValidObjectType(obj.objectType)) {
 				return sj.buildConfirmed(obj);
 			} else {
-				return new SjError({
+				return new sj.Error({
 					log: true,
 					origin: 'sj.rebuildObject()',
 					message: 'failed to recreate object',
@@ -767,7 +781,7 @@
 				});
 			}
 		} else {
-			return new SjError({
+			return new sj.Error({
 				log: true,
 				origin: 'sj.rebuildObject()',
 				message: 'failed to recreate object',
@@ -794,7 +808,7 @@
 		// https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
 		
 		// pass in compareFunction or default
-		compare = TypeOf(compare) === 'function' ? compare : (a, b) => {
+		compare = sj.typeOf(compare) === 'function' ? compare : (a, b) => {
 			if (a < b) return -1;
 			if (a > b) return 1;
 			return 0;
@@ -900,7 +914,7 @@
 		}
 	}
 	sj.filterList = function (resolvedList, type, resolvedObj, rejectedObj) {
-		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an SjErrorList with all objects that aren't of that type
+		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an sj.ErrorList with all objects that aren't of that type
 
 		resolvedObj.content = resolvedList;
 		rejectedObj.content = [];
