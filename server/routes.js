@@ -44,19 +44,17 @@ apiRouter
 
 	// user
 	.post('/user', async (ctx, next) => {
-		ctx.response.body = await sjs.registerUser(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sjs.addUser(ctx.request.body).catch(sj.andResolve);
 		console.log(ctx.response.body);
 	})
-	.get('/user/:id', async (ctx, next) => {
-		ctx.response.body = await sjs.getUser(ctx.params.id).catch(sj.andResolve);
+	.get('/user/:name', async (ctx, next) => {
+		ctx.response.body = await sjs.getUser(new sj.User({name: ctx.params.name})).catch(sj.andResolve);
 	})
 	.patch('/user', async (ctx, next) => {
-		// TODO update user profile / settings
-		await next();
+		ctx.response.body = await sjs.editUser(ctx.request.body).catch(sj.andResolve);
 	})
 	.delete('/user', async (ctx, next) => {
-		// TODO
-		await next();
+		ctx.response.body = await sjs.deleteUser(ctx.request.body).catch(sj.andResolve);
 	})
 
 	// session
@@ -64,11 +62,11 @@ apiRouter
 		ctx.response.body = await sjs.login(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	.get('/me', async (ctx, next) => {
-		ctx.response.body = await sjs.getMe(ctx).catch(sj.andResolve);
+		ctx.response.body = sjs.getMe(ctx).catch(sj.andResolve);
 	})
 	// TODO what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 	.delete('/logout', async (ctx, next) => {
-		ctx.response.body = await sjs.logout(ctx).catch(sj.andResolve);
+		ctx.response.body = sjs.logout(ctx).catch(sj.andResolve);
 	})
 	
 	// playlist
@@ -76,7 +74,7 @@ apiRouter
 		ctx.response.body = await sjs.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	.get('/playlist/:id', async (ctx, next) => {
-		ctx.response.body = await sjs.getPlaylist(ctx, ctx.params.id).catch(sj.andResolve);
+		ctx.response.body = await sjs.getPlaylist(ctx, new sj.Playlist({id = ctx.params.id})).catch(sj.andResolve);
 	})
 	.patch('/playlist', async (ctx, next) => {
 		// TODO update playlist

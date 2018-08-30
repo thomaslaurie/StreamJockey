@@ -21,7 +21,7 @@ const visibilityStates = [
 
 // !!! REFLECTION catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
 
-// ---------- other stuff from top.php
+// ----- other stuff from top.php
 
 // last page history (I think this goes in routing or something???)
 
@@ -41,147 +41,198 @@ const visibilityStates = [
 //     ctx.session.currentPage = ''; /* $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; */
 // }
 
+/*
+    Create -> add
+    Retrieve -> get
+    Update -> edit
+    Delete -> delete
+*/
 
 // TODO check that all parameters exist & handle if they dont
 
 // TODO session_regenerate_id() ? if using, add in same locations as php version
 // TODO consider changing target: 'notify' to target: 'general' ?
 
-//   █████╗  ██████╗ ██████╗ ██████╗ ██╗   ██╗███╗   ██╗████████╗
-//  ██╔══██╗██╔════╝██╔════╝██╔═══██╗██║   ██║████╗  ██║╚══██╔══╝
-//  ███████║██║     ██║     ██║   ██║██║   ██║██╔██╗ ██║   ██║   
-//  ██╔══██║██║     ██║     ██║   ██║██║   ██║██║╚██╗██║   ██║   
-//  ██║  ██║╚██████╗╚██████╗╚██████╔╝╚██████╔╝██║ ╚████║   ██║   
-//  ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
+// TODO user id being in the session.user object is basically the user's access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out - I think this info is never sent to the client, just stored in the server and accessed via cookie key
 
-exports.validateEmail = async function (email) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validateEmail()',
-        message: 'email validated',
-        target: 'registerEmail',
-        cssClass: 'inputError',
+// TODO add in a ton of redundancy and checks for permissions, data types, validation, etc.
 
-        content: email,
 
-        name: 'E-mail',
-        min: 3,
-        max: stringMaxLength,
-        trim: true,
-        // TODO filter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-    });
+
+//  ██╗   ██╗███████╗███████╗██████╗ 
+//  ██║   ██║██╔════╝██╔════╝██╔══██╗
+//  ██║   ██║███████╗█████╗  ██████╔╝
+//  ██║   ██║╚════██║██╔══╝  ██╔══██╗
+//  ╚██████╔╝███████║███████╗██║  ██║
+//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
+
+// validate
+exports.emailConditions = new sj.Conditions({
+    log: true,
+    origin: 'emailConditions',
+    message: 'email validated',
+    target: 'registerEmail',
+    cssClass: 'inputError',
+
+    name: 'E-mail',
+    trim: true,
+
+    min: 3,
+    max: stringMaxLength,
+
+    //TODO filter: ___, filterMessage: ___, 
+    //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+});
+exports.userNameConditions = new sj.Conditions({
+    log: true,
+    origin: 'userNameConditions',
+    message: 'username validated',
+    target: 'registerUserName',
+    cssClass: 'inputError',
+
+    name: 'Username',
+    trim: true,
+
+    min: nameMinLength,
+    max: nameMaxLength,
+});
+exports.passwordConditions = new sj.Conditions({
+    log: true,
+    origin: 'validatePassword()',
+    message: 'password validated',
+    target: 'registerPassword',
+    cssClass: 'inputError',
+
+    name: 'Password',
+
+    min: 6,
+    max: 72, //! as per bcrypt
+
+    againstMessage: 'Passwords do not match',
+})
+
+/*
+    exports.validateEmail = async function (email) {
+        let conditions = new sj.Conditions({
+            log: true,
+            origin: 'validateEmail()',
+            message: 'email validated',
+            target: 'registerEmail',
+            cssClass: 'inputError',
+
+            content: email,
+
+            name: 'E-mail',
+            min: 3,
+            max: stringMaxLength,
+            trim: true,
+            // TODO filter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+        });
+
+        return await conditions.checkAll();
+    }
+    exports.validateUserName = async function (name) {
+        let conditions = new sj.Conditions({
+            log: true,
+            origin: 'validateUserName()',
+            message: 'username validated',
+            target: 'registerUserName',
+            cssClass: 'inputError',
+
+            content: name,
+
+            name: 'Username',
+            min: nameMinLength,
+            max: nameMaxLength,
+            trim: true,
+        });
 
     return await conditions.checkAll();
-}
-exports.validateUserName = async function (name) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validateUserName()',
-        message: 'username validated',
-        target: 'registerUserName',
-        cssClass: 'inputError',
+    }
+    exports.validatePassword = async function (password, password2) {
+        let conditions = new sj.Conditions({
+            log: true,
+            origin: 'validatePassword()',
+            message: 'password validated',
+            target: 'registerPassword',
+            cssClass: 'inputError',
 
-        content: name,
+            content: password,
 
-        name: 'Username',
-        min: nameMinLength,
-        max: nameMaxLength,
-        trim: true,
-    });
+            name: 'Password',
+            min: 6,
+            max: 72, // as per bcrypt
+            against: password2,
+            againstMessage: 'Passwords do not match',
+        });
+    
+        return await conditions.checkAll();
+    }
+*/
 
-   return await conditions.checkAll();
-}
-exports.validatePassword = async function (password, password2) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validatePassword()',
-        message: 'password validated',
-        target: 'registerPassword',
-        cssClass: 'inputError',
-
-        content: password,
-
-        name: 'Password',
-        min: 6,
-        max: 72, // as per bcrypt
-        against: password2,
-        againstMessage: 'Passwords do not match',
-    });
-   
-    return await conditions.checkAll();
-}
-
-exports.registerUser = async function (user) {
-    console.log(user);
-
+// CRUD
+exports.addUser = async function (user) {
     var errorList = new sj.ErrorList({
         origin: 'validatePassword()',
         message: 'one or more issues with fields',
         reason: 'validation functions returned one or more errors',
     });
-    user.email = await exports.validateEmail(user.email).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        errorList.content.push(rejected);
-        return rejected.content;
+    user.email = await exports.emailConditions.check(user.email).catch(rejected => {
+        throw sj.propagateError(rejected);
     });
-    user.name = await exports.validateUserName(user.name).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        errorList.content.push(rejected);
-        return rejected.content;
+    user.name = await exports.userNameConditions.check(user.name).catch(rejected => {
+        throw sj.propagateError(rejected);
     });
-    user.password = user.password2 = await exports.validatePassword(user.password, user.password2).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        errorList.content.push(rejected);
-        return rejected.content;
+    user.password = await exports.userNameConditions.check(user.password, user.password2).catch(rejected => {
+        throw sj.propagateError(rejected);
     });
+    /*
+        user.email = await exports.validateEmail(user.email).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        user.name = await exports.validateUserName(user.name).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        user.password = user.password2 = await exports.validatePassword(user.password, user.password2).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+    */
     if (!(errorList.content.length === 0)) {
         errorList.announce();
         throw errorList;
     }
 
-    return db.none('SELECT "name" FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
-        // TODO how to distinguish sql error from failure?, pg-promise see error types: http://vitaly-t.github.io/pg-promise/errors.html
-
-        // TODO custom already exists error (or replace with constraint-based error)
+    return bcrypt.hash(user.password, saltRounds).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'register()',
-            code: rejected.code,
-            message: 'database error',
-            reason: rejected.message,
+            message: 'failed to register user',
+            reason: 'hash failed',
             content: rejected,
             target: 'notify',
             cssClass: 'notifyError',
         });
     }).then(resolved => {
-        return bcrypt.hash(user.password, saltRounds).catch(rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'register()',
-                message: 'failed to register user',
-                reason: 'hash failed',
-                content: rejected,
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        });  
-    }).then(resolved => {
         return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
-            throw new sj.Error({
+            // replaces default error info with info based on error code 
+            throw db.parsePostgresError(rejected, new sj.Error({
                 log: true,
-                origin: 'register()',
-                code: rejected.code,
-                message: 'could not register user',
-                reason: rejected.message,
-                content: rejected,
+                origin: 'addUser()',
+                message: 'could not add user',
                 target: 'notify',
                 cssClass: 'notifyError',
-            });
+            }));
         });
-    }).then (resolved => {
+    }).then(resolved => {
         return new sj.Success({
             log: true,
             origin: 'register()',
@@ -193,51 +244,135 @@ exports.registerUser = async function (user) {
         throw sj.propagateError(rejected);
     });
 }
-exports.getUser = async function (id) {
-    id = parseInt(id);
-    // TODO use a user object instead here (even if its just a shell for id) (for consistency)
-    if (!(sj.typeOf(id) === 'number')) {
+exports.getUser = async function (user) {
+    // TODO why is this easier than using the sj.Conditions class?
+    if (!(sj.typeOf(user.name) === 'string')) {
         throw new sj.Error({
             log: true,
             origin: 'getUser()',
-            message: 'user id is not a number',
+            message: 'user name must be a string',
             target: 'notify',
             cssClass: 'notifyError',
         });
     }
 
-    // TODO don't retrieve all columns (privacy) (ie password), actually another option could be creating two different child classes of sj.User: sj.PublicUser and sj.PrivateUser so that they only initialize proper values, and is cleaner than making a custom query
-    return db.one('SELECT * FROM "sj"."users" WHERE "id" = $1', [id]).catch(rejected => {
-        throw new sj.Error({
+    return db.one('SELECT * FROM "sj"."users_public" WHERE "id" = $1', [id]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
-            origin: 'getUser()',
-            code: rejected.code,
-            message: 'could not get user information',
-            reason: rejected.message,
-            content: rejected,
+                origin: 'getUser()',
+                message: 'could not get user',
+                target: 'notify',
+                cssClass: 'notifyError',
+        }));
+    }).then(resolved => {
+        return new sj.User(resolved); // !!!  requires that table names are the same as object property names
+    });
+}
+exports.editUser = async function (ctx, user) {
+    // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
+
+    if (!exports.isLoggedIn(ctx)) {
+        throw notLoggedInError;
+    }
+
+
+    /* TODO
+    return db.none('UPDATE "sj."users" SET x = $x, x = $x, x = $x, ... WHERE "id" = x,', [x, ...]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
+            log: true,
+            origin: 'editUser()',
+            message: 'could not edit user',
+            notify: 'notify',
+            cssClass: 'notifyError',
+        }));
+    }).then(resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'editUser()',
+            message: 'updated user',
+            notify: 'notify',
+            cssClass: 'notifySuccess',
+        });
+    }).catch(rejected => {
+        throw propagateError(rejected);
+    });
+    */
+}
+exports.deleteUser = async function (ctx, user) {
+    if (!exports.isLoggedIn(ctx)) {
+        throw notLoggedInError;
+    }
+
+    return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
+            log: true,
+            origin: 'deleteUser()',
+            message: 'could not delete user',
             target: 'notify',
             cssClass: 'notifyError',
+        }));
+    }).then(resolved => {
+        return bcrypt.compare(user.password, resolved.password).catch(rejected => {
+            throw new sj.Error({
+                log: true,
+                origin: 'deleteUser()',
+                message: 'server error',
+                reason: 'hash compare failed',
+                content: rejected,
+                target: 'loginPassword',
+                cssClass: 'inputError',
+            });
         });
     }).then(resolved => {
-        return new sj.User(resolved);
+        if (resolved) {
+            return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+                throw db.parsePostgresError(rejected, new sj.Error({
+                    log: true,
+                    origin: 'deleteUser()',
+                    message: 'could not delete user',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+        } else {
+            throw new sj.Error({
+                log: true,
+                origin: 'deleteUser()',
+                message: 'incorrect password',
+                target: 'deleteUserPassword',
+                cssClass: 'inputError',
+            });
+        }
+    }).then(resolved => {
+        await logout().catch(rejected => {
+            throw propagateError(rejected);
+        });
+        return resolved;
+    }).catch(rejected => {
+        throw propagateError(rejected);
     });
 }
 
 
+//  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
+//  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
+//  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
+//  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
+//  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
+//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+
+// CRUD
 exports.login = async function (ctx, user) { 
     user.name = user.name.trim();
 
-    return db.one('SELECT "id", "name", "password" FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
-        throw new sj.Error({
+    return db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'login()',
-            code: rejected.code,
-            message: 'database error',
-            reason: rejected.message,
-            content: rejected,
+            message: 'could not login, database error',
             target: 'notify',
             cssClass: 'notifyError',
-        });
+        }));
     }).then(resolved => {
         return bcrypt.compare(user.password, resolved.password).catch(rejected => {
             throw new sj.Error({
@@ -252,19 +387,14 @@ exports.login = async function (ctx, user) {
         });
     }).then(resolved => {
         if (resolved) {
-            ctx.session.user = new sj.User({
-                id: 1,
-            }); // TODO get user specifically from db here (and only here?) (not with getUser() (public), not with getMe() (requires already logged in))
-             // TODO ensure nothing sensitive is being passed here (back to client)
-             // ID must be part of this
-            // TODO user id is basically their access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out
-            return new sj.Success({
-                log: true,
-                origin: 'login()',
-                message: 'user logged in',
-                target: 'notify',
-                cssClass: 'notifySuccess',
-                content: ctx.session.user,
+            return db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', [user.name]).catch(rejected => {
+                throw db.parsePostgresError(rejected, new sj.Error({
+                    log: true,
+                    origin: 'login()',
+                    message: 'could not login, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
             });
         } else {
             throw new sj.Error({
@@ -275,10 +405,28 @@ exports.login = async function (ctx, user) {
                 cssClass: 'inputError',
             });
         }
+    }).then(resolved => {
+        ctx.session.user = new sj.User(resolved);
+
+        return new sj.Success({
+            log: true,
+            origin: 'login()',
+            message: 'user logged in',
+            target: 'notify',
+            cssClass: 'notifySuccess',
+            content: ctx.session.user,
+        });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 }
+exports.getMe = async function (ctx) {
+    if (!exports.isLoggedIn(ctx)) {
+        throw notLoggedInError;
+    }
+    return ctx.session.user;
+}
+// !!!  these isn't an async function
 exports.logout = async function (ctx) {
     ctx.session.user = undefined;
 
@@ -291,26 +439,19 @@ exports.logout = async function (ctx) {
     });
 }
 
-exports.getMe = async function (ctx) {
-    if (sj.typeOf(ctx.session.user) === 'undefined') {
-        throw new sj.Error({
-            log: true,
-            origin: 'getMe()',
-            message: 'you are not logged in',
-            reason: 'no user in session',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
-
-    return ctx.session.user;
-}
-
-
+// util
 exports.isLoggedIn = function (ctx) {
     // TODO is this the proper way to check being logged in? what about verifying user.id type, or if they exist?
     return sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined';
 }
+exports.notLoggedInError = new sj.Error({
+    code: 403,
+
+    message: 'you must be logged in to do this',
+    reason: 'user is not logged in',
+    target: 'notify',
+    cssClass: 'notifyError', // TODO consider denial error rather than error error (you messed up vs I messed up)
+});
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
@@ -320,6 +461,9 @@ exports.isLoggedIn = function (ctx) {
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
+// ---------------- CONVERT PLAYLIST CONDITIONS
+
+// validate
 exports.validatePlaylistName = async function (name) {
     let conditions = new sj.Conditions({
         log: true,
@@ -410,26 +554,22 @@ exports.validateImage = async function (image) {
     return await conditions.checkAll();
 }
 
-// TODO add in a ton of redundancy and checks for permissions, data types, validation, etc.
-
-// playlist
+// CRUD
 exports.addPlaylist = async function (ctx, playlist) {
-    // TODO create static isLoggedIn sj.Conditions to add to errorList?
-    if (!(exports.isLoggedIn(ctx))) {
-        throw new sj.Error({
-            log: true,
-            origin: 'addPlaylist()',
-            message: 'you must be logged in to add a playlist',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
-
     var errorList = new sj.ErrorList({
         origin: 'addPlaylist()',
         message: 'one or more issues with fields',
         reason: 'validation functions returned one or more errors',
     });
+    if (!(exports.isLoggedIn(ctx))) {
+        errorList.content.push(new sj.Error({
+            log: true,
+            origin: 'addPlaylist()',
+            message: 'you must be logged in to add a playlist',
+            target: 'notify',
+            cssClass: 'notifyError',
+        }));
+    }
     playlist.name = await exports.validatePlaylistName(playlist.name).then(resolved => {
         return resolved.content;
     }, rejected => {
@@ -464,31 +604,14 @@ exports.addPlaylist = async function (ctx, playlist) {
         throw errorList;
     }
 
-    return  db.none('SELECT "name" FROM "sj"."playlists" WHERE "name" = $1 AND "user_id" = $2', [playlist.name, ctx.session.user.id]).catch(rejected => {
-        // TODO see register()
-        throw new sj.Error({
+    return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'addPlaylist()',
-            code: rejected.code,
-            message: 'playlist already exists',
-            reason: rejected.message,
-            content: rejected,
+            message: 'failed to add playlist, database error',
             target: 'notify',
             cssClass: 'notifyError',
-        });
-    }).then(resolved => {
-        return db.none('INSERT INTO "sj"."playlists" ("user_id", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'addPlaylist()',
-                code: rejected.code,
-                message: 'failed to add playlist',
-                reason: rejected.message,
-                content: rejected,
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        });
+        }));
     }).then (resolved => {
         return new sj.Success({
             log: true,
@@ -501,75 +624,32 @@ exports.addPlaylist = async function (ctx, playlist) {
         throw sj.propagateError(rejected);
     });
 }
+exports.getPlaylist = async function (ctx, playlist) {
+    // TODO verify and parse id and userId
 
-exports.deletePlaylist = async function (ctx, playlist) {
-    if(!(exports.isLoggedIn(ctx))) {
-        throw new sj.Error({
-            log: true,
-            origin: 'deletePlaylist()',
-            message: 'you must be logged in to delete a playlist',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
-    // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist? what happens if the user tries to delete a playlist that isn't theirs? it will return successful but nothing will happen - 0 feedback telling them it isn't theirs
-    return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1 AND "user_id" = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'deletePlaylist()',
-            code: rejected.code,
-            message: 'playlist could not be deleted',
-            reason: rejected.message,
-            content: rejected,
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }).then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'deletePlaylist()',
-            message: 'playlist deleted',
-            target: 'notify',
-            cssClass: 'notify success',
-        });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-}
-
-exports.getPlaylist = async function (ctx, id) {
-    console.log(id);
-    id = parseInt(id);
-    console.log(id);
-    if (!(sj.typeOf(id) === 'number')) {
+    if (!(sj.typeOf(playlist.name) === 'string')) {
         throw new sj.Error({
             log: true,
             origin: 'getPlaylist()',
-            message: 'invalid playlist id',
-            content: id,
+            message: 'playlist name must be a string',
             target: 'notify',
             cssClass: 'notifyError',
         });
     }
 
-    return db.one('SELECT * FROM "sj"."playlists" WHERE "id" = $1', [id]).catch(rejected => {
-        throw new sj.Error({
+    return db.one(`SELECT * FROM "sj"."playlists" WHERE ("id" = $1) OR (userId = "$2" AND name" = $3)`, [playlist.id, playlist.userId, playlist.name]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'getPlaylist()',
-            code: rejected.code,
-            message: 'could not retrieve playlist',
-            reason: rejected.message,
-            content: rejected,
+            message: 'could not get playlist, database error',
             target: 'notify',
             cssClass: 'notifyError',
-        });
+        }));
     }).then(resolved => {
-        // TODO properly convert database object to sj object
-        // TODO check visibility & user permissions
-        resolved = sj.rebuildObject(resolved, 'sj.Playlist');
+        let playlist = new sj.Playlist(resolved);
 
-        if (resolved.visibility === 'public' || resolved.visibility === 'linkOnly' || (resolved.visibility === 'private' && resolved.userId === ctx.session.user.id)) {
-            return exports.orderPlaylist(ctx, resolved);
+        if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && exports.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
+            return await exports.orderPlaylist(ctx, playlist);
         } else {
             throw new sj.Error({
                 log: true,
@@ -583,15 +663,60 @@ exports.getPlaylist = async function (ctx, id) {
         throw sj.propagateError(rejected);
     });
 }
+exports.editPlaylist = async function (ctx, playlist) {
+    // TODO
+}
+exports.deletePlaylist = async function (ctx, playlist) {
+    if(!(exports.isLoggedIn(ctx))) {
+        throw new sj.Error({
+            log: true,
+            origin: 'deletePlaylist()',
+            message: 'you must be logged in to delete a playlist',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }
+    if (!(ctx.session.user.id === playlist.userId)) {
+        throw new sj.Error({
+            log: true,
+            origin: 'deletePlaylist()',
+            message: 'you are not the owner of this playlist',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }
+    // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist?  it will return successful but nothing will happen
+    return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1 AND "userId" = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
+            log: true,
+            origin: 'deletePlaylist()',
+            message: 'could not delete playlist, database error',
+            target: 'notify',
+            cssClass: 'notifyError',
+        }));
+    }).then(resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'deletePlaylist()',
+            message: 'playlist deleted',
+            target: 'notify',
+            cssClass: 'notify success',
+        });
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+}
 
-// TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its done in the right order, if delete is called after an order it will delete the wrong track)
-exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the playlistId number (for ordering an existing playlist) or a sj.Playlist object (for updating a playlist's order)
-    // TODO verify parsed int
-    if (sj.typeOf(parseInt(playlist)) === 'number') { // guard clause
-        // !!! semi-recursive, calls getPlaylist() before orderPlaylist() (built-in)
+// util
+//TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its done in the right order, if delete is called after an order it will delete the wrong track)
+exports.orderPlaylist = async function (ctx, playlist) { 
+    //C retrieve the playlist if it doesn't have its contents
+    if (playlist.content.length === 0) {
+        // used by sj.Track.playlistId as a shortcut to order playlist in one line
         return await exports.getPlaylist(ctx, playlist);
     }
 
+    //C sort by track.position
     playlist.content.stableSort(function (a, b) {
         // https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
         // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
@@ -599,35 +724,32 @@ exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the 
         // numeric & property compare
         return a.position - b.position;
     });
-
+    
     // update
     return db.tx(async function (task) {
-        // pg-promise transactions: https://github.com/vitaly-t/pg-promise#transactions
-
-        // deferrable constraints: https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html, https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
+        //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
+        //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
+        //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
         await task.none('SET CONSTRAINTS "sj"."tracks_position_key" DEFERRED');
 
-        // update position based on index
-        // !!! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
-        // TODO ------------- memory leak error here 
+        //C update position based on index
+        //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
+        //? possible memory leak error here 
         playlist.content.map(async function (item, index) {
-            await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlist_id" = $2 AND "position" = $3', [index, item.playlistId, item.position]);
+            await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]);
         });
+
+        return;
     }).catch(rejected => {
-        throw new sj.Error({
+        throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'orderPlaylist()',
-            code: rejected.code,
-            message: 'database error when re-ordering playlist',
-            reason: rejected.message,
-            content: rejected,
+            message: 'could not order playlist, database error',
             target: 'notify',
             cssClass: 'notifyError',
-        });
+        }));
     }).then(resolved => {
-        // TODO any use for transaction resolved data? isn't this just what the callback function returns?
-
-        // apply actual indexes for return
+        //C apply actual indexes for return
         playlist.content.map(function(item, index) {
             item.position = index;
         });
@@ -637,28 +759,47 @@ exports.orderPlaylist = async function (ctx, playlist) { // playlist can be the 
     });
 }
 
+
+//  ████████╗██████╗  █████╗  ██████╗██╗  ██╗
+//  ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
+//     ██║   ██████╔╝███████║██║     █████╔╝ 
+//     ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ 
+//     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
+//     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+
+// -------------- CLEAN ALL OF THIS, ADD NEW TRACK CONDITIONS
+
+// CRUD
 exports.addTrack = async function (ctx, track) {
-    // tracks should be added in the api via new sj.Track(originalTrack), to duplicate the reference by copying over the attributes
+    //! tracks should be added in the api via new sj.Track(originalTrack), to duplicate the reference by copying over the attributes - //? why did I write this, what does this mean? sending tracks to the server stringify-s them and strips the reference
+
+    if (!(exports.isLoggedIn(ctx))) {
+        errorList.content.push(new sj.Error({
+            log: true,
+            origin: 'addTrack()',
+            message: 'you must be logged in to add a track',
+            target: 'notify',
+            cssClass: 'notifyError',
+        }));
+    }
 
     // assign a position
-    console.log('HERE', track);
-    var playlist = await exports.getPlaylist(ctx, track.playlistId).catch(rejected => {
+    var playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
         throw sj.propagateError(rejected);
     });
     track.position = playlist.content.length;
 
-    // !!! artists is simply stored as an array, eg. TEXT[]
-    return db.none('INSERT INTO "sj"."tracks" ("playlist_id", "position", "source", "source_id", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.duration, track.artists]).catch(rejected => {
-        throw new sj.Error({
+    if (){} //TODO check permissions
+
+    //! artists is simply stored as an array, eg. TEXT[]
+    return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.duration, track.artists]).catch(rejected => {
+        throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'addTrack()',
-            code: rejected.code,
-            message: 'failed to add track',
-            reason: rejected.message,
-            content: rejected,
+            message: 'could not add track, database error',
             target: 'notify',
             cssClass: 'notifyError',
-        });
+        }));
     }).then(resolved => {
         return new sj.Success({
             log: true,
@@ -671,11 +812,32 @@ exports.addTrack = async function (ctx, track) {
         throw sj.propagateError(rejected);
     });
 }
-
 exports.deleteTrack = async function (ctx, track) {
-    // TODO verify data (number, parse if not number)
+    //TODO verify data (number, parse if not number)
+    let idCheck = new sj.Conditions({
+        log: true,
+        origin: 'deleteTrack()',
+        message: 'verified number',
 
-    return db.none('DELETE FROM "sj"."tracks" WHERE "playlist_id" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
+        //TODO //!IMPORTANT//! shouldn't the sj.Conditions just be its own object to which variables are checked against, so they can be reused?
+        content: track.playlistId,
+
+        name: 'track id',
+        dataType: 'integer',
+    });
+
+
+    track.playlistId = await idCheck.checkAll().catch(rejected => {
+        throw propagateError(rejected);
+    });
+
+    idCheck.content = track.position;
+
+    track.position = await idCheck.checkAll().catch(rejected => {
+        throw propagateError(rejected);
+    });
+
+    return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
         throw new sj.Error({
             log: true,
             origin: 'deleteTrack()',
@@ -702,6 +864,7 @@ exports.deleteTrack = async function (ctx, track) {
     });
 }
 
+// util
 exports.moveTrack = async function (ctx, track, position) {
     let playlist = await exports.getPlaylist(ctx, track.playlistId);
 

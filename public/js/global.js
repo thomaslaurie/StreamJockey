@@ -182,67 +182,111 @@
 		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
-			this.objectType = 'sj.Validate';
+			this.objectType = 'sj.Conditions';
 
 			sj.Object.init(this, options, {
 				// new properties
-				name: 'input',
+				valueName: 'input',
+				trim: false,
+				
+				dataType: 'string',
+
 				min: 0,
 				max: Infinity,
-				dataType: 'string',
-				trim: false,
-				against: false, // !!! will not be able to checkAgainst() boolean false
-				againstMessage: 'input did not match against valid inputs', // TODO cannot include name in string in fail message by default
+
+				against: false, //! will not be able to checkAgainst() boolean false
+				get againstMessage() {
+					if (isArray(against)) {
+						var a = against.join(', ');
+					}
+					//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
+					return `${this.valueName} did not match against these values: ${this.against}`;
+				},
+
 				filter: false,
-				filterMessage: 'input did not pass required filter', // TODO
+				filterRequirements: 'none',
+				get filterMessage() {
+					return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
+				},
 			});
 		}
 
-		checkType() {
-			return sj.typeOf(this.content) === this.dataType;
+		checkType(value) {
+			let t = sj.typeOf(value);
+
+			//C if value is a string and dataType is a number or integer
+			if (t === 'string') {
+				if (this.dataType === 'number') {
+					//C	try to parse the string and check if it is a number
+					//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
+					let p = parseFloat(value);
+					if (!isNaN(p)) {
+						//C if so, convert it to the parsed number and return
+						value = p;
+						return true;
+					}
+					return false;
+				} 
+				
+				if (this.dataType === 'integer') {
+					let p = parseInt(value);
+					if (!isNaN(p)) {
+						value = p;
+						return true;
+					}
+					return false;
+				}
+			}
+
+			return t === this.dataType;
 		}
-		checkSize() {
-			if (sj.typeOf(this.content) === 'string' || sj.typeOf(this.content) === 'array') {
-				return this.content.length >= this.min && this.content.length <= this.max;
-			} else if (sj.typeOf(this.content) === 'number') {
-				return this.content >= this.min && this.content <= this.max;
+		checkSize(value) {
+			if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
+				return value.length >= this.min && value.length <= this.max;
+			} else if (sj.typeOf(value) === 'number') {
+				return value >= this.min && value <= this.max;
 			} else {
 				return true;
 			}
 		}
-		
-		checkAgainst() {
+		checkAgainst(value, value2) {
+			// allow custom check against value
+			if (sj.typeOf(value2) !== 'undefined') {
+				this.against = value2;
+			}
+
 			if (Array.isArray(this.against)) {
-				return this.against.indexOf(this.content) !== -1;
+				return this.against.indexOf(value) !== -1;
 			} else {
-				return this.content === this.against;
+				//! no type coercion
+				return value === this.against;
 			}
 		}
-		checkFilter() {
-			// TODO regex
+		checkFilter(value, value2) {
+			//TODO regex, similar to checkAgainst
 			return true;
 		}
 		
-		async checkAll() {
+		async check(value, value2) {
 			try {
-				// Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-				// Guard clauses are (also) positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
+				//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+				//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
-				if (!this.checkType()) {
+				if (!this.checkType(value)) {
 					throw new sj.Error({
 						log: this.log,
 						origin: this.origin,
-						message: `${this.name} must be a ${this.dataType}`,
+						message: `${this.valueName} must be a ${this.dataType}`,
 					})
 				}
-				if (this.trim && sj.typeOf(this.content) === 'string') {
-					this.content = this.content.trim();
+				if (this.trim && sj.typeOf(value) === 'string') {
+					value = value.trim();
 				}
-				if (!this.checkSize()) {
-					let message = `${this.name} must be between ${this.min} and ${this.max}`;
-					if (sj.typeOf(this.content) === 'string') {
+				if (!this.checkSize(value)) {
+					let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
+					if (sj.typeOf(value) === 'string') {
 						message = `${message} characters long`;
-					} else if (sj.typeOf(this.content) === 'array') {
+					} else if (sj.typeOf(value) === 'array') {
 						message = `${message} items long`;
 					}
 
@@ -252,14 +296,14 @@
 						message: message,
 					});
 				}
-				if (this.against && !this.checkAgainst()) {
+				if (this.against && !this.checkAgainst(value, value2)) {
 					throw new sj.Error({
 						log: this.log,
 						origin: this.origin,
 						message: this.againstMessage,
 					});
 				}
-				if (this.filter && !this.checkFilter()) {
+				if (this.filter && !this.checkFilter(value, value2)) {
 					throw new sj.Error({
 						log: this.log,
 						origin: this.origin,
@@ -267,14 +311,20 @@
 					});
 				}
 				
-				// remove error-related properties
-				// TODO consider inputCorrect styling, change these if so
-				this.target = undefined;
-				this.cssClass = undefined;
-				return new sj.Success(this); // transform object (this will strip any irrelevant properties away)
+				/*
+					// remove error-related properties
+					//TODO consider inputCorrect styling, change these if so
+					this.target = undefined;
+					this.cssClass = undefined;
+					//C transform object (this will strip any irrelevant properties away)
+					return new sj.Success(this);
+				*/
 
+				//! this doesn't return an sj.Success object on successful validation, it just returns the (possibly edited) value
+				//? is this ok? - I don't want to get stuck in a trap of restricting myself to sj.Objects just for the sake of it, this way makes more sense
+				return value; 				
 			} catch (e) {
-				// TODO afaik this shouldn't fail anymore
+				//TODO afaik this shouldn't fail anymore
 				throw sj.propagateError(e);
 			}
 		}
@@ -731,6 +781,8 @@
 		return new sj[obj.objectType.replace('sj.', '')](obj);
 	}
 	sj.rebuildObject = function (obj, objectType) {
+		// E	parses, interprets, and creates object
+
 		if (sj.typeOf(obj) === 'string') {
 			try {
 				// parse

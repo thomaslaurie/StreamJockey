@@ -150,6 +150,9 @@ const db = pgp(config);
             });
         }
 
+        // TODO add self, public, & private VIEWs for tables (if relevant)
+        // !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
+        // !!! column names are camelCase (because they get converted to properties), everything else is underscore
         return task.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
             throw new sj.Error({
                 log: true,
@@ -179,16 +182,47 @@ const db = pgp(config);
                 });
             });
         }).then(resolved => {
+            // https://www.postgresql.org/docs/8.1/static/tutorial-views.html
+            return task.none(`CREATE VIEW IF NOT EXISTS "sj"."users_self" AS
+                SELECT id, name, email 
+                FROM "sj"."users"
+            );`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'users view initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }).then(resolved => {
+            return task.none(`CREATE VIEW IF NOT EXISTS users_public AS
+                SELECT id, name
+                FROM "sj"."users"
+            );`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'users view initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }).then(resolved => {
             return task.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
                 "id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
-                "user_id" integer CONSTRAINT "playlists_user_id_fkey" REFERENCES "sj"."users" ON DELETE CASCADE,
+                "userId" integer CONSTRAINT "playlists_userId_fkey" REFERENCES "sj"."users" ON DELETE CASCADE ON UPDATE CASCADE,
                 "name" text,
                 "visibility" text,
                 "description" text,
                 "image" text,
                 "color" text,
                 
-                CONSTRAINT playlists_user_id_name_key UNIQUE ("user_id", "name")
+                CONSTRAINT playlists_userId_name_key UNIQUE ("userId", "name")
             );`).catch(rejected => {
                 throw new sj.Error({
                     log: true,
@@ -203,10 +237,10 @@ const db = pgp(config);
         }).then(resolved => {
             return task.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
                 "id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
-                "playlist_id" integer CONSTRAINT "tracks_playlist_id_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE,
+                "playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
                 "position" integer CONSTRAINT "tracks_position_key" UNIQUE DEFERRABLE INITIALLY IMMEDIATE,
                 "source" text,
-                "source_id" text,
+                "sourceId" text,
                 "name" text,
                 "duration" integer,
                 "artists" text[]
@@ -223,7 +257,7 @@ const db = pgp(config);
             });
         }).catch(rejected => {
             throw sj.propagateError(rejected);
-        })
+        });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
@@ -236,6 +270,50 @@ const db = pgp(config);
 }).catch(rejected => {
     console.log(rejected);
 });
+
+db.parsePostgresError = function (pgError, sjError) {
+    // TODO any validation needed here?
+    // TODO consider separating insertion checks into Conditions so multiple parameters are checked
+    // TODO add targets and cssClasses to each violation case too
+
+    sjError.code = pgError.code;
+    sjError.reason = pgError.message;
+    sjError.content = pgError;
+
+    // https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
+
+    // Class 23 — Integrity Constraint Violation
+    if (pgError.code === '23505') { // unique_violation
+        // users
+        if (pgError.constraint === 'users_name_key') {
+            sjError.message = 'this user name is already taken';
+        }
+        if (pgError.constraint === 'users_email_key') {
+            sjError.message = 'this email is already in use';
+        }
+        // playlists
+        if (pgError.constraint === 'playlists_userId_name_key') {
+            sjError.message = 'you already have a playlist with this name';
+        }
+        // tracks
+        if (pgError.constraint === 'tracks_position_key') {
+            sjError.message = 'a track already exists at this position';
+        }
+    }
+
+    if (pgError.code === '23503') { // foreign_key_violation
+        // playlists
+        if (pgError.constraint === 'playlists_userId_fkey') {
+            sjError.message = 'cannot add a playlist for an unknown user';
+        }
+        // tracks
+        if (pgError.constraint === 'tracks_playlistId_fkey') {
+            sjError.message = 'cannot add a track for an unknown playlist';
+        }
+    }
+
+    return sjError;
+}
 
 // create a single db object for entire app
 module.exports = db;
