@@ -1371,7 +1371,7 @@ async function search(term) {
 	return Promise.all(sj.sourceList.map(function (source) {
 		return source.search(term).then(resolveBoth);
 	})).then(function (resolved) {
-		return sj.filterList(resolved, 'SjSuccess', new sj.Success({
+		return sj.filterList(resolved, 'sj.Success', new sj.Success({
 			origin: 'search()',
 			message: 'search succeeded',
 		}), new sj.ErrorList( {
@@ -1719,7 +1719,7 @@ async function checkPlayback() {
 			message: 'failed to check playback state',
 		}));
 	}).then(function (resolved) {
-		return resolved;
+		return resolved; //TODO what is this
 	}, function (rejected) {
 		throw rejected;
 	});

@@ -95,7 +95,7 @@ apiRouter
 		ctx.response.body = await sjs.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	.get('/playlist/:id', async (ctx, next) => {
-		ctx.response.body = await sjs.getPlaylist(ctx, new sj.Playlist({id = ctx.params.id})).catch(sj.andResolve);
+		ctx.response.body = await sjs.getPlaylist(ctx, new sj.Playlist({id: ctx.params.id})).catch(sj.andResolve);
 	})
 	.patch('/playlist', async (ctx, next) => {
 		// TODO update playlist

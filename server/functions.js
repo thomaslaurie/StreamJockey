@@ -84,7 +84,7 @@ exports.positiveIntegerRules = new sj.Rules({
     origin: 'positiveIntegerRules',
     message: 'number validated',
 
-    name: 'Number',
+    valueName: 'Number',
 
     dataType: 'integer',
 });
@@ -95,7 +95,7 @@ exports.imageRules = new sj.Rules({
     target: 'playlistImage',
     cssClass: 'inputError',
 
-    name: 'Image',
+    valueName: 'Image',
     trim: true,
 
     max: bigStringMaxLength,
@@ -110,7 +110,7 @@ exports.colorRules = new sj.Rules({
     target: 'playlistColor',
     cssClass: 'inputError',
 
-    name: 'Color',
+    valueName: 'Color',
     trim: true,
     
     filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
@@ -132,7 +132,7 @@ exports.selfRules = new sj.Rules({
     target: 'notify',
     cssClass: 'notifyError',
 
-    name: 'Id',
+    valueName: 'Id',
 
     useAgainst: true,
     //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
@@ -146,7 +146,7 @@ exports.userNameRules = new sj.Rules({
     target: 'registerUserName',
     cssClass: 'inputError',
 
-    name: 'Username',
+    valueName: 'Username',
     trim: true,
 
     min: nameMinLength,
@@ -159,7 +159,7 @@ exports.passwordRules = new sj.Rules({
     target: 'registerPassword',
     cssClass: 'inputError',
 
-    name: 'Password',
+    valueName: 'Password',
 
     min: 6,
     max: 72, //! as per bcrypt
@@ -174,7 +174,7 @@ exports.setPasswordRules = new sj.Rules({
     target: 'registerPassword',
     cssClass: 'inputError',
 
-    name: 'Password',
+    valueName: 'Password',
 
     min: 6,
     max: 72, //! as per bcrypt
@@ -189,7 +189,7 @@ exports.emailRules = new sj.Rules({
     target: 'registerEmail',
     cssClass: 'inputError',
 
-    name: 'E-mail',
+    valueName: 'E-mail',
     trim: true,
 
     min: 3,
@@ -210,7 +210,7 @@ exports.emailRules = new sj.Rules({
 
             content: email,
 
-            name: 'E-mail',
+            valueName: 'E-mail',
             min: 3,
             max: stringMaxLength,
             trim: true,
@@ -229,7 +229,7 @@ exports.emailRules = new sj.Rules({
 
             content: name,
 
-            name: 'Username',
+            valueName: 'Username',
             min: nameMinLength,
             max: nameMaxLength,
             trim: true,
@@ -247,7 +247,7 @@ exports.emailRules = new sj.Rules({
 
             content: password,
 
-            name: 'Password',
+            valueName: 'Password',
             min: 6,
             max: 72, // as per bcrypt
             against: password2,
@@ -449,9 +449,9 @@ exports.deleteUser = async function (ctx, user) {
             });
         }
     }).then(resolved => {
-        await logout().catch(rejected => {
-            //C do nothing, the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
-        });
+        //C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
+        return logout().catch(sj.andResolve());     
+    }).then(resolved => {
         return new sj.Success({
             log: true,
             origin: 'deleteUser()',
@@ -553,7 +553,8 @@ exports.logout = async function (ctx) {
 // util
 exports.isLoggedIn = function (ctx) {
     //C redundancy check to make sure id is right format
-    ctx.session.user.id = await positiveIntegerRules(ctx.session.user.id).catch(rejected => {
+    //TODO a whole bunch of de-async-ing was done in sj.Rules just so this function could be synchronous, is this such a big deal if its not?
+    ctx.session.user.id = positiveIntegerRules.check(ctx.session.user.id).catch(rejected => {
         return undefined;
     });
     return sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined';
@@ -583,7 +584,7 @@ exports.playlistNameRules = new sj.Rules({
     target: 'playlistName',
     cssClass: 'inputError',
 
-    name: 'Name',
+    valueName: 'Name',
     trim: true,
 
     min: nameMinLength,
@@ -596,7 +597,7 @@ exports.visibilityRules = new sj.Rules({
     target: 'playlistVisibility',
     cssClass: 'inputError',
 
-    name: 'Visibility',
+    valueName: 'Visibility',
 
     useAgainst: true,
     againstValue: visibilityStates,
@@ -609,7 +610,7 @@ exports.descriptionRules = new sj.Rules({
     target: 'playlistDescription',
     cssClass: 'inputError',
 
-    name: 'Description',
+    valueName: 'Description',
 
     max: bigStringMaxLength,
     trim: true,
@@ -625,7 +626,7 @@ exports.descriptionRules = new sj.Rules({
 
             content: name,
 
-            name: 'Name',
+            valueName: 'Name',
             min: nameMinLength,
             max: stringMaxLength,
             trim: true,
@@ -643,7 +644,7 @@ exports.descriptionRules = new sj.Rules({
 
             content: visibility,
 
-            name: 'Visibility',
+            valueName: 'Visibility',
             against: visibilityStates,
             againstMessage: 'please select a valid visibility level',
         });
@@ -660,7 +661,7 @@ exports.descriptionRules = new sj.Rules({
 
             content: description,
 
-            name: 'Visibility',
+            valueName: 'Visibility',
             max: bigStringMaxLength,
             trim: true,
         });
@@ -677,7 +678,7 @@ exports.descriptionRules = new sj.Rules({
 
             content: color,
 
-            name: 'Color',
+            valueName: 'Color',
             trim: true,
             filter: '/#([a-f0-9]{3}){1,2}\b/', // TODO is this correct?
             filterMessage: 'Color must be in hex format #XXXXXX',
@@ -695,7 +696,7 @@ exports.descriptionRules = new sj.Rules({
 
             content: image,
 
-            name: 'Image',
+            valueName: 'Image',
             max: bigStringMaxLength,
             trim: true,
             // TODO filter: ___,
@@ -708,6 +709,9 @@ exports.descriptionRules = new sj.Rules({
 
 // CRUD
 exports.addPlaylist = async function (ctx, playlist) {
+    await exports.isLoggedIn(ctx).catch(rejected => {
+
+    });
     if (!(exports.isLoggedIn(ctx))) {
         throw new sj.Error({
             log: true,
@@ -845,7 +849,7 @@ exports.getPlaylist = async function (ctx, playlist) {
         let playlist = new sj.Playlist(resolved);
 
         if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && exports.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
-            return await exports.orderPlaylist(ctx, playlist);
+            return exports.orderPlaylist(ctx, playlist);
         } else {
             throw new sj.Error({
                 log: true,
@@ -963,7 +967,7 @@ exports.sourceRules = new sj.Rules({
     origin: 'sourceRules',
     message: 'source validated',
 
-    name: 'Source',
+    valueName: 'Source',
 
     against: sj.sourceList,
 });
@@ -972,7 +976,7 @@ exports.sourceIdRules = new sj.Rules({
     origin: 'sourceIdRules',
     message: 'source id validated',
 
-    name: 'Source ID',
+    valueName: 'Source ID',
 
     //? any source id rules (other than being a string)? length? trim?
 });
@@ -1096,7 +1100,7 @@ exports.deleteTrack = async function (ctx, track) {
         });
     }).then(resolved => {
         //! this must happen AFTER the delete or else delete will delete the wrong track
-        return await exports.orderPlaylist(ctx, track.playlistId);
+        return exports.orderPlaylist(ctx, track.playlistId);
     }).then(resolved => {
         return new sj.Success({
             log: true,

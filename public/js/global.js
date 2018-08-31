@@ -5,7 +5,7 @@
 // ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
-//C Promises: promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
+//R Promises: promises always return more promises (that are resolved or rejected), await (and furthermore async) is only needed to transform those resolved or rejected promises in to useable values, promises can be called and returned within a synchronous function (like map) they just pass on their evaluation to whatever they were returned to (see the implementation of Promise.all(...map()))
 //L Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
 //R catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
 /* //C
@@ -253,8 +253,8 @@ Misc:
 				//R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
 				againstValue: {},
 				get againstMessage() {
-					if (isArray(against)) {
-						var a = against.join(', ');
+					if (Array.isArray(this.againstValue)) {
+						var a = this.againstValue.join(', ');
 					}
 					//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
 					return `${this.valueName} did not match against these values: ${this.against}`;
@@ -331,13 +331,14 @@ Misc:
 			return true;
 		}
 		
-		async check(value, value2) {
+		//? check and checkRuleSet don't have to be async so they got changed so they weren't, is there any case where they should be? maybe if implementing a database check into it? (but then it shouldn't be in global.js). Actually, //TODO should sj.Rules be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
+		check(value, value2) {
 			try {
 				//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
 				//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
 				if (!this.checkType(value)) {
-					throw new sj.Error({
+					return new sj.Error({
 						log: this.log,
 						origin: this.origin,
 						message: `${this.valueName} must be a ${this.dataType}`,
@@ -354,42 +355,44 @@ Misc:
 						message = `${message} items long`;
 					}
 
-					throw new sj.Error({
+					return new sj.Error({
 						log: this.log,
 						origin: this.origin,
 						message: message,
 					});
 				}
 				if (this.useAgainst && !this.checkAgainst(value, value2)) {
-					throw new sj.Error({
+					return new sj.Error({
 						log: this.log,
 						origin: this.origin,
 						message: this.againstMessage,
 					});
 				}
 				if (this.useFilter && !this.checkFilter(value, value2)) {
-					throw new sj.Error({
+					return new sj.Error({
 						log: this.log,
 						origin: this.origin,
 						message: this.filterMessage,
 					});
 				}
 				
+				
+				// remove error-related properties
+				//TODO consider inputCorrect styling, change these if so
+				this.target = undefined;
+				this.cssClass = undefined;
+				//C transform object (this will strip any irrelevant properties away)
+				this.content = value;
+				return new sj.Success(this);
+				
 				/*
-					// remove error-related properties
-					//TODO consider inputCorrect styling, change these if so
-					this.target = undefined;
-					this.cssClass = undefined;
-					//C transform object (this will strip any irrelevant properties away)
-					return new sj.Success(this);
-				*/
-
-				//! this doesn't return an sj.Success object on successful validation, it just returns the (possibly edited) value
-				//? is this ok? - I don't want to get stuck in a trap of restricting myself to sj.Objects just for the sake of it, this way makes more sense
-				return value; 				
+					//! this doesn't return an sj.Success object on successful validation, it just returns the (possibly edited) value
+					//? is this ok? - I don't want to get stuck in a trap of restricting myself to sj.Objects just for the sake of it, this way makes more sense
+					return value;
+				*/ 				
 			} catch (e) {
 				//TODO afaik this shouldn't fail anymore
-				throw sj.propagateError(e);
+				return sj.propagateError(e);
 			}
 		}
 
@@ -401,30 +404,59 @@ Misc:
 				message: 'one or more issues with fields',
 				reason: 'validation functions returned one or more errors',
 			});
-		
-			ruleSet.map((item, index) => {
+
+			/*
+				async
+				await Promise.all(...)
+			*/
+			ruleSet.map(item => {
+				//C ensure that item has a sj.Rules object
 				if (!(sj.typeOf(item[0]) === this.objectType)) {
-					throw new sj.Error({
+					errorList.content.push(new sj.Error({
 						log: true,
 						origin: 'checkRuleSet()',
 						message: 'validation error',
 						reason: `checkRuleSet() is missing a ${this.objectType} object`,
-					});
+					}));
+
+					// return;
 				}
 		
+				//C call sj.Rules.check with 1 or 2 values
 				if (sj.typeOf(item[2]) === 'undefined') {
-					item[1] = await item[0].check(item[1]).catch(rejected => {
+					let result = item[0].check(item[1]);
+					if (sj.typeOf(result) === 'sj.Error') {
 						errorList.content.push(rejected);
-						return rejected.content;
-					});
+					}
+					item[1] = result.content;
+					/*
+						async
+						item[1] = await item[0].check(item[1]).catch(rejected => {
+							errorList.content.push(rejected);
+							return rejected.content;
+						});
+					*/
 				} else {
-					item[1] = await item[0].check(item[1], item[2]).catch(rejected => {
+					let result = item[0].check(item[1], item[2]);
+					if (sj.typeOf(result) === 'sj.Error') {
 						errorList.content.push(rejected);
-						return rejected.content;
-					});
+					}
+					item[1] = result.content;
+					/*
+						async
+						item[1] = await item[0].check(item[1], item[2]).catch(rejected => {
+							errorList.content.push(rejected);
+							return rejected.content;
+						});
+					*/
 				}
+
+				/*
+					needed for async and await Promise.all()
+					//C end the promise, but with no data because errorList is collecting the results instead
+					return;
+				*/
 			});
-		
 			if (!(errorList.content.length === 0)) {
 				errorList.announce();
 				throw errorList;
@@ -543,7 +575,7 @@ Misc:
 	
 				return resolved;
 			}).catch(rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		}
 		async resume() {
@@ -568,7 +600,7 @@ Misc:
 					this.playback.playing = false;
 					return resolved;
 				}).catch(rejected => {
-					throw propagateError(rejected);
+					throw sj.propagateError(rejected);
 				});
 			} else {
 				return new sj.Success({
@@ -584,7 +616,7 @@ Misc:
 				this.playback.timeStamp = Date.now();
 				return resolved;
 			}).catch(rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		}
 		async volume() {
@@ -592,7 +624,7 @@ Misc:
 				this.playback.volume = volume;
 				return resolved;
 			}).catch(rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		}
 
@@ -703,7 +735,7 @@ Misc:
 				// start
 				return this.source.start(this.state);
 			}).catch(rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		}
 	}
@@ -738,7 +770,7 @@ Misc:
 						message: 'playing failed to update',
 					}));
 				}).catch(rejected => {
-					throw propagateError(rejected);
+					throw sj.propagateError(rejected);
 				});
 			} else { // if not playing
 				return Promise.all(sourceList.map(source => {
@@ -753,7 +785,7 @@ Misc:
 						message: 'playing failed to update',
 					}));
 				}).catch(rejected => {
-					throw propagateError(rejected);
+					throw sj.propagateError(rejected);
 				});
 			}
 		}
@@ -778,7 +810,7 @@ Misc:
 					message: 'playback progress changed',
 				});
 			}).catch(rejected => {
-				throw propagateError(rejected);
+				throw sj.propagateError(rejected);
 			});
 		}
 	}
@@ -802,6 +834,7 @@ Misc:
 	
 
 	// object related variables
+	//TODO consider having constants for sourcetypes likeconst ERROR_TYPE
 	sj.sourceList = [];
 
 	// null objects
