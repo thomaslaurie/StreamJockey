@@ -1,3 +1,55 @@
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+
+//C Promises: promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
+//L Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
+//R catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
+/* //C
+	.on() should be bound to the closest non-dynamic element (because its faster?)
+	.on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
+	.on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
+*/
+
+
+//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+
+/* TODO 
+
+Model:
+	Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
+
+Big:
+	Break every single part of every module, see if all possible outcomes are caught and handled properly.
+	Ensure everything has an error handler - most of the time 'throw sj.propagateError(rejected);'.
+	Fill in and make consistent content for all success, error, data objects.
+
+	Add timeouts to async functions.
+
+	Replace all 'var' with 'let' and 'const'
+
+Misc:
+	// TODO replace .name properties with .title as name is reserved, actually name isnt reserved - its just a property of Functions, however all of these are constructor functions that return Objects with that property so it should be safe - convert title to name
+
+	Consider name-spacing
+	Console css formatting https://developers.google.com/web/tools/chrome-devtools/console/console-write#styling_console_output_with_css
+	Default arguments and parameter destructuring: https://simonsmith.io/destructuring-objects-as-function-parameters-in-es6/
+	function myFunc({name = 'Default user', age = 'N/A'} = {}) {}
+	Getter and setter syntaxes (allows the user of getter and setter functions by obj.property rather than obj.getProperty() or obj.setProperty())
+	consider changing target: 'notify' to target: 'general' ?
+*/
+
+
+
+
 (function(sj){
     sj.test = function(){
          return 'Hi, I am a function from global.js';
@@ -178,11 +230,11 @@
 		}
 	}
 
-	sj.Conditions = class extends sj.Object {
+	sj.Rules = class extends sj.Object {
 		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
 
-			this.objectType = 'sj.Conditions';
+			this.objectType = 'sj.Rules';
 
 			sj.Object.init(this, options, {
 				// new properties
@@ -194,7 +246,12 @@
 				min: 0,
 				max: Infinity,
 
-				against: false, //! will not be able to checkAgainst() boolean false
+				
+				//! remember to set useAgainst: true, if passing a value2 to use
+				useAgainst: false,
+				//C this is a reference value and should not be able to be equal to anything,
+				//R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
+				againstValue: {},
 				get againstMessage() {
 					if (isArray(against)) {
 						var a = against.join(', ');
@@ -203,13 +260,20 @@
 					return `${this.valueName} did not match against these values: ${this.against}`;
 				},
 
-				filter: false,
+				//! remember to set useFilter: true, if passing a value2 to use
+				useFilter: false,
+				//C match nothing //TODO verify this
+				//L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
+				filterExpression: '\\b\\B',
 				filterRequirements: 'none',
 				get filterMessage() {
 					return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
 				},
 			});
 		}
+
+		//! validation and type conversion are merged into the same process - value returned can be different if it can be coerced into a different format to match the rules, therefore always overwrite the value being checked with the value returned
+		//TODO security should also go in here (SQL injection, escaping, ect) (if this could be a valid place to put it)
 
 		checkType(value) {
 			let t = sj.typeOf(value);
@@ -252,14 +316,14 @@
 		checkAgainst(value, value2) {
 			// allow custom check against value
 			if (sj.typeOf(value2) !== 'undefined') {
-				this.against = value2;
+				this.againstValue = value2;
 			}
 
-			if (Array.isArray(this.against)) {
-				return this.against.indexOf(value) !== -1;
+			if (Array.isArray(this.againstValue)) {
+				return this.againstValue.indexOf(value) !== -1;
 			} else {
 				//! no type coercion
-				return value === this.against;
+				return value === this.againstValue;
 			}
 		}
 		checkFilter(value, value2) {
@@ -296,14 +360,14 @@
 						message: message,
 					});
 				}
-				if (this.against && !this.checkAgainst(value, value2)) {
+				if (this.useAgainst && !this.checkAgainst(value, value2)) {
 					throw new sj.Error({
 						log: this.log,
 						origin: this.origin,
 						message: this.againstMessage,
 					});
 				}
-				if (this.filter && !this.checkFilter(value, value2)) {
+				if (this.useFilter && !this.checkFilter(value, value2)) {
 					throw new sj.Error({
 						log: this.log,
 						origin: this.origin,
@@ -328,7 +392,44 @@
 				throw sj.propagateError(e);
 			}
 		}
+
+		static async checkRuleSet(ruleSet) {
+			//C takes a 2D array of [[function, value, value2(optional)], [''], [''], ...]
+
+			let errorList = new sj.ErrorList({
+				origin: 'checkRuleSet()',
+				message: 'one or more issues with fields',
+				reason: 'validation functions returned one or more errors',
+			});
 		
+			ruleSet.map((item, index) => {
+				if (!(sj.typeOf(item[0]) === this.objectType)) {
+					throw new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() is missing a ${this.objectType} object`,
+					});
+				}
+		
+				if (sj.typeOf(item[2]) === 'undefined') {
+					item[1] = await item[0].check(item[1]).catch(rejected => {
+						errorList.content.push(rejected);
+						return rejected.content;
+					});
+				} else {
+					item[1] = await item[0].check(item[1], item[2]).catch(rejected => {
+						errorList.content.push(rejected);
+						return rejected.content;
+					});
+				}
+			});
+		
+			if (!(errorList.content.length === 0)) {
+				errorList.announce();
+				throw errorList;
+			}
+		}
 	}
 
 	sj.Source = class extends sj.Object {
@@ -740,7 +841,7 @@
 		'sj.Track',
 		'sj.Playlist',
 		'sj.User',
-		'sj.Conditions',
+		'sj.Rules',
 		'sj.Source',
 		'sj.Playback',
 		'sj.Action',

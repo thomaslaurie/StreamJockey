@@ -9,39 +9,60 @@ const apiRouter = new Router();
 const sj = require('../public/js/global.js');
 const sjs = require('./functions.js');
 
-// non-idempotent: (different result depending on how many times called)
-// POST		-	Create
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
-// idempotent: (same result no matter how many times called)
-// GET		-	Retrieve
-// PUT		-	Update (replace entirely)
-// PATCH	-	Update (partially)
-// DELETE	-	Delete
+/*
+	//G
+	non-idempotent: (different result depending on how many times called)
+	POST		-	Create
+
+	idempotent: (same result no matter how many times called)
+	GET		-	Retrieve
+	PUT		-	Update (replace entirely)
+	PATCH	-	Update (partially)
+	DELETE	-	Delete
+
+	//L put vs post: https://stackoverflow.com/questions/630453/put-vs-post-in-rest
+
+	//G only use await next(); inside a route when the request should be further processed down the chain (ie. to finally result at .all), I cant think of a reason why this would be wanted (just use more middleware instead to do this)
+
+	//L 
+	path parameters vs query parameters: https://stackoverflow.com/questions/3198492/rest-standard-path-parameters-or-request-parameters
+	use path parameters to retrieve a specific item (via unique identifier)
+	use query parameters to retrieve a list of items (via 'query parameters')
+	/:type/:id 	are accessed via ctx.params.x
+	/type?id=123	are accessed via ctx.query.x
+	https://github.com/alexmingoia/koa-router#url-parameters
 
 
-// TODO handle favicon.ico request https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+	//G all methods (except get) should pass parameters as their respective sj.Object 
+	//G get uses name as the identifier, TODO but should also accept id in the future
+*/
 
-// await next(); // only use await next(); inside a route when the request should be further processed down the chain (ie. to finally result at .all), I cant think of a reason why this would be wanted (just use more middleware instead to do this)
+//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+
+/*
+*/
+
+//   █████╗ ██████╗ ██╗
+//  ██╔══██╗██╔══██╗██║
+//  ███████║██████╔╝██║
+//  ██╔══██║██╔═══╝ ██║
+//  ██║  ██║██║     ██║
+//  ╚═╝  ╚═╝╚═╝     ╚═╝
 
 // server-side data & processing requests
 apiRouter
-// path parameters vs query parameters: https://stackoverflow.com/questions/3198492/rest-standard-path-parameters-or-request-parameters
-// use path parameters to retrieve a specific item (via unique identifier)
-// use query parameters to retrieve a list of items (via 'query parameters')
-// /:type/:id 	are accessed via ctx.params.x
-// /type?id=123	are accessed via ctx.query.x
-// https://github.com/alexmingoia/koa-router#url-parameters
-
-// https://stackoverflow.com/questions/630453/put-vs-post-in-rest
-
-// TODO add user, playlist, etc. should instead by added via their sj.Object (like addTrack()) and not just the set of parameters
-// TODO deletes should be like this too
-// TODO why cant get be like this either?
-
-// TODO add CRUD for all types
-
-// TODO if eventually its found that no additional data is needed to be sent alongside sj.Objects for api requests, just make the entire body the object for simplification
-
 	// user
 	.post('/user', async (ctx, next) => {
 		ctx.response.body = await sjs.addUser(ctx.request.body).catch(sj.andResolve);
@@ -105,6 +126,16 @@ apiRouter
 	});
 
 router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // nested routers: https://github.com/alexmingoia/koa-router#nested-routers
+
+
+//  ██████╗  █████╗  ██████╗ ███████╗
+//  ██╔══██╗██╔══██╗██╔════╝ ██╔════╝
+//  ██████╔╝███████║██║  ███╗█████╗  
+//  ██╔═══╝ ██╔══██║██║   ██║██╔══╝  
+//  ██║     ██║  ██║╚██████╔╝███████╗
+//  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+
+//TODO handle favicon.ico request https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
 
 // pages, etc.
 router

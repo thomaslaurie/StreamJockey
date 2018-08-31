@@ -3,7 +3,7 @@ const db = require('./database/db.js');
 
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-// !!! string to be hashed must not be greater than 72 characters (or bytes???), TODO figure out how many characters/bytes a hash can be then validate against that
+//! string to be hashed must not be greater than 72 characters (//? or bytes???),
 
 const stringMaxLength = 100;
 const bigStringMaxLength = 2000;
@@ -19,45 +19,103 @@ const visibilityStates = [
     'linkOnly',
 ]
 
-// !!! REFLECTION catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
-
-// ----- other stuff from top.php
-
-// last page history (I think this goes in routing or something???)
-
-// const exclusionList = [
-//     // since pages are no longer php and the page/code difference is bigger, this isnt really relevant
-// ]
-// let excluded = false;
-// exclusionList.forEach(item => {
-//     if (false /* strpos($_SERVER['REQUEST_URI'], $uri) */) {
-//         excluded = true;
-//     }
-// });
-
-// // if this page is not excluded, shift page history
-// if (!excluded) {
-//     ctx.session.pastPage = ctx.session.currentPage !== 'undefined' ? ctx.session.currentPage : 'index.html';
-//     ctx.session.currentPage = ''; /* $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; */
-// }
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
 /*
+    //? user id being in the session.user object is basically the user's access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out - I think this info is never sent to the client, just stored in the server and accessed via cookie key
+
+    //? is a check to see if a to-be-deleted item necessary? should the user be made aware if it doesn't exist? will this actually ever happen?
+
+    //G
     Create -> add
     Retrieve -> get
     Update -> edit
     Delete -> delete
 */
 
-// TODO check that all parameters exist & handle if they dont
 
-// TODO session_regenerate_id() ? if using, add in same locations as php version
-// TODO consider changing target: 'notify' to target: 'general' ?
+//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
 
-// TODO user id being in the session.user object is basically the user's access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out - I think this info is never sent to the client, just stored in the server and accessed via cookie key
+/*
+    //TODO session_regenerate_id() ? if using, add in same locations as php version
 
-// TODO add in a ton of redundancy and checks for permissions, data types, validation, etc.
+
+    //TODO other stuff from top.php
+
+    // last page history (I think this goes in routing or something???)
+
+    // const exclusionList = [
+    //     // since pages are no longer php and the page/code difference is bigger, this isnt really relevant
+    // ]
+    // let excluded = false;
+    // exclusionList.forEach(item => {
+    //     if (false  strpos($_SERVER['REQUEST_URI'], $uri) ) {
+    //         excluded = true;
+    //     }
+    // });
+
+    // // if this page is not excluded, shift page history
+    // if (!excluded) {
+    //     ctx.session.pastPage = ctx.session.currentPage !== 'undefined' ? ctx.session.currentPage : 'index.html';
+    //     ctx.session.currentPage = '';  $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; 
+    // }
+*/
 
 
+//  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
+//  ██╔══██╗██║   ██║██║     ██╔════╝██╔════╝
+//  ██████╔╝██║   ██║██║     █████╗  ███████╗
+//  ██╔══██╗██║   ██║██║     ██╔══╝  ╚════██║
+//  ██║  ██║╚██████╔╝███████╗███████╗███████║
+//  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
+
+exports.positiveIntegerRules = new sj.Rules({
+    log: true,
+    origin: 'positiveIntegerRules',
+    message: 'number validated',
+
+    name: 'Number',
+
+    dataType: 'integer',
+});
+exports.imageRules = new sj.Rules({
+    log: true,
+    origin: 'imageRules',
+    message: 'image validated',
+    target: 'playlistImage',
+    cssClass: 'inputError',
+
+    name: 'Image',
+    trim: true,
+
+    max: bigStringMaxLength,
+
+    // TODO filter: ___,
+    filterMessage: 'Image must be a valid url',
+});
+exports.colorRules = new sj.Rules({
+    log: true,
+    origin: 'colorRules',
+    message: 'color validated',
+    target: 'playlistColor',
+    cssClass: 'inputError',
+
+    name: 'Color',
+    trim: true,
+    
+    filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
+    filterMessage: 'Color must be in hex format #XXXXXX',
+});
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
@@ -67,25 +125,23 @@ const visibilityStates = [
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
 
 // validate
-exports.emailConditions = new sj.Conditions({
+exports.selfRules = new sj.Rules({
     log: true,
-    origin: 'emailConditions',
-    message: 'email validated',
-    target: 'registerEmail',
-    cssClass: 'inputError',
+    origin: 'selfRules',
+    message: 'self validated',
+    target: 'notify',
+    cssClass: 'notifyError',
 
-    name: 'E-mail',
-    trim: true,
+    name: 'Id',
 
-    min: 3,
-    max: stringMaxLength,
-
-    //TODO filter: ___, filterMessage: ___, 
-    //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+    useAgainst: true,
+    //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
+    againstMessage: 'you are not the owner of this playlist',
 });
-exports.userNameConditions = new sj.Conditions({
+
+exports.userNameRules = new sj.Rules({
     log: true,
-    origin: 'userNameConditions',
+    origin: 'userNameRules',
     message: 'username validated',
     target: 'registerUserName',
     cssClass: 'inputError',
@@ -96,9 +152,9 @@ exports.userNameConditions = new sj.Conditions({
     min: nameMinLength,
     max: nameMaxLength,
 });
-exports.passwordConditions = new sj.Conditions({
+exports.passwordRules = new sj.Rules({
     log: true,
-    origin: 'validatePassword()',
+    origin: 'passwordRules',
     message: 'password validated',
     target: 'registerPassword',
     cssClass: 'inputError',
@@ -108,12 +164,44 @@ exports.passwordConditions = new sj.Conditions({
     min: 6,
     max: 72, //! as per bcrypt
 
-    againstMessage: 'Passwords do not match',
-})
+    useAgainst: true,
+    get againstMessage() {return 'Passwords do not match'},
+});
+exports.setPasswordRules = new sj.Rules({
+    log: true,
+    origin: 'setPasswordRules',
+    message: 'password validated',
+    target: 'registerPassword',
+    cssClass: 'inputError',
+
+    name: 'Password',
+
+    min: 6,
+    max: 72, //! as per bcrypt
+
+    useAgainst: true,
+    get againstMessage() {return 'Passwords do not match'},
+});
+exports.emailRules = new sj.Rules({
+    log: true,
+    origin: 'emailRules',
+    message: 'email validated',
+    target: 'registerEmail',
+    cssClass: 'inputError',
+
+    name: 'E-mail',
+    trim: true,
+
+    min: 3,
+    max: stringMaxLength,
+
+    //TODO useFilter: ___, filterMessage: ___, 
+    //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+});
 
 /*
     exports.validateEmail = async function (email) {
-        let conditions = new sj.Conditions({
+        let rules = new sj.Rules({
             log: true,
             origin: 'validateEmail()',
             message: 'email validated',
@@ -126,13 +214,13 @@ exports.passwordConditions = new sj.Conditions({
             min: 3,
             max: stringMaxLength,
             trim: true,
-            // TODO filter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+            // TODO useFilter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
         });
 
-        return await conditions.checkAll();
+        return await rules.checkAll();
     }
     exports.validateUserName = async function (name) {
-        let conditions = new sj.Conditions({
+        let rules = new sj.Rules({
             log: true,
             origin: 'validateUserName()',
             message: 'username validated',
@@ -147,10 +235,10 @@ exports.passwordConditions = new sj.Conditions({
             trim: true,
         });
 
-    return await conditions.checkAll();
+    return await rules.checkAll();
     }
     exports.validatePassword = async function (password, password2) {
-        let conditions = new sj.Conditions({
+        let rules = new sj.Rules({
             log: true,
             origin: 'validatePassword()',
             message: 'password validated',
@@ -166,26 +254,37 @@ exports.passwordConditions = new sj.Conditions({
             againstMessage: 'Passwords do not match',
         });
     
-        return await conditions.checkAll();
+        return await rules.checkAll();
     }
 */
 
 // CRUD
 exports.addUser = async function (user) {
-    var errorList = new sj.ErrorList({
-        origin: 'validatePassword()',
-        message: 'one or more issues with fields',
-        reason: 'validation functions returned one or more errors',
-    });
-    user.email = await exports.emailConditions.check(user.email).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-    user.name = await exports.userNameConditions.check(user.name).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-    user.password = await exports.userNameConditions.check(user.password, user.password2).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
+    //C validate
+    await sj.Rules.checkRuleSet([
+        [userNameRules, user.name],
+        [setPasswordRules, user.password, user.password2],
+        [emailRules, user.email],
+    ]);
+    /*
+        var errorList = new sj.ErrorList({
+            origin: 'validatePassword()',
+            message: 'one or more issues with fields',
+            reason: 'validation functions returned one or more errors',
+        });
+        user.name = await exports.userNameRules.check(user.name).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        user.password = await exports.twoPasswordRules.check(user.password, user.password2).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        user.email = await exports.emailRules.check(user.email).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+    */
     /*
         user.email = await exports.validateEmail(user.email).then(resolved => {
             return resolved.content;
@@ -206,10 +305,12 @@ exports.addUser = async function (user) {
             return rejected.content;
         });
     */
-    if (!(errorList.content.length === 0)) {
-        errorList.announce();
-        throw errorList;
-    }
+    /*
+        if (!(errorList.content.length === 0)) {
+            errorList.announce();
+            throw errorList;
+        }
+    */
 
     return bcrypt.hash(user.password, saltRounds).catch(rejected => {
         throw new sj.Error({
@@ -233,28 +334,28 @@ exports.addUser = async function (user) {
             }));
         });
     }).then(resolved => {
+        //C strip passwords
+        user.password = undefined;
+        user.password2 = undefined;
+
+        //C return user object
         return new sj.Success({
             log: true,
             origin: 'register()',
             message: `${user.name} registered`,
             cssClass: 'notifySuccess',
-            content: user, // TODO don't return plaintext password
+            content: user,
         });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 }
 exports.getUser = async function (user) {
-    // TODO why is this easier than using the sj.Conditions class?
-    if (!(sj.typeOf(user.name) === 'string')) {
-        throw new sj.Error({
-            log: true,
-            origin: 'getUser()',
-            message: 'user name must be a string',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
+    //TODO userNameRules has userName field ids, this wont target them because they wont exist - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
+
+    await sj.Rules.checkRuleSet([
+        [userNameRules, user.name],
+    ]);
 
     return db.one('SELECT * FROM "sj"."users_public" WHERE "id" = $1', [id]).catch(rejected => {
         throw db.parsePostgresError(rejected, new sj.Error({
@@ -268,7 +369,7 @@ exports.getUser = async function (user) {
         return new sj.User(resolved); // !!!  requires that table names are the same as object property names
     });
 }
-exports.editUser = async function (ctx, user) {
+exports.editUser = async function (ctx, user) { //TODO
     // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
 
     if (!exports.isLoggedIn(ctx)) {
@@ -302,6 +403,10 @@ exports.deleteUser = async function (ctx, user) {
     if (!exports.isLoggedIn(ctx)) {
         throw notLoggedInError;
     }
+
+    await sj.Rules.checkRuleSet([
+        [passwordRules, user.password],
+    ]);
 
     return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
         throw db.parsePostgresError(rejected, new sj.Error({
@@ -345,9 +450,13 @@ exports.deleteUser = async function (ctx, user) {
         }
     }).then(resolved => {
         await logout().catch(rejected => {
-            throw propagateError(rejected);
+            //C do nothing, the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
         });
-        return resolved;
+        return new sj.Success({
+            log: true,
+            origin: 'deleteUser()',
+            message: `user ${user.name} deleted`,
+        });
     }).catch(rejected => {
         throw propagateError(rejected);
     });
@@ -362,8 +471,11 @@ exports.deleteUser = async function (ctx, user) {
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 // CRUD
-exports.login = async function (ctx, user) { 
-    user.name = user.name.trim();
+exports.login = async function (ctx, user) {
+    await sj.Rules.checkRuleSet([
+        [userNameRules, user.name],
+        [passwordRules, user.password],
+    ]);
 
     return db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
         throw db.parsePostgresError(rejected, new sj.Error({
@@ -426,9 +538,8 @@ exports.getMe = async function (ctx) {
     }
     return ctx.session.user;
 }
-// !!!  these isn't an async function
 exports.logout = async function (ctx) {
-    ctx.session.user = undefined;
+    delete ctx.session.user;
 
     return new sj.Success({
         log: true,
@@ -441,7 +552,10 @@ exports.logout = async function (ctx) {
 
 // util
 exports.isLoggedIn = function (ctx) {
-    // TODO is this the proper way to check being logged in? what about verifying user.id type, or if they exist?
+    //C redundancy check to make sure id is right format
+    ctx.session.user.id = await positiveIntegerRules(ctx.session.user.id).catch(rejected => {
+        return undefined;
+    });
     return sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined';
 }
 exports.notLoggedInError = new sj.Error({
@@ -461,148 +575,229 @@ exports.notLoggedInError = new sj.Error({
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
-// ---------------- CONVERT PLAYLIST CONDITIONS
+// rules
+exports.playlistNameRules = new sj.Rules({
+    log: true,
+    origin: 'playlistNameRules()',
+    message: 'name validated',
+    target: 'playlistName',
+    cssClass: 'inputError',
 
-// validate
-exports.validatePlaylistName = async function (name) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validatePlaylistName()',
-        message: 'name validated',
-        target: 'playlistName',
-        cssClass: 'inputError',
+    name: 'Name',
+    trim: true,
 
-        content: name,
+    min: nameMinLength,
+    max: stringMaxLength,  
+});
+exports.visibilityRules = new sj.Rules({
+    log: true,
+    origin: 'visibilityRules',
+    message: 'visibility validated',
+    target: 'playlistVisibility',
+    cssClass: 'inputError',
 
-        name: 'Name',
-        min: nameMinLength,
-        max: stringMaxLength,
-        trim: true,
-    });
+    name: 'Visibility',
 
-    return await conditions.checkAll();
-}
-exports.validateVisibility = async function (visibility) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validateVisibility()',
-        message: 'visibility validated',
-        target: 'playlistVisibility',
-        cssClass: 'inputError',
+    useAgainst: true,
+    againstValue: visibilityStates,
+    againstMessage: 'please select a valid visibility level',
+});
+exports.descriptionRules = new sj.Rules({
+    log: true,
+    origin: 'descriptionRules()',
+    message: 'description validated',
+    target: 'playlistDescription',
+    cssClass: 'inputError',
 
-        content: visibility,
+    name: 'Description',
 
-        name: 'Visibility',
-        against: visibilityStates,
-        againstMessage: 'please select a valid visibility level',
-    });
+    max: bigStringMaxLength,
+    trim: true,
+});
+/*
+    exports.validatePlaylistName = async function (name) {
+        let rules = new sj.Rules({
+            log: true,
+            origin: 'validatePlaylistName()',
+            message: 'name validated',
+            target: 'playlistName',
+            cssClass: 'inputError',
 
-    return await conditions.checkAll();
-}
-exports.validateDescription = async function (description) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validateDescription()',
-        message: 'description validated',
-        target: 'playlistDescription',
-        cssClass: 'inputError',
+            content: name,
 
-        content: description,
+            name: 'Name',
+            min: nameMinLength,
+            max: stringMaxLength,
+            trim: true,
+        });
 
-        name: 'Visibility',
-        max: bigStringMaxLength,
-        trim: true,
-    });
+        return await rules.checkAll();
+    }
+    exports.validateVisibility = async function (visibility) {
+        let rules = new sj.Rules({
+            log: true,
+            origin: 'validateVisibility()',
+            message: 'visibility validated',
+            target: 'playlistVisibility',
+            cssClass: 'inputError',
 
-    return await conditions.checkAll();
-}
-exports.validateColor = async function (color) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validateColor()',
-        message: 'color validated',
-        target: 'playlistColor',
-        cssClass: 'inputError',
+            content: visibility,
 
-        content: color,
+            name: 'Visibility',
+            against: visibilityStates,
+            againstMessage: 'please select a valid visibility level',
+        });
 
-        name: 'Color',
-        trim: true,
-        filter: '/#([a-f0-9]{3}){1,2}\b/', // TODO is this correct?
-        filterMessage: 'Color must be in hex format #XXXXXX',
-    });
+        return await rules.checkAll();
+    }
+    exports.validateDescription = async function (description) {
+        let rules = new sj.Rules({
+            log: true,
+            origin: 'validateDescription()',
+            message: 'description validated',
+            target: 'playlistDescription',
+            cssClass: 'inputError',
 
-    return await conditions.checkAll();
-}
-exports.validateImage = async function (image) {
-    let conditions = new sj.Conditions({
-        log: true,
-        origin: 'validateColor()',
-        message: 'image validated',
-        target: 'playlistImage',
-        cssClass: 'inputError',
+            content: description,
 
-        content: image,
+            name: 'Visibility',
+            max: bigStringMaxLength,
+            trim: true,
+        });
 
-        name: 'Image',
-        max: bigStringMaxLength,
-        trim: true,
-        // TODO filter: ___,
-        filterMessage: 'Image must be a valid url',
-    });
+        return await rules.checkAll();
+    }
+    exports.validateColor = async function (color) {
+        let rules = new sj.Rules({
+            log: true,
+            origin: 'validateColor()',
+            message: 'color validated',
+            target: 'playlistColor',
+            cssClass: 'inputError',
 
-    return await conditions.checkAll();
-}
+            content: color,
+
+            name: 'Color',
+            trim: true,
+            filter: '/#([a-f0-9]{3}){1,2}\b/', // TODO is this correct?
+            filterMessage: 'Color must be in hex format #XXXXXX',
+        });
+
+        return await rules.checkAll();
+    }
+    exports.validateImage = async function (image) {
+        let rules = new sj.Rules({
+            log: true,
+            origin: 'validateColor()',
+            message: 'image validated',
+            target: 'playlistImage',
+            cssClass: 'inputError',
+
+            content: image,
+
+            name: 'Image',
+            max: bigStringMaxLength,
+            trim: true,
+            // TODO filter: ___,
+            filterMessage: 'Image must be a valid url',
+        });
+
+        return await rules.checkAll();
+    }
+*/
 
 // CRUD
 exports.addPlaylist = async function (ctx, playlist) {
-    var errorList = new sj.ErrorList({
-        origin: 'addPlaylist()',
-        message: 'one or more issues with fields',
-        reason: 'validation functions returned one or more errors',
-    });
     if (!(exports.isLoggedIn(ctx))) {
-        errorList.content.push(new sj.Error({
+        throw new sj.Error({
             log: true,
             origin: 'addPlaylist()',
             message: 'you must be logged in to add a playlist',
             target: 'notify',
             cssClass: 'notifyError',
-        }));
+        });
     }
-    playlist.name = await exports.validatePlaylistName(playlist.name).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        errorList.content.push(rejected);
-        return rejected.content;
-    });
-    playlist.visibility = await exports.validateVisibility(playlist.visibility).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        return rejected.content;
-    });
-    playlist.description = await exports.validateDescription(playlist.description).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        errorList.content.push(rejected);
-        return rejected.content;
-    });
-    playlist.color = await exports.validateColor(playlist.color).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        errorList.content.push(rejected);
-        return rejected.content;
-    });;
-    playlist.image = await exports.validateImage(playlist.image).then(resolved => {
-        return resolved.content;
-    }, rejected => {
-        errorList.content.push(rejected);
-        return rejected.content;
-    });
-    if (!(errorList.content.length === 0)) {
-        errorList.announce();
-        throw errorList;
-    }
+
+    await sj.Rules.checkRuleSet([
+        [playlistNameRules, playlist.name],
+        [visibilityRules, playlist.visibility],
+        [descriptionRules, playlist.description],
+        [imageRules, playlist.image],
+        [colorRules, playlist.color],
+    ]);
+    /*
+        var errorList = new sj.ErrorList({
+            origin: 'addPlaylist()',
+            message: 'one or more issues with fields',
+            reason: 'validation functions returned one or more errors',
+        });
+        if (!(exports.isLoggedIn(ctx))) {
+            errorList.content.push(new sj.Error({
+                log: true,
+                origin: 'addPlaylist()',
+                message: 'you must be logged in to add a playlist',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        }
+        playlist.name = await exports.playlistNameRules.check(playlist.name).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        playlist.visibility = await exports.visibilityRules.check(playlist.visibility).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        playlist.description = await exports.descriptionRules.check(playlist.description).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        playlist.image = await exports.imageRules.check(playlist.image).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        playlist.color = await exports.colorRules.check(playlist.color).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+    */
+    /*
+        playlist.name = await exports.validatePlaylistName(playlist.name).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        playlist.visibility = await exports.validateVisibility(playlist.visibility).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            return rejected.content;
+        });
+        playlist.description = await exports.validateDescription(playlist.description).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        playlist.color = await exports.validateColor(playlist.color).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });;
+        playlist.image = await exports.validateImage(playlist.image).then(resolved => {
+            return resolved.content;
+        }, rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+    */
+    /*
+        if (!(errorList.content.length === 0)) {
+            errorList.announce();
+            throw errorList;
+        }
+    */
 
     return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
         throw db.parsePostgresError(rejected, new sj.Error({
@@ -625,18 +820,19 @@ exports.addPlaylist = async function (ctx, playlist) {
     });
 }
 exports.getPlaylist = async function (ctx, playlist) {
-    // TODO verify and parse id and userId
-
-    if (!(sj.typeOf(playlist.name) === 'string')) {
-        throw new sj.Error({
-            log: true,
-            origin: 'getPlaylist()',
-            message: 'playlist name must be a string',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
+    //C validate - get by id or get by userId and playlistName
+    if (sj.typeOf(playlist.id) !== 'undefined') {
+        await sj.Rules.checkRuleSet([
+            [positiveIntegerRules, playlist.id],
+        ]);
+    } else {
+        await sj.Rules.checkRuleSet([
+            [positiveIntegerRules, playlist.userId],
+            [playlistNameRules, playlist.name],
+        ]);
     }
 
+    //? does this fail if the wrong dataType is fed in?
     return db.one(`SELECT * FROM "sj"."playlists" WHERE ("id" = $1) OR (userId = "$2" AND name" = $3)`, [playlist.id, playlist.userId, playlist.name]).catch(rejected => {
         throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
@@ -663,8 +859,7 @@ exports.getPlaylist = async function (ctx, playlist) {
         throw sj.propagateError(rejected);
     });
 }
-exports.editPlaylist = async function (ctx, playlist) {
-    // TODO
+exports.editPlaylist = async function (ctx, playlist) { //TODO
 }
 exports.deletePlaylist = async function (ctx, playlist) {
     if(!(exports.isLoggedIn(ctx))) {
@@ -676,16 +871,12 @@ exports.deletePlaylist = async function (ctx, playlist) {
             cssClass: 'notifyError',
         });
     }
-    if (!(ctx.session.user.id === playlist.userId)) {
-        throw new sj.Error({
-            log: true,
-            origin: 'deletePlaylist()',
-            message: 'you are not the owner of this playlist',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
-    // TODO is a check if the playlist exists necessary? will delete throw back an error if it doesn't exist?  it will return successful but nothing will happen
+    
+    await sj.Rules.checkRuleSet([
+        [positiveIntegerRules, playlist.id],
+        [selfRules, playlist.userId, ctx.session.user.id],
+    ]);
+
     return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1 AND "userId" = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
         throw db.parsePostgresError(rejected, new sj.Error({
             log: true,
@@ -708,7 +899,6 @@ exports.deletePlaylist = async function (ctx, playlist) {
 }
 
 // util
-//TODO maybe just include a check if the playlist is ordered and then include this function in every interaction with the playlist? (just be careful that its done in the right order, if delete is called after an order it will delete the wrong track)
 exports.orderPlaylist = async function (ctx, playlist) { 
     //C retrieve the playlist if it doesn't have its contents
     if (playlist.content.length === 0) {
@@ -767,29 +957,91 @@ exports.orderPlaylist = async function (ctx, playlist) {
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 
-// -------------- CLEAN ALL OF THIS, ADD NEW TRACK CONDITIONS
+// rules
+exports.sourceRules = new sj.Rules({
+    log: true,
+    origin: 'sourceRules',
+    message: 'source validated',
+
+    name: 'Source',
+
+    against: sj.sourceList,
+});
+exports.sourceIdRules = new sj.Rules({
+    log: true,
+    origin: 'sourceIdRules',
+    message: 'source id validated',
+
+    name: 'Source ID',
+
+    //? any source id rules (other than being a string)? length? trim?
+});
 
 // CRUD
 exports.addTrack = async function (ctx, track) {
-    //! tracks should be added in the api via new sj.Track(originalTrack), to duplicate the reference by copying over the attributes - //? why did I write this, what does this mean? sending tracks to the server stringify-s them and strips the reference
-
     if (!(exports.isLoggedIn(ctx))) {
-        errorList.content.push(new sj.Error({
+        throw new sj.Error({
             log: true,
             origin: 'addTrack()',
             message: 'you must be logged in to add a track',
             target: 'notify',
             cssClass: 'notifyError',
-        }));
+        });
     }
 
-    // assign a position
-    var playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+    //C retrieve playlist
+    let playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
         throw sj.propagateError(rejected);
     });
+    //C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
     track.position = playlist.content.length;
 
-    if (){} //TODO check permissions
+    await sj.Rules.checkRuleSet([
+        [selfRules, playlist.userId, ctx.session.userId],
+        [positiveIntegerRules, track.playlistId],
+        [positiveIntegerRules, track.position],
+        [sourceRules, track.source],
+        [sourceIdRules, track.sourceId],
+        [trackNameRules, track.name],
+        [positiveIntegerRules, track.duration],
+        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rules)
+    ]); 
+    /*
+        var errorList = new sj.ErrorList({
+            origin: 'addPlaylist()',
+            message: 'one or more issues with fields',
+            reason: 'validation functions returned one or more errors',
+        });
+        track.playlistId = await exports.positiveIntegerRules.check(track.playlistId).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        track.position = await exports.positiveIntegerRules.check(track.position).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        track.source = await exports.sourceRules.check(track.source).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        track.sourceId = await exports.sourceIdRules.check(track.sourceId).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        track.name = await exports.trackNameRules.check(track.name).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        track.duration = await exports.positiveIntegerRules.check(track.duration).catch(rejected => {
+            errorList.content.push(rejected);
+            return rejected.content;
+        });
+        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rules)
+        if (!(errorList.content.length === 0)) {
+            errorList.announce();
+            throw errorList;
+        }
+    */
 
     //! artists is simply stored as an array, eg. TEXT[]
     return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.duration, track.artists]).catch(rejected => {
@@ -813,51 +1065,45 @@ exports.addTrack = async function (ctx, track) {
     });
 }
 exports.deleteTrack = async function (ctx, track) {
-    //TODO verify data (number, parse if not number)
-    let idCheck = new sj.Conditions({
-        log: true,
-        origin: 'deleteTrack()',
-        message: 'verified number',
-
-        //TODO //!IMPORTANT//! shouldn't the sj.Conditions just be its own object to which variables are checked against, so they can be reused?
-        content: track.playlistId,
-
-        name: 'track id',
-        dataType: 'integer',
-    });
-
-
-    track.playlistId = await idCheck.checkAll().catch(rejected => {
-        throw propagateError(rejected);
-    });
-
-    idCheck.content = track.position;
-
-    track.position = await idCheck.checkAll().catch(rejected => {
-        throw propagateError(rejected);
-    });
-
-    return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
+    if (!(exports.isLoggedIn(ctx))) {
         throw new sj.Error({
             log: true,
-            origin: 'deleteTrack()',
-            code: rejected.code,
-            message: 'failed to delete track, or does not exist',
-            reason: rejected.message,
-            content: rejected,
+            origin: 'addTrack()',
+            message: 'you must be logged in to add a track',
             target: 'notify',
             cssClass: 'notifyError',
         });
-    })
-    .then(resolved => {
-        return exports.orderPlaylist(ctx, track.playlistId);
+    }
+
+    //C retrieve playlist
+    let playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+
+    await sj.Rules.checkRuleSet([
+        [selfRules, playlist.userId, ctx.session.userId],
+        [positiveIntegerRules, track.playlistId],
+        [positiveIntegerRules, track.position],
+    ]);
+
+    return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
+        throw db.parsePostgresError({
+            log: true,
+            origin: 'deleteTrack()',
+            message: 'failed to delete track, database error',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then(resolved => {
+        //! this must happen AFTER the delete or else delete will delete the wrong track
+        return await exports.orderPlaylist(ctx, track.playlistId);
     }).then(resolved => {
         return new sj.Success({
             log: true,
             origin: 'deleteTrack()',
-            target: 'notify',
-            cssClass: 'notifySuccess',
             content: track,
+            target: 'notify',
+            cssClass: 'notifySuccess', 
         });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
@@ -866,7 +1112,9 @@ exports.deleteTrack = async function (ctx, track) {
 
 // util
 exports.moveTrack = async function (ctx, track, position) {
-    let playlist = await exports.getPlaylist(ctx, track.playlistId);
+    let playlist = await exports.getPlaylist(ctx, track.playlistId).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
 
     if (position >= playlist.content.length) {
         track.position = playlist.content.length;
@@ -885,5 +1133,7 @@ exports.moveTrack = async function (ctx, track, position) {
         });
     }
 
-    playlist = exports.orderPlaylist(ctx, playlist);
+    playlist = await exports.orderPlaylist(ctx, playlist).catch(rejected => {
+        throw sj.propagateError(rejected);
+    })
 }

@@ -1,71 +1,3 @@
-// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
-// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
-// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
-// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
-// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
-// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
-
-// Promises: promises always return more promises (that are resolved or rejected), use await to transform those resolved or rejected promises in to useable values (before one would have to define a var then that promise would set that var)
-// Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
-
-
-/* .on()
-	.on() should be bound to the closest non-dynamic element (because its faster?)
-	.on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
-	.on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
-*/
-
-
-//  ████████╗ ██████╗ ██████╗  ██████╗     ██╗     ██╗███████╗████████╗
-//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗    ██║     ██║██╔════╝╚══██╔══╝
-//     ██║   ██║   ██║██║  ██║██║   ██║    ██║     ██║███████╗   ██║   
-//     ██║   ██║   ██║██║  ██║██║   ██║    ██║     ██║╚════██║   ██║   
-//     ██║   ╚██████╔╝██████╔╝╚██████╔╝    ███████╗██║███████║   ██║   
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝     ╚══════╝╚═╝╚══════╝   ╚═╝   
-
-/* TODO 
-
-Model:
-	Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
-
-Big:
-	Break every single part of every module, see if all possible outcomes are caught and handled properly.
-	Ensure everything has an error handler - most of the time 'throw sj.propagateError(rejected);'.
-	Fill in and make consistent content for all success, error, data objects.
-
-	Add timeouts to async functions.
-
-	Replace all 'var' with 'let' and 'const'
-
-Misc:
-	// TODO replace .name properties with .title as name is reserved, actually name isnt reserved - its just a property of Functions, however all of these are constructor functions that return Objects with that property so it should be safe - convert title to name
-
-	Consider name-spacing
-	Console css formatting https://developers.google.com/web/tools/chrome-devtools/console/console-write#styling_console_output_with_css
-	Default arguments and parameter destructuring: https://simonsmith.io/destructuring-objects-as-function-parameters-in-es6/
-	function myFunc({name = 'Default user', age = 'N/A'} = {}) {}
-	Getter and setter syntaxes (allows the user of getter and setter functions by obj.property rather than obj.getProperty() or obj.setProperty())
-*/
-
-// ████████╗███████╗███████╗████████╗
-// ╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝
-//    ██║   █████╗  ███████╗   ██║   
-//    ██║   ██╔══╝  ╚════██║   ██║   
-//    ██║   ███████╗███████║   ██║   
-//    ╚═╝   ╚══════╝╚══════╝   ╚═╝   
-
-async function delay(ms) {
-	return new Promise(function (resolve, reject) {
-		setTimeout(function() {
-			resolve(true);
-		}, ms);
-	});
-}
-
-// test
-$('#test').click(function() {
-});
-
 /*
 	//   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
 	//  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     
@@ -456,7 +388,6 @@ $('#test').click(function() {
 		this.onCreate();
 	}
 */
-
 
 //  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
 //  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
