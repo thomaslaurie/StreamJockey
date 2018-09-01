@@ -51,9 +51,214 @@ Misc:
 
 
 (function(sj){
-    sj.test = function(){
-         return 'Hi, I am a function from global.js';
-	};
+	//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+	//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
+	//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
+	//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
+	//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
+	//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
+
+	//! these shouldn't reference sj.Objects
+
+	sj.deepFreeze = function (obj) {
+		// TODO test me
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+
+		// freeze nested objects
+		Object.keys(obj).forEach(function(key) {
+			obj[key] = obj[key] && typeof value === 'object' ? sj.deepFreeze(obj[key]) : obj[key];
+		});
+		
+		// then freeze self
+		return Object.freeze(object);
+	}
+	sj.trace = function () {
+		try {
+			throw Error('');
+		} catch (e) {
+			return e.stack; //TODO figure out how to unescape this
+		}
+	}
+	
+	// type
+	sj.objectList = [ // list of all valid sj objects
+		// TODO must be a better way
+		'sj.Object',
+		'sj.Success',
+		'sj.Error',
+		'sj.ErrorList',
+		'sj.Track',
+		'sj.Playlist',
+		'sj.User',
+		'sj.Rules',
+		'sj.Source',
+		'sj.Playback',
+		'sj.Action',
+		'sj.Start',
+		'sj.Toggle',
+		'sj.Seek',
+		'sj.Volume',
+	];
+	sj.isValidObjectType = function(input) {
+		return sj.objectList.indexOf(input) !== -1;
+	}
+	sj.typeOf = function (input) {
+		if (input === null) {
+			return 'null';
+		}
+
+		let t = typeof input;
+
+		if (t === 'object') {
+			if (sj.isValidObjectType(input.objectType)) {
+				return input.objectType;
+			} else {
+				return 'object';
+			}
+		}
+
+		if (t === 'number' && isNaN(input)) {
+				return 'NaN';
+		}
+
+		return typeof input;
+	}
+
+	// rebuild
+	sj.buildConfirmed = function (obj) {
+		// create a new sj.Object based on it's valid objectType
+		// !!! used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
+		return new sj[obj.objectType.replace('sj.', '')](obj);
+	}
+	sj.rebuildObject = function (obj, objectType) {
+		// E	parses, interprets, and creates object
+
+		if (sj.typeOf(obj) === 'string') {
+			try {
+				// parse
+				let parsedObj = JSON.parse(obj);
+
+				// cast (optional)
+				if (sj.isValidObjectType(objectType)) {
+					obj.objectType = objectType;
+				}
+				
+				// check if valid
+				if (sj.isValidObjectType(parsedObj.objectType)) {
+					return sj.buildConfirmed(parsedObj);
+				} else {
+					return new sj.Error({
+						log: true,
+						origin: 'sj.rebuildObject()',
+						message: 'failed to recreate object',
+						reason: 'object is non-SjObject',
+						content: obj,
+					});
+				}
+			} catch (e) {
+				return new sj.Error({
+					log: true,
+					origin: 'sj.rebuildObject()',
+					message: 'failed to recreate object',
+					reason: e,
+					content: obj,
+				});
+			}
+		} else if (sj.typeOf(obj) === 'object') {
+			// cast (optional)
+			if (sj.isValidObjectType(objectType)) {
+				obj.objectType = objectType;
+			}
+
+			// check if valid
+			if (sj.isValidObjectType(obj.objectType)) {
+				return sj.buildConfirmed(obj);
+			} else {
+				return new sj.Error({
+					log: true,
+					origin: 'sj.rebuildObject()',
+					message: 'failed to recreate object',
+					reason: 'object is non-SjObject',
+					content: obj,
+				});
+			}
+		} else {
+			return new sj.Error({
+				log: true,
+				origin: 'sj.rebuildObject()',
+				message: 'failed to recreate object',
+				reason: 'data is not an object',
+				content: obj,
+			});
+		}
+	}
+
+	// format
+	sj.msFormat = function (ms) {
+		// extract
+		var minutes = Math.floor(ms / 60000);
+		var seconds = Math.ceil(ms % 60000);
+
+		// format
+		seconds = ('0' + seconds).slice(-2);
+
+		// returns ...0:00 format rounded up to the nearest second
+		return minutes + ':' + seconds;
+	}
+	// TODO will this carry over through exports? it should: https://stackoverflow.com/questions/46427232/export-import-custom-function-of-built-in-object-in-es6
+	Array.prototype.stableSort = function(compare) {
+		// https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+		
+		// pass in compareFunction or default
+		compare = sj.typeOf(compare) === 'function' ? compare : (a, b) => {
+			if (a < b) return -1;
+			if (a > b) return 1;
+			return 0;
+		};
+
+		// 'this' refers to the array in [].stableSort()
+		let frozenThis = this.map(function (item, index) {
+			return {value: item, index: index};
+		}); 
+
+		let stableCompare = function (a, b) {
+			let order = compare(a.value, b.value);
+			if (order !== 0) {
+				// if not equal, return the regular compared order
+				return order;
+			} else {
+				// else return their existing order
+				return a.index - b.index;
+			}
+		}
+
+		// apply stable sort
+		frozenThis.sort(stableCompare);
+
+		// replace this with stabilized array
+		for (let i = 0; i < this.length; i++) {
+			this[i] = frozenThis[i][0];
+		}
+
+		return this;
+	}
+
+	// promises
+	sj.andResolve = function (rejected) {
+		// use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
+		// non-sj errors should also be converted here
+		return sj.propagateError(rejected);
+	}
+	sj.resolveBoth = function (resolved, rejected) {
+		// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
+
+		if (resolved) {
+			return resolved;
+		} else if (rejected) {
+			return sj.propagateError(rejected);
+		}
+	}
+
 	
 	//   ██████╗██╗      █████╗ ███████╗███████╗
 	//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -80,6 +285,8 @@ Misc:
 				code: 200,
 				type: 'Ok',
 				origin: '',
+				trace: sj.trace(),
+				
 
 				// content
 				message: '',
@@ -115,7 +322,8 @@ Misc:
 			if (sj.isError(this)) {
 				console.error(this);
 			} else {
-				console.log(this.origin, this.objectType, this.message);
+				console.log(this);
+				//console.log(this.origin, this.objectType, this.message);
 			}	
 		}
 		onCreate() {
@@ -279,27 +487,31 @@ Misc:
 			let t = sj.typeOf(value);
 
 			//C if value is a string and dataType is a number or integer
-			if (t === 'string') {
-				if (this.dataType === 'number') {
-					//C	try to parse the string and check if it is a number
-					//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
-					let p = parseFloat(value);
-					if (!isNaN(p)) {
-						//C if so, convert it to the parsed number and return
-						value = p;
-						return true;
-					}
-					return false;
-				} 
-				
-				if (this.dataType === 'integer') {
+
+			if (this.dataType === 'number' && t === 'string') {
+				//C	try to parse the string and check if it is a number
+				//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
+				let p = parseFloat(value);
+				if (!Number.isNaN(p)) {
+					//C if so, convert it to the parsed number and return
+					value = p;
+					return true;
+				}
+				return false;
+			}
+
+			if (this.dataType === 'integer') {
+				if (t === 'string') {
 					let p = parseInt(value);
-					if (!isNaN(p)) {
+					if (Number.isInteger(p)) {
 						value = p;
 						return true;
 					}
 					return false;
 				}
+
+				// if not a string, just see if its an integer
+				return Number.isInteger(value);
 			}
 
 			return t === this.dataType;
@@ -332,68 +544,63 @@ Misc:
 		}
 		
 		//? check and checkRuleSet don't have to be async so they got changed so they weren't, is there any case where they should be? maybe if implementing a database check into it? (but then it shouldn't be in global.js). Actually, //TODO should sj.Rules be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
-		check(value, value2) {
-			try {
-				//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-				//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
+		async check(value, value2) {
+			//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+			//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
-				if (!this.checkType(value)) {
-					return new sj.Error({
-						log: this.log,
-						origin: this.origin,
-						message: `${this.valueName} must be a ${this.dataType}`,
-					})
-				}
-				if (this.trim && sj.typeOf(value) === 'string') {
-					value = value.trim();
-				}
-				if (!this.checkSize(value)) {
-					let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
-					if (sj.typeOf(value) === 'string') {
-						message = `${message} characters long`;
-					} else if (sj.typeOf(value) === 'array') {
-						message = `${message} items long`;
-					}
-
-					return new sj.Error({
-						log: this.log,
-						origin: this.origin,
-						message: message,
-					});
-				}
-				if (this.useAgainst && !this.checkAgainst(value, value2)) {
-					return new sj.Error({
-						log: this.log,
-						origin: this.origin,
-						message: this.againstMessage,
-					});
-				}
-				if (this.useFilter && !this.checkFilter(value, value2)) {
-					return new sj.Error({
-						log: this.log,
-						origin: this.origin,
-						message: this.filterMessage,
-					});
-				}
-				
-				
-				// remove error-related properties
-				//TODO consider inputCorrect styling, change these if so
-				this.target = undefined;
-				this.cssClass = undefined;
-				//C transform object (this will strip any irrelevant properties away)
-				this.content = value;
-				return new sj.Success(this);
-				
-				/*
-					//! this doesn't return an sj.Success object on successful validation, it just returns the (possibly edited) value
-					//? is this ok? - I don't want to get stuck in a trap of restricting myself to sj.Objects just for the sake of it, this way makes more sense
-					return value;
-				*/ 				
-			} catch (e) {
-				//TODO afaik this shouldn't fail anymore
-				return sj.propagateError(e);
+			if (!this.checkType(value)) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: `${this.valueName} must be a ${this.dataType}`,
+				})
 			}
+			if (this.trim && sj.typeOf(value) === 'string') {
+				value = value.trim();
+			}
+			if (!this.checkSize(value)) {
+				let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
+				if (sj.typeOf(value) === 'string') {
+					message = `${message} characters long`;
+				} else if (sj.typeOf(value) === 'array') {
+					message = `${message} items long`;
+				}
+
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: message,
+				});
+			}
+			if (this.useAgainst && !this.checkAgainst(value, value2)) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.againstMessage,
+				});
+			}
+			if (this.useFilter && !this.checkFilter(value, value2)) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.filterMessage,
+				});
+			}
+			
+			
+			// remove error-related properties
+			//TODO consider inputCorrect styling, change these if so
+			this.target = undefined;
+			this.cssClass = undefined;
+			//C transform object (this will strip any irrelevant properties away)
+			this.content = value;
+			return new sj.Success(this);
+			
+			/*
+				//! this doesn't return an sj.Success object on successful validation, it just returns the (possibly edited) value
+				//? is this ok? - I don't want to get stuck in a trap of restricting myself to sj.Objects just for the sake of it, this way makes more sense
+				return value;
+			*/ 				
 		}
 
 		static async checkRuleSet(ruleSet) {
@@ -405,18 +612,14 @@ Misc:
 				reason: 'validation functions returned one or more errors',
 			});
 
-			/*
-				async
-				await Promise.all(...)
-			*/
-			ruleSet.map(item => {
+			await Promise.all(ruleSet.map(async item => {
 				//C ensure that item has a sj.Rules object
-				if (!(sj.typeOf(item[0]) === this.objectType)) {
+				if (!(sj.typeOf(item[0]) === 'sj.Rules'))  {//TODO cannot use any variables initialized in constructor inside static method, is there a good way to dynamically get this class name?
 					errorList.content.push(new sj.Error({
 						log: true,
 						origin: 'checkRuleSet()',
 						message: 'validation error',
-						reason: `checkRuleSet() is missing a ${this.objectType} object`,
+						reason: `checkRuleSet() is missing a sj.Rules object`,
 					}));
 
 					// return;
@@ -424,39 +627,25 @@ Misc:
 		
 				//C call sj.Rules.check with 1 or 2 values
 				if (sj.typeOf(item[2]) === 'undefined') {
-					let result = item[0].check(item[1]);
-					if (sj.typeOf(result) === 'sj.Error') {
+					item[1] = await item[0].check(item[1]).then(resolved => {
+						return resolved.content;
+					}, rejected => {
 						errorList.content.push(rejected);
-					}
-					item[1] = result.content;
-					/*
-						async
-						item[1] = await item[0].check(item[1]).catch(rejected => {
-							errorList.content.push(rejected);
-							return rejected.content;
-						});
-					*/
+						return rejected.content;
+					});
 				} else {
-					let result = item[0].check(item[1], item[2]);
-					if (sj.typeOf(result) === 'sj.Error') {
+					item[1] = await item[0].check(item[1], item[2]).then(resolved => {
+						return resolved.content;
+					}, rejected => {
 						errorList.content.push(rejected);
-					}
-					item[1] = result.content;
-					/*
-						async
-						item[1] = await item[0].check(item[1], item[2]).catch(rejected => {
-							errorList.content.push(rejected);
-							return rejected.content;
-						});
-					*/
+						return rejected.content;
+					});
 				}
 
-				/*
-					needed for async and await Promise.all()
-					//C end the promise, but with no data because errorList is collecting the results instead
-					return;
-				*/
-			});
+				//C end the promise, but with no data because errorList is collecting the results instead
+				return;
+			}));
+
 			if (!(errorList.content.length === 0)) {
 				errorList.announce();
 				throw errorList;
@@ -842,207 +1031,6 @@ Misc:
 	sj.noSource = new sj.Source({realSource: false});
 	sj.noTrack.source = sj.noSource; // cyclical reference
 	// TODO move with actions sj.noAction = new sj.Action();
-
-
-	//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-	//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-	//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-	//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-	//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-	//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-
-	sj.deepFreeze = function (obj) {
-		// TODO test me
-		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
-
-		// freeze nested objects
-		Object.keys(obj).forEach(function(key) {
-			obj[key] = obj[key] && typeof value === 'object' ? sj.deepFreeze(obj[key]) : obj[key];
-		});
-		
-		// then freeze self
-		return Object.freeze(object);
-	}
-	
-	// type
-	sj.objectList = [ // list of all valid sj objects
-		// TODO must be a better way
-		'sj.Object',
-		'sj.Success',
-		'sj.Error',
-		'sj.ErrorList',
-		'sj.Track',
-		'sj.Playlist',
-		'sj.User',
-		'sj.Rules',
-		'sj.Source',
-		'sj.Playback',
-		'sj.Action',
-		'sj.Start',
-		'sj.Toggle',
-		'sj.Seek',
-		'sj.Volume',
-	];
-	sj.isValidObjectType = function(input) {
-		return sj.objectList.indexOf(input) !== -1;
-	}
-	sj.typeOf = function (input) {
-		if (input === null) {
-			return 'null';
-		}
-
-		let t = typeof input;
-
-		if (t === 'object') {
-			if (sj.isValidObjectType(input.objectType)) {
-				return input.objectType;
-			} else {
-				return 'object';
-			}
-		}
-
-		if (t === 'number' && isNaN(input)) {
-				return 'NaN';
-		}
-
-		return typeof input;
-	}
-
-	// rebuild
-	sj.buildConfirmed = function (obj) {
-		// create a new sj.Object based on it's valid objectType
-		// !!! used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
-		return new sj[obj.objectType.replace('sj.', '')](obj);
-	}
-	sj.rebuildObject = function (obj, objectType) {
-		// E	parses, interprets, and creates object
-
-		if (sj.typeOf(obj) === 'string') {
-			try {
-				// parse
-				let parsedObj = JSON.parse(obj);
-
-				// cast (optional)
-				if (sj.isValidObjectType(objectType)) {
-					obj.objectType = objectType;
-				}
-				
-				// check if valid
-				if (sj.isValidObjectType(parsedObj.objectType)) {
-					return sj.buildConfirmed(parsedObj);
-				} else {
-					return new sj.Error({
-						log: true,
-						origin: 'sj.rebuildObject()',
-						message: 'failed to recreate object',
-						reason: 'object is non-SjObject',
-						content: obj,
-					});
-				}
-			} catch (e) {
-				return new sj.Error({
-					log: true,
-					origin: 'sj.rebuildObject()',
-					message: 'failed to recreate object',
-					reason: e,
-					content: obj,
-				});
-			}
-		} else if (sj.typeOf(obj) === 'object') {
-			// cast (optional)
-			if (sj.isValidObjectType(objectType)) {
-				obj.objectType = objectType;
-			}
-
-			// check if valid
-			if (sj.isValidObjectType(obj.objectType)) {
-				return sj.buildConfirmed(obj);
-			} else {
-				return new sj.Error({
-					log: true,
-					origin: 'sj.rebuildObject()',
-					message: 'failed to recreate object',
-					reason: 'object is non-SjObject',
-					content: obj,
-				});
-			}
-		} else {
-			return new sj.Error({
-				log: true,
-				origin: 'sj.rebuildObject()',
-				message: 'failed to recreate object',
-				reason: 'data is not an object',
-				content: obj,
-			});
-		}
-	}
-
-	// format
-	sj.msFormat = function (ms) {
-		// extract
-		var minutes = Math.floor(ms / 60000);
-		var seconds = Math.ceil(ms % 60000);
-
-		// format
-		seconds = ('0' + seconds).slice(-2);
-
-		// returns ...0:00 format rounded up to the nearest second
-		return minutes + ':' + seconds;
-	}
-	// TODO will this carry over through exports? it should: https://stackoverflow.com/questions/46427232/export-import-custom-function-of-built-in-object-in-es6
-	Array.prototype.stableSort = function(compare) {
-		// https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
-		
-		// pass in compareFunction or default
-		compare = sj.typeOf(compare) === 'function' ? compare : (a, b) => {
-			if (a < b) return -1;
-			if (a > b) return 1;
-			return 0;
-		};
-
-		// 'this' refers to the array in [].stableSort()
-		let frozenThis = this.map(function (item, index) {
-			return {value: item, index: index};
-		}); 
-
-		let stableCompare = function (a, b) {
-			let order = compare(a.value, b.value);
-			if (order !== 0) {
-				// if not equal, return the regular compared order
-				return order;
-			} else {
-				// else return their existing order
-				return a.index - b.index;
-			}
-		}
-
-		// apply stable sort
-		frozenThis.sort(stableCompare);
-
-		// replace this with stabilized array
-		for (let i = 0; i < this.length; i++) {
-			this[i] = frozenThis[i][0];
-		}
-
-		return this;
-	}
-
-	// promises
-	sj.andResolve = function (rejected) {
-		// use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
-		// non-sj errors should also be converted here
-		return sj.propagateError(rejected);
-	}
-	sj.resolveBoth = function (resolved, rejected) {
-		// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
-
-		if (resolved) {
-			return resolved;
-		} else if (rejected) {
-			return sj.propagateError(rejected);
-		}
-	}
-
 
 
 	//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 

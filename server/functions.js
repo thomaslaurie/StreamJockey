@@ -17,7 +17,7 @@ const visibilityStates = [
     'public',
     'private',
     'linkOnly',
-]
+];
 
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
@@ -70,6 +70,308 @@ const visibilityStates = [
     //     ctx.session.currentPage = '';  $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; 
     // }
 */
+
+//  ██╗   ██╗████████╗██╗██╗     
+//  ██║   ██║╚══██╔══╝██║██║     
+//  ██║   ██║   ██║   ██║██║     
+//  ██║   ██║   ██║   ██║██║     
+//  ╚██████╔╝   ██║   ██║███████╗
+//   ╚═════╝    ╚═╝   ╚═╝╚══════╝
+
+//? this should be called once on startup, where should this go?
+(async () => {
+    // initialize
+
+    // N (name) strings must have double quotes around them to avoid reserved postgres words
+    /*
+        let P_SCHEMA = {
+            N = 'sj',
+            USERS = {
+                N = '"users"',
+                ID = {
+                    N = '"id"',
+                    T = 'integer',
+                },
+                NAME = {
+                    N = '"name"',
+                    T = 'text'
+                },
+                PASSWORD = {
+                    N = '"password"',
+                    T = 'text',
+                },
+                EMAIL = {
+                    N = '"email"',
+                    T = 'text',
+                },
+                IMAGE = {
+                    N = '"image"',
+                    T = 'text',
+                },
+                COLOR = {
+                    N = '"color"',
+                    T = 'text',
+                },
+            },
+            PLAYLISTS = {
+                ID = {
+                    N = '"id"',
+                    T = 'integer',
+                },
+                USER_ID = {
+                    N = '"userId"',
+                    T = 'integer',
+                },
+                NAME = {
+                    N = '"name"',
+                    T = 'text',
+                },
+                DESCRIPTION = {
+                    N = '"description"',
+                    T = 'text',
+                },
+                VISIBILITY = {
+                    N = '"visibility"',
+                    T = 'text',
+                },
+                IMAGE = {
+                    N = '"image"',
+                    T = 'text',
+                },
+                COLOR = {
+                    N = '"color"',
+                    T = 'text',
+                },
+            },
+            TRACKS = {
+                ID = {
+                    N = '"id"',
+                    T = 'integer',
+                },
+                PLAYLIST_ID = {
+                    N = '"playlistId"',
+                    T = 'integer',
+                },
+                SOURCE = {
+                    N = '"source"',
+                    T = 'text',
+                },
+                SOURCE_ID = {
+                    N = '"sourceId"',
+                    T = 'text',
+                },
+                NAME = {
+                    N = '"name"',
+                    T = 'text',
+                },
+                DURATION = {
+                    N = 'duration',
+                    T = 'integer',
+                },
+                ARTISTS = {
+                    N = '"artists"',
+                    T = 'text[]',
+                },
+                IMAGE = {
+                    N = '"image"',
+                    T = 'text',
+                },
+            }         
+        }
+
+        const SCHEMA = sj.deepFreeze(P_SCHEMA);
+    */
+    return db.tx(async function (task) {
+        // TODO this will not alter tables if they do already exist (save this for migration)
+        
+        // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
+        // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
+        // foreign keys - REFERENCES otherTable (column) *if the column is omitted then the primary key of the referenced table is used
+        // ON DELETE CASCADE also deletes any referencing rows when the referenced row is deleted
+        // TODO CHECK constraint that visibility, source matches possible  states
+        // quotes: https://stackoverflow.com/questions/41396195/what-is-the-difference-between-single-quotes-and-double-quotes-in-postgresql
+        
+        // default constraint names: https://stackoverflow.com/questions/4107915/postgresql-default-constraint-names
+
+        if (false) {
+            await task.none(`DROP SCHEMA IF EXISTS "sj" CASCADE`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'schema initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }
+
+        // TODO add self, public, & private VIEWs for tables (if relevant)
+        // !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
+        // !!! column names are camelCase (because they get converted to properties), everything else is underscore
+        return task.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
+            throw new sj.Error({
+                log: true,
+                origin: 'schema initialization',
+                message: 'database error',
+                reason: rejected.message,
+                content: rejected,
+                target: 'notify',
+                cssClass: 'notifyError',
+            });
+        }).then(resolved => {
+            // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
+            return task.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
+                "id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
+                "name" text CONSTRAINT "users_name_key" UNIQUE,
+                "password" text,
+                "email" text CONSTRAINT "users_email_key" UNIQUE
+            );`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'users table initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }).then(resolved => {
+            //L views: https://www.postgresql.org/docs/8.1/static/tutorial-views.html
+            //L create or replace: https://stackoverflow.com/questions/48662843/what-is-the-equivalent-of-create-view-if-not-exists-in-postresql
+            return task.none(`CREATE OR REPLACE VIEW "sj"."users_self" AS
+                SELECT id, name, email 
+                FROM "sj"."users"
+            ;`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'users_self initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }).then(resolved => {
+            return task.none(`CREATE OR REPLACE VIEW "sj"."users_public" AS
+                SELECT id, name
+                FROM "sj"."users"
+            ;`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'users_public initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }).then(resolved => {
+            return task.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
+                "id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
+                "userId" integer CONSTRAINT "playlists_userId_fkey" REFERENCES "sj"."users" ON DELETE CASCADE ON UPDATE CASCADE,
+                "name" text,
+                "visibility" text,
+                "description" text,
+                "image" text,
+                "color" text,
+                
+                CONSTRAINT playlists_userId_name_key UNIQUE ("userId", "name")
+            );`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'playlists table initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }).then(resolved => {
+            return task.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
+                "id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
+                "playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
+                "position" integer CONSTRAINT "tracks_position_key" UNIQUE DEFERRABLE INITIALLY IMMEDIATE,
+                "source" text,
+                "sourceId" text,
+                "name" text,
+                "duration" integer,
+                "artists" text[]
+            );`).catch(rejected => {
+                throw new sj.Error({
+                    log: true,
+                    origin: 'tracks table initialization',
+                    message: 'database error',
+                    reason: rejected.message,
+                    content: rejected,
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                });
+            });
+        }).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+})().then(resolved => {
+    let announce = new sj.Success({
+        log: true,
+        origin: 'initialize database',
+        message: 'database initialized',
+    });
+}).catch(rejected => {
+    console.log(rejected);
+});
+
+exports.parsePostgresError = function (pgError, sjError) {
+    // TODO any validation needed here?
+    // TODO consider separating insertion checks into Conditions so multiple parameters are checked
+    // TODO add targets and cssClasses to each violation case too
+
+    sjError.code = pgError.code;
+    sjError.reason = pgError.message;
+    sjError.content = pgError;
+
+    // https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
+
+    // Class 23 — Integrity Constraint Violation
+    if (pgError.code === '23505') { // unique_violation
+        // users
+        if (pgError.constraint === 'users_name_key') {
+            sjError.message = 'this user name is already taken';
+        }
+        if (pgError.constraint === 'users_email_key') {
+            sjError.message = 'this email is already in use';
+        }
+        // playlists
+        if (pgError.constraint === 'playlists_userId_name_key') {
+            sjError.message = 'you already have a playlist with this name';
+        }
+        // tracks
+        if (pgError.constraint === 'tracks_position_key') {
+            sjError.message = 'a track already exists at this position';
+        }
+    }
+
+    if (pgError.code === '23503') { // foreign_key_violation
+        // playlists
+        if (pgError.constraint === 'playlists_userId_fkey') {
+            sjError.message = 'cannot add a playlist for an unknown user';
+        }
+        // tracks
+        if (pgError.constraint === 'tracks_playlistId_fkey') {
+            sjError.message = 'cannot add a track for an unknown playlist';
+        }
+    }
+
+    return sjError;
+}
 
 
 //  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
@@ -163,9 +465,6 @@ exports.passwordRules = new sj.Rules({
 
     min: 6,
     max: 72, //! as per bcrypt
-
-    useAgainst: true,
-    get againstMessage() {return 'Passwords do not match'},
 });
 exports.setPasswordRules = new sj.Rules({
     log: true,
@@ -262,9 +561,9 @@ exports.emailRules = new sj.Rules({
 exports.addUser = async function (user) {
     //C validate
     await sj.Rules.checkRuleSet([
-        [userNameRules, user.name],
-        [setPasswordRules, user.password, user.password2],
-        [emailRules, user.email],
+        [exports.userNameRules, user.name],
+        [exports.setPasswordRules, user.password, user.password2],
+        [exports.emailRules, user.email],
     ]);
     /*
         var errorList = new sj.ErrorList({
@@ -325,7 +624,7 @@ exports.addUser = async function (user) {
     }).then(resolved => {
         return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
             // replaces default error info with info based on error code 
-            throw db.parsePostgresError(rejected, new sj.Error({
+            throw exports.parsePostgresError(rejected, new sj.Error({
                 log: true,
                 origin: 'addUser()',
                 message: 'could not add user',
@@ -354,11 +653,11 @@ exports.getUser = async function (user) {
     //TODO userNameRules has userName field ids, this wont target them because they wont exist - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
 
     await sj.Rules.checkRuleSet([
-        [userNameRules, user.name],
+        [exports.userNameRules, user.name],
     ]);
 
     return db.one('SELECT * FROM "sj"."users_public" WHERE "id" = $1', [id]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
                 origin: 'getUser()',
                 message: 'could not get user',
@@ -371,15 +670,11 @@ exports.getUser = async function (user) {
 }
 exports.editUser = async function (ctx, user) { //TODO
     // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
-
-    if (!exports.isLoggedIn(ctx)) {
-        throw notLoggedInError;
-    }
-
+    await exports.isLoggedIn(ctx);
 
     /* TODO
     return db.none('UPDATE "sj."users" SET x = $x, x = $x, x = $x, ... WHERE "id" = x,', [x, ...]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'editUser()',
             message: 'could not edit user',
@@ -400,16 +695,14 @@ exports.editUser = async function (ctx, user) { //TODO
     */
 }
 exports.deleteUser = async function (ctx, user) {
-    if (!exports.isLoggedIn(ctx)) {
-        throw notLoggedInError;
-    }
+    await exports.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [passwordRules, user.password],
+        [exports.passwordRules, user.password],
     ]);
 
     return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'deleteUser()',
             message: 'could not delete user',
@@ -431,7 +724,7 @@ exports.deleteUser = async function (ctx, user) {
     }).then(resolved => {
         if (resolved) {
             return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-                throw db.parsePostgresError(rejected, new sj.Error({
+                throw exports.parsePostgresError(rejected, new sj.Error({
                     log: true,
                     origin: 'deleteUser()',
                     message: 'could not delete user',
@@ -473,12 +766,12 @@ exports.deleteUser = async function (ctx, user) {
 // CRUD
 exports.login = async function (ctx, user) {
     await sj.Rules.checkRuleSet([
-        [userNameRules, user.name],
-        [passwordRules, user.password],
+        [exports.userNameRules, user.name],
+        [exports.passwordRules, user.password],
     ]);
 
     return db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'login()',
             message: 'could not login, database error',
@@ -500,7 +793,7 @@ exports.login = async function (ctx, user) {
     }).then(resolved => {
         if (resolved) {
             return db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', [user.name]).catch(rejected => {
-                throw db.parsePostgresError(rejected, new sj.Error({
+                throw exports.parsePostgresError(rejected, new sj.Error({
                     log: true,
                     origin: 'login()',
                     message: 'could not login, database error',
@@ -519,7 +812,6 @@ exports.login = async function (ctx, user) {
         }
     }).then(resolved => {
         ctx.session.user = new sj.User(resolved);
-
         return new sj.Success({
             log: true,
             origin: 'login()',
@@ -533,9 +825,7 @@ exports.login = async function (ctx, user) {
     });
 }
 exports.getMe = async function (ctx) {
-    if (!exports.isLoggedIn(ctx)) {
-        throw notLoggedInError;
-    }
+    await exports.isLoggedIn(ctx);
     return ctx.session.user;
 }
 exports.logout = async function (ctx) {
@@ -551,22 +841,30 @@ exports.logout = async function (ctx) {
 }
 
 // util
-exports.isLoggedIn = function (ctx) {
+exports.isLoggedIn = async function (ctx) {
+    if (!(sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined')) {
+        throw new sj.Error({
+            log: true,
+            origin: 'isLoggedIn()',
+            code: 403,
+        
+            message: 'you must be logged in to do this',
+            reason: 'user is not logged in',
+            target: 'notify',
+            cssClass: 'notifyError', // TODO consider denial error rather than error error (you messed up vs I messed up)
+        });
+    }
     //C redundancy check to make sure id is right format
-    //TODO a whole bunch of de-async-ing was done in sj.Rules just so this function could be synchronous, is this such a big deal if its not?
-    ctx.session.user.id = positiveIntegerRules.check(ctx.session.user.id).catch(rejected => {
-        return undefined;
-    });
-    return sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined';
-}
-exports.notLoggedInError = new sj.Error({
-    code: 403,
+    await sj.Rules.checkRuleSet([
+        [exports.positiveIntegerRules, ctx.session.user.id],
+    ]);
 
-    message: 'you must be logged in to do this',
-    reason: 'user is not logged in',
-    target: 'notify',
-    cssClass: 'notifyError', // TODO consider denial error rather than error error (you messed up vs I messed up)
-});
+    return new sj.Success({
+        log: true,
+        origin: 'isLoggedIn()',
+        message: 'user is logged in',
+    });
+}
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
@@ -709,25 +1007,14 @@ exports.descriptionRules = new sj.Rules({
 
 // CRUD
 exports.addPlaylist = async function (ctx, playlist) {
-    await exports.isLoggedIn(ctx).catch(rejected => {
-
-    });
-    if (!(exports.isLoggedIn(ctx))) {
-        throw new sj.Error({
-            log: true,
-            origin: 'addPlaylist()',
-            message: 'you must be logged in to add a playlist',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
+    await exports.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [playlistNameRules, playlist.name],
-        [visibilityRules, playlist.visibility],
-        [descriptionRules, playlist.description],
-        [imageRules, playlist.image],
-        [colorRules, playlist.color],
+        [exports.playlistNameRules, playlist.name],
+        [exports.visibilityRules, playlist.visibility],
+        [exports.descriptionRules, playlist.description],
+        [exports.imageRules, playlist.image],
+        [exports.colorRules, playlist.color],
     ]);
     /*
         var errorList = new sj.ErrorList({
@@ -804,7 +1091,7 @@ exports.addPlaylist = async function (ctx, playlist) {
     */
 
     return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'addPlaylist()',
             message: 'failed to add playlist, database error',
@@ -825,20 +1112,21 @@ exports.addPlaylist = async function (ctx, playlist) {
 }
 exports.getPlaylist = async function (ctx, playlist) {
     //C validate - get by id or get by userId and playlistName
-    if (sj.typeOf(playlist.id) !== 'undefined') {
-        await sj.Rules.checkRuleSet([
-            [positiveIntegerRules, playlist.id],
-        ]);
+    //! id is default to null when it isn't set, is this wrong semantics //?
+    if (sj.typeOf(playlist.id) !== 'null') { 
+        // await sj.Rules.checkRuleSet([
+        //     [exports.positiveIntegerRules, playlist.id],
+        // ]);
     } else {
         await sj.Rules.checkRuleSet([
-            [positiveIntegerRules, playlist.userId],
-            [playlistNameRules, playlist.name],
+            [exports.positiveIntegerRules, ctx.session.user.id],
+            [exports.playlistNameRules, playlist.name],
         ]);
     }
 
     //? does this fail if the wrong dataType is fed in?
-    return db.one(`SELECT * FROM "sj"."playlists" WHERE ("id" = $1) OR (userId = "$2" AND name" = $3)`, [playlist.id, playlist.userId, playlist.name]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+    return db.one(`SELECT * FROM "sj"."playlists" WHERE ("id" = $1) OR ("userId" = $2 AND "name" = $3)`, [playlist.id, playlist.userId, playlist.name]).catch(rejected => {
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'getPlaylist()',
             message: 'could not get playlist, database error',
@@ -848,9 +1136,30 @@ exports.getPlaylist = async function (ctx, playlist) {
     }).then(resolved => {
         let playlist = new sj.Playlist(resolved);
 
-        if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && exports.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
-            return exports.orderPlaylist(ctx, playlist);
-        } else {
+        //C if the playlist is not perfectly ordered
+        for (let i = 0; i < playlist.content.length; i++) {
+            if (playlist.content[0].position !== i+1) { //! SERIAL ids start from 1 by default
+                // order it and change playlist to this newly ordered one
+                playlist = await exports.orderPlaylist(playlist).catch(rejected => {
+                    throw exports.parsePostgresError(rejected, new sj.Error({
+                        log: true,
+                        origin: 'getPlaylist()',
+                        message: 'could not order playlist, database error',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                    }));
+                });
+                break;
+            }
+        }
+
+        return playlist;
+
+        /*
+            //TODO permissions
+            do this when permissions are sorted out
+            if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && exports.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
+
             throw new sj.Error({
                 log: true,
                 origin: 'getPlaylist()',
@@ -858,7 +1167,7 @@ exports.getPlaylist = async function (ctx, playlist) {
                 target: 'notify',
                 cssClass: 'notifyError',
             });
-        }
+        */
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
@@ -866,23 +1175,15 @@ exports.getPlaylist = async function (ctx, playlist) {
 exports.editPlaylist = async function (ctx, playlist) { //TODO
 }
 exports.deletePlaylist = async function (ctx, playlist) {
-    if(!(exports.isLoggedIn(ctx))) {
-        throw new sj.Error({
-            log: true,
-            origin: 'deletePlaylist()',
-            message: 'you must be logged in to delete a playlist',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
+    await exports.isLoggedIn(ctx);
     
     await sj.Rules.checkRuleSet([
-        [positiveIntegerRules, playlist.id],
-        [selfRules, playlist.userId, ctx.session.user.id],
+        [exports.positiveIntegerRules, playlist.id],
+        [exports.selfRules, playlist.userId, ctx.session.user.id],
     ]);
 
     return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1 AND "userId" = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'deletePlaylist()',
             message: 'could not delete playlist, database error',
@@ -903,51 +1204,77 @@ exports.deletePlaylist = async function (ctx, playlist) {
 }
 
 // util
-exports.orderPlaylist = async function (ctx, playlist) { 
-    //C retrieve the playlist if it doesn't have its contents
-    if (playlist.content.length === 0) {
-        // used by sj.Track.playlistId as a shortcut to order playlist in one line
-        return await exports.getPlaylist(ctx, playlist);
-    }
+exports.orderPlaylist = async function (playlist) {  
+    /*
+        //! this shouldn't need to be called anywhere other than getPlaylist() as long as anything that changes a playlist's order calls getPlaylist (before), a call to orderPlaylist (functionally equivalent to getPlaylist()) afterwards, would be redundant as the playlist should be always ordered on retrieval anyways
 
-    //C sort by track.position
-    playlist.content.stableSort(function (a, b) {
-        // https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-        // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+        
+        //R no recursive functions, 1 its not needed in this case, 2 this one caused an infinite loop because of a mistake
+        //C retrieve the playlist if it doesn't have its contents
+        if (playlist.content.length === 0) { //R this causes an endless loop if the playlist is empty
+            // used by sj.Track.playlistId as a shortcut to order playlist in one line
+            return await exports.getPlaylist(ctx, playlist);
+        }
+    */
 
-        // numeric & property compare
-        return a.position - b.position;
-    });
-    
     // update
     return db.tx(async function (task) {
+        let realPlaylist = await task.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
+            throw exports.parsePostgresError(rejected, new sj.Error({
+                log: true,
+                origin: 'orderPlaylist()',
+                message: 'could not get playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        }).then(resolved => {
+            return new sj.Playlist(resolved);
+        });
+
+        //C sort by track.position
+        realPlaylist.content.stableSort(function (a, b) {
+            // https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
+            // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+
+            // numeric & property compare
+            return a.position - b.position;
+        });
+
         //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
         //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
         //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-        await task.none('SET CONSTRAINTS "sj"."tracks_position_key" DEFERRED');
-
+        await task.none('SET CONSTRAINTS "sj"."tracks_position_key" DEFERRED').catch(rejected => {
+            throw exports.parsePostgresError(rejected, new sj.Error({
+                log: true,
+                origin: 'orderPlaylist()',
+                message: 'could not order playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
+        
         //C update position based on index
         //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
         //? possible memory leak error here 
-        playlist.content.map(async function (item, index) {
-            await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]);
+        realPlaylist.content.map(async function (item, index) {
+            await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]).catch(rejected => {
+                throw exports.parsePostgresError(rejected, new sj.Error({
+                    log: true,
+                    origin: 'orderPlaylist()',
+                    message: 'could not order playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
         });
 
         return;
-    }).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
-            log: true,
-            origin: 'orderPlaylist()',
-            message: 'could not order playlist, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
     }).then(resolved => {
         //C apply actual indexes for return
-        playlist.content.map(function(item, index) {
+        realPlaylist.content.map(function(item, index) {
             item.position = index;
         });
-        return playlist;
+        return realPlaylist;
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
@@ -983,15 +1310,7 @@ exports.sourceIdRules = new sj.Rules({
 
 // CRUD
 exports.addTrack = async function (ctx, track) {
-    if (!(exports.isLoggedIn(ctx))) {
-        throw new sj.Error({
-            log: true,
-            origin: 'addTrack()',
-            message: 'you must be logged in to add a track',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
+    await exports.isLoggedIn(ctx);
 
     //C retrieve playlist
     let playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
@@ -1001,13 +1320,13 @@ exports.addTrack = async function (ctx, track) {
     track.position = playlist.content.length;
 
     await sj.Rules.checkRuleSet([
-        [selfRules, playlist.userId, ctx.session.userId],
-        [positiveIntegerRules, track.playlistId],
-        [positiveIntegerRules, track.position],
-        [sourceRules, track.source],
-        [sourceIdRules, track.sourceId],
-        [trackNameRules, track.name],
-        [positiveIntegerRules, track.duration],
+        [exports.selfRules, playlist.userId, ctx.session.userId],
+        [exports.positiveIntegerRules, track.playlistId],
+        [exports.positiveIntegerRules, track.position],
+        [exports.sourceRules, track.source],
+        [exports.sourceIdRules, track.sourceId],
+        [exports.trackNameRules, track.name],
+        [exports.positiveIntegerRules, track.duration],
         //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rules)
     ]); 
     /*
@@ -1049,13 +1368,23 @@ exports.addTrack = async function (ctx, track) {
 
     //! artists is simply stored as an array, eg. TEXT[]
     return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.duration, track.artists]).catch(rejected => {
-        throw db.parsePostgresError(rejected, new sj.Error({
+        throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'addTrack()',
             message: 'could not add track, database error',
             target: 'notify',
             cssClass: 'notifyError',
         }));
+    }).then(resolved => {
+        return exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+            throw exports.parsePostgresError(rejected, new sj.Error({
+                log: true,
+                origin: 'addTrack()',
+                message: 'could not order playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
     }).then(resolved => {
         return new sj.Success({
             log: true,
@@ -1069,15 +1398,7 @@ exports.addTrack = async function (ctx, track) {
     });
 }
 exports.deleteTrack = async function (ctx, track) {
-    if (!(exports.isLoggedIn(ctx))) {
-        throw new sj.Error({
-            log: true,
-            origin: 'addTrack()',
-            message: 'you must be logged in to add a track',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }
+    await exports.isLoggedIn(ctx);
 
     //C retrieve playlist
     let playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
@@ -1085,13 +1406,13 @@ exports.deleteTrack = async function (ctx, track) {
     });
 
     await sj.Rules.checkRuleSet([
-        [selfRules, playlist.userId, ctx.session.userId],
-        [positiveIntegerRules, track.playlistId],
-        [positiveIntegerRules, track.position],
+        [exports.selfRules, playlist.userId, ctx.session.userId],
+        [exports.positiveIntegerRules, track.playlistId],
+        [exports.positiveIntegerRules, track.position],
     ]);
 
     return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
-        throw db.parsePostgresError({
+        throw exports.parsePostgresError({
             log: true,
             origin: 'deleteTrack()',
             message: 'failed to delete track, database error',
@@ -1099,8 +1420,15 @@ exports.deleteTrack = async function (ctx, track) {
             cssClass: 'notifyError',
         });
     }).then(resolved => {
-        //! this must happen AFTER the delete or else delete will delete the wrong track
-        return exports.orderPlaylist(ctx, track.playlistId);
+        return exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+            throw exports.parsePostgresError(rejected, new sj.Error({
+                log: true,
+                origin: 'deleteTrack()',
+                message: 'could not order playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
     }).then(resolved => {
         return new sj.Success({
             log: true,
@@ -1137,7 +1465,20 @@ exports.moveTrack = async function (ctx, track, position) {
         });
     }
 
-    playlist = await exports.orderPlaylist(ctx, playlist).catch(rejected => {
-        throw sj.propagateError(rejected);
-    })
+    playlist = await exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+        throw exports.parsePostgresError(rejected, new sj.Error({
+            log: true,
+            origin: 'addTrack()',
+            message: 'could not order playlist, database error',
+            target: 'notify',
+            cssClass: 'notifyError',
+        }));
+    });
+
+    return new sj.Success({
+        log: true,
+        origin: 'moveTrack()',
+        message: 'moved track',
+        content: playlist,
+    });
 }
