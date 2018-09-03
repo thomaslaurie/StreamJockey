@@ -96,7 +96,6 @@ apiRouter
 	})
 	.get('/playlist/:id', async (ctx, next) => {
 		//? fetching a playlist by name doesn't make sense without a user, and by that point we're into page HTTP not api HTTP
-		console.log('HERE');
 		ctx.response.body = await sjs.getPlaylist(ctx, new sj.Playlist({id: ctx.params.id})).catch(sj.andResolve);
 	})
 	.patch('/playlist', async (ctx, next) => {

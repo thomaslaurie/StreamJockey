@@ -438,7 +438,7 @@ exports.selfRules = new sj.Rules({
 
     useAgainst: true,
     //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
-    againstMessage: 'you are not the owner of this playlist',
+    againstMessage: 'you are not the owner of this',
 });
 
 exports.userNameRules = new sj.Rules({
@@ -1125,7 +1125,7 @@ exports.getPlaylist = async function (ctx, playlist) {
     }
 
     //? does this fail if the wrong dataType is fed in?
-    return db.one(`SELECT * FROM "sj"."playlists" WHERE ("id" = $1) OR ("userId" = $2 AND "name" = $3)`, [playlist.id, playlist.userId, playlist.name]).catch(rejected => {
+    playlist = await db.one(`SELECT * FROM "sj"."playlists" WHERE ("id" = $1) OR ("userId" = $2 AND "name" = $3)`, [playlist.id, playlist.userId, playlist.name]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
             log: true,
             origin: 'getPlaylist()',
@@ -1133,47 +1133,46 @@ exports.getPlaylist = async function (ctx, playlist) {
             target: 'notify',
             cssClass: 'notifyError',
         }));
-    }).then(resolved => {
-        let playlist = new sj.Playlist(resolved);
-
-        //C if the playlist is not perfectly ordered
-        for (let i = 0; i < playlist.content.length; i++) {
-            if (playlist.content[0].position !== i+1) { //! SERIAL ids start from 1 by default
-                // order it and change playlist to this newly ordered one
-                playlist = await exports.orderPlaylist(playlist).catch(rejected => {
-                    throw exports.parsePostgresError(rejected, new sj.Error({
-                        log: true,
-                        origin: 'getPlaylist()',
-                        message: 'could not order playlist, database error',
-                        target: 'notify',
-                        cssClass: 'notifyError',
-                    }));
-                });
-                break;
-            }
-        }
-
-        return playlist;
-
-        /*
-            //TODO permissions
-            do this when permissions are sorted out
-            if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && exports.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
-
-            throw new sj.Error({
-                log: true,
-                origin: 'getPlaylist()',
-                message: 'you do not have permission to access this playlist',
-                target: 'notify',
-                cssClass: 'notifyError',
-            });
-        */
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
     });
+
+    playlist = new sj.Playlist(playlist);
+
+    //C if the playlist is not perfectly ordered
+    for (let i = 0; i < playlist.content.length; i++) {
+        if (playlist.content[0].position !== i+1) { //! SERIAL ids start from 1 by default
+            // order it and change playlist to this newly ordered one
+            playlist = await exports.orderPlaylist(playlist).catch(rejected => {
+                throw exports.parsePostgresError(rejected, new sj.Error({
+                    log: true,
+                    origin: 'getPlaylist()',
+                    message: 'could not order playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+            break;
+        }
+    }
+
+    return playlist;
+
+    /*
+        //TODO permissions
+        do this when permissions are sorted out
+        if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && exports.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
+
+        throw new sj.Error({
+            log: true,
+            origin: 'getPlaylist()',
+            message: 'you do not have permission to access this playlist',
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    */
 }
 exports.editPlaylist = async function (ctx, playlist) { //TODO
 }
+// --------------- working up to here
 exports.deletePlaylist = async function (ctx, playlist) {
     await exports.isLoggedIn(ctx);
     
