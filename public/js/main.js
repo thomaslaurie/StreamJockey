@@ -950,7 +950,7 @@ async function addTrack(track, playlistId) {
 		request: 'addTrack',
 		playlistId: playlistId.val(),
 		source: track.source.name,
-		id: track.id,
+		sourceId: track.sourceId,
 		title: track.title,
 		artists: track.artists,
 		duration: track.duration,
@@ -1158,7 +1158,7 @@ spotify.loadPlayer = async function () {
 					spotify.playback.progress = state.position;
 					spotify.playback.track = {
 						source: spotify,
-						id: state.track_window.current_track.id,
+						sourceId: state.track_window.current_track.id,
 						artists: [],
 						title: state.track_window.current_track.name,
 						duration: state.track_window.current_track.duration_ms,
@@ -1281,6 +1281,7 @@ spotify.loadPlayer = async function () {
 	});
 }
 
+//TODO make this async
 youtube.loadPlayer = function () {
 	$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
 		callback(new sj.Error({
@@ -1371,7 +1372,7 @@ async function search(term) {
 	return Promise.all(sj.sourceList.map(function (source) {
 		return source.search(term).then(resolveBoth);
 	})).then(function (resolved) {
-		return sj.filterList(resolved, 'sj.Success', new sj.Success({
+		return sj.filterList(resolved, sj.Success, new sj.Success({
 			origin: 'search()',
 			message: 'search succeeded',
 		}), new sj.ErrorList( {
@@ -1437,7 +1438,7 @@ spotify.getTracks = async function (items) {
 	items.forEach(function (track, i) {
 		playlist.content[i] = new SjTrack({
 			source: spotify,
-			id: track.id,
+			sourceId: track.id,
 			title: track.name,
 			duration: track.duration_ms,
 			link: track.external_urls.spotify,
@@ -1546,7 +1547,7 @@ youtube.getTracks = async function (ids) {
 			playlist.content[i] = new SjTrack({});
 
 			playlist.content[i].source = youtube;
-			playlist.content[i].id = track.id;
+			playlist.content[i].sourceId = track.id;
 
 			// convert artist - title format
 			// TODO make better regex
@@ -1711,7 +1712,7 @@ async function checkPlayback() {
 	return Promise.all(sj.sourceList.map(function (source) {
 		return source.checkPlayback().then(resolveBoth);
 	})).then(function (resolved) {
-		return sj.filterList(resolved, 'SjSuccess', new sj.Success({
+		return sj.filterList(resolved, sj.Success, new sj.Success({
 			origin: 'checkPlayback()',
 			message: 'checked playback state',
 		}), new sj.ErrorList({
@@ -1911,7 +1912,7 @@ function SjStart(obj) {
 			return source.pause().then(resolveBoth);
 		})).then(resolved => {
 			// filter errors
-			return sj.filterList(resolved, 'SjSuccess', new sj.Success({
+			return sj.filterList(resolved, sj.Success, new sj.Success({
 				origin: 'SjStart.trigger()',
 				message: 'changed track',
 			}), new sj.ErrorList({
@@ -1951,7 +1952,7 @@ function SjToggle(obj) {
 					return source.pause().then(resolveBoth);
 				}
 			})).then(resolved => {
-				return sj.filterList(resolved, 'SjSuccess', new sj.Success({
+				return sj.filterList(resolved, sj.Success, new sj.Success({
 					origin: 'SjToggle.trigger()',
 					message: 'playing updated',
 				}), new sj.ErrorList({
@@ -1968,7 +1969,7 @@ function SjToggle(obj) {
 				// pause all sources
 				return source.pause().then(resolveBoth);
 			})).then(resolved => {
-				return sj.filterList(resolved, 'SjSuccess', new sj.Success({
+				return sj.filterList(resolved, sj.Success, new sj.Success({
 					origin: 'updatePlaybackPlaying()',
 					message: 'playing updated',
 				}), new sj.ErrorList({
@@ -2139,7 +2140,7 @@ var playbackQueue = {
 */
 
 spotify.apiStart = async function (track) {
-	return spotifyApi.play({"uris":["spotify:track:" + track.id]}).then(function (resolved) {
+	return spotifyApi.play({"uris":["spotify:track:" + track.sourceId]}).then(function (resolved) {
 		return new sj.Success({
 			log: true,
 			origin: 'spotify.start()',
@@ -2162,7 +2163,7 @@ spotify.apiStart = async function (track) {
 youtube.apiStart = async function (track) {
 	return new Promise(function (resolve, reject) {
 		try {
-			youtubePlayer.loadVideoById(track.id);
+			youtubePlayer.loadVideoById(track.sourceId);
 			youtubePlayer.playVideo();
 			youtubePlayer.pauseVideo();
 

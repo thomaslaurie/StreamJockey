@@ -280,7 +280,7 @@ const visibilityStates = [
                 "image" text,
                 "color" text,
                 
-                CONSTRAINT playlists_userId_name_key UNIQUE ("userId", "name")
+                CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
             );`).catch(rejected => {
                 throw new sj.Error({
                     log: true,
@@ -296,12 +296,14 @@ const visibilityStates = [
             return task.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
                 "id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
                 "playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
-                "position" integer CONSTRAINT "tracks_position_key" UNIQUE DEFERRABLE INITIALLY IMMEDIATE,
+                "position" integer,
                 "source" text,
                 "sourceId" text,
                 "name" text,
                 "duration" integer,
-                "artists" text[]
+                "artists" text[],
+
+                CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
             );`).catch(rejected => {
                 throw new sj.Error({
                     log: true,
@@ -370,6 +372,7 @@ exports.parsePostgresError = function (pgError, sjError) {
         }
     }
 
+    sjError.announce();
     return sjError;
 }
 
@@ -435,6 +438,8 @@ exports.selfRules = new sj.Rules({
     cssClass: 'notifyError',
 
     valueName: 'Id',
+
+    dataType: 'integer',
 
     useAgainst: true,
     //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
@@ -561,9 +566,9 @@ exports.emailRules = new sj.Rules({
 exports.addUser = async function (user) {
     //C validate
     await sj.Rules.checkRuleSet([
-        [exports.userNameRules, user.name],
-        [exports.setPasswordRules, user.password, user.password2],
-        [exports.emailRules, user.email],
+        [exports.userNameRules, user, 'name'],
+        [exports.setPasswordRules, user, 'password', user.password2],
+        [exports.emailRules, user, 'email'],
     ]);
     /*
         var errorList = new sj.ErrorList({
@@ -625,7 +630,7 @@ exports.addUser = async function (user) {
         return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
             // replaces default error info with info based on error code 
             throw exports.parsePostgresError(rejected, new sj.Error({
-                log: true,
+                log: false,
                 origin: 'addUser()',
                 message: 'could not add user',
                 target: 'notify',
@@ -653,12 +658,12 @@ exports.getUser = async function (user) {
     //TODO userNameRules has userName field ids, this wont target them because they wont exist - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
 
     await sj.Rules.checkRuleSet([
-        [exports.userNameRules, user.name],
+        [exports.userNameRules, user, 'name'],
     ]);
 
     return db.one('SELECT * FROM "sj"."users_public" WHERE "id" = $1', [id]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
                 origin: 'getUser()',
                 message: 'could not get user',
                 target: 'notify',
@@ -675,7 +680,7 @@ exports.editUser = async function (ctx, user) { //TODO
     /* TODO
     return db.none('UPDATE "sj."users" SET x = $x, x = $x, x = $x, ... WHERE "id" = x,', [x, ...]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
             origin: 'editUser()',
             message: 'could not edit user',
             notify: 'notify',
@@ -698,12 +703,12 @@ exports.deleteUser = async function (ctx, user) {
     await exports.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [exports.passwordRules, user.password],
+        [exports.passwordRules, user, 'password'],
     ]);
 
     return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
             origin: 'deleteUser()',
             message: 'could not delete user',
             target: 'notify',
@@ -725,7 +730,7 @@ exports.deleteUser = async function (ctx, user) {
         if (resolved) {
             return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
                 throw exports.parsePostgresError(rejected, new sj.Error({
-                    log: true,
+                    log: false,
                     origin: 'deleteUser()',
                     message: 'could not delete user',
                     target: 'notify',
@@ -766,13 +771,13 @@ exports.deleteUser = async function (ctx, user) {
 // CRUD
 exports.login = async function (ctx, user) {
     await sj.Rules.checkRuleSet([
-        [exports.userNameRules, user.name],
-        [exports.passwordRules, user.password],
+        [exports.userNameRules, user, 'name'],
+        [exports.passwordRules, user, 'password'],
     ]);
 
     return db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
             origin: 'login()',
             message: 'could not login, database error',
             target: 'notify',
@@ -794,7 +799,7 @@ exports.login = async function (ctx, user) {
         if (resolved) {
             return db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', [user.name]).catch(rejected => {
                 throw exports.parsePostgresError(rejected, new sj.Error({
-                    log: true,
+                    log: false,
                     origin: 'login()',
                     message: 'could not login, database error',
                     target: 'notify',
@@ -856,7 +861,7 @@ exports.isLoggedIn = async function (ctx) {
     }
     //C redundancy check to make sure id is right format
     await sj.Rules.checkRuleSet([
-        [exports.positiveIntegerRules, ctx.session.user.id],
+        [exports.positiveIntegerRules, ctx.session.user, 'id'],
     ]);
 
     return new sj.Success({
@@ -1010,11 +1015,11 @@ exports.addPlaylist = async function (ctx, playlist) {
     await exports.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [exports.playlistNameRules, playlist.name],
-        [exports.visibilityRules, playlist.visibility],
-        [exports.descriptionRules, playlist.description],
-        [exports.imageRules, playlist.image],
-        [exports.colorRules, playlist.color],
+        [exports.playlistNameRules, playlist, 'name'],
+        [exports.visibilityRules, playlist, 'visibility'],
+        [exports.descriptionRules, playlist, 'description'],
+        [exports.imageRules, playlist, 'image'],
+        [exports.colorRules, playlist, 'color'],
     ]);
     /*
         var errorList = new sj.ErrorList({
@@ -1092,7 +1097,7 @@ exports.addPlaylist = async function (ctx, playlist) {
 
     return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
             origin: 'addPlaylist()',
             message: 'failed to add playlist, database error',
             target: 'notify',
@@ -1113,37 +1118,50 @@ exports.addPlaylist = async function (ctx, playlist) {
 exports.getPlaylist = async function (ctx, playlist) {
     //C validate - get by id or get by userId and playlistName
     //! id is default to null when it isn't set, is this wrong semantics //?
-    if (sj.typeOf(playlist.id) !== 'null') { 
-        // await sj.Rules.checkRuleSet([
-        //     [exports.positiveIntegerRules, playlist.id],
-        // ]);
-    } else {
-        await sj.Rules.checkRuleSet([
-            [exports.positiveIntegerRules, ctx.session.user.id],
-            [exports.playlistNameRules, playlist.name],
-        ]);
-    }
+    /*
+        if (sj.typeOf(playlist.id) !== 'null') { 
+    */
+    await sj.Rules.checkRuleSet([
+        [exports.positiveIntegerRules, playlist, 'id'],
+    ]);
+    /*
+        } else {
+            await sj.Rules.checkRuleSet([
+                [exports.positiveIntegerRules, ctx.session.user, 'id'],
+                [exports.playlistNameRules, playlist, 'name'],
+            ]);
+        }
+    */
 
     //? does this fail if the wrong dataType is fed in?
-    playlist = await db.one(`SELECT * FROM "sj"."playlists" WHERE ("id" = $1) OR ("userId" = $2 AND "name" = $3)`, [playlist.id, playlist.userId, playlist.name]).catch(rejected => {
+    playlist = await db.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1` /*) OR ("userId" = $2 AND "name" = $3)*/, [playlist.id /*, playlist.userId, playlist.name*/]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
-            origin: 'getPlaylist()',
+            log: false,
+            origin: 'getPlaylist() playlists query',
             message: 'could not get playlist, database error',
             target: 'notify',
             cssClass: 'notifyError',
         }));
     });
-
+    trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
+        throw exports.parsePostgresError(rejected, new sj.Error({
+            log: false,
+            origin: 'getPlaylist() tracks query',
+            message: 'could not get playlist, database error',
+            target: 'notify',
+            cssClass: 'notifyError',
+        }));
+    });
+    
+    playlist.content = trackList;
     playlist = new sj.Playlist(playlist);
-
+    
     //C if the playlist is not perfectly ordered
-    for (let i = 0; i < playlist.content.length; i++) {
-        if (playlist.content[0].position !== i+1) { //! SERIAL ids start from 1 by default
-            // order it and change playlist to this newly ordered one
+    for (var i = 0; i < playlist.content.length; i++) {
+        if (playlist.content[i].position !== i) {
             playlist = await exports.orderPlaylist(playlist).catch(rejected => {
                 throw exports.parsePostgresError(rejected, new sj.Error({
-                    log: true,
+                    log: false,
                     origin: 'getPlaylist()',
                     message: 'could not order playlist, database error',
                     target: 'notify',
@@ -1153,7 +1171,7 @@ exports.getPlaylist = async function (ctx, playlist) {
             break;
         }
     }
-
+    
     return playlist;
 
     /*
@@ -1172,18 +1190,19 @@ exports.getPlaylist = async function (ctx, playlist) {
 }
 exports.editPlaylist = async function (ctx, playlist) { //TODO
 }
-// --------------- working up to here
 exports.deletePlaylist = async function (ctx, playlist) {
     await exports.isLoggedIn(ctx);
-    
-    await sj.Rules.checkRuleSet([
-        [exports.positiveIntegerRules, playlist.id],
-        [exports.selfRules, playlist.userId, ctx.session.user.id],
-    ]);
 
-    return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1 AND "userId" = $2', [playlist.id, ctx.session.user.id]).catch(rejected => {
+    playlist = await exports.getPlaylist(ctx, playlist);
+
+    await sj.Rules.checkRuleSet([
+        [exports.positiveIntegerRules, playlist, 'id'],
+        [exports.selfRules, playlist, 'userId', ctx.session.user.id],
+    ]);
+    
+    return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1', [playlist.id]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
             origin: 'deletePlaylist()',
             message: 'could not delete playlist, database error',
             target: 'notify',
@@ -1220,31 +1239,38 @@ exports.orderPlaylist = async function (playlist) {
     return db.tx(async function (task) {
         let realPlaylist = await task.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
             throw exports.parsePostgresError(rejected, new sj.Error({
-                log: true,
+                log: false,
                 origin: 'orderPlaylist()',
                 message: 'could not get playlist, database error',
                 target: 'notify',
                 cssClass: 'notifyError',
             }));
-        }).then(resolved => {
-            return new sj.Playlist(resolved);
         });
+        let trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
+            throw exports.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'orderPlaylist() tracks query',
+                message: 'could not order playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
+
+        realPlaylist.content = trackList;
+        realPlaylist = new sj.Playlist(realPlaylist);
 
         //C sort by track.position
         realPlaylist.content.stableSort(function (a, b) {
-            // https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-            // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-
-            // numeric & property compare
             return a.position - b.position;
         });
+
 
         //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
         //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
         //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-        await task.none('SET CONSTRAINTS "sj"."tracks_position_key" DEFERRED').catch(rejected => {
+        await task.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
             throw exports.parsePostgresError(rejected, new sj.Error({
-                log: true,
+                log: false,
                 origin: 'orderPlaylist()',
                 message: 'could not order playlist, database error',
                 target: 'notify',
@@ -1258,7 +1284,7 @@ exports.orderPlaylist = async function (playlist) {
         realPlaylist.content.map(async function (item, index) {
             await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]).catch(rejected => {
                 throw exports.parsePostgresError(rejected, new sj.Error({
-                    log: true,
+                    log: false,
                     origin: 'orderPlaylist()',
                     message: 'could not order playlist, database error',
                     target: 'notify',
@@ -1267,13 +1293,13 @@ exports.orderPlaylist = async function (playlist) {
             });
         });
 
-        return;
+        return realPlaylist;
     }).then(resolved => {
         //C apply actual indexes for return
-        realPlaylist.content.map(function(item, index) {
+        resolved.content.map(function(item, index) {
             item.position = index;
         });
-        return realPlaylist;
+        return resolved;
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
@@ -1295,7 +1321,9 @@ exports.sourceRules = new sj.Rules({
 
     valueName: 'Source',
 
-    against: sj.sourceList,
+    useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
+    againstValue: sj.sourceList,
+    againstMessage: 'track does not have a valid source',
 });
 exports.sourceIdRules = new sj.Rules({
     log: true,
@@ -1305,6 +1333,19 @@ exports.sourceIdRules = new sj.Rules({
     valueName: 'Source ID',
 
     //? any source id rules (other than being a string)? length? trim?
+});
+exports.trackNameRules = new sj.Rules({
+    log: true,
+    origin: 'trackNameRules()',
+    message: 'name validated',
+    target: 'trackName',
+    cssClass: 'inputError',
+
+    valueName: 'Name',
+    trim: true,
+
+    min: nameMinLength,
+    max: stringMaxLength,  
 });
 
 // CRUD
@@ -1316,16 +1357,17 @@ exports.addTrack = async function (ctx, track) {
         throw sj.propagateError(rejected);
     });
     //C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
+    
     track.position = playlist.content.length;
 
     await sj.Rules.checkRuleSet([
-        [exports.selfRules, playlist.userId, ctx.session.userId],
-        [exports.positiveIntegerRules, track.playlistId],
-        [exports.positiveIntegerRules, track.position],
-        [exports.sourceRules, track.source],
-        [exports.sourceIdRules, track.sourceId],
-        [exports.trackNameRules, track.name],
-        [exports.positiveIntegerRules, track.duration],
+        [exports.selfRules, ctx.session.user, 'id', playlist.userId],
+        [exports.positiveIntegerRules, track, 'playlistId'],
+        [exports.positiveIntegerRules, track, 'position'],
+        [exports.sourceRules, track, 'source'],
+        [exports.sourceIdRules, track, 'sourceId'],
+        [exports.trackNameRules, track, 'name'],
+        [exports.positiveIntegerRules, track, 'duration'],
         //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rules)
     ]); 
     /*
@@ -1366,9 +1408,9 @@ exports.addTrack = async function (ctx, track) {
     */
 
     //! artists is simply stored as an array, eg. TEXT[]
-    return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.id, track.name, track.duration, track.artists]).catch(rejected => {
+    return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.sourceId, track.name, track.duration, track.artists]).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
             origin: 'addTrack()',
             message: 'could not add track, database error',
             target: 'notify',
@@ -1377,7 +1419,7 @@ exports.addTrack = async function (ctx, track) {
     }).then(resolved => {
         return exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
             throw exports.parsePostgresError(rejected, new sj.Error({
-                log: true,
+                log: false,
                 origin: 'addTrack()',
                 message: 'could not order playlist, database error',
                 target: 'notify',
@@ -1404,11 +1446,14 @@ exports.deleteTrack = async function (ctx, track) {
         throw sj.propagateError(rejected);
     });
 
+    //TODO change this to just id based
     await sj.Rules.checkRuleSet([
-        [exports.selfRules, playlist.userId, ctx.session.userId],
-        [exports.positiveIntegerRules, track.playlistId],
-        [exports.positiveIntegerRules, track.position],
+        [exports.selfRules, playlist, 'userId', ctx.session.userId],
+        [exports.positiveIntegerRules, track, 'playlistId'],
+        [exports.positiveIntegerRules, track, 'position'],
     ]);
+
+    //TODO check to make sure it exists (like deletePlaylist has getPlaylist)
 
     return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
         throw exports.parsePostgresError({
@@ -1421,7 +1466,7 @@ exports.deleteTrack = async function (ctx, track) {
     }).then(resolved => {
         return exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
             throw exports.parsePostgresError(rejected, new sj.Error({
-                log: true,
+                log: false,
                 origin: 'deleteTrack()',
                 message: 'could not order playlist, database error',
                 target: 'notify',
@@ -1430,7 +1475,7 @@ exports.deleteTrack = async function (ctx, track) {
         });
     }).then(resolved => {
         return new sj.Success({
-            log: true,
+            log: false,
             origin: 'deleteTrack()',
             content: track,
             target: 'notify',
@@ -1466,7 +1511,7 @@ exports.moveTrack = async function (ctx, track, position) {
 
     playlist = await exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
         throw exports.parsePostgresError(rejected, new sj.Error({
-            log: true,
+            log: false,
             origin: 'addTrack()',
             message: 'could not order playlist, database error',
             target: 'notify',
@@ -1475,7 +1520,7 @@ exports.moveTrack = async function (ctx, track, position) {
     });
 
     return new sj.Success({
-        log: true,
+        log: false,
         origin: 'moveTrack()',
         message: 'moved track',
         content: playlist,
