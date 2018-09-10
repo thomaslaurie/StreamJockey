@@ -70,6 +70,22 @@ function wrapTrack() {
     });
 }
 
+$(document).on('click', '#authSpotify', async function() {
+    console.log('clicked');
+    let link = await fetch(`http://localhost:3000/api/sendAuth`, {
+                method: 'get',
+            }).then(resolved => {
+                return resolved;
+            }, rejected => {
+                return rejected;
+            });
+
+    link = await link.text();
+    console.log('LINK: ', link);
+
+    $('#authSpotifyLink').attr('href', link);
+});
+
 $(document).on('click', '#registerUser', async function() {
     send('user', wrapUser(), 'post');
 });

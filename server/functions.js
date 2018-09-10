@@ -36,6 +36,8 @@ const visibilityStates = [
     Retrieve -> get
     Update -> edit
     Delete -> delete
+
+    //! right now the CRUD functions are called with sj.Objects with some set of parameters (not always id, even for get) - these parameters are all ones that are fine to publicly carry around with the object (except in particular cases like passwords) and so should always be with the object. If theres a point in the future where these have to be called with a consistent argument (id) then the next step would be to make all these consistent about using that parameter and then also maybe have fallbacks for incase that parameter doesn't exist but other sufficient ones do (playlistId, position). This would be an order of properties and their respective validation checks and query modifications.
 */
 
 
@@ -1439,8 +1441,24 @@ exports.addTrack = async function (ctx, track) {
     });
 }
 exports.deleteTrack = async function (ctx, track) {
+    //! requires an sj.Track with playlistId and position properties
+
     await exports.isLoggedIn(ctx);
 
+    await sj.Rules.checkRuleSet([
+        [exports.positiveIntegerRules, track, 'playlistId'],
+        [exports.positiveIntegerRules, track, 'position'],
+    ]);
+
+    /*
+        `
+        SELECT * 
+        FROM "sj"."playlists" 
+        JOIN "sj"."tracks" 
+        ON "sj"."playlists"."id" = "sj"."tracks"."playlistId" 
+        WHERE "sj"."tracks"."id" = $1`
+    */
+     
     //C retrieve playlist
     let playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
         throw sj.propagateError(rejected);
@@ -1449,8 +1467,6 @@ exports.deleteTrack = async function (ctx, track) {
     //TODO change this to just id based
     await sj.Rules.checkRuleSet([
         [exports.selfRules, playlist, 'userId', ctx.session.userId],
-        [exports.positiveIntegerRules, track, 'playlistId'],
-        [exports.positiveIntegerRules, track, 'position'],
     ]);
 
     //TODO check to make sure it exists (like deletePlaylist has getPlaylist)

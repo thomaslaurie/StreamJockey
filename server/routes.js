@@ -9,6 +9,10 @@ const apiRouter = new Router();
 const sj = require('../public/js/global.js');
 const sjs = require('./functions.js');
 
+//! temp
+const auth = require('./auth.js');
+const fetch = require('node-fetch');
+
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -63,6 +67,46 @@ const sjs = require('./functions.js');
 
 // server-side data & processing requests
 apiRouter
+	//! testing spotify authorization 
+	.get('/sendAuth', async (ctx, next) => {
+		// send a http request with this: testAuth.authURL
+		//console.log('sent');
+		ctx.response.body = auth.spotifyAuthURL;
+
+		// await fetch(auth.spotifyAuthURL, {
+		// 	method: 'get',
+		// }).then(resolved => {
+		// 	ctx.response.body = new sj.Success({
+		// 		log: true,
+		// 		origin: 'sendAuth',
+		// 		message: 'sent request',
+		// 	});
+		// }, rejected => {
+		// 	ctx.response.body = new sj.Error({
+		// 		log: true,
+		// 		origin: 'sendAuth',
+		// 		message: 'failed to send request',
+		// 	});
+		// });
+	})
+	.get('/receiveAuth', async (ctx, next) => {
+		console.log('received');
+		//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
+		console.log('CODE: ', ctx.request.query.code);
+		console.log('STATE: ', ctx.request.query.state); // used to validate response origin (app makes it own state check thing)
+
+		ctx.response.body = new sj.Success({
+			log: true,
+			origin: 'sendAuth',
+			message: 'sent request',
+			content: {
+				code: ctx.request.query.code,
+				state: ctx.request.query.state,
+			}
+		});
+	})
+
+
 	// user
 	.post('/user', async (ctx, next) => {
 		ctx.response.body = await sjs.addUser(ctx.request.body).catch(sj.andResolve);
@@ -140,6 +184,10 @@ router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // nested ro
 
 // pages, etc.
 router
+
+	
+
+
 	.get('/*', async (ctx, next) => {
 		// pages are accessed through the base GET method
 		// serve /public files
