@@ -70,27 +70,11 @@ function wrapTrack() {
     });
 }
 
-// Initialize ui
-// (async function () {
-//     await fetch(`http://localhost:3000/api/spotifyAuthURL`, {
-//     method: 'get',
-// }).then(resolved => {
-//     return resolved.text();
-// }).then(resolved => {
-//     console.log('LINK: ', resolved);
-//     $('#authSpotify').attr('href', resolved);
-//     console.log('authSpotify initialized');
-// }).catch(rejected => {
-//     console.error(rejected);
-//     console.error('authSpotify initialization failed');
-// });
-// })();
-console.log('HERE', JSON.stringify(new sj.Source({})));
+
 async function authSpotify() {
     let authRequestWindow;
     
     //C request authURL & authKey
-
     return fetch(`http://localhost:3000/api/startAuthRequest`).then(resolved => {
         console.log('HERE1');
         return resolved.json();
@@ -118,7 +102,7 @@ async function authSpotify() {
     }).then(resolved => {
         console.log('RESULT', resolved);
         authRequestWindow.close();
-        return new sj.Success(resolved);
+        return resolved;
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
@@ -127,7 +111,6 @@ async function authSpotify() {
 $(document).on('click', '#authSpotify', async function() {
     console.log('HERE0');
     let result = await authSpotify().catch(sj.andResolve);
-    console.log('RESULT', result);
 });
 
 // js on click

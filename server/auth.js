@@ -7,10 +7,8 @@ const sj = require('../public/js/global.js');
 var SpotifyWebApi = require('spotify-web-api-node');
 const EventEmitter = require('events');
 
-exports.spotify = new sj.Source({ 
-    //TODO this is duplicated in main.js, see if its possible to merge these somehow
-    name: 'spotify',
-
+//TODO consider moving this over to the globals-server stuff
+spotify = new sj.Source({ 
     api: new SpotifyWebApi({
         //C create api object and set credentials in constructor
         clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -45,10 +43,9 @@ exports.spotify = new sj.Source({
         ];
     },
     authRequestManually: true,
-    get authRequestURL() {
+    makeAuthRequestURL: function (key) {
         //! the show_dialog query parameter isn't available in the createAuthorizeURL, so manually add it
-        return this.api.createAuthorizeURL(this.scopes, this.authRequestKey) + `&show_dialog=${this.authRequestManually}`; 
-        
+        return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`; 
     },
 });
 
@@ -84,8 +81,6 @@ exports.addKey = async function (list) {
     return pack;
 }
 exports.checkKey = async function (list, key, timeout) {
-    console.log('KEY', key);
-    console.log('LIST', list);
     for(let i = 0; i < list.length; i++) {
         //C if the key is found, remove and return it
         if (list[i].key === key) {
@@ -122,19 +117,11 @@ exports.checkAuthRequestKey = async function (key) {
 //C source specific authRequest functions //TODO rename to 'spotify'x.., 'youtube'x...
 exports.startAuthRequest = async function () {
     let pack = await exports.addKey(authRequestKeyList);
-    //TODO using new sj.Source here creates JSON.stringify() circular reference  error
-    // let temp = new sj.Source({
-    //     //authRequestKey: pack.key, //! key must come before authRequestURL for it to be included
-    //     //authRequestTimestamp: pack.timestamp,
-    //     //authRequestURL: exports.spotify.authRequestURL,
-        
-    // });
-    // console.log('SOURCE', JSON.stringify(temp));
-    // console.log('HERE');
-    JSON.stringify(new sj.Source({}));
-    return '';
-    
-    // return temp;
+    return new sj.Credentials({
+        authRequestKey: pack.key,
+        authRequestTimestamp: pack.timestamp,
+        authRequestURL: spotify.makeAuthRequestURL(pack.key),
+    });
 }
 exports.receiveAuthRequest = async function (ctx) {
     /*//C 
@@ -151,17 +138,19 @@ exports.receiveAuthRequest = async function (ctx) {
 
     //C check key first to see if it is even known who sent the request
     //! on fail this will throw a key-not-found error (either because of timeout or another error), in this case, there is no knowing what client requested this, and should just be left to time out (on the http request side)
-    console.log('QUERY', ctx.request.query);
-    await exports.checkAuthRequestKey(ctx.request.query.state); 
-
-    
     //TODO create error parser for spotify api
-    if (ctx.request.code.error !== undefined) {
+    await exports.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
+        //C ensure that Error object's content is a string for calling an event
+        let error = sj.propagateError(rejected);
+        error.content = '';
+        throw error;
+    });
+    if (ctx.request.query.error !== undefined) {
         throw new sj.Error({
             log: true,
             origin: 'receiveAuthRequest()',
             message: 'spotify authorization failed',
-            reason: ctx.request.code.error,
+            reason: ctx.request.query.error,
             content: ctx.request.query.state,
         });
     }
@@ -175,7 +164,7 @@ exports.receiveAuthRequest = async function (ctx) {
         });
     }
 
-    return new sj.Source({
+    return new sj.Credentials({
         authRequestKey: ctx.request.query.state,
         authCode: ctx.request.query.code,
     });

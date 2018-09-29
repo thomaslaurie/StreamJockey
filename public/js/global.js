@@ -95,6 +95,7 @@ Misc:
 		'sj.User',
 		'sj.Rules',
 		'sj.Source',
+		'sj.Credentials',
 		'sj.Playback',
 		'sj.Action',
 		'sj.Start',
@@ -841,31 +842,6 @@ Misc:
 		}
 	}
 
-	sj.Credentials = class extends sj.Object {
-		constructor(options = {}) {
-			super(sj.Object.tellParent(options));
-
-			this.objectType = 'sj.Credentials',
-
-			sj.Object.init(this, options, {
-				//TODO this should only be server-side 
-				api: {},
-				scopes: [],
-				authRequestManually: true,
-				authRequestURL: '',
-
-				authRequestKey: {},
-				authRequestTimestamp: 0,
-
-				authCode: {},
-				authAccessToken: {},
-				authRefreshToken: {},
-			});
-
-			this.onCreate();
-		}
-	}	
-
 	sj.Source = class extends sj.Object {
 		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
@@ -878,6 +854,12 @@ Misc:
 				idPrefix: '',
 				playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
 				realSource: true,
+
+				//TODO this should only be server-side
+				api: {},
+				scopes: [],
+				authRequestManually: true,
+				makeAuthRequestURL: function () {},
 
 				//C empty throw functions
 				loadApi: async function () {
@@ -1039,6 +1021,26 @@ Misc:
 			}
 		}
 	}
+	sj.Credentials = class extends sj.Object {
+		constructor(options = {}) {
+			super(sj.Object.tellParent(options));
+
+			this.objectType = 'sj.Credentials',
+
+			sj.Object.init(this, options, {
+				//TODO this should only be server-side 
+				authRequestKey: {}, //! key comparison is done, therefore this shouldn't be an empty string
+				authRequestTimestamp: 0,
+				authRequestURL: '',
+
+				authCode: '',
+				authAccessToken: '',
+				authRefreshToken: '',
+			});
+
+			this.onCreate();
+		}
+	}
 	sj.Playback = class extends sj.Object {
 		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
@@ -1057,6 +1059,7 @@ Misc:
 			this.onCreate();
 		}
 	}
+	
 
 	// TODO consider if all actions should actually be in main.js instead
 	/* // TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?

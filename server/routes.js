@@ -110,23 +110,31 @@ apiRouter
 	})
 	.get('/spotifyAuthRedirect', async (ctx, next) => {
 		//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-
 		let result = await auth.receiveAuthRequest(ctx).catch(sj.andResolve);
-		//console.log('RECEIVE RESULT: ', t);
+		console.log('HERE', result);
+		
+		if (sj.typeOf(result) === 'sj.Credentials') {
+			emitter.emit(result.authRequestKey, result);
+		} else if (sj.typeOf(result) === 'sj.Error') {
+			//C ensure key is a string
+			result.content = sj.typeOf(result.content) !== 'string' ? '' : result.content; 
+			//C the authRequestKey (inside Error.content) can be empty/incorrect (simply no listeners will be called)
+			emitter.emit(result.content, result); 
+		}
 
-		//C it doesn't matter if there isn't an authRequestKey (and therefore doesn't have listeners) upon error - this function will simply return false
-		emitter.emit(result.authRequestKey, result);
+		//TODO set default message here, (this should be closed oops)
 	})
 	.post('/endAuthRequest', async (ctx, next) => {
 		//TODO timeout for this?
 		await new Promise((resolve, reject) => {
+			//C once the event with the same key as that passed in the body is triggered, call
 			emitter.once(ctx.request.body.authRequestKey, (result) => {
+				console.log('triggered');
 				resolve(result);
 			});
 		}).then(resolved => {
 			ctx.response.body = resolved;
 		});		
-		
 	})
 
 
