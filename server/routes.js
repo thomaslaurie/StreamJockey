@@ -1,4 +1,6 @@
 const path = require('path');
+const EventEmitter = require('events');
+const emitter = new EventEmitter();
 
 const Router = require('koa-router'); // https://github.com/alexmingoia/koa-router
 const send = require('koa-send'); // https://github.com/koajs/send
@@ -65,45 +67,66 @@ const fetch = require('node-fetch');
 //  ██║  ██║██║     ██║
 //  ╚═╝  ╚═╝╚═╝     ╚═╝
 
+/*
+	let listenerList = [
+	];
+
+	async function addListener(depth) {
+		//TODO this is a mess, there has to be a much better way to do this
+
+		//C stop recursion if 10 layers deep
+		depth = depth || 0;
+		if (depth >= 10) {
+			throw new sj.Error({
+				log: true,
+				origin: 'addListener()',
+				message: 'could not handle request, timeout error',
+				reason: 'addListener timeout',
+			});
+		}
+
+		let f = Math.random();
+
+		if (listeners.indexOf(f) !== -1) {
+			f = await addListener(depth+1); //! recursive call
+		}
+
+		if (depth === 0) {
+			listeners.push(f);
+		}
+
+		return f;
+	}
+*/
+
 // server-side data & processing requests
 apiRouter
-	//! testing spotify authorization 
-	.get('/sendAuth', async (ctx, next) => {
-		// send a http request with this: testAuth.authURL
-		//console.log('sent');
-		ctx.response.body = auth.spotifyAuthURL;
+	// auth
+	.get('/startAuthRequest', async (ctx, next) => {
+		//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+		//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
 
-		// await fetch(auth.spotifyAuthURL, {
-		// 	method: 'get',
-		// }).then(resolved => {
-		// 	ctx.response.body = new sj.Success({
-		// 		log: true,
-		// 		origin: 'sendAuth',
-		// 		message: 'sent request',
-		// 	});
-		// }, rejected => {
-		// 	ctx.response.body = new sj.Error({
-		// 		log: true,
-		// 		origin: 'sendAuth',
-		// 		message: 'failed to send request',
-		// 	});
-		// });
+		ctx.response.body = await auth.startAuthRequest().catch(sj.andResolve);
 	})
-	.get('/receiveAuth', async (ctx, next) => {
-		console.log('received');
+	.get('/spotifyAuthRedirect', async (ctx, next) => {
 		//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-		console.log('CODE: ', ctx.request.query.code);
-		console.log('STATE: ', ctx.request.query.state); // used to validate response origin (app makes it own state check thing)
 
-		ctx.response.body = new sj.Success({
-			log: true,
-			origin: 'sendAuth',
-			message: 'sent request',
-			content: {
-				code: ctx.request.query.code,
-				state: ctx.request.query.state,
-			}
-		});
+		let result = await auth.receiveAuthRequest(ctx).catch(sj.andResolve);
+		//console.log('RECEIVE RESULT: ', t);
+
+		//C it doesn't matter if there isn't an authRequestKey (and therefore doesn't have listeners) upon error - this function will simply return false
+		emitter.emit(result.authRequestKey, result);
+	})
+	.post('/endAuthRequest', async (ctx, next) => {
+		//TODO timeout for this?
+		await new Promise((resolve, reject) => {
+			emitter.once(ctx.request.body.authRequestKey, (result) => {
+				resolve(result);
+			});
+		}).then(resolved => {
+			ctx.response.body = resolved;
+		});		
+		
 	})
 
 
@@ -184,10 +207,6 @@ router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // nested ro
 
 // pages, etc.
 router
-
-	
-
-
 	.get('/*', async (ctx, next) => {
 		// pages are accessed through the base GET method
 		// serve /public files

@@ -70,22 +70,67 @@ function wrapTrack() {
     });
 }
 
+// Initialize ui
+// (async function () {
+//     await fetch(`http://localhost:3000/api/spotifyAuthURL`, {
+//     method: 'get',
+// }).then(resolved => {
+//     return resolved.text();
+// }).then(resolved => {
+//     console.log('LINK: ', resolved);
+//     $('#authSpotify').attr('href', resolved);
+//     console.log('authSpotify initialized');
+// }).catch(rejected => {
+//     console.error(rejected);
+//     console.error('authSpotify initialization failed');
+// });
+// })();
+console.log('HERE', JSON.stringify(new sj.Source({})));
+async function authSpotify() {
+    let authRequestWindow;
+    
+    //C request authURL & authKey
+
+    return fetch(`http://localhost:3000/api/startAuthRequest`).then(resolved => {
+        console.log('HERE1');
+        return resolved.json();
+    }).then(resolved => {
+        //C open spotify auth request window
+        //L https://www.w3schools.com/jsref/met_win_open.asp
+        authRequestWindow = window.open(resolved.authRequestURL);
+        
+        console.log('HERE2');
+        return resolved;
+    }).then(resolved => {
+        //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
+        console.log('HERE3');
+        return fetch(`http://localhost:3000/api/endAuthRequest`,  {
+            method: 'post',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(resolved),
+        });
+    }).then(resolved => {
+        console.log('HERE4');
+        return resolved.json();
+    }).then(resolved => {
+        console.log('RESULT', resolved);
+        authRequestWindow.close();
+        return new sj.Success(resolved);
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+}
+
 $(document).on('click', '#authSpotify', async function() {
-    console.log('clicked');
-    let link = await fetch(`http://localhost:3000/api/sendAuth`, {
-                method: 'get',
-            }).then(resolved => {
-                return resolved;
-            }, rejected => {
-                return rejected;
-            });
-
-    link = await link.text();
-    console.log('LINK: ', link);
-
-    $('#authSpotifyLink').attr('href', link);
+    console.log('HERE0');
+    let result = await authSpotify().catch(sj.andResolve);
+    console.log('RESULT', result);
 });
 
+// js on click
 $(document).on('click', '#registerUser', async function() {
     send('user', wrapUser(), 'post');
 });

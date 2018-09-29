@@ -47,9 +47,6 @@ Misc:
 	consider changing target: 'notify' to target: 'general' ?
 */
 
-
-
-
 (function(sj){
 	//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 	//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
@@ -79,7 +76,13 @@ Misc:
 			return e.stack; //TODO figure out how to unescape this
 		}
 	}
-	
+	/*
+		//C unused afaik
+		sj.sleep = async function (ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+	*/
+
 	// type
 	sj.objectList = [ // list of all valid sj objects
 		// TODO must be a better way
@@ -99,7 +102,7 @@ Misc:
 		'sj.Seek',
 		'sj.Volume',
 	];
-	sj.isValidObjectType = function(input) {
+	sj.isValidObjectType = function (input) {
 		return sj.objectList.indexOf(input) !== -1;
 	}
 	sj.typeOf = function (input) {
@@ -293,7 +296,6 @@ Misc:
 				type: 'Ok',
 				origin: '',
 				trace: sj.trace(),
-				
 
 				// content
 				message: '',
@@ -309,17 +311,24 @@ Misc:
 		}
 
 		static init(obj, options, defaults) {
-			// all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Object.tellParent(options));
+			//TODO figure out how this works
+			//? not quite sure what this does, doesn't this just set this to be false all the time?
+			//! all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Object.tellParent(options));
 			obj.isParent = typeof options.isParent !== 'undefined' ? options.isParent : false;
-			options.isParent = false;
+			//C isParent usually isn't listed in defaults so this doesn't get trasfered?
+			options.isParent = false; //? why is this part needed if it isn't initialized?
 
-			// deep assign, !!! breaks circular references (though these should never need to be passed)
-			Object.keys(defaults).forEach(key => { // enumerable properties (from Object.keys): https://hashnode.com/post/what-are-enumerable-properties-in-javascript-ciljnbtqa000exx53n5nbkykx
-				// short circuit evaluation for undefined object or property
+			//? deep assign (this seems like a regular assign), //! breaks circular references (though these should never need to be passed)
+			Object.keys(defaults).forEach(key => { 
+				//L enumerable properties (from Object.keys https://hashnode.com/post/what-are-enumerable-properties-in-javascript-ciljnbtqa000exx53n5nbkykx
+				
+				//C short circuit evaluation for undefined object or property
 				obj[key] = typeof options !== 'undefined' && typeof options[key] !== 'undefined' ? options[key] : defaults[key];
 			});
 		}
+		
 		static tellParent(options) {
+			//C used to pass options (except with a true isParent property) to a parent class
 			options.isParent = true;
 			return options;
 		}
@@ -832,6 +841,31 @@ Misc:
 		}
 	}
 
+	sj.Credentials = class extends sj.Object {
+		constructor(options = {}) {
+			super(sj.Object.tellParent(options));
+
+			this.objectType = 'sj.Credentials',
+
+			sj.Object.init(this, options, {
+				//TODO this should only be server-side 
+				api: {},
+				scopes: [],
+				authRequestManually: true,
+				authRequestURL: '',
+
+				authRequestKey: {},
+				authRequestTimestamp: 0,
+
+				authCode: {},
+				authAccessToken: {},
+				authRefreshToken: {},
+			});
+
+			this.onCreate();
+		}
+	}	
+
 	sj.Source = class extends sj.Object {
 		constructor(options = {}) {
 			super(sj.Object.tellParent(options));
@@ -1213,14 +1247,14 @@ Misc:
 	// TODO move with actions sj.noAction = new sj.Action();
 
 
-	//  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
-	//  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
-	//  █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝
-	//  ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗
-	//  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║
-	//  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+//   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
+//  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
+//  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
+//  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
+//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 
-	// sorting
+	// error
 	sj.isError = function (obj) {
 		// checks for proper SjObject error types
 		return sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.ErrorList';
@@ -1268,6 +1302,7 @@ Misc:
 		}
 	}
 
+	// sorting
 	sj.filterList = async function (list, type, successList, errorList) {
 		//C sorts through a list of both successes and errors (usually received from Promise.all and sj.resolveBoth() to avoid fail-fast behavior to process all promises).
 		//C returns either a sj.Success with content as the original list if all match the desired object, or a sj.ErrorList with content as all the items that did not match.
@@ -1299,6 +1334,94 @@ Misc:
 		successList.content = list;
 		successList.announce();
 		return successList;
+	}
+
+	// recursive shells
+	//TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
+	sj.recursiveSyncTime = async function (n, loopCondition, f, ...args) {
+		//L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+		let timestamp = Date.now();
+		function loop() {
+			if (Date.now() > timestamp + n) {
+				throw new sj.Error({
+					log: true,
+					origin: 'recursiveSyncTime()',
+					reason: 'recursive function timed out',
+					content: f,
+				});
+			}
+	
+			let result = f(...args);
+			if (loopCondition(result)) {
+				result = loop();
+			}
+	
+			return result;
+		}
+		return loop();
+	}
+	sj.recursiveSyncCount = async function (n, loopCondition, f, ...args) {
+		let count = 0;
+		function loop(count) {
+			if (count >= n) {
+				throw new sj.Error({
+					log: true,
+					origin: 'recursiveSyncCount',
+					reason: 'recursive function counted out',
+					content: f,
+				});
+			}
+	
+			let result = f(...args);
+			if (loopCondition(result)) {
+				result = loop(++count);
+			}
+	
+			return result;
+		}
+		return loop(count);
+	}
+	sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
+		let timestamp = Date.now();
+		async function loop() {
+			if (Date.now() > timestamp + n) {
+				throw new sj.Error({
+					log: true,
+					origin: 'recursiveAsyncTime()',
+					reason: 'recursive function timed out',
+					content: f,
+				});
+			}
+	
+			let result = await f(...args);
+			if (loopCondition(result)) {
+				result = await loop();
+			}
+	
+			return result;
+		}
+		return await loop();
+	}
+	sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
+		let count = 0;
+		async function loop(count) {
+			if (count >= n) {
+				throw new sj.Error({
+					log: true,
+					origin: 'recursiveAsyncCount()',
+					reason: 'recursive function counted out',
+					content: f,
+				});
+			}
+	
+			let result = await f(...args);
+			if (loopCondition(result)) {
+				result = await loop(++count);
+			}
+	
+			return result;
+		}
+		return await loop(count);
 	}
 
 
