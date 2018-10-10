@@ -75,7 +75,7 @@ async function authSpotify() {
     let authRequestWindow;
     
     //C request authURL & authKey
-    return fetch(`http://localhost:3000/api/startAuthRequest`).then(resolved => {
+    return fetch(`http://localhost:3000/api/spotify/startAuthRequest`).then(resolved => {
         console.log('HERE1');
         return resolved.json();
     }).then(resolved => {
@@ -88,7 +88,7 @@ async function authSpotify() {
     }).then(resolved => {
         //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
         console.log('HERE3');
-        return fetch(`http://localhost:3000/api/endAuthRequest`,  {
+        return fetch(`http://localhost:3000/api/spotify/endAuthRequest`,  {
             method: 'post',
             headers: {
                 'Accept': 'application/json',

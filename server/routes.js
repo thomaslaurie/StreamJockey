@@ -1,19 +1,22 @@
+// builtin
 const path = require('path');
 const EventEmitter = require('events');
 const emitter = new EventEmitter();
 
+// external
 const Router = require('koa-router'); // https://github.com/alexmingoia/koa-router
 const send = require('koa-send'); // https://github.com/koajs/send
+// const fetch = require('node-fetch'); //? why was this needed?
 
+// internal
+const sj = require('./global-server.js');
+const auth = require('./auth.js');
+
+
+// initialize
 const router = new Router();
 const apiRouter = new Router();
 
-const sj = require('../public/js/global.js');
-const sjs = require('./functions.js');
-
-//! temp
-const auth = require('./auth.js');
-const fetch = require('node-fetch');
 
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
@@ -58,6 +61,7 @@ const fetch = require('node-fetch');
 //     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
 
 /*
+	consider using a separate router for source-api requests (sourceRouter)
 */
 
 //   █████╗ ██████╗ ██╗
@@ -102,13 +106,13 @@ const fetch = require('node-fetch');
 // server-side data & processing requests
 apiRouter
 	// auth
-	.get('/startAuthRequest', async (ctx, next) => {
+	.get('/spotify/startAuthRequest', async (ctx, next) => {
 		//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 		//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
 
 		ctx.response.body = await auth.startAuthRequest().catch(sj.andResolve);
 	})
-	.get('/spotifyAuthRedirect', async (ctx, next) => {
+	.get('/spotify/authRedirect', async (ctx, next) => {
 		//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 		let result = await auth.receiveAuthRequest(ctx).catch(sj.andResolve);
 		console.log('HERE', result);
@@ -124,7 +128,7 @@ apiRouter
 
 		//TODO set default message here, (this should be closed oops)
 	})
-	.post('/endAuthRequest', async (ctx, next) => {
+	.post('/spotify/endAuthRequest', async (ctx, next) => {
 		//TODO timeout for this?
 		await new Promise((resolve, reject) => {
 			//C once the event with the same key as that passed in the body is triggered, call
@@ -140,55 +144,55 @@ apiRouter
 
 	// user
 	.post('/user', async (ctx, next) => {
-		ctx.response.body = await sjs.addUser(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.addUser(ctx.request.body).catch(sj.andResolve);
 		console.log(ctx.response.body);
 	})
 	.get('/user/:name', async (ctx, next) => {
-		ctx.response.body = await sjs.getUser(new sj.User({name: ctx.params.name})).catch(sj.andResolve);
+		ctx.response.body = await sj.getUser(new sj.User({name: ctx.params.name})).catch(sj.andResolve);
 	})
 	.patch('/user', async (ctx, next) => {
-		ctx.response.body = await sjs.editUser(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.editUser(ctx.request.body).catch(sj.andResolve);
 	})
 	.delete('/user', async (ctx, next) => {
-		ctx.response.body = await sjs.deleteUser(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.deleteUser(ctx.request.body).catch(sj.andResolve);
 	})
 
 	// session
 	.put('/login', async (ctx, next) => {
-		ctx.response.body = await sjs.login(ctx, ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.login(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	.get('/me', async (ctx, next) => {
-		ctx.response.body = await sjs.getMe(ctx).catch(sj.andResolve);
+		ctx.response.body = await sj.getMe(ctx).catch(sj.andResolve);
 	})
 	// TODO what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 	.delete('/logout', async (ctx, next) => {
-		ctx.response.body = await sjs.logout(ctx).catch(sj.andResolve);
+		ctx.response.body = await sj.logout(ctx).catch(sj.andResolve);
 	})
 	
 	// playlist
 	.post('/playlist', async (ctx, next) => {
-		ctx.response.body = await sjs.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	.get('/playlist/:id', async (ctx, next) => {
 		//? fetching a playlist by name doesn't make sense without a user, and by that point we're into page HTTP not api HTTP
-		ctx.response.body = await sjs.getPlaylist(ctx, new sj.Playlist({id: ctx.params.id})).catch(sj.andResolve);
+		ctx.response.body = await sj.getPlaylist(ctx, new sj.Playlist({id: ctx.params.id})).catch(sj.andResolve);
 	})
 	.patch('/playlist', async (ctx, next) => {
 		// TODO update playlist
 		await next();
 	})
 	.delete('/playlist', async (ctx, next) => {
-		ctx.response.body = await sjs.deletePlaylist(ctx, ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.deletePlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 
 	// track
 	.post('/track', async (ctx, next) => {
-		ctx.response.body = await sjs.addTrack(ctx, ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.addTrack(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 	// TODO tracks can only be retrieved from the context of a playlist, right? tracks will only ever be played or stored within playlists, right?
 	// TODO not at the moment, but eventually users will be able to have track specific settings? (paired video, crop points, volume/cross fade, plays?)
 	.delete('/track', async (ctx, next) => {
-		ctx.response.body = await sjs.deleteTrack(ctx, ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.deleteTrack(ctx, ctx.request.body).catch(sj.andResolve);
 	})
 
 	// catch
@@ -201,8 +205,7 @@ apiRouter
 		});
 	});
 
-router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // nested routers: https://github.com/alexmingoia/koa-router#nested-routers
-
+router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 
 //  ██████╗  █████╗  ██████╗ ███████╗
 //  ██╔══██╗██╔══██╗██╔════╝ ██╔════╝

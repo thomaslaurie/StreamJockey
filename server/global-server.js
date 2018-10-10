@@ -1,10 +1,15 @@
+// builtin
+
+// external
+const bcrypt = require('bcrypt');
+const saltRounds = 10; 
+
+// internal
 const sj = require('../public/js/global.js');
 const db = require('./database/db.js');
 
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
-//! string to be hashed must not be greater than 72 characters (//? or bytes???),
 
+//! string to be hashed must not be greater than 72 characters (//? or bytes???),
 const stringMaxLength = 100;
 const bigStringMaxLength = 2000;
 
@@ -49,8 +54,9 @@ const visibilityStates = [
 //     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
 
 /*
-    //TODO session_regenerate_id() ? if using, add in same locations as php version
+    //TODO tree-shake any objects that don't need to be exported (remove from sj.x, just hae them locally defined)
 
+    //TODO session_regenerate_id() ? if using, add in same locations as php version
 
     //TODO other stuff from top.php
 
@@ -333,7 +339,7 @@ const visibilityStates = [
     console.log(rejected);
 });
 
-exports.parsePostgresError = function (pgError, sjError) {
+sj.parsePostgresError = function (pgError, sjError) {
     // TODO any validation needed here?
     // TODO consider separating insertion checks into Conditions so multiple parameters are checked
     // TODO add targets and cssClasses to each violation case too
@@ -386,7 +392,7 @@ exports.parsePostgresError = function (pgError, sjError) {
 //  ██║  ██║╚██████╔╝███████╗███████╗███████║
 //  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
-exports.positiveIntegerRules = new sj.Rules({
+sj.positiveIntegerRules = new sj.Rules({
     log: true,
     origin: 'positiveIntegerRules',
     message: 'number validated',
@@ -395,7 +401,7 @@ exports.positiveIntegerRules = new sj.Rules({
 
     dataType: 'integer',
 });
-exports.imageRules = new sj.Rules({
+sj.imageRules = new sj.Rules({
     log: true,
     origin: 'imageRules',
     message: 'image validated',
@@ -410,7 +416,7 @@ exports.imageRules = new sj.Rules({
     // TODO filter: ___,
     filterMessage: 'Image must be a valid url',
 });
-exports.colorRules = new sj.Rules({
+sj.colorRules = new sj.Rules({
     log: true,
     origin: 'colorRules',
     message: 'color validated',
@@ -432,7 +438,7 @@ exports.colorRules = new sj.Rules({
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
 
 // validate
-exports.selfRules = new sj.Rules({
+sj.selfRules = new sj.Rules({
     log: true,
     origin: 'selfRules',
     message: 'self validated',
@@ -448,7 +454,7 @@ exports.selfRules = new sj.Rules({
     againstMessage: 'you are not the owner of this',
 });
 
-exports.userNameRules = new sj.Rules({
+sj.userNameRules = new sj.Rules({
     log: true,
     origin: 'userNameRules',
     message: 'username validated',
@@ -461,7 +467,7 @@ exports.userNameRules = new sj.Rules({
     min: nameMinLength,
     max: nameMaxLength,
 });
-exports.passwordRules = new sj.Rules({
+sj.passwordRules = new sj.Rules({
     log: true,
     origin: 'passwordRules',
     message: 'password validated',
@@ -473,7 +479,7 @@ exports.passwordRules = new sj.Rules({
     min: 6,
     max: 72, //! as per bcrypt
 });
-exports.setPasswordRules = new sj.Rules({
+sj.setPasswordRules = new sj.Rules({
     log: true,
     origin: 'setPasswordRules',
     message: 'password validated',
@@ -488,7 +494,7 @@ exports.setPasswordRules = new sj.Rules({
     useAgainst: true,
     get againstMessage() {return 'Passwords do not match'},
 });
-exports.emailRules = new sj.Rules({
+sj.emailRules = new sj.Rules({
     log: true,
     origin: 'emailRules',
     message: 'email validated',
@@ -506,7 +512,7 @@ exports.emailRules = new sj.Rules({
 });
 
 /*
-    exports.validateEmail = async function (email) {
+    sj.validateEmail = async function (email) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validateEmail()',
@@ -525,7 +531,7 @@ exports.emailRules = new sj.Rules({
 
         return await rules.checkAll();
     }
-    exports.validateUserName = async function (name) {
+    sj.validateUserName = async function (name) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validateUserName()',
@@ -543,7 +549,7 @@ exports.emailRules = new sj.Rules({
 
     return await rules.checkAll();
     }
-    exports.validatePassword = async function (password, password2) {
+    sj.validatePassword = async function (password, password2) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validatePassword()',
@@ -565,12 +571,12 @@ exports.emailRules = new sj.Rules({
 */
 
 // CRUD
-exports.addUser = async function (user) {
+sj.addUser = async function (user) {
     //C validate
     await sj.Rules.checkRuleSet([
-        [exports.userNameRules, user, 'name'],
-        [exports.setPasswordRules, user, 'password', user.password2],
-        [exports.emailRules, user, 'email'],
+        [sj.userNameRules, user, 'name'],
+        [sj.setPasswordRules, user, 'password', user.password2],
+        [sj.emailRules, user, 'email'],
     ]);
     /*
         var errorList = new sj.ErrorList({
@@ -578,33 +584,33 @@ exports.addUser = async function (user) {
             message: 'one or more issues with fields',
             reason: 'validation functions returned one or more errors',
         });
-        user.name = await exports.userNameRules.check(user.name).catch(rejected => {
+        user.name = await sj.userNameRules.check(user.name).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        user.password = await exports.twoPasswordRules.check(user.password, user.password2).catch(rejected => {
+        user.password = await sj.twoPasswordRules.check(user.password, user.password2).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        user.email = await exports.emailRules.check(user.email).catch(rejected => {
+        user.email = await sj.emailRules.check(user.email).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
     */
     /*
-        user.email = await exports.validateEmail(user.email).then(resolved => {
+        user.email = await sj.validateEmail(user.email).then(resolved => {
             return resolved.content;
         }, rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        user.name = await exports.validateUserName(user.name).then(resolved => {
+        user.name = await sj.validateUserName(user.name).then(resolved => {
             return resolved.content;
         }, rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        user.password = user.password2 = await exports.validatePassword(user.password, user.password2).then(resolved => {
+        user.password = user.password2 = await sj.validatePassword(user.password, user.password2).then(resolved => {
             return resolved.content;
         }, rejected => {
             errorList.content.push(rejected);
@@ -631,7 +637,7 @@ exports.addUser = async function (user) {
     }).then(resolved => {
         return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
             // replaces default error info with info based on error code 
-            throw exports.parsePostgresError(rejected, new sj.Error({
+            throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'addUser()',
                 message: 'could not add user',
@@ -656,15 +662,15 @@ exports.addUser = async function (user) {
         throw sj.propagateError(rejected);
     });
 }
-exports.getUser = async function (user) {
+sj.getUser = async function (user) {
     //TODO userNameRules has userName field ids, this wont target them because they wont exist - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
 
     await sj.Rules.checkRuleSet([
-        [exports.userNameRules, user, 'name'],
+        [sj.userNameRules, user, 'name'],
     ]);
 
     return db.one('SELECT * FROM "sj"."users_public" WHERE "id" = $1', [id]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
                 origin: 'getUser()',
                 message: 'could not get user',
@@ -675,13 +681,13 @@ exports.getUser = async function (user) {
         return new sj.User(resolved); // !!!  requires that table names are the same as object property names
     });
 }
-exports.editUser = async function (ctx, user) { //TODO
+sj.editUser = async function (ctx, user) { //TODO
     // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
-    await exports.isLoggedIn(ctx);
+    await sj.isLoggedIn(ctx);
 
     /* TODO
     return db.none('UPDATE "sj."users" SET x = $x, x = $x, x = $x, ... WHERE "id" = x,', [x, ...]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'editUser()',
             message: 'could not edit user',
@@ -701,15 +707,15 @@ exports.editUser = async function (ctx, user) { //TODO
     });
     */
 }
-exports.deleteUser = async function (ctx, user) {
-    await exports.isLoggedIn(ctx);
+sj.deleteUser = async function (ctx, user) {
+    await sj.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [exports.passwordRules, user, 'password'],
+        [sj.passwordRules, user, 'password'],
     ]);
 
     return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'deleteUser()',
             message: 'could not delete user',
@@ -731,7 +737,7 @@ exports.deleteUser = async function (ctx, user) {
     }).then(resolved => {
         if (resolved) {
             return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-                throw exports.parsePostgresError(rejected, new sj.Error({
+                throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'deleteUser()',
                     message: 'could not delete user',
@@ -771,14 +777,14 @@ exports.deleteUser = async function (ctx, user) {
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 // CRUD
-exports.login = async function (ctx, user) {
+sj.login = async function (ctx, user) {
     await sj.Rules.checkRuleSet([
-        [exports.userNameRules, user, 'name'],
-        [exports.passwordRules, user, 'password'],
+        [sj.userNameRules, user, 'name'],
+        [sj.passwordRules, user, 'password'],
     ]);
 
     return db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'login()',
             message: 'could not login, database error',
@@ -800,7 +806,7 @@ exports.login = async function (ctx, user) {
     }).then(resolved => {
         if (resolved) {
             return db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', [user.name]).catch(rejected => {
-                throw exports.parsePostgresError(rejected, new sj.Error({
+                throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'login()',
                     message: 'could not login, database error',
@@ -831,11 +837,11 @@ exports.login = async function (ctx, user) {
         throw sj.propagateError(rejected);
     });
 }
-exports.getMe = async function (ctx) {
-    await exports.isLoggedIn(ctx);
+sj.getMe = async function (ctx) {
+    await sj.isLoggedIn(ctx);
     return ctx.session.user;
 }
-exports.logout = async function (ctx) {
+sj.logout = async function (ctx) {
     delete ctx.session.user;
 
     return new sj.Success({
@@ -848,7 +854,7 @@ exports.logout = async function (ctx) {
 }
 
 // util
-exports.isLoggedIn = async function (ctx) {
+sj.isLoggedIn = async function (ctx) {
     if (!(sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined')) {
         throw new sj.Error({
             log: true,
@@ -863,7 +869,7 @@ exports.isLoggedIn = async function (ctx) {
     }
     //C redundancy check to make sure id is right format
     await sj.Rules.checkRuleSet([
-        [exports.positiveIntegerRules, ctx.session.user, 'id'],
+        [sj.positiveIntegerRules, ctx.session.user, 'id'],
     ]);
 
     return new sj.Success({
@@ -882,7 +888,7 @@ exports.isLoggedIn = async function (ctx) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
 // rules
-exports.playlistNameRules = new sj.Rules({
+sj.playlistNameRules = new sj.Rules({
     log: true,
     origin: 'playlistNameRules()',
     message: 'name validated',
@@ -895,7 +901,7 @@ exports.playlistNameRules = new sj.Rules({
     min: nameMinLength,
     max: stringMaxLength,  
 });
-exports.visibilityRules = new sj.Rules({
+sj.visibilityRules = new sj.Rules({
     log: true,
     origin: 'visibilityRules',
     message: 'visibility validated',
@@ -908,7 +914,7 @@ exports.visibilityRules = new sj.Rules({
     againstValue: visibilityStates,
     againstMessage: 'please select a valid visibility level',
 });
-exports.descriptionRules = new sj.Rules({
+sj.descriptionRules = new sj.Rules({
     log: true,
     origin: 'descriptionRules()',
     message: 'description validated',
@@ -921,7 +927,7 @@ exports.descriptionRules = new sj.Rules({
     trim: true,
 });
 /*
-    exports.validatePlaylistName = async function (name) {
+    sj.validatePlaylistName = async function (name) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validatePlaylistName()',
@@ -939,7 +945,7 @@ exports.descriptionRules = new sj.Rules({
 
         return await rules.checkAll();
     }
-    exports.validateVisibility = async function (visibility) {
+    sj.validateVisibility = async function (visibility) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validateVisibility()',
@@ -956,7 +962,7 @@ exports.descriptionRules = new sj.Rules({
 
         return await rules.checkAll();
     }
-    exports.validateDescription = async function (description) {
+    sj.validateDescription = async function (description) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validateDescription()',
@@ -973,7 +979,7 @@ exports.descriptionRules = new sj.Rules({
 
         return await rules.checkAll();
     }
-    exports.validateColor = async function (color) {
+    sj.validateColor = async function (color) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validateColor()',
@@ -991,7 +997,7 @@ exports.descriptionRules = new sj.Rules({
 
         return await rules.checkAll();
     }
-    exports.validateImage = async function (image) {
+    sj.validateImage = async function (image) {
         let rules = new sj.Rules({
             log: true,
             origin: 'validateColor()',
@@ -1013,15 +1019,15 @@ exports.descriptionRules = new sj.Rules({
 */
 
 // CRUD
-exports.addPlaylist = async function (ctx, playlist) {
-    await exports.isLoggedIn(ctx);
+sj.addPlaylist = async function (ctx, playlist) {
+    await sj.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [exports.playlistNameRules, playlist, 'name'],
-        [exports.visibilityRules, playlist, 'visibility'],
-        [exports.descriptionRules, playlist, 'description'],
-        [exports.imageRules, playlist, 'image'],
-        [exports.colorRules, playlist, 'color'],
+        [sj.playlistNameRules, playlist, 'name'],
+        [sj.visibilityRules, playlist, 'visibility'],
+        [sj.descriptionRules, playlist, 'description'],
+        [sj.imageRules, playlist, 'image'],
+        [sj.colorRules, playlist, 'color'],
     ]);
     /*
         var errorList = new sj.ErrorList({
@@ -1029,7 +1035,7 @@ exports.addPlaylist = async function (ctx, playlist) {
             message: 'one or more issues with fields',
             reason: 'validation functions returned one or more errors',
         });
-        if (!(exports.isLoggedIn(ctx))) {
+        if (!(sj.isLoggedIn(ctx))) {
             errorList.content.push(new sj.Error({
                 log: true,
                 origin: 'addPlaylist()',
@@ -1038,52 +1044,52 @@ exports.addPlaylist = async function (ctx, playlist) {
                 cssClass: 'notifyError',
             }));
         }
-        playlist.name = await exports.playlistNameRules.check(playlist.name).catch(rejected => {
+        playlist.name = await sj.playlistNameRules.check(playlist.name).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        playlist.visibility = await exports.visibilityRules.check(playlist.visibility).catch(rejected => {
+        playlist.visibility = await sj.visibilityRules.check(playlist.visibility).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        playlist.description = await exports.descriptionRules.check(playlist.description).catch(rejected => {
+        playlist.description = await sj.descriptionRules.check(playlist.description).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        playlist.image = await exports.imageRules.check(playlist.image).catch(rejected => {
+        playlist.image = await sj.imageRules.check(playlist.image).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        playlist.color = await exports.colorRules.check(playlist.color).catch(rejected => {
+        playlist.color = await sj.colorRules.check(playlist.color).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
     */
     /*
-        playlist.name = await exports.validatePlaylistName(playlist.name).then(resolved => {
+        playlist.name = await sj.validatePlaylistName(playlist.name).then(resolved => {
             return resolved.content;
         }, rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        playlist.visibility = await exports.validateVisibility(playlist.visibility).then(resolved => {
+        playlist.visibility = await sj.validateVisibility(playlist.visibility).then(resolved => {
             return resolved.content;
         }, rejected => {
             return rejected.content;
         });
-        playlist.description = await exports.validateDescription(playlist.description).then(resolved => {
+        playlist.description = await sj.validateDescription(playlist.description).then(resolved => {
             return resolved.content;
         }, rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        playlist.color = await exports.validateColor(playlist.color).then(resolved => {
+        playlist.color = await sj.validateColor(playlist.color).then(resolved => {
             return resolved.content;
         }, rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });;
-        playlist.image = await exports.validateImage(playlist.image).then(resolved => {
+        playlist.image = await sj.validateImage(playlist.image).then(resolved => {
             return resolved.content;
         }, rejected => {
             errorList.content.push(rejected);
@@ -1098,7 +1104,7 @@ exports.addPlaylist = async function (ctx, playlist) {
     */
 
     return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'addPlaylist()',
             message: 'failed to add playlist, database error',
@@ -1117,27 +1123,27 @@ exports.addPlaylist = async function (ctx, playlist) {
         throw sj.propagateError(rejected);
     });
 }
-exports.getPlaylist = async function (ctx, playlist) {
+sj.getPlaylist = async function (ctx, playlist) {
     //C validate - get by id or get by userId and playlistName
     //! id is default to null when it isn't set, is this wrong semantics //?
     /*
         if (sj.typeOf(playlist.id) !== 'null') { 
     */
     await sj.Rules.checkRuleSet([
-        [exports.positiveIntegerRules, playlist, 'id'],
+        [sj.positiveIntegerRules, playlist, 'id'],
     ]);
     /*
         } else {
             await sj.Rules.checkRuleSet([
-                [exports.positiveIntegerRules, ctx.session.user, 'id'],
-                [exports.playlistNameRules, playlist, 'name'],
+                [sj.positiveIntegerRules, ctx.session.user, 'id'],
+                [sj.playlistNameRules, playlist, 'name'],
             ]);
         }
     */
 
     //? does this fail if the wrong dataType is fed in?
     playlist = await db.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1` /*) OR ("userId" = $2 AND "name" = $3)*/, [playlist.id /*, playlist.userId, playlist.name*/]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'getPlaylist() playlists query',
             message: 'could not get playlist, database error',
@@ -1146,7 +1152,7 @@ exports.getPlaylist = async function (ctx, playlist) {
         }));
     });
     trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'getPlaylist() tracks query',
             message: 'could not get playlist, database error',
@@ -1161,8 +1167,8 @@ exports.getPlaylist = async function (ctx, playlist) {
     //C if the playlist is not perfectly ordered
     for (var i = 0; i < playlist.content.length; i++) {
         if (playlist.content[i].position !== i) {
-            playlist = await exports.orderPlaylist(playlist).catch(rejected => {
-                throw exports.parsePostgresError(rejected, new sj.Error({
+            playlist = await sj.orderPlaylist(playlist).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'getPlaylist()',
                     message: 'could not order playlist, database error',
@@ -1179,7 +1185,7 @@ exports.getPlaylist = async function (ctx, playlist) {
     /*
         //TODO permissions
         do this when permissions are sorted out
-        if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && exports.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
+        if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && sj.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
 
         throw new sj.Error({
             log: true,
@@ -1190,20 +1196,20 @@ exports.getPlaylist = async function (ctx, playlist) {
         });
     */
 }
-exports.editPlaylist = async function (ctx, playlist) { //TODO
+sj.editPlaylist = async function (ctx, playlist) { //TODO
 }
-exports.deletePlaylist = async function (ctx, playlist) {
-    await exports.isLoggedIn(ctx);
+sj.deletePlaylist = async function (ctx, playlist) {
+    await sj.isLoggedIn(ctx);
 
-    playlist = await exports.getPlaylist(ctx, playlist);
+    playlist = await sj.getPlaylist(ctx, playlist);
 
     await sj.Rules.checkRuleSet([
-        [exports.positiveIntegerRules, playlist, 'id'],
-        [exports.selfRules, playlist, 'userId', ctx.session.user.id],
+        [sj.positiveIntegerRules, playlist, 'id'],
+        [sj.selfRules, playlist, 'userId', ctx.session.user.id],
     ]);
     
     return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1', [playlist.id]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'deletePlaylist()',
             message: 'could not delete playlist, database error',
@@ -1224,7 +1230,7 @@ exports.deletePlaylist = async function (ctx, playlist) {
 }
 
 // util
-exports.orderPlaylist = async function (playlist) {  
+sj.orderPlaylist = async function (playlist) {  
     /*
         //! this shouldn't need to be called anywhere other than getPlaylist() as long as anything that changes a playlist's order calls getPlaylist (before), a call to orderPlaylist (functionally equivalent to getPlaylist()) afterwards, would be redundant as the playlist should be always ordered on retrieval anyways
 
@@ -1233,14 +1239,14 @@ exports.orderPlaylist = async function (playlist) {
         //C retrieve the playlist if it doesn't have its contents
         if (playlist.content.length === 0) { //R this causes an endless loop if the playlist is empty
             // used by sj.Track.playlistId as a shortcut to order playlist in one line
-            return await exports.getPlaylist(ctx, playlist);
+            return await sj.getPlaylist(ctx, playlist);
         }
     */
 
     // update
     return db.tx(async function (task) {
         let realPlaylist = await task.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
-            throw exports.parsePostgresError(rejected, new sj.Error({
+            throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'orderPlaylist()',
                 message: 'could not get playlist, database error',
@@ -1249,7 +1255,7 @@ exports.orderPlaylist = async function (playlist) {
             }));
         });
         let trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
-            throw exports.parsePostgresError(rejected, new sj.Error({
+            throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'orderPlaylist() tracks query',
                 message: 'could not order playlist, database error',
@@ -1271,7 +1277,7 @@ exports.orderPlaylist = async function (playlist) {
         //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
         //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
         await task.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
-            throw exports.parsePostgresError(rejected, new sj.Error({
+            throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'orderPlaylist()',
                 message: 'could not order playlist, database error',
@@ -1285,7 +1291,7 @@ exports.orderPlaylist = async function (playlist) {
         //? possible memory leak error here 
         realPlaylist.content.map(async function (item, index) {
             await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]).catch(rejected => {
-                throw exports.parsePostgresError(rejected, new sj.Error({
+                throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'orderPlaylist()',
                     message: 'could not order playlist, database error',
@@ -1316,7 +1322,7 @@ exports.orderPlaylist = async function (playlist) {
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 
 // rules
-exports.sourceRules = new sj.Rules({
+sj.sourceRules = new sj.Rules({
     log: true,
     origin: 'sourceRules',
     message: 'source validated',
@@ -1327,7 +1333,7 @@ exports.sourceRules = new sj.Rules({
     againstValue: sj.sourceList,
     againstMessage: 'track does not have a valid source',
 });
-exports.sourceIdRules = new sj.Rules({
+sj.sourceIdRules = new sj.Rules({
     log: true,
     origin: 'sourceIdRules',
     message: 'source id validated',
@@ -1336,7 +1342,7 @@ exports.sourceIdRules = new sj.Rules({
 
     //? any source id rules (other than being a string)? length? trim?
 });
-exports.trackNameRules = new sj.Rules({
+sj.trackNameRules = new sj.Rules({
     log: true,
     origin: 'trackNameRules()',
     message: 'name validated',
@@ -1351,11 +1357,11 @@ exports.trackNameRules = new sj.Rules({
 });
 
 // CRUD
-exports.addTrack = async function (ctx, track) {
-    await exports.isLoggedIn(ctx);
+sj.addTrack = async function (ctx, track) {
+    await sj.isLoggedIn(ctx);
 
     //C retrieve playlist
-    let playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+    let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
         throw sj.propagateError(rejected);
     });
     //C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
@@ -1363,13 +1369,13 @@ exports.addTrack = async function (ctx, track) {
     track.position = playlist.content.length;
 
     await sj.Rules.checkRuleSet([
-        [exports.selfRules, ctx.session.user, 'id', playlist.userId],
-        [exports.positiveIntegerRules, track, 'playlistId'],
-        [exports.positiveIntegerRules, track, 'position'],
-        [exports.sourceRules, track, 'source'],
-        [exports.sourceIdRules, track, 'sourceId'],
-        [exports.trackNameRules, track, 'name'],
-        [exports.positiveIntegerRules, track, 'duration'],
+        [sj.selfRules, ctx.session.user, 'id', playlist.userId],
+        [sj.positiveIntegerRules, track, 'playlistId'],
+        [sj.positiveIntegerRules, track, 'position'],
+        [sj.sourceRules, track, 'source'],
+        [sj.sourceIdRules, track, 'sourceId'],
+        [sj.trackNameRules, track, 'name'],
+        [sj.positiveIntegerRules, track, 'duration'],
         //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rules)
     ]); 
     /*
@@ -1378,27 +1384,27 @@ exports.addTrack = async function (ctx, track) {
             message: 'one or more issues with fields',
             reason: 'validation functions returned one or more errors',
         });
-        track.playlistId = await exports.positiveIntegerRules.check(track.playlistId).catch(rejected => {
+        track.playlistId = await sj.positiveIntegerRules.check(track.playlistId).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        track.position = await exports.positiveIntegerRules.check(track.position).catch(rejected => {
+        track.position = await sj.positiveIntegerRules.check(track.position).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        track.source = await exports.sourceRules.check(track.source).catch(rejected => {
+        track.source = await sj.sourceRules.check(track.source).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        track.sourceId = await exports.sourceIdRules.check(track.sourceId).catch(rejected => {
+        track.sourceId = await sj.sourceIdRules.check(track.sourceId).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        track.name = await exports.trackNameRules.check(track.name).catch(rejected => {
+        track.name = await sj.trackNameRules.check(track.name).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        track.duration = await exports.positiveIntegerRules.check(track.duration).catch(rejected => {
+        track.duration = await sj.positiveIntegerRules.check(track.duration).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
@@ -1411,7 +1417,7 @@ exports.addTrack = async function (ctx, track) {
 
     //! artists is simply stored as an array, eg. TEXT[]
     return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.sourceId, track.name, track.duration, track.artists]).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'addTrack()',
             message: 'could not add track, database error',
@@ -1419,8 +1425,8 @@ exports.addTrack = async function (ctx, track) {
             cssClass: 'notifyError',
         }));
     }).then(resolved => {
-        return exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-            throw exports.parsePostgresError(rejected, new sj.Error({
+        return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'addTrack()',
                 message: 'could not order playlist, database error',
@@ -1440,14 +1446,14 @@ exports.addTrack = async function (ctx, track) {
         throw sj.propagateError(rejected);
     });
 }
-exports.deleteTrack = async function (ctx, track) {
+sj.deleteTrack = async function (ctx, track) {
     //! requires an sj.Track with playlistId and position properties
 
-    await exports.isLoggedIn(ctx);
+    await sj.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [exports.positiveIntegerRules, track, 'playlistId'],
-        [exports.positiveIntegerRules, track, 'position'],
+        [sj.positiveIntegerRules, track, 'playlistId'],
+        [sj.positiveIntegerRules, track, 'position'],
     ]);
 
     /*
@@ -1460,19 +1466,19 @@ exports.deleteTrack = async function (ctx, track) {
     */
      
     //C retrieve playlist
-    let playlist = await exports.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+    let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 
     //TODO change this to just id based
     await sj.Rules.checkRuleSet([
-        [exports.selfRules, playlist, 'userId', ctx.session.userId],
+        [sj.selfRules, playlist, 'userId', ctx.session.userId],
     ]);
 
     //TODO check to make sure it exists (like deletePlaylist has getPlaylist)
 
     return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
-        throw exports.parsePostgresError({
+        throw sj.parsePostgresError({
             log: true,
             origin: 'deleteTrack()',
             message: 'failed to delete track, database error',
@@ -1480,8 +1486,8 @@ exports.deleteTrack = async function (ctx, track) {
             cssClass: 'notifyError',
         });
     }).then(resolved => {
-        return exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-            throw exports.parsePostgresError(rejected, new sj.Error({
+        return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'deleteTrack()',
                 message: 'could not order playlist, database error',
@@ -1503,8 +1509,8 @@ exports.deleteTrack = async function (ctx, track) {
 }
 
 // util
-exports.moveTrack = async function (ctx, track, position) {
-    let playlist = await exports.getPlaylist(ctx, track.playlistId).catch(rejected => {
+sj.moveTrack = async function (ctx, track, position) {
+    let playlist = await sj.getPlaylist(ctx, track.playlistId).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 
@@ -1525,8 +1531,8 @@ exports.moveTrack = async function (ctx, track, position) {
         });
     }
 
-    playlist = await exports.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-        throw exports.parsePostgresError(rejected, new sj.Error({
+    playlist = await sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+        throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'addTrack()',
             message: 'could not order playlist, database error',
@@ -1542,3 +1548,5 @@ exports.moveTrack = async function (ctx, track, position) {
         content: playlist,
     });
 }
+
+module.exports = sj;

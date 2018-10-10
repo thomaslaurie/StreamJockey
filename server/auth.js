@@ -1,11 +1,16 @@
+// builtin
+const EventEmitter = require('events');
+
+// external
+var SpotifyWebApi = require('spotify-web-api-node');
+
+// internal
+const sj = require('../public/js/global.js');
+
 //TODO consider just writing native api functions, because they are fairly simple, and the spotify-web-api-node
 //L https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
 
 //TODO remove exports. from internal functions
-
-const sj = require('../public/js/global.js');
-var SpotifyWebApi = require('spotify-web-api-node');
-const EventEmitter = require('events');
 
 //TODO consider moving this over to the globals-server stuff
 spotify = new sj.Source({ 
