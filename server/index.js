@@ -7,6 +7,7 @@
 
 //TODO put api keys into this as well after creating methods to access them
 require('dotenv').config();
+console.log('ENV TEST', process.env.APP_KEY);
 
 //------------------- clean all of this
 

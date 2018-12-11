@@ -50,7 +50,8 @@ spotify = new sj.Source({
     authRequestManually: true,
     makeAuthRequestURL: function (key) {
         //! the show_dialog query parameter isn't available in the createAuthorizeURL, so manually add it
-        return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`; 
+        //! TODO this will NOT error if process.env.SPOTIFY_CLIENT_ID, secret, or redirect uri parameters passed in new SpotifyWebApi({}) are undefined
+        return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`;
     },
 });
 
