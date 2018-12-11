@@ -4,8 +4,8 @@ const EventEmitter = require('events');
 const emitter = new EventEmitter();
 
 // external
-const Router = require('koa-router'); // https://github.com/alexmingoia/koa-router
-const send = require('koa-send'); // https://github.com/koajs/send
+const Router = require('koa-router'); //L https://github.com/alexmingoia/koa-router
+const send = require('koa-send'); //L https://github.com/koajs/send
 // const fetch = require('node-fetch'); //? why was this needed?
 
 // internal
@@ -204,8 +204,9 @@ apiRouter
 			reason: 'invalid api command',
 		});
 	});
+//L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
+router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); 
 
-router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 
 //  ██████╗  █████╗  ██████╗ ███████╗
 //  ██╔══██╗██╔══██╗██╔════╝ ██╔════╝
@@ -214,25 +215,30 @@ router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); //L nested r
 //  ██║     ██║  ██║╚██████╔╝███████╗
 //  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 
-//TODO handle favicon.ico request https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
-
-// pages, etc.
 router
 	.get('/*', async (ctx, next) => {
-		// pages are accessed through the base GET method
-		// serve /public files
-		if(ctx.request.path.lastIndexOf('.') === -1) {
-			// TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
-			// add .html to non-extension urls
+		//C pages are accessed through the base GET method, serve any ./public files here
+
+		// add .html to urls without extensions
+		if (ctx.request.path.lastIndexOf('.') === -1) {
 			ctx.request.path = ctx.request.path + '.html';
+			// TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
 		}
+
+		// favicon request
+		if (ctx.request.path === '/favicon.ico') {
+			// ignore it //L https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+			await next();
+			//TODO handle the favicon.ico request
+		}
+
 		await send(ctx, ctx.request.path, {root: path.join(__dirname, '..', 'public')});
 	})
 	.all('/*', async (ctx, next) => {
 		ctx.body = ctx.body + '.all /* reached';
-		//await next(); // only use await next(); when we want the request to be further processed down the chain (ie. to finally result at .all)
+		//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
 	});	
 
-// https://medium.freecodecamp.org/node-js-module-exports-vs-exports-ec7e254d63ac
-// exports is a reference to module.exports. therefore - ok to assign properties to both, ok to do module.exports= but not exports=
+//L https://medium.freecodecamp.org/node-js-module-exports-vs-exports-ec7e254d63ac
+//! exports is a reference to module.exports. therefore - ok to assign properties to both, ok to do module.exports= but not exports=
 module.exports = router;

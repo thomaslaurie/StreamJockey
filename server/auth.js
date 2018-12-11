@@ -1,8 +1,15 @@
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
 // builtin
 const EventEmitter = require('events');
 
 // external
-var SpotifyWebApi = require('spotify-web-api-node');
+var SpotifyWebApi = require('spotify-web-api-node'); //L https://github.com/thelinmichael/spotify-web-api-node
 
 // internal
 const sj = require('../public/js/global.js');

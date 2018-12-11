@@ -1,3 +1,10 @@
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
 // builtin
 
 // external
@@ -60,23 +67,23 @@ const visibilityStates = [
 
     //TODO other stuff from top.php
 
-    // last page history (I think this goes in routing or something???)
+    last page history (I think this goes in routing or something???)
 
-    // const exclusionList = [
-    //     // since pages are no longer php and the page/code difference is bigger, this isnt really relevant
-    // ]
-    // let excluded = false;
-    // exclusionList.forEach(item => {
-    //     if (false  strpos($_SERVER['REQUEST_URI'], $uri) ) {
-    //         excluded = true;
-    //     }
-    // });
+    const exclusionList = [
+        // since pages are no longer php and the page/code difference is bigger, this isnt really relevant
+    ]
+    let excluded = false;
+    exclusionList.forEach(item => {
+        if (false  strpos($_SERVER['REQUEST_URI'], $uri) ) {
+            excluded = true;
+        }
+    });
 
-    // // if this page is not excluded, shift page history
-    // if (!excluded) {
-    //     ctx.session.pastPage = ctx.session.currentPage !== 'undefined' ? ctx.session.currentPage : 'index.html';
-    //     ctx.session.currentPage = '';  $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; 
-    // }
+    // if this page is not excluded, shift page history
+    if (!excluded) {
+        ctx.session.pastPage = ctx.session.currentPage !== 'undefined' ? ctx.session.currentPage : 'index.html';
+        ctx.session.currentPage = '';  $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; 
+    }
 */
 
 //  ██╗   ██╗████████╗██╗██╗     
