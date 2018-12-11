@@ -1,23 +1,3 @@
-// builtin
-const path = require('path');
-const EventEmitter = require('events');
-const emitter = new EventEmitter();
-
-// external
-const Router = require('koa-router'); //L https://github.com/alexmingoia/koa-router
-const send = require('koa-send'); //L https://github.com/koajs/send
-// const fetch = require('node-fetch'); //? why was this needed?
-
-// internal
-const sj = require('./global-server.js');
-const auth = require('./auth.js');
-
-
-// initialize
-const router = new Router();
-const apiRouter = new Router();
-
-
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -63,6 +43,34 @@ const apiRouter = new Router();
 /*
 	consider using a separate router for source-api requests (sourceRouter)
 */
+
+
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+// builtin
+const path = require('path');
+const EventEmitter = require('events');
+const emitter = new EventEmitter();
+
+// external
+const Router = require('koa-router'); //L https://github.com/alexmingoia/koa-router
+const send = require('koa-send'); //L https://github.com/koajs/send
+// const fetch = require('node-fetch'); //? why was this needed?
+
+// internal
+const sj = require('./global-server.js');
+const auth = require('./auth.js');
+
+
+// initialize
+const router = new Router();
+const apiRouter = new Router();
+
 
 //   █████╗ ██████╗ ██╗
 //  ██╔══██╗██╔══██╗██║

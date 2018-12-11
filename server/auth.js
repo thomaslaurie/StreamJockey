@@ -1,3 +1,18 @@
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+
+/*
+    //TODO consider just writing native api functions, because they are fairly simple, and the spotify-web-api-node
+    //L https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
+
+    //TODO remove exports. from internal functions
+
+*/
+
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -14,11 +29,7 @@ var SpotifyWebApi = require('spotify-web-api-node'); //L https://github.com/thel
 // internal
 const sj = require('../public/js/global.js');
 
-//TODO consider just writing native api functions, because they are fairly simple, and the spotify-web-api-node
-//L https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
-
-//TODO remove exports. from internal functions
-
+// initialize
 //TODO consider moving this over to the globals-server stuff
 spotify = new sj.Source({ 
     api: new SpotifyWebApi({
@@ -62,7 +73,8 @@ spotify = new sj.Source({
     },
 });
 
-//C general key functions
+
+// random key generation
 //TODO this should go into global-server.js util
 exports.makeKey = function (length) {
     //C use only characters allowed in URLs
@@ -102,6 +114,7 @@ exports.checkKey = async function (list, key, timeout) {
             return pack;
         }
 
+        //TODO ensure this timeout works, I think it was tested before? but just check again
         //C if any key has timed out, remove it too
         if (list[i].timestamp + timeout < Date.now()) {
             list.splice(i, 1);
@@ -115,6 +128,7 @@ exports.checkKey = async function (list, key, timeout) {
     });
 }
 
+
 //C specific authRequestKey functions 
 let authRequestKeyList = []; //TODO is this the best place for this?
 exports.addAuthRequestKey = async function () {
@@ -126,6 +140,7 @@ exports.checkAuthRequestKey = async function (key) {
     let pack = await exports.checkKey(authRequestKeyList, key, timeout);
     return {authRequestKey: pack.key, authRequestTimestamp: pack.timestamp};
 }
+
 
 //C source specific authRequest functions //TODO rename to 'spotify'x.., 'youtube'x...
 exports.startAuthRequest = async function () {

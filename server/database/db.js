@@ -1,13 +1,21 @@
-const sj = require('../../public/js/global.js');
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+// builtin
+
+// external
 const pgp = require('pg-promise')({
     // initialization options here: http://vitaly-t.github.io/pg-promise/module-pg-promise.html
 });
 
-/* notes
-    basic query functions: any(manyOrNone) many none one oneOrNone
+// internal
+const sj = require('../../public/js/global.js');
 
-*/
-
+// initialize
 const config = {
     // https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax#configuration-object
     // TODO create new db user with restricted capabilities
@@ -17,8 +25,7 @@ const config = {
     user: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'pgPassword',
 }
-  
 const db = pgp(config);
 
-// create a single db object for entire app
+//C create a single db object for entire app
 module.exports = db;

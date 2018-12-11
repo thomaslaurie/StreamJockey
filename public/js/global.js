@@ -5,10 +5,11 @@
 // ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
-//R Promises: promises always return more promises (that are resolved or rejected), await (and furthermore async) is only needed to transform those resolved or rejected promises in to useable values, promises can be called and returned within a synchronous function (like map) they just pass on their evaluation to whatever they were returned to (see the implementation of Promise.all(...map()))
-//L Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
-//R catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
-/* //C
+/*
+	//R Promises: promises always return more promises (that are resolved or rejected), await (and furthermore async) is only needed to transform those resolved or rejected promises in to useable values, promises can be called and returned within a synchronous function (like map) they just pass on their evaluation to whatever they were returned to (see the implementation of Promise.all(...map()))
+	//L Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
+	//R catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
+
 	.on() should be bound to the closest non-dynamic element (because its faster?)
 	.on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
 	.on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
@@ -23,11 +24,10 @@
 //     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
 
 /* TODO 
-
-Model:
+	Model:
 	Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
 
-Big:
+	Big:
 	Break every single part of every module, see if all possible outcomes are caught and handled properly.
 	Ensure everything has an error handler - most of the time 'throw sj.propagateError(rejected);'.
 	Fill in and make consistent content for all success, error, data objects.
@@ -36,7 +36,7 @@ Big:
 
 	Replace all 'var' with 'let' and 'const'
 
-Misc:
+	Misc:
 	// TODO replace .name properties with .title as name is reserved, actually name isnt reserved - its just a property of Functions, however all of these are constructor functions that return Objects with that property so it should be safe - convert title to name
 
 	Consider name-spacing

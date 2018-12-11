@@ -1,36 +1,3 @@
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
-
-// builtin
-
-// external
-const bcrypt = require('bcrypt');
-const saltRounds = 10; 
-
-// internal
-const sj = require('../public/js/global.js');
-const db = require('./database/db.js');
-
-
-//! string to be hashed must not be greater than 72 characters (//? or bytes???),
-const stringMaxLength = 100;
-const bigStringMaxLength = 2000;
-
-const nameMinLength = 3;
-const nameMaxLength = 16;
-
-const defaultColor = '#ffffff';
-
-const visibilityStates = [
-    'public',
-    'private',
-    'linkOnly',
-];
-
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -50,6 +17,8 @@ const visibilityStates = [
     Delete -> delete
 
     //! right now the CRUD functions are called with sj.Objects with some set of parameters (not always id, even for get) - these parameters are all ones that are fine to publicly carry around with the object (except in particular cases like passwords) and so should always be with the object. If theres a point in the future where these have to be called with a consistent argument (id) then the next step would be to make all these consistent about using that parameter and then also maybe have fallbacks for incase that parameter doesn't exist but other sufficient ones do (playlistId, position). This would be an order of properties and their respective validation checks and query modifications.
+
+    //G basic query functions: any(manyOrNone) many none one oneOrNone
 */
 
 
@@ -85,6 +54,41 @@ const visibilityStates = [
         ctx.session.currentPage = '';  $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; 
     }
 */
+
+
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+// builtin
+
+// external
+const bcrypt = require('bcrypt');
+const saltRounds = 10; 
+
+// internal
+const sj = require('../public/js/global.js');
+const db = require('./database/db.js');
+
+// initialize
+//! string to be hashed must not be greater than 72 characters (//? or bytes???),
+const stringMaxLength = 100;
+const bigStringMaxLength = 2000;
+
+const nameMinLength = 3;
+const nameMaxLength = 16;
+
+const defaultColor = '#ffffff';
+
+const visibilityStates = [
+    'public',
+    'private',
+    'linkOnly',
+];
+
 
 //  ██╗   ██╗████████╗██╗██╗     
 //  ██║   ██║╚══██╔══╝██║██║     
@@ -436,6 +440,7 @@ sj.colorRules = new sj.Rules({
     filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
     filterMessage: 'Color must be in hex format #XXXXXX',
 });
+
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
@@ -1555,5 +1560,6 @@ sj.moveTrack = async function (ctx, track, position) {
         content: playlist,
     });
 }
+
 
 module.exports = sj;
