@@ -13,6 +13,7 @@
 
 */
 
+
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -21,17 +22,19 @@
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 // builtin
-const EventEmitter = require('events');
 
 // external
-var SpotifyWebApi = require('spotify-web-api-node'); //L https://github.com/thelinmichael/spotify-web-api-node
+import SpotifyWebApi from 'spotify-web-api-node';
+//var SpotifyWebApi = require('spotify-web-api-node'); //L https://github.com/thelinmichael/spotify-web-api-node
 
 // internal
-const sj = require('../public/js/global.js');
+import sj from '../public/js/global.mjs';
+//const sj = require('../public/js/global.js');
 
 // initialize
 //TODO consider moving this over to the globals-server stuff
-spotify = new sj.Source({ 
+//C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
+let spotify = new sj.Source({ 
     api: new SpotifyWebApi({
         //C create api object and set credentials in constructor
         clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -74,9 +77,12 @@ spotify = new sj.Source({
 });
 
 
+let auth = {};
+
+
 // random key generation
 //TODO this should go into global-server.js util
-exports.makeKey = function (length) {
+auth.makeKey = function (length) {
     //C use only characters allowed in URLs
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     
@@ -86,7 +92,7 @@ exports.makeKey = function (length) {
     }
     return key;
 }
-exports.addKey = async function (list) {
+auth.addKey = async function (list) {
     let pack = {};
 
     pack.key = await sj.recursiveSyncCount(100, (key) => {
@@ -98,14 +104,14 @@ exports.addKey = async function (list) {
             }
         }
         return found;
-    }, exports.makeKey, 10);
+    }, auth.makeKey, 10);
 
     pack.timestamp = Date.now();
 
     list.push(pack);
     return pack;
 }
-exports.checkKey = async function (list, key, timeout) {
+auth.checkKey = async function (list, key, timeout) {
     for(let i = 0; i < list.length; i++) {
         //C if the key is found, remove and return it
         if (list[i].key === key) {
@@ -131,27 +137,27 @@ exports.checkKey = async function (list, key, timeout) {
 
 //C specific authRequestKey functions 
 let authRequestKeyList = []; //TODO is this the best place for this?
-exports.addAuthRequestKey = async function () {
-    return await exports.addKey(authRequestKeyList);
+auth.addAuthRequestKey = async function () {
+    return await auth.addKey(authRequestKeyList);
 }
-exports.checkAuthRequestKey = async function (key) {
+auth.checkAuthRequestKey = async function (key) {
     //C 5 minute timeout //TODO this should be a global, server variable
     let timeout = 300000; 
-    let pack = await exports.checkKey(authRequestKeyList, key, timeout);
+    let pack = await auth.checkKey(authRequestKeyList, key, timeout);
     return {authRequestKey: pack.key, authRequestTimestamp: pack.timestamp};
 }
 
 
 //C source specific authRequest functions //TODO rename to 'spotify'x.., 'youtube'x...
-exports.startAuthRequest = async function () {
-    let pack = await exports.addKey(authRequestKeyList);
+auth.startAuthRequest = async function () {
+    let pack = await auth.addKey(authRequestKeyList);
     return new sj.Credentials({
         authRequestKey: pack.key,
         authRequestTimestamp: pack.timestamp,
         authRequestURL: spotify.makeAuthRequestURL(pack.key),
     });
 }
-exports.receiveAuthRequest = async function (ctx) {
+auth.receiveAuthRequest = async function (ctx) {
     /*//C 
         if the user accepts the request:
         code	An authorization code that can be exchanged for an access token.
@@ -167,7 +173,7 @@ exports.receiveAuthRequest = async function (ctx) {
     //C check key first to see if it is even known who sent the request
     //! on fail this will throw a key-not-found error (either because of timeout or another error), in this case, there is no knowing what client requested this, and should just be left to time out (on the http request side)
     //TODO create error parser for spotify api
-    await exports.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
+    await auth.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
         //C ensure that Error object's content is a string for calling an event
         let error = sj.propagateError(rejected);
         error.content = '';
@@ -198,3 +204,6 @@ exports.receiveAuthRequest = async function (ctx) {
     });
 }
 //TODO end auth request is done in the router part (because thats where the emitter is), therefore receive auth request is basically the end, should the emitter be inside here instead?
+
+
+export default auth;

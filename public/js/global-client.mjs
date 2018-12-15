@@ -15,16 +15,20 @@
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
 */
 
-let spotify = new sj.Source({
+
+import sj from './global.mjs';
+
+
+sj.spotify = new sj.Source({
 	name: 'spotify',
 });
-let youtube = new sj.Source({
+sj.youtube = new sj.Source({
 	name: 'youtube',
 	idPrefix: 'https://www.youtube.com/watch?v=',
 });
 
 // auth
-spotify.auth = async function () {
+sj.spotify.auth = async function () {
     let authRequestWindow;
     
     //C request authURL & authKey
@@ -55,7 +59,7 @@ spotify.auth = async function () {
         throw sj.propagateError(rejected);
     });
 }
-youtube.auth = async function () {
+sj.youtube.auth = async function () {
     //TODO
     return new sj.Error({
         log: true,
@@ -65,7 +69,7 @@ youtube.auth = async function () {
 }
 
 // api
-spotify.loadApi = async function () {
+sj.spotify.loadApi = async function () {
 	return new Promise(function (resolve, reject) {
 		try {
 			// https://beta.developer.spotify.com/documentation/web-api/
@@ -91,7 +95,7 @@ spotify.loadApi = async function () {
 		}
 	});
 }
-youtube.loadApi = async function () {
+sj.youtube.loadApi = async function () {
 	// Get Script
 	// https://api.jquery.com/jquery.getscript/
 	return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
@@ -153,7 +157,7 @@ youtube.loadApi = async function () {
 }
 
 // player
-spotify.loadPlayer = async function () {
+sj.spotify.loadPlayer = async function () {
 	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
 	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
 	// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
@@ -331,7 +335,7 @@ spotify.loadPlayer = async function () {
 		});
 	});
 }
-youtube.loadPlayer = function () {
+sj.youtube.loadPlayer = function () {
     //TODO make this async
 
 	$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
@@ -396,4 +400,5 @@ youtube.loadPlayer = function () {
 	// youtubePlayer.destroy() kills the iframe
 }
 
-export { spotify, youtube };
+
+export default sj;

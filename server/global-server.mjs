@@ -66,12 +66,15 @@
 // builtin
 
 // external
-const bcrypt = require('bcrypt');
+import bcrypt from 'bcrypt';
+//const bcrypt = require('bcrypt');
 const saltRounds = 10; 
 
 // internal
-const sj = require('../public/js/global.js');
-const db = require('./database/db.js');
+import sj from '../public/js/global.mjs';
+//const sj = require('../public/js/global.js');
+import db from './database/db.mjs';
+//const db = require('./database/db.js');
 
 // initialize
 //! string to be hashed must not be greater than 72 characters (//? or bytes???),
@@ -1562,4 +1565,5 @@ sj.moveTrack = async function (ctx, track, position) {
 }
 
 
-module.exports = sj;
+export default sj;
+//module.exports = sj;

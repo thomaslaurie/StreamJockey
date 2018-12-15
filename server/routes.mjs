@@ -53,23 +53,29 @@
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 // builtin
-const path = require('path');
-const EventEmitter = require('events');
-const emitter = new EventEmitter();
+import path from 'path';
+//const path = require('path');
+import EventEmitter from 'events';
+//const EventEmitter = require('events');
 
 // external
-const Router = require('koa-router'); //L https://github.com/alexmingoia/koa-router
-const send = require('koa-send'); //L https://github.com/koajs/send
-// const fetch = require('node-fetch'); //? why was this needed?
+import Router from 'koa-router';
+//const Router = require('koa-router'); //L https://github.com/alexmingoia/koa-router
+import send from 'koa-send';
+//const send = require('koa-send'); //L https://github.com/koajs/send
 
 // internal
-const sj = require('./global-server.js');
-const auth = require('./auth.js');
+import sj from './global-server.mjs';
+//const sj = require('./global-server.js');
+import auth from './auth.mjs';
+//const auth = require('./auth.js');
 
 
 // initialize
+const emitter = new EventEmitter();
 const router = new Router();
 const apiRouter = new Router();
+
 
 
 //   █████╗ ██████╗ ██╗
@@ -250,6 +256,9 @@ router
 		//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
 	});	
 
+
+	
+export default router;
 //L https://medium.freecodecamp.org/node-js-module-exports-vs-exports-ec7e254d63ac
 //! exports is a reference to module.exports. therefore - ok to assign properties to both, ok to do module.exports= but not exports=
-module.exports = router;
+//module.exports = router;

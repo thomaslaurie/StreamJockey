@@ -6,6 +6,10 @@
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
 /*
+	run me with:
+	nodemon --experimental-modules ./index.mjs 
+
+
 	//L process.env: https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
 	//L dotenv:  https://www.npmjs.com/package/dotenv
 */
@@ -35,10 +39,15 @@
 // builtin
 
 // external
-require('dotenv').config();
-const Koa = require('koa'); //L https://github.com/koajs
-const bodyParser = require('koa-bodyparser'); //L https://github.com/koajs/bodyparser
-const session = require('koa-session'); //L https://github.com/koajs/session
+import dotenv from 'dotenv';
+dotenv.config();
+//require('dotenv').config();
+import Koa from 'koa';
+//const Koa = require('koa'); //L https://github.com/koajs
+import bodyParser from 'koa-bodyparser';
+//const bodyParser = require('koa-bodyparser'); //L https://github.com/koajs/bodyparser
+import session from 'koa-session';
+//const session = require('koa-session'); //L https://github.com/koajs/session
 const sessionConfig = {
 	//TODO random keys: //L https://randomkeygen.com/
 
@@ -59,8 +68,8 @@ const sessionConfig = {
 };
 
 // internal
-const router = require('./routes.js');
-const db = require('./database/db.js');
+import router from './routes.mjs';
+//const router = require('./routes.js');
 
 // initialize
 const app = new Koa();

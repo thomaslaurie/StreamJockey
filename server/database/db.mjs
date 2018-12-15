@@ -8,12 +8,17 @@
 // builtin
 
 // external
-const pgp = require('pg-promise')({
+import pgpF from 'pg-promise';
+const pgp = pgpF({
     // initialization options here: http://vitaly-t.github.io/pg-promise/module-pg-promise.html
 });
+// const pgp = require('pg-promise')({
+//     // initialization options here: http://vitaly-t.github.io/pg-promise/module-pg-promise.html
+// });
 
 // internal
-const sj = require('../../public/js/global.js');
+import sj from '../../public/js/global.mjs';
+//const sj = require('../../public/js/global.js');
 
 // initialize
 const config = {
@@ -27,5 +32,7 @@ const config = {
 }
 const db = pgp(config);
 
+
 //C create a single db object for entire app
-module.exports = db;
+export default db;
+//module.exports = db;

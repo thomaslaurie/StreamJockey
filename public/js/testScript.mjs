@@ -1,6 +1,6 @@
-import * as sj from './global-client.mjs';
+import sj from './global-client.mjs';
 
-console.log('TEST: ', sj.spotify, sj.youtube);
+console.log('TEST: ', sj);
 
 async function send(objType, obj, method) {
     let temp = {};
