@@ -1,3 +1,7 @@
+import * as sj from './global-client.mjs';
+
+console.log('TEST: ', sj.spotify, sj.youtube);
+
 async function send(objType, obj, method) {
     let temp = {};
 
@@ -70,47 +74,8 @@ function wrapTrack() {
     });
 }
 
-
-async function authSpotify() {
-    let authRequestWindow;
-    
-    //C request authURL & authKey
-    return fetch(`http://localhost:3000/api/spotify/startAuthRequest`).then(resolved => {
-        console.log('HERE1');
-        return resolved.json();
-    }).then(resolved => {
-        //C open spotify auth request window
-        //L https://www.w3schools.com/jsref/met_win_open.asp
-        authRequestWindow = window.open(resolved.authRequestURL);
-        
-        console.log('HERE2');
-        return resolved;
-    }).then(resolved => {
-        //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-        console.log('HERE3');
-        return fetch(`http://localhost:3000/api/spotify/endAuthRequest`,  {
-            method: 'post',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(resolved),
-        });
-    }).then(resolved => {
-        console.log('HERE4');
-        return resolved.json();
-    }).then(resolved => {
-        console.log('RESULT', resolved);
-        authRequestWindow.close();
-        return resolved;
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-}
-
 $(document).on('click', '#authSpotify', async function() {
-    console.log('HERE0');
-    let result = await authSpotify().catch(sj.andResolve);
+    let result = await spotify.auth().catch(sj.andResolve);
 });
 
 // js on click

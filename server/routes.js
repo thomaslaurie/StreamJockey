@@ -233,6 +233,9 @@ router
 			// TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
 		}
 
+		//! Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header
+		//L https://developers.google.com/web/fundamentals/primers/modules
+		
 		// favicon request
 		if (ctx.request.path === '/favicon.ico') {
 			// ignore it //L https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico

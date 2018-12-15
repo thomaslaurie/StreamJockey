@@ -1447,3 +1447,12 @@
 */
   
 
+// exports
+
+//----------------- CONVERT EVERYTHING TO ESMODULES & MJS
+
+//L es modules: https://developers.google.com/web/fundamentals/primers/modules, http://2ality.com/2014/09/es6-modules-final.html
+//L export: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
+//L import: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
+
+//L es modules in node (VERY USEFUL FOR HOW TO CONVERT TO ESMODULES): https://medium.com/@giltayar/native-es-modules-in-nodejs-status-and-future-directions-part-i-ee5ea3001f71

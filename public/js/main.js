@@ -1004,10 +1004,11 @@ async function deleteTrack(playlistId, position) {
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
 */
 
-spotify = new sj.Source({
+//? the let statements were gone, was this just a mistake or was this intentional?
+let spotify = new sj.Source({
 	name: 'spotify',
 });
-youtube = new sj.Source({
+let youtube = new sj.Source({
 	name: 'youtube',
 	idPrefix: 'https://www.youtube.com/watch?v=',
 });
