@@ -24,12 +24,10 @@
 // builtin
 
 // external
-import SpotifyWebApi from 'spotify-web-api-node';
-//var SpotifyWebApi = require('spotify-web-api-node'); //L https://github.com/thelinmichael/spotify-web-api-node
-
+import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
+ 
 // internal
 import sj from '../public/js/global.mjs';
-//const sj = require('../public/js/global.js');
 
 // initialize
 //TODO consider moving this over to the globals-server stuff
@@ -70,87 +68,54 @@ let spotify = new sj.Source({
     },
     authRequestManually: true,
     makeAuthRequestURL: function (key) {
-        //! the show_dialog query parameter isn't available in the createAuthorizeURL, so manually add it
-        //! TODO this will NOT error if process.env.SPOTIFY_CLIENT_ID, secret, or redirect uri parameters passed in new SpotifyWebApi({}) are undefined
+        //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
+        console.log(this.api);
+        if (sj.typeOf(this.api._credentials.clientId) !== 'string' || 
+        sj.typeOf(this.api._credentials.clientSecret) !== 'string' || 
+        sj.typeOf(this.api._credentials.redirectUri) !== 'string') {
+            throw new sj.Error({
+                log: true,
+                origin: 'spotify.makeAuthRequestURL()',
+                message: 'one or more api credentials are missing or of the wrong type',
+                content: {
+                    clientId: this.api._credentials.clientId,
+                    clientSecret: this.api._credentials.clientSecret,
+                    redirectUri: this.api._credentials.redirectUri,
+                }
+            });
+        }
+
+        //! the show_dialog query parameter isn't available in the createAuthorizeURL, so it is manually added
         return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`;
     },
 });
 
-
 let auth = {};
 
 
-// random key generation
-//TODO this should go into global-server.js util
-auth.makeKey = function (length) {
-    //C use only characters allowed in URLs
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    
-    let key = '';
-    for (let i = 0; i < length; i++) {
-        key += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return key;
-}
-auth.addKey = async function (list) {
-    let pack = {};
-
-    pack.key = await sj.recursiveSyncCount(100, (key) => {
-        let found = false;
-        for (let i = 0; i < list.length; i++) {
-            if (list[i].key === key) {
-                found = true;
-                break;
-            }
-        }
-        return found;
-    }, auth.makeKey, 10);
-
-    pack.timestamp = Date.now();
-
-    list.push(pack);
-    return pack;
-}
-auth.checkKey = async function (list, key, timeout) {
-    for(let i = 0; i < list.length; i++) {
-        //C if the key is found, remove and return it
-        if (list[i].key === key) {
-            let pack = list[i];
-            list.splice(i, 1);
-            return pack;
-        }
-
-        //TODO ensure this timeout works, I think it was tested before? but just check again
-        //C if any key has timed out, remove it too
-        if (list[i].timestamp + timeout < Date.now()) {
-            list.splice(i, 1);
-        }
-    }
-
-    throw new sj.Error({
-        log: true,
-        origin: 'checkKey()',
-        message: 'request timeout (or just an invalid key)',
-    });
-}
-
+//   █████╗ ██╗   ██╗████████╗██╗  ██╗
+//  ██╔══██╗██║   ██║╚══██╔══╝██║  ██║
+//  ███████║██║   ██║   ██║   ███████║
+//  ██╔══██║██║   ██║   ██║   ██╔══██║
+//  ██║  ██║╚██████╔╝   ██║   ██║  ██║
+//  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
 
 //C specific authRequestKey functions 
 let authRequestKeyList = []; //TODO is this the best place for this?
 auth.addAuthRequestKey = async function () {
-    return await auth.addKey(authRequestKeyList);
+    return await sj.addKey(authRequestKeyList);
 }
 auth.checkAuthRequestKey = async function (key) {
     //C 5 minute timeout //TODO this should be a global, server variable
     let timeout = 300000; 
-    let pack = await auth.checkKey(authRequestKeyList, key, timeout);
+    let pack = await sj.checkKey(authRequestKeyList, key, timeout);
     return {authRequestKey: pack.key, authRequestTimestamp: pack.timestamp};
 }
 
 
 //C source specific authRequest functions //TODO rename to 'spotify'x.., 'youtube'x...
 auth.startAuthRequest = async function () {
-    let pack = await auth.addKey(authRequestKeyList);
+    let pack = await sj.addKey(authRequestKeyList);
     return new sj.Credentials({
         authRequestKey: pack.key,
         authRequestTimestamp: pack.timestamp,
@@ -173,7 +138,7 @@ auth.receiveAuthRequest = async function (ctx) {
     //C check key first to see if it is even known who sent the request
     //! on fail this will throw a key-not-found error (either because of timeout or another error), in this case, there is no knowing what client requested this, and should just be left to time out (on the http request side)
     //TODO create error parser for spotify api
-    await auth.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
+    await sj.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
         //C ensure that Error object's content is a string for calling an event
         let error = sj.propagateError(rejected);
         error.content = '';

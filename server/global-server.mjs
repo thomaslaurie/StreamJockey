@@ -398,6 +398,59 @@ sj.parsePostgresError = function (pgError, sjError) {
     return sjError;
 }
 
+// random key generation
+//TODO this should go into global-server.js util
+sj.makeKey = function (length) {
+    //C use only characters allowed in URLs
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    
+    let key = '';
+    for (let i = 0; i < length; i++) {
+        key += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return key;
+}
+sj.addKey = async function (list) {
+    let pack = {};
+
+    pack.key = await sj.recursiveSyncCount(100, (key) => {
+        let found = false;
+        for (let i = 0; i < list.length; i++) {
+            if (list[i].key === key) {
+                found = true;
+                break;
+            }
+        }
+        return found;
+    }, sj.makeKey, 10);
+
+    pack.timestamp = Date.now();
+
+    list.push(pack);
+    return pack;
+}
+sj.checkKey = async function (list, key, timeout) {
+    for(let i = 0; i < list.length; i++) {
+        //C if the key is found, remove and return it
+        if (list[i].key === key) {
+            let pack = list[i];
+            list.splice(i, 1);
+            return pack;
+        }
+
+        //TODO ensure this timeout works, I think it was tested before? but just check again
+        //C if any key has timed out, remove it too
+        if (list[i].timestamp + timeout < Date.now()) {
+            list.splice(i, 1);
+        }
+    }
+
+    throw new sj.Error({
+        log: true,
+        origin: 'checkKey()',
+        message: 'request timeout (or just an invalid key)',
+    });
+}
 
 //  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
 //  ██╔══██╗██║   ██║██║     ██╔════╝██╔════╝

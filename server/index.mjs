@@ -36,12 +36,12 @@
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+// top
+import './config.mjs';
+
 // builtin
 
 // external
-import dotenv from 'dotenv';
-dotenv.config();
-//require('dotenv').config();
 import Koa from 'koa';
 //const Koa = require('koa'); //L https://github.com/koajs
 import bodyParser from 'koa-bodyparser';

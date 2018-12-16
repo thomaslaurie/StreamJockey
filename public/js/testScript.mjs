@@ -1,6 +1,5 @@
 import sj from './global-client.mjs';
 
-console.log('TEST: ', sj);
 
 async function send(objType, obj, method) {
     let temp = {};
@@ -75,7 +74,7 @@ function wrapTrack() {
 }
 
 $(document).on('click', '#authSpotify', async function() {
-    let result = await spotify.auth().catch(sj.andResolve);
+    let result = await sj.spotify.auth().catch(sj.andResolve);
 });
 
 // js on click
