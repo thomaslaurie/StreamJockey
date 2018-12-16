@@ -69,7 +69,6 @@ let spotify = new sj.Source({
     authRequestManually: true,
     makeAuthRequestURL: function (key) {
         //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-        console.log(this.api);
         if (sj.typeOf(this.api._credentials.clientId) !== 'string' || 
         sj.typeOf(this.api._credentials.clientSecret) !== 'string' || 
         sj.typeOf(this.api._credentials.redirectUri) !== 'string') {
@@ -138,7 +137,7 @@ auth.receiveAuthRequest = async function (ctx) {
     //C check key first to see if it is even known who sent the request
     //! on fail this will throw a key-not-found error (either because of timeout or another error), in this case, there is no knowing what client requested this, and should just be left to time out (on the http request side)
     //TODO create error parser for spotify api
-    await sj.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
+    await auth.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
         //C ensure that Error object's content is a string for calling an event
         let error = sj.propagateError(rejected);
         error.content = '';
