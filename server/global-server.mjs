@@ -56,6 +56,23 @@
 */
 
 
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+
+// builtin
+
+// external
+import bcrypt from 'bcrypt';
+
+// internal
+import sj from '../public/js/global.mjs';
+import db from './database/db.mjs';
+
+
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -63,20 +80,9 @@
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-// builtin
-
-// external
-import bcrypt from 'bcrypt';
-//const bcrypt = require('bcrypt');
+// bcrypt
 const saltRounds = 10; 
 
-// internal
-import sj from '../public/js/global.mjs';
-//const sj = require('../public/js/global.js');
-import db from './database/db.mjs';
-//const db = require('./database/db.js');
-
-// initialize
 //! string to be hashed must not be greater than 72 characters (//? or bytes???),
 const stringMaxLength = 100;
 const bigStringMaxLength = 2000;
@@ -399,7 +405,6 @@ sj.parsePostgresError = function (pgError, sjError) {
 }
 
 // random key generation
-//TODO this should go into global-server.js util
 sj.makeKey = function (length) {
     //C use only characters allowed in URLs
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -1619,4 +1624,3 @@ sj.moveTrack = async function (ctx, track, position) {
 
 
 export default sj;
-//module.exports = sj;

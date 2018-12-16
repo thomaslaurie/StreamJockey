@@ -1,3 +1,6 @@
+//----------- DISTRIBUTE ALL OF THIS INTO GLOBAL / GLOBAL-CLIENT / GLOBAL-SERVER
+
+
 /*
 	//   ██████╗ ██╗      ██████╗ ██████╗  █████╗ ██╗     
 	//  ██╔════╝ ██║     ██╔═══██╗██╔══██╗██╔══██╗██║     

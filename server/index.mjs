@@ -29,12 +29,12 @@
 */
 
 
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
 // top
 import './config.mjs';
@@ -42,12 +42,24 @@ import './config.mjs';
 // builtin
 
 // external
-import Koa from 'koa';
-//const Koa = require('koa'); //L https://github.com/koajs
-import bodyParser from 'koa-bodyparser';
-//const bodyParser = require('koa-bodyparser'); //L https://github.com/koajs/bodyparser
-import session from 'koa-session';
-//const session = require('koa-session'); //L https://github.com/koajs/session
+import Koa from 'koa'; //L https://github.com/koajs
+import bodyParser from 'koa-bodyparser'; //L https://github.com/koajs/bodyparser
+import session from 'koa-session'; //L https://github.com/koajs/session
+
+// internal
+import router from './routes.mjs';
+
+
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+// koa
+const app = new Koa();
+app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
 const sessionConfig = {
 	//TODO random keys: //L https://randomkeygen.com/
 
@@ -67,13 +79,6 @@ const sessionConfig = {
 	renew: false, 
 };
 
-// internal
-import router from './routes.mjs';
-//const router = require('./routes.js');
-
-// initialize
-const app = new Koa();
-app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
 const PORT = process.env.PORT || 3000;
 
 

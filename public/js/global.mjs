@@ -13,6 +13,11 @@
 	.on() should be bound to the closest non-dynamic element (because its faster?)
 	.on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
 	.on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
+
+	//L es modules: https://developers.google.com/web/fundamentals/primers/modules, http://2ality.com/2014/09/es6-modules-final.html
+	//L export: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
+	//L import: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
+	//L es modules in node (VERY USEFUL FOR HOW TO CONVERT TO ESMODULES): https://medium.com/@giltayar/native-es-modules-in-nodejs-status-and-future-directions-part-i-ee5ea3001f71
 */
 
 
@@ -48,18 +53,24 @@
 */
 
 
-// container
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
 let sj = {};
 
 
-	//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-	//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-	//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-	//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-	//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-	//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
+//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
+//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
+//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
+//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
+//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
-//! these shouldn't reference sj.Objects
+//! these can't reference any sj.Objects
 
 sj.deepFreeze = function (obj) {
 	// TODO test me
@@ -1263,6 +1274,8 @@ sj.noTrack.source = sj.noSource; // cyclical reference
 //  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 
+//! these do reference sj.Objects
+
 // error
 sj.isError = function (obj) {
 	// checks for proper SjObject error types
@@ -1434,15 +1447,7 @@ sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 }
 
 
-// exports
-
-//L es modules: https://developers.google.com/web/fundamentals/primers/modules, http://2ality.com/2014/09/es6-modules-final.html
-//L export: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
-//L import: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
-//L es modules in node (VERY USEFUL FOR HOW TO CONVERT TO ESMODULES): https://medium.com/@giltayar/native-es-modules-in-nodejs-status-and-future-directions-part-i-ee5ea3001f71
-
 export default sj;
-
 /* 
 	//! not used anymore
 
