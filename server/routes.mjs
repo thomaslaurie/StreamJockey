@@ -71,8 +71,15 @@ import auth from './auth.mjs';
 //const auth = require('./auth.js');
 
 
+
+
 // initialize
+//TODO there has to be a cleaner way of doing this (especially the replace manipulation)
+//L make own __dirname since it isn't exposed in modules: https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
+//L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
+const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
 const emitter = new EventEmitter();
+
 const router = new Router();
 const apiRouter = new Router();
 
@@ -248,6 +255,8 @@ router
 			await next();
 			//TODO handle the favicon.ico request
 		}
+
+		//TODO errors thrown here aren't caught - fix this here and everywhere else
 
 		await send(ctx, ctx.request.path, {root: path.join(__dirname, '..', 'public')});
 	})

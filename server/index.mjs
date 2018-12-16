@@ -138,3 +138,5 @@ process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at:', p, '\n Reason:', reason);
     //TODO handle
 });
+
+//TODO errors thrown in some places (like routes) still aren't caught
