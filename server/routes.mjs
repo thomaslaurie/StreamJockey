@@ -35,6 +35,8 @@
 	node module.exports (unused, switched to ES Modules)
 	//L https://medium.freecodecamp.org/node-js-module-exports-vs-exports-ec7e254d63ac
 	exports is a reference to module.exports. therefore - ok to assign properties to both, ok to do module.exports= but not exports=
+
+	//R use query parameters for api get requests where multiple params may be needed or optional, use the single path parameters for page get requests where we're looking for a simple unique route
 */
 
 
@@ -170,8 +172,13 @@ apiRouter
 .post('/user', async (ctx, next) => {
 	ctx.response.body = await sj.addUser(ctx.request.body).catch(sj.andResolve);
 })
-.get('/user/:name', async (ctx, next) => {
-	ctx.response.body = await sj.getUser(new sj.User({name: ctx.params.name})).catch(sj.andResolve);
+.get('/user', async (ctx, next) => {
+	console.log('QUERY: ', ctx.query);
+	ctx.response.body = await sj.getUser(new sj.User({
+		id: ctx.query.id, 
+		name: ctx.query.name, 
+		email: ctx.query.email,
+	})).catch(sj.andResolve);
 })
 .patch('/user', async (ctx, next) => {
 	ctx.response.body = await sj.editUser(ctx.request.body).catch(sj.andResolve);
@@ -225,6 +232,7 @@ apiRouter
 		origin: 'apiRouter',
 		message: 'could not process request',
 		reason: 'invalid api command',
+		content: ctx.request.body,
 	});
 });
 

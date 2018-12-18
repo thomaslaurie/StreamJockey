@@ -53,6 +53,8 @@
         ctx.session.pastPage = ctx.session.currentPage !== 'undefined' ? ctx.session.currentPage : 'index.html';
         ctx.session.currentPage = '';  $_SESSION['currentPage'] = $_SERVER['REQUEST_URI']; 
     }
+
+    review common pg-promise mistakes: //L https://github.com/vitaly-t/pg-promise/wiki/Common-Mistakes#invalid-query-formatting-with-manual-string-concatenation-and-es6-template-strings
 */
 
 
@@ -70,7 +72,7 @@ import bcrypt from 'bcrypt';
 
 // internal
 import sj from '../public/js/global.mjs';
-import db from './database/db.mjs';
+import db, {pgp} from './database/db.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -457,6 +459,7 @@ sj.checkKey = async function (list, key, timeout) {
     });
 }
 
+
 //  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
 //  ██╔══██╗██║   ██║██║     ██╔════╝██╔════╝
 //  ██████╔╝██║   ██║██║     █████╗  ███████╗
@@ -471,7 +474,16 @@ sj.positiveIntegerRules = new sj.Rules({
 
     valueName: 'Number',
 
-    dataType: 'integer',
+    dataTypes: ['integer'],
+});
+sj.idRules = new sj.Rules({
+    log: true,
+    origin: 'idRules',
+    message: 'id validated',
+
+    valueName: 'Id',
+
+    dataTypes: ['integer'],
 });
 sj.imageRules = new sj.Rules({
     log: true,
@@ -510,6 +522,8 @@ sj.colorRules = new sj.Rules({
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
 
+//---------- MAKE STUFF ACCESSABLE BY BOTH ID AND NAME (SHOULD BE ABLE TO TYPE A UR TO USER AND ALSO GET BY ID), DO THIS FOR EVERYTHING
+
 // validate
 sj.selfRules = new sj.Rules({
     log: true,
@@ -520,7 +534,7 @@ sj.selfRules = new sj.Rules({
 
     valueName: 'Id',
 
-    dataType: 'integer',
+    dataTypes: ['integer'],
 
     useAgainst: true,
     //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
@@ -736,13 +750,30 @@ sj.addUser = async function (user) {
     });
 }
 sj.getUser = async function (user) {
-    //TODO userNameRules has userName field ids, this wont target them because they wont exist - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
+    //R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
+    //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
 
-    await sj.Rules.checkRuleSet([
-        [sj.userNameRules, user, 'name'],
-    ]);
+    //TODO userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
 
-    return db.one('SELECT * FROM "sj"."users_public" WHERE "id" = $1', [id]).catch(rejected => {
+
+    //C will check either id, name, or email - only one, in that order
+    let ruleSet = [];
+    //L pre-format WHERE clause: https://github.com/vitaly-t/pg-promise#raw-text
+    let where = 'WHERE 0 = 1';
+    if (sj.isNonEmptyValue(user.id)) {
+        console.log('ID NONEMPTY');
+        ruleSet.push([sj.idRules, user, 'id']);
+        where = pgp.as.format('WHERE "id" = $1', user.id);
+    } else if (sj.isNonEmptyValue(user.name)) {
+        console.log('NAME NONEMPTY');
+        ruleSet.push([sj.userNameRules, user, 'name']);
+        where = pgp.as.format('WHERE "name" = $1', user.name);
+    }
+    //! cannot get email because that is not visible to users_public
+
+    await sj.Rules.checkRuleSet(ruleSet);
+
+    return db.one('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
                 origin: 'getUser()',
@@ -751,7 +782,7 @@ sj.getUser = async function (user) {
                 cssClass: 'notifyError',
         }));
     }).then(resolved => {
-        return new sj.User(resolved); // !!!  requires that table names are the same as object property names
+        return new sj.User(resolved); //!  requires that table names are the same as object property names
     });
 }
 sj.editUser = async function (ctx, user) { //TODO
@@ -942,7 +973,7 @@ sj.isLoggedIn = async function (ctx) {
     }
     //C redundancy check to make sure id is right format
     await sj.Rules.checkRuleSet([
-        [sj.positiveIntegerRules, ctx.session.user, 'id'],
+        [sj.idRules, ctx.session.user, 'id'],
     ]);
 
     return new sj.Success({
@@ -1203,12 +1234,12 @@ sj.getPlaylist = async function (ctx, playlist) {
         if (sj.typeOf(playlist.id) !== 'null') { 
     */
     await sj.Rules.checkRuleSet([
-        [sj.positiveIntegerRules, playlist, 'id'],
+        [sj.idRules, playlist, 'id'],
     ]);
     /*
         } else {
             await sj.Rules.checkRuleSet([
-                [sj.positiveIntegerRules, ctx.session.user, 'id'],
+                [sj.idRules, ctx.session.user, 'id'],
                 [sj.playlistNameRules, playlist, 'name'],
             ]);
         }
@@ -1277,7 +1308,7 @@ sj.deletePlaylist = async function (ctx, playlist) {
     playlist = await sj.getPlaylist(ctx, playlist);
 
     await sj.Rules.checkRuleSet([
-        [sj.positiveIntegerRules, playlist, 'id'],
+        [sj.idRules, playlist, 'id'],
         [sj.selfRules, playlist, 'userId', ctx.session.user.id],
     ]);
     
@@ -1443,7 +1474,7 @@ sj.addTrack = async function (ctx, track) {
 
     await sj.Rules.checkRuleSet([
         [sj.selfRules, ctx.session.user, 'id', playlist.userId],
-        [sj.positiveIntegerRules, track, 'playlistId'],
+        [sj.idRules, track, 'playlistId'],
         [sj.positiveIntegerRules, track, 'position'],
         [sj.sourceRules, track, 'source'],
         [sj.sourceIdRules, track, 'sourceId'],
@@ -1457,7 +1488,7 @@ sj.addTrack = async function (ctx, track) {
             message: 'one or more issues with fields',
             reason: 'validation functions returned one or more errors',
         });
-        track.playlistId = await sj.positiveIntegerRules.check(track.playlistId).catch(rejected => {
+        track.playlistId = await sj.idRules.check(track.playlistId).catch(rejected => {
             errorList.content.push(rejected);
             return rejected.content;
         });
@@ -1525,7 +1556,7 @@ sj.deleteTrack = async function (ctx, track) {
     await sj.isLoggedIn(ctx);
 
     await sj.Rules.checkRuleSet([
-        [sj.positiveIntegerRules, track, 'playlistId'],
+        [sj.idRules, track, 'playlistId'],
         [sj.positiveIntegerRules, track, 'position'],
     ]);
 

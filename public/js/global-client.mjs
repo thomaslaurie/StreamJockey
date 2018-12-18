@@ -44,8 +44,8 @@ import sj from './global.mjs';
 /*
 	// sorting
 	function isError(obj) {
-		// checks for proper SjObject error types
-		if (sj.typeOf(obj) === 'SjError' || sj.typeOf(obj) === 'SjErrorList') {
+		// checks for proper sj.Object error types
+		if (sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.ErrorList') {
 			return true;
 		} else {
 			return false;
@@ -53,7 +53,7 @@ import sj from './global.mjs';
 	}
 
 	function catchUnexpected(obj) {
-		// determines type of input, creates, announces, and returns a proper SjError object
+		// determines type of input, creates, announces, and returns a proper sj.Error object
 		// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 
 		var error = new sj.Error({
@@ -66,10 +66,10 @@ import sj from './global.mjs';
 		} else if (sj.typeOf(obj) === 'null') {
 			error.reason = 'object is null';
 		} else if (sj.typeOf(obj) === 'object') {
-			if (typeof obj.objectType === 'undefined' || typeof obj.objectType === 'null' || obj.objectType.indexOf('Sj') !== 0) {
-				error.reason = 'object is a non Sj object';
+			if (typeof obj.objectType === 'undefined' || typeof obj.objectType === 'null' || obj.objectType.indexOf('sj') !== 0) {
+				error.reason = 'object is a non sj object';
 			} else {
-				error.reason = 'object is of unexpected Sj objectType: ' + obj.objectType;
+				error.reason = 'object is of unexpected sj objectType: ' + obj.objectType;
 			}
 		} else {
 			error.reason = 'object is of unexpected type: ' + typeof obj;
@@ -79,7 +79,7 @@ import sj from './global.mjs';
 	}
 
 	function sj.propagateError(obj) {
-		// wrapper code for repeated error handling where: one or many SjObject results are expected, SjErrors are propagated, and anything else needs to be caught and transformed into a proper SjError
+		// wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
 		if (sj.isError(obj)) {
 			return obj;
 		} else {
@@ -88,7 +88,7 @@ import sj from './global.mjs';
 	}
 
 	function sj.filterList(resolvedList, type, resolvedObj, rejectedObj) {
-		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an SjErrorList with all objects that aren't of that type
+		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an sj.ErrorList with all objects that aren't of that type
 
 		resolvedObj.content = resolvedList;
 		rejectedObj.content = [];
@@ -113,10 +113,10 @@ import sj from './global.mjs';
 
 // handling
 function handleError(error) {
-	if (sj.typeOf(error) === 'SjError') {
+	if (sj.typeOf(error) === 'sj.Error') {
 		console.error(error);
 		addElementError(error);
-	} else if (sj.typeOf(error) === 'SjErrorList') {
+	} else if (sj.typeOf(error) === 'sj.ErrorList') {
 		error.content.forEach(function (item) {
 			console.error(error);
 			addElementError(error);
@@ -932,17 +932,17 @@ sj.youtube.loadPlayer = function () {
 //  ███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║
 //  ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 
-var searchResults = {
+sj.searchResults = {
 	// details
 	'term': '',
 	'tracksPerSource': 5,
 	'page': 1,
 
 	// sources
-	'spotify': new SjPlaylist({origin: 'searchResults',}),
-	'youtube': new SjPlaylist({origin: 'searchResults',}),
+	'spotify': new sj.Playlist({origin: 'searchResults',}),
+	'youtube': new sj.Playlist({origin: 'searchResults',}),
 
-	'all': new SjPlaylist({origin: 'searchResults',}),
+	'all': new sj.Playlist({origin: 'searchResults',}),
 }
 
 // search
@@ -966,12 +966,12 @@ async function search(term) {
 	});
 }
 
-spotify.search = async function (term) {
+sj.spotify.search = async function (term) {
 	var options = {
 		// max number of results to return, min 1, max 50, default 20
-		limit: searchResults.tracksPerSource,
+		limit: sj.searchResults.tracksPerSource,
 		// offset of first result, use with limit to get paged results min 0, max 100 000, default 0
-		offset: searchResults.tracksPerSource * (searchResults.page - 1),
+		offset: sj.searchResults.tracksPerSource * (sj.searchResults.page - 1),
 	};
 
 	return spotifyApi.searchTracks(term, options).catch(function (rejected) {
@@ -985,13 +985,13 @@ spotify.search = async function (term) {
 		});
 	}).then(function (resolved) {
 		// save term
-		searchResults.term = term;
+		sj.searchResults.term = term;
 
 		// retrieve track data
 		return spotify.getTracks(resolved.tracks.items);
 	}).then(function (resolved) {
-		// save SjPlaylist
-		searchResults.spotify = resolved;
+		// save sj.Playlist
+		sj.searchResults.spotify = resolved;
 
 		return new sj.Success({
 			log: true,
@@ -1003,18 +1003,18 @@ spotify.search = async function (term) {
 	});
 }
 
-spotify.getTracks = async function (items) {
+sj.spotify.getTracks = async function (items) {
 	// TODO add a case that can be used to getTracks for a list of ids as well
 	// takes spotify's resolved.tracks.items array
 	// !!! doesn't actually get tracks, just converts tracks from spotify.search
 
 	// array of track objects
-	var playlist = new SjPlaylist({
+	var playlist = new sj.Playlist({
 		origin: 'spotify.getTracks()',
 	});
 
 	items.forEach(function (track, i) {
-		playlist.content[i] = new SjTrack({
+		playlist.content[i] = new sj.Track({
 			source: spotify,
 			sourceId: track.id,
 			title: track.name,
@@ -1032,7 +1032,7 @@ spotify.getTracks = async function (items) {
 	return playlist;
 }
 
-youtube.search = async function (term) {
+sj.youtube.search = async function (term) {
 	var args = {
 		method: 'GET',
 		path: '/youtube/v3/search',
@@ -1042,7 +1042,7 @@ youtube.search = async function (term) {
 			type: 'video',
 
 			// min 0, max 50, default 5
-			maxResults: searchResults.tracksPerSource,
+			maxResults: sj.searchResults.tracksPerSource,
 			// nextPageToken (and prevPageToken) are returned with each search result, fill this in to get to other pages
 			//pageToken: token,
 
@@ -1065,7 +1065,7 @@ youtube.search = async function (term) {
 		});
 	}).then(function (resolved) {
 		// save term
-		searchResults.term = term;
+		sj.searchResults.term = term;
 
 		// create list of ids
 		var ids = [];
@@ -1075,8 +1075,8 @@ youtube.search = async function (term) {
 
 		return youtube.getTracks(ids);
 	}).then(function (resolved) {
-		// save SjPlaylist
-		searchResults.youtube = resolved;
+		// save sj.Playlist
+		sj.searchResults.youtube = resolved;
 		return new sj.Success({
 			log: true,
 			origin: 'youtube.search()',
@@ -1088,7 +1088,7 @@ youtube.search = async function (term) {
 	});
 }
 
-youtube.getTracks = async function (ids) {
+sj.youtube.getTracks = async function (ids) {
 	// takes list of ids from youtube's resolved.result.items.id.videoId
 
 	// prepare args
@@ -1117,12 +1117,12 @@ youtube.getTracks = async function (ids) {
 		});
 	}).then(function(resolved) {
 		// array of track objects
-		var playlist = new SjPlaylist({
+		var playlist = new sj.Playlist({
 			origin: 'youtube.getTracks()',
 		});
 
 		resolved.result.items.forEach(function (track, i) {
-			playlist.content[i] = new SjTrack({});
+			playlist.content[i] = new sj.Track({});
 
 			playlist.content[i].source = youtube;
 			playlist.content[i].sourceId = track.id;
@@ -1159,20 +1159,20 @@ function refreshSearchResults() {
 	// console.log('refreshSearchResults() called');
 
 	// arrange and display
-	searchResults.all = arrangeResults('mix', ['spotify', 'youtube']);
-	displayList(searchResults.all);
+	sj.searchResults.all = arrangeResults('mix', ['spotify', 'youtube']);
+	displayList(sj.searchResults.all);
 }
 
 function arrangeResults(type, selection) {
 	// TODO update this with the new source object model
 
-	var arrangedResults = new SjPlaylist({
+	var arrangedResults = new sj.Playlist({
 		origin: 'arrangeResults()',
 		// no id or database relevant properties
 		title: 'Search Results',
 		visibility: 'public',
 	});
-	var totalLength = searchResults.tracksPerSource * searchResults.page * selection.length;
+	var totalLength = sj.searchResults.tracksPerSource * sj.searchResults.page * selection.length;
 	
 	// [a, b, c, a, b, c]
 	if (type == 'mix') {
@@ -1181,9 +1181,9 @@ function arrangeResults(type, selection) {
 			// loop through each source
 			selection.forEach(function(source) {
 				// if the source has a track at index i
-				if (searchResults[source].content[i]) {
+				if (sj.searchResults[source].content[i]) {
 					// push it to arrangedResults
-					arrangedResults.content.push(searchResults[source].content[i]);
+					arrangedResults.content.push(sj.searchResults[source].content[i]);
 				}
 			});
 
@@ -1246,44 +1246,44 @@ function displayList(playlist) {
 /* TODO
 	behavior: playing in spotify manually, then start up app, previewing a song updates the playback to the current already playing song not the clicked preview song
 
-	SjToggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the actions is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, action, or playback level?
+	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the actions is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, action, or playback level?
 */
 
-var desiredPlayback = new SjPlayback({
+sj.desiredPlayback = new sj.Playback({
 	/* 
-		desiredPlayback properties reflect CURRENT user desires and the interface state.
-		The state of these properties are copied to SjActions which are then added to the queue
+		sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
+		The state of these properties are copied to sj.Actions which are then added to the queue
 	*/
 });
 
-desiredPlayback.start = async function (track) {
+sj.desiredPlayback.start = async function (track) {
 	this.track = track;
 	this.playing = true;
 	this.progress = 0; // I didn't have this here before here before, why not???
 
 	// Set slider range to track duration
 	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
-	playbackQueue.push(new SjStart({}));
+	sj.playbackQueue.push(new sj.Start({}));
 }
 
-desiredPlayback.toggle = async function () {
+sj.desiredPlayback.toggle = async function () {
 	this.playing = !this.playing;
-	playbackQueue.push(new SjToggle({}));
+	sj.playbackQueue.push(new sj.Toggle({}));
 }
 
-desiredPlayback.seek = function (ms) {
+sj.desiredPlayback.seek = function (ms) {
 	this.progress = ms;
-	playbackQueue.push(new SjSeek({}));
+	sj.playbackQueue.push(new sj.Seek({}));
 }
 
-desiredPlayback.volume = function (volume) {
+sj.desiredPlayback.volume = function (volume) {
 	this.volume = volume;
-	playbackQueue.push(new SjVolume({}));
+	sj.playbackQueue.push(new sj.Volume({}));
 }
 
-desiredPlayback.current = function () {
+sj.desiredPlayback.current = function () {
 	// shorthand
-	return desiredPlayback.track.source.playback;
+	return sj.desiredPlayback.track.source.playback;
 }
 
 async function checkPlayback() {
@@ -1305,7 +1305,7 @@ async function checkPlayback() {
 }
 
 // !!! checkPlayback functions must save timeStamp immediately after progress is available, however playing is one property type
-spotify.checkPlayback = async function () {
+sj.spotify.checkPlayback = async function () {
 	// 1 api call (all)
 
 	return spotifyApi.getMyCurrentPlaybackState({}).catch(function (rejected) {
@@ -1347,7 +1347,7 @@ spotify.checkPlayback = async function () {
 	});
 }
 
-youtube.checkPlayback = async function () {
+sj.youtube.checkPlayback = async function () {
 	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
 	// 1 api call (track)
 
@@ -1417,12 +1417,12 @@ youtube.checkPlayback = async function () {
 }
 
 /*
-function SjAction(obj) {
+sj.Action(obj) = function () {
 	// super
-	SjObject.call(this, obj);
+	sj.Object.call(this, obj);
 
 	// overwritten properties
-	this.objectType = 'SjAction';
+	this.objectType = 'sj.Action';
 	this.state = typeof obj.state === 'undefined' ? undefined : obj.state;
 
 	// action comparisons
@@ -1460,7 +1460,7 @@ function SjAction(obj) {
 		return new Promise(resolve => {
 			resolve(new sj.Success({
 				log: true,
-				origin: 'SjAction.trigger',
+				origin: 'sj.Action.trigger',
 			}));
 		});
 	}
@@ -1468,16 +1468,16 @@ function SjAction(obj) {
 	this.onCreate();
 }
 
-function SjStart(obj) {
+sj.Start(obj) = function () {
 	// super
-	SjAction.call(this, obj);
+	sj.Action.call(this, obj);
 
-	this.objectType = 'SjStart';
-	this.state = desiredPlayback.track;
-	this.source = desiredPlayback.track.source;
+	this.objectType = 'sj.Start';
+	this.state = sj.desiredPlayback.track;
+	this.source = sj.desiredPlayback.track.source;
 
 	this.isParentAction = function (item) {
-		if (item.objectType === 'SjToggle' || item.objectType === 'SjSeek') {
+		if (item.objectType === 'sj.Toggle' || item.objectType === 'sj.Seek') {
 			return true;
 		} else {
 			return false;
@@ -1491,10 +1491,10 @@ function SjStart(obj) {
 		})).then(resolved => {
 			// filter errors
 			return sj.filterList(resolved, sj.Success, new sj.Success({
-				origin: 'SjStart.trigger()',
+				origin: 'sj.Start.trigger()',
 				message: 'changed track',
 			}), new sj.ErrorList({
-				origin: 'SjStart.trigger()',
+				origin: 'sj.Start.trigger()',
 				message: 'failed to change track',
 			}));
 		}).then(resolved => {
@@ -1510,14 +1510,14 @@ function SjStart(obj) {
 	this.onCreate();
 }
 
-function SjToggle(obj) {
+sj.Toggle(obj) = function () {
 		// super
-	SjAction.call(this, obj);
+	sj.Action.call(this, obj);
 
 	// overwritten properties
-	this.objectType = 'SjToggle';
-	this.state = desiredPlayback.playing;
-	this.source = desiredPlayback.track.source;
+	this.objectType = 'sj.Toggle';
+	this.state = sj.desiredPlayback.playing;
+	this.source = sj.desiredPlayback.track.source;
 	
 	this.trigger = async function () {
 		if (this.state) {
@@ -1531,10 +1531,10 @@ function SjToggle(obj) {
 				}
 			})).then(resolved => {
 				return sj.filterList(resolved, sj.Success, new sj.Success({
-					origin: 'SjToggle.trigger()',
+					origin: 'sj.Toggle.trigger()',
 					message: 'playing updated',
 				}), new sj.ErrorList({
-					origin: 'SjToggle.trigger()',
+					origin: 'sj.Toggle.trigger()',
 					message: 'playing failed to update',
 				}));
 			}).then(resolved => {
@@ -1565,19 +1565,19 @@ function SjToggle(obj) {
 	this.onCreate();
 }
 
-function SjSeek(obj) {
+sj.Seek(obj) = function () {
 	// super
-	SjAction.call(this, obj);
+	sj.Action.call(this, obj);
 
-	this.objectType = 'SjSeek';
-	this.state = desiredPlayback.progress;
-	this.source = desiredPlayback.track.source;
+	this.objectType = 'sj.Seek';
+	this.state = sj.desiredPlayback.progress;
+	this.source = sj.desiredPlayback.track.source;
 
 	this.trigger = async function () {
 		return this.source.seek(this.state).then(resolved => {
 			return new sj.Success({
 				log: true,
-				origin: 'SjSeek.trigger()',
+				origin: 'sj.Seek.trigger()',
 				message: 'playback progress changed',
 			});
 		}).catch(rejected => {
@@ -1588,13 +1588,13 @@ function SjSeek(obj) {
 	this.onCreate();
 }
 
-function SjVolume(obj) {
+sj.Volume(obj) = function () {
 	// super
-	SjAction.call(this, obj);
+	sj.Action.call(this, obj);
 
-	this.objectType = 'SjVolume';
-	this.state = desiredPlayback.volume;
-	this.source = desiredPlayback.track.source;
+	this.objectType = 'sj.Volume';
+	this.state = sj.desiredPlayback.volume;
+	this.source = sj.desiredPlayback.track.source;
 
 	this.trigger = async function () {
 		// TODO
@@ -1604,94 +1604,96 @@ function SjVolume(obj) {
 }
 */
 
-var playbackQueue = {
-	sent: noAction,
-	queue: [],
 
-	push: async function (action) {
-		// redundancy checks
-		action.removeOld(this.queue);
+// sj.playbackQueue = {
+// 	sent: noAction,
+// 	queue: [],
+
+// 	push: async function (action) {
+// 		// redundancy checks
+// 		action.removeOld(this.queue);
 		
-		// count parents in queue
-		var parents = 0;
-		this.queue.forEach(function (item) {
-			if (item.isParentAction(action)) {
-				parents++;
-			}
-		});
+// 		// count parents in queue
+// 		var parents = 0;
+// 		this.queue.forEach(function (item) {
+// 			if (item.isParentAction(action)) {
+// 				parents++;
+// 			}
+// 		});
 
-		// push only if action has a parent in the way or if action is different from sentAction
-		if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
-			this.queue.push(action);
-			this.sendNext();
-		}
-	},
+// 		// push only if action has a parent in the way or if action is different from sentAction
+// 		if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
+// 			this.queue.push(action);
+// 			this.sendNext();
+// 		}
+// 	},
 
-	/* REFLECTION
-		Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
-		Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
-					Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
-		Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
-		Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
-					Putting a short delay between playbackQueue calls gives enough time for the apis to sort themselves out.
-	*/
+// 	/* //R
+// 		Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
+// 		Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
+// 					Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
+// 		Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
+// 		Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
+// 					Putting a short delay between sj.playbackQueue calls gives enough time for the apis to sort themselves out.
+// 	*/
 
-	sendNext: async function () {
-		// restart if finished sent action && queue not empty
-		if (this.sent === noAction && this.queue.length > 0) {
-			this.sent = this.queue[0];
-			this.queue.splice(0, 1);
+// 	sendNext: async function () {
+// 		// restart if finished sent action && queue not empty
+// 		if (this.sent === noAction && this.queue.length > 0) {
+// 			this.sent = this.queue[0];
+// 			this.queue.splice(0, 1);
 
-			// TODO checkPlaybackState every action just like before, find a better way
-			// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
-			// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-			checkPlayback().then(resolved => {
-				// !!! why arrow functions? because of lexical scoping, this is able to refer to playbackQueue not just the function's body
-				return this.sent.trigger();
-			}).then(resolved => {
-				// TODO temporary delay - see reflection
-				return delay(500);
-			}).then(resolved => {
-				// TODO handle resolved, nothing needed to be handled before???
-				this.sent = noAction;
-				this.sendNext();
-			}, rejected => {
-				// TODO handle action rejected
+// 			// TODO checkPlaybackState every action just like before, find a better way
+// 			// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
+// 			// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
+// 			checkPlayback().then(resolved => {
+// 				// !!! why arrow functions? because of lexical scoping, this is able to refer to sj.playbackQueue not just the function's body
+// 				return this.sent.trigger();
+// 			}).then(resolved => {
+// 				// TODO temporary delay - see reflection
+// 				return delay(500);
+// 			}).then(resolved => {
+// 				// TODO handle resolved, nothing needed to be handled before???
+// 				this.sent = noAction;
+// 				this.sendNext();
+// 			}, rejected => {
+// 				// TODO handle action rejected
 
-				/* 	Action Failure Handling 
-					!!! old, meant for individual action types
+// 				/* 	Action Failure Handling 
+// 					!!! old, meant for individual action types
 
-				send action, change pendingAction to true, wait
-					if success: change pendingAction to false
-						if queuedAction exists: change action to queuedAction, clear queued action, repeat...
-						else: nothing
-					if failure: 
-						if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
-						else: trigger auto-retry process
-							if success: repeat...
-							if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
+// 				send action, change pendingAction to true, wait
+// 					if success: change pendingAction to false
+// 						if queuedAction exists: change action to queuedAction, clear queued action, repeat...
+// 						else: nothing
+// 					if failure: 
+// 						if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+// 						else: trigger auto-retry process
+// 							if success: repeat...
+// 							if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
 
-				*/
+// 				*/
 
-				handleError(rejected);
-				this.sent = noAction;
-			});
-		}
-	},
+// 				handleError(rejected);
+// 				this.sent = noAction;
+// 			});
+// 		}
+// 	},
 
-	hasObject: function (type) {
-		if (sent.objectType === type) {
-			return true;
-		} else {
-			this.queue.forEach(function (item) {
-				if (item.objectType === type) {
-					return true;
-				}
-			});
-			return false;
-		}
-	},
-}
+// 	hasObject: function (type) {
+// 		if (sent.objectType === type) {
+// 			return true;
+// 		} else {
+// 			this.queue.forEach(function (item) {
+// 				if (item.objectType === type) {
+// 					return true;
+// 				}
+// 			});
+// 			return false;
+// 		}
+// 	},
+// }
+
 
 
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     
@@ -1702,7 +1704,7 @@ var playbackQueue = {
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 
 /* //R
-	I considered instead of updating playback state in each source function upon SjSuccess, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
+	I considered instead of updating playback state in each source function upon sj.Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
 	
 	I thought because track info is also needed (in addition to playback state) that a final checkPlayback() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
@@ -1717,179 +1719,179 @@ var playbackQueue = {
 
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlayback() to get more accurate information.
 */
+/*
+	// sj.spotify.apiStart = async function (track) {
+	// 	return spotifyApi.play({"uris":["spotify:track:" + track.sourceId]}).then(function (resolved) {
+	// 		return new sj.Success({
+	// 			log: true,
+	// 			origin: 'spotify.start()',
+	// 			message: 'track started',
+	// 			content: resolved,
+	// 		});
+	// 	}, function (rejected) {
+	// 		throw new sj.Error({
+	// 			log: true,
+	// 			code: JSON.parse(rejected.response).error.status,
+	// 			origin: 'spotify.start()',
+	// 			message: 'spotify track could not be started',
+	// 			reason: JSON.parse(rejected.response).error.message,
+	// 			content: rejected,
+	// 		});
+	// 	}).catch(function (rejected) {
+	// 		throw sj.propagateError(rejected);
+	// 	});
+	// }
+	// sj.youtube.apiStart = async function (track) {
+	// 	return new Promise(function (resolve, reject) {
+	// 		try {
+	// 			youtubePlayer.loadVideoById(track.sourceId);
+	// 			youtubePlayer.playVideo();
+	// 			youtubePlayer.pauseVideo();
 
-spotify.apiStart = async function (track) {
-	return spotifyApi.play({"uris":["spotify:track:" + track.sourceId]}).then(function (resolved) {
-		return new sj.Success({
-			log: true,
-			origin: 'spotify.start()',
-			message: 'track started',
-			content: resolved,
-		});
-	}, function (rejected) {
-		throw new sj.Error({
-			log: true,
-			code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.start()',
-			message: 'spotify track could not be started',
-			reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	}).catch(function (rejected) {
-		throw sj.propagateError(rejected);
-	});
-}
-youtube.apiStart = async function (track) {
-	return new Promise(function (resolve, reject) {
-		try {
-			youtubePlayer.loadVideoById(track.sourceId);
-			youtubePlayer.playVideo();
-			youtubePlayer.pauseVideo();
+	// 			resolve(new sj.Success({
+	// 				log: true,
+	// 				origin: 'youtube.start()',
+	// 				message: 'track started',
+	// 			}));
+	// 		} catch (e) {
+	// 			reject(new sj.Error({
+	// 				origin: 'youtube.start()',
+	// 				message: 'failed to start youtube track',
+	// 				content: e,
+	// 			}));
+	// 		}
+	// 	});
+	// }
 
-			resolve(new sj.Success({
-				log: true,
-				origin: 'youtube.start()',
-				message: 'track started',
-			}));
-		} catch (e) {
-			reject(new sj.Error({
-				origin: 'youtube.start()',
-				message: 'failed to start youtube track',
-				content: e,
-			}));
-		}
-	});
-}
+	// sj.spotify.apiResume = async function () {
+	// 	return spotifyApi.play({}).then(function (resolved) {
+	// 		return new sj.Success({
+	// 			log: true,
+	// 			origin: 'spotify.resume()',
+	// 			message: 'track resumed',
+	// 			content: resolved,
+	// 		});
+	// 	}, function (rejected) {
+	// 		throw new sj.Error({
+	// 			log: true,
+	// 			code: JSON.parse(rejected.response).error.status,
+	// 			origin: 'spotify.resume()',
+	// 			message: 'spotify track could not be resumed',
+	// 			reason: JSON.parse(rejected.response).error.message,
+	// 			content: rejected,
+	// 		});
+	// 	}).catch(function (rejected) {
+	// 		throw sj.propagateError(rejected);
+	// 	});
+	// }
+	// sj.youtube.apiResume = async function () {
+	// 	return new Promise(function (resolve, reject) {
+	// 		try {
+	// 			youtubePlayer.playVideo();
+				
+	// 			resolve(new sj.Success({
+	// 				log: true,
+	// 				origin: 'youtube.resume()',
+	// 				message: 'track started',
+	// 			}));
+	// 		} catch (e) {
+	// 			reject(new sj.Error({
+	// 				origin: 'youtube.resume()',
+	// 				message: 'failed to resume youtube track',
+	// 				content: e,
+	// 			}));
+	// 		}
+	// 	});
+	// }
 
-spotify.apiResume = async function () {
-	return spotifyApi.play({}).then(function (resolved) {
-		return new sj.Success({
-			log: true,
-			origin: 'spotify.resume()',
-			message: 'track resumed',
-			content: resolved,
-		});
-	}, function (rejected) {
-		throw new sj.Error({
-			log: true,
-			code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.resume()',
-			message: 'spotify track could not be resumed',
-			reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	}).catch(function (rejected) {
-		throw sj.propagateError(rejected);
-	});
-}
-youtube.apiResume = async function () {
-	return new Promise(function (resolve, reject) {
-		try {
-			youtubePlayer.playVideo();
-			
-			resolve(new sj.Success({
-				log: true,
-				origin: 'youtube.resume()',
-				message: 'track started',
-			}));
-		} catch (e) {
-			reject(new sj.Error({
-				origin: 'youtube.resume()',
-				message: 'failed to resume youtube track',
-				content: e,
-			}));
-		}
-	});
-}
+	// sj.spotify.apiPause = async function () {
+	// 	return spotifyApi.pause({}).then(function (resolved) {
+	// 		return new sj.Success({
+	// 			log: true,
+	// 			origin: 'spotify.pause()',
+	// 			message: 'track paused',
+	// 			content: resolved,
+	// 		});
+	// 	}, function (rejected) {
+	// 		throw new sj.Error({
+	// 			log: true,
+	// 			code: JSON.parse(rejected.response).error.status,
+	// 			origin: 'spotify.pause()',
+	// 			message: 'spotify track could not be paused',
+	// 			reason: JSON.parse(rejected.response).error.message,
+	// 			content: rejected,
+	// 		});
+	// 	}).catch(function (rejected) {
+	// 		throw sj.propagateError(rejected);
+	// 	});
+	// }
+	// sj.youtube.apiPause = async function () {
+	// 	return new Promise(function (resolve, reject) {
+	// 		try {
+	// 			youtubePlayer.pauseVideo();
+	// 			resolve(new sj.Success({
+	// 				log: true,
+	// 				origin: 'youtube.pause()',
+	// 				message: 'track paused',
+	// 			}));
+	// 		} catch (e) {
+	// 			reject(new sj.Error({
+	// 				log: true,
+	// 				origin: 'youtube.pause()',
+	// 				message: 'failed to pause',
+	// 				content: e,
+	// 			}));
+	// 		}
+	// 	});
+	// }
 
-spotify.apiPause = async function () {
-	return spotifyApi.pause({}).then(function (resolved) {
-		return new sj.Success({
-			log: true,
-			origin: 'spotify.pause()',
-			message: 'track paused',
-			content: resolved,
-		});
-	}, function (rejected) {
-		throw new sj.Error({
-			log: true,
-			code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.pause()',
-			message: 'spotify track could not be paused',
-			reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	}).catch(function (rejected) {
-		throw sj.propagateError(rejected);
-	});
-}
-youtube.apiPause = async function () {
-	return new Promise(function (resolve, reject) {
-		try {
-			youtubePlayer.pauseVideo();
-			resolve(new sj.Success({
-				log: true,
-				origin: 'youtube.pause()',
-				message: 'track paused',
-			}));
-		} catch (e) {
-			reject(new sj.Error({
-				log: true,
-				origin: 'youtube.pause()',
-				message: 'failed to pause',
-				content: e,
-			}));
-		}
-	});
-}
+	// sj.spotify.apiSeek = async function (ms) {
+	// 	return spotifyApi.seek(ms, {}).then(function (resolved) {
+	// 		return new sj.Success({
+	// 			log: true,
+	// 			origin: 'spotify.seek()',
+	// 			message: 'track seeked',
+	// 			content: resolved,
+	// 		});
+	// 	}, function (rejected) {
+	// 		throw new sj.Error({
+	// 			log: true,
+	// 			code: JSON.parse(rejected.response).error.status,
+	// 			origin: 'spotify.seek()',
+	// 			message: 'spotify track could not be seeked',
+	// 			reason: JSON.parse(rejected.response).error.message,
+	// 			content: rejected,
+	// 		});
+	// 	}).catch(function (rejected) {
+	// 		throw sj.propagateError(rejected);
+	// 	});
+	// }
+	// sj.youtube.apiSeek = async function (ms) {
+	// 	return new Promise(function (resolve, reject) {
+	// 		try {
+	// 			// (seconds - number, allowSeekAhead of loading - boolean)
+	// 			youtubePlayer.seekTo(Math.round(ms / 1000), true);
 
-spotify.apiSeek = async function (ms) {
-	return spotifyApi.seek(ms, {}).then(function (resolved) {
-		return new sj.Success({
-			log: true,
-			origin: 'spotify.seek()',
-			message: 'track seeked',
-			content: resolved,
-		});
-	}, function (rejected) {
-		throw new sj.Error({
-			log: true,
-			code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.seek()',
-			message: 'spotify track could not be seeked',
-			reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	}).catch(function (rejected) {
-		throw sj.propagateError(rejected);
-	});
-}
-youtube.apiSeek = async function (ms) {
-	return new Promise(function (resolve, reject) {
-		try {
-			// (seconds - number, allowSeekAhead of loading - boolean)
-			youtubePlayer.seekTo(Math.round(ms / 1000), true);
+	// 			resolve(new sj.Success({
+	// 				log: true,
+	// 				origin: 'youtube.seek()',
+	// 				message: 'track seeked',
+	// 			}));
+	// 		} catch (e) {
+	// 			reject(new sj.Error({
+	// 				log: true,
+	// 				origin: 'youtube.seek()',
+	// 				message: 'failed to seek',
+	// 				content: e,
+	// 			}));
+	// 		}
+	// 	});
+	// }
 
-			resolve(new sj.Success({
-				log: true,
-				origin: 'youtube.seek()',
-				message: 'track seeked',
-			}));
-		} catch (e) {
-			reject(new sj.Error({
-				log: true,
-				origin: 'youtube.seek()',
-				message: 'failed to seek',
-				content: e,
-			}));
-		}
-	});
-}
-
-spotify.apiVolume = async function (volume) {
-}
-youtube.apiVolume = async function (volume) {
-}
-
+	// sj.spotify.apiVolume = async function (volume) {
+	// }
+	// sj.youtube.apiVolume = async function (volume) {
+	// }
+*/
 
 export default sj;

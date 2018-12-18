@@ -23,6 +23,18 @@ input[type=submit] {
 }
 */
 
+/* //TODO change to kebab-case */
 .inputError {
 	background: red;
+}
+
+
+.list-item {
+	background-color: gray;
+}
+
+.list-item button,
+.list-item p,
+.list-item h3 {
+	display: inline-block;
 }

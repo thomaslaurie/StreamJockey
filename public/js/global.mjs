@@ -50,6 +50,8 @@
 	function myFunc({name = 'Default user', age = 'N/A'} = {}) {}
 	Getter and setter syntaxes (allows the user of getter and setter functions by obj.property rather than obj.getProperty() or obj.setProperty())
 	consider changing target: 'notify' to target: 'general' ?
+
+	sort out methods vs functions & function () vs arrow functions
 */
 
 
@@ -88,7 +90,7 @@ sj.trace = function () {
 	try {
 		throw Error('');
 	} catch (e) {
-		return e.stack; //TODO figure out how to unescape this
+		return decodeURIComponent(e.stack); //TODO figure out how to unescape this
 	}
 }
 /*
@@ -141,6 +143,10 @@ sj.typeOf = function (input) {
 	}
 
 	return typeof input;
+}
+sj.isNonEmptyValue = function (input) {
+	let t = sj.typeOf(input);
+	return t === 'boolean' || t === 'number' || (t === 'string' && input.trim() !== '');
 }
 
 // rebuild
@@ -329,7 +335,7 @@ sj.Object = class {
 	}
 
 	static init(obj, options, defaults) {
-		//TODO figure out how this works
+		//TODO figure out how I made this work
 		//? not quite sure what this does, doesn't this just set this to be false all the time?
 		//! all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Object.tellParent(options));
 		obj.isParent = typeof options.isParent !== 'undefined' ? options.isParent : false;
@@ -340,8 +346,18 @@ sj.Object = class {
 		Object.keys(defaults).forEach(key => { 
 			//L enumerable properties (from Object.keys https://hashnode.com/post/what-are-enumerable-properties-in-javascript-ciljnbtqa000exx53n5nbkykx
 			
-			//C short circuit evaluation for undefined object or property
-			obj[key] = typeof options !== 'undefined' && typeof options[key] !== 'undefined' ? options[key] : defaults[key];
+			//C if options property is not undefined (short circuit evaluation incase options itself is undefined)
+			if (typeof options !== 'undefined' && typeof options[key] !== 'undefined') {
+				//C this property = options property
+				obj[key] = options[key];
+			} else {
+				//C this property = default property
+				obj[key] = defaults[key];
+			}
+
+			//TODO create a warning for when options contains extra properties not passed to the object
+
+			//OLD obj[key] = typeof options !== 'undefined' && typeof options[key] !== 'undefined' ? options[key] : defaults[key];
 		});
 	}
 	
@@ -354,9 +370,8 @@ sj.Object = class {
 	announce() {
 		// include 'log: true' in options if object should be announced on creation, call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new sj.Object()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
 		if (sj.isError(this)) {
-			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message}\n`, this, `\n  ▮ ✗ `);
+			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message}\n${this.trace}\n`, this, `\n  ▮ ✗ `);
 		} else {
-			//console.log(this);
 			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}`);
 		}	
 	}
@@ -485,7 +500,7 @@ sj.Rules = class extends sj.Object {
 			valueName: 'input',
 			trim: false,
 			
-			dataType: 'string',
+			dataTypes: ['string'],
 
 			min: 0,
 			max: Infinity,
@@ -497,11 +512,14 @@ sj.Rules = class extends sj.Object {
 			//R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
 			againstValue: {},
 			get againstMessage() {
-				if (Array.isArray(this.againstValue)) {
-					var a = this.againstValue.join(', ');
-				}
 				//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
-				return `${this.valueName} did not match against these values: ${this.against}`;
+
+				let againstValueName = this.againstValue;
+				//C join array of values if matching against multiple values
+				if (Array.isArray(this.againstValue)) {
+					againstValueName = this.againstValue.join(', ');
+				}
+				return `${this.valueName} did not match against these values: ${againstValueName}`;
 			},
 
 			//! remember to set useFilter: true, if passing a value2 to use
@@ -521,46 +539,51 @@ sj.Rules = class extends sj.Object {
 	async checkType(value) {
 		//! uses positive guard clauses to search for a single match rather than a single error
 
-		//C quick type check
+		//C check against all desired dataTypes
 		let t = sj.typeOf(value);
-		if (t === this.dataType) {
-			return new sj.Success({
-				log: true,
-				origin: `${this.origin}.checkType()`,
-				message: 'validated data type',
-				content: value,
-			});
-		}
-
-		//C special dataTypes not covered by sj.typeOf()
-		if (this.dataType === 'integer' && Number.isInteger(value)) {
-			return new sj.Success({
-				log: true,
-				origin: `${this.origin}.checkType()`,
-				message: 'validated data type',
-				content: value,
-			});
-		}
-
-		//C string parsing for numbers
-		if (t === 'string') {
-			let p = NaN;
-
-			//C number types
-			if (this.dataType === 'number') {
-				p = Number.parseFloat(value);
-			} else if (this.dataType === 'integer') {
-				p = Number.parseInt(value);
-			}
-
-			//C check if number
-			if (!Number.isNaN(p)) {
+		for (let i = 0; i < this.dataTypes.length; i++) {
+			//C quick type check
+			if (t === this.dataTypes[i]) {
 				return new sj.Success({
 					log: true,
 					origin: `${this.origin}.checkType()`,
 					message: 'validated data type',
-					content: p,
+					content: value,
 				});
+			}
+
+			//C special dataTypes not revealed by typeof or sj.typeOf()
+			if (this.dataTypes[i] === 'integer' && Number.isInteger(value)) {
+				return new sj.Success({
+					log: true,
+					origin: `${this.origin}.checkType()`,
+					message: 'validated data type',
+					content: value,
+				});
+			}
+
+			//C parse string for other dataTypes
+			if (t === 'string') {
+				let parsed = NaN;
+
+				//C attempt parse according to dataTypes[i]
+				if (this.dataTypes[i] === 'number') {
+					parsed = Number.parseFloat(value);
+				} else if (this.dataTypes[i] === 'integer') {
+					parsed = Number.parseInt(value);
+				}
+
+				//C if parsed is a valid number
+				if (!Number.isNaN(parsed)) {
+					return new sj.Success({
+						log: true,
+						origin: `${this.origin}.checkType()`,
+						message: 'validated data type',
+						content: parsed,
+					});
+				}
+
+				//TODO parse strings for boolean & symbols & other?
 			}
 		}
 
@@ -568,7 +591,7 @@ sj.Rules = class extends sj.Object {
 		throw new sj.Error({
 			log: true,
 			origin: `${this.origin}.checkType()`,
-			message: `${this.valueName} must be a ${this.dataType}`,
+			message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
 			content: value,
 		});
 	}
@@ -586,7 +609,7 @@ sj.Rules = class extends sj.Object {
 					content: value,
 				});
 			}
-		} else if (t === 'number' || t === 'integer') {
+		} else if (t === 'number' || Number.isInteger(value)) {
 			//C number size
 			if (!(value >= this.min && value <= this.max)) {
 				throw new sj.Error({
@@ -656,6 +679,7 @@ sj.Rules = class extends sj.Object {
 	}
 
 	/*
+		//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
 		checkType(value) {
 			let t = sj.typeOf(value);
 

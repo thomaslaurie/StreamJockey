@@ -38,3 +38,4 @@ const db = pgp(config);
 
 //C create a single db object for entire app
 export default db;
+export {pgp};
