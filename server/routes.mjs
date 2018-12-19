@@ -173,7 +173,6 @@ apiRouter
 	ctx.response.body = await sj.addUser(ctx.request.body).catch(sj.andResolve);
 })
 .get('/user', async (ctx, next) => {
-	console.log('QUERY: ', ctx.query);
 	ctx.response.body = await sj.getUser(new sj.User({
 		id: ctx.query.id, 
 		name: ctx.query.name, 
@@ -188,6 +187,7 @@ apiRouter
 })
 
 // session
+//? this may actually be post: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch 
 .put('/login', async (ctx, next) => {
 	ctx.response.body = await sj.login(ctx, ctx.request.body).catch(sj.andResolve);
 })
@@ -203,13 +203,15 @@ apiRouter
 .post('/playlist', async (ctx, next) => {
 	ctx.response.body = await sj.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 })
-.get('/playlist/:id', async (ctx, next) => {
-	//? fetching a playlist by name doesn't make sense without a user, and by that point we're into page HTTP not api HTTP
-	ctx.response.body = await sj.getPlaylist(ctx, new sj.Playlist({id: ctx.params.id})).catch(sj.andResolve);
+.get('/playlist', async (ctx, next) => {
+	ctx.response.body = await sj.getPlaylist(new sj.Playlist({
+		id: ctx.query.id, 
+		userId: ctx.query.userId,
+		name: ctx.query.name, 
+	})).catch(sj.andResolve);
 })
 .patch('/playlist', async (ctx, next) => {
-	// TODO update playlist
-	await next();
+	ctx.response.body = await sj.editPlaylist(ctx.request.body).catch(sj.andResolve);
 })
 .delete('/playlist', async (ctx, next) => {
 	ctx.response.body = await sj.deletePlaylist(ctx, ctx.request.body).catch(sj.andResolve);

@@ -752,6 +752,7 @@ sj.addUser = async function (user) {
 sj.getUser = async function (user) {
     //R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
     //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
+    //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
 
     //TODO userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
 
@@ -761,15 +762,13 @@ sj.getUser = async function (user) {
     //L pre-format WHERE clause: https://github.com/vitaly-t/pg-promise#raw-text
     let where = 'WHERE 0 = 1';
     if (sj.isNonEmptyValue(user.id)) {
-        console.log('ID NONEMPTY');
         ruleSet.push([sj.idRules, user, 'id']);
         where = pgp.as.format('WHERE "id" = $1', user.id);
     } else if (sj.isNonEmptyValue(user.name)) {
-        console.log('NAME NONEMPTY');
         ruleSet.push([sj.userNameRules, user, 'name']);
         where = pgp.as.format('WHERE "name" = $1', user.name);
     }
-    //! cannot get email because that is not visible to users_public
+    //! don't get email because that is not visible to users_public
 
     await sj.Rules.checkRuleSet(ruleSet);
 
@@ -1228,25 +1227,29 @@ sj.addPlaylist = async function (ctx, playlist) {
     });
 }
 sj.getPlaylist = async function (ctx, playlist) {
-    //C validate - get by id or get by userId and playlistName
     //! id is default to null when it isn't set, is this wrong semantics //?
     /*
         if (sj.typeOf(playlist.id) !== 'null') { 
     */
-    await sj.Rules.checkRuleSet([
-        [sj.idRules, playlist, 'id'],
-    ]);
-    /*
-        } else {
-            await sj.Rules.checkRuleSet([
-                [sj.idRules, ctx.session.user, 'id'],
-                [sj.playlistNameRules, playlist, 'name'],
-            ]);
-        }
-    */
 
+    //C id or userId & name
+    let ruleSet = [];
+    let where = 'WHERE 0 = 1';
+    if (sj.isNonEmptyValue(playlist.id)) {
+        ruleSet.push([sj.idRules, playlist, 'id']);
+        where = pgp.as.format('WHERE "id" = $1', playlist.id);
+    } else if (sj.isNonEmptyValue(playlist.userId) && sj.isNonEmptyValue(playlist.name)) {
+        ruleSet.push([sj.idRules, playlist, 'userId']);
+        ruleSet.push([sj.playlistNameRules, playlist, 'name']);
+        where = pgp.as.format('WHERE "userId" = $1 AND name" = $2', [playlist.userId, playlist.name]);
+    }
+
+    await sj.Rules.checkRuleSet(ruleSet);
+
+
+    //C rewrite playlist
     //? does this fail if the wrong dataType is fed in?
-    playlist = await db.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1` /*) OR ("userId" = $2 AND "name" = $3)*/, [playlist.id /*, playlist.userId, playlist.name*/]).catch(rejected => {
+    playlist = await db.one('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'getPlaylist() playlists query',
@@ -1255,7 +1258,7 @@ sj.getPlaylist = async function (ctx, playlist) {
             cssClass: 'notifyError',
         }));
     });
-    trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
+    trackList = await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'getPlaylist() tracks query',
@@ -1268,9 +1271,10 @@ sj.getPlaylist = async function (ctx, playlist) {
     playlist.content = trackList;
     playlist = new sj.Playlist(playlist);
     
-    //C if the playlist is not perfectly ordered
+    //C if the playlist is not ordered
     for (var i = 0; i < playlist.content.length; i++) {
         if (playlist.content[i].position !== i) {
+            //C order it
             playlist = await sj.orderPlaylist(playlist).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,

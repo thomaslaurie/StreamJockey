@@ -21,6 +21,8 @@
 
 	Is there a significant discrepancy between potential synchronous/local sources (listeners) and asynchronous api calls for progress checks? Which information sources are synchronous/local? Should their information override the api information?
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
+
+	consider moving the sj.addUser(), sj.getTrack(), etc. functions into the sj.Object classes?
 */
 
 
@@ -33,6 +35,20 @@
 
 import sj from './global.mjs';
 
+
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+const SERVER_URL = `http://localhost:3000`;
+const API_URL = `${SERVER_URL}/api`;
+const JSON_HEADER = {
+	'Accept': 'application/json',
+	'Content-Type': 'application/json',
+};
 
 //  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
 //  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
@@ -111,6 +127,8 @@ import sj from './global.mjs';
 	}
 */
 
+//TODO move these into sj
+
 // handling
 function handleError(error) {
 	if (sj.typeOf(error) === 'sj.Error') {
@@ -132,7 +150,6 @@ function handleError(error) {
 var elementErrorList = new sj.ErrorList({
 	origin: 'global variable elementErrorList',
 });
-
 function clearElementError(elementError) {
 	// console.log('clearElementError('+elementError.target+') called');
 
@@ -144,7 +161,6 @@ function clearElementError(elementError) {
 		}
 	}
 }
-
 function clearElementErrorList(elementList) {
 	// any call that creates element errors must be responsible for cleaning them up
 
@@ -161,7 +177,6 @@ function clearElementErrorList(elementList) {
 		}
 	});
 }
-
 function addElementError(elementError) {
 	// console.log('addElementError('+elementError.target+') called');
 
@@ -172,7 +187,6 @@ function addElementError(elementError) {
 		elementErrorList.content.push(elementError);
 	}
 }
-
 function updateElementErrors() {
 	// console.log('updateErrorElements() called');
 
@@ -214,39 +228,55 @@ function updateElementErrors() {
 //  ███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║
 //  ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝
 
-async function serverCommand(data) {
-	return $.ajax({
-		// http://api.jquery.com/jquery.ajax/
-		url: 'request.php', // TODO
-		type: 'POST',
-		data: data,
-	}).then(function (data, textStatus, jqXHR) {
-		var obj = recreateSjObject(data);
-
-		// TODO handle success messages on successful server commands
-		// TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
-		updateElementErrors();
-
-		return obj;
-	}, function (jqXHR, textStatus, errorThrown) {
-		var temp =  new sj.Error({
-			log: true,
-
-			type: 'ajax error',
-			origin: 'serverCommand()',
-
-			message: 'could not send command to server',
-			reason: textStatus,
-			content: errorThrown,
-
-			target: 'notify',
-			cssClass: 'notifyError',
-		});
-
-		updateElementErrors();
-
-		throw temp;
+async function request(method, url, body) {
+	return await fetch(url, {
+		method: method,
+		headers: JSON_HEADER,
+		body: JSON.stringify(body),
+	}).then(resolved => {
+		//TODO look at old serverCommand()
+		return resolved.json();
+	}, rejected => {
+		//TODO look at old serverCommand()
+		return rejected.json();
 	});
+
+	/* old serverCommand():
+		async function serverCommand(data) {
+			return $.ajax({
+				// http://api.jquery.com/jquery.ajax/
+				url: 'request.php', // TODO
+				type: 'POST',
+				data: data,
+			}).then(function (data, textStatus, jqXHR) {
+				var obj = recreateSjObject(data);
+
+				// TODO handle success messages on successful server commands
+				// TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
+				updateElementErrors();
+
+				return obj;
+			}, function (jqXHR, textStatus, errorThrown) {
+				var temp =  new sj.Error({
+					log: true,
+
+					type: 'ajax error',
+					origin: 'serverCommand()',
+
+					message: 'could not send command to server',
+					reason: textStatus,
+					content: errorThrown,
+
+					target: 'notify',
+					cssClass: 'notifyError',
+				});
+
+				updateElementErrors();
+
+				throw temp;
+			});
+		}
+	*/
 }
 
 
@@ -261,6 +291,22 @@ async function serverCommand(data) {
 	maxLength attribute can be used for input elements, use this to get real-time validation checks for max length
 */
 
+// CRUD
+sj.addUser = async function (user) {
+	return await request('post', `${API_URL}/user`, user);
+}
+sj.getUser = async function (user) {
+	//! get requests must use query parameters cause they have no body
+	return await request('get', `${API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
+}
+sj.editUser = async function (user) {
+	return await request('patch', `${API_URL}/user`, user);
+}
+sj.deleteUser = async function (user) {
+	return await request('delete', `${API_URL}/user`, user);
+}
+
+// semi-old, TODO move more stuff from here into the CRUD functions
 async function register(name, password1, password2, email) {
 	// takes input DOM elements
 	var inputs = [
@@ -297,7 +343,6 @@ async function register(name, password1, password2, email) {
 		return registerResult;
 	});
 }
-
 async function login(name, password) {
 	// takes input DOM elements
 	var inputs = [
@@ -323,7 +368,6 @@ async function login(name, password) {
 		throw rejected;
 	});
 }
-
 async function logout() {
 	var inputs = [
 	];
@@ -340,7 +384,6 @@ async function logout() {
 		throw rejected;
 	});
 }
-
 async function getCurrentUser() {
 	var inputs = [
 	];
@@ -355,7 +398,6 @@ async function getCurrentUser() {
 		throw rejected;
 	});
 }
-
 async function getUser(id) {
 	// takes input DOM element
 	var inputs = [
@@ -386,6 +428,22 @@ async function getUser(id) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
 // playlists
+
+// CRUD
+sj.addPlaylist = async function (playlist) {
+	return await request('post', `${API_URL}/playlist`, playlist);
+}
+sj.getPlaylist = async function (playlist) {
+	return await request('get', `${API_URL}/playlist?id=${playlist.id}&userId=${playlist.userId}&name=${playlist.name}`);
+}
+sj.editPlaylist = async function (playlist) {
+	return await request('patch', `${API_URL}/playlist`, playlist);
+}
+sj.deletePlaylist = async function (playlist) {
+	return await request('delete', `${API_URL}/playlist`, playlist);
+}
+
+// semi-old, TODO move more stuff from here into the CRUD functions
 async function addPlaylist(title, visibility, description, color, image) {
 	// takes input DOM elements
 	var inputs = [
@@ -414,7 +472,6 @@ async function addPlaylist(title, visibility, description, color, image) {
 		throw rejected;
 	});
 }
-
 async function getPlaylist(id) {
 	// takes input DOM element
 	var inputs = [
@@ -434,7 +491,6 @@ async function getPlaylist(id) {
 		throw rejected;
 	});
 }
-
 async function deletePlaylist(id) {
 	// takes input DOM element
 	var inputs = [
@@ -455,7 +511,6 @@ async function deletePlaylist(id) {
 		throw rejected;
 	});
 }
-
 async function orderPlaylist(id) {
 	// takes input DOM element
 	var inputs = [
@@ -477,7 +532,24 @@ async function orderPlaylist(id) {
 	});
 }
 
+
 // tracks
+
+// CRUD
+sj.addTrack = async function (track) {
+	return await request('post', `${API_URL}/track`, track);
+}
+sj.getTrack = async function (track) {
+	return await request('get', `${API_URL}/track?id=${track.id}&playlistId=${track.playlistId}&position=${track.position}`);
+}
+sj.editTrack = async function (track) {
+	return await request('patch', `${API_URL}/track`, track);
+}
+sj.deleteTrack = async function (track) {
+	return await request('delete', `${API_URL}/track`, track);
+}
+
+// semi-old, TODO move more stuff from here into the CRUD functions
 async function addTrack(track, playlistId) {
 	// takes DOM element.data('track'), and an input for with the playlist Id
 	var inputs = [
@@ -503,7 +575,6 @@ async function addTrack(track, playlistId) {
 		throw rejected;
 	});
 }
-
 async function deleteTrack(playlistId, position) {
 	// takes input DOM element
 	var inputs = [
@@ -526,6 +597,7 @@ async function deleteTrack(playlistId, position) {
 		throw rejected;
 	});
 }
+
 
 //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
@@ -1002,7 +1074,6 @@ sj.spotify.search = async function (term) {
 		throw sj.propagateError(rejected);
 	});
 }
-
 sj.spotify.getTracks = async function (items) {
 	// TODO add a case that can be used to getTracks for a list of ids as well
 	// takes spotify's resolved.tracks.items array
@@ -1031,7 +1102,6 @@ sj.spotify.getTracks = async function (items) {
 	playlist.announce();
 	return playlist;
 }
-
 sj.youtube.search = async function (term) {
 	var args = {
 		method: 'GET',
@@ -1087,7 +1157,6 @@ sj.youtube.search = async function (term) {
 		throw sj.propagateError(rejected);
 	});
 }
-
 sj.youtube.getTracks = async function (ids) {
 	// takes list of ids from youtube's resolved.result.items.id.videoId
 
@@ -1162,7 +1231,6 @@ function refreshSearchResults() {
 	sj.searchResults.all = arrangeResults('mix', ['spotify', 'youtube']);
 	displayList(sj.searchResults.all);
 }
-
 function arrangeResults(type, selection) {
 	// TODO update this with the new source object model
 
@@ -1201,7 +1269,6 @@ function arrangeResults(type, selection) {
 	// 	var fromEach = floor(number / selection.length);
 	// }
 }
-
 function displayList(playlist) {
 	// delete old list
 	$(".searchResult").remove();
@@ -1255,7 +1322,6 @@ sj.desiredPlayback = new sj.Playback({
 		The state of these properties are copied to sj.Actions which are then added to the queue
 	*/
 });
-
 sj.desiredPlayback.start = async function (track) {
 	this.track = track;
 	this.playing = true;
@@ -1265,22 +1331,18 @@ sj.desiredPlayback.start = async function (track) {
 	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
 	sj.playbackQueue.push(new sj.Start({}));
 }
-
 sj.desiredPlayback.toggle = async function () {
 	this.playing = !this.playing;
 	sj.playbackQueue.push(new sj.Toggle({}));
 }
-
 sj.desiredPlayback.seek = function (ms) {
 	this.progress = ms;
 	sj.playbackQueue.push(new sj.Seek({}));
 }
-
 sj.desiredPlayback.volume = function (volume) {
 	this.volume = volume;
 	sj.playbackQueue.push(new sj.Volume({}));
 }
-
 sj.desiredPlayback.current = function () {
 	// shorthand
 	return sj.desiredPlayback.track.source.playback;
@@ -1346,7 +1408,6 @@ sj.spotify.checkPlayback = async function () {
 		throw sj.propagateError(rejected);
 	});
 }
-
 sj.youtube.checkPlayback = async function () {
 	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
 	// 1 api call (track)

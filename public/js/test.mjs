@@ -107,14 +107,36 @@ Vue.component('user-crud', {
 			let user = this.wrapUser();
 			console.log('INPUT USER: ', user);
 			
-			let temp = await fetch(`http://localhost:3000/api/user?id=${user.id}&name=${user.name}&email=${user.email}`, {
-				method: 'get',
-			}).then(resolved => {
-				return resolved.json();
-			}, rejected => {
-				return rejected.json();
-			});
-		
+			// let temp = await fetch(`http://localhost:3000/api/user?id=${user.id}&name=${user.name}&email=${user.email}`, {
+			// 	method: 'get',
+			// }).then(resolved => {
+			// 	return resolved.json();
+			// }, rejected => {
+			// 	return rejected.json();
+			// });
+
+
+			const SERVER_URL = `http://localhost:3000`;
+			const API_URL = `${SERVER_URL}/api`;
+			const JSON_HEADER = {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+			};
+
+			async function request(method, url, body) {
+				return await fetch(url, {
+					method: method,
+					headers: JSON_HEADER,
+					body: JSON.stringify(body),
+				}).then(resolved => {
+					return resolved.json();
+				}, rejected => {
+					return rejected.json();
+				});
+			}
+
+			let temp = await request('get', `${API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
+
 			console.log('OUTPUT USER: ', temp);
         },
         editUser: function () {
