@@ -7,8 +7,23 @@ section {
 ul {
 	list-style-type: none;
 	padding: 0;
-	margin: 0;
+	margin: 5px;
+	background-color: blanchedalmond;
 }
+
+li {
+	list-style-type: none;
+	padding: 5px;
+	margin: 5px;
+	background-color: plum;
+}
+
+li button,
+li p,
+li h3 {
+	display: inline-block;
+}
+
 
 #youtubePlayerWrapper {
 	width: 400px;
@@ -28,13 +43,3 @@ input[type=submit] {
 	background: red;
 }
 
-
-.list-item {
-	background-color: gray;
-}
-
-.list-item button,
-.list-item p,
-.list-item h3 {
-	display: inline-block;
-}

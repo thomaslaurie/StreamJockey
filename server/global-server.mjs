@@ -522,7 +522,11 @@ sj.colorRules = new sj.Rules({
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
 
-//---------- MAKE STUFF ACCESSABLE BY BOTH ID AND NAME (SHOULD BE ABLE TO TYPE A UR TO USER AND ALSO GET BY ID), DO THIS FOR EVERYTHING
+/* TODO
+    userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
+
+*/
+
 
 // validate
 sj.selfRules = new sj.Rules({
@@ -665,51 +669,6 @@ sj.addUser = async function (user) {
         [sj.setPasswordRules, user, 'password', user.password2],
         [sj.emailRules, user, 'email'],
     ]);
-    /*
-        var errorList = new sj.ErrorList({
-            origin: 'validatePassword()',
-            message: 'one or more issues with fields',
-            reason: 'validation functions returned one or more errors',
-        });
-        user.name = await sj.userNameRules.check(user.name).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        user.password = await sj.twoPasswordRules.check(user.password, user.password2).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        user.email = await sj.emailRules.check(user.email).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-    */
-    /*
-        user.email = await sj.validateEmail(user.email).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        user.name = await sj.validateUserName(user.name).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        user.password = user.password2 = await sj.validatePassword(user.password, user.password2).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-    */
-    /*
-        if (!(errorList.content.length === 0)) {
-            errorList.announce();
-            throw errorList;
-        }
-    */
 
     return bcrypt.hash(user.password, saltRounds).catch(rejected => {
         throw new sj.Error({
@@ -754,12 +713,8 @@ sj.getUser = async function (user) {
     //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
     //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
 
-    //TODO userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
-
-
-    //C will check either id, name, or email - only one, in that order
+    //C pre-format ruleSet and WHERE clause //L https://github.com/vitaly-t/pg-promise#raw-text, based on the presence of id or name (the unique keys)
     let ruleSet = [];
-    //L pre-format WHERE clause: https://github.com/vitaly-t/pg-promise#raw-text
     let where = 'WHERE 0 = 1';
     if (sj.isNonEmptyValue(user.id)) {
         ruleSet.push([sj.idRules, user, 'id']);
@@ -940,10 +895,6 @@ sj.login = async function (ctx, user) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getMe = async function (ctx) {
-    await sj.isLoggedIn(ctx);
-    return ctx.session.user;
-}
 sj.logout = async function (ctx) {
     delete ctx.session.user;
 
@@ -954,6 +905,11 @@ sj.logout = async function (ctx) {
         target: 'notify',
         cssClass: 'notifySuccess',
     });
+}
+
+sj.getMe = async function (ctx) {
+    await sj.isLoggedIn(ctx);
+    return ctx.session.user;
 }
 
 // util

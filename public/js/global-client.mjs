@@ -306,6 +306,14 @@ sj.deleteUser = async function (user) {
 	return await request('delete', `${API_URL}/user`, user);
 }
 
+sj.login = async function (user) {
+	return await request('post', `${API_URL}/session`, user);
+}
+sj.logout = async function (user) {
+	return await request('delete', `${API_URL}/session`, user);
+}
+
+
 // semi-old, TODO move more stuff from here into the CRUD functions
 async function register(name, password1, password2, email) {
 	// takes input DOM elements

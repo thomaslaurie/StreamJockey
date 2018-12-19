@@ -1,78 +1,35 @@
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+
 //! this file was manually renamed from .js to .mjs
-import Vue from './vue.esm.browser.mjs'; 
+import Vue from './vue.esm.browser.mjs';
+import VueRouter from './vue-router.mjs';
 import sj from './global-client.mjs';
 
-async function send(objType, obj, method) {
-    let temp = {};
 
-    if (method === 'get') {
-        if (objType === 'me') {
-            temp = await fetch(`http://localhost:3000/api/${objType}`, {
-                method: 'get',
-            }).then(resolved => {
-                return resolved.json();
-            }, rejected => {
-                return rejected.json();
-            });
-        } else {
-            temp = await fetch(`http://localhost:3000/api/${objType}/${obj.id}`, {
-                method: 'get',
-            }).then(resolved => {
-                return resolved.json();
-            }, rejected => {
-                return rejected.json();
-            });
-        }
-    } else {
-        temp = await fetch(`http://localhost:3000/api/${objType}`, {
-            method: method,
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(obj),
-        }).then(resolved => {
-            return resolved.json();
-        }, rejected => {
-            return rejected.json();
-        });
-    }
+//  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-    console.log(temp);
-}
+Vue.use(VueRouter);
 
-function wrapUser() {
-    return new sj.User({
-        id: $('#userId').val(),
-        name: $('#userName').val(),
-        password: $('#userPassword').val(),
-        password2: $('#userPassword2').val(),
-        email: $('#userEmail').val(),
-    });
-}
-function wrapPlaylist() {
-    return new sj.Playlist({
-        id: $('#playlistId').val(),
-        userId: $('#playlistUserId').val(),
-        name: $('#playlistName').val(),
-        visibility: $('#playlistVisibility').val(),
-        description: $('#playlistDescription').val(),
-        image: $('#playlistImage').val(),
-        color: $('#playlistColor').val(),
-    });
-}
-function wrapTrack() {
-    return new sj.Track({
-        id: $('#trackId').val(),
-        playlistId: $('#trackPlaylistId').val(),
-        position: $('#trackPosition').val(),
-        source: $('#trackSource').val(),
-        sourceId: $('#trackSourceId').val(),
-        name: $('#trackName').val(),
-        duration: $('#trackDuration').val(),
-        artists: [],
-    });
-}
+
+
+//   ██████╗ ██████╗ ███╗   ███╗██████╗  ██████╗ ███╗   ██╗███████╗███╗   ██╗████████╗███████╗
+//  ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██╔═══██╗████╗  ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
+//  ██║     ██║   ██║██╔████╔██║██████╔╝██║   ██║██╔██╗ ██║█████╗  ██╔██╗ ██║   ██║   ███████╗
+//  ██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║   ██║██║╚██╗██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
+//  ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ╚██████╔╝██║ ╚████║███████╗██║ ╚████║   ██║   ███████║
+//   ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+//                                                                                            
+
 
 //L https://vuejs.org/v2/cookbook/form-validation.html
 //? is v-model secure? it updates a variable with whatever is in the input
@@ -98,63 +55,35 @@ Vue.component('user-crud', {
             });
 		},
 		
-        registerUser: function () {
-            send('user', this.wrapUser(), 'post');
+        addUser: async function () {
+			let result = await sj.addUser(this.wrapUser());
+			console.log('RESULT: ', result);
         },
         getUser: async function () {
-			//send('user', this.wrapUser(), 'get');
-
-			let user = this.wrapUser();
-			console.log('INPUT USER: ', user);
-			
-			// let temp = await fetch(`http://localhost:3000/api/user?id=${user.id}&name=${user.name}&email=${user.email}`, {
-			// 	method: 'get',
-			// }).then(resolved => {
-			// 	return resolved.json();
-			// }, rejected => {
-			// 	return rejected.json();
-			// });
-
-
-			const SERVER_URL = `http://localhost:3000`;
-			const API_URL = `${SERVER_URL}/api`;
-			const JSON_HEADER = {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-			};
-
-			async function request(method, url, body) {
-				return await fetch(url, {
-					method: method,
-					headers: JSON_HEADER,
-					body: JSON.stringify(body),
-				}).then(resolved => {
-					return resolved.json();
-				}, rejected => {
-					return rejected.json();
-				});
-			}
-
-			let temp = await request('get', `${API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
-
-			console.log('OUTPUT USER: ', temp);
+			let result = await sj.getUser(this.wrapUser());
+			console.log('RESULT: ', result);
         },
-        editUser: function () {
-            send('user', this.wrapUser(), 'patch');
+        editUser: async function () {
+			let result = await sj.editUser(this.wrapUser());
+			console.log('RESULT: ', result);
         },
-        deleteUser: function () {
-            send('user', this.wrapUser(), 'delete');
+        deleteUser: async function () {
+			let result = await sj.deleteUser(this.wrapUser());
+			console.log('RESULT: ', result);
 		},
 		
-		login: function () {
-            send('login', this.wrapUser(), 'put');
+		login: async function () {
+			let result = await sj.login(this.wrapUser());
+			console.log('RESULT: ', result);
 		},
+		logout: async function () {
+			let result = await sj.logout(this.wrapUser());
+			console.log('RESULT: ', result);
+		},
+
 		//TODO getMe might actually just be getUser with extra permissions - leaving login and logout the neat two session accessors (without retrieve or update)
-		getMe: function () {
+		getMe: async function () {
             send('me', this.wrapUser(), 'get');
-		},
-		logout: function () {
-            send('logout', this.wrapUser(), 'delete');
 		},
     },
 	template: /*html*/`
@@ -167,7 +96,7 @@ Vue.component('user-crud', {
 			<input id='userPassword2'   placeholder='password2' v-model='password2'>
 			<input id='userEmail'       placeholder='email'     v-model='email'>
 
-			<button id='registerUser'   v-on:click='registerUser()' >Register</button>
+			<button id='addUser'   		v-on:click='addUser()' 		>Register</button>
 			<button id='getUser'        v-on:click='getUser()'  	>Get User</button>
 			<button id='editUser'       v-on:click='editUser()'     >Edit User</button>
 			<button id='deleteUser'     v-on:click='deleteUser()'   >Delete User</button>
@@ -187,13 +116,31 @@ Vue.component('user-crud', {
 Vue.component('track-list-item', {
     props: {
         track: Object,
-    },
-    template: `
-        <div class='list-item'>
+	},
+	methods: {
+		addTrack: async function () {
+			let result = await sj.addUser(this.wrapUser());
+			console.log('RESULT: ', result);
+        },
+        getTrack: async function () {
+			let result = await sj.getUser(this.wrapUser());
+			console.log('RESULT: ', result);
+        },
+        editTrack: async function () {
+			let result = await sj.editUser(this.wrapUser());
+			console.log('RESULT: ', result);
+        },
+        deleteTrack: async function () {
+			let result = await sj.deleteUser(this.wrapUser());
+			console.log('RESULT: ', result);
+		},
+	}
+    template: /*html*/`
+        <li class='track-list-item'>
             <p v-for='artist in track.artists'>{{artist}}</p>
             <h3>{{track.name}}</h3>
             <button>Play</button>
-        </div>
+        </li>
     `,
 });
 Vue.component('track-list',  {
@@ -220,10 +167,10 @@ Vue.component('track-list',  {
             }),
         };
     },
-    template: `
-        <div>
+    template: /*html*/`
+        <ul class='track-list'>
             <track-list-item v-for='track in playlist.content' :key='track.id' v-bind:track='track'></track-list-item>
-        </div>
+        </ul>
     `,
 });
 
@@ -232,12 +179,12 @@ Vue.component('playlist-list-item', {
     props: {
         playlist: Object,
     },
-    template: `
-        <div class='list-item'>
+    template: /*html*/`
+        <li class='playlist-list-item'>
             <p>{{playlist.name}}</p>
             <button>Open</button>
             <button>Play</button>
-        </div>
+        </li>
     `,  
 });
 Vue.component('playlist-list', {
@@ -307,10 +254,10 @@ Vue.component('playlist-list', {
             ],
         };
     },
-    template: `
-        <div>
+    template: /*html*/`
+        <ul class='playlist-list'>
             <playlist-list-item v-for='playlist in playlistList' :key='playlist.id' v-bind:playlist='playlist'></playlist-list-item>
-        </div>
+        </ul>
     `,
 });
 
