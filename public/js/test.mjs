@@ -5,9 +5,11 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-//! this file was manually renamed from .js to .mjs
-import Vue from './vue.esm.browser.mjs';
-import VueRouter from './vue-router.mjs';
+//L https://unpkg.com/vue@2.5.21/ //! renamed from .js to .mjs
+import Vue from './vue.esm.browser.mjs'; 
+//L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return), renamed from .js to .mjs
+import VueRouter from './vue-router.esm.browser.mjs';
+
 import sj from './global-client.mjs';
 
 
@@ -21,7 +23,6 @@ import sj from './global-client.mjs';
 Vue.use(VueRouter);
 
 
-
 //   ██████╗ ██████╗ ███╗   ███╗██████╗  ██████╗ ███╗   ██╗███████╗███╗   ██╗████████╗███████╗
 //  ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██╔═══██╗████╗  ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
 //  ██║     ██║   ██║██╔████╔██║██████╔╝██║   ██║██╔██╗ ██║█████╗  ██╔██╗ ██║   ██║   ███████╗
@@ -33,7 +34,7 @@ Vue.use(VueRouter);
 
 //L https://vuejs.org/v2/cookbook/form-validation.html
 //? is v-model secure? it updates a variable with whatever is in the input
-Vue.component('user-crud', {
+let UserCrud = Vue.component('user-crud', {
 	//! DONT USE ARROW FUNCTIONS: //L https://vuejs.org/v2/guide/instance.html#Data-and-Methods
     data: function () {
 		return {
@@ -112,8 +113,9 @@ Vue.component('user-crud', {
 });
 
 
+
 //L https://vuejs.org/v2/guide/components-registration.html
-Vue.component('track-list-item', {
+let TrackListItem = Vue.component('track-list-item', {
     props: {
         track: Object,
 	},
@@ -134,7 +136,7 @@ Vue.component('track-list-item', {
 			let result = await sj.deleteUser(this.wrapUser());
 			console.log('RESULT: ', result);
 		},
-	}
+	},
     template: /*html*/`
         <li class='track-list-item'>
             <p v-for='artist in track.artists'>{{artist}}</p>
@@ -143,7 +145,7 @@ Vue.component('track-list-item', {
         </li>
     `,
 });
-Vue.component('track-list',  {
+let TrackList = Vue.component('track-list',  {
     data: function () {
         return {
             playlist: new sj.Playlist({
@@ -175,7 +177,7 @@ Vue.component('track-list',  {
 });
 
 
-Vue.component('playlist-list-item', {
+let PlaylistListItem = Vue.component('playlist-list-item', {
     props: {
         playlist: Object,
     },
@@ -187,7 +189,7 @@ Vue.component('playlist-list-item', {
         </li>
     `,  
 });
-Vue.component('playlist-list', {
+let PlaylistList = Vue.component('playlist-list', {
     data: function () {
         return {
             playlistList: [
@@ -261,6 +263,13 @@ Vue.component('playlist-list', {
     `,
 });
 
+let NotFound = Vue.component('not-found', {
+    //TODO communicate this to the server
+    template: /*html*/`
+        <h1>Page Not Found</h1>
+    `,
+});
+
 
 let vm = new Vue({
     el: '#app',
@@ -268,4 +277,22 @@ let vm = new Vue({
         foo: 'hey im some words',
         baz: 'blah im some other words',
     },
+    router: new VueRouter({
+        //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+        mode: 'history',
+        routes: [
+            {
+                path: '/foo',
+                component: UserCrud,
+            },
+
+
+            { 
+                //C catch invalid url paths 
+                
+                path: '*',
+                component: NotFound,
+            }
+        ],
+    }),
 });

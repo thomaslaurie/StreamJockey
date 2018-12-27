@@ -3,11 +3,6 @@
   * (c) 2018 Evan You
   * @license MIT
   */
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.VueRouter = factory());
-}(this, (function () { 'use strict';
 
 /*  */
 
@@ -2621,6 +2616,4 @@ if (inBrowser && window.Vue) {
   window.Vue.use(VueRouter);
 }
 
-return VueRouter;
-
-})));
+export default VueRouter;

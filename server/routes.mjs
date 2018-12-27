@@ -84,6 +84,7 @@ import auth from './auth.mjs';
 //L make own __dirname since it isn't exposed in modules: https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
 //L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
 const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
+const homePage = '/test.html';
 
 // events
 const emitter = new EventEmitter();
@@ -257,8 +258,11 @@ router
 
 	// add .html to urls without extensions
 	if (ctx.request.path.lastIndexOf('.') === -1) {
-		ctx.request.path = ctx.request.path + '.html';
+		//ctx.request.path = ctx.request.path + '.html';
 		// TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
+
+		//C always return index.html for vue single page application
+		ctx.request.path = homePage;
 	}
 
 	//! Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header
