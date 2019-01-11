@@ -230,54 +230,45 @@ function updateElementErrors() {
 //  ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝
 
 async function request(method, url, body) {
-	return await fetch(url, {
+	//L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+	
+	let result = await fetch(url, {
 		method: method,
 		headers: sj.JSON_HEADER,
 		body: JSON.stringify(body),
-	}).then(resolved => {
-		//TODO look at old serverCommand()
-		return resolved.json();
-	}, rejected => {
-		//TODO look at old serverCommand()
-		return rejected.json();
+	}).catch(rejected => {
+		//C catch network error
+		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+		//TODO properly parse
+		throw sj.propagateError(rejected);
 	});
+	
+	//C catch non-ok status codes
+	if (!result.ok) {
+		//TODO properly parse
+		throw propagateError(result);
+	}
 
-	/* old serverCommand():
-		async function serverCommand(data) {
-			return $.ajax({
-				// http://api.jquery.com/jquery.ajax/
-				url: 'request.php', // TODO
-				type: 'POST',
-				data: data,
-			}).then(function (data, textStatus, jqXHR) {
-				var obj = recreateSjObject(data);
+	//C parse via fetch .json()
+	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
+	let result = await result.json().catch(rejected => {
+		throw sj.propagateError(rejected);
+	});
+	
+	result = sj.rebuild(result);
+	
+	//C catch and throw server or rebuild errors
+	if (sj.isError(result)) {
+		throw propagateError(result);
+	}
 
-				// TODO handle success messages on successful server commands
-				// TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
-				updateElementErrors();
+	return result;
 
-				return obj;
-			}, function (jqXHR, textStatus, errorThrown) {
-				var temp =  new sj.Error({
-					log: true,
 
-					type: 'ajax error',
-					origin: 'serverCommand()',
-
-					message: 'could not send command to server',
-					reason: textStatus,
-					content: errorThrown,
-
-					target: 'notify',
-					cssClass: 'notifyError',
-				});
-
-				updateElementErrors();
-
-				throw temp;
-			});
-		}
-	*/
+	//old
+	//TODO handle success messages on successful server commands
+	//TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
+	//updateElementErrors();
 }
 
 

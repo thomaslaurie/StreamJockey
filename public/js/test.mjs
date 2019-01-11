@@ -31,6 +31,120 @@ Vue.use(VueRouter);
 //   ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
 //                                                                                            
 
+let NotFound = Vue.component('not-found', {
+    //TODO communicate this to the server
+    template: /*html*/`
+        <h1>Page Not Found</h1>
+    `,
+});
+let ErrorPage = Vue.component('error-page', {
+    template: /*html*/`
+        <h1>THERE WAS AN ERROR</h1>
+    `,
+});
+
+let EntryOptions = Vue.component('entry-options', {
+    data: function () {
+        return {
+            entryType: 'login',
+        };
+    },
+    methods: {
+    },
+    template: /*html*/`
+        <div>
+            <!-- //L radio name is apparently not needed with v-model https://vuejs.org/v2/guide/forms.html#Radio -->
+            <input type='radio' v-model='entryType' value='login' id='loginEntryTypeRadio' checked>
+            <label for='loginEntryTypeRadio'>Login</label>
+
+            <input type='radio' v-model='entryType' value='register' id='registerEntryTypeRadio'>
+            <label for='registerEntryTypeRadio'>Register</label>
+
+            <input type='radio' v-model='entryType' value='guest' id='guestEntryTypeRadio'>
+            <label for='guestEntryTypeRadio'>Guest</label>
+
+            <login-form v-if="entryType === 'login'"></login-form>
+            <register-form v-if="entryType === 'register'"></register-form>
+            <guest-form v-if="entryType === 'guest'"></guest-form>
+        </div>
+    `,
+});
+let LoginForm = Vue.component('login-form', {
+    data: function () {
+        return {
+            name: null,
+            password: null,
+        };
+    },
+    methods: {
+        submit: async function() {
+            //C strips away unnecessary variables
+            //! requires that data properties are of the same name
+            let user = new sj.User(this);
+            let temp = await sj.login(user).then(resolved => {
+                console.log('RESOLVED: ', resolved);
+                console.log('THIS: ', this.$router);
+                this.$router.push('/');
+            }).catch(rejected => {
+                console.log('RESOLVED: ', resolved);
+                console.log('THIS: ', this.$router);
+                this.$router.push('/');
+            });
+
+            console.log(temp);
+        }
+    },
+    //L reasons to use html form submit over javascript function: https://stackoverflow.com/questions/16050798/html-form-submit-using-javascript-vs-submit-button, however these aren't good enough - a javascript function will do the job and be more consistent
+    template: /*html*/`
+        <!-- //L .prevent modifier keeps page from reloading on submit https://vuejs.org/v2/guide/events.html#Event-Modifiers -->
+        <form v-on:submit.prevent='submit'> 
+            <input v-model='name'       placeholder='name'      >
+            <input v-model='password'   placeholder='password'  >
+            <input type='submit' value='Login'>
+        </form>
+    `,
+});
+let RegisterForm = Vue.component('register-form', {
+    data: function () {
+        return {
+            name: null,
+            password: null,
+            password2: null,
+            email: null,
+        };
+    },
+    methods: {
+        submit: async function() {
+            let user = new sj.User(this);
+            let temp = await sj.addUser(user);
+
+            console.log(temp);
+        }
+    },
+    template: /*html*/`
+        <form v-on:submit.prevent='submit'> 
+            <input v-model='name'       placeholder='name'      >
+            <input v-model='password'   placeholder='password'  >
+            <input v-model='password2'  placeholder='password2' >
+            <input v-model='email'      placeholder='email'     >
+            <input type='submit' value='Register'>
+        </form>
+    `,
+});
+let GuestForm = Vue.component('guest-form', {
+    methods: {
+        submit: async function() {
+            //TODO
+            console.warn('TODO guest form');
+        }
+    },
+    template: /*html*/`
+        <form v-on:submit.prevent='submit'>
+            <p>Try it out as a guest, you may save your account at a later time</p>
+            <input type='submit' value='Continue as Guest'>
+        </form>
+    `,
+});
 
 //L https://vuejs.org/v2/cookbook/form-validation.html
 //? is v-model secure? it updates a variable with whatever is in the input
@@ -112,8 +226,6 @@ let UserCrud = Vue.component('user-crud', {
     `,
 });
 
-
-
 //L https://vuejs.org/v2/guide/components-registration.html
 let TrackListItem = Vue.component('track-list-item', {
     props: {
@@ -175,7 +287,6 @@ let TrackList = Vue.component('track-list',  {
         </ul>
     `,
 });
-
 
 let PlaylistListItem = Vue.component('playlist-list-item', {
     props: {
@@ -263,113 +374,6 @@ let PlaylistList = Vue.component('playlist-list', {
     `,
 });
 
-let NotFound = Vue.component('not-found', {
-    //TODO communicate this to the server
-    template: /*html*/`
-        <h1>Page Not Found</h1>
-    `,
-});
-
-let EntryOptions = Vue.component('entry-options', {
-    data: function () {
-        return {
-            entryType: 'login',
-        };
-    },
-    methods: {
-    },
-    template: /*html*/`
-        <div>
-            <!-- //L radio name is apparently not needed with v-model https://vuejs.org/v2/guide/forms.html#Radio -->
-            <input type='radio' v-model='entryType' value='login' id='loginEntryTypeRadio' checked>
-            <label for='loginEntryTypeRadio'>Login</label>
-
-            <input type='radio' v-model='entryType' value='register' id='registerEntryTypeRadio'>
-            <label for='registerEntryTypeRadio'>Register</label>
-
-            <input type='radio' v-model='entryType' value='guest' id='guestEntryTypeRadio'>
-            <label for='guestEntryTypeRadio'>Guest</label>
-
-            <login-form v-if="entryType === 'login'"></login-form>
-            <register-form v-if="entryType === 'register'"></register-form>
-            <guest-form v-if="entryType === 'guest'"></guest-form>
-        </div>
-    `,
-});
-
-
-
-let LoginForm = Vue.component('login-form', {
-    data: function () {
-        return {
-            name: null,
-            password: null,
-        };
-    },
-    methods: {
-        submit: async function() {
-            //C strips away unnecessary variables
-            //! requires that data properties are of the same name
-            let user = new sj.User(this);
-            let temp = await sj.login(user);
-
-            console.log(temp);
-        }
-    },
-    //L reasons to use html form submit over javascript function: https://stackoverflow.com/questions/16050798/html-form-submit-using-javascript-vs-submit-button, however these aren't good enough - a javascript function will do the job and be more consistent
-    template: /*html*/`
-        <!-- //L .prevent modifier keeps page from reloading on submit https://vuejs.org/v2/guide/events.html#Event-Modifiers -->
-        <form v-on:submit.prevent='submit'> 
-            <input v-model='name'       placeholder='name'      >
-            <input v-model='password'   placeholder='password'  >
-            <input type='submit' value='Login'>
-        </form>
-    `,
-});
-
-let RegisterForm = Vue.component('register-form', {
-    data: function () {
-        return {
-            name: null,
-            password: null,
-            password2: null,
-            email: null,
-        };
-    },
-    methods: {
-        submit: async function() {
-            let user = new sj.User(this);
-            let temp = await sj.addUser(user);
-
-            console.log(temp);
-        }
-    },
-    template: /*html*/`
-        <form v-on:submit.prevent='submit'> 
-            <input v-model='name'       placeholder='name'      >
-            <input v-model='password'   placeholder='password'  >
-            <input v-model='password2'  placeholder='password2' >
-            <input v-model='email'      placeholder='email'     >
-            <input type='submit' value='Register'>
-        </form>
-    `,
-});
-
-let GuestForm = Vue.component('guest-form', {
-    methods: {
-        submit: async function() {
-            //TODO
-            console.warn('TODO guest form');
-        }
-    },
-    template: /*html*/`
-        <form v-on:submit.prevent='submit'>
-            <p>Try it out as a guest, you may save your account at a later time</p>
-            <input type='submit' value='Continue as Guest'>
-        </form>
-    `,
-});
-
 
 let vm = new Vue({
     el: '#app',
@@ -382,17 +386,22 @@ let vm = new Vue({
         mode: 'history',
         routes: [
             {
-                path: '/foo',
-                component: UserCrud,
+                path: '/login',
+                component: EntryOptions,
+            },
+            {
+                path: '/',
+                component: PlaylistList,
             },
 
-
+            {
+                path: '/error',
+                component: ErrorPage,
+            },
             { 
                 //C catch invalid url paths 
-                
                 path: '*',
-                component: EntryOptions,
-                //component: NotFound,
+                component: NotFound,
             }
         ],
     }),

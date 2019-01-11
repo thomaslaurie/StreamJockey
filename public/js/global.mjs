@@ -18,6 +18,8 @@
 	//L export: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 	//L import: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 	//L es modules in node (VERY USEFUL FOR HOW TO CONVERT TO ESMODULES): https://medium.com/@giltayar/native-es-modules-in-nodejs-status-and-future-directions-part-i-ee5ea3001f71
+
+	//R I use negatively phrased guard clauses (!desired) because they keep the relative error close by in the script (rather than way down below at the bottom of an else statement or early escape function (using positively phrased clauses)) - see sj.rebuild()
 */
 
 
@@ -123,7 +125,60 @@ sj.objectList = [ // list of all valid sj objects
 sj.isValidObjectType = function (input) {
 	return sj.objectList.indexOf(input) !== -1;
 }
-sj.typeOf = function (input) {
+sj.isType = function (input, type) {
+	//R created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
+	//TODO also go back and fix the sj validation class of number, int, floats with this too
+
+
+	// null
+	if (input === null && type === 'null') {
+			return true;
+	}
+
+	// typeof
+	let t = typeof input;
+	if (t === type) {
+		return true;
+	}
+
+	// objects
+	if (t === 'object') {
+		// sj.Objects
+		if (sj.isValidObjectType(input.objectType)) {
+			// any sj.Object
+			if (type === 'sj.Object') {
+				return true;
+			}
+
+			// exact sj.Object
+			if (input.objectType === type) {
+				return true;
+			}
+		}
+	}
+
+	// numbers
+	if (t === 'number') {
+		// NaN
+		if (Number.isNaN(input) && (type === 'NaN' || type === 'nan')) {
+			//! isNaN() and Number.isNaN() are slightly different: //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN
+			return true;
+		}
+
+		// integer
+		if (Number.isInteger(input) && (type === 'integer' || type === 'int')) {
+			return true;
+		}
+
+		// float
+		if (!Number.isInteger(input) && type === 'float') {
+			return true;
+		}
+	}
+
+	return false;
+}
+sj.typeOf = function (input) { //! legacy, don't use me //TODO go and replace all typeOf() with isType()
 	if (input === null) {
 		return 'null';
 	}
@@ -144,78 +199,13 @@ sj.typeOf = function (input) {
 
 	return typeof input;
 }
+
 sj.isNonEmptyValue = function (input) {
-	let t = sj.typeOf(input);
-	return t === 'boolean' || t === 'number' || (t === 'string' && input.trim() !== '');
-}
-
-// rebuild
-sj.buildConfirmed = function (obj) {
-	// create a new sj.Object based on it's valid objectType
-	// !!! used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
-	return new sj[obj.objectType.replace('sj.', '')](obj);
-}
-sj.rebuildObject = function (obj, objectType) {
-	// E	parses, interprets, and creates object
-
-	if (sj.typeOf(obj) === 'string') {
-		try {
-			// parse
-			let parsedObj = JSON.parse(obj);
-
-			// cast (optional)
-			if (sj.isValidObjectType(objectType)) {
-				obj.objectType = objectType;
-			}
-			
-			// check if valid
-			if (sj.isValidObjectType(parsedObj.objectType)) {
-				return sj.buildConfirmed(parsedObj);
-			} else {
-				return new sj.Error({
-					log: true,
-					origin: 'sj.rebuildObject()',
-					message: 'failed to recreate object',
-					reason: 'object is non-SjObject',
-					content: obj,
-				});
-			}
-		} catch (e) {
-			return new sj.Error({
-				log: true,
-				origin: 'sj.rebuildObject()',
-				message: 'failed to recreate object',
-				reason: e,
-				content: obj,
-			});
-		}
-	} else if (sj.typeOf(obj) === 'object') {
-		// cast (optional)
-		if (sj.isValidObjectType(objectType)) {
-			obj.objectType = objectType;
-		}
-
-		// check if valid
-		if (sj.isValidObjectType(obj.objectType)) {
-			return sj.buildConfirmed(obj);
-		} else {
-			return new sj.Error({
-				log: true,
-				origin: 'sj.rebuildObject()',
-				message: 'failed to recreate object',
-				reason: 'object is non-SjObject',
-				content: obj,
-			});
-		}
-	} else {
-		return new sj.Error({
-			log: true,
-			origin: 'sj.rebuildObject()',
-			message: 'failed to recreate object',
-			reason: 'data is not an object',
-			content: obj,
-		});
-	}
+	return (
+		sj.isType(input, 'boolean') || 
+		sj.isType(input, 'number') || 
+		(sj.isType(input, 'string') && input.trim() !== '')
+	);
 }
 
 // format
@@ -287,7 +277,7 @@ sj.resolveBoth = function (resolved, rejected) {
 		return sj.propagateError(rejected);
 	}
 }
-sj.returnContent = function (resolved) {
+sj.returnContent = function (resolved) { //? where is this used?
 	return resolved.content;
 }
 
@@ -1306,8 +1296,8 @@ sj.isError = function (obj) {
 	return sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.ErrorList';
 }
 sj.catchUnexpected = function (obj) {
-	// determines type of input, creates, announces, and returns a proper sj.Error object
-	// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
+	//C determines type of input, creates, announces, and returns a proper sj.Error object
+	//C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 	
 	var error = new sj.Error({
 		origin: 'sj.catchUnexpected()',
@@ -1340,7 +1330,7 @@ sj.catchUnexpected = function (obj) {
 	return error;
 }
 sj.propagateError = function (obj) {
-	// wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
+	//C wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
 	if (sj.isError(obj)) {
 		return obj;
 	} else {
@@ -1380,6 +1370,48 @@ sj.filterList = async function (list, type, successList, errorList) {
 	successList.content = list;
 	successList.announce();
 	return successList;
+}
+
+// rebuild
+sj.rebuild = function (input) {
+	//C turns input JSON into a javascript object (with access to functions n such) based on it's objectType
+
+	//C parse if string
+	if (sj.isType(input, 'string')) {
+		try {
+			input = JSON.parse(input);
+		} catch (e) {
+			return new sj.Error({
+				log: true,
+				origin: 'sj.rebuild()',
+				message: 'failed to recreate object',
+				reason: e,
+				content: input,
+			});
+		}
+	}
+
+	if (!sj.isType(input, 'object')) {
+		return new sj.Error({
+			log: true,
+			origin: 'sj.rebuild()',
+			message: 'failed to recreate object',
+			reason: 'data is not an object',
+			content: input,
+		});
+	}
+	if (!sj.isValidObjectType(input.objectType)) {
+		return new sj.Error({
+			log: true,
+			origin: 'sj.rebuild()',
+			message: 'failed to recreate object',
+			reason: 'object is not a valid sj.Object',
+			content: obj,
+		});
+	}
+
+	//R used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
+	return new sj[obj.objectType.replace('sj.', '')](input);
 }
 
 // recursive shells
@@ -1485,7 +1517,7 @@ export default sj;
 
 	https://stackoverflow.com/questions/3225251/how-can-i-share-code-between-node-js-and-the-browser
 
-	!!! requires that the 'exports' name is not used in client-side js, and that when required in server-side js, the var name 'should' (see rebuildObject()) be the same as this.'name' in the conditional argument (in order to have the same namespace as the client code
+	!!! requires that the 'exports' name is not used in client-side js, and that when required in server-side js, the var name 'should' (see rebuild()) be the same as this.'name' in the conditional argument (in order to have the same namespace as the client code
 
 	TODO should this be integrated in a namespace-ing fashion? (sj..Success(), sj..sj.typeOf()), how does that then influence other non-global.js functions in index.js and such?
 
