@@ -82,14 +82,11 @@ let LoginForm = Vue.component('login-form', {
             //C strips away unnecessary variables
             //! requires that data properties are of the same name
             let user = new sj.User(this);
-            let temp = await sj.login(user).then(resolved => {
-                console.log('RESOLVED: ', resolved);
-                console.log('THIS: ', this.$router);
+            await sj.login(user).then(resolved => {
                 this.$router.push('/');
             }).catch(rejected => {
-                console.log('REJECTED: ', rejected);
-                console.log('THIS: ', this.$router);
-                this.$router.push('/');
+                //TODO handle error
+                console.error(rejected);
             });
         }
     },
@@ -142,6 +139,22 @@ let GuestForm = Vue.component('guest-form', {
             <p>Try it out as a guest, you may save your account at a later time</p>
             <input type='submit' value='Continue as Guest'>
         </form>
+    `,
+});
+
+let LogoutButton = Vue.component('logout-button', {
+    methods: {
+        click: async function() {
+            await sj.logout().then(resolved => {
+                this.$router.push('/login');
+            }).catch(rejected => {
+                //TODO handle error
+                console.error(rejected);
+            });
+        }
+    },
+    template: /*html*/`
+        <button @click='click'>Logout</button>
     `,
 });
 
@@ -368,6 +381,7 @@ let PlaylistList = Vue.component('playlist-list', {
     },
     template: /*html*/`
         <ul class='playlist-list'>
+            <logout-button></logout-button>
             <playlist-list-item v-for='playlist in playlistList' :key='playlist.id' v-bind:playlist='playlist'></playlist-list-item>
         </ul>
     `,

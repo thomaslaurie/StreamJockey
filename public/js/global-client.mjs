@@ -229,12 +229,26 @@ function updateElementErrors() {
 //  ███████║███████╗██║  ██║ ╚████╔╝ ███████╗██║  ██║
 //  ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝
 
-async function request(method, url, body) {
+sj.request = async function (method, url, body) {
+	//C stringify body
+	try {
+		body = JSON.stringify(body);
+	} catch (e) {
+		//C catch stringify error (should be a cyclic reference)
+		throw new sj.Error({
+			log: true,
+			origin: 'request()',
+			message: 'could not send request',
+			reason: 'body probably has a cyclic reference',
+			content: e,
+		});
+	}
+
 	//L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
 	let result = await fetch(url, {
 		method: method,
 		headers: sj.JSON_HEADER,
-		body: JSON.stringify(body),
+		body: body,
 	}).catch(rejected => {
 		//C catch network error
 		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
@@ -270,7 +284,6 @@ async function request(method, url, body) {
 	//updateElementErrors();
 }
 
-
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
 //  ██║   ██║███████╗█████╗  ██████╔╝
@@ -284,29 +297,29 @@ async function request(method, url, body) {
 
 // CRUD
 sj.addUser = async function (user) {
-	return request('post', `${sj.API_URL}/user`, user);
+	//TODO should these all have propagateErrors on them?
+	return sj.request('post', `${sj.API_URL}/user`, user);
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
-	return request('get', `${sj.API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
+	return sj.request('get', `${sj.API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
 }
 sj.editUser = async function (user) {
-	return request('patch', `${sj.API_URL}/user`, user);
+	return sj.request('patch', `${sj.API_URL}/user`, user);
 }
 sj.deleteUser = async function (user) {
-	return request('delete', `${sj.API_URL}/user`, user);
+	return sj.request('delete', `${sj.API_URL}/user`, user);
 }
 
 sj.login = async function (user) {
-	//TODO does await go here or no?
-	return request('post', `${sj.API_URL}/session`, user);
+	return sj.request('post', `${sj.API_URL}/session`, user);
 }
-sj.logout = async function (user) {
-	return request('delete', `${sj.API_URL}/session`, user);
+sj.logout = async function () {
+	return sj.request('delete', `${sj.API_URL}/session`);
 }
 
 
-// semi-old, TODO move more stuff from here into the CRUD functions
+/* semi-old, TODO move more stuff from here into the CRUD functions
 async function register(name, password1, password2, email) {
 	// takes input DOM elements
 	var inputs = [
@@ -418,6 +431,7 @@ async function getUser(id) {
 		throw rejected;
 	});
 }
+*/
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
@@ -431,19 +445,19 @@ async function getUser(id) {
 
 // CRUD
 sj.addPlaylist = async function (playlist) {
-	return request('post', `${sj.API_URL}/playlist`, playlist);
+	return sj.request('post', `${sj.API_URL}/playlist`, playlist);
 }
 sj.getPlaylist = async function (playlist) {
-	return request('get', `${sj.API_URL}/playlist?id=${playlist.id}&userId=${playlist.userId}&name=${playlist.name}`);
+	return sj.request('get', `${sj.API_URL}/playlist?id=${playlist.id}&userId=${playlist.userId}&name=${playlist.name}`);
 }
 sj.editPlaylist = async function (playlist) {
-	return request('patch', `${sj.API_URL}/playlist`, playlist);
+	return sj.request('patch', `${sj.API_URL}/playlist`, playlist);
 }
 sj.deletePlaylist = async function (playlist) {
-	return request('delete', `${sj.API_URL}/playlist`, playlist);
+	return sj.request('delete', `${sj.API_URL}/playlist`, playlist);
 }
 
-// semi-old, TODO move more stuff from here into the CRUD functions
+/* semi-old, TODO move more stuff from here into the CRUD functions
 async function addPlaylist(title, visibility, description, color, image) {
 	// takes input DOM elements
 	var inputs = [
@@ -531,25 +545,26 @@ async function orderPlaylist(id) {
 		throw rejected;
 	});
 }
+*/
 
 
 // tracks
 
 // CRUD
 sj.addTrack = async function (track) {
-	return request('post', `${sj.API_URL}/track`, track);
+	return sj.request('post', `${sj.API_URL}/track`, track);
 }
 sj.getTrack = async function (track) {
-	return request('get', `${sj.API_URL}/track?id=${track.id}&playlistId=${track.playlistId}&position=${track.position}`);
+	return sj.request('get', `${sj.API_URL}/track?id=${track.id}&playlistId=${track.playlistId}&position=${track.position}`);
 }
 sj.editTrack = async function (track) {
-	return request('patch', `${sj.API_URL}/track`, track);
+	return sj.request('patch', `${sj.API_URL}/track`, track);
 }
 sj.deleteTrack = async function (track) {
-	return request('delete', `${sj.API_URL}/track`, track);
+	return sj.request('delete', `${sj.API_URL}/track`, track);
 }
 
-// semi-old, TODO move more stuff from here into the CRUD functions
+/* semi-old, TODO move more stuff from here into the CRUD functions
 async function addTrack(track, playlistId) {
 	// takes DOM element.data('track'), and an input for with the playlist Id
 	var inputs = [
@@ -596,7 +611,7 @@ async function deleteTrack(playlistId, position) {
 		handleError(rejected);
 		throw rejected;
 	});
-}
+}*/
 
 
 //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
