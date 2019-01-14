@@ -1406,12 +1406,12 @@ sj.rebuild = function (input) {
 			origin: 'sj.rebuild()',
 			message: 'failed to recreate object',
 			reason: 'object is not a valid sj.Object',
-			content: obj,
+			content: input,
 		});
 	}
 
 	//R used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
-	return new sj[obj.objectType.replace('sj.', '')](input);
+	return new sj[input.objectType.replace('sj.', '')](input);
 }
 
 // recursive shells

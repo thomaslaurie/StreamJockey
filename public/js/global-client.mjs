@@ -231,7 +231,6 @@ function updateElementErrors() {
 
 async function request(method, url, body) {
 	//L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-	
 	let result = await fetch(url, {
 		method: method,
 		headers: sj.JSON_HEADER,
@@ -251,7 +250,7 @@ async function request(method, url, body) {
 
 	//C parse via fetch .json()
 	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
-	let result = await result.json().catch(rejected => {
+	result = await result.json().catch(rejected => {
 		throw sj.propagateError(rejected);
 	});
 	
@@ -285,24 +284,25 @@ async function request(method, url, body) {
 
 // CRUD
 sj.addUser = async function (user) {
-	return await request('post', `${sj.API_URL}/user`, user);
+	return request('post', `${sj.API_URL}/user`, user);
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
-	return await request('get', `${sj.API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
+	return request('get', `${sj.API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
 }
 sj.editUser = async function (user) {
-	return await request('patch', `${sj.API_URL}/user`, user);
+	return request('patch', `${sj.API_URL}/user`, user);
 }
 sj.deleteUser = async function (user) {
-	return await request('delete', `${sj.API_URL}/user`, user);
+	return request('delete', `${sj.API_URL}/user`, user);
 }
 
 sj.login = async function (user) {
-	return await request('post', `${sj.API_URL}/session`, user);
+	//TODO does await go here or no?
+	return request('post', `${sj.API_URL}/session`, user);
 }
 sj.logout = async function (user) {
-	return await request('delete', `${sj.API_URL}/session`, user);
+	return request('delete', `${sj.API_URL}/session`, user);
 }
 
 
@@ -431,16 +431,16 @@ async function getUser(id) {
 
 // CRUD
 sj.addPlaylist = async function (playlist) {
-	return await request('post', `${sj.API_URL}/playlist`, playlist);
+	return request('post', `${sj.API_URL}/playlist`, playlist);
 }
 sj.getPlaylist = async function (playlist) {
-	return await request('get', `${sj.API_URL}/playlist?id=${playlist.id}&userId=${playlist.userId}&name=${playlist.name}`);
+	return request('get', `${sj.API_URL}/playlist?id=${playlist.id}&userId=${playlist.userId}&name=${playlist.name}`);
 }
 sj.editPlaylist = async function (playlist) {
-	return await request('patch', `${sj.API_URL}/playlist`, playlist);
+	return request('patch', `${sj.API_URL}/playlist`, playlist);
 }
 sj.deletePlaylist = async function (playlist) {
-	return await request('delete', `${sj.API_URL}/playlist`, playlist);
+	return request('delete', `${sj.API_URL}/playlist`, playlist);
 }
 
 // semi-old, TODO move more stuff from here into the CRUD functions
@@ -537,16 +537,16 @@ async function orderPlaylist(id) {
 
 // CRUD
 sj.addTrack = async function (track) {
-	return await request('post', `${sj.API_URL}/track`, track);
+	return request('post', `${sj.API_URL}/track`, track);
 }
 sj.getTrack = async function (track) {
-	return await request('get', `${sj.API_URL}/track?id=${track.id}&playlistId=${track.playlistId}&position=${track.position}`);
+	return request('get', `${sj.API_URL}/track?id=${track.id}&playlistId=${track.playlistId}&position=${track.position}`);
 }
 sj.editTrack = async function (track) {
-	return await request('patch', `${sj.API_URL}/track`, track);
+	return request('patch', `${sj.API_URL}/track`, track);
 }
 sj.deleteTrack = async function (track) {
-	return await request('delete', `${sj.API_URL}/track`, track);
+	return request('delete', `${sj.API_URL}/track`, track);
 }
 
 // semi-old, TODO move more stuff from here into the CRUD functions

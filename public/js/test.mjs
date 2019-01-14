@@ -72,8 +72,9 @@ let EntryOptions = Vue.component('entry-options', {
 let LoginForm = Vue.component('login-form', {
     data: function () {
         return {
-            name: null,
-            password: null,
+            //TODO these are temporary, should normally be null
+            name: 'jon',
+            password: 'password',
         };
     },
     methods: {
@@ -86,20 +87,18 @@ let LoginForm = Vue.component('login-form', {
                 console.log('THIS: ', this.$router);
                 this.$router.push('/');
             }).catch(rejected => {
-                console.log('RESOLVED: ', resolved);
+                console.log('REJECTED: ', rejected);
                 console.log('THIS: ', this.$router);
                 this.$router.push('/');
             });
-
-            console.log(temp);
         }
     },
     //L reasons to use html form submit over javascript function: https://stackoverflow.com/questions/16050798/html-form-submit-using-javascript-vs-submit-button, however these aren't good enough - a javascript function will do the job and be more consistent
     template: /*html*/`
         <!-- //L .prevent modifier keeps page from reloading on submit https://vuejs.org/v2/guide/events.html#Event-Modifiers -->
         <form v-on:submit.prevent='submit'> 
-            <input v-model='name'       placeholder='name'      >
-            <input v-model='password'   placeholder='password'  >
+            <input v-model='name'       placeholder='name'>
+            <input v-model='password'   placeholder='password'>
             <input type='submit' value='Login'>
         </form>
     `,
