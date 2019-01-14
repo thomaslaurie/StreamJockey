@@ -1,0 +1,77 @@
+<!doctype html>
+
+<html lang='en' >
+	<head>
+		<meta charset='utf-8'>
+		<title>StreamJockey</title>
+
+		<link rel='stylesheet' href='js/jquery-ui/jquery-ui.css'>
+		<link rel='stylesheet' href='js/jquery-ui/jquery-ui.structure.css'>
+		<link rel='stylesheet' href='js/jquery-ui/jquery-ui.theme.css'>
+
+		<link rel='stylesheet' href='css/norm.css'>
+		<link rel='stylesheet' href='css/main.css'>
+	</head>
+
+	<style>
+		input, button {
+			display: block;
+		}
+	</style>
+
+	<body>
+		<h2>Auth</h2>
+			<button id='authSpotify'>Auth Spotify</button>
+			<!-- <a id='authSpotify' href='' target='_blank'>Auth Spotify</a> -->
+		<h2>User</h2>
+			<input id='userId' placeholder='id'>
+			<input id='userName' placeholder='name'>
+			<input id='userPassword' placeholder='password'>
+			<input id='userPassword2' placeholder='password2'>
+			<input id='userEmail' placeholder='email'>
+
+			<button id='registerUser'>Register</button>
+			<button id='getUser'>Get User</button>
+			<button id='editUser'>Edit User</button>
+			<button id='deleteUser'>Delete User</button>
+
+		<h2>Session</h2>
+			<button id='login'>Login</button>
+			<button id='getMe'>Get Me</button>
+			<button id='-'>-</button>
+			<button id='logout'>Logout</button>
+
+		<h2>Playlist</h2>
+			<input id='playlistId' placeholder='id'>
+			<input id='playlistUserId' placeholder='userId'>
+			<input id='playlistName' placeholder='name'>
+			<input id='playlistVisibility' placeholder='visibility'>
+			<input id='playlistDescription' placeholder='description'>
+			<input id='playlistImage' placeholder='image'>
+			<input id='playlistColor' placeholder='color'>
+
+			<button id='addPlaylist'>Add Playlist</button>
+			<button id='getPlaylist'>Get Playlist</button>
+			<button id='editPlaylist'>Edit Playlist</button>
+			<button id='deletePlaylist'>Delete Playlist</button>
+
+		<h2>Track</h2>
+			<input id='trackId' placeholder='id'>
+			<input id='trackPlaylistId' placeholder='playlistId'>
+			<input id='trackPosition' placeholder='position'>
+			<input id='trackSource' placeholder='source'>
+			<input id='trackSourceId' placeholder='sourceId'>
+			<input id='trackName' placeholder='name'>
+			<input id='trackDuration' placeholder='duration'>
+			<input id='trackArtists' placeholder='artists'>
+
+			<button id='addTrack'>Add Track</button>
+			<button id='-'>-</button>
+			<button id='-'>-</button>
+			<button id='deleteTrack'>Delete Track</button>
+    </body>
+
+    <script src='js/jquery-3.3.1.js'></script>
+	<script src='js/jquery-ui/jquery-ui.js'></script>
+    <script src='js/index.mjs' type='module'></script>
+</html>
