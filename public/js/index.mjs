@@ -31,6 +31,7 @@ Vue.use(VueRouter);
 //   ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
 //                                                                                            
 
+// errors
 let NotFound = Vue.component('not-found', {
     //TODO communicate this to the server
     template: /*html*/`
@@ -43,6 +44,7 @@ let ErrorPage = Vue.component('error-page', {
     `,
 });
 
+// login
 let EntryOptions = Vue.component('entry-options', {
     data: function () {
         return {
@@ -157,6 +159,7 @@ let LogoutButton = Vue.component('logout-button', {
         <button @click='click'>Logout</button>
     `,
 });
+
 
 //L https://vuejs.org/v2/cookbook/form-validation.html
 //? is v-model secure? it updates a variable with whatever is in the input
@@ -300,18 +303,100 @@ let TrackList = Vue.component('track-list',  {
     `,
 });
 
-let PlaylistListItem = Vue.component('playlist-list-item', {
-    props: {
-        playlist: Object,
-    },
-    template: /*html*/`
-        <li class='playlist-list-item'>
-            <p>{{playlist.name}}</p>
-            <button>Open</button>
-            <button>Play</button>
-        </li>
-    `,  
-});
+/* //C async components
+    async components are created by using 'factory functions' in place of the component object, 
+    these return promises which are only resolved when the component needs to be rendered.
+    furthermore - for error handling, this factory function can also return an object with 
+    {
+        component: [promise], 
+        loading: [component], 
+        error: [component], 
+        delay: [number ms], 
+        timeout: [number ms],
+    }
+    which renders the respective component based on the state of the component promise (resolved, loading, or rejected)
+    
+    //L https://vuejs.org/v2/guide/components-dynamic-async.html#Handling-Loading-State
+*/
+
+//C arrow functions can have an implicit return, but for object literals, they need to be wrapped in parenthesis to be distinguished from the function block 
+//L https://www.sitepoint.com/es6-arrow-functions-new-fat-concise-syntax-javascript/
+
+
+let PlaylistListItem = Vue.component('playlist-list-item', () => ({
+        //C The component to load (should be a Promise)
+        //! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
+        //L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
+        component: (async () => {
+            // let playlist = await sj.getPlaylist(new sj.Playlist({
+            //     id: //TODO,
+            // }));
+            await sj.wait(2000);
+
+            //console.log('ID:', id);
+
+            let playlist = new sj.Playlist({
+                //id: id,
+                name: 'test',
+            });
+
+            return {
+                data: () => ({
+                    playlist: playlist,
+                }),
+                props: {
+                    id: Number,
+                },
+                template: /*html*/`
+                    <li class='playlist-list-item'>
+                        <p>blah{{id}}blah</p>
+                        <p>{{playlist.name}}</p>
+                        <button>Open</button>
+                        <button>Play</button>
+                    </li>
+                `,
+            }
+        })(),
+
+        //C A component to use while the async component is loading
+        loading: {
+            template: /*html*/`
+                <p>LOADING</p>
+            `,
+        },
+
+        //C A component to use if the load fails
+        error: {
+            template: /*html*/`
+                <p>ERROR</p>
+            `,
+        },
+
+        //C Delay before showing the loading component. Default: 200ms.
+        delay: 500,
+
+        //C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
+        //! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
+        //L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
+        //timeout: 10000,
+}));
+
+
+// let PlaylistListItem = Vue.component('playlist-list-item', {
+//     props: {
+//         playlist: Object,
+//     },
+//     template: /*html*/`
+//         <li class='playlist-list-item'>
+//             <p>{{playlist.id}}</p>
+//             <p>{{playlist.name}}</p>
+//             <button>Open</button>
+//             <button>Play</button>
+//         </li>
+//     `
+// });
+
+
 let PlaylistList = Vue.component('playlist-list', {
     data: function () {
         return {
@@ -382,7 +467,7 @@ let PlaylistList = Vue.component('playlist-list', {
     template: /*html*/`
         <ul class='playlist-list'>
             <logout-button></logout-button>
-            <playlist-list-item v-for='playlist in playlistList' :key='playlist.id' v-bind:playlist='playlist'></playlist-list-item>
+            <playlist-list-item v-for='playlist in playlistList' :key='playlist.id' :playlist='playlist'></playlist-list-item>
         </ul>
     `,
 });
@@ -404,7 +489,10 @@ let vm = new Vue({
             },
             {
                 path: '/',
-                component: PlaylistList,
+                component: PlaylistListItem,
+                props: {
+                    id: 2,
+                }
             },
 
             {

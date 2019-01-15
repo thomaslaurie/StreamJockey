@@ -74,6 +74,14 @@ let sj = {};
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
+sj.wait = async function (ms) {
+	return new Promise(resolve => {
+		setTimeout(() => {
+			resolve(`finished waiting ${ms}ms`);
+		}, ms);
+	});
+}
+
 //! these can't reference any sj.Objects
 
 sj.deepFreeze = function (obj) {
