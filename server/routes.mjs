@@ -207,6 +207,7 @@ apiRouter
 	ctx.response.body = await sj.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 })
 .get('/playlist', async (ctx, next) => {
+	//--------------- some error after here
 	ctx.response.body = await sj.getPlaylist(new sj.Playlist({
 		id: ctx.query.id, 
 		userId: ctx.query.userId,

@@ -1,3 +1,15 @@
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+
+/*
+    //L don't use arrow functions on any component options properties (created, data, etc.) as this will not be available: https://vuejs.org/v2/guide/instance.html#Instance-Lifecycle-Hooks
+    //L methods vs computed vs watch: https://flaviocopes.com/vue-methods-watchers-computed-properties/
+*/
+
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -322,79 +334,160 @@ let TrackList = Vue.component('track-list',  {
 //C arrow functions can have an implicit return, but for object literals, they need to be wrapped in parenthesis to be distinguished from the function block 
 //L https://www.sitepoint.com/es6-arrow-functions-new-fat-concise-syntax-javascript/
 
+//------------------ async components don't seem to have any way to pass props, they seem to only be meant to load components from files,
+//------------------ i want to use them because the loading, error, delay, etc. stuff sounds great - might have to manually create an asyc data loader like this however, or maybe try to access props outside/before component is created? 
+//L this way? https://stackoverflow.com/questions/38344091/vuejs-can-we-give-props-to-async-component-via-dynamic-component-pattern-compo
 
-let PlaylistListItem = Vue.component('playlist-list-item', () => ({
-        //C The component to load (should be a Promise)
-        //! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
-        //L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
-        component: (async () => {
-            // let playlist = await sj.getPlaylist(new sj.Playlist({
-            //     id: //TODO,
-            // }));
-            await sj.wait(2000);
+// let PlaylistListItem = Vue.component('playlist-list-item', () => {
+//         return {
+//             //C The component to load (should be a Promise)
+//             //! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
+//             //L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
+//             component: (async function {
+//                 // let playlist = await sj.getPlaylist(new sj.Playlist({
+//                 //     id: //TODO,
+//                 // }));
+//                 await sj.wait(2000);
+                
+//                 // let _this = this;
+//                 // this.$nextTick(() => {
+//                 //     console.log('HERE: ', JSON.stringify(_this.$options._parentVnode.data));
+//                 // });
 
-            //console.log('ID:', id);
+//                 //console.log('ID:', id);
 
-            let playlist = new sj.Playlist({
-                //id: id,
-                name: 'test',
-            });
+//                 let playlist = new sj.Playlist({
+//                     //id: id,
+//                     name: 'test',
+//                 });
 
-            return {
-                data: () => ({
-                    playlist: playlist,
-                }),
-                props: {
-                    id: Number,
-                },
-                template: /*html*/`
-                    <li class='playlist-list-item'>
-                        <p>blah{{id}}blah</p>
-                        <p>{{playlist.name}}</p>
-                        <button>Open</button>
-                        <button>Play</button>
-                    </li>
-                `,
-            }
-        })(),
+//                 return {
+//                     data: () => ({
+//                         playlist: playlist,
+//                     }),
+//                     props: {
+//                         id: Number,
+//                     },
+//                     template: /*html*/`
+//                         <li class='playlist-list-item'>
+//                             <p>blah{{id}}blah</p>
+//                             <p>{{playlist.name}}</p>
+//                             <button>Open</button>
+//                             <button>Play</button>
+//                         </li>
+//                     `,
+//                 }
+//             })(),
 
-        //C A component to use while the async component is loading
-        loading: {
-            template: /*html*/`
-                <p>LOADING</p>
-            `,
-        },
+//             //C A component to use while the async component is loading
+//             loading: {
+//                 template: /*html*/`
+//                     <p>LOADING</p>
+//                 `,
+//             },
 
-        //C A component to use if the load fails
-        error: {
-            template: /*html*/`
-                <p>ERROR</p>
-            `,
-        },
+//             //C A component to use if the load fails
+//             error: {
+//                 template: /*html*/`
+//                     <p>ERROR</p>
+//                 `,
+//             },
 
-        //C Delay before showing the loading component. Default: 200ms.
-        delay: 500,
+//             //C Delay before showing the loading component. Default: 200ms.
+//             delay: 500,
 
-        //C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
-        //! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
-        //L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
-        //timeout: 10000,
-}));
-
-
-// let PlaylistListItem = Vue.component('playlist-list-item', {
-//     props: {
-//         playlist: Object,
-//     },
-//     template: /*html*/`
-//         <li class='playlist-list-item'>
-//             <p>{{playlist.id}}</p>
-//             <p>{{playlist.name}}</p>
-//             <button>Open</button>
-//             <button>Play</button>
-//         </li>
-//     `
+//             //C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
+//             //! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
+//             //L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
+//             //timeout: 10000,
+//         }
 // });
+
+//L how to use dynamic components: https://alligator.io/vuejs/dynamic-components/
+
+let PlaylistDisplay = {
+    props: {
+        playlist: Object,
+    },
+    template: /*html*/`
+        <li class='playlist-list-item'>
+            <p>{{playlist.id}}</p>
+            <p>{{playlist.name}}</p>
+            <button>Open</button>
+            <button>Play</button>
+        </li>
+    `,
+};
+
+let PlaylistLoading = {
+    template: /*html*/ `
+        <p>... loading ...</p>
+    `,
+};
+
+let PlaylistError = {
+    template: /*html*/ `
+        <p>xxx error xxx</p>
+    `,
+};
+
+let PlaylistListItem = Vue.component('playlist-list-item', {
+    props: {
+        id: Number,
+    },
+    data: function() {
+        return {
+            state: 'loading', //C can be 'pre-load', loading', 'resolved', or 'rejected'
+            delay: 500,
+            //timeout: 100000,
+
+            playlist: new sj.Playlist({
+                id: this.id,
+            }),
+            error: null,
+        }
+    },
+
+    created: function() {
+        this.playlist.id = this.id;
+
+        sj.wait(2000).then(resolved => {
+            return sj.getPlaylist(this.playlist);
+        }).catch(rejected => {
+            //TODO handle
+            console.log('REJECTED: ', rejected);
+            this.error = rejected;
+            this.state = 'error';
+        }).then(resolved => {
+            console.log('RESOLVED: ', resolved);
+            this.playlist = resolved;
+            this.state = 'ok';
+        });
+    },
+    //L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components/
+    computed: {
+        dynamicComponent: function() {
+            if(this.state === 'ok') {
+                return PlaylistDisplay;
+            } else if (this.state === 'loading') {
+                //TODO loading component
+                return PlaylistLoading;
+            } else if (this.state === 'error') {
+                //TODO  error component
+                return PlaylistError;
+            }
+        },
+    },
+
+    components: {
+        PlaylistDisplay,
+        PlaylistLoading,
+        PlaylistError,
+    },
+    template: /*html*/`
+        <component :is='dynamicComponent' :playlist='playlist' :error='error'></component>
+    `
+});
 
 
 let PlaylistList = Vue.component('playlist-list', {
@@ -491,7 +584,7 @@ let vm = new Vue({
                 path: '/',
                 component: PlaylistListItem,
                 props: {
-                    id: 2,
+                    id: 1,
                 }
             },
 
