@@ -436,11 +436,12 @@ let PlaylistListItem = Vue.component('playlist-list-item', {
         id: Number,
     },
     data: function() {
+        console.log('THIS: ', this);
         return {
             state: 'loading', //C can be 'pre-load', loading', 'resolved', or 'rejected'
             delay: 500,
             //timeout: 100000,
-
+    
             playlist: new sj.Playlist({
                 id: this.id,
             }),
@@ -449,6 +450,7 @@ let PlaylistListItem = Vue.component('playlist-list-item', {
     },
 
     created: function() {
+        console.log('THIS: ', this);
         this.playlist.id = this.id;
 
         sj.wait(2000).then(resolved => {
@@ -467,6 +469,7 @@ let PlaylistListItem = Vue.component('playlist-list-item', {
     //L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components/
     computed: {
         dynamicComponent: function() {
+            console.log('THIS: ', this);
             if(this.state === 'ok') {
                 return PlaylistDisplay;
             } else if (this.state === 'loading') {

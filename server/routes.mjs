@@ -171,20 +171,20 @@ apiRouter
 
 // user
 .post('/user', async (ctx, next) => {
-	ctx.response.body = await sj.addUser(ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.addUser(ctx, ctx.request.body).catch(sj.andResolve);
 })
 .get('/user', async (ctx, next) => {
-	ctx.response.body = await sj.getUser(new sj.User({
+	ctx.response.body = await sj.getUser(ctx, new sj.User({
 		id: ctx.query.id, 
 		name: ctx.query.name, 
 		email: ctx.query.email,
 	})).catch(sj.andResolve);
 })
 .patch('/user', async (ctx, next) => {
-	ctx.response.body = await sj.editUser(ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.editUser(ctx, ctx.request.body).catch(sj.andResolve);
 })
 .delete('/user', async (ctx, next) => {
-	ctx.response.body = await sj.deleteUser(ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.deleteUser(ctx, ctx.request.body).catch(sj.andResolve);
 })
 
 // session
@@ -207,15 +207,14 @@ apiRouter
 	ctx.response.body = await sj.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 })
 .get('/playlist', async (ctx, next) => {
-	//--------------- some error after here
-	ctx.response.body = await sj.getPlaylist(new sj.Playlist({
+	ctx.response.body = await sj.getPlaylist(ctx, new sj.Playlist({
 		id: ctx.query.id, 
 		userId: ctx.query.userId,
 		name: ctx.query.name, 
 	})).catch(sj.andResolve);
 })
 .patch('/playlist', async (ctx, next) => {
-	ctx.response.body = await sj.editPlaylist(ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.editPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
 })
 .delete('/playlist', async (ctx, next) => {
 	ctx.response.body = await sj.deletePlaylist(ctx, ctx.request.body).catch(sj.andResolve);

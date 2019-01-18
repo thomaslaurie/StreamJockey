@@ -19,6 +19,8 @@
     //! right now the CRUD functions are called with sj.Objects with some set of parameters (not always id, even for get) - these parameters are all ones that are fine to publicly carry around with the object (except in particular cases like passwords) and so should always be with the object. If theres a point in the future where these have to be called with a consistent argument (id) then the next step would be to make all these consistent about using that parameter and then also maybe have fallbacks for incase that parameter doesn't exist but other sufficient ones do (playlistId, position). This would be an order of properties and their respective validation checks and query modifications.
 
     //G basic query functions: any(manyOrNone) many none one oneOrNone
+
+    //! all CRUD functions have a ctx parameter for consistency (regardless if it is used (most of them use it though))
 */
 
 
@@ -55,6 +57,8 @@
     }
 
     review common pg-promise mistakes: //L https://github.com/vitaly-t/pg-promise/wiki/Common-Mistakes#invalid-query-formatting-with-manual-string-concatenation-and-es6-template-strings
+
+    //TODO consider delagating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single async function call? (but this is also what prevents things from silently failing in the first place))
 */
 
 
@@ -662,7 +666,7 @@ sj.emailRules = new sj.Rules({
 */
 
 // CRUD
-sj.addUser = async function (user) {
+sj.addUser = async function (ctx, user) {
     //C validate
     await sj.Rules.checkRuleSet([
         [sj.userNameRules, user, 'name'],
@@ -708,7 +712,7 @@ sj.addUser = async function (user) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getUser = async function (user) {
+sj.getUser = async function (ctx, user) {
     //R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
     //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
     //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
@@ -907,6 +911,7 @@ sj.logout = async function (ctx) {
     });
 }
 
+//TODO deal with me
 sj.getMe = async function (ctx) {
     await sj.isLoggedIn(ctx);
     return ctx.session.user;

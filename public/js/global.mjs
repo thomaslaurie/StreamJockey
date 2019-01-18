@@ -104,7 +104,16 @@ sj.trace = function () {
 	try {
 		throw Error('');
 	} catch (e) {
-		return decodeURIComponent(e.stack); //TODO figure out how to unescape this
+		//TODO figure out how to properly display newlines as strings inside objects
+
+		//C get stack
+		let stackTrace = e.stack;
+		//C 'file:///' is removed (so that the URIs are clickable in node)
+		stackTrace = sj.stringReplaceAll(stackTrace, 'file:///', '');
+		//C removes any line with Object.sj.trace //TODO cant seem to match this, might have to do wtih line breaks?
+		stackTrace = sj.stringReplaceAll(stackTrace, /(?:(?:\\n|\n|\r|$)    at )(?:Object\.sj\.trace|new sj\.Object|new sj\.Error)(?:.+?(?=\\n|\n|\r|$))/g, '');
+		// |Object\.sj\.catchUnexpected|Object\.sj\.propagateError|sj\.andResolve
+		return stackTrace;
 	}
 }
 /*
@@ -134,6 +143,7 @@ sj.objectList = [ // list of all valid sj objects
 	'sj.Seek',
 	'sj.Volume',
 ];
+//TODO remove me
 sj.isValidObjectType = function (input) {
 	return sj.objectList.indexOf(input) !== -1;
 }
@@ -156,7 +166,7 @@ sj.isType = function (input, type) {
 	// objects
 	if (t === 'object') {
 		// sj.Objects
-		if (sj.isValidObjectType(input.objectType)) {
+		if (sj.objectList.indexOf(input.objectType) !== -1) {
 			// any sj.Object
 			if (type === 'sj.Object') {
 				return true;
@@ -198,7 +208,7 @@ sj.typeOf = function (input) { //! legacy, don't use me //TODO go and replace al
 	let t = typeof input;
 
 	if (t === 'object') {
-		if (sj.isValidObjectType(input.objectType)) {
+		if (sj.isType(input, 'sj.Object')) {
 			return input.objectType;
 		} else {
 			return 'object';
@@ -233,6 +243,9 @@ sj.msFormat = function (ms) {
 	return minutes + ':' + seconds;
 }
 // TODO will this carry over through exports? it should: https://stackoverflow.com/questions/46427232/export-import-custom-function-of-built-in-object-in-es6
+sj.stringReplaceAll = function(input, search, replace) {
+	return input.split(search).join(replace);
+}
 
 Array.prototype.stableSort = function(compare) {
 	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
@@ -1307,37 +1320,42 @@ sj.isError = function (obj) {
 	// checks for proper SjObject error types
 	return sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.ErrorList';
 }
-sj.catchUnexpected = function (obj) {
+sj.catchUnexpected = function (input) {
 	//C determines type of input, creates, announces, and returns a proper sj.Error object
 	//C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 	
 	var error = new sj.Error({
+		log: false,
 		origin: 'sj.catchUnexpected()',
-		message: 'function received unexpected result',
-		content: obj,
+		message: 'an unexpected error ocurred',
+		content: input,
 	});
 
-	if (sj.typeOf(obj) === 'undefined') {
-		error.reason = 'object is undefined';
-	} else if (sj.typeOf(obj) === 'null') {
-		error.reason = 'object is null';
-	} else if (sj.typeOf(obj) === 'object') {
-		if (sj.isValidObjectType(obj)) {
-			error.reason = 'object is of unexpected Sj objectType: ' + obj.objectType;
-		} else if (obj instanceof Error) {
-			/* 
+	if (sj.isType(input, 'null')) {
+		error.reason = 'input is null';
+	} else if (sj.isType(input, 'object')) {
+		if(sj.isType(input, 'sj.Object')) {
+			error.reason = `input is an ${input.objectType}`;
+		} else if (input instanceof Error) {
+			//C This is going to catch the majority of unexpected inputs
+
+			/* //!
 				!!! JSON.stringify() does not work on native Error objects as they have no enumerable properties
 				therefore these cannot be passed between client & server,so when catching a native Error object
 				properly convert it to a string with Error.toString() then save that in reason
 				https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 			*/
-			error.reason = obj.toString();
+			error.reason = input.toString();
+
+			//C replace trace with actual trace (which has clickable URIs)
+			error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
 		} else {
-			error.reason = 'object is not an sj object';
+			error.reason = 'input is a non-sj, non-Error object';
 		}
 	} else {
-		error.reason = 'object is of unexpected type: ' + sj.typeOf(obj);
+		error.reason = `input is ${typeof input}`;
 	}
+
 	error.announce();
 	return error;
 }
@@ -1412,7 +1430,7 @@ sj.rebuild = function (input) {
 			content: input,
 		});
 	}
-	if (!sj.isValidObjectType(input.objectType)) {
+	if (!sj.isType(input, 'sj.Object')) {
 		return new sj.Error({
 			log: true,
 			origin: 'sj.rebuild()',
