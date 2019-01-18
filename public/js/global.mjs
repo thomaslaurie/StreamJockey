@@ -124,8 +124,9 @@ sj.trace = function () {
 */
 
 // type
-sj.objectList = [ // list of all valid sj objects
-	// TODO must be a better way
+sj.objectList = [ 
+	//C list of all valid sj objects
+	//TODO must be a better way
 	'sj.Object',
 	'sj.Success',
 	'sj.Error',
@@ -196,7 +197,7 @@ sj.isType = function (input, type) {
 
 	return false;
 }
-sj.typeOf = function (input) { //! legacy, don't use me //TODO go and replace all typeOf() with isType()
+sj.typeOf = function (input) { //! legacy, don't use me, //TODO go and replace all typeOf() with isType()
 	if (input === null) {
 		return 'null';
 	}

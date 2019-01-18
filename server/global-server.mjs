@@ -1219,7 +1219,7 @@ sj.getPlaylist = async function (ctx, playlist) {
             cssClass: 'notifyError',
         }));
     });
-    trackList = await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
+    let trackList = await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'getPlaylist() tracks query',

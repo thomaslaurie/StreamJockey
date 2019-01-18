@@ -338,72 +338,77 @@ let TrackList = Vue.component('track-list',  {
 //------------------ i want to use them because the loading, error, delay, etc. stuff sounds great - might have to manually create an asyc data loader like this however, or maybe try to access props outside/before component is created? 
 //L this way? https://stackoverflow.com/questions/38344091/vuejs-can-we-give-props-to-async-component-via-dynamic-component-pattern-compo
 
-// let PlaylistListItem = Vue.component('playlist-list-item', () => {
-//         return {
-//             //C The component to load (should be a Promise)
-//             //! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
-//             //L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
-//             component: (async function {
-//                 // let playlist = await sj.getPlaylist(new sj.Playlist({
-//                 //     id: //TODO,
-//                 // }));
-//                 await sj.wait(2000);
-                
-//                 // let _this = this;
-//                 // this.$nextTick(() => {
-//                 //     console.log('HERE: ', JSON.stringify(_this.$options._parentVnode.data));
-//                 // });
+/*
+    let PlaylistListItem = Vue.component('playlist-list-item', () => {
+            return {
+                //C The component to load (should be a Promise)
+                //! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
+                //L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
+                component: (async function {
+                    // let playlist = await sj.getPlaylist(new sj.Playlist({
+                    //     id: //TODO,
+                    // }));
+                    await sj.wait(2000);
+                    
+                    // let _this = this;
+                    // this.$nextTick(() => {
+                    //     console.log('HERE: ', JSON.stringify(_this.$options._parentVnode.data));
+                    // });
 
-//                 //console.log('ID:', id);
+                    //console.log('ID:', id);
 
-//                 let playlist = new sj.Playlist({
-//                     //id: id,
-//                     name: 'test',
-//                 });
+                    let playlist = new sj.Playlist({
+                        //id: id,
+                        name: 'test',
+                    });
 
-//                 return {
-//                     data: () => ({
-//                         playlist: playlist,
-//                     }),
-//                     props: {
-//                         id: Number,
-//                     },
-//                     template: /*html*/`
-//                         <li class='playlist-list-item'>
-//                             <p>blah{{id}}blah</p>
-//                             <p>{{playlist.name}}</p>
-//                             <button>Open</button>
-//                             <button>Play</button>
-//                         </li>
-//                     `,
-//                 }
-//             })(),
+                    return {
+                        data: () => ({
+                            playlist: playlist,
+                        }),
+                        props: {
+                            id: Number,
+                        },
+                        template: `
+                            <li class='playlist-list-item'>
+                                <p>blah{{id}}blah</p>
+                                <p>{{playlist.name}}</p>
+                                <button>Open</button>
+                                <button>Play</button>
+                            </li>
+                        `,
+                    }
+                })(),
 
-//             //C A component to use while the async component is loading
-//             loading: {
-//                 template: /*html*/`
-//                     <p>LOADING</p>
-//                 `,
-//             },
+                //C A component to use while the async component is loading
+                loading: {
+                    template: `
+                        <p>LOADING</p>
+                    `,
+                },
 
-//             //C A component to use if the load fails
-//             error: {
-//                 template: /*html*/`
-//                     <p>ERROR</p>
-//                 `,
-//             },
+                //C A component to use if the load fails
+                error: {
+                    template: `
+                        <p>ERROR</p>
+                    `,
+                },
 
-//             //C Delay before showing the loading component. Default: 200ms.
-//             delay: 500,
+                //C Delay before showing the loading component. Default: 200ms.
+                delay: 500,
 
-//             //C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
-//             //! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
-//             //L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
-//             //timeout: 10000,
-//         }
-// });
+                //C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
+                //! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
+                //L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
+                //timeout: 10000,
+            }
+    });
+*/
+
 
 //L how to use dynamic components: https://alligator.io/vuejs/dynamic-components/
+
+//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
 
 let PlaylistDisplay = {
     props: {
@@ -418,25 +423,22 @@ let PlaylistDisplay = {
         </li>
     `,
 };
-
 let PlaylistLoading = {
     template: /*html*/ `
         <p>... loading ...</p>
     `,
 };
-
 let PlaylistError = {
     template: /*html*/ `
         <p>xxx error xxx</p>
     `,
 };
 
-let PlaylistListItem = Vue.component('playlist-list-item', {
+let PlaylistLoader = {
     props: {
         id: Number,
     },
-    data: function() {
-        console.log('THIS: ', this);
+    data() {
         return {
             state: 'loading', //C can be 'pre-load', loading', 'resolved', or 'rejected'
             delay: 500,
@@ -449,10 +451,7 @@ let PlaylistListItem = Vue.component('playlist-list-item', {
         }
     },
 
-    created: function() {
-        console.log('THIS: ', this);
-        this.playlist.id = this.id;
-
+    created() {
         sj.wait(2000).then(resolved => {
             return sj.getPlaylist(this.playlist);
         }).catch(rejected => {
@@ -463,102 +462,39 @@ let PlaylistListItem = Vue.component('playlist-list-item', {
         }).then(resolved => {
             console.log('RESOLVED: ', resolved);
             this.playlist = resolved;
-            this.state = 'ok';
+            this.state = 'display';
         });
     },
     //L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components/
     computed: {
-        dynamicComponent: function() {
-            console.log('THIS: ', this);
-            if(this.state === 'ok') {
-                return PlaylistDisplay;
+        dynamicComponent() {
+            if(this.state === 'display') {
+                
+                return LoadingComponent;
             } else if (this.state === 'loading') {
                 //TODO loading component
-                return PlaylistLoading;
+                console.log('COMPONENTS: ', this.$options.components);
+                return LoadingComponent;
             } else if (this.state === 'error') {
                 //TODO  error component
-                return PlaylistError;
+                return ErrorComponent;
             }
         },
     },
-
-    components: {
-        PlaylistDisplay,
-        PlaylistLoading,
-        PlaylistError,
-    },
+    //---------------
+    components: {},
     template: /*html*/`
         <component :is='dynamicComponent' :playlist='playlist' :error='error'></component>
     `
-});
+};
 
 
-let PlaylistList = Vue.component('playlist-list', {
-    data: function () {
+
+let PlaylistList = {
+    data() {
         return {
-            playlistList: [
-                new sj.Playlist({
-                    name: 'playlist1',
-                    content: [
-                        new sj.Track({
-                            id: '1234',
-                            name: 'title1',
-                            artists: ['artist'],
-                        }),
-                        new sj.Track({
-                            id: '7654',
-                            name: 'title2',
-                            artists: ['artist2', 'artist3'],
-                        }),
-                        new sj.Track({
-                            id: '8293',
-                            name: 'title3',
-                            artists: ['artist4',],
-                        }),
-                    ],
-                }),
-                new sj.Playlist({
-                    name: 'playist2',
-                    content: [
-                        new sj.Track({
-                            id: '1234',
-                            name: 'title1',
-                            artists: ['artist'],
-                        }),
-                        new sj.Track({
-                            id: '7654',
-                            name: 'title2',
-                            artists: ['artist2', 'artist3'],
-                        }),
-                        new sj.Track({
-                            id: '8293',
-                            name: 'title3',
-                            artists: ['artist4',],
-                        }),
-                    ],
-                }),
-                new sj.Playlist({
-                    name: 'playlist3',
-                    content: [
-                        new sj.Track({
-                            id: '1234',
-                            name: 'title1',
-                            artists: ['artist'],
-                        }),
-                        new sj.Track({
-                            id: '7654',
-                            name: 'title2',
-                            artists: ['artist2', 'artist3'],
-                        }),
-                        new sj.Track({
-                            id: '8293',
-                            name: 'title3',
-                            artists: ['artist4',],
-                        }),
-                    ],
-                }),
-            ],
-        };
+
+        }
     },
     template: /*html*/`
         <ul class='playlist-list'>
@@ -566,14 +502,23 @@ let PlaylistList = Vue.component('playlist-list', {
             <playlist-list-item v-for='playlist in playlistList' :key='playlist.id' :playlist='playlist'></playlist-list-item>
         </ul>
     `,
-});
+};
 
 
 let vm = new Vue({
     el: '#app',
-    data: {
-        foo: 'hey im some words',
-        baz: 'blah im some other words',
+    data() {
+        return {
+            foo: 'hey im some words',
+            baz: 'blah im some other words',
+            test: 2,
+        }
+    },
+    components: {
+        EntryOptions,
+        PlaylistLoader,
+        ErrorPage,
+        NotFound,
     },
     router: new VueRouter({
         //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
@@ -585,9 +530,9 @@ let vm = new Vue({
             },
             {
                 path: '/',
-                component: PlaylistListItem,
+                component: PlaylistLoader,
                 props: {
-                    id: 1,
+                    id: 2,
                 }
             },
 
