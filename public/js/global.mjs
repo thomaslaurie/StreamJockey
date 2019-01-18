@@ -143,10 +143,6 @@ sj.objectList = [ // list of all valid sj objects
 	'sj.Seek',
 	'sj.Volume',
 ];
-//TODO remove me
-sj.isValidObjectType = function (input) {
-	return sj.objectList.indexOf(input) !== -1;
-}
 sj.isType = function (input, type) {
 	//R created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
