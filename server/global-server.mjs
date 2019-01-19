@@ -21,6 +21,17 @@
     //G basic query functions: any(manyOrNone) many none one oneOrNone
 
     //! all CRUD functions have a ctx parameter for consistency (regardless if it is used (most of them use it though))
+
+
+    TODO
+    //C get functions will be allowed to get multiple resources (just a simple query based on matches), for example getting a playlist with only userId will get all playlists by that user
+    //C there is some confusion about what is 'known' information - because playlists hold data on the tracks they contain, but users don't hold data on the playlists they have. get needs the ability for multiple matches because it is not 'known' by the client what it contains (playlist is only able to do this because the multiple query is done manually server-side when getting the original playlist, this is not done for user)
+    //C two directions - either make user retrieve all of it's containing playlists (lots of data being passed around here, no way to do a different query for playlists or tracks separated from user), or allow multiple querying (creates a difference between get and the other CRUD methods (add, edit, and delete could be done in multiple but these are all methods where the client 'knows' the exact resource they're manipulating and can be done iteratively on the client-side)
+    //C maybe make all CRUD methods multiply possible (for admin stuff? delete all tracks in a playlist (at once) without doing them iteratively client-side), all of these would have to fail if any one part fails (using that postgres thing (transaction commit?))
+    //TODO also consider then including a light version of tracks/playlists that only includes ids?
+
+    //TODO add admin privacy level: [admin, self, password, link, public, etc.]
+    
 */
 
 
@@ -112,6 +123,7 @@ const visibilityStates = [
 //  ╚██████╔╝   ██║   ██║███████╗
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝
 
+// postgres
 //? this should be called once on startup, where should this go?
 (async () => {
     // initialize
@@ -463,6 +475,15 @@ sj.checkKey = async function (list, key, timeout) {
     });
 }
 
+sj.buildWhere = function (list) {
+    if (list.length === 0) {
+        return 'WHERE 0 = 1';
+    } else {
+        list.unshift('WHERE 1 = 1');
+        return list.join(' AND ');
+    }
+}
+
 
 //  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
 //  ██╔══██╗██║   ██║██║     ██╔════╝██╔════╝
@@ -485,7 +506,7 @@ sj.idRules = new sj.Rules({
     origin: 'idRules',
     message: 'id validated',
 
-    valueName: 'Id',
+    valueName: 'id',
 
     dataTypes: ['integer'],
 });
@@ -496,7 +517,7 @@ sj.imageRules = new sj.Rules({
     target: 'playlistImage',
     cssClass: 'inputError',
 
-    valueName: 'Image',
+    valueName: 'image',
     trim: true,
 
     max: bigStringMaxLength,
@@ -511,7 +532,7 @@ sj.colorRules = new sj.Rules({
     target: 'playlistColor',
     cssClass: 'inputError',
 
-    valueName: 'Color',
+    valueName: 'color',
     trim: true,
     
     filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
@@ -720,10 +741,10 @@ sj.getUser = async function (ctx, user) {
     //C pre-format ruleSet and WHERE clause //L https://github.com/vitaly-t/pg-promise#raw-text, based on the presence of id or name (the unique keys)
     let ruleSet = [];
     let where = 'WHERE 0 = 1';
-    if (sj.isNonEmptyValue(user.id)) {
+    if (!sj.isEmpty(user.id)) {
         ruleSet.push([sj.idRules, user, 'id']);
         where = pgp.as.format('WHERE "id" = $1', user.id);
-    } else if (sj.isNonEmptyValue(user.name)) {
+    } else if (!sj.isEmpty(user.name)) {
         ruleSet.push([sj.userNameRules, user, 'name']);
         where = pgp.as.format('WHERE "name" = $1', user.name);
     }
@@ -731,7 +752,7 @@ sj.getUser = async function (ctx, user) {
 
     await sj.Rules.checkRuleSet(ruleSet);
 
-    return db.one('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
+    return db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
                 origin: 'getUser()',
@@ -740,7 +761,10 @@ sj.getUser = async function (ctx, user) {
                 cssClass: 'notifyError',
         }));
     }).then(resolved => {
-        return new sj.User(resolved); //!  requires that table names are the same as object property names
+        resolved.forEach(item => {
+            item = new sj.User(item); //!  requires that table names are the same as object property names
+        });
+        return resolved;
     });
 }
 sj.editUser = async function (ctx, user) { //TODO
@@ -911,7 +935,7 @@ sj.logout = async function (ctx) {
     });
 }
 
-//TODO deal with me
+//TODO deal with this
 sj.getMe = async function (ctx) {
     await sj.isLoggedIn(ctx);
     return ctx.session.user;
@@ -1192,25 +1216,28 @@ sj.getPlaylist = async function (ctx, playlist) {
     /*
         if (sj.typeOf(playlist.id) !== 'null') { 
     */
-
-    //C id or userId & name
+    console.log('PLAYLIST: ', playlist);
     let ruleSet = [];
-    let where = 'WHERE 0 = 1';
-    if (sj.isNonEmptyValue(playlist.id)) {
+    let conditions = [];
+    if (!sj.isEmpty(playlist.id)) {
         ruleSet.push([sj.idRules, playlist, 'id']);
-        where = pgp.as.format('WHERE "id" = $1', playlist.id);
-    } else if (sj.isNonEmptyValue(playlist.userId) && sj.isNonEmptyValue(playlist.name)) {
-        ruleSet.push([sj.idRules, playlist, 'userId']);
-        ruleSet.push([sj.playlistNameRules, playlist, 'name']);
-        where = pgp.as.format('WHERE "userId" = $1 AND name" = $2', [playlist.userId, playlist.name]);
+        conditions.push(pgp.as.format('"id" = $1', playlist.id));
     }
-
+    if (!sj.isEmpty(playlist.userId)) {
+        ruleSet.push([sj.idRules, playlist, 'userId']);
+        conditions.push(pgp.as.format('"userId" = $1', playlist.userId));
+    }
+    if (!sj.isEmpty(playlist.name)) {
+        ruleSet.push([sj.playlistNameRules, playlist, 'name']);
+        conditions.push(pgp.as.format('"name" = $2', playlist.name));
+    }
     await sj.Rules.checkRuleSet(ruleSet);
+    let where = sj.buildWhere(conditions);
 
 
     //C rewrite playlist
     //? does this fail if the wrong dataType is fed in?
-    playlist = await db.one('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
+    let playlists = await db.any('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'getPlaylist() playlists query',
@@ -1219,37 +1246,46 @@ sj.getPlaylist = async function (ctx, playlist) {
             cssClass: 'notifyError',
         }));
     });
-    let trackList = await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'getPlaylist() tracks query',
-            message: 'could not get playlist, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    });
-    
-    playlist.content = trackList;
-    playlist = new sj.Playlist(playlist);
-    
-    //C if the playlist is not ordered
-    for (var i = 0; i < playlist.content.length; i++) {
-        if (playlist.content[i].position !== i) {
-            //C order it
-            playlist = await sj.orderPlaylist(playlist).catch(rejected => {
-                throw sj.parsePostgresError(rejected, new sj.Error({
-                    log: false,
-                    origin: 'getPlaylist()',
-                    message: 'could not order playlist, database error',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-                }));
-            });
-            break;
+
+    playlists = await Promise.all(playlists.map(async item => {
+        //C get tracks
+        item.content = await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, item.id).catch(rejected => {
+            //TODO is it ok to throw rather than return an error here? this is a list of lists, if any one track fails is a complete failure desired? why not just have the error object in place of the track object
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'getPlaylist() tracks query',
+                message: 'could not get playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
+
+        //C cast
+        item = new sj.Playlist(item);
+
+        //C check that tracks are all ordered
+        for (let i = 0; i < item.content.length; i++) {
+            if (item.content[i].position !== i) {
+                //C if not, order them
+                item = await sj.orderPlaylist(item).catch(rejected => {
+                    throw sj.parsePostgresError(rejected, new sj.Error({
+                        log: false,
+                        origin: 'getPlaylist()',
+                        message: 'could not order playlist, database error',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                    }));
+                });
+                break;
+            }
         }
-    }
-    
-    return playlist;
+
+        return item;
+    })).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+    console.log('PLAYLISTS: ', playlists);
+    return playlists;
 
     /*
         //TODO permissions

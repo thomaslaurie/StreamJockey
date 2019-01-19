@@ -268,7 +268,16 @@ sj.request = async function (method, url, body) {
 		throw sj.propagateError(rejected);
 	});
 	
-	result = sj.rebuild(result);
+	//--------------
+
+	//TODO consider how to handle single objects, vs arrays, maybe make a function that automatically handles it? (also for async>)
+	if (!sj.isType(result, 'array')) {
+		result = sj.rebuild(result);
+	} else {
+		result.forEach(item => {
+			result = sj.rebuild(result);
+		});
+	}
 	
 	//C catch and throw server or rebuild errors
 	if (sj.isError(result)) {

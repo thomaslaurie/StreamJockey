@@ -8,6 +8,10 @@
 /*
     //L don't use arrow functions on any component options properties (created, data, etc.) as this will not be available: https://vuejs.org/v2/guide/instance.html#Instance-Lifecycle-Hooks
     //L methods vs computed vs watch: https://flaviocopes.com/vue-methods-watchers-computed-properties/
+
+    //R use null in places where there should be an manually placed empty value - distinguishes between unintentional empty values: undefined, and intentional empty values: null
+    //L "To distinguish between the two, you may want to think of undefined as representing an unexpected absence of value and null as representing an expected absence of value."
+    //L http://ryanmorr.com/exploring-the-eternal-abyss-of-null-and-undefined/
 */
 
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
@@ -411,83 +415,111 @@ let TrackList = Vue.component('track-list',  {
 //R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
 
 let PlaylistDisplay = {
+    name: 'playlist-display',
     props: {
-        playlist: Object,
+        display: Object,
     },
     template: /*html*/`
         <li class='playlist-list-item'>
-            <p>{{playlist.id}}</p>
-            <p>{{playlist.name}}</p>
+            <p>{{display.id}}</p>
+            <p>{{display.name}}</p>
             <button>Open</button>
             <button>Play</button>
         </li>
     `,
 };
 let PlaylistLoading = {
+    name: 'playlist-loading',
     template: /*html*/ `
         <p>... loading ...</p>
     `,
 };
 let PlaylistError = {
+    name: 'playlist-error',
+    props: {
+        error: Object,
+    },
     template: /*html*/ `
-        <p>xxx error xxx</p>
+        <p>{{error}}</p>
     `,
 };
 
-let PlaylistLoader = {
-    props: {
-        id: Number,
+let BaseLoader = {
+    name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
+    components: {
+        //TODO make actual default components
+        DisplayComponent: {
+            template: /*html*/ `<p>Default Display Component</p>`
+        },
+        LoadingComponent: {
+            template: /*html*/ `<p>Default Loading Component</p>`
+        },
+        ErrorComponent: {
+            template: /*html*/ `<p>Default Error Component</p>`
+        },
     },
     data() {
         return {
-            state: 'loading', //C can be 'pre-load', loading', 'resolved', or 'rejected'
+            state: 'loading',
             delay: 500,
-            //timeout: 100000,
-    
-            playlist: new sj.Playlist({
-                id: this.id,
-            }),
-            error: null,
-        }
-    },
+            timeout: Infinity,
 
-    created() {
-        sj.wait(2000).then(resolved => {
-            return sj.getPlaylist(this.playlist);
-        }).catch(rejected => {
-            //TODO handle
-            console.log('REJECTED: ', rejected);
-            this.error = rejected;
-            this.state = 'error';
-        }).then(resolved => {
-            console.log('RESOLVED: ', resolved);
-            this.playlist = resolved;
-            this.state = 'display';
-        });
+            display: null,
+            error: null,
+        };
     },
-    //L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components/
     computed: {
         dynamicComponent() {
+            //L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
+            //L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
             if(this.state === 'display') {
-                
-                return LoadingComponent;
+                return this.$options.components.DisplayComponent;
             } else if (this.state === 'loading') {
-                //TODO loading component
-                console.log('COMPONENTS: ', this.$options.components);
-                return LoadingComponent;
+                return this.$options.components.LoadingComponent;
             } else if (this.state === 'error') {
-                //TODO  error component
-                return ErrorComponent;
+                return this.$options.components.ErrorComponent;
             }
         },
     },
-    //---------------
-    components: {},
+    created() {
+        this.getData().then(this.handleSuccess, this.handleError);
+    },
+    methods: {
+        async getData() {
+            return null;
+        },
+        handleError(rejected) {
+            console.log('REJECTED: ', rejected);
+            this.error = rejected;
+            this.state = 'error';
+        },
+        handleSuccess(resolved) {
+            console.log('RESOLVED: ', resolved);
+            this.display = resolved;
+            this.state = 'display';
+        },
+    },
     template: /*html*/`
-        <component :is='dynamicComponent' :playlist='playlist' :error='error'></component>
+        <component :is='dynamicComponent' :display='display' :error='error'></component>
     `
-};
-
+}
+let PlaylistLoader = {
+    name: 'playlist-loader',
+    components: {
+        DisplayComponent: PlaylistDisplay,
+        LoadingComponent: PlaylistLoading,
+        ErrorComponent: PlaylistError,
+    },
+    extends: BaseLoader,
+    props: {
+        playlist: Object,
+    },
+    methods: {
+        async getData() {
+            return await sj.getPlaylist(this.playlist);
+        },
+    },
+}
 
 
 let PlaylistList = {
@@ -532,7 +564,9 @@ let vm = new Vue({
                 path: '/',
                 component: PlaylistLoader,
                 props: {
-                    id: 2,
+                    playlist: new sj.Playlist({
+                        id: 1,
+                    }),
                 }
             },
 

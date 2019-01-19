@@ -80,9 +80,13 @@ let sj = {};
 
 sj.wait = async function (ms) {
 	return new Promise(resolve => {
-		setTimeout(() => {
-			resolve(`finished waiting ${ms}ms`);
-		}, ms);
+		if (ms !== Infinity) {
+			//! setTimeout() apparently breaks with large numbers or Infinity, so a manual check is needed 
+			//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
+			setTimeout(() => {
+				resolve(`finished waiting ${ms}ms`);
+			}, ms);
+		}
 	});
 }
 
@@ -110,6 +114,8 @@ sj.trace = function () {
 		let stackTrace = e.stack;
 		//C 'file:///' is removed (so that the URIs are clickable in node)
 		stackTrace = sj.stringReplaceAll(stackTrace, 'file:///', '');
+		//C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+		stackTrace = sj.stringReplaceAll(stackTrace, 'Error\n    ', '');
 		//C removes any line with Object.sj.trace //TODO cant seem to match this, might have to do wtih line breaks?
 		stackTrace = sj.stringReplaceAll(stackTrace, /(?:(?:\\n|\n|\r|$)    at )(?:Object\.sj\.trace|new sj\.Object|new sj\.Error)(?:.+?(?=\\n|\n|\r|$))/g, '');
 		// |Object\.sj\.catchUnexpected|Object\.sj\.propagateError|sj\.andResolve
@@ -147,11 +153,10 @@ sj.objectList = [
 sj.isType = function (input, type) {
 	//R created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
-
-
+	//TODO see if this can be even more cleanly structured
 	// null
 	if (input === null && type === 'null') {
-			return true;
+		return true;
 	}
 
 	// typeof
@@ -161,7 +166,7 @@ sj.isType = function (input, type) {
 	}
 
 	// objects
-	if (t === 'object') {
+	if (t === 'object' && input !== null) {
 		// sj.Objects
 		if (sj.objectList.indexOf(input.objectType) !== -1) {
 			// any sj.Object
@@ -219,11 +224,13 @@ sj.typeOf = function (input) { //! legacy, don't use me, //TODO go and replace a
 	return typeof input;
 }
 
-sj.isNonEmptyValue = function (input) {
-	return (
+sj.isEmpty = function (input) {
+	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
+	//TODO write condition for non-empty objects & arrays? though this function isn't used for these (yet)
+	return !(
 		sj.isType(input, 'boolean') || 
 		sj.isType(input, 'number') || 
-		(sj.isType(input, 'string') && input.trim() !== '')
+		(sj.isType(input, 'string') && input.trim() !== '' && input !== 'null') //! because null gets converted to the string 'null' this must be checked for //TODO there could be some issues stemming from this (user input of 'null')
 	);
 }
 
