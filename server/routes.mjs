@@ -49,6 +49,8 @@
 
 /*
 	consider using a separate router for source-api requests (sourceRouter)
+
+	error converting sj.Track() to JSON because of circular reference
 */
 
 
@@ -132,9 +134,16 @@ const apiRouter = new Router();
 		return f;
 	}
 */
-
 // server-side data & processing requests
 apiRouter
+.get('/test', async (ctx, next) => {
+	
+	console.log('TEST');
+	let test = ['blahblah', new sj.User()];
+	console.log('ROUTER CALL', test);
+	ctx.response.body = test;
+})
+
 // auth
 .get('/spotify/startAuthRequest', async (ctx, next) => {
 	//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options

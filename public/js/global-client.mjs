@@ -268,20 +268,19 @@ sj.request = async function (method, url, body) {
 		throw sj.propagateError(rejected);
 	});
 	
-	//--------------
-
 	//TODO consider how to handle single objects, vs arrays, maybe make a function that automatically handles it? (also for async>)
-	if (!sj.isType(result, 'array')) {
-		result = sj.rebuild(result);
-	} else {
+	if (sj.isType(result, 'array')) {
 		result.forEach(item => {
+			//C throws a single error if any of the items fail to rebuild, //? is this the desired behavior?
 			result = sj.rebuild(result);
 		});
+	} else {
+		result = sj.rebuild(result);
 	}
 	
 	//C catch and throw server or rebuild errors
 	if (sj.isError(result)) {
-		throw propagateError(result);
+		throw result;
 	}
 
 	return result;
@@ -292,6 +291,26 @@ sj.request = async function (method, url, body) {
 	//TODO updateElementErrors() as of now should take a .finally() behavior, but is this really the best way to do that?
 	//updateElementErrors();
 }
+
+sj.one = function (a) {
+	if (a.length === 1) {
+		return a[0];
+	} else if (a.length >= 2) {
+		//TODO make a warning object / handler?
+		console.warn('sj.one() pulled a single value out of an array with many');
+		return a[0];
+	} else if (a.length === 0) {
+		return new sj.Error({
+			log: true,
+			origin: 'sj.one()',
+			code: 404,
+			message: 'no data found',
+			reason: 'array has no values, expected one',
+			content: a,
+		});
+	}
+}
+
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗

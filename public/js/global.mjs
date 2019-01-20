@@ -133,6 +133,7 @@ sj.trace = function () {
 sj.objectList = [ 
 	//C list of all valid sj objects
 	//TODO must be a better way
+	// consider: obj.constructor.name //L https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class
 	'sj.Object',
 	'sj.Success',
 	'sj.Error',
@@ -292,13 +293,15 @@ Array.prototype.stableSort = function(compare) {
 }
 
 // promises
+//? why is resolveBoth needed? why cant .catch(sj.andResolve) work? because the resolved version is returned anyways
+//TODO consider removing resolveBoth in favor for just using .catch(sj.andResolve)
 sj.andResolve = function (rejected) {
-	// use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
-	// non-sj errors should also be converted here
+	//C use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
+	//C non-sj errors should also be converted here
 	return sj.propagateError(rejected);
 }
 sj.resolveBoth = function (resolved, rejected) {
-	// Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
+	//C Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
 
 	if (resolved) {
 		return resolved;
@@ -833,18 +836,48 @@ sj.Rules = class extends sj.Object {
 		//C transform object (this will strip any irrelevant properties away)
 		return new sj.Success(this); 		
 	}
+	//C checks an object's property and possibly modify it
+	async checkProperty(obj, prop, value2) {
+		//C validate arguments
+		if (!sj.isType(obj, 'object')) {
+			throw new sj.Error({
+				log: true,
+				origin: 'sj.Rules.checkProperty()',
+				message: 'validation error',
+				reason: `sj.Rules.checkProperty()'s first argument is not an object`,
+				content: obj,
+			});
+		}
+		if (!prop in obj) {
+			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+			throw new sj.Error({
+				log: true,
+				origin: 'sj.Rules.checkProperty()',
+				message: 'validation error',
+				reason: `sj.Rules.checkProperty()'s object argument is missing a '${prop}' property`,
+				content: obj,
+			});
+		}
 
-	//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
+		//C check rules
+		let result = this.check(obj[prop], value2).catch(rejected => {
+			//C throw error if failed 
+			//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
+			throw sj.propagateError(rejected);
+		});
+
+		//C modify and return if successful
+		obj[prop] = result.content;
+		return result;
+	}
+
 	static async checkRuleSet(ruleSet) {
 		//C takes a 2D array of [[sj.Rules, obj, propertyName, value2(optional)], [], [], ...]
-
-		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
+		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
 			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
 			//C validate arguments
-			if (!(rules instanceof sj.Rules)) {
-				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
-				//? is it possible to dynamically get this class
+			if (!rules instanceof this) {
 				return new sj.Error({
 					log: true,
 					origin: 'checkRuleSet()',
@@ -853,53 +886,92 @@ sj.Rules = class extends sj.Object {
 					content: rules,
 				});
 			}
-			if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
-				//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-				return new sj.Error({
-					log: true,
-					origin: 'checkRuleSet()',
-					message: 'validation error',
-					reason: `checkRuleSet() is missing an object argument`,
-					content: obj,
-				});
-			}
-			if (!(prop in obj)) {
-				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-				return new sj.Error({
-					log: true,
-					origin: 'checkRuleSet()',
-					message: 'validation error',
-					reason: `checkRuleSet() obj is missing a '${prop}' property`,
-					content: obj,
-				});
-			}
 
-			let result = new sj.Error();
-
-			//C call check() with 1 or 2 values
-			if (sj.typeOf(value2) === 'undefined') {
-				result = await rules.check(obj[prop]).then(sj.resolveBoth());
-			} else {
-				result = await rules.check(obj[prop], value2).then(sj.resolveBoth());
-			}
-
-			//C pass the possibly modified value back to the original object
-			obj[prop] = result.content;
-
-			return result;
+			//C check, return errors too
+			return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
 		})).then(resolved => {
+			//C filter for sj.Success objects
 			return sj.filterList(resolved, sj.Success, new sj.Success({
-				origin: 'checkRuleSet()',
+				origin: 'sj.Rules.checkRuleSet()',
 				message: 'all rules validated',
 			}), new sj.ErrorList({
-				origin: 'checkRuleSet()',
-				message: 'one or more issues with fields',
+				origin: 'sj.Rules.checkRuleSet()',
+				message: 'one or more issues with rules',
 				reason: 'validation functions returned one or more errors',
 			}));
 		}).catch(rejected => {
 			throw sj.propagateError(rejected);
 		});
 	}
+
+	/* old
+		//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
+		static async checkRuleSet(ruleSet) {
+			//C takes a 2D array of [[sj.Rules, obj, propertyName, value2(optional)], [], [], ...]
+
+			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
+				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
+				//C validate arguments
+				if (!(rules instanceof sj.Rules)) {
+					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+					//? is it possible to dynamically get this class
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() is missing a sj.Rules object`,
+						content: rules,
+					});
+				}
+				if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
+					//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() is missing an object argument`,
+						content: obj,
+					});
+				}
+				if (!(prop in obj)) {
+					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() obj is missing a '${prop}' property`,
+						content: obj,
+					});
+				}
+
+				let result = new sj.Error(); //? why is this here
+
+				//C call check() with 1 or 2 values
+				if (sj.typeOf(value2) === 'undefined') {
+					result = await rules.check(obj[prop]).then(sj.resolveBoth());
+				} else {
+					result = await rules.check(obj[prop], value2).then(sj.resolveBoth());
+				}
+
+				//C pass the possibly modified value back to the original object
+				obj[prop] = result.content;
+
+				return result;
+			})).then(resolved => {
+				return sj.filterList(resolved, sj.Success, new sj.Success({
+					origin: 'checkRuleSet()',
+					message: 'all rules validated',
+				}), new sj.ErrorList({
+					origin: 'checkRuleSet()',
+					message: 'one or more issues with fields',
+					reason: 'validation functions returned one or more errors',
+				}));
+			}).catch(rejected => {
+				throw sj.propagateError(rejected);
+			});
+		}
+	*/
 }
 
 sj.Source = class extends sj.Object {
@@ -1365,6 +1437,8 @@ sj.catchUnexpected = function (input) {
 }
 sj.propagateError = function (obj) {
 	//C wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
+	//C this basically just ensures sj.Errors recursively wrap each other (Error chain should only be 1 deep)
+	//TODO because this is mostly used in a promise's catch, consider having this auto throw so it can just be used like: .catch(sj.propagateError);
 	if (sj.isError(obj)) {
 		return obj;
 	} else {
@@ -1384,14 +1458,10 @@ sj.filterList = async function (list, type, successList, errorList) {
 
 	//C if item does not match desired type, push it to errorList.content
 	list.forEach(function (item) {
+		//TODO consider using sj.isType() here, and also implement instanceof into sj.isType() (also allowing to pass objects to use instance of)
 		if (!(item instanceof type)) {
 			errorList.content.push(sj.propagateError(item));
 		}
-		/*
-			if (sj.typeOf(item) !== type) {
-				errorList.content.push(sj.propagateError(item));
-			}
-		*/
 	});
 
 	//C throw errorList if there are any errors

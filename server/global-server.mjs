@@ -31,6 +31,8 @@
     //TODO also consider then including a light version of tracks/playlists that only includes ids?
 
     //TODO add admin privacy level: [admin, self, password, link, public, etc.]
+
+    //R all CRUD will return an array of any number of 
     
 */
 
@@ -70,6 +72,8 @@
     review common pg-promise mistakes: //L https://github.com/vitaly-t/pg-promise/wiki/Common-Mistakes#invalid-query-formatting-with-manual-string-concatenation-and-es6-template-strings
 
     //TODO consider delagating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single async function call? (but this is also what prevents things from silently failing in the first place))
+
+    //TODO move other crud functions over to array results (or not?), get CRUD functions are done 
 */
 
 
@@ -227,7 +231,7 @@ const visibilityStates = [
 
         const SCHEMA = sj.deepFreeze(P_SCHEMA);
     */
-    return db.tx(async function (task) {
+    return db.tx(async function (t) {
         // TODO this will not alter tables if they do already exist (save this for migration)
         
         // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
@@ -240,7 +244,7 @@ const visibilityStates = [
         // default constraint names: https://stackoverflow.com/questions/4107915/postgresql-default-constraint-names
 
         if (false) {
-            await task.none(`DROP SCHEMA IF EXISTS "sj" CASCADE`).catch(rejected => {
+            await t.none(`DROP SCHEMA IF EXISTS "sj" CASCADE`).catch(rejected => {
                 throw new sj.Error({
                     log: true,
                     origin: 'schema initialization',
@@ -256,7 +260,7 @@ const visibilityStates = [
         // TODO add self, public, & private VIEWs for tables (if relevant)
         // !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
         // !!! column names are camelCase (because they get converted to properties), everything else is underscore
-        return task.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
+        return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
             throw new sj.Error({
                 log: true,
                 origin: 'schema initialization',
@@ -268,7 +272,7 @@ const visibilityStates = [
             });
         }).then(resolved => {
             // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
-            return task.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
+            return t.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
                 "id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
                 "name" text CONSTRAINT "users_name_key" UNIQUE,
                 "password" text,
@@ -287,7 +291,7 @@ const visibilityStates = [
         }).then(resolved => {
             //L views: https://www.postgresql.org/docs/8.1/static/tutorial-views.html
             //L create or replace: https://stackoverflow.com/questions/48662843/what-is-the-equivalent-of-create-view-if-not-exists-in-postresql
-            return task.none(`CREATE OR REPLACE VIEW "sj"."users_self" AS
+            return t.none(`CREATE OR REPLACE VIEW "sj"."users_self" AS
                 SELECT id, name, email 
                 FROM "sj"."users"
             ;`).catch(rejected => {
@@ -302,7 +306,7 @@ const visibilityStates = [
                 });
             });
         }).then(resolved => {
-            return task.none(`CREATE OR REPLACE VIEW "sj"."users_public" AS
+            return t.none(`CREATE OR REPLACE VIEW "sj"."users_public" AS
                 SELECT id, name
                 FROM "sj"."users"
             ;`).catch(rejected => {
@@ -317,7 +321,7 @@ const visibilityStates = [
                 });
             });
         }).then(resolved => {
-            return task.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
+            return t.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
                 "id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
                 "userId" integer CONSTRAINT "playlists_userId_fkey" REFERENCES "sj"."users" ON DELETE CASCADE ON UPDATE CASCADE,
                 "name" text,
@@ -339,7 +343,7 @@ const visibilityStates = [
                 });
             });
         }).then(resolved => {
-            return task.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
+            return t.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
                 "id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
                 "playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
                 "position" integer,
@@ -477,11 +481,73 @@ sj.checkKey = async function (list, key, timeout) {
 
 sj.buildWhere = function (list) {
     if (list.length === 0) {
+        //C return a false clause
         return 'WHERE 0 = 1';
     } else {
+        //C prepend a true clause so 'AND condition's can be easily joined
         list.unshift('WHERE 1 = 1');
         return list.join(' AND ');
     }
+}
+sj.checkAndBuild = async function (list) {
+    //C checks a ruleSet and formats a WHERE clause
+    //C takes a 2D array: [[databaseColumnName, sj.Rules, object, propertyName, value2], [], ...]
+
+    //TODO consider adding this to the sj.Rules object instead of leaving it out in the open (that would also allow the rules instanceof check to be 'this')
+    
+
+    let conditions = [];
+
+    //C awaits a sj.Success or throws a sj.ErrorList
+    //! this function is similar to sj.Rules.checkRuleSet(), it has the conditions.push() inserted into the loop
+    await Promise.all(list.map(async ([column, rule, obj, prop, value2]) => {
+        //C validate arguments
+        if (sj.isEmpty(column)){
+            return new sj.Error({
+                log: true,
+                origin: 'sj.checkAndBuild()',
+                message: 'validation error',
+                reason: `sj.checkAndBuild() is missing a column name`,
+                content: rules,
+            });
+        }
+        if (!rules instanceof sj.Rules) {
+            return new sj.Error({
+                log: true,
+                origin: 'sj.checkAndBuild()',
+                message: 'validation error',
+                reason: `sj.checkAndBuild() is missing a sj.Rules object`,
+                content: rules,
+            });
+        }
+
+        //C if property isn't empty
+        if (!sj.isEmpty(obj[prop])) {
+            //R the check has to specifically happen before the push to conditions (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
+
+            //C validate property, throw if failed, possibly modify obj[prop] if successful
+            let result2 = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
+            //C add to conditions '"column" = obj[prop]'
+            conditions.push(pgp.as.format(`"${column}" = $1`, obj[prop]));
+            //C return to check for errors
+            return result2;
+        }
+    })).then(resolved => {
+        //C filter for sj.Success objects
+        return sj.filterList(resolved, sj.Success, new sj.Success({
+            origin: 'sj.checkAndBuild()',
+            message: 'all rules validated',
+        }), new sj.ErrorList({
+            origin: 'sj.checkAndBuild()',
+            message: 'one or more issues with rules',
+            reason: 'validation functions returned one or more errors',
+        }));
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+
+    //C if no errors thrown, return a built where clause
+    return sj.buildWhere(conditions);
 }
 
 
@@ -738,21 +804,15 @@ sj.getUser = async function (ctx, user) {
     //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
     //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
 
-    //C pre-format ruleSet and WHERE clause //L https://github.com/vitaly-t/pg-promise#raw-text, based on the presence of id or name (the unique keys)
-    let ruleSet = [];
-    let where = 'WHERE 0 = 1';
-    if (!sj.isEmpty(user.id)) {
-        ruleSet.push([sj.idRules, user, 'id']);
-        where = pgp.as.format('WHERE "id" = $1', user.id);
-    } else if (!sj.isEmpty(user.name)) {
-        ruleSet.push([sj.userNameRules, user, 'name']);
-        where = pgp.as.format('WHERE "name" = $1', user.name);
-    }
-    //! don't get email because that is not visible to users_public
+    let where = await sj.checkAndBuild([
+        ['id', sj.idRules, user, 'id'],
+        ['name', sj.userNameRules, user, 'name'],
+        //! don't query email because that is not visible to users_public (maybe allow it once permissions are implemented?)
+        //TODO expand properties
+    ]);
 
-    await sj.Rules.checkRuleSet(ruleSet);
-
-    return db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
+    //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
+    let users = db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
                 origin: 'getUser()',
@@ -760,12 +820,15 @@ sj.getUser = async function (ctx, user) {
                 target: 'notify',
                 cssClass: 'notifyError',
         }));
-    }).then(resolved => {
-        resolved.forEach(item => {
-            item = new sj.User(item); //!  requires that table names are the same as object property names
-        });
-        return resolved;
     });
+
+    //C cast
+    //! requires that table names are the same as object property names
+    users.forEach(item => {
+        item = new sj.User(item);
+    });
+    
+    return users;
 }
 sj.editUser = async function (ctx, user) { //TODO
     // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
@@ -842,7 +905,7 @@ sj.deleteUser = async function (ctx, user) {
         }
     }).then(resolved => {
         //C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
-        return logout().catch(sj.andResolve());     
+        return logout().catch(sj.andResolve);     
     }).then(resolved => {
         return new sj.Success({
             log: true,
@@ -1216,75 +1279,55 @@ sj.getPlaylist = async function (ctx, playlist) {
     /*
         if (sj.typeOf(playlist.id) !== 'null') { 
     */
-    console.log('PLAYLIST: ', playlist);
-    let ruleSet = [];
-    let conditions = [];
-    if (!sj.isEmpty(playlist.id)) {
-        ruleSet.push([sj.idRules, playlist, 'id']);
-        conditions.push(pgp.as.format('"id" = $1', playlist.id));
-    }
-    if (!sj.isEmpty(playlist.userId)) {
-        ruleSet.push([sj.idRules, playlist, 'userId']);
-        conditions.push(pgp.as.format('"userId" = $1', playlist.userId));
-    }
-    if (!sj.isEmpty(playlist.name)) {
-        ruleSet.push([sj.playlistNameRules, playlist, 'name']);
-        conditions.push(pgp.as.format('"name" = $2', playlist.name));
-    }
-    await sj.Rules.checkRuleSet(ruleSet);
-    let where = sj.buildWhere(conditions);
 
+    let where = sj.checkAndBuild([
+        ['id', sj.idRules, playlist, 'id'],
+        ['userId', sj.idRules, playlist, 'userId'],
+        ['name', sj.playlistNameRules, playlist, 'name'],
+    ]);
 
-    //C rewrite playlist
-    //? does this fail if the wrong dataType is fed in?
     let playlists = await db.any('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
-            origin: 'getPlaylist() playlists query',
+            origin: 'sj.getPlaylist()',
             message: 'could not get playlist, database error',
             target: 'notify',
             cssClass: 'notifyError',
         }));
     });
 
+    playlists.forEach(item => {
+        item = new sj.Playlist(item);
+    });
+
+
     playlists = await Promise.all(playlists.map(async item => {
         //C get tracks
-        item.content = await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, item.id).catch(rejected => {
-            //TODO is it ok to throw rather than return an error here? this is a list of lists, if any one track fails is a complete failure desired? why not just have the error object in place of the track object
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'getPlaylist() tracks query',
-                message: 'could not get playlist, database error',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
+        item.content = sj.getTrack(ctx, new sj.Track({playlistId: item.id})).catch(rejected => {   
+            //TODO warning
+            console.warn('getPlaylist() succeeded, but a getTrack() failed')
+            return propagateError(rejected); //! returned, not thrown
         });
 
-        //C cast
-        item = new sj.Playlist(item);
-
-        //C check that tracks are all ordered
-        for (let i = 0; i < item.content.length; i++) {
-            if (item.content[i].position !== i) {
-                //C if not, order them
-                item = await sj.orderPlaylist(item).catch(rejected => {
-                    throw sj.parsePostgresError(rejected, new sj.Error({
-                        log: false,
-                        origin: 'getPlaylist()',
-                        message: 'could not order playlist, database error',
-                        target: 'notify',
-                        cssClass: 'notifyError',
-                    }));
-                });
-                break;
-            }
-        }
+        /* old
+            await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, item.id).catch(rejected => {
+                
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'getPlaylist() tracks query',
+                    message: 'could not get playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+        */
 
         return item;
     })).catch(rejected => {
         throw sj.propagateError(rejected);
     });
-    console.log('PLAYLISTS: ', playlists);
+
+
     return playlists;
 
     /*
@@ -1337,6 +1380,8 @@ sj.deletePlaylist = async function (ctx, playlist) {
 // util
 sj.orderPlaylist = async function (playlist) {  
     /*
+        //TODO clean this up, maybe make it usable just from an id or a track? REMEMBER that this transaction uses the t.one() methods because it has something to do with being inside db.tx() //?
+
         //! this shouldn't need to be called anywhere other than getPlaylist() as long as anything that changes a playlist's order calls getPlaylist (before), a call to orderPlaylist (functionally equivalent to getPlaylist()) afterwards, would be redundant as the playlist should be always ordered on retrieval anyways
 
         
@@ -1349,8 +1394,8 @@ sj.orderPlaylist = async function (playlist) {
     */
 
     // update
-    return db.tx(async function (task) {
-        let realPlaylist = await task.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
+    return db.tx(async function (t) {
+        let realPlaylist = await t.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
             throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'orderPlaylist()',
@@ -1359,6 +1404,7 @@ sj.orderPlaylist = async function (playlist) {
                 cssClass: 'notifyError',
             }));
         });
+        //? should this be t.any() and not db.any() ??
         let trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
             throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
@@ -1381,7 +1427,7 @@ sj.orderPlaylist = async function (playlist) {
         //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
         //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
         //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-        await task.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
+        await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
             throw sj.parsePostgresError(rejected, new sj.Error({
                 log: false,
                 origin: 'orderPlaylist()',
@@ -1395,7 +1441,7 @@ sj.orderPlaylist = async function (playlist) {
         //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
         //? possible memory leak error here 
         realPlaylist.content.map(async function (item, index) {
-            await task.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]).catch(rejected => {
+            await t.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'orderPlaylist()',
@@ -1550,6 +1596,58 @@ sj.addTrack = async function (ctx, track) {
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
+}
+sj.getTrack = async function (ctx, track) {
+    let where = await sj.checkAndBuild([
+        ['id', sj.idRules, track, 'id'],
+        ['playlistId', sj.idRules, track, 'playlistId'],
+        ['position', sj.positiveIntegerRules, track, 'position'],
+    ]);
+
+    let tracks = db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
+        throw sj.parsePostgresError(rejected, new sj.Error({
+            log: false,
+                origin: 'getTrack()',
+                message: 'could not get track',
+                target: 'notify',
+                cssClass: 'notifyError',
+        }));
+    });
+
+    tracks.forEach(item => {
+        item = new sj.Track(item);
+    });
+
+    //--------------
+
+    //C check and fix order
+    for (let i = 0; i < tracks.length; i++) {
+        if (tracks[i].position !== i) {
+            tracks = await sj.orderPlaylist
+        }
+    }
+
+
+    for (let i = 0; i < item.content.length; i++) {
+        if (item.content[i].position !== i) {
+            //C if not, order them
+            item = await sj.orderPlaylist(item).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'getPlaylist()',
+                    message: 'could not order playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+            break;
+        }
+    }
+    
+    return tracks;
+}
+sj.editTrack = async function (ctx, track) {
+
 }
 sj.deleteTrack = async function (ctx, track) {
     //! requires an sj.Track with playlistId and position properties
