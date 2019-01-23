@@ -178,6 +178,21 @@ apiRouter
 	});		
 })
 
+// session
+//R login/logout are create/delete for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
+.post('/session', async (ctx, next) => {
+	ctx.response.body = await sj.login(ctx, ctx.request.body).catch(sj.andResolve);
+})
+.delete('/session', async (ctx, next) => {
+	ctx.response.body = await sj.logout(ctx).catch(sj.andResolve);
+})
+//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
+
+//TODO move me to user, but with 'self' permissions - somehow
+.get('/me', async (ctx, next) => {
+	ctx.response.body = await sj.getMe(ctx).catch(sj.andResolve);
+})
+
 // user
 .post('/user', async (ctx, next) => {
 	ctx.response.body = await sj.addUser(ctx, ctx.request.body).catch(sj.andResolve);
@@ -194,21 +209,6 @@ apiRouter
 })
 .delete('/user', async (ctx, next) => {
 	ctx.response.body = await sj.deleteUser(ctx, ctx.request.body).catch(sj.andResolve);
-})
-
-// session
-//R login/logout are create/delete for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
-.post('/session', async (ctx, next) => {
-	ctx.response.body = await sj.login(ctx, ctx.request.body).catch(sj.andResolve);
-})
-.delete('/session', async (ctx, next) => {
-	ctx.response.body = await sj.logout(ctx).catch(sj.andResolve);
-})
-//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
-
-//TODO move me to user, but with 'self' permissions - somehow
-.get('/me', async (ctx, next) => {
-	ctx.response.body = await sj.getMe(ctx).catch(sj.andResolve);
 })
 
 // playlist

@@ -292,25 +292,6 @@ sj.request = async function (method, url, body) {
 	//updateElementErrors();
 }
 
-sj.one = function (a) {
-	if (a.length === 1) {
-		return a[0];
-	} else if (a.length >= 2) {
-		//TODO make a warning object / handler?
-		console.warn('sj.one() pulled a single value out of an array with many');
-		return a[0];
-	} else if (a.length === 0) {
-		return new sj.Error({
-			log: true,
-			origin: 'sj.one()',
-			code: 404,
-			message: 'no data found',
-			reason: 'array has no values, expected one',
-			content: a,
-		});
-	}
-}
-
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗

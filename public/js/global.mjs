@@ -141,7 +141,7 @@ sj.objectList = [
 	'sj.Track',
 	'sj.Playlist',
 	'sj.User',
-	'sj.Rules',
+	'sj.Rule',
 	'sj.Source',
 	'sj.Credentials',
 	'sj.Playback',
@@ -247,11 +247,53 @@ sj.msFormat = function (ms) {
 	// returns ...0:00 format rounded up to the nearest second
 	return minutes + ':' + seconds;
 }
+
 // TODO will this carry over through exports? it should: https://stackoverflow.com/questions/46427232/export-import-custom-function-of-built-in-object-in-es6
 sj.stringReplaceAll = function(input, search, replace) {
 	return input.split(search).join(replace);
 }
 
+sj.stableSort = function(a, compare) {
+	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
+	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+	
+	let defaultCompare = (a, b) => {
+		//C low to high
+		return a - b;
+	}
+
+	//C set compare to passed function or default
+	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
+
+	//C create new array with original index preserved
+	let frozen = a.map(function (item, index) {
+		return {value: item, index: index};
+	}); 
+
+	let stableCompare = function (a, b) {
+		let order = compare(a.value, b.value);
+
+		if (order === 0) {
+			//C if equal, sort based on their original order
+			return a.index - b.index;
+		} else {
+			//C sort normally
+			return order;
+		}
+	}
+
+	frozen.sort(stableCompare);
+
+	//C feed sorted array back into original array
+	for (let i = 0; i < a.length; i++) {
+		a[i] = frozenThis[i].value;
+	}
+
+	return a;
+}
+
+//TODO legacy
 Array.prototype.stableSort = function(compare) {
 	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
 	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
@@ -511,11 +553,11 @@ sj.User = class extends sj.Object {
 	}
 }
 
-sj.Rules = class extends sj.Object {
+sj.Rule = class extends sj.Object {
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
 
-		this.objectType = 'sj.Rules';
+		this.objectType = 'sj.Rule';
 
 		sj.Object.init(this, options, {
 			// new properties
@@ -763,7 +805,7 @@ sj.Rules = class extends sj.Object {
 	*/
 
 	//! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
-	//TODO should sj.Rules be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
+	//TODO should sj.Rule be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
 
 	//! to use the possibly modified value from check(), set the input value to equal the result.content
 	async check(value, value2) {
@@ -775,7 +817,7 @@ sj.Rules = class extends sj.Object {
 			value = value.trim();
 		}
 
-		//C checks
+		//C checks & possibly modifies
 		value = await this.checkType(value).then(sj.returnContent); //R no need to catch and return the content as it will be in the thrown error anyways
 		await this.checkSize(value);
 		if (this.useAgainst) {
@@ -836,15 +878,15 @@ sj.Rules = class extends sj.Object {
 		//C transform object (this will strip any irrelevant properties away)
 		return new sj.Success(this); 		
 	}
-	//C checks an object's property and possibly modify it
+	//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
 	async checkProperty(obj, prop, value2) {
 		//C validate arguments
 		if (!sj.isType(obj, 'object')) {
 			throw new sj.Error({
 				log: true,
-				origin: 'sj.Rules.checkProperty()',
+				origin: 'sj.Rule.checkProperty()',
 				message: 'validation error',
-				reason: `sj.Rules.checkProperty()'s first argument is not an object`,
+				reason: `sj.Rule.checkProperty()'s first argument is not an object`,
 				content: obj,
 			});
 		}
@@ -852,9 +894,9 @@ sj.Rules = class extends sj.Object {
 			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
 			throw new sj.Error({
 				log: true,
-				origin: 'sj.Rules.checkProperty()',
+				origin: 'sj.Rule.checkProperty()',
 				message: 'validation error',
-				reason: `sj.Rules.checkProperty()'s object argument is missing a '${prop}' property`,
+				reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
 				content: obj,
 			});
 		}
@@ -871,56 +913,59 @@ sj.Rules = class extends sj.Object {
 		return result;
 	}
 
-	static async checkRuleSet(ruleSet) {
-		//C takes a 2D array of [[sj.Rules, obj, propertyName, value2(optional)], [], [], ...]
-		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
-			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+	
+	/* //? checkRuleSet is the function that actually doesn't need to exist
+		static async checkRuleSet(ruleSet) {
+			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
+			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
+				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
-			//C validate arguments
-			if (!rules instanceof this) {
-				return new sj.Error({
-					log: true,
-					origin: 'checkRuleSet()',
-					message: 'validation error',
-					reason: `checkRuleSet() is missing a sj.Rules object`,
-					content: rules,
-				});
-			}
+				//C validate arguments
+				if (!rules instanceof this) {
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() is missing a sj.Rule object`,
+						content: rules,
+					});
+				}
 
-			//C check, return errors too
-			return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
-		})).then(resolved => {
-			//C filter for sj.Success objects
-			return sj.filterList(resolved, sj.Success, new sj.Success({
-				origin: 'sj.Rules.checkRuleSet()',
-				message: 'all rules validated',
-			}), new sj.ErrorList({
-				origin: 'sj.Rules.checkRuleSet()',
-				message: 'one or more issues with rules',
-				reason: 'validation functions returned one or more errors',
-			}));
-		}).catch(rejected => {
-			throw sj.propagateError(rejected);
-		});
-	}
+				//C check, return errors too
+				return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
+			})).then(resolved => {
+				//C filter for sj.Success objects
+				return sj.filterList(resolved, sj.Success, new sj.Success({
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'all rules validated',
+				}), new sj.ErrorList({
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'one or more issues with rules',
+					reason: 'validation functions returned one or more errors',
+				}));
+			}).catch(rejected => {
+				throw sj.propagateError(rejected);
+			});
+		}
+	*/
 
 	/* old
 		//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
 		static async checkRuleSet(ruleSet) {
-			//C takes a 2D array of [[sj.Rules, obj, propertyName, value2(optional)], [], [], ...]
+			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
 
 			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
 				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
 				//C validate arguments
-				if (!(rules instanceof sj.Rules)) {
+				if (!(rules instanceof sj.Rule)) {
 					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
 					//? is it possible to dynamically get this class
 					return new sj.Error({
 						log: true,
 						origin: 'checkRuleSet()',
 						message: 'validation error',
-						reason: `checkRuleSet() is missing a sj.Rules object`,
+						reason: `checkRuleSet() is missing a sj.Rule object`,
 						content: rules,
 					});
 				}
@@ -1474,6 +1519,24 @@ sj.filterList = async function (list, type, successList, errorList) {
 	successList.content = list;
 	successList.announce();
 	return successList;
+}
+sj.one = function (a) {
+	if (a.length === 1) {
+		return a[0];
+	} else if (a.length >= 2) {
+		//TODO make a warning object / handler?
+		console.warn('sj.one() pulled a single value out of an array with many');
+		return a[0];
+	} else if (a.length === 0) {
+		return new sj.Error({
+			log: true,
+			origin: 'sj.one()',
+			code: 404,
+			message: 'no data found',
+			reason: 'array has no values, expected one',
+			content: a,
+		});
+	}
 }
 
 // rebuild

@@ -22,6 +22,7 @@
 
     //! all CRUD functions have a ctx parameter for consistency (regardless if it is used (most of them use it though))
 
+    
 
     TODO
     //C get functions will be allowed to get multiple resources (just a simple query based on matches), for example getting a playlist with only userId will get all playlists by that user
@@ -32,8 +33,15 @@
 
     //TODO add admin privacy level: [admin, self, password, link, public, etc.]
 
-    //R all CRUD will return an array of any number of 
+    //R all CRUD will return an array of any number of rows
+
+    //R GET should be the only method used for search/query. EDIT & DELETE (& ADD) should not, therefore, editing or deleting a resource should only be done when it's id is known (after probably GETing it), (this clears up confusion: say we want to edit a track where its property is x, this is done in the GET method, but here is an issue when determining what data is the replacement data and what data is the query data - therefore only the id should be used as the query data (because it cant be changed), an the rest is the replacement data)
+
+    because of this it becomes: get | add, edit, delete   or   get, delete | add, edit    (because it could make sense for delete to query too because it doesn't have replacement data, but not add because it doesn't need a query), it comes down to consistency, get could take a single object, add, edit, delete, could take an array of objects (and return single success/failure?), what about get taking an array and returning an array
+
     
+    //C ErrorList should not be a wrapper for a list of errors, ErrorList should be a version of a single error that has multiple 'parallel' parts (ie: adding a user and having an issue with multiple fields - its still a single error with one resource (a user) but there are multiple parts to the error that need to be evaluated in parallel not in sequence)
+    //TODO would this not mean that requests are also parallely evaluated? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
 */
 
 
@@ -74,6 +82,10 @@
     //TODO consider delagating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single async function call? (but this is also what prevents things from silently failing in the first place))
 
     //TODO move other crud functions over to array results (or not?), get CRUD functions are done 
+
+    //L //TODO best practices: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
+
+    //TODO replace all database variables, column names, etc. with constants inside this file (or the db file)
 */
 
 
@@ -91,7 +103,7 @@ import bcrypt from 'bcrypt';
 
 // internal
 import sj from '../public/js/global.mjs';
-import db, {pgp} from './database/db.mjs';
+import database, {pgp} from './database/db.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -103,6 +115,9 @@ import db, {pgp} from './database/db.mjs';
 
 // bcrypt
 const saltRounds = 10; 
+
+// database
+sj.db = database; //C for use of db with globals so that db doesn't have to be imported twice
 
 //! string to be hashed must not be greater than 72 characters (//? or bytes???),
 const stringMaxLength = 100;
@@ -479,66 +494,86 @@ sj.checkKey = async function (list, key, timeout) {
     });
 }
 
-sj.buildWhere = function (list) {
-    if (list.length === 0) {
-        //C return a false clause
-        return 'WHERE 0 = 1';
-    } else {
-        //C prepend a true clause so 'AND condition's can be easily joined
-        list.unshift('WHERE 1 = 1');
-        return list.join(' AND ');
-    }
-}
-sj.checkAndBuild = async function (list) {
+
+sj.Rule.checkRuleSet = async function (ruleSet) {
     //C checks a ruleSet and formats a WHERE clause
-    //C takes a 2D array: [[databaseColumnName, sj.Rules, object, propertyName, value2], [], ...]
+    //C takes a 2D array: [[isRequired, column, sj.Rule, object, propertyName, value2], [], ...]
 
-    //TODO consider adding this to the sj.Rules object instead of leaving it out in the open (that would also allow the rules instanceof check to be 'this')
+    //TODO consider adding this to the sj.Rule object instead of leaving it out in the open (that would also allow the rules instanceof check to be 'this')
     
-
-    let conditions = [];
+    let columnPairs = [];
 
     //C awaits a sj.Success or throws a sj.ErrorList
-    //! this function is similar to sj.Rules.checkRuleSet(), it has the conditions.push() inserted into the loop
-    await Promise.all(list.map(async ([column, rule, obj, prop, value2]) => {
+    //! this function is similar to sj.Rule.checkRuleSet(), it has the columnPairs.push() inserted into the loop
+    await Promise.all(ruleSet.map(async ([isRequired, column, rule, obj, prop, value2]) => {
         //C validate arguments
-        if (sj.isEmpty(column)){
+        if (!sj.isType(isRequired, 'boolean')) {
             return new sj.Error({
                 log: true,
-                origin: 'sj.checkAndBuild()',
+                origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
-                reason: `sj.checkAndBuild() is missing a column name`,
-                content: rules,
+                reason: `isRequired is not a boolean`,
+                content: ruleSet,
             });
         }
-        if (!rules instanceof sj.Rules) {
+        if (!sj.isType(column, 'string') | sj.isEmpty(column)){
             return new sj.Error({
                 log: true,
-                origin: 'sj.checkAndBuild()',
+                origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
-                reason: `sj.checkAndBuild() is missing a sj.Rules object`,
-                content: rules,
+                reason: `column is not a string or is empty`,
+                content: ruleSet,
+            });
+        }
+        if (!rules instanceof sj.Rule) {
+            return new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `rule is not an sj.Rule`,
+                content: ruleSet,
+            });
+        }
+        if (!sj.isType(rule, 'object')) {
+            return new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `obj is not an object`,
+                content: ruleSet,
+            });
+        }
+        if (prop in obj) {
+            return new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `prop is not in obj`,
+                content: ruleSet,
             });
         }
 
-        //C if property isn't empty
-        if (!sj.isEmpty(obj[prop])) {
-            //R the check has to specifically happen before the push to conditions (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
+        //C if property is required, or [isn't required and] isn't empty
+        if (isRequired | !sj.isEmpty(obj[prop])) {
+            //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
 
             //C validate property, throw if failed, possibly modify obj[prop] if successful
-            let result2 = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
+            let result = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
             //C add to conditions '"column" = obj[prop]'
-            conditions.push(pgp.as.format(`"${column}" = $1`, obj[prop]));
+            columnPairs.push(pgp.as.format(`"${column}" = $1`, obj[prop]));
             //C return to check for errors
-            return result2;
+            return result;
+        } else {
+            //C return sj.Success for filtering if not required and empty
+            return new sj.Success();
         }
     })).then(resolved => {
         //C filter for sj.Success objects
         return sj.filterList(resolved, sj.Success, new sj.Success({
-            origin: 'sj.checkAndBuild()',
+            origin: 'sj.Rule.checkRuleSet()',
             message: 'all rules validated',
         }), new sj.ErrorList({
-            origin: 'sj.checkAndBuild()',
+            origin: 'sj.Rule.checkRuleSet()',
             message: 'one or more issues with rules',
             reason: 'validation functions returned one or more errors',
         }));
@@ -546,8 +581,33 @@ sj.checkAndBuild = async function (list) {
         throw sj.propagateError(rejected);
     });
 
-    //C if no errors thrown, return a built where clause
-    return sj.buildWhere(conditions);
+    //C if no errors thrown, return sj.Success with columnPairs
+    return new sj.Success({
+        origin: 'sj.Rule.checkRuleSet()',
+        message: 'properties validated',
+        content: columnPairs,
+    });
+}
+sj.buildWhere = function (pairs) {
+    if (pairs.length === 0) {
+        //C return a false clause
+        return 'WHERE 0 = 1';
+    } else {
+        //C prepend a true clause so 'AND pair's can be easily joined
+        pairs.unshift('WHERE 1 = 1');
+        return pairs.join(' AND ');
+    }
+}
+sj.buildSet = function (pairs) {
+    if (pairs.length === 0) {
+        //C don't make any change 
+        //! this does have to reference a column that exists however
+        return 'SET "id" = "id"';
+    } else {
+        //C prepend SET, join with ', '
+        pairs.unshift('SET');
+        return pairs.join(', ');
+    }
 }
 
 
@@ -558,7 +618,7 @@ sj.checkAndBuild = async function (list) {
 //  ██║  ██║╚██████╔╝███████╗███████╗███████║
 //  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
-sj.positiveIntegerRules = new sj.Rules({
+sj.positiveIntegerRules = new sj.Rule({
     log: true,
     origin: 'positiveIntegerRules',
     message: 'number validated',
@@ -567,7 +627,7 @@ sj.positiveIntegerRules = new sj.Rules({
 
     dataTypes: ['integer'],
 });
-sj.idRules = new sj.Rules({
+sj.idRules = new sj.Rule({
     log: true,
     origin: 'idRules',
     message: 'id validated',
@@ -576,7 +636,7 @@ sj.idRules = new sj.Rules({
 
     dataTypes: ['integer'],
 });
-sj.imageRules = new sj.Rules({
+sj.imageRules = new sj.Rule({
     log: true,
     origin: 'imageRules',
     message: 'image validated',
@@ -591,7 +651,7 @@ sj.imageRules = new sj.Rules({
     // TODO filter: ___,
     filterMessage: 'Image must be a valid url',
 });
-sj.colorRules = new sj.Rules({
+sj.colorRules = new sj.Rule({
     log: true,
     origin: 'colorRules',
     message: 'color validated',
@@ -606,318 +666,6 @@ sj.colorRules = new sj.Rules({
 });
 
 
-//  ██╗   ██╗███████╗███████╗██████╗ 
-//  ██║   ██║██╔════╝██╔════╝██╔══██╗
-//  ██║   ██║███████╗█████╗  ██████╔╝
-//  ██║   ██║╚════██║██╔══╝  ██╔══██╗
-//  ╚██████╔╝███████║███████╗██║  ██║
-//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
-
-/* TODO
-    userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
-
-*/
-
-
-// validate
-sj.selfRules = new sj.Rules({
-    log: true,
-    origin: 'selfRules',
-    message: 'self validated',
-    target: 'notify',
-    cssClass: 'notifyError',
-
-    valueName: 'Id',
-
-    dataTypes: ['integer'],
-
-    useAgainst: true,
-    //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
-    againstMessage: 'you are not the owner of this',
-});
-
-sj.userNameRules = new sj.Rules({
-    log: true,
-    origin: 'userNameRules',
-    message: 'username validated',
-    target: 'registerUserName',
-    cssClass: 'inputError',
-
-    valueName: 'Username',
-    trim: true,
-
-    min: nameMinLength,
-    max: nameMaxLength,
-});
-sj.passwordRules = new sj.Rules({
-    log: true,
-    origin: 'passwordRules',
-    message: 'password validated',
-    target: 'registerPassword',
-    cssClass: 'inputError',
-
-    valueName: 'Password',
-
-    min: 6,
-    max: 72, //! as per bcrypt
-});
-sj.setPasswordRules = new sj.Rules({
-    log: true,
-    origin: 'setPasswordRules',
-    message: 'password validated',
-    target: 'registerPassword',
-    cssClass: 'inputError',
-
-    valueName: 'Password',
-
-    min: 6,
-    max: 72, //! as per bcrypt
-
-    useAgainst: true,
-    get againstMessage() {return 'Passwords do not match'},
-});
-sj.emailRules = new sj.Rules({
-    log: true,
-    origin: 'emailRules',
-    message: 'email validated',
-    target: 'registerEmail',
-    cssClass: 'inputError',
-
-    valueName: 'E-mail',
-    trim: true,
-
-    min: 3,
-    max: stringMaxLength,
-
-    //TODO useFilter: ___, filterMessage: ___, 
-    //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-});
-
-/*
-    sj.validateEmail = async function (email) {
-        let rules = new sj.Rules({
-            log: true,
-            origin: 'validateEmail()',
-            message: 'email validated',
-            target: 'registerEmail',
-            cssClass: 'inputError',
-
-            content: email,
-
-            valueName: 'E-mail',
-            min: 3,
-            max: stringMaxLength,
-            trim: true,
-            // TODO useFilter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-        });
-
-        return await rules.checkAll();
-    }
-    sj.validateUserName = async function (name) {
-        let rules = new sj.Rules({
-            log: true,
-            origin: 'validateUserName()',
-            message: 'username validated',
-            target: 'registerUserName',
-            cssClass: 'inputError',
-
-            content: name,
-
-            valueName: 'Username',
-            min: nameMinLength,
-            max: nameMaxLength,
-            trim: true,
-        });
-
-    return await rules.checkAll();
-    }
-    sj.validatePassword = async function (password, password2) {
-        let rules = new sj.Rules({
-            log: true,
-            origin: 'validatePassword()',
-            message: 'password validated',
-            target: 'registerPassword',
-            cssClass: 'inputError',
-
-            content: password,
-
-            valueName: 'Password',
-            min: 6,
-            max: 72, // as per bcrypt
-            against: password2,
-            againstMessage: 'Passwords do not match',
-        });
-    
-        return await rules.checkAll();
-    }
-*/
-
-// CRUD
-sj.addUser = async function (ctx, user) {
-    //C validate
-    await sj.Rules.checkRuleSet([
-        [sj.userNameRules, user, 'name'],
-        [sj.setPasswordRules, user, 'password', user.password2],
-        [sj.emailRules, user, 'email'],
-    ]);
-
-    return bcrypt.hash(user.password, saltRounds).catch(rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'register()',
-            message: 'failed to register user',
-            reason: 'hash failed',
-            content: rejected,
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }).then(resolved => {
-        return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
-            // replaces default error info with info based on error code 
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'addUser()',
-                message: 'could not add user',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
-    }).then(resolved => {
-        //C strip passwords
-        user.password = undefined;
-        user.password2 = undefined;
-
-        //C return user object
-        return new sj.Success({
-            log: true,
-            origin: 'register()',
-            message: `${user.name} registered`,
-            cssClass: 'notifySuccess',
-            content: user,
-        });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-}
-sj.getUser = async function (ctx, user) {
-    //R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
-    //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
-    //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
-
-    let where = await sj.checkAndBuild([
-        ['id', sj.idRules, user, 'id'],
-        ['name', sj.userNameRules, user, 'name'],
-        //! don't query email because that is not visible to users_public (maybe allow it once permissions are implemented?)
-        //TODO expand properties
-    ]);
-
-    //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
-    let users = db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-                origin: 'getUser()',
-                message: 'could not get user',
-                target: 'notify',
-                cssClass: 'notifyError',
-        }));
-    });
-
-    //C cast
-    //! requires that table names are the same as object property names
-    users.forEach(item => {
-        item = new sj.User(item);
-    });
-    
-    return users;
-}
-sj.editUser = async function (ctx, user) { //TODO
-    // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
-    await sj.isLoggedIn(ctx);
-
-    /* TODO
-    return db.none('UPDATE "sj."users" SET x = $x, x = $x, x = $x, ... WHERE "id" = x,', [x, ...]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'editUser()',
-            message: 'could not edit user',
-            notify: 'notify',
-            cssClass: 'notifyError',
-        }));
-    }).then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'editUser()',
-            message: 'updated user',
-            notify: 'notify',
-            cssClass: 'notifySuccess',
-        });
-    }).catch(rejected => {
-        throw propagateError(rejected);
-    });
-    */
-}
-sj.deleteUser = async function (ctx, user) {
-    await sj.isLoggedIn(ctx);
-
-    await sj.Rules.checkRuleSet([
-        [sj.passwordRules, user, 'password'],
-    ]);
-
-    return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'deleteUser()',
-            message: 'could not delete user',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    }).then(resolved => {
-        return bcrypt.compare(user.password, resolved.password).catch(rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'deleteUser()',
-                message: 'server error',
-                reason: 'hash compare failed',
-                content: rejected,
-                target: 'loginPassword',
-                cssClass: 'inputError',
-            });
-        });
-    }).then(resolved => {
-        if (resolved) {
-            return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-                throw sj.parsePostgresError(rejected, new sj.Error({
-                    log: false,
-                    origin: 'deleteUser()',
-                    message: 'could not delete user',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-                }));
-            });
-        } else {
-            throw new sj.Error({
-                log: true,
-                origin: 'deleteUser()',
-                message: 'incorrect password',
-                target: 'deleteUserPassword',
-                cssClass: 'inputError',
-            });
-        }
-    }).then(resolved => {
-        //C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
-        return logout().catch(sj.andResolve);     
-    }).then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'deleteUser()',
-            message: `user ${user.name} deleted`,
-        });
-    }).catch(rejected => {
-        throw propagateError(rejected);
-    });
-}
-
-
 //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
 //  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
 //  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
@@ -927,7 +675,7 @@ sj.deleteUser = async function (ctx, user) {
 
 // CRUD
 sj.login = async function (ctx, user) {
-    await sj.Rules.checkRuleSet([
+    await sj.Rule.checkRuleSet([
         [sj.userNameRules, user, 'name'],
         [sj.passwordRules, user, 'password'],
     ]);
@@ -1019,7 +767,7 @@ sj.isLoggedIn = async function (ctx) {
         });
     }
     //C redundancy check to make sure id is right format
-    await sj.Rules.checkRuleSet([
+    await sj.Rule.checkRuleSet([
         [sj.idRules, ctx.session.user, 'id'],
     ]);
 
@@ -1027,6 +775,318 @@ sj.isLoggedIn = async function (ctx) {
         log: true,
         origin: 'isLoggedIn()',
         message: 'user is logged in',
+    });
+}
+
+
+//  ██╗   ██╗███████╗███████╗██████╗ 
+//  ██║   ██║██╔════╝██╔════╝██╔══██╗
+//  ██║   ██║███████╗█████╗  ██████╔╝
+//  ██║   ██║╚════██║██╔══╝  ██╔══██╗
+//  ╚██████╔╝███████║███████╗██║  ██║
+//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
+
+/* TODO
+    userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
+
+*/
+
+
+// validate
+sj.selfRules = new sj.Rule({
+    log: true,
+    origin: 'selfRules',
+    message: 'self validated',
+    target: 'notify',
+    cssClass: 'notifyError',
+
+    valueName: 'Id',
+
+    dataTypes: ['integer'],
+
+    useAgainst: true,
+    //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
+    againstMessage: 'you are not the owner of this',
+});
+
+sj.userNameRules = new sj.Rule({
+    log: true,
+    origin: 'userNameRules',
+    message: 'username validated',
+    target: 'registerUserName',
+    cssClass: 'inputError',
+
+    valueName: 'Username',
+    trim: true,
+
+    min: nameMinLength,
+    max: nameMaxLength,
+});
+sj.passwordRules = new sj.Rule({
+    log: true,
+    origin: 'passwordRules',
+    message: 'password validated',
+    target: 'registerPassword',
+    cssClass: 'inputError',
+
+    valueName: 'Password',
+
+    min: 6,
+    max: 72, //! as per bcrypt
+});
+sj.setPasswordRules = new sj.Rule({
+    log: true,
+    origin: 'setPasswordRules',
+    message: 'password validated',
+    target: 'registerPassword',
+    cssClass: 'inputError',
+
+    valueName: 'Password',
+
+    min: 6,
+    max: 72, //! as per bcrypt
+
+    useAgainst: true,
+    get againstMessage() {return 'Passwords do not match'},
+});
+sj.emailRules = new sj.Rule({
+    log: true,
+    origin: 'emailRules',
+    message: 'email validated',
+    target: 'registerEmail',
+    cssClass: 'inputError',
+
+    valueName: 'E-mail',
+    trim: true,
+
+    min: 3,
+    max: stringMaxLength,
+
+    //TODO useFilter: ___, filterMessage: ___, 
+    //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+});
+
+/*
+    sj.validateEmail = async function (email) {
+        let rules = new sj.Rule({
+            log: true,
+            origin: 'validateEmail()',
+            message: 'email validated',
+            target: 'registerEmail',
+            cssClass: 'inputError',
+
+            content: email,
+
+            valueName: 'E-mail',
+            min: 3,
+            max: stringMaxLength,
+            trim: true,
+            // TODO useFilter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+        });
+
+        return await rules.checkAll();
+    }
+    sj.validateUserName = async function (name) {
+        let rules = new sj.Rule({
+            log: true,
+            origin: 'validateUserName()',
+            message: 'username validated',
+            target: 'registerUserName',
+            cssClass: 'inputError',
+
+            content: name,
+
+            valueName: 'Username',
+            min: nameMinLength,
+            max: nameMaxLength,
+            trim: true,
+        });
+
+    return await rules.checkAll();
+    }
+    sj.validatePassword = async function (password, password2) {
+        let rules = new sj.Rule({
+            log: true,
+            origin: 'validatePassword()',
+            message: 'password validated',
+            target: 'registerPassword',
+            cssClass: 'inputError',
+
+            content: password,
+
+            valueName: 'Password',
+            min: 6,
+            max: 72, // as per bcrypt
+            against: password2,
+            againstMessage: 'Passwords do not match',
+        });
+    
+        return await rules.checkAll();
+    }
+*/
+
+// CRUD
+sj.addUser = async function (db, user) {
+    //C validate
+    await sj.Rule.checkRuleSet([
+        [sj.userNameRules, user, 'name'],
+        [sj.setPasswordRules, user, 'password', user.password2],
+        [sj.emailRules, user, 'email'],
+    ]);
+
+    return bcrypt.hash(user.password, saltRounds).catch(rejected => {
+        throw new sj.Error({
+            log: true,
+            origin: 'register()',
+            message: 'failed to register user',
+            reason: 'hash failed',
+            content: rejected,
+            target: 'notify',
+            cssClass: 'notifyError',
+        });
+    }).then(resolved => {
+        return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
+            // replaces default error info with info based on error code 
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'addUser()',
+                message: 'could not add user',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
+    }).then(resolved => {
+        //C strip passwords
+        user.password = undefined;
+        user.password2 = undefined;
+
+        //C return user object
+        return new sj.Success({
+            log: true,
+            origin: 'register()',
+            message: `${user.name} registered`,
+            cssClass: 'notifySuccess',
+            content: user,
+        });
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+}
+sj.getUser = async function (db, user, ctx) {
+    //R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
+    //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
+    //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
+
+    let where = await sj.checkAndBuild([
+        ['id', sj.idRules, user, 'id'],
+        ['name', sj.userNameRules, user, 'name'],
+        //! don't query email because that is not visible to users_public (maybe allow it once permissions are implemented?)
+        //TODO expand properties
+    ]);
+
+    //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
+    let users = db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
+        throw sj.parsePostgresError(rejected, new sj.Error({
+            log: false,
+                origin: 'getUser()',
+                message: 'could not get user',
+                target: 'notify',
+                cssClass: 'notifyError',
+        }));
+    });
+
+    //C cast
+    //! requires that table names are the same as object property names
+    users.forEach(item => {
+        item = new sj.User(item);
+    });
+    
+    return users;
+}
+sj.editUser = async function (db, user, ctx) { //TODO
+    // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
+    await sj.isLoggedIn(ctx);
+
+    /* TODO
+    return db.none('UPDATE "sj"."users" SET x = $x, x = $x, x = $x, ... WHERE "id" = x,', [x, ...]).catch(rejected => {
+        throw sj.parsePostgresError(rejected, new sj.Error({
+            log: false,
+            origin: 'editUser()',
+            message: 'could not edit user',
+            notify: 'notify',
+            cssClass: 'notifyError',
+        }));
+    }).then(resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'editUser()',
+            message: 'updated user',
+            notify: 'notify',
+            cssClass: 'notifySuccess',
+        });
+    }).catch(rejected => {
+        throw propagateError(rejected);
+    });
+    */
+}
+sj.deleteUser = async function (db, user, ctx) {
+    await sj.isLoggedIn(ctx);
+
+    await sj.Rule.checkRuleSet([
+        [sj.passwordRules, user, 'password'],
+    ]);
+
+    return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+        throw sj.parsePostgresError(rejected, new sj.Error({
+            log: false,
+            origin: 'deleteUser()',
+            message: 'could not delete user',
+            target: 'notify',
+            cssClass: 'notifyError',
+        }));
+    }).then(resolved => {
+        return bcrypt.compare(user.password, resolved.password).catch(rejected => {
+            throw new sj.Error({
+                log: true,
+                origin: 'deleteUser()',
+                message: 'server error',
+                reason: 'hash compare failed',
+                content: rejected,
+                target: 'loginPassword',
+                cssClass: 'inputError',
+            });
+        });
+    }).then(resolved => {
+        if (resolved) {
+            return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'deleteUser()',
+                    message: 'could not delete user',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+        } else {
+            throw new sj.Error({
+                log: true,
+                origin: 'deleteUser()',
+                message: 'incorrect password',
+                target: 'deleteUserPassword',
+                cssClass: 'inputError',
+            });
+        }
+    }).then(resolved => {
+        //C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
+        return logout().catch(sj.andResolve);     
+    }).then(resolved => {
+        return new sj.Success({
+            log: true,
+            origin: 'deleteUser()',
+            message: `user ${user.name} deleted`,
+        });
+    }).catch(rejected => {
+        throw propagateError(rejected);
     });
 }
 
@@ -1039,7 +1099,7 @@ sj.isLoggedIn = async function (ctx) {
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
 // rules
-sj.playlistNameRules = new sj.Rules({
+sj.playlistNameRules = new sj.Rule({
     log: true,
     origin: 'playlistNameRules()',
     message: 'name validated',
@@ -1052,7 +1112,7 @@ sj.playlistNameRules = new sj.Rules({
     min: nameMinLength,
     max: stringMaxLength,  
 });
-sj.visibilityRules = new sj.Rules({
+sj.visibilityRules = new sj.Rule({
     log: true,
     origin: 'visibilityRules',
     message: 'visibility validated',
@@ -1065,7 +1125,7 @@ sj.visibilityRules = new sj.Rules({
     againstValue: visibilityStates,
     againstMessage: 'please select a valid visibility level',
 });
-sj.descriptionRules = new sj.Rules({
+sj.descriptionRules = new sj.Rule({
     log: true,
     origin: 'descriptionRules()',
     message: 'description validated',
@@ -1079,7 +1139,7 @@ sj.descriptionRules = new sj.Rules({
 });
 /*
     sj.validatePlaylistName = async function (name) {
-        let rules = new sj.Rules({
+        let rules = new sj.Rule({
             log: true,
             origin: 'validatePlaylistName()',
             message: 'name validated',
@@ -1097,7 +1157,7 @@ sj.descriptionRules = new sj.Rules({
         return await rules.checkAll();
     }
     sj.validateVisibility = async function (visibility) {
-        let rules = new sj.Rules({
+        let rules = new sj.Rule({
             log: true,
             origin: 'validateVisibility()',
             message: 'visibility validated',
@@ -1114,7 +1174,7 @@ sj.descriptionRules = new sj.Rules({
         return await rules.checkAll();
     }
     sj.validateDescription = async function (description) {
-        let rules = new sj.Rules({
+        let rules = new sj.Rule({
             log: true,
             origin: 'validateDescription()',
             message: 'description validated',
@@ -1131,7 +1191,7 @@ sj.descriptionRules = new sj.Rules({
         return await rules.checkAll();
     }
     sj.validateColor = async function (color) {
-        let rules = new sj.Rules({
+        let rules = new sj.Rule({
             log: true,
             origin: 'validateColor()',
             message: 'color validated',
@@ -1149,7 +1209,7 @@ sj.descriptionRules = new sj.Rules({
         return await rules.checkAll();
     }
     sj.validateImage = async function (image) {
-        let rules = new sj.Rules({
+        let rules = new sj.Rule({
             log: true,
             origin: 'validateColor()',
             message: 'image validated',
@@ -1170,10 +1230,10 @@ sj.descriptionRules = new sj.Rules({
 */
 
 // CRUD
-sj.addPlaylist = async function (ctx, playlist) {
+sj.addPlaylist = async function (db, playlist, ctx) {
     await sj.isLoggedIn(ctx);
 
-    await sj.Rules.checkRuleSet([
+    await sj.Rule.checkRuleSet([
         [sj.playlistNameRules, playlist, 'name'],
         [sj.visibilityRules, playlist, 'visibility'],
         [sj.descriptionRules, playlist, 'description'],
@@ -1274,18 +1334,20 @@ sj.addPlaylist = async function (ctx, playlist) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getPlaylist = async function (ctx, playlist) {
+sj.getPlaylist = async function (db, playlist, ctx) {
     //! id is default to null when it isn't set, is this wrong semantics //?
     /*
         if (sj.typeOf(playlist.id) !== 'null') { 
     */
 
+    //C build where
     let where = sj.checkAndBuild([
         ['id', sj.idRules, playlist, 'id'],
         ['userId', sj.idRules, playlist, 'userId'],
         ['name', sj.playlistNameRules, playlist, 'name'],
     ]);
 
+    //C query
     let playlists = await db.any('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
@@ -1296,6 +1358,7 @@ sj.getPlaylist = async function (ctx, playlist) {
         }));
     });
 
+    //C cast
     playlists.forEach(item => {
         item = new sj.Playlist(item);
     });
@@ -1344,14 +1407,14 @@ sj.getPlaylist = async function (ctx, playlist) {
         });
     */
 }
-sj.editPlaylist = async function (ctx, playlist) { //TODO
+sj.editPlaylist = async function (db, playlist, ctx) { //TODO
 }
-sj.deletePlaylist = async function (ctx, playlist) {
+sj.deletePlaylist = async function (db, playlist, ctx) {
     await sj.isLoggedIn(ctx);
 
     playlist = await sj.getPlaylist(ctx, playlist);
 
-    await sj.Rules.checkRuleSet([
+    await sj.Rule.checkRuleSet([
         [sj.idRules, playlist, 'id'],
         [sj.selfRules, playlist, 'userId', ctx.session.user.id],
     ]);
@@ -1378,13 +1441,10 @@ sj.deletePlaylist = async function (ctx, playlist) {
 }
 
 // util
-sj.orderPlaylist = async function (playlist) {  
+sj.orderPlaylist = async function (id) {  
     /*
-        //TODO clean this up, maybe make it usable just from an id or a track? REMEMBER that this transaction uses the t.one() methods because it has something to do with being inside db.tx() //?
-
         //! this shouldn't need to be called anywhere other than getPlaylist() as long as anything that changes a playlist's order calls getPlaylist (before), a call to orderPlaylist (functionally equivalent to getPlaylist()) afterwards, would be redundant as the playlist should be always ordered on retrieval anyways
 
-        
         //R no recursive functions, 1 its not needed in this case, 2 this one caused an infinite loop because of a mistake
         //C retrieve the playlist if it doesn't have its contents
         if (playlist.content.length === 0) { //R this causes an endless loop if the playlist is empty
@@ -1393,37 +1453,24 @@ sj.orderPlaylist = async function (playlist) {
         }
     */
 
-    // update
-    return db.tx(async function (t) {
-        let realPlaylist = await t.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'orderPlaylist()',
-                message: 'could not get playlist, database error',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
-        //? should this be t.any() and not db.any() ??
-        let trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'orderPlaylist() tracks query',
-                message: 'could not order playlist, database error',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
+    //C validate id
+    id = sj.idRules.check(id).then(sj.returnContent);
 
-        realPlaylist.content = trackList;
-        realPlaylist = new sj.Playlist(realPlaylist);
+    return db.tx(async function (t) {
+        //C get all tracks in a playlist
+        let trackList = await sj.getTrack(t, new sj.Track({playlistId: id})).then(sj.returnContent);
 
         //C sort by track.position
-        realPlaylist.content.stableSort(function (a, b) {
+        sj.stableSort(trackList, function (a, b) {
             return a.position - b.position;
         });
 
+        //C update indexes (to fill holes & remove duplicates)
+        trackList.forEach((item, index) => {
+            item.position = index;
+        });
 
+        //C defer constraints (unique) on track position
         //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
         //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
         //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
@@ -1436,12 +1483,52 @@ sj.orderPlaylist = async function (playlist) {
                 cssClass: 'notifyError',
             }));
         });
-        
-        //C update position based on index
-        //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
-        //? possible memory leak error here 
-        realPlaylist.content.map(async function (item, index) {
-            await t.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]).catch(rejected => {
+
+        //C update track positions
+        //TODO change success message here? or should this return a playlist?
+        return await sj.editTrack(t, trackList);
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+
+
+    /* old
+        // update
+        return db.tx(async function (t) {
+            let realPlaylist = await t.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'orderPlaylist()',
+                    message: 'could not get playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+            //? should this be t.any() and not db.any() ??
+            let trackList = await db.any(`SELECT * FROM  "sj"."tracks" WHERE "playlistId" = $1`, [playlist.id]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'orderPlaylist() tracks query',
+                    message: 'could not order playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+
+            realPlaylist.content = trackList;
+            realPlaylist = new sj.Playlist(realPlaylist);
+
+            //C sort by track.position
+            //! stable sort no longer uses array.prototype, instead is sj.stableSort(array, compare)
+            realPlaylist.content.stableSort(function (a, b) { 
+                return a.position - b.position;
+            });
+
+
+            //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
+            //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
+            //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
+            await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'orderPlaylist()',
@@ -1450,18 +1537,33 @@ sj.orderPlaylist = async function (playlist) {
                     cssClass: 'notifyError',
                 }));
             });
-        });
+            
+            //C update position based on index
+            //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
+            //? possible memory leak error here 
+            realPlaylist.content.map(async function (item, index) {
+                await t.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "playlistId" = $2 AND "position" = $3', [index, item.playlistId, item.position]).catch(rejected => {
+                    throw sj.parsePostgresError(rejected, new sj.Error({
+                        log: false,
+                        origin: 'orderPlaylist()',
+                        message: 'could not order playlist, database error',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                    }));
+                });
+            });
 
-        return realPlaylist;
-    }).then(resolved => {
-        //C apply actual indexes for return
-        resolved.content.map(function(item, index) {
-            item.position = index;
+            return realPlaylist;
+        }).then(resolved => {
+            //C apply actual indexes for return
+            resolved.content.map(function(item, index) {
+                item.position = index;
+            });
+            return resolved;
+        }).catch(rejected => {
+            throw sj.propagateError(rejected);
         });
-        return resolved;
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
+    */
 }
 
 
@@ -1473,7 +1575,7 @@ sj.orderPlaylist = async function (playlist) {
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 
 // rules
-sj.sourceRules = new sj.Rules({
+sj.sourceRules = new sj.Rule({
     log: true,
     origin: 'sourceRules',
     message: 'source validated',
@@ -1484,7 +1586,7 @@ sj.sourceRules = new sj.Rules({
     againstValue: sj.sourceList,
     againstMessage: 'track does not have a valid source',
 });
-sj.sourceIdRules = new sj.Rules({
+sj.sourceIdRules = new sj.Rule({
     log: true,
     origin: 'sourceIdRules',
     message: 'source id validated',
@@ -1493,7 +1595,7 @@ sj.sourceIdRules = new sj.Rules({
 
     //? any source id rules (other than being a string)? length? trim?
 });
-sj.trackNameRules = new sj.Rules({
+sj.trackNameRules = new sj.Rule({
     log: true,
     origin: 'trackNameRules()',
     message: 'name validated',
@@ -1508,8 +1610,8 @@ sj.trackNameRules = new sj.Rules({
 });
 
 // CRUD
-sj.addTrack = async function (ctx, track) {
-    await sj.isLoggedIn(ctx);
+sj.addTrack = async function (db, track, ctx) {
+    //await sj.isLoggedIn(ctx);
 
     //C retrieve playlist
     let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
@@ -1519,7 +1621,7 @@ sj.addTrack = async function (ctx, track) {
     
     track.position = playlist.content.length;
 
-    await sj.Rules.checkRuleSet([
+    await sj.Rule.checkRuleSet([
         [sj.selfRules, ctx.session.user, 'id', playlist.userId],
         [sj.idRules, track, 'playlistId'],
         [sj.positiveIntegerRules, track, 'position'],
@@ -1527,7 +1629,7 @@ sj.addTrack = async function (ctx, track) {
         [sj.sourceIdRules, track, 'sourceId'],
         [sj.trackNameRules, track, 'name'],
         [sj.positiveIntegerRules, track, 'duration'],
-        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rules)
+        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
     ]); 
     /*
         var errorList = new sj.ErrorList({
@@ -1559,7 +1661,7 @@ sj.addTrack = async function (ctx, track) {
             errorList.content.push(rejected);
             return rejected.content;
         });
-        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rules)
+        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
         if (!(errorList.content.length === 0)) {
             errorList.announce();
             throw errorList;
@@ -1597,13 +1699,15 @@ sj.addTrack = async function (ctx, track) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getTrack = async function (ctx, track) {
+sj.getTrack = async function (db, track, ctx) {
+    //C build where
     let where = await sj.checkAndBuild([
         ['id', sj.idRules, track, 'id'],
         ['playlistId', sj.idRules, track, 'playlistId'],
         ['position', sj.positiveIntegerRules, track, 'position'],
     ]);
 
+    //C query
     let tracks = db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
@@ -1614,47 +1718,65 @@ sj.getTrack = async function (ctx, track) {
         }));
     });
 
+    //C cast
     tracks.forEach(item => {
         item = new sj.Track(item);
     });
 
-    //--------------
+    return tracks;
 
-    //C check and fix order
-    for (let i = 0; i < tracks.length; i++) {
-        if (tracks[i].position !== i) {
-            tracks = await sj.orderPlaylist
+
+    /* old (from getPlaylist() ?) //! do not order tracks here because these will not always be an entire playlist
+        //C check and fix order
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].position !== i) {
+                tracks = await sj.orderPlaylist
+            }
         }
-    }
 
 
-    for (let i = 0; i < item.content.length; i++) {
-        if (item.content[i].position !== i) {
-            //C if not, order them
-            item = await sj.orderPlaylist(item).catch(rejected => {
-                throw sj.parsePostgresError(rejected, new sj.Error({
-                    log: false,
-                    origin: 'getPlaylist()',
-                    message: 'could not order playlist, database error',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-                }));
-            });
-            break;
+        for (let i = 0; i < item.content.length; i++) {
+            if (item.content[i].position !== i) {
+                //C if not, order them
+                item = await sj.orderPlaylist(item).catch(rejected => {
+                    throw sj.parsePostgresError(rejected, new sj.Error({
+                        log: false,
+                        origin: 'getPlaylist()',
+                        message: 'could not order playlist, database error',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                    }));
+                });
+                break;
+            }
         }
-    }
-    
+    */
+}
+sj.editTrack = async function (db, track, ctx) {
+    // comments from sj.orderPlaylist
+    //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
+    //? possible memory leak error here 
+
+    //C build where
+    //TODO build SET
+    let where = await sj.checkAndBuild([
+        ['id', sj.idRules, track, 'id'],
+    ]);
+
+    //C query
+    //TODO
+
+    //C cast
+    //TODO
+
     return tracks;
 }
-sj.editTrack = async function (ctx, track) {
-
-}
-sj.deleteTrack = async function (ctx, track) {
+sj.deleteTrack = async function (db, track, ctx) {
     //! requires an sj.Track with playlistId and position properties
 
     await sj.isLoggedIn(ctx);
 
-    await sj.Rules.checkRuleSet([
+    await sj.Rule.checkRuleSet([
         [sj.idRules, track, 'playlistId'],
         [sj.positiveIntegerRules, track, 'position'],
     ]);
@@ -1674,7 +1796,7 @@ sj.deleteTrack = async function (ctx, track) {
     });
 
     //TODO change this to just id based
-    await sj.Rules.checkRuleSet([
+    await sj.Rule.checkRuleSet([
         [sj.selfRules, playlist, 'userId', ctx.session.userId],
     ]);
 
