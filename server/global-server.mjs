@@ -42,6 +42,8 @@
     
     //C ErrorList should not be a wrapper for a list of errors, ErrorList should be a version of a single error that has multiple 'parallel' parts (ie: adding a user and having an issue with multiple fields - its still a single error with one resource (a user) but there are multiple parts to the error that need to be evaluated in parallel not in sequence)
     //TODO would this not mean that requests are also parallely evaluated? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
+
+    //L multiple resources with one request: https://stackoverflow.com/questions/32098423/rest-updating-multiple-resources-with-one-request-is-it-standard-or-to-be-avo
 */
 
 
@@ -500,7 +502,6 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     //C takes a 2D array: [[isRequired, column, sj.Rule, object, propertyName, value2], [], ...]
 
     //TODO consider adding this to the sj.Rule object instead of leaving it out in the open (that would also allow the rules instanceof check to be 'this')
-    
     let columnPairs = [];
 
     //C awaits a sj.Success or throws a sj.ErrorList
@@ -525,7 +526,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 content: ruleSet,
             });
         }
-        if (!rules instanceof sj.Rule) {
+        if (!rules instanceof this) {
             return new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
@@ -609,6 +610,8 @@ sj.buildSet = function (pairs) {
         return pairs.join(', ');
     }
 }
+
+sj.Rule.checkRuleSet();
 
 
 //  ██████╗ ██╗   ██╗██╗     ███████╗███████╗

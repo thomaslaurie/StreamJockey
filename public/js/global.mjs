@@ -155,7 +155,16 @@ sj.isType = function (input, type) {
 	//R created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
 	//TODO see if this can be even more cleanly structured
-	// null
+
+	// if type is a constructor
+	try {
+		if (input instanceof type) {
+			return true;
+		}
+	} catch (e) {
+		//C don't error if type is not constructable, just move on
+	} 
+
 	if (input === null && type === 'null') {
 		return true;
 	}
@@ -168,6 +177,8 @@ sj.isType = function (input, type) {
 
 	// objects
 	if (t === 'object' && input !== null) {
+		//TODO implement instanceof here?
+
 		// sj.Objects
 		if (sj.objectList.indexOf(input.objectType) !== -1) {
 			// any sj.Object
@@ -1493,16 +1504,19 @@ sj.propagateError = function (obj) {
 
 // sorting
 sj.filterList = async function (list, type, successList, errorList) {
+	//TODO go over this
+
 	//C sorts through a list of both successes and errors (usually received from Promise.all and sj.resolveBoth() to avoid fail-fast behavior to process all promises).
 	//C returns either a sj.Success with content as the original list if all match the desired object, or a sj.ErrorList with content as all the items that did not match.
 	//! do not log either the successList or errorList objects, these are announced later
 
 
-	//C redundancy
+	//C ensure errorList.content is an array (though this is currently default)
 	errorList.content = [];
+	successList.content = list;
 
 	//C if item does not match desired type, push it to errorList.content
-	list.forEach(function (item) {
+	list.forEach(item => {
 		//TODO consider using sj.isType() here, and also implement instanceof into sj.isType() (also allowing to pass objects to use instance of)
 		if (!(item instanceof type)) {
 			errorList.content.push(sj.propagateError(item));
@@ -1515,10 +1529,18 @@ sj.filterList = async function (list, type, successList, errorList) {
 		throw errorList;
 	}
 
-	//! successList is just a success object with content
-	successList.content = list;
 	successList.announce();
 	return successList;
+}
+sj.wrapList = async function (list, type, successList, errorList) {
+	successList.content = list;
+	errorList.content = list;
+	
+	list.forEach(item => {
+		if (!sj.isType(item, type)) {
+			//------------
+		}
+	})
 }
 sj.one = function (a) {
 	if (a.length === 1) {
