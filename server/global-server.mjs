@@ -498,15 +498,12 @@ sj.checkKey = async function (list, key, timeout) {
 
 
 sj.Rule.checkRuleSet = async function (ruleSet) {
-    //C checks a ruleSet and formats a WHERE clause
-    //C takes a 2D array: [[isRequired, column, sj.Rule, object, propertyName, value2], [], ...]
+    //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
+    //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
 
-    //TODO consider adding this to the sj.Rule object instead of leaving it out in the open (that would also allow the rules instanceof check to be 'this')
     let columnPairs = [];
 
-    //C awaits a sj.Success or throws a sj.ErrorList
-    //! this function is similar to sj.Rule.checkRuleSet(), it has the columnPairs.push() inserted into the loop
-    await Promise.all(ruleSet.map(async ([isRequired, column, rule, obj, prop, value2]) => {
+    let result1 = await Promise.all(ruleSet.map(async ([isRequired, column, rule, obj, prop, value2]) => {
         //C validate arguments
         if (!sj.isType(isRequired, 'boolean')) {
             return new sj.Error({
@@ -556,21 +553,23 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
         //C if property is required, or [isn't required and] isn't empty
         if (isRequired | !sj.isEmpty(obj[prop])) {
+            //C validate property, possibly modify obj[prop] if successful, do not throw if error - this will sorted after, so that all ruleSets can be checked
             //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
+            let result2 = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
 
-            //C validate property, throw if failed, possibly modify obj[prop] if successful
-            let result = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
-            //C add to conditions '"column" = obj[prop]'
+            //C add to columnPairs '"column" = obj[prop]'
             columnPairs.push(pgp.as.format(`"${column}" = $1`, obj[prop]));
-            //C return to check for errors
-            return result;
+
+            //C return checkProperty()'s result, even if its an error
+            return result2;
         } else {
-            //C return sj.Success for filtering if not required and empty
-            return new sj.Success();
+            return new sj.Success({
+                origin: 'sj.Rule.checkRuleSet()',
+                message: `optional empty property ${prop} skipped validation`,
+            });
         }
     })).then(resolved => {
-        //C filter for sj.Success objects
-        return sj.filterList(resolved, sj.Success, new sj.Success({
+        return sj.wrapList(resolved, sj.Success, new sj.Success({
             origin: 'sj.Rule.checkRuleSet()',
             message: 'all rules validated',
         }), new sj.ErrorList({
@@ -582,12 +581,9 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
         throw sj.propagateError(rejected);
     });
 
-    //C if no errors thrown, return sj.Success with columnPairs
-    return new sj.Success({
-        origin: 'sj.Rule.checkRuleSet()',
-        message: 'properties validated',
-        content: columnPairs,
-    });
+    //C if all successful, replace sj.Success.content with columnPairs, then return it
+    result1.content = columnPairs;
+    return result1;
 }
 sj.buildWhere = function (pairs) {
     if (pairs.length === 0) {
@@ -1344,7 +1340,7 @@ sj.getPlaylist = async function (db, playlist, ctx) {
     */
 
     //C build where
-    let where = sj.checkAndBuild([
+    let where = await sj.checkAndBuild([
         ['id', sj.idRules, playlist, 'id'],
         ['userId', sj.idRules, playlist, 'userId'],
         ['name', sj.playlistNameRules, playlist, 'name'],
@@ -1702,7 +1698,19 @@ sj.addTrack = async function (db, track, ctx) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getTrack = async function (db, track, ctx) {
+sj.getTrack = async function (db, tracks, ctx) {
+    return db.tx(async t => {
+        let results = [];
+
+        
+
+
+    }).catch(rejected => {
+        throw sj.propagateError(rejected);
+    });
+
+
+
     //C build where
     let where = await sj.checkAndBuild([
         ['id', sj.idRules, track, 'id'],
@@ -1711,7 +1719,7 @@ sj.getTrack = async function (db, track, ctx) {
     ]);
 
     //C query
-    let tracks = db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
+    let tracks = await db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
                 origin: 'getTrack()',

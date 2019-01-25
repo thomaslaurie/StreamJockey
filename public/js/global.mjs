@@ -1518,7 +1518,7 @@ sj.filterList = async function (list, type, successList, errorList) {
 	//C if item does not match desired type, push it to errorList.content
 	list.forEach(item => {
 		//TODO consider using sj.isType() here, and also implement instanceof into sj.isType() (also allowing to pass objects to use instance of)
-		if (!(item instanceof type)) {
+		if (!sj.isType(item, type)) {
 			errorList.content.push(sj.propagateError(item));
 		}
 	});
@@ -1533,14 +1533,27 @@ sj.filterList = async function (list, type, successList, errorList) {
 	return successList;
 }
 sj.wrapList = async function (list, type, successList, errorList) {
+	//C same as filterList, just keeps matching types in the errorList.content too
+
 	successList.content = list;
 	errorList.content = list;
+
+	let errorsFound = false;
 	
-	list.forEach(item => {
+	list.forEach((item, index) => {
 		if (!sj.isType(item, type)) {
-			//------------
+			errorList.content[index] = sj.propagateError(item);
+			errorsFound = true;
 		}
-	})
+	});
+
+	if(errorsFound) {
+		errorList.announce();
+		throw errorList;
+	}
+
+	successList.announce();
+	return successList;
 }
 sj.one = function (a) {
 	if (a.length === 1) {
