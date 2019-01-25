@@ -346,6 +346,14 @@ Array.prototype.stableSort = function(compare) {
 }
 
 // promises
+sj.asyncForEach = async function (list, callback) {
+	//C executes an async function on all items in an array
+	//! throw may be used inside the callback, though all rejections will be resolved - which may have to be sorted after
+	//L this helped a bit: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
+	return Promise.all(list.map(async (item, index, originalList) => {
+		return callback(item, index, originalList).catch(sj.andResolve);
+	}));
+}
 //? why is resolveBoth needed? why cant .catch(sj.andResolve) work? because the resolved version is returned anyways
 //TODO consider removing resolveBoth in favor for just using .catch(sj.andResolve)
 sj.andResolve = function (rejected) {
@@ -362,7 +370,8 @@ sj.resolveBoth = function (resolved, rejected) {
 		return sj.propagateError(rejected);
 	}
 }
-sj.returnContent = function (resolved) { //? where is this used?
+sj.returnContent = function (resolved) {
+	//C shorter syntax for immediately returning the content property of a resolved object from a promise chain
 	return resolved.content;
 }
 
