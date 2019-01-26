@@ -88,6 +88,8 @@
     //L //TODO best practices: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
 
     //TODO replace all database variables, column names, etc. with constants inside this file (or the db file)
+
+    //TODO complete all parameters on database functions
 */
 
 
@@ -558,7 +560,8 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
             let result2 = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
 
             //C add to columnPairs '"column" = obj[prop]'
-            columnPairs.push(pgp.as.format(`"${column}" = $1`, obj[prop]));
+            columnPairs.push({column: column, value: obj[prop]});
+            // old columnPairs.push(pgp.as.format(`"${column}" = $1`, obj[prop]));
 
             //C return checkProperty()'s result, even if its an error
             return result2;
@@ -585,13 +588,40 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     result1.content = columnPairs;
     return result1;
 }
+sj.buildValues = function (pairs) {
+    if (pairs.length === 0) {
+        //C this shouldn't insert anything
+        return `("id") SELECT 0 WHERE 0 = 1`;
+    } else {
+        let columns = [];
+        let values = [];
+        let placeholders = [];
+
+        pairs.forEach((item, index) => {
+            columns.push(item.column);
+            values.push(item.value);
+            placeholders.push(`$${index}`);
+        });
+
+        columns = columns.join('", "');
+        columns = `("${columns}")`;
+
+        placeholders = placeholders.join(', ');
+        placeholders = `(${placeholders})`;
+
+        return pgp.as.format(`${columns} VALUES ${placeholders}`, values);
+    }
+}
 sj.buildWhere = function (pairs) {
     if (pairs.length === 0) {
         //C return a false clause
-        return 'WHERE 0 = 1';
+        return '0 = 1';
     } else {
-        //C prepend a true clause so 'AND pair's can be easily joined
-        pairs.unshift('WHERE 1 = 1');
+        //C change pairs to formatted string
+        pairs.forEach(item => {
+            item = pgp.as.format(`"${item.column}" = $1`, item.value);
+        });
+        //C joined with ' AND '
         return pairs.join(' AND ');
     }
 }
@@ -599,10 +629,13 @@ sj.buildSet = function (pairs) {
     if (pairs.length === 0) {
         //C don't make any change 
         //! this does have to reference a column that exists however
-        return 'SET "id" = "id"';
+        return '"id" = "id"';
     } else {
-        //C prepend SET, join with ', '
-        pairs.unshift('SET');
+        //C change pairs to formatted string
+        pairs.forEach(item => {
+            item = pgp.as.format(`"${item.column}" = $1`, item.value);
+        });
+        //C join with ', '
         return pairs.join(', ');
     }
 }
@@ -617,7 +650,7 @@ sj.Rule.checkRuleSet();
 //  ██║  ██║╚██████╔╝███████╗███████╗███████║
 //  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
-sj.positiveIntegerRules = new sj.Rule({
+sj.posIntRules = new sj.Rule({
     log: true,
     origin: 'positiveIntegerRules',
     message: 'number validated',
@@ -1439,8 +1472,476 @@ sj.deletePlaylists = async function (db, playlist, ctx) {
     });
 }
 
+
+//  ████████╗██████╗  █████╗  ██████╗██╗  ██╗
+//  ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
+//     ██║   ██████╔╝███████║██║     █████╔╝ 
+//     ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ 
+//     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
+//     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+
+// rules
+sj.sourceRules = new sj.Rule({
+    log: true,
+    origin: 'sourceRules',
+    message: 'source validated',
+
+    valueName: 'Source',
+
+    useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
+    againstValue: sj.sourceList,
+    againstMessage: 'track does not have a valid source',
+});
+sj.sourceIdRules = new sj.Rule({
+    log: true,
+    origin: 'sourceIdRules',
+    message: 'source id validated',
+
+    valueName: 'Source ID',
+
+    //? any source id rules (other than being a string)? length? trim?
+});
+sj.trackNameRules = new sj.Rule({
+    log: true,
+    origin: 'trackNameRules()',
+    message: 'name validated',
+    target: 'trackName',
+    cssClass: 'inputError',
+
+    valueName: 'Name',
+    trim: true,
+
+    min: nameMinLength,
+    max: stringMaxLength,  
+});
+
+// CRUD
+//------------
+//TODO results from sj.asyncForEach() do not catch rejections because they are resolved remember? so these still need to be filtered, do this
+//TODO finish sj.orderTracks() and sj.moveTrack()
+
+sj.addTracks = async function (db, tracks) {
+    return db.tx(t => {
+        let results = await sj.asyncForEach(tracks, async item => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+                [true, 'playlistId',    sj.idRules,         item, 'playlistId'],
+                [true, 'source',        sj.sourceRules,     item, 'source'],
+                [true, 'sourceId',      sj.sourceIdRules,   item, 'sourceId'],
+                [true, 'name',          sj.trackNameRules,  item, 'name'],
+                [true, 'duration',      sj.posIntRules,     item, 'duration'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            //C count number of existing tracks and set the next position
+            let trackList = await sj.getTracks(t, new sj.Track({playlistId: item.playlistId}));
+            item.position = trackList.length;
+            columnPairs.push({column: 'position', value: item.position});
+
+            let values = sj.buildValues(columnPairs);
+
+            let row = t.one('INSERT INTO "sj"."tracks" $1:raw', values).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                        origin: 'sj.addTracks()',
+                        message: 'could not add tracks',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                }));
+            });
+
+            row = new sj.Track(row);
+            return row;
+        });
+
+        return new sj.Success({
+            origin: 'sj.addTracks()',
+            message: 'added tracks',
+            content: results,
+        });
+    }).catch(sj.propagate);
+
+
+    /* old
+        //await sj.isLoggedIn(ctx);
+
+        //C retrieve playlist
+        let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+        //C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
+        
+        track.position = playlist.content.length;
+
+        await sj.Rule.checkRuleSet([
+            [sj.selfRules, ctx.session.user, 'id', playlist.userId],
+            [sj.idRules, track, 'playlistId'],
+            [sj.posIntRules, track, 'position'],
+            [sj.sourceRules, track, 'source'],
+            [sj.sourceIdRules, track, 'sourceId'],
+            [sj.trackNameRules, track, 'name'],
+            [sj.posIntRules, track, 'duration'],
+            //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
+        ]); 
+        
+            // var errorList = new sj.ErrorList({
+            //     origin: 'addPlaylist()',
+            //     message: 'one or more issues with fields',
+            //     reason: 'validation functions returned one or more errors',
+            // });
+            // track.playlistId = await sj.idRules.check(track.playlistId).catch(rejected => {
+            //     errorList.content.push(rejected);
+            //     return rejected.content;
+            // });
+            // track.position = await sj.posIntRules.check(track.position).catch(rejected => {
+            //     errorList.content.push(rejected);
+            //     return rejected.content;
+            // });
+            // track.source = await sj.sourceRules.check(track.source).catch(rejected => {
+            //     errorList.content.push(rejected);
+            //     return rejected.content;
+            // });
+            // track.sourceId = await sj.sourceIdRules.check(track.sourceId).catch(rejected => {
+            //     errorList.content.push(rejected);
+            //     return rejected.content;
+            // });
+            // track.name = await sj.trackNameRules.check(track.name).catch(rejected => {
+            //     errorList.content.push(rejected);
+            //     return rejected.content;
+            // });
+            // track.duration = await sj.posIntRules.check(track.duration).catch(rejected => {
+            //     errorList.content.push(rejected);
+            //     return rejected.content;
+            // });
+            // //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
+            // if (!(errorList.content.length === 0)) {
+            //     errorList.announce();
+            //     throw errorList;
+            // }
+        
+
+        //! artists is simply stored as an array, eg. TEXT[]
+        return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.sourceId, track.name, track.duration, track.artists]).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'addTrack()',
+                message: 'could not add track, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        }).then(resolved => {
+            return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'addTrack()',
+                    message: 'could not order playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+        }).then(resolved => {
+            return new sj.Success({
+                log: true,
+                origin: 'addTrack()',
+                target: 'notify',
+                cssClass: 'notifySuccess',
+                content: track,
+            });
+        }).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+    */
+}
+sj.getTracks = async function (db, tracks) {
+    return db.tx(async t => {
+        let results = await sj.asyncForEach(tracks, async item => {
+            //C checkRuleSet and set columnPairs
+            let columnPairs = await sj.Rule.checkRuleSet([
+                [false, 'id',           sj.idRules,     item, 'id'],
+                [false, 'playlistId',   sj.idRules,     item, 'playlistId'],
+                [false, 'position',     sj.posIntRules, item, 'position'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            //C build where clause
+            let where = sj.buildWhere(columnPairs);
+
+            //C query
+            let rows = await t.any('SELECT * FROM "sj"."tracks" WHERE $1:raw', where).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                        origin: 'sj.getTracks()',
+                        message: 'could not get tracks',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                }));
+            });
+
+            //C cast
+            rows.forEach(item => {
+                item = new sj.Track(item);
+            });
+            return rows;
+        });
+
+        //C bring each sub-array's tracks up to the root level (because t.any() returns an array, not a single object)
+        results = results.flat(1);
+        return new sj.Success({
+            origin: 'sj.getTracks()',
+            message: 'retrieved tracks',
+            content: results,
+        });
+    }).catch(sj.propagate);
+
+
+    /* old
+        //C build where
+        let where = await sj.checkAndBuild([
+            ['id', sj.idRules, track, 'id'],
+            ['playlistId', sj.idRules, track, 'playlistId'],
+            ['position', sj.posIntRules, track, 'position'],
+        ]);
+
+        //C query
+        let tracks = await db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                    origin: 'getTrack()',
+                    message: 'could not get track',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+            }));
+        });
+
+        //C cast
+        tracks.forEach(item => {
+            item = new sj.Track(item);
+        });
+
+        return tracks;
+    */
+
+    /* old (from getPlaylist() ?) //! do not order tracks here because these will not always be an entire playlist
+        //C check and fix order
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].position !== i) {
+                tracks = await sj.orderPlaylist
+            }
+        }
+
+
+        for (let i = 0; i < item.content.length; i++) {
+            if (item.content[i].position !== i) {
+                //C if not, order them
+                item = await sj.orderPlaylist(item).catch(rejected => {
+                    throw sj.parsePostgresError(rejected, new sj.Error({
+                        log: false,
+                        origin: 'getPlaylist()',
+                        message: 'could not order playlist, database error',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                    }));
+                });
+                break;
+            }
+        }
+    */
+}
+sj.editTracks = async function (db, tracks) {
+    return db.tx(async t => {
+        let results = await sj.asyncForEach(tracks, async item => {
+            let columnPairsWhere = await sj.Rule.checkRuleSet([
+                [true, 'id', sj.idRules, item, 'id'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            let columnPairsSet = await sj.Rule.checkRuleSet([
+                [false, 'playlistId',   sj.idRules,        item, 'playlistId'],
+                [false, 'position',     sj.posIntRules,    item, 'position'],
+                [false, 'source',       sj.sourceRules,    item, 'source'],
+                [false, 'sourceId',     sj.sourceIdRules,  item, 'sourceId'],
+                [false, 'name',         sj.trackNameRules, item, 'name'],
+                [false, 'duration',     sj.posIntRules,    item, 'duration'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            let where = sj.buildWhere(columnPairsWhere);
+            let set = sj.buildSet(columnPairsSet);
+
+            let row = await t.one('UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                        origin: 'sj.editTracks()',
+                        message: 'could not edit track',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                }));
+            });
+
+            row = new sj.Track(row);
+            return row;
+        });
+
+        return new sj.Success({
+            origin: 'sj.editTracks()',
+            message: 'edited tracks',
+            content: results,
+        });
+    }).catch(sj.propagate);
+}
+sj.deleteTracks = async function (db, tracks) {
+    return db.tx(async t => {
+        let results = await sj.asyncForEach(tracks, async item => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+                [true, 'id',           sj.idRules,     item, 'id'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            let where = sj.buildWhere(columnPairs);
+
+            //! deletion will return the deleted row, however this will still have visibility limitations and should not be used to restore data
+            let row = await t.one('DELETE FROM "sj"."tracks" WHERE $1:raw RETURNING *', where).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.deleteTracks()',
+                    message: 'could not delete track',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+
+            
+            row = new sj.Track(row);
+            return row;
+        });
+
+        return new sj.Success({
+            origin: 'sj.deleteTracks()',
+            message: 'deleted tracks',
+            content: results,
+        });
+    }).catch(sj.propagate);
+
+
+    /* old
+        //! requires an sj.Track with playlistId and position properties
+
+        await sj.isLoggedIn(ctx);
+
+        await sj.Rule.checkRuleSet([
+            [sj.idRules, track, 'playlistId'],
+            [sj.posIntRules, track, 'position'],
+        ]);
+
+        
+        // `
+        // SELECT * 
+        // FROM "sj"."playlists" 
+        // JOIN "sj"."tracks" 
+        // ON "sj"."playlists"."id" = "sj"."tracks"."playlistId" 
+        // WHERE "sj"."tracks"."id" = $1`
+        
+        
+        //C retrieve playlist
+        let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+
+        //TODO change this to just id based
+        await sj.Rule.checkRuleSet([
+            [sj.selfRules, playlist, 'userId', ctx.session.userId],
+        ]);
+
+        //TODO check to make sure it exists (like deletePlaylist has getPlaylist)
+
+        return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
+            throw sj.parsePostgresError({
+                log: true,
+                origin: 'deleteTrack()',
+                message: 'failed to delete track, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            });
+        }).then(resolved => {
+            return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'deleteTrack()',
+                    message: 'could not order playlist, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+        }).then(resolved => {
+            return new sj.Success({
+                log: false,
+                origin: 'deleteTrack()',
+                content: track,
+                target: 'notify',
+                cssClass: 'notifySuccess', 
+            });
+        }).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+    */
+}
+
 // util
-sj.orderPlaylist = async function (id) {  
+sj.orderTracks = async function (db, playlistId) {
+    //R there is a recursive loop hazard in here (basically if sj.getTracks() is the function that calls sj.orderTracks() - sj.orderTracks() itself needs to call sj.getTracks(), therefore a loop), however if everything BUT sj.getTracks() calls sj.orderTracks(), then sj.orderTracks() can safely call sj.getTracks(), no, the same thing happens with sj.editTracks() - so just include manual queries
+
+    //C validate id
+    playlistId = sj.idRules.check(playlistId).then(sj.returnContent);
+
+    return db.tx(async t => {
+        //C get all tracks in trackList
+        let trackList = t.any('SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1', playlistId).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                    origin: 'sj.getOrderTracks()',
+                    message: 'could not order tracks',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+            }));
+        });
+
+        //C sort by track.position
+        //? will this fail if list is empty? //TODO what if position is undefined/null? might have to include a NOT NULL condition in the table
+        sj.stableSort(trackList, function (a, b) {
+            return a.position - b.position;
+        });
+
+        //C defer constraints (unique) on track position
+        //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
+        //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
+        //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
+        await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'sj.orderTracks()',
+                message: 'could not order tracks, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
+
+        //C update positions based on indexes (removes holes and duplicates)
+        await sj.asyncForEach(trackList, async (item, index) => {
+            await t.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "position" = $2', [index, item.position]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.orderTracks()',
+                    message: 'could not order tracks, database error',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
+
+            return new sj.Success({
+                origin: 'sj.orderTracks()',
+                message: 'track position set',
+            });
+
+            //-----------
+        });
+
+        
+    }).catch(sj.propagate);
+
     /*
         //! this shouldn't need to be called anywhere other than getPlaylist() as long as anything that changes a playlist's order calls getPlaylist (before), a call to orderPlaylist (functionally equivalent to getPlaylist()) afterwards, would be redundant as the playlist should be always ordered on retrieval anyways
 
@@ -1450,6 +1951,10 @@ sj.orderPlaylist = async function (id) {
             // used by sj.Track.playlistId as a shortcut to order playlist in one line
             return await sj.getPlaylist(ctx, playlist);
         }
+
+        // old comments?
+        //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
+        //? possible memory leak error here
     */
 
     //C validate id
@@ -1564,323 +2069,9 @@ sj.orderPlaylist = async function (id) {
         });
     */
 }
-
-
-//  ████████╗██████╗  █████╗  ██████╗██╗  ██╗
-//  ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
-//     ██║   ██████╔╝███████║██║     █████╔╝ 
-//     ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ 
-//     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
-//     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
-
-// rules
-sj.sourceRules = new sj.Rule({
-    log: true,
-    origin: 'sourceRules',
-    message: 'source validated',
-
-    valueName: 'Source',
-
-    useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
-    againstValue: sj.sourceList,
-    againstMessage: 'track does not have a valid source',
-});
-sj.sourceIdRules = new sj.Rule({
-    log: true,
-    origin: 'sourceIdRules',
-    message: 'source id validated',
-
-    valueName: 'Source ID',
-
-    //? any source id rules (other than being a string)? length? trim?
-});
-sj.trackNameRules = new sj.Rule({
-    log: true,
-    origin: 'trackNameRules()',
-    message: 'name validated',
-    target: 'trackName',
-    cssClass: 'inputError',
-
-    valueName: 'Name',
-    trim: true,
-
-    min: nameMinLength,
-    max: stringMaxLength,  
-});
-
-// CRUD
-sj.addTracks = async function (db, track, ctx) {
-    //await sj.isLoggedIn(ctx);
-
-    //C retrieve playlist
-    let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-    //C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
-    
-    track.position = playlist.content.length;
-
-    await sj.Rule.checkRuleSet([
-        [sj.selfRules, ctx.session.user, 'id', playlist.userId],
-        [sj.idRules, track, 'playlistId'],
-        [sj.positiveIntegerRules, track, 'position'],
-        [sj.sourceRules, track, 'source'],
-        [sj.sourceIdRules, track, 'sourceId'],
-        [sj.trackNameRules, track, 'name'],
-        [sj.positiveIntegerRules, track, 'duration'],
-        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
-    ]); 
-    /*
-        var errorList = new sj.ErrorList({
-            origin: 'addPlaylist()',
-            message: 'one or more issues with fields',
-            reason: 'validation functions returned one or more errors',
-        });
-        track.playlistId = await sj.idRules.check(track.playlistId).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        track.position = await sj.positiveIntegerRules.check(track.position).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        track.source = await sj.sourceRules.check(track.source).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        track.sourceId = await sj.sourceIdRules.check(track.sourceId).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        track.name = await sj.trackNameRules.check(track.name).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        track.duration = await sj.positiveIntegerRules.check(track.duration).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
-        if (!(errorList.content.length === 0)) {
-            errorList.announce();
-            throw errorList;
-        }
-    */
-
-    //! artists is simply stored as an array, eg. TEXT[]
-    return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.sourceId, track.name, track.duration, track.artists]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'addTrack()',
-            message: 'could not add track, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    }).then(resolved => {
-        return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'addTrack()',
-                message: 'could not order playlist, database error',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
-    }).then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'addTrack()',
-            target: 'notify',
-            cssClass: 'notifySuccess',
-            content: track,
-        });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-}
-sj.getTracks = async function (db, tracks, ctx) {
-    return db.tx(async t => {
-        let result = sj.asyncForEach(tracks, async item => {
-            //C checkRuleSet and set columnPairs
-            let columnPairs = await sj.Rule.checkRuleSet([
-                [false, 'id', sj.idRules, item, 'id'],
-                [false, 'playlistId', sj.idRules, item, 'playlistId'],
-                [false, 'position', sj.positiveIntegerRules, item, 'position'],
-            ]).then(sj.returnContent).catch(rejected => {
-                throw sj.propagateError(rejected);
-            });
-
-            //C build where clause
-            let where = sj.buildWhere(columnPairs);
-
-            //C query
-            let rows = await t.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
-                throw sj.parsePostgresError(rejected, new sj.Error({
-                    log: false,
-                        origin: 'sj.getTrack()',
-                        message: 'could not get tracks',
-                        target: 'notify',
-                        cssClass: 'notifyError',
-                }));
-            });
-
-            //C cast
-            rows.forEach(item => {
-                item = new sj.Track(item);
-            });
-
-            return rows;
-        });
-
-        //C bring each sub-array's tracks up to the root level
-        result = result.flat(1);
-        
-        return new sj.Success({
-            origin: 'sj.getTracks()',
-            message: 'retrieved tracks',
-            content: result,
-        });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-
-
-    /* old
-        //C build where
-        let where = await sj.checkAndBuild([
-            ['id', sj.idRules, track, 'id'],
-            ['playlistId', sj.idRules, track, 'playlistId'],
-            ['position', sj.positiveIntegerRules, track, 'position'],
-        ]);
-
-        //C query
-        let tracks = await db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                    origin: 'getTrack()',
-                    message: 'could not get track',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-            }));
-        });
-
-        //C cast
-        tracks.forEach(item => {
-            item = new sj.Track(item);
-        });
-
-        return tracks;
-    */
-
-    /* old (from getPlaylist() ?) //! do not order tracks here because these will not always be an entire playlist
-        //C check and fix order
-        for (let i = 0; i < tracks.length; i++) {
-            if (tracks[i].position !== i) {
-                tracks = await sj.orderPlaylist
-            }
-        }
-
-
-        for (let i = 0; i < item.content.length; i++) {
-            if (item.content[i].position !== i) {
-                //C if not, order them
-                item = await sj.orderPlaylist(item).catch(rejected => {
-                    throw sj.parsePostgresError(rejected, new sj.Error({
-                        log: false,
-                        origin: 'getPlaylist()',
-                        message: 'could not order playlist, database error',
-                        target: 'notify',
-                        cssClass: 'notifyError',
-                    }));
-                });
-                break;
-            }
-        }
-    */
-}
-sj.editTracks = async function (db, track, ctx) {
-    // comments from sj.orderPlaylist
-    //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
-    //? possible memory leak error here 
-
-    //C build where
-    //TODO build SET
-    let where = await sj.checkAndBuild([
-        ['id', sj.idRules, track, 'id'],
-    ]);
-
-    //C query
-    //TODO
-
-    //C cast
-    //TODO
-
-    return tracks;
-}
-sj.deleteTracks = async function (db, track, ctx) {
-    //! requires an sj.Track with playlistId and position properties
-
-    await sj.isLoggedIn(ctx);
-
-    await sj.Rule.checkRuleSet([
-        [sj.idRules, track, 'playlistId'],
-        [sj.positiveIntegerRules, track, 'position'],
-    ]);
-
-    /*
-        `
-        SELECT * 
-        FROM "sj"."playlists" 
-        JOIN "sj"."tracks" 
-        ON "sj"."playlists"."id" = "sj"."tracks"."playlistId" 
-        WHERE "sj"."tracks"."id" = $1`
-    */
-     
-    //C retrieve playlist
-    let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-
-    //TODO change this to just id based
-    await sj.Rule.checkRuleSet([
-        [sj.selfRules, playlist, 'userId', ctx.session.userId],
-    ]);
-
-    //TODO check to make sure it exists (like deletePlaylist has getPlaylist)
-
-    return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
-        throw sj.parsePostgresError({
-            log: true,
-            origin: 'deleteTrack()',
-            message: 'failed to delete track, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }).then(resolved => {
-        return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'deleteTrack()',
-                message: 'could not order playlist, database error',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
-    }).then(resolved => {
-        return new sj.Success({
-            log: false,
-            origin: 'deleteTrack()',
-            content: track,
-            target: 'notify',
-            cssClass: 'notifySuccess', 
-        });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-}
-
-// util
 sj.moveTrack = async function (ctx, track, position) {
+    //TODO what if edit cant change position, only move can? but then how does that interact with the REST? figure this out
+
     let playlist = await sj.getPlaylist(ctx, track.playlistId).catch(rejected => {
         throw sj.propagateError(rejected);
     });

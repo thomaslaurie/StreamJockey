@@ -1500,15 +1500,18 @@ sj.catchUnexpected = function (input) {
 	error.announce();
 	return error;
 }
-sj.propagateError = function (obj) {
+sj.propagateError = function (input) {
 	//C wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
 	//C this basically just ensures sj.Errors recursively wrap each other (Error chain should only be 1 deep)
-	//TODO because this is mostly used in a promise's catch, consider having this auto throw so it can just be used like: .catch(sj.propagateError);
-	if (sj.isError(obj)) {
-		return obj;
+	if (sj.isError(input)) {
+		return input;
 	} else {
-		return sj.catchUnexpected(obj);
+		return sj.catchUnexpected(input);
 	}
+}
+sj.propagate = function (rejected) {
+	//C shorter syntax: .catch(sj.propagate);
+	throw sj.propagateError(rejected);
 }
 
 // sorting
