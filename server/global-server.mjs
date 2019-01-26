@@ -925,7 +925,7 @@ sj.emailRules = new sj.Rule({
 */
 
 // CRUD
-sj.addUser = async function (db, user) {
+sj.addUsers = async function (db, user) {
     //C validate
     await sj.Rule.checkRuleSet([
         [sj.userNameRules, user, 'name'],
@@ -971,7 +971,7 @@ sj.addUser = async function (db, user) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getUser = async function (db, user, ctx) {
+sj.getUsers = async function (db, user, ctx) {
     //R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
     //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
     //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
@@ -1002,7 +1002,7 @@ sj.getUser = async function (db, user, ctx) {
     
     return users;
 }
-sj.editUser = async function (db, user, ctx) { //TODO
+sj.editUsers = async function (db, user, ctx) { //TODO
     // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
     await sj.isLoggedIn(ctx);
 
@@ -1028,7 +1028,7 @@ sj.editUser = async function (db, user, ctx) { //TODO
     });
     */
 }
-sj.deleteUser = async function (db, user, ctx) {
+sj.deleteUsers = async function (db, user, ctx) {
     await sj.isLoggedIn(ctx);
 
     await sj.Rule.checkRuleSet([
@@ -1229,7 +1229,7 @@ sj.descriptionRules = new sj.Rule({
 */
 
 // CRUD
-sj.addPlaylist = async function (db, playlist, ctx) {
+sj.addPlaylists = async function (db, playlist, ctx) {
     await sj.isLoggedIn(ctx);
 
     await sj.Rule.checkRuleSet([
@@ -1333,7 +1333,7 @@ sj.addPlaylist = async function (db, playlist, ctx) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getPlaylist = async function (db, playlist, ctx) {
+sj.getPlaylists = async function (db, playlist, ctx) {
     //! id is default to null when it isn't set, is this wrong semantics //?
     /*
         if (sj.typeOf(playlist.id) !== 'null') { 
@@ -1406,9 +1406,9 @@ sj.getPlaylist = async function (db, playlist, ctx) {
         });
     */
 }
-sj.editPlaylist = async function (db, playlist, ctx) { //TODO
+sj.editPlaylists = async function (db, playlist, ctx) { //TODO
 }
-sj.deletePlaylist = async function (db, playlist, ctx) {
+sj.deletePlaylists = async function (db, playlist, ctx) {
     await sj.isLoggedIn(ctx);
 
     playlist = await sj.getPlaylist(ctx, playlist);
@@ -1609,7 +1609,7 @@ sj.trackNameRules = new sj.Rule({
 });
 
 // CRUD
-sj.addTrack = async function (db, track, ctx) {
+sj.addTracks = async function (db, track, ctx) {
     //await sj.isLoggedIn(ctx);
 
     //C retrieve playlist
@@ -1698,44 +1698,79 @@ sj.addTrack = async function (db, track, ctx) {
         throw sj.propagateError(rejected);
     });
 }
-sj.getTrack = async function (db, tracks, ctx) {
+sj.getTracks = async function (db, tracks, ctx) {
     return db.tx(async t => {
-        let results = [];
+        let result = sj.asyncForEach(tracks, async item => {
+            //C checkRuleSet and set columnPairs
+            let columnPairs = await sj.Rule.checkRuleSet([
+                [false, 'id', sj.idRules, item, 'id'],
+                [false, 'playlistId', sj.idRules, item, 'playlistId'],
+                [false, 'position', sj.positiveIntegerRules, item, 'position'],
+            ]).then(sj.returnContent).catch(rejected => {
+                throw sj.propagateError(rejected);
+            });
 
+            //C build where clause
+            let where = sj.buildWhere(columnPairs);
+
+            //C query
+            let rows = await t.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                        origin: 'sj.getTrack()',
+                        message: 'could not get tracks',
+                        target: 'notify',
+                        cssClass: 'notifyError',
+                }));
+            });
+
+            //C cast
+            rows.forEach(item => {
+                item = new sj.Track(item);
+            });
+
+            return rows;
+        });
+
+        //C bring each sub-array's tracks up to the root level
+        result = result.flat(1);
         
-
-
+        return new sj.Success({
+            origin: 'sj.getTracks()',
+            message: 'retrieved tracks',
+            content: result,
+        });
     }).catch(rejected => {
         throw sj.propagateError(rejected);
     });
 
 
+    /* old
+        //C build where
+        let where = await sj.checkAndBuild([
+            ['id', sj.idRules, track, 'id'],
+            ['playlistId', sj.idRules, track, 'playlistId'],
+            ['position', sj.positiveIntegerRules, track, 'position'],
+        ]);
 
-    //C build where
-    let where = await sj.checkAndBuild([
-        ['id', sj.idRules, track, 'id'],
-        ['playlistId', sj.idRules, track, 'playlistId'],
-        ['position', sj.positiveIntegerRules, track, 'position'],
-    ]);
+        //C query
+        let tracks = await db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                    origin: 'getTrack()',
+                    message: 'could not get track',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+            }));
+        });
 
-    //C query
-    let tracks = await db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-                origin: 'getTrack()',
-                message: 'could not get track',
-                target: 'notify',
-                cssClass: 'notifyError',
-        }));
-    });
+        //C cast
+        tracks.forEach(item => {
+            item = new sj.Track(item);
+        });
 
-    //C cast
-    tracks.forEach(item => {
-        item = new sj.Track(item);
-    });
-
-    return tracks;
-
+        return tracks;
+    */
 
     /* old (from getPlaylist() ?) //! do not order tracks here because these will not always be an entire playlist
         //C check and fix order
@@ -1763,7 +1798,7 @@ sj.getTrack = async function (db, tracks, ctx) {
         }
     */
 }
-sj.editTrack = async function (db, track, ctx) {
+sj.editTracks = async function (db, track, ctx) {
     // comments from sj.orderPlaylist
     //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
     //? possible memory leak error here 
@@ -1782,7 +1817,7 @@ sj.editTrack = async function (db, track, ctx) {
 
     return tracks;
 }
-sj.deleteTrack = async function (db, track, ctx) {
+sj.deleteTracks = async function (db, track, ctx) {
     //! requires an sj.Track with playlistId and position properties
 
     await sj.isLoggedIn(ctx);
