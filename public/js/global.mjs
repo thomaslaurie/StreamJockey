@@ -897,6 +897,7 @@ sj.Rule = class extends sj.Object {
 		return new sj.Success(this); 		
 	}
 	//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
+	//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
 	async checkProperty(obj, prop, value2) {
 		//C validate arguments
 		if (!sj.isType(obj, 'object')) {

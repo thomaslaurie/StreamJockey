@@ -498,15 +498,13 @@ sj.checkKey = async function (list, key, timeout) {
     });
 }
 
-//----------
 sj.Rule.checkRuleSet = async function (ruleSet) {
     //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
     //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
 
     let columnPairs = [];
 
-    //TODO replace me with asyncForEach
-    let result1 = await Promise.all(ruleSet.map(async ([isRequired, column, rule, obj, prop, value2]) => {
+    let result = await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
         //C validate arguments
         if (!sj.isType(isRequired, 'boolean')) {
             return new sj.Error({
@@ -556,17 +554,15 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
         //C if property is required, or [isn't required and] isn't empty
         if (isRequired | !sj.isEmpty(obj[prop])) {
-            //C validate property, possibly modify obj[prop] if successful, do not throw if error - this will sorted after, so that all ruleSets can be checked
+            //C validate property, possibly modify obj[prop] if successful
             //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
-
-            //TODO //? isnt this supposed to be obj[prop] = ...  ? for modification?
-            let result2 = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
-
-            //C add to columnPairs '"column" = obj[prop]'
+            //? why is checkProperty needed over check? we have access to obj[prop] = rule.checkProperty() here anyways
+            let result2 = await rule.checkProperty(obj, prop, value2);
+            //C add value to columnPairs
+            //! if rule.checkProperty() throws, this won't be pushed, but that doesn't matter because columnPairs won't be returned if there is any error
             columnPairs.push({column: column, value: obj[prop]});
-            // old columnPairs.push(pgp.as.format(`"${column}" = $1`, obj[prop]));
-
-            //C return checkProperty()'s result, even if its an error
+            //C return the success message of rule.checkProperty()
+            //! this doesn't end up being returned from the function, but is here for maintainability
             return result2;
         } else {
             return new sj.Success({
@@ -574,9 +570,9 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 message: `optional empty property ${prop} skipped validation`,
             });
         }
-    })).catch(sj.propagate);
+    }).catch(sj.propagate);
 
-    result1 = await sj.wrapAll(resolved, sj.Success, new sj.Success({
+    result = await sj.wrapAll(resolved, sj.Success, new sj.Success({
         origin: 'sj.Rule.checkRuleSet()',
         message: 'all rules validated',
     }), new sj.ErrorList({
@@ -586,8 +582,8 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     }));
 
     //C if all successful, replace sj.Success.content with columnPairs, then return it
-    result1.content = columnPairs;
-    return result1;
+    result.content = columnPairs;
+    return result;
 }
 sj.buildValues = function (pairs) {
     if (pairs.length === 0) {
