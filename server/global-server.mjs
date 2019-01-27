@@ -498,13 +498,14 @@ sj.checkKey = async function (list, key, timeout) {
     });
 }
 
-
+//----------
 sj.Rule.checkRuleSet = async function (ruleSet) {
     //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
     //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
 
     let columnPairs = [];
 
+    //TODO replace me with asyncForEach
     let result1 = await Promise.all(ruleSet.map(async ([isRequired, column, rule, obj, prop, value2]) => {
         //C validate arguments
         if (!sj.isType(isRequired, 'boolean')) {
@@ -557,6 +558,8 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
         if (isRequired | !sj.isEmpty(obj[prop])) {
             //C validate property, possibly modify obj[prop] if successful, do not throw if error - this will sorted after, so that all ruleSets can be checked
             //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
+
+            //TODO //? isnt this supposed to be obj[prop] = ...  ? for modification?
             let result2 = await rule.checkProperty(obj, prop, value2).catch(sj.andResolve);
 
             //C add to columnPairs '"column" = obj[prop]'
@@ -571,18 +574,16 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 message: `optional empty property ${prop} skipped validation`,
             });
         }
-    })).then(resolved => {
-        return sj.wrapList(resolved, sj.Success, new sj.Success({
-            origin: 'sj.Rule.checkRuleSet()',
-            message: 'all rules validated',
-        }), new sj.ErrorList({
-            origin: 'sj.Rule.checkRuleSet()',
-            message: 'one or more issues with rules',
-            reason: 'validation functions returned one or more errors',
-        }));
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
+    })).catch(sj.propagate);
+
+    result1 = await sj.wrapAll(resolved, sj.Success, new sj.Success({
+        origin: 'sj.Rule.checkRuleSet()',
+        message: 'all rules validated',
+    }), new sj.ErrorList({
+        origin: 'sj.Rule.checkRuleSet()',
+        message: 'one or more issues with rules',
+        reason: 'validation functions returned one or more errors',
+    }));
 
     //C if all successful, replace sj.Success.content with columnPairs, then return it
     result1.content = columnPairs;
@@ -639,8 +640,6 @@ sj.buildSet = function (pairs) {
         return pairs.join(', ');
     }
 }
-
-sj.Rule.checkRuleSet();
 
 
 //  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
@@ -1517,7 +1516,6 @@ sj.trackNameRules = new sj.Rule({
 
 // CRUD
 //------------
-//TODO results from sj.asyncForEach() do not catch rejections because they are resolved remember? so these still need to be filtered, do this
 //TODO finish sj.orderTracks() and sj.moveTrack()
 
 sj.addTracks = async function (db, tracks) {
@@ -1550,13 +1548,15 @@ sj.addTracks = async function (db, tracks) {
 
             row = new sj.Track(row);
             return row;
-        });
+        }).catch(sj.propagate);
 
-        return new sj.Success({
+        return await sj.wrapAll(results, sj.Track, new sj.Success({
             origin: 'sj.addTracks()',
             message: 'added tracks',
-            content: results,
-        });
+        }), new sj.ErrorList({
+            origin: 'sj.addTracks()',
+            message: 'unable to add tracks',
+        }));
     }).catch(sj.propagate);
 
 
@@ -1679,15 +1679,18 @@ sj.getTracks = async function (db, tracks) {
                 item = new sj.Track(item);
             });
             return rows;
-        });
+        }).catch(sj.propagate);
 
         //C bring each sub-array's tracks up to the root level (because t.any() returns an array, not a single object)
         results = results.flat(1);
-        return new sj.Success({
+
+        return await sj.wrapAll(results, sj.Track, new sj.Success({
             origin: 'sj.getTracks()',
-            message: 'retrieved tracks',
-            content: results,
-        });
+            message: 'retrieved tracks'
+        }), new sj.ErrorList({
+            origin: 'sj.getTracks()',
+            message: 'unable to retrieve tracks'
+        }));
     }).catch(sj.propagate);
 
 
@@ -1775,13 +1778,15 @@ sj.editTracks = async function (db, tracks) {
 
             row = new sj.Track(row);
             return row;
-        });
+        }).catch(sj.propagate);
 
-        return new sj.Success({
+        return await sj.wrapAll(results, sj.Track, new sj.Success({
             origin: 'sj.editTracks()',
             message: 'edited tracks',
-            content: results,
-        });
+        }), new sj.ErrorList({
+            origin: 'sj.editTracks()',
+            message: 'unable to edit tracks',
+        }));
     }).catch(sj.propagate);
 }
 sj.deleteTracks = async function (db, tracks) {
@@ -1807,13 +1812,15 @@ sj.deleteTracks = async function (db, tracks) {
             
             row = new sj.Track(row);
             return row;
-        });
+        }).catch(sj.propagate);
 
-        return new sj.Success({
+        return await sj.wrapAll(results, sj.Track, new sj.Success({
             origin: 'sj.deleteTracks()',
             message: 'deleted tracks',
-            content: results,
-        });
+        }), new sj.ErrorList({
+            origin: 'sj.deleteTracks()',
+            message: 'unable to delete tracks',
+        }));
     }).catch(sj.propagate);
 
 

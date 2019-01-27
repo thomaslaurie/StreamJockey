@@ -347,12 +347,10 @@ Array.prototype.stableSort = function(compare) {
 
 // promises
 sj.asyncForEach = async function (list, callback) {
-	//C executes an async function on all items in an array
-	//! throw may be used inside the callback, though all rejections will be resolved - which may have to be sorted after
+	//C executes an async function on all items in an array, resolving any thrown errors
+	//! throw may be used inside the callback, though because all errors are resolved they will have to be sorted later
 	//L this helped a bit: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
-	return Promise.all(list.map(async (item, index, originalList) => {
-		return callback(item, index, originalList).catch(sj.andResolve);
-	}));
+	return Promise.all(list.map(async (item, index, originalList) => callback(item, index, originalList).catch(sj.andResolve)));
 }
 //? why is resolveBoth needed? why cant .catch(sj.andResolve) work? because the resolved version is returned anyways
 //TODO consider removing resolveBoth in favor for just using .catch(sj.andResolve)
@@ -1515,7 +1513,61 @@ sj.propagate = function (rejected) {
 }
 
 // sorting
-sj.filterList = async function (list, type, successList, errorList) {
+sj.wrapAll = async function (list, type, success, error) {
+	//C wraps a list in a success or error object based on it's contents, keeps all contents on error
+	//! do not log success or error objects, one of the two is announced by this function
+	//L array.every: https://codedam.com/just-so-you-know-array-methods/
+
+	success.content = error.content = list;
+
+	if (list.every(item => sj.isType(item, type))) {
+		success.announce();
+		return success;
+	} else {
+		error.announce();
+		throw error;
+	}
+}
+sj.wrapPure = async function (list, type, success, error) {
+	//C like sj.wrapAll, however discards non-errors on error
+
+	success.content = list;
+	error.content = [];
+
+	list.forEach(item => {
+		if (!sj.isType(item, type)) {
+			error.content.push(item);
+		}
+	});
+
+	if (error.content.length === 0) {
+		success.announce();
+		return success;
+	} else {
+		error.announce();
+		throw error;
+	}
+}
+sj.one = function (a) {
+	if (a.length === 1) {
+		return a[0];
+	} else if (a.length >= 2) {
+		//TODO make a warning object / handler?
+		console.warn('sj.one() pulled a single value out of an array with many');
+		return a[0];
+	} else if (a.length === 0) {
+		return new sj.Error({
+			log: true,
+			origin: 'sj.one()',
+			code: 404,
+			message: 'no data found',
+			reason: 'array has no values, expected one',
+			content: a,
+		});
+	}
+}
+
+sj.filterList = async function (list, type, successList, errorList) { //TODO legacy
 	//TODO go over this
 
 	//C sorts through a list of both successes and errors (usually received from Promise.all and sj.resolveBoth() to avoid fail-fast behavior to process all promises).
@@ -1543,47 +1595,6 @@ sj.filterList = async function (list, type, successList, errorList) {
 
 	successList.announce();
 	return successList;
-}
-sj.wrapList = async function (list, type, successList, errorList) {
-	//C same as filterList, just keeps matching types in the errorList.content too
-
-	successList.content = list;
-	errorList.content = list;
-
-	let errorsFound = false;
-	
-	list.forEach((item, index) => {
-		if (!sj.isType(item, type)) {
-			errorList.content[index] = sj.propagateError(item);
-			errorsFound = true;
-		}
-	});
-
-	if(errorsFound) {
-		errorList.announce();
-		throw errorList;
-	}
-
-	successList.announce();
-	return successList;
-}
-sj.one = function (a) {
-	if (a.length === 1) {
-		return a[0];
-	} else if (a.length >= 2) {
-		//TODO make a warning object / handler?
-		console.warn('sj.one() pulled a single value out of an array with many');
-		return a[0];
-	} else if (a.length === 0) {
-		return new sj.Error({
-			log: true,
-			origin: 'sj.one()',
-			code: 404,
-			message: 'no data found',
-			reason: 'array has no values, expected one',
-			content: a,
-		});
-	}
 }
 
 // rebuild
