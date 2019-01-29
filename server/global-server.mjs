@@ -1752,7 +1752,7 @@ sj.editTracks = async function (db, tracks) {
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
                 [false, 'playlistId',   sj.idRules,        item, 'playlistId'],
-                [false, 'position',     sj.posIntRules,    item, 'position'],
+                //[false, 'position',     sj.posIntRules,    item, 'position'],
                 [false, 'source',       sj.sourceRules,    item, 'source'],
                 [false, 'sourceId',     sj.sourceIdRules,  item, 'sourceId'],
                 [false, 'name',         sj.trackNameRules, item, 'name'],
@@ -1884,6 +1884,178 @@ sj.deleteTracks = async function (db, tracks) {
 }
 
 // util
+sj.moveTracks = async function (db, tracks) {
+    /* //R
+        if any tracks have position set,
+            do the move function
+            order
+        after deleting tracks
+            order
+
+
+        idea: get the tracklist, then do the moving and ordering outside, at the same time - then update all at once
+        the fetched array won't have holes in it, just the position numbers (which is good?)
+
+        //R initial idea wrong: 
+        tracks must be in order of their positions for the move to be applied properly (ie tracks with positions: 3, 4, 5 will all be inserted inbetween tracks 2 and 3) - updating in the order 5, 4, 3 would result in later tracks pushing the already placed tracks down (so their positions end up being 7, 5, 3)
+        it needs to go in decending order because of the nature of how the move function works - affecting only tracks below it
+
+
+        //R wrong, because this done simultaneously (not in sequence) it will separate adjacent inserted positions (0i, 1i) will insert into a full list (o) as (0i, 0o, 1i, 1o), doing this in sequence would require reordering (updating of new positions) the tracks after each insert (might be resource intensive)
+        get input
+            stable sort by position
+        get tracks
+            stable sort by position
+            prepend item with position -Infinity
+            append item with position Infinity
+
+        for each input (in reverse order, so that inputs with same positions do not get their order reversed)
+            find where position is greater than i.position and less than or equal to i+1.position
+            splice(i+1, 0, input)
+        
+
+        final idea: 
+            get the existing list, remove tracks to be inserted
+            sort each list
+            for the length of the combined lists, for integers 0 to length
+                if there is a track in the input list at (or less than) the index - push the next one
+                else push the next track in the existing list
+            if there are any remaining tracks in the input list (for example a big hole that makes the last few tracks larger than the sum of both lists), push them in order to the end of the list
+            lastly do a order to remove duplicates and holes
+
+            this essentially 'fills' the existing tracks around the set positions of the input tracks
+    */
+
+    //L proper use of array methods: https://medium.com/front-end-weekly/stop-array-foreach-and-start-using-filter-map-some-reduce-functions-298b4dabfa09
+    
+    //C filter for tracks that are being re-positioned
+    tracks = tracks.filter(item => !sj.isEmpty(item.position));
+
+    //TODO what if there are multiple tracks with the same id?, filter out either all but the first of last track with the same id
+
+    //C early return if none are being re-positioned
+    if (tracks.length === 0) {
+        return new sj.Success({
+            origin: 'sj.moveTracks()',
+            message: 'track positions did not need to be set',
+        });
+    }
+
+    let something = db.tx(async t => {
+        //C create playlist lists (incase tracks from two different playlists are moved at the same time (not likely but would be allowed to happen through editTracks())) 
+        /* //C playlists item format:
+            {
+                id: 4,
+                all: [],
+                moving: [],
+                notMoving: [],
+                merged: [],
+            }
+            
+            //R playlist.all is required (instead of just sorting into moving and notMoving) 
+            because each track is processed individually, 
+            each moving track's notMoving list will likely include another moving track in the same playlist
+        */
+        let playlists = [];
+        
+        //C populate .all and .moving
+        await sj.asyncForEach(tracks, track => {
+            //L subquery = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+
+            let playlistAll = t.any(`
+                SELECT "id", "position", "playlistId"
+                FROM "sj"."tracks" 
+                WHERE "playlistId" = (
+                    SELECT "playlistId"
+                    FROM "sj"."tracks"
+                    WHERE "id" = $1
+                ) 
+            `, track.id).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.moveTracks()',
+                    message: 'could not move tracks',
+                }));
+            });
+
+
+            //TODO two assumptions:
+            //TODO what if playlist does not contain original track (is this possible?)
+            //TODO what if playlist is empty?? (is this even possible?)
+
+            //C shorten syntax
+            let track = playlist.All.filter(item => item.id === track.id)[0];
+            let playlistId = track.playlistId;
+
+
+            if (!playlists.some(item => { 
+                if (item.id === playlistId) {
+                    //C if current track's playlist is already stored, just push the new moving-track
+                    item.moving.push(track);
+                    return true;
+                } else {
+                    return false;
+                }
+            })) { 
+                //C if current track's playlist is not yet stored, push the new playlist with its all-tracks and its moving-track
+                playlists.push({
+                    id: playlistId,
+                    all: playlistAll,
+                    moving: [track],
+                    notMoving: [],
+                    merged: [],
+                });
+            }
+
+            //-------------- does sj.wrapAll() have use here?
+            return;
+        }).catch(sj.propagate);
+
+        //C populate .notMoving
+        playlists.forEach(playlist => {
+            //C filter playlistAll for tracks where its id does not equal the id of any track in the respective playlistMoving
+            playlist.notMoving = playlist.all.filter(allTrack => playlist.moving.every(movingTrack => allTrack.id !== movingTrack.id));
+        });
+
+        await sj.asyncForEach(playlists, playlist => {
+            //C sort both
+            sj.stableSort(playlist.moving, (a, b) => a.position - b.position);
+            sj.stableSort(playlist.notMoving, (a, b) => a.position - b.position);
+
+            //C fill nonMoving tracks around moving tracks
+            for (let i = 0; i < playlist.moving.length + playlist.notMoving.length; i++) {
+                if (playlist.moving[0].position <= i) {
+                    //C if the next moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list (this will handle negative and duplicate positions)
+                    playlist.merged.push(playlist.moving.shift());
+                } else {
+                    //C if not, transfer the next notMoving track, as long as there are still some left (this will happen if any moving tracks have a position larger than the sum of both lists, they will need to be appended to the end after)
+                    if (playlist.notMoving.length > 0) {
+                        playlist.merged.push(playlist.notMoving.shift());
+                    }
+                }
+            }
+
+            //C append leftover moving tracks
+            //L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
+            playlist.merged.push(...playlist.moving);
+
+            //C order positions (removes duplicates and holes)
+            playlist.merged.forEach((item, index) => {
+                item.position = index;
+            });
+
+            //-----------
+            // order
+
+            // update
+
+        }).catch(sj.propagate);     
+    }).catch(sj.propagate);
+}
+
+
+
+
 sj.orderTracks = async function (db, playlistId) {
     //R there is a recursive loop hazard in here (basically if sj.getTracks() is the function that calls sj.orderTracks() - sj.orderTracks() itself needs to call sj.getTracks(), therefore a loop), however if everything BUT sj.getTracks() calls sj.orderTracks(), then sj.orderTracks() can safely call sj.getTracks(), no, the same thing happens with sj.editTracks() - so just include manual queries
 
@@ -2089,6 +2261,7 @@ sj.moveTrack = async function (ctx, track, position) {
             }
         });
     } else {
+        //TODO don't error, just add to start
         throw new sj.Error({
             log: true,
             origin: 'moveTrack()',
