@@ -99,6 +99,8 @@
     //TODO replace all database variables, column names, etc. with constants inside this file (or the db file)
 
     //TODO complete all parameters on database functions
+
+    //TODO after functions are mostly debugged - remove a lot of the .catch(sj.propagate) - this is mainly tracing and unhandled error
 */
 
 
@@ -1266,214 +1268,275 @@ sj.descriptionRules = new sj.Rule({
 */
 
 // CRUD
-sj.addPlaylists = async function (db, playlist, ctx) {
-    await sj.isLoggedIn(ctx);
+sj.addPlaylists = async function (db, playlists) {
+    return await db.tx(t => {
+        let results = await sj.asyncForEach(playlists, async playlist => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+                [true,  'userId',       sj.idRules,             playlist,   'userId'],
+                [true,  'name',         sj.playlistNameRules,   playlist,   'name'],
+                [false, 'description',  sj.descriptionRules,    playlist,   'description'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+            
+            let values = sj.buildValues(columnPairs);
 
-    await sj.Rule.checkRuleSet([
-        [sj.playlistNameRules, playlist, 'name'],
-        [sj.visibilityRules, playlist, 'visibility'],
-        [sj.descriptionRules, playlist, 'description'],
-        [sj.imageRules, playlist, 'image'],
-        [sj.colorRules, playlist, 'color'],
-    ]);
-    /*
-        var errorList = new sj.ErrorList({
-            origin: 'addPlaylist()',
-            message: 'one or more issues with fields',
-            reason: 'validation functions returned one or more errors',
-        });
-        if (!(sj.isLoggedIn(ctx))) {
-            errorList.content.push(new sj.Error({
+            let row = await t.one('INSERT INTO "sj"."playlists" $1:raw RETURNING *', values).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.addPlaylists()',
+                    message: 'could not add playlists',
+                }));
+            });
+
+            row = new sj.Playlist(row);
+            return row;
+        }).catch(rejected => {
+            throw new sj.ErrorList({
                 log: true,
+                origin: 'addPlaylists()',
+                message: 'unable to add playlists',
+                content: rejected,
+            });
+        });
+
+        return new sj.Success({
+            origin: 'sj.addPlaylists()',
+            message: 'added playlists',
+            content: results,
+        })
+    }).catch(sj.propagate);
+
+
+    /* old
+        await sj.isLoggedIn(ctx);
+
+        await sj.Rule.checkRuleSet([
+            [sj.playlistNameRules, playlist, 'name'],
+            [sj.visibilityRules, playlist, 'visibility'],
+            [sj.descriptionRules, playlist, 'description'],
+            [sj.imageRules, playlist, 'image'],
+            [sj.colorRules, playlist, 'color'],
+        ]);
+
+        return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
                 origin: 'addPlaylist()',
-                message: 'you must be logged in to add a playlist',
+                message: 'failed to add playlist, database error',
                 target: 'notify',
                 cssClass: 'notifyError',
             }));
-        }
-        playlist.name = await sj.playlistNameRules.check(playlist.name).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        playlist.visibility = await sj.visibilityRules.check(playlist.visibility).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        playlist.description = await sj.descriptionRules.check(playlist.description).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        playlist.image = await sj.imageRules.check(playlist.image).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        playlist.color = await sj.colorRules.check(playlist.color).catch(rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
+        }).then (resolved => {
+            return new sj.Success({
+                log: true,
+                origin: 'addPlaylist()',
+                message: `${playlist.name} added`,
+                cssClass: 'notifySuccess',
+                content: playlist,
+            });
+        }).catch(rejected => {
+            throw sj.propagateError(rejected);
         });
     */
-    /*
-        playlist.name = await sj.validatePlaylistName(playlist.name).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        playlist.visibility = await sj.validateVisibility(playlist.visibility).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            return rejected.content;
-        });
-        playlist.description = await sj.validateDescription(playlist.description).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-        playlist.color = await sj.validateColor(playlist.color).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });;
-        playlist.image = await sj.validateImage(playlist.image).then(resolved => {
-            return resolved.content;
-        }, rejected => {
-            errorList.content.push(rejected);
-            return rejected.content;
-        });
-    */
-    /*
-        if (!(errorList.content.length === 0)) {
-            errorList.announce();
-            throw errorList;
-        }
-    */
-
-    return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'addPlaylist()',
-            message: 'failed to add playlist, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    }).then (resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'addPlaylist()',
-            message: `${playlist.name} added`,
-            cssClass: 'notifySuccess',
-            content: playlist,
-        });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
 }
-sj.getPlaylists = async function (db, playlist, ctx) {
-    //! id is default to null when it isn't set, is this wrong semantics //?
-    /*
-        if (sj.typeOf(playlist.id) !== 'null') { 
-    */
+sj.getPlaylists = async function (db, playlists) {
+    return await db.tx(async t => {
+        let results = await sj.asyncForEach(playlists, async playlist => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+                [false, 'id',           sj.idRules,             playlist,   'id'],
+                [false, 'userId',       sj.idRules,             playlist,   'userId'],
+                [false, 'name',         sj.playlistNameRules,   playlist,   'name'],
+                [false, 'description',  sj.descriptionRules,    playlist,   'description'],
+            ]).then(sj.returnContent).catch(sj.propagate);
 
-    //C build where
-    let where = await sj.checkAndBuild([
-        ['id', sj.idRules, playlist, 'id'],
-        ['userId', sj.idRules, playlist, 'userId'],
-        ['name', sj.playlistNameRules, playlist, 'name'],
-    ]);
+            let where = sj.buildWhere(columnPairs);
 
-    //C query
-    let playlists = await db.any('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'sj.getPlaylist()',
-            message: 'could not get playlist, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    });
-
-    //C cast
-    playlists.forEach(item => {
-        item = new sj.Playlist(item);
-    });
-
-
-    playlists = await Promise.all(playlists.map(async item => {
-        //C get tracks
-        item.content = sj.getTrack(ctx, new sj.Track({playlistId: item.id})).catch(rejected => {   
-            //TODO warning
-            console.warn('getPlaylist() succeeded, but a getTrack() failed')
-            return propagateError(rejected); //! returned, not thrown
-        });
-
-        /* old
-            await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, item.id).catch(rejected => {
-                
+            let rows = await t.any('SELECT * FROM "sj"."playlists" WHERE $1:raw', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'getPlaylist() tracks query',
-                    message: 'could not get playlist, database error',
-                    target: 'notify',
-                    cssClass: 'notifyError',
+                    origin: 'sj.getPlaylists()',
+                    message: 'could not get playlists',
                 }));
             });
-        */
 
-        return item;
-    })).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-
-
-    return playlists;
-
-    /*
-        //TODO permissions
-        do this when permissions are sorted out
-        if (playlist.visibility === 'public' || playlist.visibility === 'linkOnly' || (playlist.visibility === 'private' && sj.isLoggedIn(ctx) && playlist.userId === ctx.session.user.id)) {
-
-        throw new sj.Error({
-            log: true,
-            origin: 'getPlaylist()',
-            message: 'you do not have permission to access this playlist',
-            target: 'notify',
-            cssClass: 'notifyError',
+            rows.forEach(row => {
+                row = new sj.Playlist(row);
+            });
+            return rows;
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.getPlaylists()',
+                message: 'unable to retrieve playlists',
+                content: rejected.flat(1),
+            });
         });
+
+        return new sj.Success({
+            origin: 'sj.getPlaylists()',
+            message: 'retrieved playlists',
+            content: results.flat(1), 
+        });
+    }).catch(sj.propagate);
+
+    /* old
+        //C build where
+        let where = await sj.checkAndBuild([
+            ['id', sj.idRules, playlist, 'id'],
+            ['userId', sj.idRules, playlist, 'userId'],
+            ['name', sj.playlistNameRules, playlist, 'name'],
+        ]);
+
+        //C query
+        let playlists = await db.any('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'sj.getPlaylist()',
+                message: 'could not get playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
+
+        //C cast
+        playlists.forEach(item => {
+            item = new sj.Playlist(item);
+        });
+
+
+        playlists = await Promise.all(playlists.map(async item => {
+            //C get tracks
+            item.content = sj.getTrack(ctx, new sj.Track({playlistId: item.id})).catch(rejected => {   
+                //TODO warning
+                console.warn('getPlaylist() succeeded, but a getTrack() failed')
+                return propagateError(rejected); //! returned, not thrown
+            });
+
+            // await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, item.id).catch(rejected => {  
+            //     throw sj.parsePostgresError(rejected, new sj.Error({
+            //         log: false,
+            //         origin: 'getPlaylist() tracks query',
+            //         message: 'could not get playlist, database error',
+            //         target: 'notify',
+            //         cssClass: 'notifyError',
+            //     }));
+            // });
+
+            return item;
+        })).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+
+
+        return playlists;
     */
 }
-sj.editPlaylists = async function (db, playlist, ctx) { //TODO
-}
-sj.deletePlaylists = async function (db, playlist, ctx) {
-    await sj.isLoggedIn(ctx);
+sj.editPlaylists = async function (db, playlists) {
+    return await db.tx(async t => {
+        let results = await sj.asyncForEach(playlists, async playlist => {
+            let columnPairsWhere = await sj.Rule.checkRuleSet([
+                [true, 'id', sj.idRules, playlist, 'id'],
+            ]).then(sj.returnContent).catch(sj.propagate);
 
-    playlist = await sj.getPlaylist(ctx, playlist);
+            let columnPairsSet = await sj.Rule.checkRuleSet([
+                [false, 'name',         sj.playlistNameRules,   playlist,   'name'],
+                [false, 'description',  sj.descriptionRules,    playlist,   'description'],
+            ]).then(sj.returnContent).catch(sj.propagate);
 
-    await sj.Rule.checkRuleSet([
-        [sj.idRules, playlist, 'id'],
-        [sj.selfRules, playlist, 'userId', ctx.session.user.id],
-    ]);
-    
-    return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1', [playlist.id]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'deletePlaylist()',
-            message: 'could not delete playlist, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    }).then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'deletePlaylist()',
-            message: 'playlist deleted',
-            target: 'notify',
-            cssClass: 'notify success',
+            let where = sj.buildWhere(columnPairsWhere);
+            let set = sj.buildSet(columnPairsSet);
+
+            let row = await t.one('UPDATE "sj"."playlists" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.editPlaylists()',
+                    message: 'could not edit playlists',
+                }));
+            });
+
+            row = new sj.Playlist(row);
+            return row;
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.editPlaylists()',
+                message: 'unable to edit playlists',
+                content: rejected,
+            });
         });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
+
+        return new sj.Success({
+            origin: 'sj.editPlaylists()',
+            message: 'edited playlists',
+            content: results,
+        });
+    }).catch(sj.propagate);
+}
+sj.deletePlaylists = async function (db, playlists) {
+    return await db.tx(async t => {
+        let results = await sj.asyncForEach(playlists, playlist => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+            	[true, 'id', sj.idRules, playlist, 'id'],
+			]).then(sj.returnContent).catch(sj.propagate);
+			
+			let where = sj.buildWhere(columnPairs);
+
+			let row = await t.one('DELETE FROM "sj"."playlists" WHERE $1:raw RETURNING *', where).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.deletePlaylists()',
+                    message: 'could not delete playlist',
+                }));
+			});
+			
+			row = new sj.Playlist(row);
+			return row;
+        }).catch(rejected => {
+			throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.deletePlaylists()',
+                message: 'unable to delete playlists',
+                content: rejected,
+            });
+		});
+
+		return new sj.Success({
+			origin: 'sj.deletePlaylists()',
+            message: 'deleted playlists',
+            content: results,
+		});
+    }).catch(sj.propagate);
+
+
+    /* old
+        await sj.isLoggedIn(ctx);
+
+        playlist = await sj.getPlaylist(ctx, playlist);
+
+        await sj.Rule.checkRuleSet([
+            [sj.idRules, playlist, 'id'],
+            [sj.selfRules, playlist, 'userId', ctx.session.user.id],
+        ]);
+        
+        return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1', [playlist.id]).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'deletePlaylist()',
+                message: 'could not delete playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        }).then(resolved => {
+            return new sj.Success({
+                log: true,
+                origin: 'deletePlaylist()',
+                message: 'playlist deleted',
+                target: 'notify',
+                cssClass: 'notify success',
+            });
+        }).catch(rejected => {
+            throw sj.propagateError(rejected);
+        });
+    */
 }
 
 
@@ -1522,29 +1585,27 @@ sj.trackNameRules = new sj.Rule({
 // CRUD
 sj.addTracks = async function (db, tracks) {
     return await db.tx(t => {
-        let results = await sj.asyncForEach(tracks, async item => {
+        let results = await sj.asyncForEach(tracks, async track => {
             let columnPairs = await sj.Rule.checkRuleSet([
-                [true, 'playlistId',    sj.idRules,         item, 'playlistId'],
-                [true, 'source',        sj.sourceRules,     item, 'source'],
-                [true, 'sourceId',      sj.sourceIdRules,   item, 'sourceId'],
-                [true, 'name',          sj.trackNameRules,  item, 'name'],
-                [true, 'duration',      sj.posIntRules,     item, 'duration'],
+                [true, 'playlistId',    sj.idRules,         track, 'playlistId'],
+                [true, 'source',        sj.sourceRules,     track, 'source'],
+                [true, 'sourceId',      sj.sourceIdRules,   track, 'sourceId'],
+                [true, 'name',          sj.trackNameRules,  track, 'name'],
+                [true, 'duration',      sj.posIntRules,     track, 'duration'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             //C count number of existing tracks and set the next position
-            let trackList = await sj.getTracks(t, new sj.Track({playlistId: item.playlistId}));
-            item.position = trackList.length;
-            columnPairs.push({column: 'position', value: item.position});
+            let existingTracks = await sj.getTracks(t, new sj.Track({playlistId: track.playlistId}));
+            track.position = existingTracks.length;
+            columnPairs.push({column: 'position', value: track.position});
 
             let values = sj.buildValues(columnPairs);
 
             let row = await t.one('INSERT INTO "sj"."tracks" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                        origin: 'sj.addTracks()',
-                        message: 'could not add tracks',
-                        target: 'notify',
-                        cssClass: 'notifyError',
+                    origin: 'sj.addTracks()',
+                    message: 'could not add tracks',
                 }));
             });
 
@@ -1556,7 +1617,7 @@ sj.addTracks = async function (db, tracks) {
                 origin: 'sj.addTracks()',
                 message: 'unable to add tracks',
                 content: rejected,
-            })
+            });
         });
 
         //R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
@@ -1675,12 +1736,12 @@ sj.addTracks = async function (db, tracks) {
 }
 sj.getTracks = async function (db, tracks) {
     return await db.tx(async t => {
-        let results = await sj.asyncForEach(tracks, async item => {
+        let results = await sj.asyncForEach(tracks, async track => {
             //C checkRuleSet and set columnPairs
             let columnPairs = await sj.Rule.checkRuleSet([
-                [false, 'id',           sj.idRules,     item, 'id'],
-                [false, 'playlistId',   sj.idRules,     item, 'playlistId'],
-                [false, 'position',     sj.posIntRules, item, 'position'],
+                [false, 'id',           sj.idRules,     track, 'id'],
+                [false, 'playlistId',   sj.idRules,     track, 'playlistId'],
+                [false, 'position',     sj.posIntRules, track, 'position'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             //C build where clause
@@ -1690,16 +1751,14 @@ sj.getTracks = async function (db, tracks) {
             let rows = await t.any('SELECT * FROM "sj"."tracks" WHERE $1:raw', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                        origin: 'sj.getTracks()',
-                        message: 'could not get tracks',
-                        target: 'notify',
-                        cssClass: 'notifyError',
+                    origin: 'sj.getTracks()',
+                    message: 'could not get tracks',
                 }));
             });
 
             //C cast
-            rows.forEach(item => {
-                item = new sj.Track(item);
+            rows.forEach(row => {
+                row = new sj.Track(row);
             });
             return rows;
         }).catch(rejected => {
@@ -1746,7 +1805,6 @@ sj.getTracks = async function (db, tracks) {
 
         return tracks;
     */
-
     /* old (from getPlaylist() ?) //! do not order tracks here because these will not always be an entire playlist
         //C check and fix order
         for (let i = 0; i < tracks.length; i++) {
@@ -1779,18 +1837,18 @@ sj.editTracks = async function (db, tracks) {
         //! results will not include other tracks moved by moveTracks()
         await sj.moveTracks(t, tracks);
 
-        let results = await sj.asyncForEach(tracks, async item => {
+        let results = await sj.asyncForEach(tracks, async track => {
             let columnPairsWhere = await sj.Rule.checkRuleSet([
-                [true, 'id', sj.idRules, item, 'id'],
+                [true, 'id', sj.idRules, track, 'id'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
                 //! do not edit position here
-                [false, 'playlistId',   sj.idRules,        item, 'playlistId'],
-                [false, 'source',       sj.sourceRules,    item, 'source'],
-                [false, 'sourceId',     sj.sourceIdRules,  item, 'sourceId'],
-                [false, 'name',         sj.trackNameRules, item, 'name'],
-                [false, 'duration',     sj.posIntRules,    item, 'duration'],
+                [false, 'playlistId',   sj.idRules,        track, 'playlistId'],
+                [false, 'source',       sj.sourceRules,    track, 'source'],
+                [false, 'sourceId',     sj.sourceIdRules,  track, 'sourceId'],
+                [false, 'name',         sj.trackNameRules, track, 'name'],
+                [false, 'duration',     sj.posIntRules,    track, 'duration'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairsWhere);
@@ -1799,10 +1857,8 @@ sj.editTracks = async function (db, tracks) {
             let row = await t.one('UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                        origin: 'sj.editTracks()',
-                        message: 'could not edit track',
-                        target: 'notify',
-                        cssClass: 'notifyError',
+                    origin: 'sj.editTracks()',
+                    message: 'could not edit track',
                 }));
             });
 
@@ -1826,9 +1882,9 @@ sj.editTracks = async function (db, tracks) {
 }
 sj.deleteTracks = async function (db, tracks) {
     return await db.tx(async t => {
-        let results = await sj.asyncForEach(tracks, async item => {
+        let results = await sj.asyncForEach(tracks, async track => {
             let columnPairs = await sj.Rule.checkRuleSet([
-                [true, 'id',           sj.idRules,     item, 'id'],
+                [true, 'id', sj.idRules, track, 'id'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairs);
@@ -1839,15 +1895,13 @@ sj.deleteTracks = async function (db, tracks) {
                     log: false,
                     origin: 'sj.deleteTracks()',
                     message: 'could not delete track',
-                    target: 'notify',
-                    cssClass: 'notifyError',
                 }));
             });
             
             row = new sj.Track(row);
             return row;
         }).catch(rejected => {
-            new sj.ErrorList({
+            throw new sj.ErrorList({
                 log: true,
                 origin: 'sj.deleteTracks()',
                 message: 'unable to delete tracks',
