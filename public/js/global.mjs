@@ -156,7 +156,12 @@ sj.isType = function (input, type) {
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
 	//TODO see if this can be even more cleanly structured
 
-	// if type is a constructor
+	// exact value
+	if (input === type) {
+		return true;
+	}
+
+	// instanceof
 	try {
 		if (input instanceof type) {
 			return true;
@@ -165,20 +170,21 @@ sj.isType = function (input, type) {
 		//C don't error if type is not constructable, just move on
 	} 
 
-	if (input === null && type === 'null') {
-		return true;
+	// typeof
+	if (input === null) {
+		if (type === 'null') {
+			return true;
+		}
+		return false;
 	}
 
-	// typeof
 	let t = typeof input;
 	if (t === type) {
 		return true;
 	}
 
 	// objects
-	if (t === 'object' && input !== null) {
-		//TODO implement instanceof here?
-
+	if (t === 'object') {
 		// sj.Objects
 		if (sj.objectList.indexOf(input.objectType) !== -1) {
 			// any sj.Object
@@ -347,18 +353,38 @@ Array.prototype.stableSort = function(compare) {
 
 // promises
 sj.asyncForEach = async function (list, callback) {
-	//C executes an async function on all items in an array, resolving any thrown errors
-	//! throw may be used inside the callback, though because all errors are resolved they will have to be sorted later
-	//L this helped a bit: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
-	return Promise.all(list.map(async (item, index, originalList) => callback(item, index, originalList).catch(sj.andResolve)));
+	//C executes an async function for each item in an array, throws entire result list if any of it's items were thrown
+	//L this helped: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
+	
+	let results = await Promise.all(list.map(async (item, index, self) => callback(item, index, self).then(resolved => {
+		return {
+			resolved: true,
+			content: resolved,
+		}
+	}, rejected => {
+		//C temporarily hold rejections so that every function may finish
+		return {
+			resolved: false,
+			content: rejected,
+		}
+	})));
+
+	let allResolved = results.every(item => item.resolved);
+	results = results.map(item => item.content);
+
+	if (allResolved) {
+		return results;
+	} else {
+		throw results;
+	}
 }
-//? why is resolveBoth needed? why cant .catch(sj.andResolve) work? because the resolved version is returned anyways
-//TODO consider removing resolveBoth in favor for just using .catch(sj.andResolve)
 sj.andResolve = function (rejected) {
 	//C use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
 	//C non-sj errors should also be converted here
 	return sj.propagateError(rejected);
 }
+//? why is resolveBoth needed? why cant .catch(sj.andResolve) work? because the resolved version is returned anyways
+//TODO consider removing resolveBoth in favor for just using .catch(sj.andResolve)
 sj.resolveBoth = function (resolved, rejected) {
 	//C Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
 
@@ -368,19 +394,15 @@ sj.resolveBoth = function (resolved, rejected) {
 		return sj.propagateError(rejected);
 	}
 }
-sj.returnContent = function (resolved) {
-	//C shorter syntax for immediately returning the content property of a resolved object from a promise chain
-	return resolved.content;
-}
 
 	
-	//   ██████╗██╗      █████╗ ███████╗███████╗
-	//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
-	//  ██║     ██║     ███████║███████╗███████╗
-	//  ██║     ██║     ██╔══██║╚════██║╚════██║
-	//  ╚██████╗███████╗██║  ██║███████║███████║
-	//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
-	
+//   ██████╗██╗      █████╗ ███████╗███████╗
+//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
+//  ██║     ██║     ███████║███████╗███████╗
+//  ██║     ██║     ██╔══██║╚════██║╚════██║
+//  ╚██████╗███████╗██║  ██║███████║███████║
+//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+
 /* TODO
 	auto name can be included in: console.trace();
 
@@ -896,44 +918,46 @@ sj.Rule = class extends sj.Object {
 		//C transform object (this will strip any irrelevant properties away)
 		return new sj.Success(this); 		
 	}
-	//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
-	//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
-	async checkProperty(obj, prop, value2) {
-		//C validate arguments
-		if (!sj.isType(obj, 'object')) {
-			throw new sj.Error({
-				log: true,
-				origin: 'sj.Rule.checkProperty()',
-				message: 'validation error',
-				reason: `sj.Rule.checkProperty()'s first argument is not an object`,
-				content: obj,
+
+	/* old, decided this was redundant
+		//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
+		//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
+		async checkProperty(obj, prop, value2) {
+			//C validate arguments
+			if (!sj.isType(obj, 'object')) {
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkProperty()',
+					message: 'validation error',
+					reason: `sj.Rule.checkProperty()'s first argument is not an object`,
+					content: obj,
+				});
+			}
+			if (!prop in obj) {
+				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkProperty()',
+					message: 'validation error',
+					reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
+					content: obj,
+				});
+			}
+
+			//C check rules
+			let result = this.check(obj[prop], value2).catch(rejected => {
+				//C throw error if failed 
+				//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
+				throw sj.propagateError(rejected);
 			});
+
+			//C modify and return if successful
+			obj[prop] = result.content;
+			return result;
 		}
-		if (!prop in obj) {
-			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-			throw new sj.Error({
-				log: true,
-				origin: 'sj.Rule.checkProperty()',
-				message: 'validation error',
-				reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
-				content: obj,
-			});
-		}
+	*/
 
-		//C check rules
-		let result = this.check(obj[prop], value2).catch(rejected => {
-			//C throw error if failed 
-			//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
-			throw sj.propagateError(rejected);
-		});
-
-		//C modify and return if successful
-		obj[prop] = result.content;
-		return result;
-	}
-
-	
-	/* //? checkRuleSet is the function that actually doesn't need to exist
+	/* old, new check ruleset was created in global-server.mjs
 		static async checkRuleSet(ruleSet) {
 			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
 			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
@@ -1514,40 +1538,9 @@ sj.propagate = function (rejected) {
 }
 
 // sorting
-sj.wrapAll = async function (list, type, success, error) {
-	//C wraps a list in a success or error object based on it's contents, keeps all contents on error
-	//! do not log success or error objects, one of the two is announced by this function
-	//L array.every: https://codedam.com/just-so-you-know-array-methods/
-
-	success.content = error.content = list;
-
-	if (list.every(item => sj.isType(item, type))) {
-		success.announce();
-		return success;
-	} else {
-		error.announce();
-		throw error;
-	}
-}
-sj.wrapPure = async function (list, type, success, error) {
-	//C like sj.wrapAll, however discards non-errors on error
-
-	success.content = list;
-	error.content = [];
-
-	list.forEach(item => {
-		if (!sj.isType(item, type)) {
-			error.content.push(item);
-		}
-	});
-
-	if (error.content.length === 0) {
-		success.announce();
-		return success;
-	} else {
-		error.announce();
-		throw error;
-	}
+sj.returnContent = function (resolved) {
+	//C shorter syntax for immediately returning the content property of a resolved object from a promise chain
+	return resolved.content;
 }
 sj.one = function (a) {
 	if (a.length === 1) {
@@ -1568,6 +1561,41 @@ sj.one = function (a) {
 	}
 }
 
+sj.wrapAll = async function (list, type, success, error) { //TODO legacy
+	//C wraps a list in a success or error object based on it's contents, keeps all contents on error
+	//! do not log success or error objects, one of the two is announced by this function
+	//L array.every: https://codedam.com/just-so-you-know-array-methods/
+
+	success.content = error.content = list;
+
+	if (list.every(item => sj.isType(item, type))) {
+		success.announce();
+		return success;
+	} else {
+		error.announce();
+		throw error;
+	}
+}
+sj.wrapPure = async function (list, type, success, error) { //TODO legacy
+	//C like sj.wrapAll, however discards non-errors on error
+
+	success.content = list;
+	error.content = [];
+
+	list.forEach(item => {
+		if (!sj.isType(item, type)) {
+			error.content.push(item);
+		}
+	});
+
+	if (error.content.length === 0) {
+		success.announce();
+		return success;
+	} else {
+		error.announce();
+		throw error;
+	}
+}
 sj.filterList = async function (list, type, successList, errorList) { //TODO legacy
 	//TODO go over this
 

@@ -44,6 +44,15 @@
     //TODO would this not mean that requests are also parallely evaluated? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
 
     //L multiple resources with one request: https://stackoverflow.com/questions/32098423/rest-updating-multiple-resources-with-one-request-is-it-standard-or-to-be-avo
+
+    //L return Promise vs return await Promise (theres no difference, except for try-catch blocks): https://stackoverflow.com/questions/38708550/difference-between-return-await-promise-and-return-promise
+    // therefore, do not use await when returning a promise - so that the return syntax can mirror returning inside .then() chains (which cant use await)
+    //L actually no: https://www.reddit.com/r/javascript/comments/7idasp/await_vs_return_vs_return_await/ 
+    //R DO use return await
+    //? can async arrow functions that have a single line return omit 'return await' ? 
+
+    //L proper use of array methods: https://medium.com/front-end-weekly/stop-array-foreach-and-start-using-filter-map-some-reduce-functions-298b4dabfa09
+    
 */
 
 
@@ -503,8 +512,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
 
     let columnPairs = [];
-
-    let result = await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
+    await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
         //C validate arguments
         if (!sj.isType(isRequired, 'boolean')) {
             return new sj.Error({
@@ -556,34 +564,35 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
         if (isRequired | !sj.isEmpty(obj[prop])) {
             //C validate property, possibly modify obj[prop] if successful
             //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
-            //? why is checkProperty needed over check? we have access to obj[prop] = rule.checkProperty() here anyways
-            let result2 = await rule.checkProperty(obj, prop, value2);
+            let checked = await rule.check(obj[prop], value2);
+            obj[prop] = sj.returnContent(checked);
             //C add value to columnPairs
-            //! if rule.checkProperty() throws, this won't be pushed, but that doesn't matter because columnPairs won't be returned if there is any error
+            //! if rule.check() throws, this won't be pushed, but that doesn't matter because columnPairs won't be returned if there is any error
             columnPairs.push({column: column, value: obj[prop]});
-            //C return the success message of rule.checkProperty()
+            //C return the success message of rule.check()
             //! this doesn't end up being returned from the function, but is here for maintainability
-            return result2;
+            return checked;
         } else {
             return new sj.Success({
                 origin: 'sj.Rule.checkRuleSet()',
                 message: `optional empty property ${prop} skipped validation`,
             });
         }
-    }).catch(sj.propagate);
+    }).catch(rejected => {
+        throw new sj.ErrorList({
+            log: true,
+            origin: 'sj.Rule.checkRuleSet()',
+            message: 'one or more issues with rules',
+            reason: 'validation functions returned one or more errors',
+            content: rejected,
+        });
+    });
 
-    result = await sj.wrapAll(resolved, sj.Success, new sj.Success({
+    return new sj.Success({
         origin: 'sj.Rule.checkRuleSet()',
         message: 'all rules validated',
-    }), new sj.ErrorList({
-        origin: 'sj.Rule.checkRuleSet()',
-        message: 'one or more issues with rules',
-        reason: 'validation functions returned one or more errors',
-    }));
-
-    //C if all successful, replace sj.Success.content with columnPairs, then return it
-    result.content = columnPairs;
-    return result;
+        content: columnPairs,
+    });
 }
 sj.buildValues = function (pairs) {
     if (pairs.length === 0) {
@@ -911,7 +920,7 @@ sj.emailRules = new sj.Rule({
             // TODO useFilter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
         });
 
-        return await rules.checkAll();
+        return rules.checkAll();
     }
     sj.validateUserName = async function (name) {
         let rules = new sj.Rule({
@@ -929,7 +938,7 @@ sj.emailRules = new sj.Rule({
             trim: true,
         });
 
-    return await rules.checkAll();
+    return rules.checkAll();
     }
     sj.validatePassword = async function (password, password2) {
         let rules = new sj.Rule({
@@ -948,7 +957,7 @@ sj.emailRules = new sj.Rule({
             againstMessage: 'Passwords do not match',
         });
     
-        return await rules.checkAll();
+        return rules.checkAll();
     }
 */
 
@@ -1181,7 +1190,7 @@ sj.descriptionRules = new sj.Rule({
             trim: true,
         });
 
-        return await rules.checkAll();
+        return rules.checkAll();
     }
     sj.validateVisibility = async function (visibility) {
         let rules = new sj.Rule({
@@ -1198,7 +1207,7 @@ sj.descriptionRules = new sj.Rule({
             againstMessage: 'please select a valid visibility level',
         });
 
-        return await rules.checkAll();
+        return rules.checkAll();
     }
     sj.validateDescription = async function (description) {
         let rules = new sj.Rule({
@@ -1215,7 +1224,7 @@ sj.descriptionRules = new sj.Rule({
             trim: true,
         });
 
-        return await rules.checkAll();
+        return rules.checkAll();
     }
     sj.validateColor = async function (color) {
         let rules = new sj.Rule({
@@ -1233,7 +1242,7 @@ sj.descriptionRules = new sj.Rule({
             filterMessage: 'Color must be in hex format #XXXXXX',
         });
 
-        return await rules.checkAll();
+        return rules.checkAll();
     }
     sj.validateImage = async function (image) {
         let rules = new sj.Rule({
@@ -1252,7 +1261,7 @@ sj.descriptionRules = new sj.Rule({
             filterMessage: 'Image must be a valid url',
         });
 
-        return await rules.checkAll();
+        return rules.checkAll();
     }
 */
 
@@ -1511,11 +1520,8 @@ sj.trackNameRules = new sj.Rule({
 });
 
 // CRUD
-//------------
-//TODO finish sj.orderTracks() and sj.moveTrack()
-
 sj.addTracks = async function (db, tracks) {
-    return db.tx(t => {
+    return await db.tx(t => {
         let results = await sj.asyncForEach(tracks, async item => {
             let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'playlistId',    sj.idRules,         item, 'playlistId'],
@@ -1532,7 +1538,7 @@ sj.addTracks = async function (db, tracks) {
 
             let values = sj.buildValues(columnPairs);
 
-            let row = t.one('INSERT INTO "sj"."tracks" $1:raw', values).catch(rejected => {
+            let row = await t.one('INSERT INTO "sj"."tracks" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                         origin: 'sj.addTracks()',
@@ -1544,15 +1550,36 @@ sj.addTracks = async function (db, tracks) {
 
             row = new sj.Track(row);
             return row;
-        }).catch(sj.propagate);
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.addTracks()',
+                message: 'unable to add tracks',
+                content: rejected,
+            })
+        });
 
-        return await sj.wrapAll(results, sj.Track, new sj.Success({
+        //R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
+
+        //C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
+        //! requires the INSERT command to be executed one at at a time for each input track
+        //R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
+        tracks.forEach((item, index) => {
+            if(!sj.isEmpty(item.position)) {
+                item.id = results[index].id;
+                results[index].position = item.position;
+            }
+        });
+
+        //C use the input tracks to properly order
+        await sj.moveTracks(t, tracks);;
+
+        //C return the result tracks
+        return new sj.Success({
             origin: 'sj.addTracks()',
             message: 'added tracks',
-        }), new sj.ErrorList({
-            origin: 'sj.addTracks()',
-            message: 'unable to add tracks',
-        }));
+            content: results,
+        });
     }).catch(sj.propagate);
 
 
@@ -1647,7 +1674,7 @@ sj.addTracks = async function (db, tracks) {
     */
 }
 sj.getTracks = async function (db, tracks) {
-    return db.tx(async t => {
+    return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async item => {
             //C checkRuleSet and set columnPairs
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1675,18 +1702,21 @@ sj.getTracks = async function (db, tracks) {
                 item = new sj.Track(item);
             });
             return rows;
-        }).catch(sj.propagate);
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.getTracks()',
+                message: 'unable to retrieve tracks',
+                content: rejected.flat(1),
+            });
+        });
 
-        //C bring each sub-array's tracks up to the root level (because t.any() returns an array, not a single object)
-        results = results.flat(1);
-
-        return await sj.wrapAll(results, sj.Track, new sj.Success({
+        return new sj.Success({
             origin: 'sj.getTracks()',
-            message: 'retrieved tracks'
-        }), new sj.ErrorList({
-            origin: 'sj.getTracks()',
-            message: 'unable to retrieve tracks'
-        }));
+            message: 'retrieved tracks',
+            //C bring each sub-array's tracks up to the root level (because t.any() returns an array, not a single object)
+            content: results.flat(1), 
+        });
     }).catch(sj.propagate);
 
 
@@ -1744,15 +1774,19 @@ sj.getTracks = async function (db, tracks) {
     */
 }
 sj.editTracks = async function (db, tracks) {
-    return db.tx(async t => {
+    return await db.tx(async t => {
+        //C move before editing other data, so that final position may be accurate in returned results 
+        //! results will not include other tracks moved by moveTracks()
+        await sj.moveTracks(t, tracks);
+
         let results = await sj.asyncForEach(tracks, async item => {
             let columnPairsWhere = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, item, 'id'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
+                //! do not edit position here
                 [false, 'playlistId',   sj.idRules,        item, 'playlistId'],
-                //[false, 'position',     sj.posIntRules,    item, 'position'],
                 [false, 'source',       sj.sourceRules,    item, 'source'],
                 [false, 'sourceId',     sj.sourceIdRules,  item, 'sourceId'],
                 [false, 'name',         sj.trackNameRules, item, 'name'],
@@ -1774,19 +1808,24 @@ sj.editTracks = async function (db, tracks) {
 
             row = new sj.Track(row);
             return row;
-        }).catch(sj.propagate);
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.editTracks()',
+                message: 'unable to edit tracks',
+                content: rejected,
+            });
+        });
 
-        return await sj.wrapAll(results, sj.Track, new sj.Success({
+        return new sj.Success({
             origin: 'sj.editTracks()',
             message: 'edited tracks',
-        }), new sj.ErrorList({
-            origin: 'sj.editTracks()',
-            message: 'unable to edit tracks',
-        }));
+            content: results,
+        });
     }).catch(sj.propagate);
 }
 sj.deleteTracks = async function (db, tracks) {
-    return db.tx(async t => {
+    return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async item => {
             let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'id',           sj.idRules,     item, 'id'],
@@ -1794,7 +1833,7 @@ sj.deleteTracks = async function (db, tracks) {
 
             let where = sj.buildWhere(columnPairs);
 
-            //! deletion will return the deleted row, however this will still have visibility limitations and should not be used to restore data
+            //! deletion will return the deleted row, however this will still (eventually) have visibility limitations and should not be used to restore data
             let row = await t.one('DELETE FROM "sj"."tracks" WHERE $1:raw RETURNING *', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
@@ -1804,19 +1843,26 @@ sj.deleteTracks = async function (db, tracks) {
                     cssClass: 'notifyError',
                 }));
             });
-
             
             row = new sj.Track(row);
             return row;
-        }).catch(sj.propagate);
+        }).catch(rejected => {
+            new sj.ErrorList({
+                log: true,
+                origin: 'sj.deleteTracks()',
+                message: 'unable to delete tracks',
+                content: rejected,
+            });
+        });
 
-        return await sj.wrapAll(results, sj.Track, new sj.Success({
+        //C order after deleting
+        await sj.orderTracks(t, results);
+
+        return new sj.Success({
             origin: 'sj.deleteTracks()',
             message: 'deleted tracks',
-        }), new sj.ErrorList({
-            origin: 'sj.deleteTracks()',
-            message: 'unable to delete tracks',
-        }));
+            content: results,
+        });
     }).catch(sj.propagate);
 
 
@@ -1884,7 +1930,11 @@ sj.deleteTracks = async function (db, tracks) {
 }
 
 // util
+
+//C moveTracks() and orderTracks() have similar ordering and updating parts
 sj.moveTracks = async function (db, tracks) {
+    //C takes a list of tracks with id and position, returns a list of playlists that were modified
+
     /* //R
         if any tracks have position set,
             do the move function
@@ -1925,25 +1975,25 @@ sj.moveTracks = async function (db, tracks) {
 
             this essentially 'fills' the existing tracks around the set positions of the input tracks
     */
+    //C remove tracks without an id or position, define a new array so original is not modified
+    let movingTracks = tracks.filter(item => !(sj.isEmpty(item.id) || sj.isEmpty(item.position)));
+    //C remove duplicates (keeping last), filters for items where every item after does not have the same id
+    movingTracks = movingTracks.filter((item, index, self) => self.slice(index+1).every(itemAfter => item.id !== itemAfter.id));
 
-    //L proper use of array methods: https://medium.com/front-end-weekly/stop-array-foreach-and-start-using-filter-map-some-reduce-functions-298b4dabfa09
-    
-    //C filter for tracks that are being re-positioned
-    tracks = tracks.filter(item => !sj.isEmpty(item.position));
-
-    //TODO what if there are multiple tracks with the same id?, filter out either all but the first of last track with the same id
-
-    //C early return if none are being re-positioned
-    if (tracks.length === 0) {
+    //C return early if none are being re-positioned
+    if (movingTracks.length === 0) {
         return new sj.Success({
             origin: 'sj.moveTracks()',
             message: 'track positions did not need to be set',
         });
     }
 
-    let something = db.tx(async t => {
-        //C create playlist lists (incase tracks from two different playlists are moved at the same time (not likely but would be allowed to happen through editTracks())) 
-        /* //C playlists item format:
+
+    return await db.tx(async t => {
+        /* //C list of playlists
+            //C it is possible to move tracks from two different playlists at the same time (follows the behavior of editTrack())
+
+            //C format
             {
                 id: 4,
                 all: [],
@@ -1952,17 +2002,20 @@ sj.moveTracks = async function (db, tracks) {
                 merged: [],
             }
             
-            //R playlist.all is required (instead of just sorting into moving and notMoving) 
-            because each track is processed individually, 
-            each moving track's notMoving list will likely include another moving track in the same playlist
+            //R playlist.all is required (instead of just sorting into moving and notMoving) because each track is processed individually, each moving track's notMoving list will likely include another moving track in the same playlist
         */
         let playlists = [];
         
         //C populate .all and .moving
-        await sj.asyncForEach(tracks, track => {
-            //L subquery = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+        //! because a new item is not always being added to playlists, we cant simply set playlists to the result of asyncForEach(), just throw an error list if anything failed
+        await sj.asyncForEach(movingTracks, async track => {
+            //C validate
+            track.id = await sj.idRules.check(track.id).then(sj.returnContent);
+            track.position = await sj.posIntRules.check(track.position).then(sj.returnContent);
 
-            let playlistAll = t.any(`
+            //C get track's playlist based on track.id, using a sub-query
+            //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+            let playlist = await t.any(`
                 SELECT "id", "position", "playlistId"
                 FROM "sj"."tracks" 
                 WHERE "playlistId" = (
@@ -1978,51 +2031,64 @@ sj.moveTracks = async function (db, tracks) {
                 }));
             });
 
+            //C playlist should not be empty
+            if (playlist.length === 0) {
+                throw new sj.Error({
+                    origin: 'sj.moveTracks()',
+                    message: 'failed to move tracks',
+                    reason: `the playlist retrieved by this track's id returned no rows, there must be an error with the query command`,
+                });
+            }
 
-            //TODO two assumptions:
-            //TODO what if playlist does not contain original track (is this possible?)
-            //TODO what if playlist is empty?? (is this even possible?)
+            //C add playlistId to track, but dont change the position property, playlist should include the track used to select it
+            track.playlistId = sj.one(playlist.filter(item => item.id === track.id)).playlistId;
 
-            //C shorten syntax
-            let track = playlist.All.filter(item => item.id === track.id)[0];
-            let playlistId = track.playlistId;
-
-
-            if (!playlists.some(item => { 
-                if (item.id === playlistId) {
-                    //C if current track's playlist is already stored, just push the new moving-track
-                    item.moving.push(track);
+            if (playlists.every(item => {
+                if (item.id !== track.playlistId) {
                     return true;
                 } else {
+                    //C if a playlist does match the current track, just push the moving track
+                    item.moving.push(track);
                     return false;
                 }
-            })) { 
-                //C if current track's playlist is not yet stored, push the new playlist with its all-tracks and its moving-track
+            })) {
+                //C if every playlist does not match the current track, store it with its all tracks and its moving track
                 playlists.push({
-                    id: playlistId,
-                    all: playlistAll,
+                    id: track.playlistId,
+                    all: playlist,
                     moving: [track],
                     notMoving: [],
                     merged: [],
                 });
             }
 
-            //-------------- does sj.wrapAll() have use here?
-            return;
-        }).catch(sj.propagate);
+            return new sj.Success({
+                origin: 'sj.moveTracks()',
+                message: "retrieved track's playlist",
+            });
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.moveTracks()',
+                message: `could not retrieve some track's playlist`,
+                content: rejected,
+            })
+        });
 
-        //C populate .notMoving
+        //C populate .notMoving, specifically after all moving tracks are sorted into their playlists
         playlists.forEach(playlist => {
-            //C filter playlistAll for tracks where its id does not equal the id of any track in the respective playlistMoving
+            //C filter playlist.all for tracks where their id does not equal the id of any track in the playlist.moving
             playlist.notMoving = playlist.all.filter(allTrack => playlist.moving.every(movingTrack => allTrack.id !== movingTrack.id));
         });
 
-        await sj.asyncForEach(playlists, playlist => {
+
+        //C combine, sort, and update
+        playlists = await sj.asyncForEach(playlists, async playlist => {
             //C sort both
             sj.stableSort(playlist.moving, (a, b) => a.position - b.position);
             sj.stableSort(playlist.notMoving, (a, b) => a.position - b.position);
 
-            //C fill nonMoving tracks around moving tracks
+            //C combine, fills nonMoving tracks around moving tracks
             for (let i = 0; i < playlist.moving.length + playlist.notMoving.length; i++) {
                 if (playlist.moving[0].position <= i) {
                     //C if the next moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list (this will handle negative and duplicate positions)
@@ -2039,64 +2105,118 @@ sj.moveTracks = async function (db, tracks) {
             //L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
             playlist.merged.push(...playlist.moving);
 
-            //C order positions (removes duplicates and holes)
+
+            //C order (removes duplicates and holes)
             playlist.merged.forEach((item, index) => {
                 item.position = index;
             });
 
-            //-----------
-            // order
+            //C format update cases so updates can be done in one query
+            let cases = playlist.merged.map(item => pgp.as.format(`WHEN $1 THEN $2`, [item.id, item.position]));
+            cases = cases.join(' ');
 
-            // update
-
-        }).catch(sj.propagate);     
-    }).catch(sj.propagate);
-}
-
-
-
-
-sj.orderTracks = async function (db, playlistId) {
-    //R there is a recursive loop hazard in here (basically if sj.getTracks() is the function that calls sj.orderTracks() - sj.orderTracks() itself needs to call sj.getTracks(), therefore a loop), however if everything BUT sj.getTracks() calls sj.orderTracks(), then sj.orderTracks() can safely call sj.getTracks(), no, the same thing happens with sj.editTracks() - so just include manual queries
-
-    //C validate id
-    playlistId = sj.idRules.check(playlistId).then(sj.returnContent);
-
-    return db.tx(async t => {
-        //C get all tracks in trackList
-        let trackList = t.any('SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1', playlistId).catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                    origin: 'sj.getOrderTracks()',
-                    message: 'could not order tracks',
+            //C defer constraints (unique) on track position
+            //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
+            //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
+            //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
+            await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.moveTracks()',
+                    message: 'could not order tracks, database error',
                     target: 'notify',
                     cssClass: 'notifyError',
-            }));
-        });
+                }));
+            });
 
-        //C sort by track.position
-        //? will this fail if list is empty? //TODO what if position is undefined/null? might have to include a NOT NULL condition in the table
-        sj.stableSort(trackList, function (a, b) {
-            return a.position - b.position;
-        });
+            //C update
+            let rows = await t.many(`
+                UPDATE "sj"."tracks"
+                SET "position" = CASE "id"
+                    $1:raw
+                    ELSE "position"
+                    END
+                WHERE "playlistId" = $2
+                RETURNING *
+            `, [cases, playlist.id]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.moveTracks()',
+                    message: 'could not move tracks',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
+            });
 
-        //C defer constraints (unique) on track position
-        //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
-        //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
-        //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-        await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'sj.orderTracks()',
-                message: 'could not order tracks, database error',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
+            //C cast
+            rows.forEach(item => {
+                item = new sj.Track(item);
+            });
 
-        //C update positions based on indexes (removes holes and duplicates)
-        await sj.asyncForEach(trackList, async (item, index) => {
-            await t.none('UPDATE "sj"."tracks" SET "position" = $1 WHERE "position" = $2', [index, item.position]).catch(rejected => {
+            return new sj.Playlist({
+                origin: 'sj.moveTracks()',
+                id: playlist.id,
+                content: rows,
+            });
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.moveTracks()',
+                message: 'failed to move tracks',
+                content: rejected,
+            });
+        });
+        
+        //C will return a list of playlists that were updated (however will return this playlist even if a track was set to the same position it already was)
+        return new sj.Success({
+            origin: 'sj.moveTracks()',
+            message: 'moved tracks',
+            content: playlists,
+        });
+    }).catch(sj.propagate);
+}
+sj.orderTracks = async function (db, tracks) {
+    //C takes a list of tracks with playlistId, returns a list of playlists affected by the sort
+
+    //R there is a recursive loop hazard in here (basically if sj.getTracks() is the function that calls sj.orderTracks() - sj.orderTracks() itself needs to call sj.getTracks(), therefore a loop), however if everything BUT sj.getTracks() calls sj.orderTracks(), then sj.orderTracks() can safely call sj.getTracks(), no, the same thing happens with sj.editTracks() - so just include manual queries, no have it so: sj.getTracks() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.getTracks(), and then have each use their own manual update queries - basically add, edit, delete can use these and sj.getTracks() but not each other - this is written down in that paper chart
+
+    let playlistIds = [];
+    await sj.asyncForEach(tracks, async track => {
+        //C filter for unique playlist ids
+        if (self.slice(index+1).every(itemAfter => item.playlistId !== itemAfter.playlistId)) {
+            //C validate
+            let id = await sj.idRules.check(track.playlistId).then(sj.returnContent);
+            playlistIds.push(id);
+        }
+        return;
+    }).catch(rejected => {
+        new sj.ErrorList({
+            log: true,
+            origin: 'sj.orderTracks()',
+            message: 'validation issues with track playlistIds',
+            content: rejected,
+        });
+    });
+
+    return await db.tx(async t => {
+        return await sj.asyncForEach(playlistIds, playlistId => {
+            //C get
+            let playlist = await sj.getTracks(new sj.Track({playlistId}));
+
+            //C sort
+            sj.stableSort(playlist, (a, b) => a.position - b.position);
+
+            //C order
+            playlist.forEach((track, index) => {
+                track.position = index;
+            });
+
+            //C format cases
+            let cases = playlist.map(track => pgp.as.format(`WHEN $1 THEN $2`, [track.id, track.position]));
+            cases = cases.join(' ');
+
+            //C defer constraints
+            await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.orderTracks()',
@@ -2106,72 +2226,48 @@ sj.orderTracks = async function (db, playlistId) {
                 }));
             });
 
-            return new sj.Success({
-                origin: 'sj.orderTracks()',
-                message: 'track position set',
+            //C update
+            let rows = await t.many(`
+                UPDATE "sj"."tracks"
+                SET "position" = CASE "id"
+                    $1:raw
+                    ELSE "position"
+                    END
+                WHERE "playlistId" = $2
+                RETURNING *
+            `, [cases, playlistId]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.orderTracks()',
+                    message: 'could not move tracks',
+                    target: 'notify',
+                    cssClass: 'notifyError',
+                }));
             });
 
-            //-----------
-        });
+            //C cast
+            rows.forEach(item => {
+                item = new sj.Track(item);
+            });
 
-        
+            return new sj.Playlist({
+                origin: 'sj.orderTracks()',
+                id: playlistId,
+                content: rows,
+            });
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.orderTracks()',
+                message: 'failed to order tracks',
+                content: rejected,
+            });
+        });
     }).catch(sj.propagate);
+}
 
-    /*
-        //! this shouldn't need to be called anywhere other than getPlaylist() as long as anything that changes a playlist's order calls getPlaylist (before), a call to orderPlaylist (functionally equivalent to getPlaylist()) afterwards, would be redundant as the playlist should be always ordered on retrieval anyways
-
-        //R no recursive functions, 1 its not needed in this case, 2 this one caused an infinite loop because of a mistake
-        //C retrieve the playlist if it doesn't have its contents
-        if (playlist.content.length === 0) { //R this causes an endless loop if the playlist is empty
-            // used by sj.Track.playlistId as a shortcut to order playlist in one line
-            return await sj.getPlaylist(ctx, playlist);
-        }
-
-        // old comments?
-        //! this will only update rows that are already in the table, will not add anything new to the sorted playlist, therefore will still have gaps if the playlist has more rows than the database or duplicates if it has less
-        //? possible memory leak error here
-    */
-
-    //C validate id
-    id = sj.idRules.check(id).then(sj.returnContent);
-
-    return db.tx(async function (t) {
-        //C get all tracks in a playlist
-        let trackList = await sj.getTrack(t, new sj.Track({playlistId: id})).then(sj.returnContent);
-
-        //C sort by track.position
-        sj.stableSort(trackList, function (a, b) {
-            return a.position - b.position;
-        });
-
-        //C update indexes (to fill holes & remove duplicates)
-        trackList.forEach((item, index) => {
-            item.position = index;
-        });
-
-        //C defer constraints (unique) on track position
-        //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
-        //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
-        //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-        await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'orderPlaylist()',
-                message: 'could not order playlist, database error',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
-
-        //C update track positions
-        //TODO change success message here? or should this return a playlist?
-        return await sj.editTrack(t, trackList);
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-
-
-    /* old
+/* old
+    sj.orderTracks = async function (db, playlistId) {
         // update
         return db.tx(async function (t) {
             let realPlaylist = await t.one(`SELECT * FROM "sj"."playlists" WHERE "id" = $1`, [playlist.id]).catch(rejected => {
@@ -2242,50 +2338,51 @@ sj.orderTracks = async function (db, playlistId) {
         }).catch(rejected => {
             throw sj.propagateError(rejected);
         });
-    */
-}
-sj.moveTrack = async function (ctx, track, position) {
-    //TODO what if edit cant change position, only move can? but then how does that interact with the REST? figure this out
+    }
+*/
+/* old, rewritten
+    sj.moveTrack = async function (ctx, track, position) {
+        //TODO what if edit cant change position, only move can? but then how does that interact with the REST? figure this out
 
-    let playlist = await sj.getPlaylist(ctx, track.playlistId).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-
-    if (position >= playlist.content.length) {
-        track.position = playlist.content.length;
-    } else if (position >= 0) {
-        track.position = position;
-        playlist.content.map(item => {
-            if (item.position >= position) {
-                item.position++;
-            }
+        let playlist = await sj.getPlaylist(ctx, track.playlistId).catch(rejected => {
+            throw sj.propagateError(rejected);
         });
-    } else {
-        //TODO don't error, just add to start
-        throw new sj.Error({
-            log: true,
+
+        if (position >= playlist.content.length) {
+            track.position = playlist.content.length;
+        } else if (position >= 0) {
+            track.position = position;
+            playlist.content.map(item => {
+                if (item.position >= position) {
+                    item.position++;
+                }
+            });
+        } else {
+            //TODO don't error, just add to start
+            throw new sj.Error({
+                log: true,
+                origin: 'moveTrack()',
+                message: 'track position cannot be negative',
+            });
+        }
+
+        playlist = await sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+            throw sj.parsePostgresError(rejected, new sj.Error({
+                log: false,
+                origin: 'addTrack()',
+                message: 'could not order playlist, database error',
+                target: 'notify',
+                cssClass: 'notifyError',
+            }));
+        });
+
+        return new sj.Success({
+            log: false,
             origin: 'moveTrack()',
-            message: 'track position cannot be negative',
+            message: 'moved track',
+            content: playlist,
         });
     }
-
-    playlist = await sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'addTrack()',
-            message: 'could not order playlist, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    });
-
-    return new sj.Success({
-        log: false,
-        origin: 'moveTrack()',
-        message: 'moved track',
-        content: playlist,
-    });
-}
-
+*/
 
 export default sj;
