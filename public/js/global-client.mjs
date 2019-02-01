@@ -23,6 +23,8 @@
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
 
 	consider moving the sj.addUser(), sj.getTrack(), etc. functions into the sj.Object classes?
+
+	//TODO should CRUD functions have propagateErrors on them?
 */
 
 
@@ -268,19 +270,45 @@ sj.request = async function (method, url, body) {
 		throw sj.propagateError(rejected);
 	});
 	
-	//TODO consider how to handle single objects, vs arrays, maybe make a function that automatically handles it? (also for async>)
-	if (sj.isType(result, 'array')) {
-		result.forEach(item => {
-			//C throws a single error if any of the items fail to rebuild, //? is this the desired behavior?
-			result = sj.rebuild(result);
+
+
+		//C format as array
+		result = sj.any(result);
+		result = await sj.asyncForEach(result, item => {
+			//C rebuild each item
+			let item = sj.rebuild(item);
+			//C throw if item is an error
+			if (sj.isError(item)) {
+				throw item;
+			}
+			return result;
+		}).catch(rejected => {
+			throw new sj.ErrorList({
+				log: true,
+				origin: 'sj.request()',
+				message: 'request failed',
+			});
+		});
+
+	if (sj.isType(result, Array)) {
+		result = await sj.asyncForEach(result, item => {
+			let item = sj.rebuild(item);
+			if (sj.isError(item)) {
+				throw item;
+			}
+			return result;
+		}).catch(rejected => {
+			throw new sj.ErrorList({
+				log: true,
+				origin: 'sj.request()',
+				message: 'request failed',
+			});
 		});
 	} else {
 		result = sj.rebuild(result);
-	}
-	
-	//C catch and throw server or rebuild errors
-	if (sj.isError(result)) {
-		throw result;
+		if (sj.isError(result)) {
+			throw result;
+		}
 	}
 
 	return result;
@@ -305,19 +333,19 @@ sj.request = async function (method, url, body) {
 */
 
 // CRUD
-sj.addUser = async function (user) {
-	//TODO should these all have propagateErrors on them?
-	return sj.request('post', `${sj.API_URL}/user`, user);
+sj.addUsers = async function (users) {
+	return sj.request('post', `${sj.API_URL}/user`, users);
 }
-sj.getUser = async function (user) {
+sj.getUsers = async function (users) {
 	//! get requests must use query parameters cause they have no body
-	return sj.request('get', `${sj.API_URL}/user?id=${user.id}&name=${user.name}&email=${user.email}`);
+	let query = sj.buildQuery(users, ['id', 'name', 'email']);
+	return sj.request('get', `${sj.API_URL}/user?${query}`);
 }
-sj.editUser = async function (user) {
-	return sj.request('patch', `${sj.API_URL}/user`, user);
+sj.editUsers = async function (users) {
+	return sj.request('patch', `${sj.API_URL}/user`, users);
 }
-sj.deleteUser = async function (user) {
-	return sj.request('delete', `${sj.API_URL}/user`, user);
+sj.deleteUsers = async function (users) {
+	return sj.request('delete', `${sj.API_URL}/user`, users);
 }
 
 sj.login = async function (user) {
@@ -453,17 +481,18 @@ async function getUser(id) {
 // playlists
 
 // CRUD
-sj.addPlaylist = async function (playlist) {
-	return sj.request('post', `${sj.API_URL}/playlist`, playlist);
+sj.addPlaylists = async function (playlists) {
+	return sj.request('post', `${sj.API_URL}/playlist`, playlists);
 }
-sj.getPlaylist = async function (playlist) {
-	return sj.request('get', `${sj.API_URL}/playlist?id=${playlist.id}&userId=${playlist.userId}&name=${playlist.name}`);
+sj.getPlaylists = async function (playlists) {
+	let query = sj.buildQuery(playlists, ['id', 'userId', 'name']);
+	return sj.request('get', `${sj.API_URL}/playlist?${query}`);
 }
-sj.editPlaylist = async function (playlist) {
-	return sj.request('patch', `${sj.API_URL}/playlist`, playlist);
+sj.editPlaylists = async function (playlists) {
+	return sj.request('patch', `${sj.API_URL}/playlist`, playlists);
 }
-sj.deletePlaylist = async function (playlist) {
-	return sj.request('delete', `${sj.API_URL}/playlist`, playlist);
+sj.deletePlaylists = async function (playlists) {
+	return sj.request('delete', `${sj.API_URL}/playlist`, playlists);
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions
@@ -560,17 +589,18 @@ async function orderPlaylist(id) {
 // tracks
 
 // CRUD
-sj.addTrack = async function (track) {
-	return sj.request('post', `${sj.API_URL}/track`, track);
+sj.addTracks = async function (tracks) {
+	return sj.request('post', `${sj.API_URL}/track`, tracks);
 }
-sj.getTrack = async function (track) {
-	return sj.request('get', `${sj.API_URL}/track?id=${track.id}&playlistId=${track.playlistId}&position=${track.position}`);
+sj.getTracks = async function (tracks) {
+	let query = sj.buildQuery(tracks, ['id', 'playlistId', 'position', 'name']);
+	return sj.request('get', `${sj.API_URL}/track?${query}`);
 }
-sj.editTrack = async function (track) {
-	return sj.request('patch', `${sj.API_URL}/track`, track);
+sj.editTracks = async function (tracks) {
+	return sj.request('patch', `${sj.API_URL}/track`, tracks);
 }
-sj.deleteTrack = async function (track) {
-	return sj.request('delete', `${sj.API_URL}/track`, track);
+sj.deleteTracks = async function (tracks) {
+	return sj.request('delete', `${sj.API_URL}/track`, tracks);
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions

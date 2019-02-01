@@ -395,6 +395,43 @@ sj.resolveBoth = function (resolved, rejected) {
 	}
 }
 
+// HTTP
+sj.buildQuery = function (items, props) {
+	let query = [];
+	sj.any(items).forEach((item, index) => {
+		props.forEach(prop => {
+			query.push(`${prop}${index}=${item[prop]}`);
+		});
+	});
+
+	query = query.join('&');
+	return query;
+}
+sj.unpackQuery = function (queryObject) {
+	let items = [];
+	//C for each key
+	Object.keys(queryObject).forEach(key => {
+		//C if the last character is an integer
+		let i = key.slice(-1);
+		if (sj.isType(i, 'integer')) {
+			//C get the real key name
+			let realKey = key.slice(0, key.length - 1);
+			//C if the item was already added
+			if (sj.isType(items[i], Object)) {
+				//C set the key and value
+				items[i][realKey] = queryObject.key;
+			} else {
+				//C else, add the item with the key and value
+				items[i] = {
+					[realKey]: queryObject.key,
+				}
+			}
+		}
+	});
+
+	return items;
+}
+
 	
 //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
