@@ -964,168 +964,317 @@ sj.emailRules = new sj.Rule({
 */
 
 // CRUD
-sj.addUsers = async function (db, user) {
-    //C validate
-    await sj.Rule.checkRuleSet([
-        [sj.userNameRules, user, 'name'],
-        [sj.setPasswordRules, user, 'password', user.password2],
-        [sj.emailRules, user, 'email'],
-    ]);
 
-    return bcrypt.hash(user.password, saltRounds).catch(rejected => {
-        throw new sj.Error({
-            log: true,
-            origin: 'register()',
-            message: 'failed to register user',
-            reason: 'hash failed',
-            content: rejected,
-            target: 'notify',
-            cssClass: 'notifyError',
-        });
-    }).then(resolved => {
-        return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
-            // replaces default error info with info based on error code 
-            throw sj.parsePostgresError(rejected, new sj.Error({
-                log: false,
-                origin: 'addUser()',
-                message: 'could not add user',
-                target: 'notify',
-                cssClass: 'notifyError',
-            }));
-        });
-    }).then(resolved => {
-        //C strip passwords
-        user.password = undefined;
-        user.password2 = undefined;
+//TODO ensure that password is not being returned here (no matter the view/permission), remember to use views in all CRUD functions, not just the tables
 
-        //C return user object
-        return new sj.Success({
-            log: true,
-            origin: 'register()',
-            message: `${user.name} registered`,
-            cssClass: 'notifySuccess',
-            content: user,
-        });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
-}
-sj.getUsers = async function (db, user, ctx) {
-    //R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
-    //R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
-    //R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
+sj.addUsers = async function (db, users) {
+	return await db.tx(t => {
+        let results = await sj.asyncForEach(users, async user => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+				[true, 'name',		sj.userNameRules,		user, 'name'],
+				[true, 'email',		sj.emailRules, 			user, 'email'],
+			]).then(sj.returnContent).catch(sj.propagate);
+			
 
-    let where = await sj.checkAndBuild([
-        ['id', sj.idRules, user, 'id'],
-        ['name', sj.userNameRules, user, 'name'],
-        //! don't query email because that is not visible to users_public (maybe allow it once permissions are implemented?)
-        //TODO expand properties
-    ]);
+			//C check password separately
+			user.password = await sj.passwordRules.check(user.password, user.password2).then(sj.returnContent);
+			//C hash
+			let hash = bcrypt.hash(user.password, saltRounds).catch(rejected => {
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.addUsers()',
+					message: 'failed to add user',
+					reason: 'hash failed',
+					content: rejected,
+				});
+			});
+			//C add to columnPairs
+			columnPairs.push({column: 'password', value: hash});
+			
 
-    //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
-    let users = db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-                origin: 'getUser()',
-                message: 'could not get user',
-                target: 'notify',
-                cssClass: 'notifyError',
-        }));
-    });
+            let values = sj.buildValues(columnPairs);
 
-    //C cast
-    //! requires that table names are the same as object property names
-    users.forEach(item => {
-        item = new sj.User(item);
-    });
-    
-    return users;
-}
-sj.editUsers = async function (db, user, ctx) { //TODO
-    // TODO should be similar to addUser(), just with a flexible amount of properties, and a WHERE clause, !!! ensure that id does not get changed
-    await sj.isLoggedIn(ctx);
-
-    /* TODO
-    return db.none('UPDATE "sj"."users" SET x = $x, x = $x, x = $x, ... WHERE "id" = x,', [x, ...]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'editUser()',
-            message: 'could not edit user',
-            notify: 'notify',
-            cssClass: 'notifyError',
-        }));
-    }).then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'editUser()',
-            message: 'updated user',
-            notify: 'notify',
-            cssClass: 'notifySuccess',
-        });
-    }).catch(rejected => {
-        throw propagateError(rejected);
-    });
-    */
-}
-sj.deleteUsers = async function (db, user, ctx) {
-    await sj.isLoggedIn(ctx);
-
-    await sj.Rule.checkRuleSet([
-        [sj.passwordRules, user, 'password'],
-    ]);
-
-    return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
-            log: false,
-            origin: 'deleteUser()',
-            message: 'could not delete user',
-            target: 'notify',
-            cssClass: 'notifyError',
-        }));
-    }).then(resolved => {
-        return bcrypt.compare(user.password, resolved.password).catch(rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'deleteUser()',
-                message: 'server error',
-                reason: 'hash compare failed',
-                content: rejected,
-                target: 'loginPassword',
-                cssClass: 'inputError',
-            });
-        });
-    }).then(resolved => {
-        if (resolved) {
-            return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+            let row = await t.one('INSERT INTO "sj"."users" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'deleteUser()',
-                    message: 'could not delete user',
-                    target: 'notify',
-                    cssClass: 'notifyError',
+                    origin: 'sj.addUsers()',
+                    message: 'could not add users',
+                }));
+			});
+
+            row = new sj.User(row);
+            return row;
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'addUsers()',
+                message: 'unable to add users',
+                content: rejected,
+            });
+        });
+
+        return new sj.Success({
+            origin: 'sj.addUsers()',
+            message: 'added users',
+            content: results,
+        })
+    }).catch(sj.propagate);
+
+
+	/* old
+		//C validate
+		await sj.Rule.checkRuleSet([
+			[sj.userNameRules, user, 'name'],
+			[sj.setPasswordRules, user, 'password', user.password2],
+			[sj.emailRules, user, 'email'],
+		]);
+
+		return bcrypt.hash(user.password, saltRounds).catch(rejected => {
+			throw new sj.Error({
+				log: true,
+				origin: 'register()',
+				message: 'failed to register user',
+				reason: 'hash failed',
+				content: rejected,
+				target: 'notify',
+				cssClass: 'notifyError',
+			});
+		}).then(resolved => {
+			return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
+				// replaces default error info with info based on error code 
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: 'addUser()',
+					message: 'could not add user',
+					target: 'notify',
+					cssClass: 'notifyError',
+				}));
+			});
+		}).then(resolved => {
+			//C strip passwords
+			user.password = undefined;
+			user.password2 = undefined;
+
+			//C return user object
+			return new sj.Success({
+				log: true,
+				origin: 'register()',
+				message: `${user.name} registered`,
+				cssClass: 'notifySuccess',
+				content: user,
+			});
+		}).catch(rejected => {
+			throw sj.propagateError(rejected);
+		});
+	*/
+}
+sj.getUsers = async function (db, users) {
+	return await db.tx(async t => {
+        let results = await sj.asyncForEach(users, async user => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+                [false, 'id',           sj.idRules,			user,   'id'],
+                [false, 'name',         sj.userNameRules,   user,   'name'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            let where = sj.buildWhere(columnPairs);
+
+            let rows = await t.any('SELECT * FROM "sj"."users" WHERE $1:raw', where).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.getUsers()',
+                    message: 'could not get users',
                 }));
             });
-        } else {
-            throw new sj.Error({
-                log: true,
-                origin: 'deleteUser()',
-                message: 'incorrect password',
-                target: 'deleteUserPassword',
-                cssClass: 'inputError',
+
+            rows.forEach(row => {
+                row = new sj.User(row);
             });
-        }
-    }).then(resolved => {
-        //C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
-        return logout().catch(sj.andResolve);     
-    }).then(resolved => {
-        return new sj.Success({
-            log: true,
-            origin: 'deleteUser()',
-            message: `user ${user.name} deleted`,
+            return rows;
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.getUsers()',
+                message: 'unable to retrieve users',
+                content: rejected.flat(1),
+            });
         });
-    }).catch(rejected => {
-        throw propagateError(rejected);
-    });
+
+        return new sj.Success({
+            origin: 'sj.getUsers()',
+            message: 'retrieved users',
+            content: results.flat(1), 
+        });
+    }).catch(sj.propagate);
+
+	/* old
+		//R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
+		//R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
+		//R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
+
+		let where = await sj.checkAndBuild([
+			['id', sj.idRules, user, 'id'],
+			['name', sj.userNameRules, user, 'name'],
+			//! don't query email because that is not visible to users_public (maybe allow it once permissions are implemented?)
+			//TODO expand properties
+		]);
+
+		//L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
+		let users = db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+					origin: 'getUser()',
+					message: 'could not get user',
+					target: 'notify',
+					cssClass: 'notifyError',
+			}));
+		});
+
+		//C cast
+		//! requires that table names are the same as object property names
+		users.forEach(item => {
+			item = new sj.User(item);
+		});
+		
+		return users;
+	*/
+}
+sj.editUsers = async function (db, users) {
+	return await db.tx(async t => {
+        let results = await sj.asyncForEach(users, async user => {
+            let columnPairsWhere = await sj.Rule.checkRuleSet([
+                [true, 'id', sj.idRules, user, 'id'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            let columnPairsSet = await sj.Rule.checkRuleSet([
+                [false, 'name',         sj.userNameRules,   user,   'name'],
+                [true, 	'email',		sj.emailRules, 		user, 		'email'],
+            ]).then(sj.returnContent).catch(sj.propagate);
+
+            let where = sj.buildWhere(columnPairsWhere);
+            let set = sj.buildSet(columnPairsSet);
+
+            let row = await t.one('UPDATE "sj"."users" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.editUsers()',
+                    message: 'could not edit users',
+                }));
+            });
+
+            row = new sj.User(row);
+            return row;
+        }).catch(rejected => {
+            throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.editUsers()',
+                message: 'unable to edit users',
+                content: rejected,
+            });
+        });
+
+        return new sj.Success({
+            origin: 'sj.editUsers()',
+            message: 'edited users',
+            content: results,
+        });
+    }).catch(sj.propagate);
+
+}
+sj.deleteUsers = async function (db, users) {
+	return await db.tx(async t => {
+        let results = await sj.asyncForEach(users, user => {
+            let columnPairs = await sj.Rule.checkRuleSet([
+            	[true, 'id', sj.idRules, user, 'id'],
+			]).then(sj.returnContent).catch(sj.propagate);
+			
+			let where = sj.buildWhere(columnPairs);
+
+			let row = await t.one('DELETE FROM "sj"."users" WHERE $1:raw RETURNING *', where).catch(rejected => {
+                throw sj.parsePostgresError(rejected, new sj.Error({
+                    log: false,
+                    origin: 'sj.deleteUsers()',
+                    message: 'could not delete user',
+                }));
+			});
+			
+			row = new sj.User(row);
+			return row;
+        }).catch(rejected => {
+			throw new sj.ErrorList({
+                log: true,
+                origin: 'sj.deleteUsers()',
+                message: 'unable to delete user',
+                content: rejected,
+            });
+		});
+
+		return new sj.Success({
+			origin: 'sj.deleteUsers()',
+            message: 'deleted user',
+            content: results,
+		});
+    }).catch(sj.propagate);
+
+	/* old
+		await sj.isLoggedIn(ctx);
+
+		await sj.Rule.checkRuleSet([
+			[sj.passwordRules, user, 'password'],
+		]);
+
+		return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: 'deleteUser()',
+				message: 'could not delete user',
+				target: 'notify',
+				cssClass: 'notifyError',
+			}));
+		}).then(resolved => {
+			return bcrypt.compare(user.password, resolved.password).catch(rejected => {
+				throw new sj.Error({
+					log: true,
+					origin: 'deleteUser()',
+					message: 'server error',
+					reason: 'hash compare failed',
+					content: rejected,
+					target: 'loginPassword',
+					cssClass: 'inputError',
+				});
+			});
+		}).then(resolved => {
+			if (resolved) {
+				return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+					throw sj.parsePostgresError(rejected, new sj.Error({
+						log: false,
+						origin: 'deleteUser()',
+						message: 'could not delete user',
+						target: 'notify',
+						cssClass: 'notifyError',
+					}));
+				});
+			} else {
+				throw new sj.Error({
+					log: true,
+					origin: 'deleteUser()',
+					message: 'incorrect password',
+					target: 'deleteUserPassword',
+					cssClass: 'inputError',
+				});
+			}
+		}).then(resolved => {
+			//C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
+			return logout().catch(sj.andResolve);     
+		}).then(resolved => {
+			return new sj.Success({
+				log: true,
+				origin: 'deleteUser()',
+				message: `user ${user.name} deleted`,
+			});
+		}).catch(rejected => {
+			throw propagateError(rejected);
+		});
+	*/
 }
 
 
