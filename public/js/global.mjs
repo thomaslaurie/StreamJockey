@@ -1543,13 +1543,17 @@ sj.returnContent = function (resolved) {
 	return resolved.content;
 }
 sj.one = function (a) {
-	if (a.length === 1) {
+	//C unwraps the first item of an array where one item is expected
+	if (!sj.isType(a, Array)) {
+		return a;
+	} else if (a.length === 1) {
 		return a[0];
 	} else if (a.length >= 2) {
 		//TODO make a warning object / handler?
 		console.warn('sj.one() pulled a single value out of an array with many');
 		return a[0];
 	} else if (a.length === 0) {
+		//! this does not return undefined because we are 'expecting' one value (//TODO though this may be changed later to return undefined)
 		return new sj.Error({
 			log: true,
 			origin: 'sj.one()',
@@ -1560,42 +1564,52 @@ sj.one = function (a) {
 		});
 	}
 }
-
-sj.wrapAll = async function (list, type, success, error) { //TODO legacy
-	//C wraps a list in a success or error object based on it's contents, keeps all contents on error
-	//! do not log success or error objects, one of the two is announced by this function
-	//L array.every: https://codedam.com/just-so-you-know-array-methods/
-
-	success.content = error.content = list;
-
-	if (list.every(item => sj.isType(item, type))) {
-		success.announce();
-		return success;
+sj.any = function (o) {
+	//C wraps a value in an array if not already inside one
+	if (sj.isType(o, Array)) {
+		return o;
 	} else {
-		error.announce();
-		throw error;
+		return [o];
 	}
 }
-sj.wrapPure = async function (list, type, success, error) { //TODO legacy
-	//C like sj.wrapAll, however discards non-errors on error
 
-	success.content = list;
-	error.content = [];
+/* old
+	sj.wrapAll = async function (list, type, success, error) {
+		//C wraps a list in a success or error object based on it's contents, keeps all contents on error
+		//! do not log success or error objects, one of the two is announced by this function
+		//L array.every: https://codedam.com/just-so-you-know-array-methods/
 
-	list.forEach(item => {
-		if (!sj.isType(item, type)) {
-			error.content.push(item);
+		success.content = error.content = list;
+
+		if (list.every(item => sj.isType(item, type))) {
+			success.announce();
+			return success;
+		} else {
+			error.announce();
+			throw error;
 		}
-	});
-
-	if (error.content.length === 0) {
-		success.announce();
-		return success;
-	} else {
-		error.announce();
-		throw error;
 	}
-}
+	sj.wrapPure = async function (list, type, success, error) {
+		//C like sj.wrapAll, however discards non-errors on error
+
+		success.content = list;
+		error.content = [];
+
+		list.forEach(item => {
+			if (!sj.isType(item, type)) {
+				error.content.push(item);
+			}
+		});
+
+		if (error.content.length === 0) {
+			success.announce();
+			return success;
+		} else {
+			error.announce();
+			throw error;
+		}
+	}
+*/
 sj.filterList = async function (list, type, successList, errorList) { //TODO legacy
 	//TODO go over this
 

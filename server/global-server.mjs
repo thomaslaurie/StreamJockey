@@ -712,75 +712,69 @@ sj.colorRules = new sj.Rule({
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 // CRUD
-sj.login = async function (ctx, user) {
+sj.login = async function (db, ctx, user) {
+    //C validate
     await sj.Rule.checkRuleSet([
-        [sj.userNameRules, user, 'name'],
-        [sj.passwordRules, user, 'password'],
+        [true, 'name', sj.userNameRules, user, 'name'],
+        [true, 'password', sj.passwordRules, user, 'password'],
     ]);
 
-    return db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).catch(rejected => {
+    //C get password
+    let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
+        return resolved.password;
+    }).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'login()',
             message: 'could not login, database error',
-            target: 'notify',
-            cssClass: 'notifyError',
         }));
-    }).then(resolved => {
-        return bcrypt.compare(user.password, resolved.password).catch(rejected => {
-            throw new sj.Error({
-                log: true,
-                origin: 'login()',
-                message: 'server error',
-                reason: 'hash compare failed',
-                content: rejected,
-                target: 'loginPassword',
-                cssClass: 'inputError',
-            });
-        });
-    }).then(resolved => {
-        if (resolved) {
-            return db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', [user.name]).catch(rejected => {
-                throw sj.parsePostgresError(rejected, new sj.Error({
-                    log: false,
-                    origin: 'login()',
-                    message: 'could not login, database error',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-                }));
-            });
-        } else {
-            throw new sj.Error({
-                log: true,
-                origin: 'login()',
-                message: 'incorrect password',
-                target: 'loginPassword',
-                cssClass: 'inputError',
-            });
-        }
-    }).then(resolved => {
-        ctx.session.user = new sj.User(resolved);
-        return new sj.Success({
+    });
+
+    //C check password
+    let isMatch = await bcrypt.compare(user.password, existingPassword).catch(rejected => {
+        throw new sj.Error({
             log: true,
             origin: 'login()',
-            message: 'user logged in',
-            target: 'notify',
-            cssClass: 'notifySuccess',
-            content: ctx.session.user,
+            message: 'server error',
+            reason: 'hash compare failed',
+            content: rejected,
+            target: 'loginPassword',
+            cssClass: 'inputError',
         });
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
+    });
+    if (!isMatch) {
+        throw new sj.Error({
+            log: true,
+            origin: 'login()',
+            message: 'incorrect password',
+            target: 'loginPassword',
+            cssClass: 'inputError',
+        });
+    }
+
+    //C get user
+    user = db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
+        throw sj.parsePostgresError(rejected, new sj.Error({
+            log: false,
+            origin: 'login()',
+            message: 'could not login, database error',
+        }));
+    });
+
+    ctx.session.user = new sj.User(user);
+    return new sj.Success({
+        log: true,
+        origin: 'login()',
+        message: 'user logged in',
+        content: ctx.session.user,
     });
 }
 sj.logout = async function (ctx) {
     delete ctx.session.user;
-
     return new sj.Success({
         log: true,
         origin: 'logout()',
         message: 'user logged out',
-        target: 'notify',
-        cssClass: 'notifySuccess',
     });
 }
 
@@ -826,9 +820,9 @@ sj.isLoggedIn = async function (ctx) {
 
 /* TODO
     userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
-
+    
+    //TODO ensure that password is not being returned here (no matter the view/permission), remember to use views in all CRUD functions, not just the tables
 */
-
 
 // validate
 sj.selfRules = new sj.Rule({
@@ -964,10 +958,8 @@ sj.emailRules = new sj.Rule({
 */
 
 // CRUD
-
-//TODO ensure that password is not being returned here (no matter the view/permission), remember to use views in all CRUD functions, not just the tables
-
 sj.addUsers = async function (db, users) {
+    users = sj.any(users);
 	return await db.tx(t => {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1069,6 +1061,7 @@ sj.addUsers = async function (db, users) {
 	*/
 }
 sj.getUsers = async function (db, users) {
+    users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1139,6 +1132,7 @@ sj.getUsers = async function (db, users) {
 	*/
 }
 sj.editUsers = async function (db, users) {
+    users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairsWhere = await sj.Rule.checkRuleSet([
@@ -1181,6 +1175,7 @@ sj.editUsers = async function (db, users) {
 
 }
 sj.deleteUsers = async function (db, users) {
+    users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, user => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1418,6 +1413,7 @@ sj.descriptionRules = new sj.Rule({
 
 // CRUD
 sj.addPlaylists = async function (db, playlists) {
+    playlists = sj.any(playlists);
     return await db.tx(t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1488,6 +1484,7 @@ sj.addPlaylists = async function (db, playlists) {
     */
 }
 sj.getPlaylists = async function (db, playlists) {
+    playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1580,6 +1577,7 @@ sj.getPlaylists = async function (db, playlists) {
     */
 }
 sj.editPlaylists = async function (db, playlists) {
+    playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairsWhere = await sj.Rule.checkRuleSet([
@@ -1621,6 +1619,7 @@ sj.editPlaylists = async function (db, playlists) {
     }).catch(sj.propagate);
 }
 sj.deletePlaylists = async function (db, playlists) {
+    playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1733,6 +1732,7 @@ sj.trackNameRules = new sj.Rule({
 
 // CRUD
 sj.addTracks = async function (db, tracks) {
+    tracks = sj.any(tracks);
     return await db.tx(t => {
         let results = await sj.asyncForEach(tracks, async track => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1884,6 +1884,7 @@ sj.addTracks = async function (db, tracks) {
     */
 }
 sj.getTracks = async function (db, tracks) {
+    tracks = sj.any(tracks);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
             //C checkRuleSet and set columnPairs
@@ -1981,6 +1982,7 @@ sj.getTracks = async function (db, tracks) {
     */
 }
 sj.editTracks = async function (db, tracks) {
+    tracks = sj.any(tracks);
     return await db.tx(async t => {
         //C move before editing other data, so that final position may be accurate in returned results 
         //! results will not include other tracks moved by moveTracks()
@@ -2030,6 +2032,7 @@ sj.editTracks = async function (db, tracks) {
     }).catch(sj.propagate);
 }
 sj.deleteTracks = async function (db, tracks) {
+    tracks = sj.any(tracks);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -2137,6 +2140,7 @@ sj.deleteTracks = async function (db, tracks) {
 //C moveTracks() and orderTracks() have similar ordering and updating parts
 sj.moveTracks = async function (db, tracks) {
     //C takes a list of tracks with id and position, returns a list of playlists that were modified
+    tracks = sj.any(tracks);
 
     /* //R
         if any tracks have position set,
@@ -2382,6 +2386,8 @@ sj.orderTracks = async function (db, tracks) {
     //C takes a list of tracks with playlistId, returns a list of playlists affected by the sort
 
     //R there is a recursive loop hazard in here (basically if sj.getTracks() is the function that calls sj.orderTracks() - sj.orderTracks() itself needs to call sj.getTracks(), therefore a loop), however if everything BUT sj.getTracks() calls sj.orderTracks(), then sj.orderTracks() can safely call sj.getTracks(), no, the same thing happens with sj.editTracks() - so just include manual queries, no have it so: sj.getTracks() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.getTracks(), and then have each use their own manual update queries - basically add, edit, delete can use these and sj.getTracks() but not each other - this is written down in that paper chart
+
+    tracks = sj.any(tracks);
 
     let playlistIds = [];
     await sj.asyncForEach(tracks, async track => {

@@ -179,14 +179,14 @@ apiRouter
 })
 
 // session
-//R login/logout are create/delete for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
+//R //L login/logout are create/delete for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
+//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 .post('/session', async (ctx, next) => {
-	ctx.response.body = await sj.login(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.login(sj.db, ctx, ctx.request.body).catch(sj.andResolve);
 })
 .delete('/session', async (ctx, next) => {
 	ctx.response.body = await sj.logout(ctx).catch(sj.andResolve);
 })
-//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 
 //TODO move me to user, but with 'self' permissions - somehow
 .get('/me', async (ctx, next) => {
@@ -195,48 +195,59 @@ apiRouter
 
 // user
 .post('/user', async (ctx, next) => {
-	ctx.response.body = await sj.addUser(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.addUsers(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/user', async (ctx, next) => {
-	ctx.response.body = await sj.getUser(ctx, new sj.User({
+	ctx.response.body = await sj.getUsers(sj.db, new sj.User({
 		id: ctx.query.id, 
 		name: ctx.query.name, 
 		email: ctx.query.email,
 	})).catch(sj.andResolve);
 })
 .patch('/user', async (ctx, next) => {
-	ctx.response.body = await sj.editUser(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.editUsers(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .delete('/user', async (ctx, next) => {
-	ctx.response.body = await sj.deleteUser(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.deleteUsers(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // playlist
 .post('/playlist', async (ctx, next) => {
-	ctx.response.body = await sj.addPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.addPlaylists(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/playlist', async (ctx, next) => {
-	ctx.response.body = await sj.getPlaylist(ctx, new sj.Playlist({
+	ctx.response.body = await sj.getPlaylists(sj.db, new sj.Playlist({
 		id: ctx.query.id, 
 		userId: ctx.query.userId,
 		name: ctx.query.name, 
 	})).catch(sj.andResolve);
 })
 .patch('/playlist', async (ctx, next) => {
-	ctx.response.body = await sj.editPlaylist(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.editPlaylists(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .delete('/playlist', async (ctx, next) => {
-	ctx.response.body = await sj.deletePlaylist(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.deletePlaylists(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // track
 .post('/track', async (ctx, next) => {
-	ctx.response.body = await sj.addTrack(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.addTracks(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-//TODO tracks can only be retrieved from the context of a playlist, right? tracks will only ever be played or stored within playlists, right?
-//TODO not at the moment, but eventually users will be able to have track specific settings? (paired video, crop points, volume/cross fade, plays?)
+.get('/track', async (ctx, next) => {
+	ctx.response.body = await sj.getTracks(sj.db, new sj.Track({
+		id: ctx.query.id, 
+		playlistId: ctx.query.playlistId,
+		name: ctx.query.name,
+		source: ctx.query.source,
+		sourceId: ctx.query.sourceId,
+		duration: ctx.query.duration,
+	})).catch(sj.andResolve);
+})
+.patch('/playlist', async (ctx, next) => {
+	ctx.response.body = await sj.editTracks(sj.db, ctx.request.body).catch(sj.andResolve);
+})
 .delete('/track', async (ctx, next) => {
-	ctx.response.body = await sj.deleteTrack(ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.deleteTracks(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // catch
