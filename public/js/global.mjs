@@ -115,10 +115,12 @@ sj.trace = function () {
 		//C 'file:///' is removed (so that the URIs are clickable in node)
 		stackTrace = sj.stringReplaceAll(stackTrace, 'file:///', '');
 		//C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-		stackTrace = sj.stringReplaceAll(stackTrace, 'Error\n    ', '');
-		//C removes any line with Object.sj.trace //TODO cant seem to match this, might have to do wtih line breaks?
-		stackTrace = sj.stringReplaceAll(stackTrace, /(?:(?:\\n|\n|\r|$)    at )(?:Object\.sj\.trace|new sj\.Object|new sj\.Error)(?:.+?(?=\\n|\n|\r|$))/g, '');
+		stackTrace = sj.stringReplaceAll(stackTrace, 'Error\n', '');
+		//C removes any line with Object.sj.trace //TODO cant seem to match this, might have to do with line breaks?
+		//TODO this still has some bugs: Object.sj.trace isnt being removed
+		stackTrace = sj.stringReplaceAll(stackTrace, /(?:(?:\\n|\n|\r|$)at )(?:Object\.sj\.trace|new sj\.Object|new sj\.Error)(?:.+?(?=\\n|\n|\r|$))/g, '');
 		// |Object\.sj\.catchUnexpected|Object\.sj\.propagateError|sj\.andResolve
+		
 		return stackTrace;
 	}
 }
@@ -178,6 +180,13 @@ sj.isType = function (input, type) {
 		return false;
 	}
 
+	if (Array.isArray(input)) {
+		if (type === 'array') {
+			return true;
+		}
+		return false;
+	}
+	
 	let t = typeof input;
 	if (t === type) {
 		return true;

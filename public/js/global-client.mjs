@@ -269,30 +269,11 @@ sj.request = async function (method, url, body) {
 	result = await result.json().catch(rejected => {
 		throw sj.propagateError(rejected);
 	});
-	
 
-
-		//C format as array
-		result = sj.any(result);
-		result = await sj.asyncForEach(result, item => {
-			//C rebuild each item
-			let item = sj.rebuild(item);
-			//C throw if item is an error
-			if (sj.isError(item)) {
-				throw item;
-			}
-			return result;
-		}).catch(rejected => {
-			throw new sj.ErrorList({
-				log: true,
-				origin: 'sj.request()',
-				message: 'request failed',
-			});
-		});
-
+	//C rebuild single objects or array of objects
 	if (sj.isType(result, Array)) {
 		result = await sj.asyncForEach(result, item => {
-			let item = sj.rebuild(item);
+			item = sj.rebuild(item);
 			if (sj.isError(item)) {
 				throw item;
 			}
@@ -310,7 +291,7 @@ sj.request = async function (method, url, body) {
 			throw result;
 		}
 	}
-
+	
 	return result;
 
 
@@ -333,19 +314,19 @@ sj.request = async function (method, url, body) {
 */
 
 // CRUD
-sj.addUsers = async function (users) {
-	return sj.request('post', `${sj.API_URL}/user`, users);
+sj.addUser = async function (user) {
+	return sj.request('post', `${sj.API_URL}/user`, user);
 }
-sj.getUsers = async function (users) {
+sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
-	let query = sj.buildQuery(users, ['id', 'name', 'email']);
+	let query = sj.buildQuery(user, ['id', 'name', 'email']);
 	return sj.request('get', `${sj.API_URL}/user?${query}`);
 }
-sj.editUsers = async function (users) {
-	return sj.request('patch', `${sj.API_URL}/user`, users);
+sj.editUser = async function (user) {
+	return sj.request('patch', `${sj.API_URL}/user`, user);
 }
-sj.deleteUsers = async function (users) {
-	return sj.request('delete', `${sj.API_URL}/user`, users);
+sj.deleteUser = async function (user) {
+	return sj.request('delete', `${sj.API_URL}/user`, user);
 }
 
 sj.login = async function (user) {
@@ -481,18 +462,18 @@ async function getUser(id) {
 // playlists
 
 // CRUD
-sj.addPlaylists = async function (playlists) {
-	return sj.request('post', `${sj.API_URL}/playlist`, playlists);
+sj.addPlaylist = async function (playlist) {
+	return sj.request('post', `${sj.API_URL}/playlist`, playlist);
 }
-sj.getPlaylists = async function (playlists) {
-	let query = sj.buildQuery(playlists, ['id', 'userId', 'name']);
+sj.getPlaylist = async function (playlist) {
+	let query = sj.buildQuery(playlist, ['id', 'userId', 'name']);
 	return sj.request('get', `${sj.API_URL}/playlist?${query}`);
 }
-sj.editPlaylists = async function (playlists) {
-	return sj.request('patch', `${sj.API_URL}/playlist`, playlists);
+sj.editPlaylist = async function (playlist) {
+	return sj.request('patch', `${sj.API_URL}/playlist`, playlist);
 }
-sj.deletePlaylists = async function (playlists) {
-	return sj.request('delete', `${sj.API_URL}/playlist`, playlists);
+sj.deletePlaylist = async function (playlist) {
+	return sj.request('delete', `${sj.API_URL}/playlist`, playlist);
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions
@@ -589,18 +570,18 @@ async function orderPlaylist(id) {
 // tracks
 
 // CRUD
-sj.addTracks = async function (tracks) {
-	return sj.request('post', `${sj.API_URL}/track`, tracks);
+sj.addTrack = async function (track) {
+	return sj.request('post', `${sj.API_URL}/track`, track);
 }
-sj.getTracks = async function (tracks) {
-	let query = sj.buildQuery(tracks, ['id', 'playlistId', 'position', 'name']);
+sj.getTrack = async function (track) {
+	let query = sj.buildQuery(track, ['id', 'playlistId', 'position', 'name']);
 	return sj.request('get', `${sj.API_URL}/track?${query}`);
 }
-sj.editTracks = async function (tracks) {
-	return sj.request('patch', `${sj.API_URL}/track`, tracks);
+sj.editTrack = async function (track) {
+	return sj.request('patch', `${sj.API_URL}/track`, track);
 }
-sj.deleteTracks = async function (tracks) {
-	return sj.request('delete', `${sj.API_URL}/track`, tracks);
+sj.deleteTrack = async function (track) {
+	return sj.request('delete', `${sj.API_URL}/track`, track);
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions

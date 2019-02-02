@@ -128,6 +128,43 @@ import database, {pgp} from './database/db.mjs';
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+// polyfill
+if (!Array.prototype.flat) {
+    //L https://github.com/jonathantneal/array-flat-polyfill
+	Object.defineProperties(Array.prototype, {
+		flat: {
+			configurable: true,
+			value: function flat() {
+				let depth = isNaN(arguments[0]) ? 1 : Number(arguments[0]);
+				const stack = Array.prototype.slice.call(this);
+				const result = [];
+
+				while (depth && stack.length) {
+					const next = stack.pop();
+
+					if (Object(next) instanceof Array) {
+						--depth;
+
+						Array.prototype.push.apply(stack, next);
+					} else {
+						result.unshift(next);
+					}
+				}
+
+				return result.concat(stack);
+			},
+			writable: true
+		},
+		flatMap: {
+			configurable: true,
+			value: function flatMap(callback) {
+				return Array.prototype.map.apply(this, arguments).flat();
+			},
+			writable: true
+		}
+	});
+}
+
 // bcrypt
 const saltRounds = 10; 
 
@@ -261,7 +298,7 @@ const visibilityStates = [
 
         const SCHEMA = sj.deepFreeze(P_SCHEMA);
     */
-    return db.tx(async function (t) {
+    return sj.db.tx(async function (t) {
         // TODO this will not alter tables if they do already exist (save this for migration)
         
         // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
@@ -517,48 +554,48 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
         //C validate arguments
         if (!sj.isType(isRequired, 'boolean')) {
-            return new sj.Error({
+            throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
                 reason: `isRequired is not a boolean`,
-                content: ruleSet,
+                content: isRequired,
             });
         }
         if (!sj.isType(column, 'string') | sj.isEmpty(column)){
-            return new sj.Error({
+            throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
                 reason: `column is not a string or is empty`,
-                content: ruleSet,
+                content: column,
             });
         }
-        if (!rules instanceof this) {
-            return new sj.Error({
+        if (!rule instanceof this) {
+            throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
                 reason: `rule is not an sj.Rule`,
-                content: ruleSet,
+                content: rule,
             });
         }
         if (!sj.isType(rule, 'object')) {
-            return new sj.Error({
+            throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
                 reason: `obj is not an object`,
-                content: ruleSet,
+                content: obj,
             });
         }
-        if (prop in obj) {
-            return new sj.Error({
+        if (!prop in obj) {
+            throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
-                reason: `prop is not in obj`,
-                content: ruleSet,
+                reason: `${prop} is not a property of the passed object`,
+                content: obj,
             });
         }
 
@@ -2135,7 +2172,6 @@ sj.deleteTrack = async function (db, tracks) {
 }
 
 // util
-
 //C moveTracks() and orderTracks() have similar ordering and updating parts
 sj.moveTracks = async function (db, tracks) {
     //C takes a list of tracks with id and position, returns a list of playlists that were modified
