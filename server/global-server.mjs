@@ -958,9 +958,9 @@ sj.emailRules = new sj.Rule({
 */
 
 // CRUD
-sj.addUsers = async function (db, users) {
+sj.addUser = async function (db, users) {
     users = sj.any(users);
-	return await db.tx(t => {
+	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairs = await sj.Rule.checkRuleSet([
 				[true, 'name',		sj.userNameRules,		user, 'name'],
@@ -974,7 +974,7 @@ sj.addUsers = async function (db, users) {
 			let hash = bcrypt.hash(user.password, saltRounds).catch(rejected => {
 				throw new sj.Error({
 					log: true,
-					origin: 'sj.addUsers()',
+					origin: 'sj.addUser()',
 					message: 'failed to add user',
 					reason: 'hash failed',
 					content: rejected,
@@ -989,7 +989,7 @@ sj.addUsers = async function (db, users) {
             let row = await t.one('INSERT INTO "sj"."users" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.addUsers()',
+                    origin: 'sj.addUser()',
                     message: 'could not add users',
                 }));
 			});
@@ -1006,7 +1006,7 @@ sj.addUsers = async function (db, users) {
         });
 
         return new sj.Success({
-            origin: 'sj.addUsers()',
+            origin: 'sj.addUser()',
             message: 'added users',
             content: results,
         })
@@ -1060,7 +1060,7 @@ sj.addUsers = async function (db, users) {
 		});
 	*/
 }
-sj.getUsers = async function (db, users) {
+sj.getUser = async function (db, users) {
     users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
@@ -1074,7 +1074,7 @@ sj.getUsers = async function (db, users) {
             let rows = await t.any('SELECT * FROM "sj"."users" WHERE $1:raw', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.getUsers()',
+                    origin: 'sj.getUser()',
                     message: 'could not get users',
                 }));
             });
@@ -1086,14 +1086,14 @@ sj.getUsers = async function (db, users) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.getUsers()',
+                origin: 'sj.getUser()',
                 message: 'unable to retrieve users',
                 content: rejected.flat(1),
             });
         });
 
         return new sj.Success({
-            origin: 'sj.getUsers()',
+            origin: 'sj.getUser()',
             message: 'retrieved users',
             content: results.flat(1), 
         });
@@ -1131,7 +1131,7 @@ sj.getUsers = async function (db, users) {
 		return users;
 	*/
 }
-sj.editUsers = async function (db, users) {
+sj.editUser = async function (db, users) {
     users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
@@ -1150,7 +1150,7 @@ sj.editUsers = async function (db, users) {
             let row = await t.one('UPDATE "sj"."users" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.editUsers()',
+                    origin: 'sj.editUser()',
                     message: 'could not edit users',
                 }));
             });
@@ -1160,24 +1160,23 @@ sj.editUsers = async function (db, users) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.editUsers()',
+                origin: 'sj.editUser()',
                 message: 'unable to edit users',
                 content: rejected,
             });
         });
 
         return new sj.Success({
-            origin: 'sj.editUsers()',
+            origin: 'sj.editUser()',
             message: 'edited users',
             content: results,
         });
     }).catch(sj.propagate);
-
 }
-sj.deleteUsers = async function (db, users) {
+sj.deleteUser = async function (db, users) {
     users = sj.any(users);
 	return await db.tx(async t => {
-        let results = await sj.asyncForEach(users, user => {
+        let results = await sj.asyncForEach(users, async user => {
             let columnPairs = await sj.Rule.checkRuleSet([
             	[true, 'id', sj.idRules, user, 'id'],
 			]).then(sj.returnContent).catch(sj.propagate);
@@ -1187,7 +1186,7 @@ sj.deleteUsers = async function (db, users) {
 			let row = await t.one('DELETE FROM "sj"."users" WHERE $1:raw RETURNING *', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.deleteUsers()',
+                    origin: 'sj.deleteUser()',
                     message: 'could not delete user',
                 }));
 			});
@@ -1197,14 +1196,14 @@ sj.deleteUsers = async function (db, users) {
         }).catch(rejected => {
 			throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.deleteUsers()',
+                origin: 'sj.deleteUser()',
                 message: 'unable to delete user',
                 content: rejected,
             });
 		});
 
 		return new sj.Success({
-			origin: 'sj.deleteUsers()',
+			origin: 'sj.deleteUser()',
             message: 'deleted user',
             content: results,
 		});
@@ -1412,9 +1411,9 @@ sj.descriptionRules = new sj.Rule({
 */
 
 // CRUD
-sj.addPlaylists = async function (db, playlists) {
+sj.addPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
-    return await db.tx(t => {
+    return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([
                 [true,  'userId',       sj.idRules,             playlist,   'userId'],
@@ -1427,7 +1426,7 @@ sj.addPlaylists = async function (db, playlists) {
             let row = await t.one('INSERT INTO "sj"."playlists" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.addPlaylists()',
+                    origin: 'sj.addPlaylist()',
                     message: 'could not add playlists',
                 }));
             });
@@ -1437,14 +1436,14 @@ sj.addPlaylists = async function (db, playlists) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'addPlaylists()',
+                origin: 'sj.addPlaylist()',
                 message: 'unable to add playlists',
                 content: rejected,
             });
         });
 
         return new sj.Success({
-            origin: 'sj.addPlaylists()',
+            origin: 'sj.addPlaylist()',
             message: 'added playlists',
             content: results,
         })
@@ -1483,7 +1482,7 @@ sj.addPlaylists = async function (db, playlists) {
         });
     */
 }
-sj.getPlaylists = async function (db, playlists) {
+sj.getPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
@@ -1499,7 +1498,7 @@ sj.getPlaylists = async function (db, playlists) {
             let rows = await t.any('SELECT * FROM "sj"."playlists" WHERE $1:raw', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.getPlaylists()',
+                    origin: 'sj.getPlaylist()',
                     message: 'could not get playlists',
                 }));
             });
@@ -1511,14 +1510,14 @@ sj.getPlaylists = async function (db, playlists) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.getPlaylists()',
+                origin: 'sj.getPlaylist()',
                 message: 'unable to retrieve playlists',
                 content: rejected.flat(1),
             });
         });
 
         return new sj.Success({
-            origin: 'sj.getPlaylists()',
+            origin: 'sj.getPlaylist()',
             message: 'retrieved playlists',
             content: results.flat(1), 
         });
@@ -1576,7 +1575,7 @@ sj.getPlaylists = async function (db, playlists) {
         return playlists;
     */
 }
-sj.editPlaylists = async function (db, playlists) {
+sj.editPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
@@ -1595,7 +1594,7 @@ sj.editPlaylists = async function (db, playlists) {
             let row = await t.one('UPDATE "sj"."playlists" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.editPlaylists()',
+                    origin: 'sj.editPlaylist()',
                     message: 'could not edit playlists',
                 }));
             });
@@ -1605,23 +1604,23 @@ sj.editPlaylists = async function (db, playlists) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.editPlaylists()',
+                origin: 'sj.editPlaylist()',
                 message: 'unable to edit playlists',
                 content: rejected,
             });
         });
 
         return new sj.Success({
-            origin: 'sj.editPlaylists()',
+            origin: 'sj.editPlaylist()',
             message: 'edited playlists',
             content: results,
         });
     }).catch(sj.propagate);
 }
-sj.deletePlaylists = async function (db, playlists) {
+sj.deletePlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
     return await db.tx(async t => {
-        let results = await sj.asyncForEach(playlists, playlist => {
+        let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([
             	[true, 'id', sj.idRules, playlist, 'id'],
 			]).then(sj.returnContent).catch(sj.propagate);
@@ -1631,7 +1630,7 @@ sj.deletePlaylists = async function (db, playlists) {
 			let row = await t.one('DELETE FROM "sj"."playlists" WHERE $1:raw RETURNING *', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.deletePlaylists()',
+                    origin: 'sj.deletePlaylist()',
                     message: 'could not delete playlist',
                 }));
 			});
@@ -1641,14 +1640,14 @@ sj.deletePlaylists = async function (db, playlists) {
         }).catch(rejected => {
 			throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.deletePlaylists()',
+                origin: 'sj.deletePlaylist()',
                 message: 'unable to delete playlists',
                 content: rejected,
             });
 		});
 
 		return new sj.Success({
-			origin: 'sj.deletePlaylists()',
+			origin: 'sj.deletePlaylist()',
             message: 'deleted playlists',
             content: results,
 		});
@@ -1731,9 +1730,9 @@ sj.trackNameRules = new sj.Rule({
 });
 
 // CRUD
-sj.addTracks = async function (db, tracks) {
+sj.addTrack = async function (db, tracks) {
     tracks = sj.any(tracks);
-    return await db.tx(t => {
+    return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
             let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'playlistId',    sj.idRules,         track, 'playlistId'],
@@ -1744,7 +1743,7 @@ sj.addTracks = async function (db, tracks) {
             ]).then(sj.returnContent).catch(sj.propagate);
 
             //C count number of existing tracks and set the next position
-            let existingTracks = await sj.getTracks(t, new sj.Track({playlistId: track.playlistId}));
+            let existingTracks = await sj.getTrack(t, new sj.Track({playlistId: track.playlistId}));
             track.position = existingTracks.length;
             columnPairs.push({column: 'position', value: track.position});
 
@@ -1753,7 +1752,7 @@ sj.addTracks = async function (db, tracks) {
             let row = await t.one('INSERT INTO "sj"."tracks" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.addTracks()',
+                    origin: 'sj.addTrack()',
                     message: 'could not add tracks',
                 }));
             });
@@ -1763,7 +1762,7 @@ sj.addTracks = async function (db, tracks) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.addTracks()',
+                origin: 'sj.addTrack()',
                 message: 'unable to add tracks',
                 content: rejected,
             });
@@ -1786,7 +1785,7 @@ sj.addTracks = async function (db, tracks) {
 
         //C return the result tracks
         return new sj.Success({
-            origin: 'sj.addTracks()',
+            origin: 'sj.addTrack()',
             message: 'added tracks',
             content: results,
         });
@@ -1883,7 +1882,7 @@ sj.addTracks = async function (db, tracks) {
         });
     */
 }
-sj.getTracks = async function (db, tracks) {
+sj.getTrack = async function (db, tracks) {
     tracks = sj.any(tracks);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
@@ -1901,7 +1900,7 @@ sj.getTracks = async function (db, tracks) {
             let rows = await t.any('SELECT * FROM "sj"."tracks" WHERE $1:raw', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.getTracks()',
+                    origin: 'sj.getTrack()',
                     message: 'could not get tracks',
                 }));
             });
@@ -1914,14 +1913,14 @@ sj.getTracks = async function (db, tracks) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.getTracks()',
+                origin: 'sj.getTrack()',
                 message: 'unable to retrieve tracks',
                 content: rejected.flat(1),
             });
         });
 
         return new sj.Success({
-            origin: 'sj.getTracks()',
+            origin: 'sj.getTrack()',
             message: 'retrieved tracks',
             //C bring each sub-array's tracks up to the root level (because t.any() returns an array, not a single object)
             content: results.flat(1), 
@@ -1981,7 +1980,7 @@ sj.getTracks = async function (db, tracks) {
         }
     */
 }
-sj.editTracks = async function (db, tracks) {
+sj.editTrack = async function (db, tracks) {
     tracks = sj.any(tracks);
     return await db.tx(async t => {
         //C move before editing other data, so that final position may be accurate in returned results 
@@ -2008,7 +2007,7 @@ sj.editTracks = async function (db, tracks) {
             let row = await t.one('UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.editTracks()',
+                    origin: 'sj.editTrack()',
                     message: 'could not edit track',
                 }));
             });
@@ -2018,20 +2017,20 @@ sj.editTracks = async function (db, tracks) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.editTracks()',
+                origin: 'sj.editTrack()',
                 message: 'unable to edit tracks',
                 content: rejected,
             });
         });
 
         return new sj.Success({
-            origin: 'sj.editTracks()',
+            origin: 'sj.editTrack()',
             message: 'edited tracks',
             content: results,
         });
     }).catch(sj.propagate);
 }
-sj.deleteTracks = async function (db, tracks) {
+sj.deleteTrack = async function (db, tracks) {
     tracks = sj.any(tracks);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
@@ -2045,7 +2044,7 @@ sj.deleteTracks = async function (db, tracks) {
             let row = await t.one('DELETE FROM "sj"."tracks" WHERE $1:raw RETURNING *', where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
-                    origin: 'sj.deleteTracks()',
+                    origin: 'sj.deleteTrack()',
                     message: 'could not delete track',
                 }));
             });
@@ -2055,7 +2054,7 @@ sj.deleteTracks = async function (db, tracks) {
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
-                origin: 'sj.deleteTracks()',
+                origin: 'sj.deleteTrack()',
                 message: 'unable to delete tracks',
                 content: rejected,
             });
@@ -2065,7 +2064,7 @@ sj.deleteTracks = async function (db, tracks) {
         await sj.orderTracks(t, results);
 
         return new sj.Success({
-            origin: 'sj.deleteTracks()',
+            origin: 'sj.deleteTrack()',
             message: 'deleted tracks',
             content: results,
         });
@@ -2385,7 +2384,7 @@ sj.moveTracks = async function (db, tracks) {
 sj.orderTracks = async function (db, tracks) {
     //C takes a list of tracks with playlistId, returns a list of playlists affected by the sort
 
-    //R there is a recursive loop hazard in here (basically if sj.getTracks() is the function that calls sj.orderTracks() - sj.orderTracks() itself needs to call sj.getTracks(), therefore a loop), however if everything BUT sj.getTracks() calls sj.orderTracks(), then sj.orderTracks() can safely call sj.getTracks(), no, the same thing happens with sj.editTracks() - so just include manual queries, no have it so: sj.getTracks() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.getTracks(), and then have each use their own manual update queries - basically add, edit, delete can use these and sj.getTracks() but not each other - this is written down in that paper chart
+    //R there is a recursive loop hazard in here (basically if sj.getTrack() is the function that calls sj.orderTracks() - sj.orderTracks() itself needs to call sj.getTrack(), therefore a loop), however if everything BUT sj.getTrack() calls sj.orderTracks(), then sj.orderTracks() can safely call sj.getTrack(), no, the same thing happens with sj.editTrack() - so just include manual queries, no have it so: sj.getTrack() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.getTrack(), and then have each use their own manual update queries - basically add, edit, delete can use these and sj.getTrack() but not each other - this is written down in that paper chart
 
     tracks = sj.any(tracks);
 
@@ -2408,9 +2407,9 @@ sj.orderTracks = async function (db, tracks) {
     });
 
     return await db.tx(async t => {
-        return await sj.asyncForEach(playlistIds, playlistId => {
+        return await sj.asyncForEach(playlistIds, async playlistId => {
             //C get
-            let playlist = await sj.getTracks(new sj.Track({playlistId}));
+            let playlist = await sj.getTrack(new sj.Track({playlistId}));
 
             //C sort
             sj.stableSort(playlist, (a, b) => a.position - b.position);
