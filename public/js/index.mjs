@@ -488,15 +488,15 @@ let BaseLoader = {
         async getData() {
             return null;
         },
-        handleError(rejected) {
-            console.log('REJECTED: ', rejected);
-            this.error = rejected;
-            this.state = 'error';
-        },
         handleSuccess(resolved) {
-            console.log('RESOLVED: ', resolved);
+            console.log(resolved);
             this.display = resolved;
             this.state = 'display';
+        },
+        handleError(rejected) {
+            console.error(rejected);
+            this.error = rejected;
+            this.state = 'error';
         },
     },
     template: /*html*/`
@@ -516,11 +516,12 @@ let PlaylistLoader = {
     },
     methods: {
         async getData() {
-            return await sj.getPlaylist(this.playlist);
+            let test = await sj.getPlaylist(this.playlist);
+            console.log(test);
+            return test;
         },
     },
 }
-
 
 let PlaylistList = {
     data() {
