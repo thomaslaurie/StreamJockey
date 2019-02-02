@@ -6,6 +6,7 @@
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
 /*
+
 */
 
 
@@ -232,6 +233,9 @@ function updateElementErrors() {
 //  ╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝╚═╝  ╚═╝
 
 sj.request = async function (method, url, body) {
+	//! in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't, use UPPERCASE HTTP methods
+	//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
+
 	//C stringify body
 	try {
 		body = JSON.stringify(body);
@@ -261,7 +265,7 @@ sj.request = async function (method, url, body) {
 	//C catch non-ok status codes
 	if (!result.ok) {
 		//TODO properly parse
-		throw propagateError(result);
+		throw sj.propagateError(result);
 	}
 
 	//C parse via fetch .json()
@@ -314,25 +318,25 @@ sj.request = async function (method, url, body) {
 
 // CRUD
 sj.addUser = async function (user) {
-	return await sj.request('post', `${sj.API_URL}/user`, user);
+	return await sj.request('POST', `${sj.API_URL}/user`, user);
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
 	let query = sj.buildQuery(user, ['id', 'name', 'email']);
-	return await sj.request('get', `${sj.API_URL}/user?${query}`);
+	return await sj.request('GET', `${sj.API_URL}/user?${query}`);
 }
 sj.editUser = async function (user) {
-	return await sj.request('patch', `${sj.API_URL}/user`, user);
+	return await sj.request('PATCH', `${sj.API_URL}/user`, user);
 }
 sj.deleteUser = async function (user) {
-	return await sj.request('delete', `${sj.API_URL}/user`, user);
+	return await sj.request('DELETE', `${sj.API_URL}/user`, user);
 }
 
 sj.login = async function (user) {
-	return await sj.request('post', `${sj.API_URL}/session`, user);
+	return await sj.request('POST', `${sj.API_URL}/session`, user);
 }
 sj.logout = async function () {
-	return await sj.request('delete', `${sj.API_URL}/session`);
+	return await sj.request('DELETE', `${sj.API_URL}/session`);
 }
 
 
@@ -462,17 +466,17 @@ async function getUser(id) {
 
 // CRUD
 sj.addPlaylist = async function (playlist) {
-	return await sj.request('post', `${sj.API_URL}/playlist`, playlist);
+	return await sj.request('POST', `${sj.API_URL}/playlist`, playlist);
 }
 sj.getPlaylist = async function (playlist) {
 	let query = sj.buildQuery(playlist, ['id', 'userId', 'name']);
-	return await sj.request('get', `${sj.API_URL}/playlist?${query}`);
+	return await sj.request('GET', `${sj.API_URL}/playlist?${query}`);
 }
 sj.editPlaylist = async function (playlist) {
-	return await sj.request('patch', `${sj.API_URL}/playlist`, playlist);
+	return await sj.request('PATCH', `${sj.API_URL}/playlist`, playlist);
 }
 sj.deletePlaylist = async function (playlist) {
-	return await sj.request('delete', `${sj.API_URL}/playlist`, playlist);
+	return await sj.request('DELETE', `${sj.API_URL}/playlist`, playlist);
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions
@@ -570,17 +574,17 @@ async function orderPlaylist(id) {
 
 // CRUD
 sj.addTrack = async function (track) {
-	return await sj.request('post', `${sj.API_URL}/track`, track);
+	return await sj.request('POST', `${sj.API_URL}/track`, track);
 }
 sj.getTrack = async function (track) {
 	let query = sj.buildQuery(track, ['id', 'playlistId', 'position', 'name']);
-	return await sj.request('get', `${sj.API_URL}/track?${query}`);
+	return await sj.request('GET', `${sj.API_URL}/track?${query}`);
 }
 sj.editTrack = async function (track) {
-	return await sj.request('patch', `${sj.API_URL}/track`, track);
+	return await sj.request('PATCH', `${sj.API_URL}/track`, track);
 }
 sj.deleteTrack = async function (track) {
-	return await sj.request('delete', `${sj.API_URL}/track`, track);
+	return await sj.request('DELETE', `${sj.API_URL}/track`, track);
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions

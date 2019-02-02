@@ -437,12 +437,12 @@ sj.unpackQuery = function (queryObject) {
 		let realKey = keys[i].slice(0, delimiter);
 
 		//C if the item was already added
-		if (sj.isType(items[i], Object)) {
+		if (sj.isType(items[j], Object)) {
 			//C set the key and value
-			items[i][realKey] = queryObject[keys[i]];
+			items[j][realKey] = queryObject[keys[i]];
 		} else {
 			//C else, add the item with the key and value
-			items[i] = {
+			items[j] = {
 				[realKey]: queryObject[keys[i]],
 			}
 		}
@@ -1734,6 +1734,8 @@ sj.rebuild = function (input) {
 		});
 	}
 
+	//C do not log, as this will announce the error a second time on the client side
+	//input.log = false;
 	//R used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
 	return new sj[input.objectType.replace('sj.', '')](input);
 }

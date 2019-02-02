@@ -136,6 +136,7 @@ app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#
 // listen to requests
 app.listen(PORT, () => {
 	console.log(`Server listening on port: ${PORT}`);
+	console.log('███████████████████████████████████████████████████████');
 });
 
 //L unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar

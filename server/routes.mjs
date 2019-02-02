@@ -212,9 +212,6 @@ apiRouter
 	ctx.response.body = await sj.addPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/playlist', async (ctx, next) => {
-	console.log('prequery:', ctx.query);
-	let test = sj.unpackQuery(ctx.query);
-	console.log('query:', test);
 	ctx.response.body = await sj.getPlaylist(sj.db, sj.unpackQuery(ctx.query)).catch(sj.andResolve);
 })
 .patch('/playlist', async (ctx, next) => {
@@ -231,7 +228,7 @@ apiRouter
 .get('/track', async (ctx, next) => {
 	ctx.response.body = await sj.getTrack(sj.db, sj.unpackQuery(ctx.query)).catch(sj.andResolve);
 })
-.patch('/playlist', async (ctx, next) => {
+.patch('/track', async (ctx, next) => {
 	ctx.response.body = await sj.editTrack(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .delete('/track', async (ctx, next) => {

@@ -516,8 +516,11 @@ let PlaylistLoader = {
     },
     methods: {
         async getData() {
-            let test = await sj.getPlaylist(this.playlist);
-            console.log(test);
+            let test = await sj.editPlaylist(new sj.Playlist({
+                id: 3,
+                description: 'this is just some description',
+            })).catch(sj.andResolve);
+            console.log('server result:', test);
             return {};
         }
     },

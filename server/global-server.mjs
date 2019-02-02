@@ -439,8 +439,7 @@ const visibilityStates = [
         throw sj.propagateError(rejected);
     });
 })().then(resolved => {
-    let announce = new sj.Success({
-        log: true,
+    new sj.Success({
         origin: 'initialize database',
         message: 'database initialized',
     });
@@ -645,7 +644,7 @@ sj.buildValues = function (pairs) {
         pairs.forEach((item, index) => {
             columns.push(item.column);
             values.push(item.value);
-            placeholders.push(`$${index}`);
+            placeholders.push(`$${index+1}`);
         });
 
         columns = columns.join('", "');
@@ -663,11 +662,12 @@ sj.buildWhere = function (pairs) {
         return '0 = 1';
     } else {
         //C change pairs to formatted string
-        pairs.forEach(item => {
-            item = pgp.as.format(`"${item.column}" = $1`, item.value);
+        pairs = pairs.map(item => {
+            return pgp.as.format(`"${item.column}" = $1`, item.value);
         });
         //C joined with ' AND '
-        return pairs.join(' AND ');
+        let test = pairs.join(' AND ');
+        return test;
     }
 }
 sj.buildSet = function (pairs) {
@@ -1520,7 +1520,6 @@ sj.addPlaylist = async function (db, playlists) {
     */
 }
 sj.getPlaylist = async function (db, playlists) {
-    console.log('playlists: ', playlists);
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
