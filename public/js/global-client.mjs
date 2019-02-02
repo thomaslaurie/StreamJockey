@@ -291,7 +291,6 @@ sj.request = async function (method, url, body) {
 			throw result;
 		}
 	}
-	
 	return result;
 
 

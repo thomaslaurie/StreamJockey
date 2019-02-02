@@ -518,8 +518,8 @@ let PlaylistLoader = {
         async getData() {
             let test = await sj.getPlaylist(this.playlist);
             console.log(test);
-            return test;
-        },
+            return {};
+        }
     },
 }
 

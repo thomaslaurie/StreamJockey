@@ -1520,6 +1520,7 @@ sj.addPlaylist = async function (db, playlists) {
     */
 }
 sj.getPlaylist = async function (db, playlists) {
+    console.log('playlists: ', playlists);
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {

@@ -198,11 +198,7 @@ apiRouter
 	ctx.response.body = await sj.addUser(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/user', async (ctx, next) => {
-	ctx.response.body = await sj.getUser(sj.db, new sj.User({
-		id: ctx.query.id, 
-		name: ctx.query.name, 
-		email: ctx.query.email,
-	})).catch(sj.andResolve);
+	ctx.response.body = await sj.getUser(sj.db, sj.unpackQuery(ctx.query)).catch(sj.andResolve);
 })
 .patch('/user', async (ctx, next) => {
 	ctx.response.body = await sj.editUser(sj.db, ctx.request.body).catch(sj.andResolve);
@@ -216,11 +212,9 @@ apiRouter
 	ctx.response.body = await sj.addPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/playlist', async (ctx, next) => {
-	ctx.response.body = await sj.getPlaylist(sj.db, new sj.Playlist({
-		id: ctx.query.id, 
-		userId: ctx.query.userId,
-		name: ctx.query.name, 
-	})).catch(sj.andResolve);
+	let test = sj.unpackQuery(ctx.query);
+	console.log('query:', test);
+	ctx.response.body = await sj.getPlaylist(sj.db, sj.unpackQuery(ctx.query)).catch(sj.andResolve);
 })
 .patch('/playlist', async (ctx, next) => {
 	ctx.response.body = await sj.editPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
@@ -234,14 +228,7 @@ apiRouter
 	ctx.response.body = await sj.addTrack(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/track', async (ctx, next) => {
-	ctx.response.body = await sj.getTrack(sj.db, new sj.Track({
-		id: ctx.query.id, 
-		playlistId: ctx.query.playlistId,
-		name: ctx.query.name,
-		source: ctx.query.source,
-		sourceId: ctx.query.sourceId,
-		duration: ctx.query.duration,
-	})).catch(sj.andResolve);
+	ctx.response.body = await sj.getTrack(sj.db, sj.unpackQuery(ctx.query)).catch(sj.andResolve);
 })
 .patch('/playlist', async (ctx, next) => {
 	ctx.response.body = await sj.editTrack(sj.db, ctx.request.body).catch(sj.andResolve);

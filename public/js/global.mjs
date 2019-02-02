@@ -409,7 +409,7 @@ sj.buildQuery = function (items, props) {
 	let query = [];
 	sj.any(items).forEach((item, index) => {
 		props.forEach(prop => {
-			query.push(`${prop}${index}=${item[prop]}`);
+			query.push(`${prop}-${index}=${item[prop]}`);
 		});
 	});
 
@@ -417,26 +417,36 @@ sj.buildQuery = function (items, props) {
 	return query;
 }
 sj.unpackQuery = function (queryObject) {
+	//TODO there is a potential vulnerability here, any values passed by the url query parameters will be passed into the object that reaches the CRUD functions, is this ok or does their need to be a list of accepted parameters on the server side too?
+
+	//TODO weird numbers at the end may also break this, also how do double digits work?
+
 	let items = [];
-	//C for each key
-	Object.keys(queryObject).forEach(key => {
-		//C if the last character is an integer
-		let i = key.slice(-1);
-		if (sj.isType(i, 'integer')) {
-			//C get the real key name
-			let realKey = key.slice(0, key.length - 1);
-			//C if the item was already added
-			if (sj.isType(items[i], Object)) {
-				//C set the key and value
-				items[i][realKey] = queryObject.key;
-			} else {
-				//C else, add the item with the key and value
-				items[i] = {
-					[realKey]: queryObject.key,
-				}
+	let keys = Object.keys(queryObject)
+	for (let i = 0; i < keys; i++) {
+		//C check that index was given (di = delimiter index)
+		let delimiter = keys[i].lastIndexOf('-');
+		if (delimiter < 0) {break;}
+
+		//C check that index is an integer
+		let j = key[i].slice(delimiter + 1);
+		j = parseInt(j);
+		if (!sj.isType(j, 'integer')) {break;}
+
+		//C get the real key name
+		let realKey = keys[i].slice(0, delimiter);
+
+		//C if the item was already added
+		if (sj.isType(items[i], Object)) {
+			//C set the key and value
+			items[i][realKey] = queryObject[keys[i]];
+		} else {
+			//C else, add the item with the key and value
+			items[i] = {
+				[realKey]: queryObject[keys[i]],
 			}
 		}
-	});
+	}
 
 	return items;
 }
