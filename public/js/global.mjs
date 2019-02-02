@@ -420,16 +420,16 @@ sj.unpackQuery = function (queryObject) {
 	//TODO there is a potential vulnerability here, any values passed by the url query parameters will be passed into the object that reaches the CRUD functions, is this ok or does their need to be a list of accepted parameters on the server side too?
 
 	//TODO weird numbers at the end may also break this, also how do double digits work?
-
 	let items = [];
-	let keys = Object.keys(queryObject)
-	for (let i = 0; i < keys; i++) {
+	let keys = Object.keys(queryObject);
+	for (let i = 0; i < keys.length; i++) {
+
 		//C check that index was given (di = delimiter index)
 		let delimiter = keys[i].lastIndexOf('-');
 		if (delimiter < 0) {break;}
 
 		//C check that index is an integer
-		let j = key[i].slice(delimiter + 1);
+		let j = keys[i].slice(delimiter + 1);
 		j = parseInt(j);
 		if (!sj.isType(j, 'integer')) {break;}
 
