@@ -677,9 +677,10 @@ sj.buildSet = function (pairs) {
         return '"id" = "id"';
     } else {
         //C change pairs to formatted string
-        pairs.forEach(item => {
-            item = pgp.as.format(`"${item.column}" = $1`, item.value);
-        });
+        pairs = pairs.map(item => {
+            return pgp.as.format(`"${item.column}" = $1`, item.value);
+        })
+
         //C join with ', '
         return pairs.join(', ');
     }
@@ -1008,7 +1009,7 @@ sj.addUser = async function (db, users) {
 			//C check password separately
 			user.password = await sj.passwordRules.check(user.password, user.password2).then(sj.returnContent);
 			//C hash
-			let hash = bcrypt.hash(user.password, saltRounds).catch(rejected => {
+			let hash = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
 				throw new sj.Error({
 					log: true,
 					origin: 'sj.addUser()',
@@ -1016,10 +1017,10 @@ sj.addUser = async function (db, users) {
 					reason: 'hash failed',
 					content: rejected,
 				});
-			});
+            });
+
 			//C add to columnPairs
 			columnPairs.push({column: 'password', value: hash});
-			
 
             let values = sj.buildValues(columnPairs);
 
@@ -1925,9 +1926,11 @@ sj.getTrack = async function (db, tracks) {
         let results = await sj.asyncForEach(tracks, async track => {
             //C checkRuleSet and set columnPairs
             let columnPairs = await sj.Rule.checkRuleSet([
-                [false, 'id',           sj.idRules,     track, 'id'],
-                [false, 'playlistId',   sj.idRules,     track, 'playlistId'],
-                [false, 'position',     sj.posIntRules, track, 'position'],
+                [false, 'id',           sj.idRules,     	track, 'id'],
+                [false, 'playlistId',   sj.idRules,     	track, 'playlistId'],
+                [false, 'position',     sj.posIntRules, 	track, 'position'],
+                [false, 'source',       sj.sourceRules,     track, 'source'],
+                [false, 'sourceId',		sj.sourceIdRules,   track, 'sourceId'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             //C build where clause
@@ -2025,6 +2028,7 @@ sj.editTrack = async function (db, tracks) {
         await sj.moveTracks(t, tracks);
 
         let results = await sj.asyncForEach(tracks, async track => {
+			console.log('TRACK: ', track);
             let columnPairsWhere = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, track, 'id'],
             ]).then(sj.returnContent).catch(sj.propagate);
@@ -2038,8 +2042,11 @@ sj.editTrack = async function (db, tracks) {
                 [false, 'duration',     sj.posIntRules,    track, 'duration'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
+			let set = sj.buildSet(columnPairsSet);
             let where = sj.buildWhere(columnPairsWhere);
-            let set = sj.buildSet(columnPairsSet);
+			
+			console.log('SET: ', set);
+			console.log('WHERE', where);
 
             let row = await t.one('UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({

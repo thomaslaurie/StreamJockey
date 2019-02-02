@@ -235,6 +235,8 @@ function updateElementErrors() {
 sj.request = async function (method, url, body) {
 	//! in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't, use UPPERCASE HTTP methods
 	//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
+	//L https://github.com/whatwg/fetch/issues/50
+	//L https://github.com/github/fetch/pull/243
 
 	//C stringify body
 	try {
@@ -577,7 +579,7 @@ sj.addTrack = async function (track) {
 	return await sj.request('POST', `${sj.API_URL}/track`, track);
 }
 sj.getTrack = async function (track) {
-	let query = sj.buildQuery(track, ['id', 'playlistId', 'position', 'name']);
+	let query = sj.buildQuery(track, ['id', 'playlistId', 'position', 'source', 'sourceId', 'name']);
 	return await sj.request('GET', `${sj.API_URL}/track?${query}`);
 }
 sj.editTrack = async function (track) {
