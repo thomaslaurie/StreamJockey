@@ -313,7 +313,7 @@ sj.stableSort = function(a, compare) {
 
 	//C feed sorted array back into original array
 	for (let i = 0; i < a.length; i++) {
-		a[i] = frozenThis[i].value;
+		a[i] = frozen[i].value;
 	}
 
 	return a;
@@ -374,7 +374,7 @@ sj.asyncForEach = async function (list, callback) {
 		//C temporarily hold rejections so that every function may finish
 		return {
 			resolved: false,
-			content: rejected,
+			content: sj.propagateError(rejected),
 		}
 	})));
 
@@ -384,7 +384,7 @@ sj.asyncForEach = async function (list, callback) {
 	if (allResolved) {
 		return results;
 	} else {
-		throw results;
+		throw sj.propagateError(results);
 	}
 }
 sj.andResolve = function (rejected) {
@@ -584,7 +584,7 @@ sj.ErrorList = class extends sj.Object {
 		this.onCreate();
 	}
 }
-// TODO swap track.id to track.sourceId
+
 sj.Track = class extends sj.Object {
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
@@ -596,11 +596,11 @@ sj.Track = class extends sj.Object {
 			id: null,
 			playlistId: null,
 			position: null,
-			source: sj.noSource,
+			source: null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
 			sourceId: null, // TODO assumes ids are unique, even across all sources
 			artists: [],
 			name: '',
-			duration: 0,
+			duration: null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
 			link: '',
 		});
 

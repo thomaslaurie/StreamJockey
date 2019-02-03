@@ -517,8 +517,8 @@ let PlaylistLoader = {
     methods: {
         async getData() {
             let test = await sj.editTrack(new sj.Track({
-                id: 21,
-                source: 'soundcloud',
+                id: 7,
+                position: 0,
             })).catch(sj.andResolve);
             console.log('server result:', test);
             return {};

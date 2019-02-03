@@ -2028,14 +2028,13 @@ sj.editTrack = async function (db, tracks) {
         await sj.moveTracks(t, tracks);
 
         let results = await sj.asyncForEach(tracks, async track => {
-			console.log('TRACK: ', track);
             let columnPairsWhere = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, track, 'id'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
                 //! do not edit position here
-                [false, 'playlistId',   sj.idRules,        track, 'playlistId'],
+                //[false, 'playlistId',   sj.idRules,        track, 'playlistId'],
                 [false, 'source',       sj.sourceRules,    track, 'source'],
                 [false, 'sourceId',     sj.sourceIdRules,  track, 'sourceId'],
                 [false, 'name',         sj.trackNameRules, track, 'name'],
@@ -2044,9 +2043,6 @@ sj.editTrack = async function (db, tracks) {
 
 			let set = sj.buildSet(columnPairsSet);
             let where = sj.buildWhere(columnPairsWhere);
-			
-			console.log('SET: ', set);
-			console.log('WHERE', where);
 
             let row = await t.one('UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -2057,7 +2053,7 @@ sj.editTrack = async function (db, tracks) {
             });
 
             row = new sj.Track(row);
-            return row;
+			return row;
         }).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
@@ -2322,24 +2318,25 @@ sj.moveTracks = async function (db, tracks) {
                 message: `could not retrieve some track's playlist`,
                 content: rejected,
             })
-        });
+		});
 
         //C populate .notMoving, specifically after all moving tracks are sorted into their playlists
         playlists.forEach(playlist => {
             //C filter playlist.all for tracks where their id does not equal the id of any track in the playlist.moving
             playlist.notMoving = playlist.all.filter(allTrack => playlist.moving.every(movingTrack => allTrack.id !== movingTrack.id));
-        });
+		});
 
 
         //C combine, sort, and update
         playlists = await sj.asyncForEach(playlists, async playlist => {
             //C sort both
             sj.stableSort(playlist.moving, (a, b) => a.position - b.position);
-            sj.stableSort(playlist.notMoving, (a, b) => a.position - b.position);
+			sj.stableSort(playlist.notMoving, (a, b) => a.position - b.position);
 
-            //C combine, fills nonMoving tracks around moving tracks
-            for (let i = 0; i < playlist.moving.length + playlist.notMoving.length; i++) {
-                if (playlist.moving[0].position <= i) {
+			//C combine, fills nonMoving tracks around moving tracks
+			//! do not use moving.length + notMoving.length here because these arrays are being changed themselves
+            for (let i = 0; i < playlist.all.length; i++) { 
+                if (playlist.moving.length > 0 && playlist.moving[0].position <= i) {
                     //C if the next moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list (this will handle negative and duplicate positions)
                     playlist.merged.push(playlist.moving.shift());
                 } else {
@@ -2354,15 +2351,16 @@ sj.moveTracks = async function (db, tracks) {
             //L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
             playlist.merged.push(...playlist.moving);
 
-
             //C order (removes duplicates and holes)
             playlist.merged.forEach((item, index) => {
-                item.position = index;
-            });
+				item.position = index;
+			});
+			
 
             //C format update cases so updates can be done in one query
             let cases = playlist.merged.map(item => pgp.as.format(`WHEN $1 THEN $2`, [item.id, item.position]));
-            cases = cases.join(' ');
+			cases = cases.join(' ');
+			
 
             //C defer constraints (unique) on track position
             //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
@@ -2378,7 +2376,7 @@ sj.moveTracks = async function (db, tracks) {
                 }));
             });
 
-            //C update
+			//C update
             let rows = await t.many(`
                 UPDATE "sj"."tracks"
                 SET "position" = CASE "id"
@@ -2395,7 +2393,7 @@ sj.moveTracks = async function (db, tracks) {
                     target: 'notify',
                     cssClass: 'notifyError',
                 }));
-            });
+			});
 
             //C cast
             rows.forEach(item => {
@@ -2432,7 +2430,7 @@ sj.orderTracks = async function (db, tracks) {
     tracks = sj.any(tracks);
 
     let playlistIds = [];
-    await sj.asyncForEach(tracks, async track => {
+    await sj.asyncForEach(tracks, async (track, index, self) => {
         //C filter for unique playlist ids
         if (self.slice(index+1).every(itemAfter => item.playlistId !== itemAfter.playlistId)) {
             //C validate
@@ -2441,7 +2439,7 @@ sj.orderTracks = async function (db, tracks) {
         }
         return;
     }).catch(rejected => {
-        new sj.ErrorList({
+        throw new sj.ErrorList({
             log: true,
             origin: 'sj.orderTracks()',
             message: 'validation issues with track playlistIds',
@@ -2452,8 +2450,8 @@ sj.orderTracks = async function (db, tracks) {
     return await db.tx(async t => {
         return await sj.asyncForEach(playlistIds, async playlistId => {
             //C get
-            let playlist = await sj.getTrack(new sj.Track({playlistId}));
-
+			let playlist = await sj.getTrack(t, new sj.Track({playlistId})).then(sj.returnContent).catch(sj.propagate);
+			
             //C sort
             sj.stableSort(playlist, (a, b) => a.position - b.position);
 

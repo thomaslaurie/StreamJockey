@@ -247,8 +247,8 @@ sj.request = async function (method, url, body) {
 			log: true,
 			origin: 'request()',
 			message: 'could not send request',
-			reason: 'body probably has a cyclic reference',
-			content: e,
+			reason: e.message,
+			content: body,
 		});
 	}
 
