@@ -1109,7 +1109,12 @@ sj.getUser = async function (db, users) {
 
             let where = sj.buildWhere(columnPairs);
 
-            let rows = await t.any('SELECT * FROM "sj"."users" WHERE $1:raw', where).catch(rejected => {
+			let rows = await t.any(`
+				SELECT * 
+				FROM "sj"."users" 
+				WHERE $1:raw
+				ORDER BY "id" ASC
+			`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.getUser()',
@@ -1533,7 +1538,12 @@ sj.getPlaylist = async function (db, playlists) {
 
             let where = sj.buildWhere(columnPairs);
 
-            let rows = await t.any('SELECT * FROM "sj"."playlists" WHERE $1:raw', where).catch(rejected => {
+			let rows = await t.any(`
+				SELECT * 
+				FROM "sj"."playlists" 
+				WHERE $1:raw
+				ORDER BY "userId" ASC, "id" ASC
+			`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.getPlaylist()',
@@ -1937,7 +1947,12 @@ sj.getTrack = async function (db, tracks) {
             let where = sj.buildWhere(columnPairs);
 
             //C query
-            let rows = await t.any('SELECT * FROM "sj"."tracks" WHERE $1:raw', where).catch(rejected => {
+			let rows = await t.any(`
+				SELECT * 
+				FROM "sj"."tracks" 
+				WHERE $1:raw
+				ORDER BY "playlistId" ASC, "position" ASC
+			`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.getTrack()',

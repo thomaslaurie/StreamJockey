@@ -414,49 +414,30 @@ let TrackList = Vue.component('track-list',  {
 
 //R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
 
-let PlaylistDisplay = {
-    name: 'playlist-display',
+
+let BaseDisplay = {
     props: {
         display: Object,
     },
-    template: /*html*/`
-        <li class='playlist-list-item'>
-            <p>{{display.id}}</p>
-            <p>{{display.name}}</p>
-            <button>Open</button>
-            <button>Play</button>
-        </li>
-    `,
-};
-let PlaylistLoading = {
-    name: 'playlist-loading',
-    template: /*html*/ `
-        <p>... loading ...</p>
-    `,
-};
-let PlaylistError = {
-    name: 'playlist-error',
+    template: /*html*/ `<p>Default Display Component</p>`,
+}
+let BaseLoading = {
+    template: /*html*/ `<p>Default Loading Component</p>`,
+}
+let BaseError = {
     props: {
         error: Object,
     },
-    template: /*html*/ `
-        <p>{{error}}</p>
-    `,
-};
-
+    template: /*html*/ `<p>Default Error Component</p>`,
+}
 let BaseLoader = {
     name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
     components: {
         //TODO make actual default components
-        DisplayComponent: {
-            template: /*html*/ `<p>Default Display Component</p>`
-        },
-        LoadingComponent: {
-            template: /*html*/ `<p>Default Loading Component</p>`
-        },
-        ErrorComponent: {
-            template: /*html*/ `<p>Default Error Component</p>`
-        },
+        //TODO consider making a delay component (where no loading graphics are shown)
+        DisplayComponent: BaseDisplay,
+        LoadingComponent: BaseLoading,
+        ErrorComponent: BaseError,
     },
     data() {
         return {
@@ -464,6 +445,7 @@ let BaseLoader = {
             delay: 500,
             timeout: Infinity,
 
+            //TODO consider merging these two objects since they are used mutually exclusively
             display: null,
             error: null,
         };
@@ -503,6 +485,43 @@ let BaseLoader = {
         <component :is='dynamicComponent' :display='display' :error='error'></component>
     `
 }
+
+
+let PlaylistDisplay = {
+    name: 'playlist-display',
+    extends: BaseDisplay,
+    // props: {
+    //     display: Object,
+    // },
+    created() {
+        console.log(this.display);
+    },
+    template: /*html*/`
+        <li class='playlist-list-item'>
+            <p>{{display.id}}</p>
+            <p>{{display.name}}</p>
+            <button>Open</button>
+            <button>Play</button>
+        </li>
+    `,
+};
+let PlaylistLoading = {
+    name: 'playlist-loading',
+    extends: BaseLoading,
+    template: /*html*/ `
+        <p>... loading ...</p>
+    `,
+};
+let PlaylistError = {
+    name: 'playlist-error',
+    extends: BaseError,
+    // props: {
+    //     error: Object,
+    // },
+    template: /*html*/ `
+        <p>{{error}}</p>
+    `,
+};
 let PlaylistLoader = {
     name: 'playlist-loader',
     components: {
@@ -515,27 +534,31 @@ let PlaylistLoader = {
         playlist: Object,
     },
     methods: {
+        //C getData() should overwrite BaseLoader's getData() method, it is called by the inherited created() method
         async getData() {
-            let test = await sj.editTrack(new sj.Track({
-                id: 7,
-                position: 0,
-            })).catch(sj.andResolve);
-            console.log('server result:', test);
-            return {};
+            let list = await sj.getPlaylist(new sj.Playlist(this.playlist)).then(sj.returnContent);
+            return sj.one(list);
         }
     },
 }
 
-let PlaylistList = {
-    data() {
-        return {
 
-        }
+
+let PlaylistList = {
+    props: {
+        playlists: Array,
+    },
+    components: {
+        PlaylistLoader,
     },
     template: /*html*/`
         <ul class='playlist-list'>
             <logout-button></logout-button>
-            <playlist-list-item v-for='playlist in playlistList' :key='playlist.id' :playlist='playlist'></playlist-list-item>
+            <playlist-loader 
+                v-for='playlist in playlists' 
+                :key='playlist.id' 
+                :playlist='playlist'
+            ></playlist-loader>
         </ul>
     `,
 };
@@ -566,11 +589,16 @@ let vm = new Vue({
             },
             {
                 path: '/',
-                component: PlaylistLoader,
+                component: PlaylistList,
                 props: {
-                    playlist: new sj.Playlist({
-                        id: 1,
-                    }),
+                    playlists: [
+                        new sj.Playlist({
+                            id: 1,
+                        }),
+                        new sj.Playlist({
+                            id: 2,
+                        }),
+                    ],
                 }
             },
 
