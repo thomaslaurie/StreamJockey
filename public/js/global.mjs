@@ -279,7 +279,7 @@ sj.stringReplaceAll = function(input, search, replace) {
 	return input.split(search).join(replace);
 }
 
-sj.stableSort = function(a, compare) {
+sj.stableSort = function(list, compare) {
 	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
 	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
 	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
@@ -293,7 +293,7 @@ sj.stableSort = function(a, compare) {
 	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
 
 	//C create new array with original index preserved
-	let frozen = a.map(function (item, index) {
+	let frozen = list.map(function (item, index) {
 		return {value: item, index: index};
 	}); 
 
@@ -312,11 +312,65 @@ sj.stableSort = function(a, compare) {
 	frozen.sort(stableCompare);
 
 	//C feed sorted array back into original array
-	for (let i = 0; i < a.length; i++) {
-		a[i] = frozen[i].value;
+	for (let i = 0; i < list.length; i++) {
+		list[i] = frozen[i].value;
 	}
 
-	return a;
+	return list;
+}
+sj.dynamicSort = function(list, ascending, prop) {
+	//C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
+
+	//C ascending will flip the list into descending if false
+	if (ascending) {
+		ascending = 1;
+	} else {
+		ascending = -1;
+	}
+
+	let compare;
+	if (sj.isType(prop, 'string')) {
+		//C if prop is defined, compare props
+		if (list.each(item => sj.isType(item[prop], 'number') || sj.isType(item[prop], 'boolean'))) {
+			//C if values are numbers or boolean, do number compare
+			compare = function (a, b) {
+				return (a[prop] - b[prop]) * ascending;
+			}
+		} else {
+			//C if values are strings, other, or mixed, do a string conversion and string compare
+			compare = function (a, b) {
+				//C convert to strings
+				let as = a[prop] + '';
+				let bs = a[prop] + '';
+
+				//C string compare
+				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
+			}
+		}
+	} else {
+		//C if no prop is defined, compare values
+		//! this is the exact same as above, just without the property
+		if (list.each(item => sj.isType(item, 'number') || sj.isType(item, 'boolean'))) {
+			compare = function (a, b) {
+				return (a - b) * ascending;
+			}
+		} else {
+			compare = function (a, b) {
+				let as = a + '';
+				let bs = a + '';
+				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
+			}
+		}
+	}
+
+	return sj.stableSort(list, compare);
+}
+
+sj.numberCompare = function (a, b) {
+}
+sj.stringCompare = function(a, b) {
+	//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+	return a.localeCompare(b, 'en', {sensitivity: 'base'});
 }
 
 //TODO legacy

@@ -524,12 +524,13 @@ let PlaylistError = {
 };
 let PlaylistLoader = {
     name: 'playlist-loader',
+    
+    extends: BaseLoader,
     components: {
         DisplayComponent: PlaylistDisplay,
         LoadingComponent: PlaylistLoading,
         ErrorComponent: PlaylistError,
     },
-    extends: BaseLoader,
     props: {
         playlist: Object,
     },
@@ -542,15 +543,23 @@ let PlaylistLoader = {
     },
 }
 
-
-
 let PlaylistList = {
+    name: 'playlist-list',
     props: {
-        playlists: Array,
+        queryPlaylist: Object,
+    },
+    data: {
+        playlists: [],
     },
     components: {
-        PlaylistLoader,
     },
+    computed: {
+        orderedPlaylists() {
+
+        }
+    },
+
+
     template: /*html*/`
         <ul class='playlist-list'>
             <logout-button></logout-button>
