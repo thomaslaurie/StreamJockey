@@ -331,7 +331,7 @@ sj.dynamicSort = function(list, ascending, prop) {
 	let compare;
 	if (sj.isType(prop, 'string')) {
 		//C if prop is defined, compare props
-		if (list.each(item => sj.isType(item[prop], 'number') || sj.isType(item[prop], 'boolean'))) {
+		if (list.every(item => sj.isType(item[prop], 'number') || sj.isType(item[prop], 'boolean'))) {
 			//C if values are numbers or boolean, do number compare
 			compare = function (a, b) {
 				return (a[prop] - b[prop]) * ascending;
@@ -344,13 +344,14 @@ sj.dynamicSort = function(list, ascending, prop) {
 				let bs = a[prop] + '';
 
 				//C string compare
+				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
 				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
 			}
 		}
 	} else {
 		//C if no prop is defined, compare values
 		//! this is the exact same as above, just without the property
-		if (list.each(item => sj.isType(item, 'number') || sj.isType(item, 'boolean'))) {
+		if (list.every(item => sj.isType(item, 'number') || sj.isType(item, 'boolean'))) {
 			compare = function (a, b) {
 				return (a - b) * ascending;
 			}
@@ -366,12 +367,6 @@ sj.dynamicSort = function(list, ascending, prop) {
 	return sj.stableSort(list, compare);
 }
 
-sj.numberCompare = function (a, b) {
-}
-sj.stringCompare = function(a, b) {
-	//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
-	return a.localeCompare(b, 'en', {sensitivity: 'base'});
-}
 
 //TODO legacy
 Array.prototype.stableSort = function(compare) {
@@ -759,7 +754,6 @@ sj.Rule = class extends sj.Object {
 			//C quick type check
 			if (t === this.dataTypes[i]) {
 				return new sj.Success({
-					log: true,
 					origin: `${this.origin}.checkType()`,
 					message: 'validated data type',
 					content: value,
@@ -769,7 +763,6 @@ sj.Rule = class extends sj.Object {
 			//C special dataTypes not revealed by typeof or sj.typeOf()
 			if (this.dataTypes[i] === 'integer' && Number.isInteger(value)) {
 				return new sj.Success({
-					log: true,
 					origin: `${this.origin}.checkType()`,
 					message: 'validated data type',
 					content: value,
@@ -790,7 +783,6 @@ sj.Rule = class extends sj.Object {
 				//C if parsed is a valid number
 				if (!Number.isNaN(parsed)) {
 					return new sj.Success({
-						log: true,
 						origin: `${this.origin}.checkType()`,
 						message: 'validated data type',
 						content: parsed,
@@ -836,7 +828,6 @@ sj.Rule = class extends sj.Object {
 		}
 
 		return new sj.Success({
-			log: true,
 			origin: `${this.origin}.checkSize()`,
 			content: value,
 		});

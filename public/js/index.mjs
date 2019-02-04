@@ -415,6 +415,16 @@ let TrackList = Vue.component('track-list',  {
 //R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
 
 
+//! display components and list display components are different (though list display extends display)
+
+// 
+
+// the handler components take the display and/or error data and render them
+
+// a list ~~~ will take the display data list, order it, and render it
+
+
+//C default handler components
 let BaseDisplay = {
     props: {
         display: Object,
@@ -430,6 +440,7 @@ let BaseError = {
     },
     template: /*html*/ `<p>Default Error Component</p>`,
 }
+//C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
 let BaseLoader = {
     name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
     components: {
@@ -438,16 +449,18 @@ let BaseLoader = {
         DisplayComponent: BaseDisplay,
         LoadingComponent: BaseLoading,
         ErrorComponent: BaseError,
-    },
+	},
+	props: {
+		query: [Object, Array],
+	},
     data() {
         return {
             state: 'loading',
             delay: 500,
             timeout: Infinity,
 
-            //TODO consider merging these two objects since they are used mutually exclusively
             display: null,
-            error: null,
+            error: null, //R keep error separate from display because we don't want error data to overwrite existing display if there is a refresh error
         };
     },
     computed: {
@@ -464,19 +477,17 @@ let BaseLoader = {
         },
     },
     created() {
-        this.getData().then(this.handleSuccess, this.handleError);
+        this.getDisplay().then(this.handleSuccess, this.handleError);
     },
     methods: {
-        async getData() {
+        async getDisplay() {
             return null;
         },
         handleSuccess(resolved) {
-            console.log(resolved);
             this.display = resolved;
             this.state = 'display';
         },
         handleError(rejected) {
-            console.error(rejected);
             this.error = rejected;
             this.state = 'error';
         },
@@ -486,16 +497,48 @@ let BaseLoader = {
     `
 }
 
+//C default handler component for a list of items
+let BaseListDisplay = {
+	name: 'base-list-display',
+	extends: BaseDisplay,
+	props: {
+		//C change display from Object to Array type
+		display: Array,
+	},
+	template: /*html*/ `<p v:for='item in display'>Default Display Component for {{item + ''}}</p>`,
+}
+//C same as BaseLoader but gives an array to its handler components, this array is ordered based on its orderProp and ascending properties
+let BaseListLoader = {
+    name: 'list-loader',
+	extends: BaseLoader,
+	props: {
+		orderProp: String,
+		ascending: Boolean,
+	},
+    data() {
+        return {
+			//C change display default to empty list so that sj.dynamicSort() wont fail while display is loading
+			display: [],
+        };
+	},
+	computed: {
+        orderedDisplay() {
+            return sj.dynamicSort(this.display, this.ascending, this.orderProp);
+        },
+	},
+	//C replace display with computed list: orderedDisplay
+	template: /*html*/`
+        <component :is='dynamicComponent' :display='orderedDisplay' :error='error'></component>
+    `
+}
 
+//TODO consider adding different display types instead of just different components?
 let PlaylistDisplay = {
     name: 'playlist-display',
     extends: BaseDisplay,
     // props: {
     //     display: Object,
     // },
-    created() {
-        console.log(this.display);
-    },
     template: /*html*/`
         <li class='playlist-list-item'>
             <p>{{display.id}}</p>
@@ -524,67 +567,60 @@ let PlaylistError = {
 };
 let PlaylistLoader = {
     name: 'playlist-loader',
-    
     extends: BaseLoader,
     components: {
         DisplayComponent: PlaylistDisplay,
         LoadingComponent: PlaylistLoading,
         ErrorComponent: PlaylistError,
     },
-    props: {
-        playlist: Object,
-    },
     methods: {
-        //C getData() should overwrite BaseLoader's getData() method, it is called by the inherited created() method
-        async getData() {
-            let list = await sj.getPlaylist(new sj.Playlist(this.playlist)).then(sj.returnContent);
+        //C getDisplay() should overwrite BaseLoader's getDisplay() method, it is called by the inherited created() method
+        async getDisplay() {
+            let list = await sj.getPlaylist(this.query).then(sj.returnContent);
             return sj.one(list);
         }
     },
 }
 
-let PlaylistList = {
-    name: 'playlist-list',
-    props: {
-        queryPlaylist: Object,
-    },
-    data: {
-        playlists: [],
-    },
-    components: {
-    },
-    computed: {
-        orderedPlaylists() {
-
-        }
-    },
-
-
-    template: /*html*/`
+let PlaylistListDisplay = {
+	name: 'playlist-list-display',
+	extends: BaseListDisplay,
+	components: {
+        PlaylistDisplay,
+	},
+	template: /*html*/`
         <ul class='playlist-list'>
             <logout-button></logout-button>
-            <playlist-loader 
-                v-for='playlist in playlists' 
+            <playlist-display
+                v-for='playlist in display' 
                 :key='playlist.id' 
-                :playlist='playlist'
-            ></playlist-loader>
+                :display='playlist'
+            ></playlist-display>
         </ul>
     `,
+}
+let PlaylistListLoader = {
+    name: 'playlist-list-loader',
+    extends: BaseListLoader,
+    components: {
+        DisplayComponent: PlaylistListDisplay,
+    },
+    methods: {
+        async getDisplay() {
+            return await sj.getPlaylist(this.query).then(sj.returnContent);
+        },
+    },
 };
+
 
 
 let vm = new Vue({
     el: '#app',
-    data() {
-        return {
-            foo: 'hey im some words',
-            baz: 'blah im some other words',
-            test: 2,
-        }
-    },
     components: {
         EntryOptions,
-        PlaylistLoader,
+
+        PlaylistListLoader,
+
         ErrorPage,
         NotFound,
     },
@@ -598,19 +634,13 @@ let vm = new Vue({
             },
             {
                 path: '/',
-                component: PlaylistList,
+                component: PlaylistListLoader,
                 props: {
-                    playlists: [
-                        new sj.Playlist({
-                            id: 1,
-                        }),
-                        new sj.Playlist({
-                            id: 2,
-                        }),
-                    ],
+                    query: new sj.Playlist({
+                    	userId: 1,
+                    }),
                 }
             },
-
             {
                 path: '/error',
                 component: ErrorPage,
