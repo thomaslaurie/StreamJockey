@@ -28,7 +28,7 @@ import Vue from './vue.esm.browser.mjs';
 //L https://unpkg.com/vue-router@3.0.2/ //! renamed from .js to .mjs, manually converted to esm (remove closure & export default instead of return)
 import VueRouter from './vue-router.esm.browser.mjs';
 //L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! renamed from .js to .mjs
-import VueX from './vuex.esm.mjs'; 
+import VueX, {mapState, mapGetters, mapMutations} from './vuex.esm.mjs'; 
 
 import sj from './global-client.mjs';
 
@@ -41,6 +41,7 @@ import sj from './global-client.mjs';
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 Vue.use(VueRouter);
+Vue.use(VueX);
 
 
 //   ██████╗ ██████╗ ███╗   ███╗██████╗  ██████╗ ███╗   ██╗███████╗███╗   ██╗████████╗███████╗
@@ -76,17 +77,21 @@ let LoginForm =  {
     },
     methods: {
         submit: async function() {
-            //C strips away unnecessary variables
-            //! requires that data properties are of the same name
-            let user = new sj.User(this);
-            await sj.login(user).then(resolved => {
-                this.$router.push('/');
-            }).catch(rejected => {
-                //TODO handle error
+			//C passes all data to login(), unnecessary values will be stripped away
+			let me = await sj.login(this).catch(rejected => {
+				//TODO handle error
                 console.error(rejected);
-            });
+			});
+
+			this.$store.commit('setMe', me);
+			this.$router.push('/');
+
+			console.log(this.me);
         }
-    },
+	},
+	computed: {
+		...mapState(['me']),
+	},
     //L reasons to use html form submit over javascript function: https://stackoverflow.com/questions/16050798/html-form-submit-using-javascript-vs-submit-button, however these aren't good enough - a javascript function will do the job and be more consistent
     template: /*html*/`
         <!-- //L .prevent modifier keeps page from reloading on submit https://vuejs.org/v2/guide/events.html#Event-Modifiers -->
@@ -638,10 +643,12 @@ let PlaylistListLoader = {
 
 const store = new VueX.Store({
 	state: {
-
+		me: null,
 	},
 	mutations: {
-
+		setMe(state, user) {
+			state.me = user;
+		},
 	},
 
 });
