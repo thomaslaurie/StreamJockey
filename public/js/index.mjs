@@ -11,7 +11,9 @@
 
     //R use null in places where there should be an manually placed empty value - distinguishes between unintentional empty values: undefined, and intentional empty values: null
     //L "To distinguish between the two, you may want to think of undefined as representing an unexpected absence of value and null as representing an expected absence of value."
-    //L http://ryanmorr.com/exploring-the-eternal-abyss-of-null-and-undefined/
+	//L http://ryanmorr.com/exploring-the-eternal-abyss-of-null-and-undefined/
+	
+	//TODO//L list transitions: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
 */
 
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
@@ -23,8 +25,10 @@
 
 //L https://unpkg.com/vue@2.5.21/ //! renamed from .js to .mjs
 import Vue from './vue.esm.browser.mjs'; 
-//L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return), renamed from .js to .mjs
+//L https://unpkg.com/vue-router@3.0.2/ //! renamed from .js to .mjs, manually converted to esm (remove closure & export default instead of return)
 import VueRouter from './vue-router.esm.browser.mjs';
+//L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! renamed from .js to .mjs
+import VueX from './vuex.esm.mjs'; 
 
 import sj from './global-client.mjs';
 
@@ -60,34 +64,9 @@ let ErrorPage = Vue.component('error-page', {
     `,
 });
 
-// login
-let EntryOptions = Vue.component('entry-options', {
-    data: function () {
-        return {
-            entryType: 'login',
-        };
-    },
-    methods: {
-    },
-    template: /*html*/`
-        <div>
-            <!-- //L radio name is apparently not needed with v-model https://vuejs.org/v2/guide/forms.html#Radio -->
-            <input type='radio' v-model='entryType' value='login' id='loginEntryTypeRadio' checked>
-            <label for='loginEntryTypeRadio'>Login</label>
 
-            <input type='radio' v-model='entryType' value='register' id='registerEntryTypeRadio'>
-            <label for='registerEntryTypeRadio'>Register</label>
-
-            <input type='radio' v-model='entryType' value='guest' id='guestEntryTypeRadio'>
-            <label for='guestEntryTypeRadio'>Guest</label>
-
-            <login-form v-if="entryType === 'login'"></login-form>
-            <register-form v-if="entryType === 'register'"></register-form>
-            <guest-form v-if="entryType === 'guest'"></guest-form>
-        </div>
-    `,
-});
-let LoginForm = Vue.component('login-form', {
+let LoginForm =  {
+	name: 'login-form',
     data: function () {
         return {
             //TODO these are temporary, should normally be null
@@ -117,8 +96,9 @@ let LoginForm = Vue.component('login-form', {
             <input type='submit' value='Login'>
         </form>
     `,
-});
-let RegisterForm = Vue.component('register-form', {
+};
+let RegisterForm = {
+	name: 'register-form',
     data: function () {
         return {
             name: null,
@@ -144,8 +124,9 @@ let RegisterForm = Vue.component('register-form', {
             <input type='submit' value='Register'>
         </form>
     `,
-});
-let GuestForm = Vue.component('guest-form', {
+};
+let GuestForm = {
+	name: 'guest-form',
     methods: {
         submit: async function() {
             //TODO
@@ -158,7 +139,48 @@ let GuestForm = Vue.component('guest-form', {
             <input type='submit' value='Continue as Guest'>
         </form>
     `,
-});
+};
+// login
+let EntryOptions = {
+	name: 'entry-options',
+	components: {
+		LoginForm,
+		RegisterForm,
+		GuestForm,
+	},
+    data: function () {
+        return {
+            entryType: 'login',
+        };
+    },
+	computed: {
+		dynamicComponent() {
+			if(this.entryType === 'login') {
+				return this.$options.components.LoginForm;
+			} else if (this.entryType === 'register') {
+				return this.$options.components.RegisterForm;
+			} else if (this.entryType === 'guest') {
+				return this.$options.components.GuestForm;
+			}
+		},
+	},
+    template: /*html*/`
+        <div>
+            <!-- //L radio name is apparently not needed with v-model https://vuejs.org/v2/guide/forms.html#Radio -->
+            <input type='radio' v-model='entryType' value='login' id='loginEntryTypeRadio' checked>
+            <label for='loginEntryTypeRadio'>Login</label>
+
+            <input type='radio' v-model='entryType' value='register' id='registerEntryTypeRadio'>
+            <label for='registerEntryTypeRadio'>Register</label>
+
+            <input type='radio' v-model='entryType' value='guest' id='guestEntryTypeRadio'>
+			<label for='guestEntryTypeRadio'>Guest</label>
+
+			<component :is='dynamicComponent'></component>
+        </div>
+    `,
+};
+
 
 let LogoutButton = Vue.component('logout-button', {
     methods: {
@@ -614,8 +636,19 @@ let PlaylistListLoader = {
 
 
 
+const store = new VueX.Store({
+	state: {
+
+	},
+	mutations: {
+
+	},
+
+});
+
 let vm = new Vue({
-    el: '#app',
+	el: '#app',
+	store,
     components: {
         EntryOptions,
 
@@ -623,7 +656,17 @@ let vm = new Vue({
 
         ErrorPage,
         NotFound,
-    },
+	},
+	data() {
+		return {
+			self: null,
+		};
+	},
+	methods: {
+		async getSelf() {
+
+		},
+	},
     router: new VueRouter({
         //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
         mode: 'history',
