@@ -552,48 +552,47 @@ let BaseListLoader = {
     `
 }
 
-let tracksToDelete; 
 
-sj.getTrack(new sj.Track({
-	playlistId: 1,
-})).then(resolved => {
-	console.log('get', resolved);
-	return resolved.content;
-}).then(resolved => {
-	return sj.deleteTrack(resolved);
-}).then(resolved => {
-	console.log('success deletion');
-	return sj.addTrack([
-		new sj.Track({
-			playlistId: 1,
-			position: 0,
-			source: 'b',
-			sourceId: 'b',
-			name: 'ccc',
-			duration: 100,
-		}),
-		new sj.Track({
-			playlistId: 1,
-			position: 1,
-			source: 'a',
-			sourceId: 'c',
-			name: 'bbb',
-			duration: 300,
-		}),
-		new sj.Track({
-			playlistId: 1,
-			position: 2,
-			source: 'c',
-			sourceId: 'a',
-			name: 'aaa',
-			duration: 200,
-		}),
-	]);
-}).then(resolved => {
-	console.log(resolved);
-}).catch(rejected => {
-	console.error(rejected);
-});
+// sj.getTrack(new sj.Track({
+// 	playlistId: 1,
+// })).then(resolved => {
+// 	console.log('get', resolved);
+// 	return resolved.content;
+// }).then(resolved => {
+// 	return sj.deleteTrack(resolved);
+// }).then(resolved => {
+// 	console.log('success deletion');
+// 	return sj.addTrack([
+// 		new sj.Track({
+// 			playlistId: 1,
+// 			position: 0,
+// 			source: 'b',
+// 			sourceId: 'b',
+// 			name: 'ccc',
+// 			duration: 100,
+// 		}),
+// 		new sj.Track({
+// 			playlistId: 1,
+// 			position: 1,
+// 			source: 'a',
+// 			sourceId: 'c',
+// 			name: 'bbb',
+// 			duration: 300,
+// 		}),
+// 		new sj.Track({
+// 			playlistId: 1,
+// 			position: 2,
+// 			source: 'c',
+// 			sourceId: 'a',
+// 			name: 'aaa',
+// 			duration: 200,
+// 		}),
+// 	]);
+// }).then(resolved => {
+// 	console.log(resolved);
+// }).catch(rejected => {
+// 	console.error(rejected);
+// });
 
 
 
@@ -677,10 +676,11 @@ let TrackDisplay = {
     extends: BaseDisplay,
     template: /*html*/`
         <li>
-            <p>{{display.playlistId}}</p>
-			<p>{{display.position}}</p>
-			<p>{{display.source}}</p>
-			<p>{{display.name}}</p>
+            <p>Playlist ID: {{display.playlistId}}</p>
+			<p>Position: {{display.position}}</p>
+			<p>Source: {{display.source}}</p>
+			<p>Name: {{display.name}}</p>
+			<p>Duration: {{display.duration}}</p>
             <button>Info</button>
             <button>Play</button>
         </li>
@@ -743,10 +743,10 @@ const router = new VueRouter({
 			component: TrackListLoader,
 			props: {
 				query: new sj.Track({
-					playlistId: 2,
+					playlistId: 1,
 				}),
 				orderBy: 'name',
-				ascending: true,
+				ascending: false,
 			}
 		},
 		{

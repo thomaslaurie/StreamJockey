@@ -341,7 +341,7 @@ sj.dynamicSort = function(list, ascending, prop) {
 			compare = function (a, b) {
 				//C convert to strings
 				let as = a[prop] + '';
-				let bs = a[prop] + '';
+				let bs = b[prop] + '';
 
 				//C string compare
 				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
@@ -358,15 +358,13 @@ sj.dynamicSort = function(list, ascending, prop) {
 		} else {
 			compare = function (a, b) {
 				let as = a + '';
-				let bs = a + '';
+				let bs = b + '';
 				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
 			}
 		}
 	}
 
-	let test = sj.stableSort(list, compare);
-	console.log('sorted by', prop, test);
-	return test;
+	return sj.stableSort(list, compare);
 }
 
 
