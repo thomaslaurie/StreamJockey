@@ -100,7 +100,10 @@
 
     //TODO complete all parameters on database functions
 
-    //TODO after functions are mostly debugged - remove a lot of the .catch(sj.propagate) - this is mainly tracing and unhandled error
+	//TODO after functions are mostly debugged - remove a lot of the .catch(sj.propagate) - this is mainly tracing and unhandled error
+	
+
+	//TODO //! IMPORTANT //! check any CRUD functions (like addTrack()) that rely on the current state of the database for information - because asyncForEach() functions are executed in parallel, and not in series, this could cause collisions
 */
 
 
@@ -791,7 +794,7 @@ sj.login = async function (db, ctx, user) {
     }
 
     //C get user
-    user = db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
+    user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
         throw sj.parsePostgresError(rejected, new sj.Error({
             log: false,
             origin: 'login()',
@@ -799,7 +802,7 @@ sj.login = async function (db, ctx, user) {
         }));
     });
 
-    ctx.session.user = new sj.User(user);
+	ctx.session.user = new sj.User(user);
     return new sj.Success({
         log: true,
         origin: 'login()',
@@ -1779,23 +1782,32 @@ sj.trackNameRules = new sj.Rule({
 
 // CRUD
 sj.addTrack = async function (db, tracks) {
+	//console.log('original tracks', tracks);
     tracks = sj.any(tracks);
     return await db.tx(async t => {
-        let results = await sj.asyncForEach(tracks, async track => {
+		//C get playlist lengths
+		//! //R playlist lengths cannot be retrieved inside the same asyncForEach() iterator that INSERTS them because they are executed in parallel (all getTracks() calls will happen before insertions), resulting in all existingTracks images being exactly the same, resulting in track.position collision
+		let lengths = {};
+		await sj.asyncForEach(tracks, async track => {
+			let existingTracks = await sj.getTrack(t, new sj.Track({playlistId: track.playlistId})).then(sj.returnContent);
+			lengths[track.playlistId] = existingTracks.length;
+		});
+
+        let results = await sj.asyncForEach(tracks, async (track, i) => {
             let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'playlistId',    sj.idRules,         track, 'playlistId'],
                 [true, 'source',        sj.sourceRules,     track, 'source'],
                 [true, 'sourceId',      sj.sourceIdRules,   track, 'sourceId'],
                 [true, 'name',          sj.trackNameRules,  track, 'name'],
                 [true, 'duration',      sj.posIntRules,     track, 'duration'],
-            ]).then(sj.returnContent).catch(sj.propagate);
-
-            //C count number of existing tracks and set the next position
-            let existingTracks = await sj.getTrack(t, new sj.Track({playlistId: track.playlistId}));
-            track.position = existingTracks.length;
-            columnPairs.push({column: 'position', value: track.position});
-
-            let values = sj.buildValues(columnPairs);
+			]).then(sj.returnContent).catch(sj.propagate);
+			
+			//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
+			track.position = lengths[track.playlistId] + i;
+			columnPairs.push({column: 'position', value: track.position});
+			let values = sj.buildValues(columnPairs);
+			
+			console.log('inserting values: ', values);
 
             let row = await t.one('INSERT INTO "sj"."tracks" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1821,12 +1833,13 @@ sj.addTrack = async function (db, tracks) {
         //C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
         //! requires the INSERT command to be executed one at at a time for each input track
         //R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
-        tracks.forEach((item, index) => {
-            if(!sj.isEmpty(item.position)) {
-                item.id = results[index].id;
-                results[index].position = item.position;
+        tracks.forEach((track, i) => {
+			//console.log('actual: ', results[i].id, results[i].position, track.position);
+            if(!sj.isEmpty(track.position)) {
+                track.id = results[i].id;
+				results[i].position = track.position;
             }
-        });
+		});
 
         //C use the input tracks to properly order
         await sj.moveTracks(t, tracks);;
@@ -2086,10 +2099,10 @@ sj.editTrack = async function (db, tracks) {
     }).catch(sj.propagate);
 }
 sj.deleteTrack = async function (db, tracks) {
-    tracks = sj.any(tracks);
+	tracks = sj.any(tracks);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+			let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, track, 'id'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
@@ -2113,7 +2126,7 @@ sj.deleteTrack = async function (db, tracks) {
                 message: 'unable to delete tracks',
                 content: rejected,
             });
-        });
+		});
 
         //C order after deleting
         await sj.orderTracks(t, results);
@@ -2447,7 +2460,7 @@ sj.orderTracks = async function (db, tracks) {
     let playlistIds = [];
     await sj.asyncForEach(tracks, async (track, index, self) => {
         //C filter for unique playlist ids
-        if (self.slice(index+1).every(itemAfter => item.playlistId !== itemAfter.playlistId)) {
+        if (self.slice(index+1).every(itemAfter => track.playlistId !== itemAfter.playlistId)) {
             //C validate
             let id = await sj.idRules.check(track.playlistId).then(sj.returnContent);
             playlistIds.push(id);
@@ -2460,60 +2473,71 @@ sj.orderTracks = async function (db, tracks) {
             message: 'validation issues with track playlistIds',
             content: rejected,
         });
-    });
+	});
 
     return await db.tx(async t => {
         return await sj.asyncForEach(playlistIds, async playlistId => {
             //C get
-			let playlist = await sj.getTrack(t, new sj.Track({playlistId})).then(sj.returnContent).catch(sj.propagate);
+			//let playlist = await sj.getTrack(t, new sj.Track({playlistId: playlistId}));
+			let playlist = await sj.getTrack(t, new sj.Track({playlistId: playlistId})).then(sj.returnContent);
+
+			//C early return if playlist is empty (will happen if an entire playlist is deleted)
+			if (playlist.length <= 0) {
+				return new sj.Playlist({
+					origin: 'sj.orderTracks()',
+					id: playlistId,
+					message: 'this playlist no longer has any tracks',
+					content: [],
+				});
+			}
+
+			//C sort
+			sj.stableSort(playlist, (a, b) => a.position - b.position);
+
+			//C order
+			playlist.forEach((track, index) => {
+				track.position = index;
+			});
+
+			//C format cases, //! playlist should not be empty at this point
+			cases = playlist.map(track => pgp.as.format(`WHEN $1 THEN $2`, [track.id, track.position]));
+			cases = cases.join(' ');
+
+			//C defer constraints
+			await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: 'sj.orderTracks()',
+					message: 'could not order tracks, database error',
+					target: 'notify',
+					cssClass: 'notifyError',
+				}));
+			});
+
+			//C update
+			let rows = await t.many(`
+				UPDATE "sj"."tracks"
+				SET "position" = CASE "id"
+					$1:raw
+					ELSE "position"
+					END
+				WHERE "playlistId" = $2
+				RETURNING *
+			`, [cases, playlistId]).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: 'sj.orderTracks()',
+					message: 'could not move tracks',
+					target: 'notify',
+					cssClass: 'notifyError',
+				}));
+			});
+
+			//C cast
+			rows.forEach(item => {
+				item = new sj.Track(item);
+			});
 			
-            //C sort
-            sj.stableSort(playlist, (a, b) => a.position - b.position);
-
-            //C order
-            playlist.forEach((track, index) => {
-                track.position = index;
-            });
-
-            //C format cases
-            let cases = playlist.map(track => pgp.as.format(`WHEN $1 THEN $2`, [track.id, track.position]));
-            cases = cases.join(' ');
-
-            //C defer constraints
-            await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
-                throw sj.parsePostgresError(rejected, new sj.Error({
-                    log: false,
-                    origin: 'sj.orderTracks()',
-                    message: 'could not order tracks, database error',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-                }));
-            });
-
-            //C update
-            let rows = await t.many(`
-                UPDATE "sj"."tracks"
-                SET "position" = CASE "id"
-                    $1:raw
-                    ELSE "position"
-                    END
-                WHERE "playlistId" = $2
-                RETURNING *
-            `, [cases, playlistId]).catch(rejected => {
-                throw sj.parsePostgresError(rejected, new sj.Error({
-                    log: false,
-                    origin: 'sj.orderTracks()',
-                    message: 'could not move tracks',
-                    target: 'notify',
-                    cssClass: 'notifyError',
-                }));
-            });
-
-            //C cast
-            rows.forEach(item => {
-                item = new sj.Track(item);
-            });
-
             return new sj.Playlist({
                 origin: 'sj.orderTracks()',
                 id: playlistId,

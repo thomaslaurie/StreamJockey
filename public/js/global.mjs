@@ -364,7 +364,9 @@ sj.dynamicSort = function(list, ascending, prop) {
 		}
 	}
 
-	return sj.stableSort(list, compare);
+	let test = sj.stableSort(list, compare);
+	console.log('sorted by', prop, test);
+	return test;
 }
 
 
