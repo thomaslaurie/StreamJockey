@@ -27,8 +27,8 @@
 import Vue from './vue.esm.browser.mjs'; 
 //L https://unpkg.com/vue-router@3.0.2/ //! renamed from .js to .mjs, manually converted to esm (remove closure & export default instead of return)
 import VueRouter from './vue-router.esm.browser.mjs';
-//L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! renamed from .js to .mjs
-import VueX, {mapState, mapGetters, mapMutations} from './vuex.esm.mjs'; 
+//L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! renamed from .js to .mjs, manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
+import VueX, {mapState, mapGetters, mapMutations} from './vuex.esm.browser.mjs'; 
 
 import sj from './global-client.mjs';
 
