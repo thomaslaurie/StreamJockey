@@ -13,8 +13,23 @@
     //L "To distinguish between the two, you may want to think of undefined as representing an unexpected absence of value and null as representing an expected absence of value."
 	//L http://ryanmorr.com/exploring-the-eternal-abyss-of-null-and-undefined/
 	
-	//TODO//L list transitions: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
+
 */
+
+
+//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+
+/*
+	//TODO//L list transitions: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
+
+	//TODO //L dynamic list rendering: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
+*/
+
 
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
@@ -197,17 +212,19 @@ Vue.use(VueX);
 */
 
 // errors
-let NotFound = Vue.component('not-found', {
+let NotFound = {
+	name: 'not-found',
     //TODO communicate this to the server
     template: /*html*/`
         <h1>Page Not Found</h1>
     `,
-});
-let ErrorPage = Vue.component('error-page', {
+};
+let ErrorPage = {
+	name: 'error-page',
     template: /*html*/`
         <h1>THERE WAS AN ERROR</h1>
     `,
-});
+};
 
 
 let LoginForm = {
@@ -450,72 +467,154 @@ let BaseDisplay = {
         display: Object,
     },
     template: /*html*/ `<p>Default Display Component</p>`,
-}
+};
 let BaseLoading = {
     template: /*html*/ `<p>Default Loading Component</p>`,
-}
+};
 let BaseError = {
     props: {
         error: Object,
     },
     template: /*html*/ `<p>Default Error Component</p>`,
-}
+};
 //C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
+/* old dynamicComponent-based loader
+	let BaseLoader = {
+		name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
+		components: {
+			//TODO make actual default components
+			//TODO consider making a delay component (where no loading graphics are shown)
+			DisplayComponent: BaseDisplay,
+			LoadingComponent: BaseLoading,
+			ErrorComponent: BaseError,
+		},
+		props: {
+			query: [Object, Array],
+		},
+		data() {
+			return {
+				state: 'loading',
+				delay: 500,
+				timeout: Infinity,
+
+				display: null,
+				error: null, //R keep error separate from display because we don't want error data to overwrite existing display if there is a refresh error
+			};
+		},
+		computed: {
+			dynamicComponent() {
+				//L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
+				//L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
+				if(this.state === 'display') {
+					return this.$options.components.DisplayComponent;
+				} else if (this.state === 'loading') {
+					return this.$options.components.LoadingComponent;
+				} else if (this.state === 'error') {
+					return this.$options.components.ErrorComponent;
+				}
+			},
+		},
+		created() {
+			this.getDisplay().then(this.handleSuccess, this.handleError);
+		},
+		methods: {
+			async getDisplay() {
+				return null;
+			},
+			handleSuccess(resolved) {
+				this.display = resolved;
+				this.state = 'display';
+			},
+			handleError(rejected) {
+				this.error = rejected;
+				this.state = 'error';
+			},
+		},
+		
+
+		template: `
+			<component :is='dynamicComponent' :display='display' :error='error'></component>
+		`
+	};
+*/
+
 let BaseLoader = {
-    name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
-    components: {
-        //TODO make actual default components
-        //TODO consider making a delay component (where no loading graphics are shown)
-        DisplayComponent: BaseDisplay,
-        LoadingComponent: BaseLoading,
-        ErrorComponent: BaseError,
+	name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
+	components: {
+		//TODO make actual default components
+		//TODO consider making a delay component (where no loading graphics are shown)
+		DisplayComponent: BaseDisplay,
+		LoadingComponent: BaseLoading,
+		ErrorComponent: BaseError,
 	},
 	props: {
 		query: [Object, Array],
 	},
-    data() {
-        return {
-            state: 'loading',
-            delay: 500,
-            timeout: Infinity,
+	data() {
+		return {
+			state: 'loading',
+			delay: 500,
+			timeout: Infinity,
 
-            display: null,
-            error: null, //R keep error separate from display because we don't want error data to overwrite existing display if there is a refresh error
-        };
-    },
-    computed: {
-        dynamicComponent() {
-            //L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
-            //L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
-            if(this.state === 'display') {
-                return this.$options.components.DisplayComponent;
-            } else if (this.state === 'loading') {
-                return this.$options.components.LoadingComponent;
-            } else if (this.state === 'error') {
-                return this.$options.components.ErrorComponent;
-            }
-        },
-    },
-    created() {
-        this.getDisplay().then(this.handleSuccess, this.handleError);
-    },
-    methods: {
-        async getDisplay() {
-            return null;
-        },
-        handleSuccess(resolved) {
-            this.display = resolved;
-            this.state = 'display';
-        },
-        handleError(rejected) {
-            this.error = rejected;
-            this.state = 'error';
-        },
-    },
-    template: /*html*/`
-        <component :is='dynamicComponent' :display='display' :error='error'></component>
-    `
+			display: null,
+			error: null, //R keep error separate from display because we don't want error data to overwrite existing display if there is a refresh error
+		};
+	},
+	computed: {
+		dynamicComponent() {
+			//L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
+			//L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
+			if(this.state === 'display') {
+				return this.$options.components.DisplayComponent;
+			} else if (this.state === 'loading') {
+				return this.$options.components.LoadingComponent;
+			} else if (this.state === 'error') {
+				return this.$options.components.ErrorComponent;
+			}
+		},
+	},
+	created() {
+		this.getDisplay().then(this.handleSuccess, this.handleError);
+	},
+	methods: {
+		async getDisplay() {
+			return null;
+		},
+		handleSuccess(resolved) {
+			this.display = resolved;
+			this.state = 'display';
+		},
+		handleError(rejected) {
+			this.error = rejected;
+			this.state = 'error';
+		},
+	},
+	
+
+	template: sj.dynamicTemplate(/*html*/`
+		... //-----------
+	`),
+};
+
+sj.dynamicTemplate = function (display, loading, error) {
+	//C defaults
+	if (!sj.isType(display, 'string'))	display = /*html*/``;
+	if (!sj.isType(loading, 'string'))	loading = /*html*/`<loading-component></loading-component>`;
+	if (!sj.isType(error, 'string'))	error = /*html*/`<error-component :error='error'></error-component>`;
+
+	//C insert
+	return /*html*/`
+		<div v-if='test === "display"'>
+			${display}
+		</div><div v-else-if='test === "loading"'>
+			${loading}
+		</div><div v-else-if='test === "error"'>
+			${error}
+		</div>
+	`;
 }
+
+
 
 //C default handler component for a list of items
 let BaseListDisplay = {
@@ -526,8 +625,8 @@ let BaseListDisplay = {
 		display: Array,
 	},
 	template: /*html*/ `<p v:for='item in display'>Default Display Component for {{item + ''}}</p>`,
-}
-//C same as BaseLoader but gives an array to its handler components, this array is ordered based on its orderProp and ascending properties
+};
+//C same as BaseLoader but has orderBy and ascending properties, it gives these and an array to its list display component
 let BaseListLoader = {
     name: 'list-loader',
 	extends: BaseLoader,
@@ -550,62 +649,23 @@ let BaseListLoader = {
 	template: /*html*/`
         <component :is='dynamicComponent' :display='orderedDisplay' :error='error'></component>
     `
-}
-
-
-// sj.getTrack(new sj.Track({
-// 	playlistId: 1,
-// })).then(resolved => {
-// 	console.log('get', resolved);
-// 	return resolved.content;
-// }).then(resolved => {
-// 	return sj.deleteTrack(resolved);
-// }).then(resolved => {
-// 	console.log('success deletion');
-// 	return sj.addTrack([
-// 		new sj.Track({
-// 			playlistId: 1,
-// 			position: 0,
-// 			source: 'b',
-// 			sourceId: 'b',
-// 			name: 'ccc',
-// 			duration: 100,
-// 		}),
-// 		new sj.Track({
-// 			playlistId: 1,
-// 			position: 1,
-// 			source: 'a',
-// 			sourceId: 'c',
-// 			name: 'bbb',
-// 			duration: 300,
-// 		}),
-// 		new sj.Track({
-// 			playlistId: 1,
-// 			position: 2,
-// 			source: 'c',
-// 			sourceId: 'a',
-// 			name: 'aaa',
-// 			duration: 200,
-// 		}),
-// 	]);
-// }).then(resolved => {
-// 	console.log(resolved);
-// }).catch(rejected => {
-// 	console.error(rejected);
-// });
-
-
+};
 
 
 //TODO consider adding different display types instead of just different components?
 let PlaylistDisplay = {
     name: 'playlist-display',
-    extends: BaseDisplay,
+	extends: BaseDisplay,
+	methods: {
+		open() {
+
+		},
+	},
     template: /*html*/`
         <li>
             <p>{{display.id}}</p>
             <p>{{display.name}}</p>
-            <button>Open</button>
+            <button @click='open'>Open</button>
             <button>Play</button>
         </li>
     `,
@@ -639,7 +699,7 @@ let PlaylistLoader = {
             return sj.one(list);
         }
     },
-}
+};
 
 let PlaylistListDisplay = {
 	name: 'playlist-list-display',
@@ -685,7 +745,7 @@ let TrackDisplay = {
             <button>Play</button>
         </li>
     `,
-}
+};
 
 let TrackListDisplay = {
 	name: 'track-list-display',
@@ -702,7 +762,7 @@ let TrackListDisplay = {
 			></track-display>
 		</ul>
 	`
-}
+};
 let TrackListLoader = {
 	name: 'track-list-loader',
 	extends: BaseListLoader,
@@ -714,8 +774,53 @@ let TrackListLoader = {
 			return await sj.getTrack(this.query).then(sj.returnContent);
 		},
 	},
-}
+};
 
+
+
+
+let BasePage = {
+	name: 'base-page',
+};
+let UserPage = {
+	name: 'user-page',
+	extends: 'base-loader',
+	components: {
+		//UserLoader,
+	},
+	template: /*html*/`
+
+	`,
+};
+let PlaylistPage = {
+	name: 'playlist-page',
+	extends: 'base-page',
+
+};
+let TrackPage = {
+	name: 'track-page',
+	extends: 'base-page',
+};
+
+let AppRoot = {
+	name: 'base-home',
+	data() {
+		return {
+			test: 'display',
+		}
+	},
+	components:  {
+
+	},
+	template: /*html*/`
+		<div>
+			<div>menu bar</div>
+			<h1>home</h1>
+			<router-view></router-view>
+			<div>player bar</div>
+		</div>
+	`,
+};
 
 
 const store = new VueX.Store({
@@ -740,14 +845,21 @@ const router = new VueRouter({
 		},
 		{
 			path: '/',
-			component: TrackListLoader,
-			props: {
-				query: new sj.Track({
-					playlistId: 1,
-				}),
-				orderBy: 'name',
-				ascending: false,
-			}
+			component: AppRoot,
+			children: [
+				{
+					path: '/user/:id',
+					component: UserPage,
+				},
+				{
+					path: '/playlist/:id',
+					component: PlaylistPage,
+				},
+				{
+					path: '/track/:id',
+					component: TrackPage,
+				},
+			],
 		},
 		{
 			path: '/error',
@@ -763,15 +875,8 @@ const router = new VueRouter({
 
 let vm = new Vue({
 	el: '#app',
+	router,
 	store,
-    components: {
-        EntryOptions,
-
-        PlaylistListLoader,
-
-        ErrorPage,
-        NotFound,
-	},
 	data() {
 		return {
 			self: null,
@@ -782,5 +887,5 @@ let vm = new Vue({
 
 		},
 	},
-    router,
+    
 });
