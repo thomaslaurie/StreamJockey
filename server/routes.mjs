@@ -259,28 +259,35 @@ router.use('/api', apiRouter.routes(), apiRouter.allowedMethods());
 
 router
 .get('/*', async (ctx, next) => {
-	//C pages are accessed through the base GET method, serve any ./public files here
+    //C pages are accessed through the base GET method, serve any ./public files here
+    //! static resource references in index.html should be absolute '/foo', not relative './foo'
 
-	// add .html to urls without extensions
-	if (ctx.request.path.lastIndexOf('.') === -1) {
-		//ctx.request.path = ctx.request.path + '.html';
-		// TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
-
-		//C always return index.html for vue single page application
-		ctx.request.path = homePage;
-	}
-
-	//! Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header
+    //! "Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header"
 	//L https://developers.google.com/web/fundamentals/primers/modules
-	
-	// favicon request
-	if (ctx.request.path === '/favicon.ico') {
-		// ignore it //L https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
-		await next();
-		//TODO handle the favicon.ico request
-	}
 
-	//TODO errors thrown here aren't caught - fix this here and everywhere else
+    //TODO //! errors thrown here aren't caught - fix this here and everywhere else
+
+
+    //C if no static resources are linked to, return the index.mjs file. this is the root app and will handle the url client-side
+    //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+    //TODO find a more guaranteed way to identify static resources (webpack apparently does this automatically)
+	if (ctx.request.path.lastIndexOf('.') === -1) {
+		ctx.request.path = homePage;
+    }
+    /* old(?)
+        //TODO add .html to urls without extensions
+        //ctx.request.path = ctx.request.path + '.html';
+        //TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
+    */
+
+	
+    //TODO just add favicon.ico
+	if (ctx.request.path === '/favicon.ico') {
+        //L temporary ignore: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+        ctx.response.status = 204;
+        return;
+    }
+    
 
 	await send(ctx, ctx.request.path, {root: path.join(__dirname, '..', 'public')});
 })

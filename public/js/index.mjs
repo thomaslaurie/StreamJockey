@@ -460,24 +460,6 @@ let LogoutButton = {
 
 	//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
 */
-
-//C default handler components
-let BaseDisplay = {
-    props: {
-        display: Object,
-    },
-    template: /*html*/ `<p>Default Display Component</p>`,
-};
-let BaseLoading = {
-    template: /*html*/ `<p>Default Loading Component</p>`,
-};
-let BaseError = {
-    props: {
-        error: Object,
-    },
-    template: /*html*/ `<p>Default Error Component</p>`,
-};
-//C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
 /* old dynamicComponent-based loader
 	let BaseLoader = {
 		name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
@@ -538,12 +520,69 @@ let BaseError = {
 	};
 */
 
+
+sj.dynamicTemplate = function (display, loading, error) {
+    /* //R
+        I don't want a wrapper component that switches display, loading, and error states in addition to the display component; because the async display getter function has to be defined inside the wrapper, that means that for every async component i need to write a new extended wrapper and display component, in addition to possible custom loading and error components.
+        I want to simply write the single async component extending from the BaseLoader and optional loading and error components extending from BaseLoading and BaseError, this can't happen because vue's dynamic components can only switch components and not templates (they cant switch the component itself for another).
+        I also dont want to have to pass every custom property down from the loader to the display component
+        Therefore a custom switch for templates is needed: vue's v-if directive works for this, however this would have to be repeated for every extended component.
+        So I made a template builder function that allows the writing of the main display template, and then optional loading or error components all in one component.
+    */
+
+	//C use declared components if custom template is not defined, BaseLoader has defaults declared
+	if (!sj.isType(display, 'string'))	display = /*html*/`<display-component :display='display'></display-component>`;
+	if (!sj.isType(loading, 'string'))	loading = /*html*/`<loading-component></loading-component>`;
+	if (!sj.isType(error, 'string'))	error = /*html*/`<error-component :error='error'></error-component>`;
+
+	//C insert
+	return /*html*/`
+		<div v-if='state === "display"'>
+			${display}
+		</div><div v-else-if='state === "loading"'>
+			${loading}
+		</div><div v-else-if='state === "error"'>
+			${error}
+		</div>
+	`;
+}
+
+//C default handler components
+let BaseDisplay = {
+    name: 'base-display',
+    props: {
+        display: Object,
+    },
+    template: /*html*/`
+        <div>
+            <h2>Default Display Component</h2>
+            <p>{{display + ''}}</h2>
+        </div>
+    `,
+};
+let BaseLoading = {
+    name: 'base-loading',
+    template: /*html*/ `<p>Default Loading Component</p>`,
+};
+let BaseError = {
+    name: 'base-error',
+    props: {
+        error: [Object, Error],
+    },
+    template: /*html*/ `
+        <div>
+            <h2>Default Error Component</h2>
+            <p>{{error + ''}}</h2>
+        </div>
+    `,
+};
+//C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
 let BaseLoader = {
 	name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
 	components: {
 		//TODO make actual default components
-		//TODO consider making a delay component (where no loading graphics are shown)
-		DisplayComponent: BaseDisplay,
+        //TODO consider making a delay component (where no loading graphics are shown)
+        DisplayComponent: BaseDisplay,
 		LoadingComponent: BaseLoading,
 		ErrorComponent: BaseError,
 	},
@@ -560,19 +599,6 @@ let BaseLoader = {
 			error: null, //R keep error separate from display because we don't want error data to overwrite existing display if there is a refresh error
 		};
 	},
-	computed: {
-		dynamicComponent() {
-			//L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
-			//L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
-			if(this.state === 'display') {
-				return this.$options.components.DisplayComponent;
-			} else if (this.state === 'loading') {
-				return this.$options.components.LoadingComponent;
-			} else if (this.state === 'error') {
-				return this.$options.components.ErrorComponent;
-			}
-		},
-	},
 	created() {
 		this.getDisplay().then(this.handleSuccess, this.handleError);
 	},
@@ -581,40 +607,18 @@ let BaseLoader = {
 			return null;
 		},
 		handleSuccess(resolved) {
+            console.log('SUCCESS: ', resolved);
 			this.display = resolved;
 			this.state = 'display';
 		},
 		handleError(rejected) {
+            console.error('ERROR: ', rejected);
 			this.error = rejected;
 			this.state = 'error';
 		},
 	},
-	
-
-	template: sj.dynamicTemplate(/*html*/`
-		... //-----------
-	`),
+	template: sj.dynamicTemplate(),
 };
-
-sj.dynamicTemplate = function (display, loading, error) {
-	//C defaults
-	if (!sj.isType(display, 'string'))	display = /*html*/``;
-	if (!sj.isType(loading, 'string'))	loading = /*html*/`<loading-component></loading-component>`;
-	if (!sj.isType(error, 'string'))	error = /*html*/`<error-component :error='error'></error-component>`;
-
-	//C insert
-	return /*html*/`
-		<div v-if='test === "display"'>
-			${display}
-		</div><div v-else-if='test === "loading"'>
-			${loading}
-		</div><div v-else-if='test === "error"'>
-			${error}
-		</div>
-	`;
-}
-
-
 
 //C default handler component for a list of items
 let BaseListDisplay = {
@@ -624,12 +628,15 @@ let BaseListDisplay = {
 		//C change display from Object to Array type
 		display: Array,
 	},
-	template: /*html*/ `<p v:for='item in display'>Default Display Component for {{item + ''}}</p>`,
+	template: /*html*/ `<p v:for='item in display'>Default Display Component for {{item}}</p>`,
 };
 //C same as BaseLoader but has orderBy and ascending properties, it gives these and an array to its list display component
 let BaseListLoader = {
-    name: 'list-loader',
-	extends: BaseLoader,
+    name: 'base-list-loader',
+    extends: BaseLoader,
+    components: {
+        DisplayComponent: BaseListDisplay,
+    },
 	props: {
 		orderBy: String, //TODO consider making this take an array, which then is able to sort by multiple columns 
 		ascending: Boolean,
@@ -639,37 +646,25 @@ let BaseListLoader = {
 			//C change display default to empty list so that sj.dynamicSort() wont fail while display is loading
 			display: [],
         };
-	},
+    },
+    methods: {
+        async getDisplay() {
+			return [];
+		},
+    },
 	computed: {
         orderedDisplay() {
             return sj.dynamicSort(this.display, this.ascending, this.orderBy);
         },
-	},
-	//C replace display with computed list: orderedDisplay
-	template: /*html*/`
-        <component :is='dynamicComponent' :display='orderedDisplay' :error='error'></component>
-    `
+    },
+    template: sj.dynamicTemplate(/*html*/`
+        <display-component :display='orderedDisplay'></display-component>
+    `)
 };
+
 
 
 //TODO consider adding different display types instead of just different components?
-let PlaylistDisplay = {
-    name: 'playlist-display',
-	extends: BaseDisplay,
-	methods: {
-		open() {
-
-		},
-	},
-    template: /*html*/`
-        <li>
-            <p>{{display.id}}</p>
-            <p>{{display.name}}</p>
-            <button @click='open'>Open</button>
-            <button>Play</button>
-        </li>
-    `,
-};
 let PlaylistLoading = {
     name: 'playlist-loading',
     extends: BaseLoading,
@@ -688,7 +683,6 @@ let PlaylistLoader = {
     name: 'playlist-loader',
     extends: BaseLoader,
     components: {
-        DisplayComponent: PlaylistDisplay,
         LoadingComponent: PlaylistLoading,
         ErrorComponent: PlaylistError,
     },
@@ -697,38 +691,44 @@ let PlaylistLoader = {
         async getDisplay() {
             let list = await sj.getPlaylist(this.query).then(sj.returnContent);
             return sj.one(list);
-        }
+        },
+        async open() {
+        },
     },
+    template: sj.dynamicTemplate(/*html*/`
+        <li>
+            <p>{{display.id}}</p>
+            <p>{{display.name}}</p>
+            <button @click='open'>Open</button>
+            <button>Play</button>
+        </li>
+    `),
 };
 
-let PlaylistListDisplay = {
-	name: 'playlist-list-display',
-	extends: BaseListDisplay,
-	components: {
-        PlaylistDisplay,
-	},
-	template: /*html*/`
-        <ul>
-            <playlist-display
-                v-for='playlist in display' 
-                :key='playlist.id' 
-                :display='playlist'
-            ></playlist-display>
-        </ul>
-    `,
-}
+
 let PlaylistListLoader = {
-    name: 'playlist-list-loader',
-    extends: BaseListLoader,
-    components: {
-        DisplayComponent: PlaylistListDisplay,
-    },
+	name: 'playlist-list-loader',
+	extends: BaseListLoader,
     methods: {
         async getDisplay() {
             return await sj.getPlaylist(this.query).then(sj.returnContent);
         },
     },
-};
+	template: sj.dynamicTemplate(/*html*/`
+        <ul>
+            <li
+                v-for='playlist in display' 
+                :key='playlist.id' 
+                :display='playlist'
+            >
+                <p>{{display.id}}</p>
+                <p>{{display.name}}</p>
+                <button @click='open'>Open</button>
+                <button>Play</button>
+            </li>
+        </ul>
+    `),
+}
 
 
 let TrackDisplay = {
@@ -747,77 +747,118 @@ let TrackDisplay = {
     `,
 };
 
-let TrackListDisplay = {
-	name: 'track-list-display',
-	extends: BaseListDisplay,
-	components: {
-		TrackDisplay,
-	},
-	template: /*html*/`
-		<ul>
-			<track-display
-				v-for='track in display' 
-				:key='track.id' 
-				:display='track'
-			></track-display>
-		</ul>
-	`
-};
 let TrackListLoader = {
 	name: 'track-list-loader',
 	extends: BaseListLoader,
-	components: {
-		DisplayComponent: TrackListDisplay,
-	},
 	methods: {
 		async getDisplay() {
 			return await sj.getTrack(this.query).then(sj.returnContent);
 		},
-	},
+    },
+    template: sj.dynamicTemplate(/*html*/`
+        <ul>
+            <track-display
+                v-for='track in display' 
+                :key='track.id' 
+                :display='track'
+            ></track-display>
+        </ul>
+    `),
 };
 
 
 
 
-let BasePage = {
-	name: 'base-page',
-};
+
 let UserPage = {
 	name: 'user-page',
-	extends: 'base-loader',
+    extends: BaseLoader,
 	components: {
 		//UserLoader,
-	},
-	template: /*html*/`
-
-	`,
+    },
+    methods: {
+        async getDisplay() {
+            return await sj.one(sj.getUser(new sj.User({id: $route.params.id})).then(sj.returnContent));
+        },
+    },
+	template: sj.dynamicTemplate(/*html*/`
+        <div>
+            <h4>user #{{display.id}}</h4>
+            <h1>{{display.name}}</h1>
+            <h3>{{display.email}}</h3>
+        </div>
+	`),
 };
 let PlaylistPage = {
 	name: 'playlist-page',
-	extends: 'base-page',
-
+	extends: BaseLoader,
+    methods: {
+        async getDisplay() {
+            return await sj.one(sj.getUser(new sj.Playlist({id: $route.params.id})).then(sj.returnContent));
+        },
+    },
+    template: sj.dynamicTemplate(/*html*/`
+        <div>
+            <h4>playlist #{{display.id}}, user #{{display.userId}}</h4>
+            <h1>{{display.name}}</h1>
+            <h2>{{display.visibility}}</h2>
+            <p>{{display.description}}</p>
+        </div>
+    `),
 };
 let TrackPage = {
 	name: 'track-page',
-	extends: 'base-page',
+    extends: BaseLoader,
+    methods: {
+        async getDisplay() {
+            let result = await sj.getTrack(new sj.Track({id: this.$route.params.id})).then(sj.returnContent);
+            return sj.one(result);
+        },
+    },
+    template: sj.dynamicTemplate(/*html*/`
+        <div>
+            <h4>track #{{display.id}}, playlist #{{display.playlistId}}</h4>
+            <h4>position #</h4>
+            <h1>{{display.name}}</h1>
+            <h2>{{display.position}} - {{display.duration}}</h2>
+            <h2>{{display.source}} {{display.sourceId}}</h2>
+
+            <button>Info</button>
+            <button>Play</button>
+        </div>
+    `),
 };
 
-let AppRoot = {
-	name: 'base-home',
-	data() {
-		return {
-			test: 'display',
-		}
-	},
-	components:  {
+let MenuBar = {
+    name: 'menu-bar',
+    template: /*html*/`
+        <div>MENU BAR</div>
+    `,
+}
+let PlayerBar = {
+    name: 'player-bar',
+    template: /*html*/`
+        <div>PLAYER BAR</div>
+    `,
+}
 
-	},
+let AppMain = {
+	name: 'app-main',
+	components:  {
+        MenuBar,
+        PlayerBar,
+    },
+    methods: {
+        go() {
+            this.$router.push({path: 'track/55'});
+        },
+    },
 	template: /*html*/`
 		<div>
-			<div>menu bar</div>
-			<h1>home</h1>
+            <menu-bar></menu-bar>
+            <button @click='go'>go to track 55</button>
 			<router-view></router-view>
-			<div>player bar</div>
+			<player-bar></player-bar>
 		</div>
 	`,
 };
@@ -845,7 +886,7 @@ const router = new VueRouter({
 		},
 		{
 			path: '/',
-			component: AppRoot,
+			component: AppMain,
 			children: [
 				{
 					path: '/user/:id',
@@ -873,7 +914,7 @@ const router = new VueRouter({
 	],
 });
 
-let vm = new Vue({
+const vm = new Vue({
 	el: '#app',
 	router,
 	store,
