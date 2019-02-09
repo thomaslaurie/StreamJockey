@@ -320,7 +320,7 @@ sj.request = async function (method, url, body) {
 
 // CRUD
 sj.addUser = async function (user) {
-	return await sj.request('POST', `${sj.API_URL}/user`, user);
+	return await sj.request('POST', `${sj.API_URL}/user`, new sj.User(user));
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
@@ -328,14 +328,14 @@ sj.getUser = async function (user) {
 	return await sj.request('GET', `${sj.API_URL}/user?${query}`);
 }
 sj.editUser = async function (user) {
-	return await sj.request('PATCH', `${sj.API_URL}/user`, user);
+	return await sj.request('PATCH', `${sj.API_URL}/user`, new sj.User(user));
 }
 sj.deleteUser = async function (user) {
-	return await sj.request('DELETE', `${sj.API_URL}/user`, user);
+	return await sj.request('DELETE', `${sj.API_URL}/user`, new sj.User(user));
 }
 
 sj.login = async function (user) {
-	return await sj.request('POST', `${sj.API_URL}/session`, user);
+	return await sj.request('POST', `${sj.API_URL}/session`, new sj.User(user));
 }
 sj.logout = async function () {
 	return await sj.request('DELETE', `${sj.API_URL}/session`);
@@ -468,17 +468,17 @@ async function getUser(id) {
 
 // CRUD
 sj.addPlaylist = async function (playlist) {
-	return await sj.request('POST', `${sj.API_URL}/playlist`, playlist);
+	return await sj.request('POST', `${sj.API_URL}/playlist`, new sj.Playlist(playlist));
 }
 sj.getPlaylist = async function (playlist) {
     let query = sj.buildQuery(playlist, ['id', 'userId', 'name']);
 	return await sj.request('GET', `${sj.API_URL}/playlist?${query}`);
 }
 sj.editPlaylist = async function (playlist) {
-	return await sj.request('PATCH', `${sj.API_URL}/playlist`, playlist);
+	return await sj.request('PATCH', `${sj.API_URL}/playlist`, new sj.Playlist(playlist));
 }
 sj.deletePlaylist = async function (playlist) {
-	return await sj.request('DELETE', `${sj.API_URL}/playlist`, playlist);
+	return await sj.request('DELETE', `${sj.API_URL}/playlist`, new sj.Playlist(playlist));
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions
@@ -576,17 +576,17 @@ async function orderPlaylist(id) {
 
 // CRUD
 sj.addTrack = async function (track) {
-	return await sj.request('POST', `${sj.API_URL}/track`, track);
+	return await sj.request('POST', `${sj.API_URL}/track`, new sj.Track(track));
 }
 sj.getTrack = async function (track) {
 	let query = sj.buildQuery(track, ['id', 'playlistId', 'position', 'source', 'sourceId', 'name']);
 	return await sj.request('GET', `${sj.API_URL}/track?${query}`);
 }
 sj.editTrack = async function (track) {
-	return await sj.request('PATCH', `${sj.API_URL}/track`, track);
+	return await sj.request('PATCH', `${sj.API_URL}/track`, new sj.Track(track));
 }
 sj.deleteTrack = async function (track) {
-	return await sj.request('DELETE', `${sj.API_URL}/track`, track);
+	return await sj.request('DELETE', `${sj.API_URL}/track`, new sj.Track(track));
 }
 
 /* semi-old, TODO move more stuff from here into the CRUD functions

@@ -58,6 +58,32 @@ import sj from './global-client.mjs';
 Vue.use(VueRouter);
 Vue.use(VueX);
 
+sj.dynamicTemplate = function (display, loading, error) {
+    /* //R
+        I don't want a wrapper component that switches display, loading, and error states in addition to the display component; because the async display getter function has to be defined inside the wrapper, that means that for every async component i need to write a new extended wrapper and display component, in addition to possible custom loading and error components.
+        I want to simply write the single async component extending from the BaseLoader and optional loading and error components extending from BaseLoading and BaseError, this can't happen because vue's dynamic components can only switch components and not templates (they cant switch the component itself for another).
+        I also dont want to have to pass every custom property down from the loader to the display component
+        Therefore a custom switch for templates is needed: vue's v-if directive works for this, however this would have to be repeated for every extended component.
+        So I made a template builder function that allows the writing of the main display template, and then optional loading or error components all in one component.
+    */
+
+	//C use declared components if custom template is not defined, BaseLoader has defaults declared
+	if (!sj.isType(display, 'string'))	display = /*html*/`<display-component :display='display'></display-component>`;
+	if (!sj.isType(loading, 'string'))	loading = /*html*/`<loading-component></loading-component>`;
+	if (!sj.isType(error, 'string'))	error = /*html*/`<error-component :error='error'></error-component>`;
+
+	//C insert
+	return /*html*/`
+		<div v-if='state === "display"'>
+			${display}
+		</div><div v-else-if='state === "loading"'>
+			${loading}
+		</div><div v-else-if='state === "error"'>
+			${error}
+		</div>
+	`;
+}
+
 
 //   ██████╗ ██████╗ ███╗   ███╗██████╗  ██████╗ ███╗   ██╗███████╗███╗   ██╗████████╗███████╗
 //  ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██╔═══██╗████╗  ██║██╔════╝████╗  ██║╚══██╔══╝██╔════╝
@@ -210,161 +236,6 @@ Vue.use(VueX);
 		`,
 	});
 */
-
-// errors
-let NotFound = {
-	name: 'not-found',
-    //TODO communicate this to the server
-    template: /*html*/`
-        <h1>Page Not Found</h1>
-    `,
-};
-let ErrorPage = {
-	name: 'error-page',
-    template: /*html*/`
-        <h1>THERE WAS AN ERROR</h1>
-    `,
-};
-
-
-let LoginForm = {
-	name: 'login-form',
-    data: function () {
-        return {
-            //TODO these are temporary, should normally be null
-            name: 'jon',
-            password: 'password',
-        };
-    },
-    methods: {
-        submit: async function() {
-			//C passes all data to login(), unnecessary values will be stripped away
-			let me = await sj.login(new sj.User(this)).catch(rejected => {
-				//TODO handle error
-                console.error(rejected);
-			});
-
-			this.$store.commit('setMe', me);
-			this.$router.push('/');
-        }
-	},
-	computed: {
-		...mapState(['me']),
-	},
-    //L reasons to use html form submit over javascript function: https://stackoverflow.com/questions/16050798/html-form-submit-using-javascript-vs-submit-button, however these aren't good enough - a javascript function will do the job and be more consistent
-    template: /*html*/`
-        <!-- //L .prevent modifier keeps page from reloading on submit https://vuejs.org/v2/guide/events.html#Event-Modifiers -->
-        <form v-on:submit.prevent='submit'> 
-            <input v-model='name'       placeholder='name'>
-            <input v-model='password'   placeholder='password'>
-            <input type='submit' value='Login'>
-        </form>
-    `,
-};
-let RegisterForm = {
-	name: 'register-form',
-    data: function () {
-        return {
-            name: null,
-            password: null,
-            password2: null,
-            email: null,
-        };
-    },
-    methods: {
-        submit: async function() {
-            let user = new sj.User(this);
-            let temp = await sj.addUser(user);
-
-            console.log(temp);
-        }
-    },
-    template: /*html*/`
-        <form v-on:submit.prevent='submit'> 
-            <input v-model='name'       placeholder='name'      >
-            <input v-model='password'   placeholder='password'  >
-            <input v-model='password2'  placeholder='password2' >
-            <input v-model='email'      placeholder='email'     >
-            <input type='submit' value='Register'>
-        </form>
-    `,
-};
-let GuestForm = {
-	name: 'guest-form',
-    methods: {
-        submit: async function() {
-            //TODO
-            console.warn('TODO guest form');
-        }
-    },
-    template: /*html*/`
-        <form v-on:submit.prevent='submit'>
-            <p>Try it out as a guest, you may save your account at a later time</p>
-            <input type='submit' value='Continue as Guest'>
-        </form>
-    `,
-};
-// login
-let EntryOptions = {
-	name: 'entry-options',
-	components: {
-		LoginForm,
-		RegisterForm,
-		GuestForm,
-	},
-    data: function () {
-        return {
-            entryType: 'login',
-        };
-    },
-	computed: {
-		dynamicComponent() {
-			if(this.entryType === 'login') {
-				return this.$options.components.LoginForm;
-			} else if (this.entryType === 'register') {
-				return this.$options.components.RegisterForm;
-			} else if (this.entryType === 'guest') {
-				return this.$options.components.GuestForm;
-			}
-		},
-	},
-    template: /*html*/`
-        <div>
-            <!-- //L radio name is apparently not needed with v-model https://vuejs.org/v2/guide/forms.html#Radio -->
-            <input type='radio' v-model='entryType' value='login' id='loginEntryTypeRadio' checked>
-            <label for='loginEntryTypeRadio'>Login</label>
-
-            <input type='radio' v-model='entryType' value='register' id='registerEntryTypeRadio'>
-            <label for='registerEntryTypeRadio'>Register</label>
-
-            <input type='radio' v-model='entryType' value='guest' id='guestEntryTypeRadio'>
-			<label for='guestEntryTypeRadio'>Guest</label>
-
-			<component :is='dynamicComponent'></component>
-        </div>
-    `,
-};
-
-
-let LogoutButton = {
-	name: 'logout-button',
-    methods: {
-        click: async function() {
-			await sj.logout().catch(rejected => {
-                //TODO handle error
-				console.error(rejected);
-			});
-
-			this.$store.commit('setMe', null);
-			this.$router.push('/login');
-        }
-    },
-    template: /*html*/`
-        <button @click='click'>Logout</button>
-    `,
-};
-
-
 /* //R figuring out async loading of data, and how to handle display, laoding, and error states
 	//C async components
 		async components are created by using 'factory functions' in place of the component object, 
@@ -519,33 +390,6 @@ let LogoutButton = {
 		`
 	};
 */
-
-
-sj.dynamicTemplate = function (display, loading, error) {
-    /* //R
-        I don't want a wrapper component that switches display, loading, and error states in addition to the display component; because the async display getter function has to be defined inside the wrapper, that means that for every async component i need to write a new extended wrapper and display component, in addition to possible custom loading and error components.
-        I want to simply write the single async component extending from the BaseLoader and optional loading and error components extending from BaseLoading and BaseError, this can't happen because vue's dynamic components can only switch components and not templates (they cant switch the component itself for another).
-        I also dont want to have to pass every custom property down from the loader to the display component
-        Therefore a custom switch for templates is needed: vue's v-if directive works for this, however this would have to be repeated for every extended component.
-        So I made a template builder function that allows the writing of the main display template, and then optional loading or error components all in one component.
-    */
-
-	//C use declared components if custom template is not defined, BaseLoader has defaults declared
-	if (!sj.isType(display, 'string'))	display = /*html*/`<display-component :display='display'></display-component>`;
-	if (!sj.isType(loading, 'string'))	loading = /*html*/`<loading-component></loading-component>`;
-	if (!sj.isType(error, 'string'))	error = /*html*/`<error-component :error='error'></error-component>`;
-
-	//C insert
-	return /*html*/`
-		<div v-if='state === "display"'>
-			${display}
-		</div><div v-else-if='state === "loading"'>
-			${loading}
-		</div><div v-else-if='state === "error"'>
-			${error}
-		</div>
-	`;
-}
 
 
 let BaseDisplay = {
@@ -741,21 +585,159 @@ let TrackListLoader = {
     `),
 };
 
+// entry
+let LoginForm = {
+	name: 'login-form',
+    data() {
+        return {
+            //TODO these are temporary, should normally be null
+            name: 'jon',
+            password: 'password',
+        };
+    },
+    methods: {
+        async submit() {
+			let result = await sj.login(this).catch(rejected => {
+				//TODO handle error
+                console.error(rejected);
+            });
+            
+            let me = sj.one(result.content);
+			this.$store.commit('setMe', me);
+			this.$router.push('/');
+        }
+	},
+	computed: {
+		...mapState(['me']),
+	},
+    //L reasons to use html form submit over javascript function: https://stackoverflow.com/questions/16050798/html-form-submit-using-javascript-vs-submit-button, however these aren't good enough - a javascript function will do the job and be more consistent
+    template: /*html*/`
+        <!-- //L .prevent modifier keeps page from reloading on submit https://vuejs.org/v2/guide/events.html#Event-Modifiers -->
+        <form @submit.prevent='submit'> 
+            <input v-model='name'       placeholder='name'>
+            <input v-model='password'   placeholder='password'>
+            <input type='submit' value='Login'>
+        </form>
+    `,
+};
+let RegisterForm = {
+	name: 'register-form',
+    data() {
+        return {
+            name: null,
+            password: null,
+            password2: null,
+            email: null,
+        };
+    },
+    methods: {
+        async submit() {
+            await sj.addUser(this).catch(rejected => {
+                //TODO handle error
+                console.error(rejected);
+            });
+            
+            let me = await sj.login(this).catch(rejected => {
+                //TODO handle error
+                console.error(rejected);
+            });
+            
+            this.$store.commit('setMe', me);
+			this.$router.push('/');
+        }
+    },
+    template: /*html*/`
+        <form @submit.prevent='submit'> 
+            <input v-model='name'       placeholder='name'      >
+            <input v-model='password'   placeholder='password'  >
+            <input v-model='password2'  placeholder='password2' >
+            <input v-model='email'      placeholder='email'     >
+            <input type='submit' value='Register'>
+        </form>
+    `,
+};
+let GuestForm = {
+	name: 'guest-form',
+    methods: {
+        async submit() {
+            //TODO
+            console.warn('TODO guest form');
+        }
+    },
+    template: /*html*/`
+        <form @submit.prevent='submit'>
+            <p>Try it out as a guest, you may save your account at a later time</p>
+            <input type='submit' value='Continue as Guest'>
+        </form>
+    `,
+};
+let EntryPage = {
+    name: 'entry-page',
+	components: {
+		LoginForm,
+		RegisterForm,
+		GuestForm,
+	},
+    data() {
+        return {
+            entryType: 'login',
+        };
+    },
+	computed: {
+		dynamicComponent() {
+			if(this.entryType === 'login') {
+				return this.$options.components.LoginForm;
+			} else if (this.entryType === 'register') {
+				return this.$options.components.RegisterForm;
+			} else if (this.entryType === 'guest') {
+				return this.$options.components.GuestForm;
+			}
+		},
+	},
+    template: /*html*/`
+        <div>
+            <!-- //L radio name is apparently not needed with v-model https://vuejs.org/v2/guide/forms.html#Radio -->
+            <input type='radio' v-model='entryType' value='login' id='loginEntryTypeRadio' checked>
+            <label for='loginEntryTypeRadio'>Login</label>
 
+            <input type='radio' v-model='entryType' value='register' id='registerEntryTypeRadio'>
+            <label for='registerEntryTypeRadio'>Register</label>
+
+            <input type='radio' v-model='entryType' value='guest' id='guestEntryTypeRadio'>
+			<label for='guestEntryTypeRadio'>Guest</label>
+
+            <keep-alive>
+                <component :is='dynamicComponent'></component>
+            </keep-alive>
+        </div>
+    `,
+}
+
+// content
 let UserPage = {
-	name: 'user-page',
-    extends: BaseLoader,
+    name: 'user-page',
+    mixins: [BaseLoader],
 	components: {
 		PlaylistListLoader,
     },
     methods: {
         async getDisplay() {
-            let result = await sj.getUser(new sj.User({id: this.$route.params.id})).then(sj.returnContent);
+            let result = await sj.getUser({id: this.$route.params.id}).then(sj.returnContent);
             return sj.one(result);
+        },
+        async logout() {
+			await sj.logout().catch(rejected => {
+                //TODO handle error
+				console.error(rejected);
+			});
+
+			this.$store.commit('setMe', null);
+			this.$router.push('/login');
         },
     },
 	template: sj.dynamicTemplate(/*html*/`
         <div>
+            <button @click='logout'>Logout</button>
             <h4>user #{{display.id}}</h4>
             <h1>{{display.name}}</h1>
             <h3>{{display.email}}</h3>
@@ -765,13 +747,13 @@ let UserPage = {
 };
 let PlaylistPage = {
 	name: 'playlist-page',
-    extends: BaseLoader,
+    mixins: [BaseLoader],
     components: {
         TrackListLoader,
     },
     methods: {
         async getDisplay() {
-            let result = await sj.getPlaylist(new sj.Playlist({id: this.$route.params.id})).then(sj.returnContent);
+            let result = await sj.getPlaylist({id: this.$route.params.id}).then(sj.returnContent);
             return sj.one(result);
         },
     },
@@ -787,10 +769,10 @@ let PlaylistPage = {
 };
 let TrackPage = {
 	name: 'track-page',
-    extends: BaseLoader,
+    mixins: [BaseLoader],
     methods: {
         async getDisplay() {
-            let result = await sj.getTrack(new sj.Track({id: this.$route.params.id})).then(sj.returnContent);
+            let result = await sj.getTrack({id: this.$route.params.id}).then(sj.returnContent);
             return sj.one(result);
         },
     },
@@ -808,11 +790,76 @@ let TrackPage = {
     `),
 };
 
+let AddPlaylistPage = {
+    name: 'add-playlist-page',
+    data() {
+        return {
+            name: null,
+            description: null,
+        };
+    },
+    computed: {
+		...mapState(['me']),
+	},
+    methods: {
+        async submit() {
+            let result = await sj.addPlaylist({
+                userId: this.me.id, //TODO security issue here, maybe get the user from the server?
+                ...this,
+            }).catch(rejected => {
+                //TODO handle error
+                console.error(rejected);
+            });
 
+            let playlist = sj.one(result.content);
+			this.$router.push(`/playlist/${playlist.id}`);
+        },
+    },
+    template: /*html*/`
+        <form @submit.prevent='submit'> 
+            <input v-model='name'           placeholder='name'>
+            <input v-model='description'    placeholder='description'>
+            <input type='submit' value='Add'>
+        </form>
+    `,
+};
+
+
+// errors
+let NotFound = {
+	name: 'not-found',
+    //TODO communicate this to the server
+    template: /*html*/`
+        <h1>Page Not Found</h1>
+    `,
+};
+let ErrorPage = {
+	name: 'error-page',
+    template: /*html*/`
+        <h1>THERE WAS AN ERROR</h1>
+    `,
+};
+
+// main
 let MenuBar = {
     name: 'menu-bar',
+    computed: {
+		...mapState(['me']),
+	},
+    methods: {
+        add() {
+            this.$router.push(`/add`);
+        },
+        profile() {
+            this.$router.push(`/user/${this.me.id}`);
+        },
+    },
     template: /*html*/`
-        <div>MENU BAR</div>
+        <div>
+            MENU BAR
+            <button @click='add'>Add</button>
+            <button @click='profile'>Profile</button>
+        </div>
     `,
 }
 let PlayerBar = {
@@ -848,14 +895,13 @@ const store = new VueX.Store({
 	},
 
 });
-
 const router = new VueRouter({
 	//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
 	mode: 'history',
 	routes: [
 		{
 			path: '/login',
-			component: EntryOptions,
+			component: EntryPage,
 		},
 		{
 			path: '/',
@@ -872,7 +918,11 @@ const router = new VueRouter({
 				{
 					path: '/track/:id',
 					component: TrackPage,
-				},
+                },
+                {
+                    path: '/add',
+                    component: AddPlaylistPage,
+                },
 			],
 		},
 		{
@@ -886,7 +936,6 @@ const router = new VueRouter({
 		}
 	],
 });
-
 const vm = new Vue({
 	el: '#app',
 	router,
