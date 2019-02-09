@@ -272,7 +272,13 @@ router
     //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
     //TODO find a more guaranteed way to identify static resources (webpack apparently does this automatically)
 	if (ctx.request.path.lastIndexOf('.') === -1) {
-		ctx.request.path = homePage;
+        //C redirect if not logged in
+        //TODO i have a feeling this is the wrong place to do this
+        if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') {
+            ctx.redirect('/login');
+        } else {
+            ctx.request.path = homePage;
+        }
     }
     /* old(?)
         //TODO add .html to urls without extensions
@@ -280,6 +286,7 @@ router
         //TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
     */
 
+    
 	
     //TODO just add favicon.ico
 	if (ctx.request.path === '/favicon.ico') {
