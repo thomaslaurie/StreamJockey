@@ -778,7 +778,8 @@ let UserPage = {
     },
     methods: {
         async getDisplay() {
-            return await sj.one(sj.getUser(new sj.User({id: $route.params.id})).then(sj.returnContent));
+            let result = await sj.getUser(new sj.User({id: this.$route.params.id})).then(sj.returnContent);
+            return sj.one(result);
         },
     },
 	template: sj.dynamicTemplate(/*html*/`
@@ -794,7 +795,8 @@ let PlaylistPage = {
 	extends: BaseLoader,
     methods: {
         async getDisplay() {
-            return await sj.one(sj.getUser(new sj.Playlist({id: $route.params.id})).then(sj.returnContent));
+            let result = await sj.getPlaylist(new sj.Playlist({id: this.$route.params.id})).then(sj.returnContent);
+            return sj.one(result);
         },
     },
     template: sj.dynamicTemplate(/*html*/`
@@ -848,15 +850,9 @@ let AppMain = {
         MenuBar,
         PlayerBar,
     },
-    methods: {
-        go() {
-            this.$router.push({path: 'track/55'});
-        },
-    },
 	template: /*html*/`
 		<div>
             <menu-bar></menu-bar>
-            <button @click='go'>go to track 55</button>
 			<router-view></router-view>
 			<player-bar></player-bar>
 		</div>
