@@ -691,8 +691,8 @@ let PlaylistListLoader = {
         async getDisplay() {
             return await sj.getPlaylist(this.query).then(sj.returnContent);
         },
-        async open() {
-
+        async open(id) {
+            this.$router.push(`/playlist/${id}`);
         },
     },
 	template: sj.dynamicTemplate(/*html*/`
@@ -702,46 +702,41 @@ let PlaylistListLoader = {
                 :key='playlist.id' 
                 :display='playlist'
             >
-                <p>{{display.id}}</p>
-                <p>{{display.name}}</p>
-                <button @click='open'>Open</button>
+                <p>{{playlist.id}}</p>
+                <p>{{playlist.name}}</p>
+                <button @click='open(playlist.id)'>Open</button>
                 <button>Play</button>
             </li>
         </ul>
     `),
 }
 
-
-let TrackDisplay = {
-    name: 'track-display',
-    extends: BaseDisplay,
-    template: /*html*/`
-        <li>
-            <p>Playlist ID: {{display.playlistId}}</p>
-			<p>Position: {{display.position}}</p>
-			<p>Source: {{display.source}}</p>
-			<p>Name: {{display.name}}</p>
-			<p>Duration: {{display.duration}}</p>
-            <button>Info</button>
-            <button>Play</button>
-        </li>
-    `,
-};
 let TrackListLoader = {
 	name: 'track-list-loader',
 	extends: BaseListLoader,
 	methods: {
 		async getDisplay() {
 			return await sj.getTrack(this.query).then(sj.returnContent);
-		},
+        },
+        async open(id) {
+            this.$router.push(`/track/${id}`);
+        },
     },
     template: sj.dynamicTemplate(/*html*/`
         <ul>
-            <track-display
+            <li
                 v-for='track in display' 
                 :key='track.id' 
                 :display='track'
-            ></track-display>
+            >
+                <p>Playlist ID: {{track.playlistId}}</p>
+                <p>Position: {{track.position}}</p>
+                <p>Source: {{track.source}}</p>
+                <p>Name: {{track.name}}</p>
+                <p>Duration: {{track.duration}}</p>
+                <button @click='open(track.id)'>Info</button>
+                <button>Play</button>
+            </li>
         </ul>
     `),
 };
@@ -770,7 +765,10 @@ let UserPage = {
 };
 let PlaylistPage = {
 	name: 'playlist-page',
-	extends: BaseLoader,
+    extends: BaseLoader,
+    components: {
+        TrackListLoader,
+    },
     methods: {
         async getDisplay() {
             let result = await sj.getPlaylist(new sj.Playlist({id: this.$route.params.id})).then(sj.returnContent);
@@ -783,6 +781,7 @@ let PlaylistPage = {
             <h1>{{display.name}}</h1>
             <h2>{{display.visibility}}</h2>
             <p>{{display.description}}</p>
+            <track-list-loader :query='{playlistId: display.id}'></track-list-loader>
         </div>
     `),
 };
