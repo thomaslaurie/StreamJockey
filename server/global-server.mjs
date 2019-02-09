@@ -1530,7 +1530,6 @@ sj.addPlaylist = async function (db, playlists) {
 }
 sj.getPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
-    console.log('playlists: ', playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([

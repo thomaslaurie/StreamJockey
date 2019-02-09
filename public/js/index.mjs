@@ -547,8 +547,9 @@ sj.dynamicTemplate = function (display, loading, error) {
 	`;
 }
 
-//C default handler components
+
 let BaseDisplay = {
+    //TODO consider adding different display types instead of just different components?
     name: 'base-display',
     props: {
         display: Object,
@@ -576,8 +577,8 @@ let BaseError = {
         </div>
     `,
 };
-//C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
 let BaseLoader = {
+    //C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
 	name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
 	components: {
 		//TODO make actual default components
@@ -607,12 +608,12 @@ let BaseLoader = {
 			return null;
 		},
 		handleSuccess(resolved) {
-            console.log('SUCCESS: ', resolved);
+            //console.log('DISPLAY RESOLVED: ', resolved);
 			this.display = resolved;
 			this.state = 'display';
 		},
 		handleError(rejected) {
-            console.error('ERROR: ', rejected);
+            console.error('ERROR REJECTED: ', rejected);
 			this.error = rejected;
 			this.state = 'error';
 		},
@@ -620,7 +621,6 @@ let BaseLoader = {
 	template: sj.dynamicTemplate(),
 };
 
-//C default handler component for a list of items
 let BaseListDisplay = {
 	name: 'base-list-display',
 	extends: BaseDisplay,
@@ -630,8 +630,8 @@ let BaseListDisplay = {
 	},
 	template: /*html*/ `<p v:for='item in display'>Default Display Component for {{item}}</p>`,
 };
-//C same as BaseLoader but has orderBy and ascending properties, it gives these and an array to its list display component
 let BaseListLoader = {
+    //C same as BaseLoader but has orderBy and ascending properties, it gives these and an array to its list display component
     name: 'base-list-loader',
     extends: BaseLoader,
     components: {
@@ -663,29 +663,9 @@ let BaseListLoader = {
 };
 
 
-
-//TODO consider adding different display types instead of just different components?
-let PlaylistLoading = {
-    name: 'playlist-loading',
-    extends: BaseLoading,
-    template: /*html*/ `
-        <p>... loading ...</p>
-    `,
-};
-let PlaylistError = {
-    name: 'playlist-error',
-    extends: BaseError,
-    template: /*html*/ `
-        <p>{{error}}</p>
-    `,
-};
 let PlaylistLoader = {
     name: 'playlist-loader',
     extends: BaseLoader,
-    components: {
-        LoadingComponent: PlaylistLoading,
-        ErrorComponent: PlaylistError,
-    },
     methods: {
         //C getDisplay() should overwrite BaseLoader's getDisplay() method, it is called by the inherited created() method
         async getDisplay() {
@@ -704,14 +684,15 @@ let PlaylistLoader = {
         </li>
     `),
 };
-
-
 let PlaylistListLoader = {
 	name: 'playlist-list-loader',
 	extends: BaseListLoader,
     methods: {
         async getDisplay() {
             return await sj.getPlaylist(this.query).then(sj.returnContent);
+        },
+        async open() {
+
         },
     },
 	template: sj.dynamicTemplate(/*html*/`
@@ -746,7 +727,6 @@ let TrackDisplay = {
         </li>
     `,
 };
-
 let TrackListLoader = {
 	name: 'track-list-loader',
 	extends: BaseListLoader,
@@ -765,9 +745,6 @@ let TrackListLoader = {
         </ul>
     `),
 };
-
-
-
 
 
 let UserPage = {
@@ -832,6 +809,7 @@ let TrackPage = {
     `),
 };
 
+
 let MenuBar = {
     name: 'menu-bar',
     template: /*html*/`
@@ -844,7 +822,6 @@ let PlayerBar = {
         <div>PLAYER BAR</div>
     `,
 }
-
 let AppMain = {
 	name: 'app-main',
 	components:  {
