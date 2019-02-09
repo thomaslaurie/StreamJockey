@@ -602,7 +602,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
         }
 
         //C if property is required, or [isn't required and] isn't empty
-        if (isRequired | !sj.isEmpty(obj[prop])) {
+        if (isRequired || !sj.isEmpty(obj[prop])) {
             //C validate property, possibly modify obj[prop] if successful
             //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
             let checked = await rule.check(obj[prop], value2);
@@ -1134,7 +1134,7 @@ sj.getUser = async function (db, users) {
                 log: true,
                 origin: 'sj.getUser()',
                 message: 'unable to retrieve users',
-                content: rejected.flat(1),
+                content: sj.any(rejected).flat(1),
             });
         });
 
@@ -1530,6 +1530,7 @@ sj.addPlaylist = async function (db, playlists) {
 }
 sj.getPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
+    console.log('playlists: ', playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1559,11 +1560,12 @@ sj.getPlaylist = async function (db, playlists) {
             });
             return rows;
         }).catch(rejected => {
+            console.log('REJECTED: ', rejected);
             throw new sj.ErrorList({
                 log: true,
                 origin: 'sj.getPlaylist()',
                 message: 'unable to retrieve playlists',
-                content: rejected.flat(1),
+                content: sj.any(rejected).flat(1),
             });
         });
 
@@ -1983,7 +1985,7 @@ sj.getTrack = async function (db, tracks) {
                 log: true,
                 origin: 'sj.getTrack()',
                 message: 'unable to retrieve tracks',
-                content: rejected.flat(1),
+                content: sj.any(rejected).flat(1),
             });
         });
 

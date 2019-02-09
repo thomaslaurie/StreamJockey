@@ -177,14 +177,14 @@ sj.isType = function (input, type) {
 		if (type === 'null') {
 			return true;
 		}
-		return false;
+		return false; //! remove if null sub-types are added
 	}
 
 	if (Array.isArray(input)) {
 		if (type === 'array') {
 			return true;
 		}
-		return false;
+		return false; //! remove if Array sub-types are added
 	}
 	
 	let t = typeof input;
@@ -253,11 +253,13 @@ sj.typeOf = function (input) { //! legacy, don't use me, //TODO go and replace a
 
 sj.isEmpty = function (input) {
 	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-	//TODO write condition for non-empty objects & arrays? though this function isn't used for these (yet)
+    //TODO write condition for non-empty objects & arrays? though this function isn't used for these (yet)
 	return !(
 		sj.isType(input, 'boolean') || 
-		sj.isType(input, 'number') || 
-		(sj.isType(input, 'string') && input.trim() !== '' && input !== 'null') //! because null gets converted to the string 'null' this must be checked for //TODO there could be some issues stemming from this (user input of 'null')
+        sj.isType(input, 'number') || 
+        //C check for empty and whitespace strings and string conversions of null and undefined
+        //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
+		(sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') 
 	);
 }
 
@@ -458,7 +460,9 @@ sj.buildQuery = function (items, props) {
 	let query = [];
 	sj.any(items).forEach((item, index) => {
 		props.forEach(prop => {
-			query.push(`${prop}-${index}=${item[prop]}`);
+            if (!sj.isEmpty(item[prop])) {
+			    query.push(`${prop}-${index}=${item[prop]}`);
+            }
 		});
 	});
 

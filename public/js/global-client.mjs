@@ -471,7 +471,8 @@ sj.addPlaylist = async function (playlist) {
 	return await sj.request('POST', `${sj.API_URL}/playlist`, playlist);
 }
 sj.getPlaylist = async function (playlist) {
-	let query = sj.buildQuery(playlist, ['id', 'userId', 'name']);
+    let query = sj.buildQuery(playlist, ['id', 'userId', 'name']);
+    console.log('QUERY: ', query);
 	return await sj.request('GET', `${sj.API_URL}/playlist?${query}`);
 }
 sj.editPlaylist = async function (playlist) {

@@ -572,7 +572,7 @@ let BaseError = {
     template: /*html*/ `
         <div>
             <h2>Default Error Component</h2>
-            <p>{{error + ''}}</h2>
+            <p>{{error + ''}}</p>
         </div>
     `,
 };
@@ -774,7 +774,7 @@ let UserPage = {
 	name: 'user-page',
     extends: BaseLoader,
 	components: {
-		//UserLoader,
+		PlaylistListLoader,
     },
     methods: {
         async getDisplay() {
@@ -787,6 +787,7 @@ let UserPage = {
             <h4>user #{{display.id}}</h4>
             <h1>{{display.name}}</h1>
             <h3>{{display.email}}</h3>
+            <playlist-list-loader :query='{userId: display.id}'></playlist-list-loader>
         </div>
 	`),
 };
