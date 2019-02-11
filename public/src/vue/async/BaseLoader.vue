@@ -3,8 +3,6 @@
     import BaseLoading from './BaseLoading.vue';
     import BaseError from './BaseError.vue';
 
-    import sj from '../js/global-client.mjs';
-
     export default {
         //C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
         name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
@@ -46,7 +44,7 @@
                 this.state = 'error';
             },
         },
-        template: sj.dynamicTemplate(),
+        template: this.sj.dynamicTemplate(),
     }
 </script>
 
