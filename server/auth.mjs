@@ -37,7 +37,7 @@
 import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
  
 // internal
-import sj from '../public/js/global.mjs';
+import sj from '../public/src/js/global.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗

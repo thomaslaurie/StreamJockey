@@ -120,8 +120,8 @@
 import bcrypt from 'bcrypt';
 
 // internal
-import sj from '../public/js/global.mjs';
-import database, {pgp} from './database/db.mjs';
+import sj from '../public/src/js/global.mjs';
+import database, {pgp} from './db.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗

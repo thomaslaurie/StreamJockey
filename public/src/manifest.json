@@ -1,0 +1,3 @@
+{
+	"content_security_policy":"script-src 'self' https://sdk.scdn.co data:application/javascript data:base64; object-src 'self'"
+}

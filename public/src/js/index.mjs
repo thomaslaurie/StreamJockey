@@ -58,31 +58,6 @@ import sj from './global-client.mjs';
 Vue.use(VueRouter);
 Vue.use(VueX);
 
-sj.dynamicTemplate = function (display, loading, error) {
-    /* //R
-        I don't want a wrapper component that switches display, loading, and error states in addition to the display component; because the async display getter function has to be defined inside the wrapper, that means that for every async component i need to write a new extended wrapper and display component, in addition to possible custom loading and error components.
-        I want to simply write the single async component extending from the BaseLoader and optional loading and error components extending from BaseLoading and BaseError, this can't happen because vue's dynamic components can only switch components and not templates (they cant switch the component itself for another).
-        I also dont want to have to pass every custom property down from the loader to the display component
-        Therefore a custom switch for templates is needed: vue's v-if directive works for this, however this would have to be repeated for every extended component.
-        So I made a template builder function that allows the writing of the main display template, and then optional loading or error components all in one component.
-    */
-
-	//C use declared components if custom template is not defined, BaseLoader has defaults declared
-	if (!sj.isType(display, 'string'))	display = /*html*/`<display-component :display='display'></display-component>`;
-	if (!sj.isType(loading, 'string'))	loading = /*html*/`<loading-component></loading-component>`;
-	if (!sj.isType(error, 'string'))	error = /*html*/`<error-component :error='error'></error-component>`;
-
-	//C insert
-	return /*html*/`
-		<div v-if='state === "display"'>
-			${display}
-		</div><div v-else-if='state === "loading"'>
-			${loading}
-		</div><div v-else-if='state === "error"'>
-			${error}
-		</div>
-	`;
-}
 
 
 //   ██████╗ ██████╗ ███╗   ███╗██████╗  ██████╗ ███╗   ██╗███████╗███╗   ██╗████████╗███████╗
@@ -91,7 +66,11 @@ sj.dynamicTemplate = function (display, loading, error) {
 //  ██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║   ██║██║╚██╗██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
 //  ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ╚██████╔╝██║ ╚████║███████╗██║ ╚████║   ██║   ███████║
 //   ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
-//                                                                                            
+//                                                                                      
+import BaseLoader from '../vue/BaseLoader.vue';
+import BaseDisplay from '../vue/BaseDisplay.vue';  
+import BaseLoading from '../vue/BaseLoading.vue';  
+import BaseError from '../vue/BaseError.vue';        
 
 /* old initial crud testing
 	//L https://vuejs.org/v2/cookbook/form-validation.html
@@ -391,79 +370,81 @@ sj.dynamicTemplate = function (display, loading, error) {
 	};
 */
 
+/* moved to .vue files
+    let BaseDisplay = {
+        //TODO consider adding different display types instead of just different components?
+        name: 'base-display',
+        props: {
+            display: Object,
+        },
+        template: `
+            <div>
+                <h2>Default Display Component</h2>
+                <p>{{display + ''}}</h2>
+            </div>
+        `,
+    };
+    let BaseLoading = {
+        name: 'base-loading',
+        template: `<p>Default Loading Component</p>`,
+    };
 
-let BaseDisplay = {
-    //TODO consider adding different display types instead of just different components?
-    name: 'base-display',
-    props: {
-        display: Object,
-    },
-    template: /*html*/`
-        <div>
-            <h2>Default Display Component</h2>
-            <p>{{display + ''}}</h2>
-        </div>
-    `,
-};
-let BaseLoading = {
-    name: 'base-loading',
-    template: /*html*/ `<p>Default Loading Component</p>`,
-};
-let BaseError = {
-    name: 'base-error',
-    props: {
-        error: [Object, Error],
-    },
-    template: /*html*/ `
-        <div>
-            <h2>Default Error Component</h2>
-            <p>{{error + ''}}</p>
-        </div>
-    `,
-};
-let BaseLoader = {
-    //C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
-	name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
-	components: {
-		//TODO make actual default components
-        //TODO consider making a delay component (where no loading graphics are shown)
-        DisplayComponent: BaseDisplay,
-		LoadingComponent: BaseLoading,
-		ErrorComponent: BaseError,
-	},
-	props: {
-		query: [Object, Array],
-	},
-	data() {
-		return {
-			state: 'loading',
-			delay: 500,
-			timeout: Infinity,
+    let BaseError = {
+        name: 'base-error',
+        props: {
+            error: [Object, Error],
+        },
+        template: `
+            <div>
+                <h2>Default Error Component</h2>
+                <p>{{error + ''}}</p>
+            </div>
+        `,
+    };
+    let BaseLoader = {
+        //C loads a resource and switches to one of it's handler components based on the result, it hands them the display and/or error data from the result
+        name: 'base-loader', //! this is optional (for templates the name is inferred), but providing this manually allows it's name to show up in debugging
+        components: {
+            //TODO make actual default components
+            //TODO consider making a delay component (where no loading graphics are shown)
+            DisplayComponent: BaseDisplay,
+            LoadingComponent: BaseLoading,
+            ErrorComponent: BaseError,
+        },
+        props: {
+            query: [Object, Array],
+        },
+        data() {
+            return {
+                state: 'loading',
+                delay: 500,
+                timeout: Infinity,
 
-			display: null,
-			error: null, //R keep error separate from display because we don't want error data to overwrite existing display if there is a refresh error
-		};
-	},
-	created() {
-		this.getDisplay().then(this.handleSuccess, this.handleError);
-	},
-	methods: {
-		async getDisplay() {
-			return null;
-		},
-		handleSuccess(resolved) {
-            //console.log('DISPLAY RESOLVED: ', resolved);
-			this.display = resolved;
-			this.state = 'display';
-		},
-		handleError(rejected) {
-            console.error('ERROR REJECTED: ', rejected);
-			this.error = rejected;
-			this.state = 'error';
-		},
-	},
-	template: sj.dynamicTemplate(),
-};
+                display: null,
+                error: null, //R keep error separate from display because we don't want error data to overwrite existing display if there is a refresh error
+            };
+        },
+        created() {
+            this.getDisplay().then(this.handleSuccess, this.handleError);
+        },
+        methods: {
+            async getDisplay() {
+                return null;
+            },
+            handleSuccess(resolved) {
+                //console.log('DISPLAY RESOLVED: ', resolved);
+                this.display = resolved;
+                this.state = 'display';
+            },
+            handleError(rejected) {
+                console.error('ERROR REJECTED: ', rejected);
+                this.error = rejected;
+                this.state = 'error';
+            },
+        },
+        template: sj.dynamicTemplate(),
+    };
+*/
 
 let BaseListDisplay = {
 	name: 'base-list-display',

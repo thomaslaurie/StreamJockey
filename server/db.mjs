@@ -13,9 +13,6 @@ const pgp = pgpF({
     //TODO initialization options here: //L http://vitaly-t.github.io/pg-promise/module-pg-promise.html
 });
 
-// internal
-import sj from '../../public/js/global.mjs';
-
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
