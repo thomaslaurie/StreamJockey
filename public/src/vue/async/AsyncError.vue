@@ -1,6 +1,9 @@
 <script>
+    import reload from '../mixins/reload.mjs';
+
     export default {
-        name: 'base-error',
+        name: 'async-error',
+        mixins: [reload],
         props: {
             error: [Object, Error],
         },
@@ -11,7 +14,7 @@
 <template>
     <div>
         <h2>Default Error Component</h2>
-        <p>{{error + ''}}</p>
+        <p>Error: {{error + ''}}</p>
     </div>
 </template>
 

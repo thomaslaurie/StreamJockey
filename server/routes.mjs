@@ -271,15 +271,22 @@ router
     //C if no static resources are linked to, return the index.mjs file. this is the root app and will handle the url client-side
     //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
     //TODO find a more guaranteed way to identify static resources (webpack apparently does this automatically)
+
 	if (ctx.request.path.lastIndexOf('.') === -1) {
+        //TODO temporarily turned off /login redirect because it has issues
+        ctx.request.path = homePage;
+
         //C redirect if not logged in
         //TODO i have a feeling this is the wrong place to do this
-        if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') {
-            ctx.redirect('/login');
-        } else {
-            ctx.request.path = homePage;
-        }
+        // if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') {
+        //     //! //TODO there seems to be an issue with ctx.redirect() - when the path is not empty: /foo, the redirect won't go through
+        //     ctx.redirect('/login');
+        // } else {
+        //     ctx.request.path = homePage;
+        //     //! TODO changing the path to homePage here doesn't make as much sense semantically because we should actually just serve the index.mjs page for any unmatched file url
+        // }
     }
+
     /* old(?)
         //TODO add .html to urls without extensions
         //ctx.request.path = ctx.request.path + '.html';

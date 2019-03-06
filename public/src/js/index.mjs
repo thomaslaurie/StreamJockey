@@ -144,7 +144,7 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-//L https://unpkg.com/vue@2.5.21/ //! renamed from .js to .mjs
+//L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js //! renamed from .js to .mjs
 import Vue from './vue.esm.browser.mjs'; 
 //L https://unpkg.com/vue-router@3.0.2/ //! renamed from .js to .mjs, manually converted to esm (remove closure & export default instead of return)
 import VueRouter from './vue-router.esm.browser.mjs';
@@ -185,6 +185,7 @@ import UserPage from '../vue/page/UserPage.vue';
 import PlaylistPage from '../vue/page/PlaylistPage.vue';
 import TrackPage from '../vue/page/TrackPage.vue';
 import AddPlaylistPage from '../vue/page/AddPlaylistPage.vue';
+import TestPage from '../vue/page/TestPage.vue';
 import EntryPage from '../vue/page/EntryPage.vue';
 import ErrorPage from '../vue/page/ErrorPage.vue';
 import NotFoundPage from '../vue/page/NotFoundPage.vue';
@@ -212,6 +213,10 @@ const router = new VueRouter({
                 {
                     path: '/add',
                     component: AddPlaylistPage,
+                },
+                {
+                    path: '/test',
+                    component: TestPage,
                 },
 			],
         },

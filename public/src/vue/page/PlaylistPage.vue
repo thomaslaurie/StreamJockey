@@ -1,30 +1,31 @@
 <script>
-    import BaseLoader from '../async/BaseLoader.vue';
-    import TrackListLoader from '../track/TrackListLoader.vue';
+    import AsyncDisplay from '../async/AsyncDisplay.vue';
+    import TrackDisplayList from '../track/TrackDisplayList.vue';
 
     export default {
         name: 'playlist-page',
-        mixins: [BaseLoader],
+        extends: AsyncDisplay,
         components: {
-            TrackListLoader,
+            TrackDisplayList,
         },
         methods: {
-            async getDisplay() {
+            async getData() {
                 let result = await this.sj.getPlaylist({id: this.$route.params.id}).then(this.sj.returnContent);
                 return this.sj.one(result);
             },
         },
-        template: this.sj.dynamicTemplate(/*html*/`
-            <div>
-                <h4>playlist #{{display.id}}, user #{{display.userId}}</h4>
-                <h1>{{display.name}}</h1>
-                <h2>{{display.visibility}}</h2>
-                <p>{{display.description}}</p>
-                <track-list-loader :query='{playlistId: display.id}'></track-list-loader>
-            </div>
-        `),
     }
 </script>
+
+<template>
+    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+        <h4>playlist #{{data.id}}, user #{{data.userId}}</h4>
+        <h1>{{data.name}}</h1>
+        <h2>{{data.visibility}}</h2>
+        <p>{{data.description}}</p>
+        <track-list-loader :query='{playlistId: data.id}'></track-list-loader>
+    </async-switch>
+</template>
 
 
 <style scoped lang='scss'>

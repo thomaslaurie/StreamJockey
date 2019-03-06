@@ -1,15 +1,15 @@
 <script>
-    import BaseLoader from '../async/BaseLoader.vue';
-    import PlaylistListLoader from '../playlist/PlaylistListLoader.vue';
+    import AsyncDisplay from '../async/AsyncDisplay.vue';
+    import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
 
     export default {
         name: 'user-page',
-        mixins: [BaseLoader],
+        extends: AsyncDisplay,
         components: {
-            PlaylistListLoader,
+            PlaylistDisplayList,
         },
         methods: {
-            async getDisplay() {
+            async getData() {
                 let result = await this.sj.getUser({id: this.$route.params.id}).then(this.sj.returnContent);
                 return this.sj.one(result);
             },
@@ -23,17 +23,19 @@
                 this.$router.push('/login');
             },
         },
-        template: this.sj.dynamicTemplate(/*html*/`
-            <div>
-                <button @click='logout'>Logout</button>
-                <h4>user #{{display.id}}</h4>
-                <h1>{{display.name}}</h1>
-                <h3>{{display.email}}</h3>
-                <playlist-list-loader :query='{userId: display.id}'></playlist-list-loader>
-            </div>
-        `),
     }
 </script>
+
+
+<template>
+    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+        <button @click='logout'>Logout</button>
+        <h4>user #{{data.id}}</h4>
+        <h1>{{data.name}}</h1>
+        <h3>{{data.email}}</h3>
+        <playlist-display-list :query='{userId: data.id}'></playlist-display-list>
+    </async-switch>
+</template>
 
 
 <style scoped lang='scss'>
