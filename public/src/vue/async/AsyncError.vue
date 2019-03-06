@@ -14,7 +14,7 @@
 <template>
     <div>
         <h2>Default Error Component</h2>
-        <p>Error: {{error + ''}}</p>
+        <p>Error: {{JSON.stringify(error)}}</p>
     </div>
 </template>
 

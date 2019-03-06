@@ -224,7 +224,7 @@ const router = new VueRouter({
             //C login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
 			path: '/login',
 			component: EntryPage,
-		},
+        },
 		{
 			path: '/error',
 			component: ErrorPage,
@@ -237,8 +237,9 @@ const router = new VueRouter({
 	],
 });
 const store = new VueX.Store({
+    //TODO //L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
 	state: {
-		me: null,
+		me: null, //TODO probably replace this with a NoUser object so that functions don't break
 	},
 	mutations: {
 		setMe(state, user) {

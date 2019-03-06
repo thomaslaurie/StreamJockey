@@ -19,7 +19,7 @@
     <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
         <ul>
             <li
-                v-for='track in display' 
+                v-for='track in data' 
                 :key='track.id' 
                 :display='track'
             >

@@ -23,7 +23,7 @@
         <h1>{{data.name}}</h1>
         <h2>{{data.visibility}}</h2>
         <p>{{data.description}}</p>
-        <track-list-loader :query='{playlistId: data.id}'></track-list-loader>
+        <track-display-list :query='{playlistId: data.id}'></track-display-list>
     </async-switch>
 </template>
 

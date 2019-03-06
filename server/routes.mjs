@@ -63,6 +63,7 @@
 
 // builtin
 import path from 'path';
+import fs from 'fs';
 import EventEmitter from 'events';
 
 // external
@@ -86,6 +87,7 @@ import auth from './auth.mjs';
 //L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
 //TODO there has to be a cleaner way of doing this (especially the replace manipulation)
 const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
+const root = path.join(__dirname, '..', 'public');
 const homePage = '/src/index.html';
 
 // events
@@ -259,51 +261,41 @@ router.use('/api', apiRouter.routes(), apiRouter.allowedMethods());
 
 router
 .get('/*', async (ctx, next) => {
-    //C pages are accessed through the base GET method, serve any ./public files here
-    //! static resource references in index.html should be absolute '/foo', not relative './foo'
+    /*
+        //C pages are accessed through the base GET method, serve any public files here
+        //! static resource references in index.html should be absolute '/foo', not relative './foo'
 
-    //! "Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header"
-	//L https://developers.google.com/web/fundamentals/primers/modules
+        //! "Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header"
+        //L https://developers.google.com/web/fundamentals/primers/modules
 
-    //TODO //! errors thrown here aren't caught - fix this here and everywhere else
-
-
-    //C if no static resources are linked to, return the index.mjs file. this is the root app and will handle the url client-side
-    //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-    //TODO find a more guaranteed way to identify static resources (webpack apparently does this automatically)
-
-	if (ctx.request.path.lastIndexOf('.') === -1) {
-        //TODO temporarily turned off /login redirect because it has issues
-        ctx.request.path = homePage;
-
-        //C redirect if not logged in
-        //TODO i have a feeling this is the wrong place to do this
-        // if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') {
-        //     //! //TODO there seems to be an issue with ctx.redirect() - when the path is not empty: /foo, the redirect won't go through
-        //     ctx.redirect('/login');
-        // } else {
-        //     ctx.request.path = homePage;
-        //     //! TODO changing the path to homePage here doesn't make as much sense semantically because we should actually just serve the index.mjs page for any unmatched file url
-        // }
-    }
-
-    /* old(?)
-        //TODO add .html to urls without extensions
-        //ctx.request.path = ctx.request.path + '.html';
-        //TODO research 'canonical urls' to see if its possible to remove extensions from urls, or just redirect
+        //TODO //! errors thrown here aren't caught - fix this here and everywhere else
     */
 
-    
-	
-    //TODO just add favicon.ico
-	if (ctx.request.path === '/favicon.ico') {
-        //L temporary ignore: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+    //L temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+    if (ctx.request.path === '/favicon.ico') {
         ctx.response.status = 204;
         return;
+        //TODO add it and remove this block
     }
-    
 
-	await send(ctx, ctx.request.path, {root: path.join(__dirname, '..', 'public')});
+    //C serve resources
+    if (fs.existsSync(path.join(root, ctx.request.path))) { 
+        await send(ctx, ctx.request.path, {root: root});
+        return;
+        //TODO webpack might have a better way to identify static resources
+    } 
+    
+    //C redirect if not logged in
+    if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') { 
+        ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
+        ctx.redirect('/login');
+        return;
+    }
+  
+    //C otherwise always return the index.mjs file, this is the root app and vue will handle the routing client-side
+    //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+    ctx.request.path = homePage;
+    await send(ctx, homePage, {root: root});
 })
 .all('/*', async (ctx, next) => {
 	ctx.body = ctx.body + '.all /* reached';

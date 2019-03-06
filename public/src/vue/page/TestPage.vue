@@ -9,7 +9,7 @@
         methods: {
             async getData() {
                 await sj.wait(1000);
-                throw 'test';
+                throw {test: 'test'};
             },
         },
     }

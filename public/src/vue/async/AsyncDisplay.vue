@@ -22,8 +22,8 @@
                 //TODO delay: 500,
                 //TODO timeout: Infinity,
 
-                data: null, //! descendants must re-define initial values if used differently like referencing data.property
-                error: null, //C store error separately so that it doesn't overwrite previously fetched data
+                data: {},
+                error: {}, //C store error separately so that it doesn't overwrite previously fetched data
             };
         },
         props: {
@@ -37,7 +37,7 @@
         methods: {
             async getData() {
                 //! getData() should usually use the query prop
-                return null;
+                return {};
             },
             handleSuccess(resolved) {
                 this.data = resolved;

@@ -20,7 +20,7 @@
     <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
         <ul>
             <li
-                v-for='playlist in display' 
+                v-for='playlist in data' 
                 :key='playlist.id' 
                 :display='playlist'
             >
