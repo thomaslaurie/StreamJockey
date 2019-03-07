@@ -41,7 +41,7 @@
 
     
     //C ErrorList should not be a wrapper for a list of errors, ErrorList should be a version of a single error that has multiple 'parallel' parts (ie: adding a user and having an issue with multiple fields - its still a single error with one resource (a user) but there are multiple parts to the error that need to be evaluated in parallel not in sequence)
-    //TODO would this not mean that requests are also parallely evaluated? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
+    //TODO would this not mean that requests are also evaluated in parallel? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
 
     //L multiple resources with one request: https://stackoverflow.com/questions/32098423/rest-updating-multiple-resources-with-one-request-is-it-standard-or-to-be-avo
 
@@ -90,7 +90,7 @@
 
     review common pg-promise mistakes: //L https://github.com/vitaly-t/pg-promise/wiki/Common-Mistakes#invalid-query-formatting-with-manual-string-concatenation-and-es6-template-strings
 
-    //TODO consider delagating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single async function call? (but this is also what prevents things from silently failing in the first place))
+    //TODO consider delegating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single async function call? (but this is also what prevents things from silently failing in the first place))
 
     //TODO move other crud functions over to array results (or not?), get CRUD functions are done 
 
@@ -698,7 +698,6 @@ sj.buildSet = function (pairs) {
 //  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
 sj.posIntRules = new sj.Rule({
-    log: true,
     origin: 'positiveIntegerRules',
     message: 'number validated',
 
@@ -707,7 +706,6 @@ sj.posIntRules = new sj.Rule({
     dataTypes: ['integer'],
 });
 sj.idRules = new sj.Rule({
-    log: true,
     origin: 'idRules',
     message: 'id validated',
 
@@ -716,7 +714,6 @@ sj.idRules = new sj.Rule({
     dataTypes: ['integer'],
 });
 sj.imageRules = new sj.Rule({
-    log: true,
     origin: 'imageRules',
     message: 'image validated',
     target: 'playlistImage',
@@ -731,7 +728,6 @@ sj.imageRules = new sj.Rule({
     filterMessage: 'Image must be a valid url',
 });
 sj.colorRules = new sj.Rule({
-    log: true,
     origin: 'colorRules',
     message: 'color validated',
     target: 'playlistColor',
@@ -802,11 +798,17 @@ sj.login = async function (db, ctx, user) {
         }));
     });
 
-	ctx.session.user = new sj.User(user);
+    ctx.session.user = new sj.User(user);
     return new sj.Success({
-        log: true,
         origin: 'login()',
         message: 'user logged in',
+        content: ctx.session.user,
+    });
+}
+sj.getMe = async function (ctx) {
+    await sj.isLoggedIn(ctx);
+    return new sj.Success({
+        origin: 'getMe()',
         content: ctx.session.user,
     });
 }
@@ -817,12 +819,6 @@ sj.logout = async function (ctx) {
         origin: 'logout()',
         message: 'user logged out',
     });
-}
-
-//TODO deal with this
-sj.getMe = async function (ctx) {
-    await sj.isLoggedIn(ctx);
-    return ctx.session.user;
 }
 
 // util
@@ -867,7 +863,6 @@ sj.isLoggedIn = async function (ctx) {
 
 // validate
 sj.selfRules = new sj.Rule({
-    log: true,
     origin: 'selfRules',
     message: 'self validated',
     target: 'notify',
@@ -883,7 +878,6 @@ sj.selfRules = new sj.Rule({
 });
 
 sj.userNameRules = new sj.Rule({
-    log: true,
     origin: 'userNameRules',
     message: 'username validated',
     target: 'registerUserName',
@@ -896,7 +890,6 @@ sj.userNameRules = new sj.Rule({
     max: nameMaxLength,
 });
 sj.passwordRules = new sj.Rule({
-    log: true,
     origin: 'passwordRules',
     message: 'password validated',
     target: 'registerPassword',
@@ -908,7 +901,6 @@ sj.passwordRules = new sj.Rule({
     max: 72, //! as per bcrypt
 });
 sj.setPasswordRules = new sj.Rule({
-    log: true,
     origin: 'setPasswordRules',
     message: 'password validated',
     target: 'registerPassword',
@@ -923,7 +915,6 @@ sj.setPasswordRules = new sj.Rule({
     get againstMessage() {return 'Passwords do not match'},
 });
 sj.emailRules = new sj.Rule({
-    log: true,
     origin: 'emailRules',
     message: 'email validated',
     target: 'registerEmail',
@@ -942,7 +933,6 @@ sj.emailRules = new sj.Rule({
 /*
     sj.validateEmail = async function (email) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validateEmail()',
             message: 'email validated',
             target: 'registerEmail',
@@ -961,7 +951,6 @@ sj.emailRules = new sj.Rule({
     }
     sj.validateUserName = async function (name) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validateUserName()',
             message: 'username validated',
             target: 'registerUserName',
@@ -979,7 +968,6 @@ sj.emailRules = new sj.Rule({
     }
     sj.validatePassword = async function (password, password2) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validatePassword()',
             message: 'password validated',
             target: 'registerPassword',
@@ -1327,7 +1315,6 @@ sj.deleteUser = async function (db, users) {
 
 // rules
 sj.playlistNameRules = new sj.Rule({
-    log: true,
     origin: 'playlistNameRules()',
     message: 'name validated',
     target: 'playlistName',
@@ -1340,7 +1327,6 @@ sj.playlistNameRules = new sj.Rule({
     max: stringMaxLength,  
 });
 sj.visibilityRules = new sj.Rule({
-    log: true,
     origin: 'visibilityRules',
     message: 'visibility validated',
     target: 'playlistVisibility',
@@ -1353,7 +1339,6 @@ sj.visibilityRules = new sj.Rule({
     againstMessage: 'please select a valid visibility level',
 });
 sj.descriptionRules = new sj.Rule({
-    log: true,
     origin: 'descriptionRules()',
     message: 'description validated',
     target: 'playlistDescription',
@@ -1367,7 +1352,6 @@ sj.descriptionRules = new sj.Rule({
 /*
     sj.validatePlaylistName = async function (name) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validatePlaylistName()',
             message: 'name validated',
             target: 'playlistName',
@@ -1385,7 +1369,6 @@ sj.descriptionRules = new sj.Rule({
     }
     sj.validateVisibility = async function (visibility) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validateVisibility()',
             message: 'visibility validated',
             target: 'playlistVisibility',
@@ -1402,7 +1385,6 @@ sj.descriptionRules = new sj.Rule({
     }
     sj.validateDescription = async function (description) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validateDescription()',
             message: 'description validated',
             target: 'playlistDescription',
@@ -1419,7 +1401,6 @@ sj.descriptionRules = new sj.Rule({
     }
     sj.validateColor = async function (color) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validateColor()',
             message: 'color validated',
             target: 'playlistColor',
@@ -1437,7 +1418,6 @@ sj.descriptionRules = new sj.Rule({
     }
     sj.validateImage = async function (image) {
         let rules = new sj.Rule({
-            log: true,
             origin: 'validateColor()',
             message: 'image validated',
             target: 'playlistImage',
@@ -1748,7 +1728,6 @@ sj.deletePlaylist = async function (db, playlists) {
 
 // rules
 sj.sourceRules = new sj.Rule({
-    log: true,
     origin: 'sourceRules',
     message: 'source validated',
 
@@ -1759,7 +1738,6 @@ sj.sourceRules = new sj.Rule({
     againstMessage: 'track does not have a valid source',
 });
 sj.sourceIdRules = new sj.Rule({
-    log: true,
     origin: 'sourceIdRules',
     message: 'source id validated',
 
@@ -1768,7 +1746,6 @@ sj.sourceIdRules = new sj.Rule({
     //? any source id rules (other than being a string)? length? trim?
 });
 sj.trackNameRules = new sj.Rule({
-    log: true,
     origin: 'trackNameRules()',
     message: 'name validated',
     target: 'trackName',

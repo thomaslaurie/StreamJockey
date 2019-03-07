@@ -186,14 +186,14 @@ apiRouter
 .post('/session', async (ctx, next) => {
 	ctx.response.body = await sj.login(sj.db, ctx, ctx.request.body).catch(sj.andResolve);
 })
+.get('/session', async (ctx, next) => {
+    //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
+    ctx.response.body = await sj.getMe(ctx).catch(sj.andResolve);
+})
 .delete('/session', async (ctx, next) => {
 	ctx.response.body = await sj.logout(ctx).catch(sj.andResolve);
 })
 
-//TODO move me to user, but with 'self' permissions - somehow
-.get('/me', async (ctx, next) => {
-	ctx.response.body = await sj.getMe(ctx).catch(sj.andResolve);
-})
 
 // user
 .post('/user', async (ctx, next) => {
@@ -282,6 +282,7 @@ router
     if (fs.existsSync(path.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
         await send(ctx, ctx.request.path, {root: root});
         return;
+        //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
         //TODO webpack might have a better way to identify static resources
     } 
     
@@ -291,7 +292,7 @@ router
         ctx.redirect('/login');
         return;
     }
-    
+
     //C otherwise always return the index.mjs file, this is the root app and vue will handle the routing client-side
     //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
     ctx.request.path = homePage;

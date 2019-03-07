@@ -532,7 +532,7 @@ sj.Object = class {
 			code: 200,
 			type: 'Ok',
 			origin: '',
-			trace: sj.trace(),
+			trace: sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
 
 			// content
 			message: '',
@@ -583,9 +583,9 @@ sj.Object = class {
 	announce() {
 		// include 'log: true' in options if object should be announced on creation, call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new sj.Object()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
 		if (sj.isError(this)) {
-			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message}\n${this.trace}\n`, this, `\n  ▮ ✗ `);
+			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message}\nat ${sj.trace()}\n`, this, `\n  ▮ ✗ `);
 		} else {
-			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}`);
+			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\nat ${sj.trace()}`);
 		}	
 	}
 	onCreate() {
@@ -744,7 +744,9 @@ sj.Rule = class extends sj.Object {
 			get filterMessage() {
 				return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
 			},
-		});
+        });
+        
+        this.onCreate();
 	}
 
 	//TODO how to deal with returning the password field since its sensitive
@@ -867,7 +869,6 @@ sj.Rule = class extends sj.Object {
 		}
 
 		return new sj.Success({
-			log: true,
 			origin: `${this.origin}.checkAgainst()`,
 			content: value,
 		});
@@ -881,7 +882,6 @@ sj.Rule = class extends sj.Object {
 		//TODO
 
 		return new sj.Success({
-			log: true,
 			origin: `${this.origin}.checkAgainst()`,
 			content: value,
 		});

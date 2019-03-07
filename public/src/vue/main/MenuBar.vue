@@ -28,4 +28,8 @@
 
 
 <style scoped lang='scss'>
+    div {
+        width: 100%;
+        background-color: red;
+    }
 </style>
