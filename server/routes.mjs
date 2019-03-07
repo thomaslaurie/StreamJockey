@@ -279,19 +279,19 @@ router
     }
 
     //C serve resources
-    if (fs.existsSync(path.join(root, ctx.request.path))) { 
+    if (fs.existsSync(path.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
         await send(ctx, ctx.request.path, {root: root});
         return;
         //TODO webpack might have a better way to identify static resources
     } 
     
     //C redirect if not logged in
-    if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') { 
+    if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') {
         ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
         ctx.redirect('/login');
         return;
     }
-  
+    
     //C otherwise always return the index.mjs file, this is the root app and vue will handle the routing client-side
     //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
     ctx.request.path = homePage;
