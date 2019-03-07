@@ -3,15 +3,17 @@
 
     export default {
         name: 'menu-bar',
-        computed: {
-            ...mapState(['me']),
-        },
+        // computed: {
+        //     ...mapState(['me']),
+        // },
         methods: {
             add() {
                 this.$router.push(`/add`);
             },
-            profile() {
-                this.$router.push(`/user/${this.me.id}`);
+            async profile() {
+                //C me might have to be async retrieved and stored on the menu bar if info is to be displayed
+                let me = await this.sj.getMe().then(this.sj.returnContent);
+                this.$router.push(`/user/${me.id}`);
             },
         },
     }

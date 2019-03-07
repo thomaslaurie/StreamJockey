@@ -11,16 +11,20 @@
         name: 'async-display',
         components: {
             AsyncSwitch,
+            DelayComponent: {}, //TODO temp
             LoadingComponent: AsyncLoading,
             ErrorComponent: AsyncError,
             //TODO make actual default components
-            //TODO consider making a delay component (where no loading graphics are shown)
+            //TODO consider making a delay component (where no loading graphics are shown), this is definitely needed as I can see the loading component flickering before load
         },
         data() {
             return {
-                state: 'loading',
-                //TODO delay: 500,
-                //TODO timeout: Infinity,
+                state: 'delay',
+
+                delay: 1000, 
+                delayId: null,
+                timeout: 2147483647, //C cannot be larger than this, don't use Infinity, //L: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
+                timeoutId: null,
 
                 data: {},
                 error: {}, //C store error separately so that it doesn't overwrite previously fetched data
@@ -39,17 +43,41 @@
                 //! getData() should usually use the query prop
                 return {};
             },
+
             handleSuccess(resolved) {
+                this.clearTimeouts();
                 this.data = resolved;
                 this.state = 'display';
             },
             handleError(rejected) {
+                this.clearTimeouts();
                 this.error = rejected;
                 this.state = 'error';
             },
+
             load() {
-                this.state = 'loading';
+                this.clearTimeouts();
+                this.state = 'delay';
+                this.startTimeouts();
                 this.getData().then(this.handleSuccess, this.handleError);
+            },
+
+            startTimeouts() {
+                //TODO what happens if an old timed-out request comes back and replaces new data that was fetched?
+                this.delayId = setTimeout(() => {
+                    this.state = 'loading';
+                }, this.delay);
+                this.timeoutId = setTimeout(() => { 
+                    this.handleError(new this.sj.Error({
+                        log: true,
+                        origin: 'AsyncDisplay.load()',
+                        message: 'data request timed out',
+                    }));
+                }, this.timeout);
+            },
+            clearTimeouts() {
+                clearTimeout(this.delayId);
+                clearTimeout(this.timeoutId);
             },
         },
     }

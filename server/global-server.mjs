@@ -748,6 +748,8 @@ sj.colorRules = new sj.Rule({
 //  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
+//TODO could these just return the base object since they don't need to deal with arrays? but what about keeping consistency with the logout function
+
 // CRUD
 sj.login = async function (db, ctx, user) {
     //C validate
@@ -837,7 +839,7 @@ sj.isLoggedIn = async function (ctx) {
     }
     //C redundancy check to make sure id is right format
     await sj.Rule.checkRuleSet([
-        [sj.idRules, ctx.session.user, 'id'],
+        [true, 'id', sj.idRules, ctx.session.user, 'id'],
     ]);
 
     return new sj.Success({

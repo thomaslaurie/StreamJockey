@@ -79,10 +79,9 @@ let sj = {};
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
 sj.wait = async function (ms) {
+    //C used for basic waiting, //! should not be used if the callback needs to be canceled
 	return new Promise(resolve => {
-		if (ms !== Infinity) {
-			//! setTimeout() apparently breaks with large numbers or Infinity, so a manual check is needed 
-			//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
+		if (ms <= 2147483647) { //L maximum timeout length: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
 			setTimeout(() => {
 				resolve(`finished waiting ${ms}ms`);
 			}, ms);

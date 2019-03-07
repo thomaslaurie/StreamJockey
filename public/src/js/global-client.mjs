@@ -398,6 +398,24 @@ sj.request = async function (method, url, body) {
 }
 
 
+//  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
+//  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
+//  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
+//  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
+//  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
+//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+
+sj.login = async function (user) {
+	return await sj.request('POST', `${sj.API_URL}/session`, new sj.User(user));
+}
+sj.getMe = async function () {
+    return await sj.request('GET', `${sj.API_URL}/session`);
+}
+sj.logout = async function () {
+	return await sj.request('DELETE', `${sj.API_URL}/session`);
+}
+
+
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
 //  ██║   ██║███████╗█████╗  ██████╔╝
@@ -423,13 +441,6 @@ sj.editUser = async function (user) {
 }
 sj.deleteUser = async function (user) {
 	return await sj.request('DELETE', `${sj.API_URL}/user`, new sj.User(user));
-}
-
-sj.login = async function (user) {
-	return await sj.request('POST', `${sj.API_URL}/session`, new sj.User(user));
-}
-sj.logout = async function () {
-	return await sj.request('DELETE', `${sj.API_URL}/session`);
 }
 
 
