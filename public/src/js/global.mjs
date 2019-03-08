@@ -252,13 +252,14 @@ sj.typeOf = function (input) { //! legacy, don't use me, //TODO go and replace a
 
 sj.isEmpty = function (input) {
 	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-    //TODO write condition for non-empty objects & arrays? though this function isn't used for these (yet)
 	return !(
 		sj.isType(input, 'boolean') || 
         sj.isType(input, 'number') || 
         //C check for empty and whitespace strings and string conversions of null and undefined
         //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-		(sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') 
+        (sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') ||
+        (sj.isType(input, 'object') && Object.keys(input).length > 0) ||
+        (sj.isType(input, 'array') && input.length > 0)
 	);
 }
 

@@ -287,7 +287,9 @@ router
     } 
     
     //C redirect if not logged in
-    if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') {
+    console.log(ctx.session.user);
+    if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') { //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
+        console.log('not logged in');
         ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
         ctx.redirect('/login');
         return;

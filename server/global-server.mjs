@@ -842,8 +842,9 @@ sj.isLoggedIn = async function (ctx) {
         [true, 'id', sj.idRules, ctx.session.user, 'id'],
     ]);
 
+    //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
+
     return new sj.Success({
-        log: true,
         origin: 'isLoggedIn()',
         message: 'user is logged in',
     });
