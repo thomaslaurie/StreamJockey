@@ -771,7 +771,7 @@ sj.spotify.auth = async function () {
 
     //C open spotify auth request window
     //L https://www.w3schools.com/jsref/met_win_open.asp
-    let authWindow = window.open(requestCredentials.authRequestURL)
+    let authWindow = window.open(requestCredentials.authRequestURL);
 
     //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
     let authCredentials = await sj.request('POST', `${sj.API_URL}/spotify/authRequestEnd`, requestCredentials);

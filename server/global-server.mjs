@@ -499,15 +499,15 @@ sj.parsePostgresError = function (pgError, sjError) {
 sj.makeKey = function (length) {
     //C use only characters allowed in URLs
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    
     let key = '';
     for (let i = 0; i < length; i++) {
         key += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return key;
 }
-sj.addKey = async function (list) {
+sj.addKey = async function (list, timeout) {
     let pack = {};
+    let defaultTimeout = 300000; //C default 5 minutes
 
     pack.key = await sj.recursiveSyncCount(100, (key) => {
         let found = false;
@@ -521,22 +521,26 @@ sj.addKey = async function (list) {
     }, sj.makeKey, 10);
 
     pack.timestamp = Date.now();
+    pack.timeout = pack.timestamp;
+    sj.isType(timeout, 'number') ? pack.timeout += timeout : pack.timeout += defaultTimeout;
 
     list.push(pack);
     return pack;
 }
-sj.checkKey = async function (list, key, timeout) {
+sj.checkKey = async function (list, key) {
+    //C checks a list for a key, will remove and return if found, will clean up timed-out keys
+    
     for(let i = 0; i < list.length; i++) {
-        //C if the key is found, remove and return it
-        if (list[i].key === key) {
-            let pack = list[i];
-            list.splice(i, 1);
-            return pack;
+        //C check if timed out
+        let fresh = list[i].timeout > Date.now() ? true : false;
+        
+        //C if the key is found and not timed out, take it out and return it
+        if (list[i].key === key && fresh) {
+            return list.splice(i, 1)[0];
         }
 
-        //TODO ensure this timeout works, I think it was tested before? but just check again
-        //C if any key has timed out, remove it too
-        if (list[i].timestamp + timeout < Date.now()) {
+        //C remove timed-out keys //TODO check that this works
+        if (!fresh) {
             list.splice(i, 1);
         }
     }
@@ -544,7 +548,7 @@ sj.checkKey = async function (list, key, timeout) {
     throw new sj.Error({
         log: true,
         origin: 'checkKey()',
-        message: 'request timeout (or just an invalid key)',
+        message: 'request timeout, or just an invalid key',
     });
 }
 

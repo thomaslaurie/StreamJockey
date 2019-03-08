@@ -32,6 +32,7 @@
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
 // builtin
+import EventEmitter from 'events';
 
 // external
 import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
@@ -47,18 +48,21 @@ import sj from '../public/src/js/global.mjs';
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+// events
+const emitter = new EventEmitter();
+
 let auth = {};
 
 //TODO consider moving this over to the globals-server stuff
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
-let spotify = new sj.Source({ 
+sj.spotify = new sj.Source({ 
     api: new SpotifyWebApi({
         //C create api object and set credentials in constructor
         clientId: process.env.SPOTIFY_CLIENT_ID,
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
         redirectUri: process.env.SPOTIFY_REDIRECT_URI,
     }),
-    get scopes() { //? why does this need to be a getter?
+    get scopes() { //? why does this need to be a getter?, i think it was because one of the properties needed to be dynamic and react to authRequestManually
         return [
             /* //C
             contains an array of all scopes sent with the auth request
@@ -116,32 +120,34 @@ let spotify = new sj.Source({
 //  ██║  ██║╚██████╔╝   ██║   ██║  ██║
 //  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
 
-//C specific authRequestKey functions 
-let authRequestKeyList = []; //TODO is this the best place for this?
-auth.addAuthRequestKey = async function () {
-    return await sj.addKey(authRequestKeyList);
+//C generics
+auth.requestTimeout = 300000; //C 5 minutes
+auth.requestKeys = [];
+auth.addRequestKey = async function () {
+    return await sj.addKey(this.requestKeys, this.requestTimeout);
 }
-auth.checkAuthRequestKey = async function (key) {
-    //C 5 minute timeout //TODO this should be a global, server variable
-    let timeout = 300000; 
-    let pack = await sj.checkKey(authRequestKeyList, key, timeout);
+auth.checkRequestKey = async function (key) {
+    let pack =  await sj.checkKey(this.requestKeys, key);
     return {authRequestKey: pack.key, authRequestTimestamp: pack.timestamp};
 }
 
 
-//C source specific authRequest functions //TODO rename to 'spotify'x.., 'youtube'x...
-auth.startAuthRequest = async function () {
-    let pack = await sj.addKey(authRequestKeyList);
+sj.spotify.startAuthRequest = async function () {
+    let pack = await auth.addRequestKey();
     return new sj.Credentials({
         authRequestKey: pack.key,
         authRequestTimestamp: pack.timestamp,
-        authRequestURL: spotify.makeAuthRequestURL(pack.key),
+        authRequestTimeout: pack.timeout,
+        authRequestURL: this.makeAuthRequestURL(pack.key),
     });
-}
-auth.receiveAuthRequest = async function (ctx) {
-    //C receives and transforms credentials from spotify after the user confirms the authorization
 
-    /*//C 
+    
+}
+sj.spotify.receiveAuthRequest = async function (query) {
+    //C receives and transforms credentials from spotify after the user confirms the authorization
+    /*//C spotify authorization guide
+        //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
+
         if the user accepts the request:
         code	An authorization code that can be exchanged for an access token.
         state	The value of the state parameter supplied in the request.
@@ -153,40 +159,54 @@ auth.receiveAuthRequest = async function (ctx) {
         //TODO create error parser for spotify api
     */
 
-    //C check key first to see if it is even known who sent the request
-    //! on fail this will throw a key-not-found error (either because of timeout or another error), in this case, there is no knowing what client requested this, and should just be left to time out (on the http request side)
-    //TODO create error parser for spotify api
-    await auth.checkAuthRequestKey(ctx.request.query.state).catch(rejected => {
-        //C ensure that Error object's content is a string for calling an event
-        let error = sj.propagateError(rejected);
-        error.content = '';
-        throw error;
-    });
-    if (ctx.request.query.error !== undefined) {
-        throw new sj.Error({
-            log: true,
-            origin: 'receiveAuthRequest()',
-            message: 'spotify authorization failed',
-            reason: ctx.request.query.error,
-            content: ctx.request.query.state,
-        });
-    }
-    if (ctx.request.query.code === undefined) {
-        throw new sj.Error({
+    //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
+    await auth.checkRequestKey(query.state);
+    //C ensure that spotify sent the code
+    if (sj.isType(query.code, undefined)) {
+        emitter.emit(query.state, new sj.Error({
             log: true,
             origin: 'receiveAuthRequest()',
             message: 'spotify authorization failed',
             reason: 'code is missing',
-            content: ctx.request.query.state,
-        });
+            content: query,
+        }));
+    }
+    //C ensure that spotify didn't send an error
+    if (!sj.isType(query.error, undefined)) {
+        emitter.emit(query.state, new sj.Error({
+            log: true,
+            origin: 'receiveAuthRequest()',
+            message: 'spotify authorization failed',
+            reason: query.error,
+            content: query,
+        }));
     }
 
-    return new sj.Credentials({
-        authRequestKey: ctx.request.query.state,
-        authCode: ctx.request.query.code,
-    });
+    //C send the event and credentials for endAuthRequest() to pick up
+    emitter.emit(query.state, new sj.Credentials({
+        authRequestKey: query.state, //? is this needed anymore?
+        authCode: query.code,
+    }));
 }
-//TODO end auth request is done in the router part (because thats where the emitter is), therefore receive auth request is basically the end, should the emitter be inside here instead?
+sj.spotify.endAuthRequest = async function (ctx) {
+    //C catches events emitted by receiveAuthRequest() and sends them to the waiting router request
+
+	return await new Promise((resolve, reject) => { //! needs to be a promise wrapper because emitter.once uses a callback function
+        //C setup listener for authRequestKey
+        emitter.once(ctx.request.body.authRequestKey, (result) => {
+            resolve(result);
+        });
+
+        //C setup timeout
+        sj.wait(ctx.request.body.authRequestTimeout).then(() => {
+            reject(new sj.Error({
+                log: true,
+                origin: 'sj.spotify.endAuthRequest()',
+                message: 'request timeout',
+            }));
+        });
+	});	
+}
 
 
 export default auth;

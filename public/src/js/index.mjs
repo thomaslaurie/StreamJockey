@@ -188,6 +188,7 @@ import TrackPage from '../vue/page/TrackPage.vue';
 import AddPlaylistPage from '../vue/page/AddPlaylistPage.vue';
 import TestPage from '../vue/page/TestPage.vue';
 import EntryPage from '../vue/page/EntryPage.vue';
+import AuthRedirectPage from '../vue/page/AuthRedirectPage.vue';
 import ErrorPage from '../vue/page/ErrorPage.vue';
 import NotFoundPage from '../vue/page/NotFoundPage.vue';
 
@@ -233,7 +234,11 @@ const router = new VueRouter({
 		{
 			path: '/error',
 			component: ErrorPage,
-		},
+        },
+        {
+            path: '/*/authRedirect',
+			component: AuthRedirectPage,
+        },
 		{ 
 			//C catch invalid url paths 
 			path: '*',

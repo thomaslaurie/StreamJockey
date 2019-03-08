@@ -57,7 +57,9 @@
 	Getter and setter syntaxes (allows the user of getter and setter functions by obj.property rather than obj.getProperty() or obj.setProperty())
 	consider changing target: 'notify' to target: 'general' ?
 
-	sort out methods vs functions & function () vs arrow functions
+    sort out methods vs functions & function () vs arrow functions
+    
+    consider making some default values (like '' and null) into Symbol(), so that they can't equal any passed value (null === null returns true), just beware of the behavior when stringifying symbols
 */
 
 
@@ -1354,8 +1356,9 @@ sj.Credentials = class extends sj.Object {
 
 		sj.Object.init(this, options, {
 			//TODO this should only be server-side 
-			authRequestKey: {}, //! key comparison is done, therefore this shouldn't be an empty string
-			authRequestTimestamp: 0,
+			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+            authRequestTimestamp: 0,
+            authRequestTimeout: 300000, //C default 5 minutes
 			authRequestURL: '',
 
 			authCode: '',

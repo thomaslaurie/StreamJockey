@@ -64,7 +64,6 @@
 // builtin
 import path from 'path';
 import fs from 'fs';
-import EventEmitter from 'events';
 
 // external
 import Router from 'koa-router'; //L https://github.com/alexmingoia/koa-router
@@ -88,10 +87,7 @@ import auth from './auth.mjs';
 //TODO there has to be a cleaner way of doing this (especially the replace manipulation)
 const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
 const root = path.join(__dirname, '..', 'public');
-const homePage = '/src/index.html';
-
-// events
-const emitter = new EventEmitter();
+const app = '/src/index.html';
 
 // router
 const router = new Router();
@@ -149,40 +145,18 @@ apiRouter
 // auth
 .get('/spotify/authRequestStart', async (ctx, next) => {
     //C retrieves an auth request URL and it's respective local key (for event handling)
-
 	//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 	//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
-	ctx.response.body = await auth.startAuthRequest().catch(sj.andResolve);
+	ctx.response.body = await sj.spotify.startAuthRequest().catch(sj.andResolve);
 })
-.get('/spotify/authRedirect', async (ctx, next) => { //! this URL is sensitive to the url given to spotify developer site (i think)
-    //C receives credentials from spotify in another window, emits an event & payload that can then be sent back to the original client
-
-	//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-    let result = await auth.receiveAuthRequest(ctx).catch(sj.andResolve); 
-    
-    //? why is this being sorted?
-	if (sj.typeOf(result) === 'sj.Credentials') {
-		emitter.emit(result.authRequestKey, result);
-	} else if (sj.typeOf(result) === 'sj.Error') {
-		//C ensure key is a string
-		result.content = sj.typeOf(result.content) !== 'string' ? '' : result.content; 
-		//C the authRequestKey (inside Error.content) can be empty/incorrect (simply no listeners will be called)
-		emitter.emit(result.content, result); 
-	}
-
-    //TODO set default message here: 'this should be closed oops'
-    //TODO possible to toss a vue error component here?
+.get('/spotify/authRedirect', async (ctx, next) => { 
+    //C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
+    //! this URL is sensitive to the url given to spotify developer site (i think)
+    await sj.spotify.receiveAuthRequest(ctx.request.query).catch(sj.andResolve);
+    await send(ctx, app, {root: root});
 })
 .post('/spotify/authRequestEnd', async (ctx, next) => {
-	//TODO timeout for this?
-	await new Promise((resolve, reject) => {
-		//C once the event with the same key as that passed in the body is triggered, call
-		emitter.once(ctx.request.body.authRequestKey, (result) => {
-			resolve(result);
-		});
-	}).then(resolved => {
-		ctx.response.body = resolved;
-	});		
+    ctx.response.body = await sj.spotify.endAuthRequest(ctx).catch(sj.andResolve);
 })
 
 // session
@@ -300,8 +274,7 @@ router
 
     //C otherwise always return the index.mjs file, this is the root app and vue will handle the routing client-side
     //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-    ctx.request.path = homePage;
-    await send(ctx, homePage, {root: root});
+    await send(ctx, app, {root: root});
 })
 .all('/*', async (ctx, next) => {
 	ctx.body = ctx.body + '.all /* reached';
