@@ -10,6 +10,8 @@
             async open(id) {
                 this.$router.push(`/track/${id}`);
             },
+            async play() {
+            },
         },
     }
 </script>
@@ -29,7 +31,7 @@
                 <p>Name: {{track.name}}</p>
                 <p>Duration: {{track.duration}}</p>
                 <button @click='open(track.id)'>Info</button>
-                <button>Play</button>
+                <button @click='play()'>Play</button>
             </li>
         </ul>
     </async-switch>

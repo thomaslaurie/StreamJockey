@@ -7,6 +7,9 @@
         //     ...mapState(['me']),
         // },
         methods: {
+            home() {
+                this.$router.push(`/`);
+            },
             add() {
                 this.$router.push(`/add`);
             },
@@ -23,6 +26,7 @@
 <template>
     <div>
         MENU BAR
+        <button @click='home'>Home</button>
         <button @click='add'>Add</button>
         <button @click='profile'>Profile</button>
     </div>

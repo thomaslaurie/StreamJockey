@@ -8,10 +8,19 @@
         components: {
             TrackDisplayList,
         },
+        data() {
+            return {
+                edit: false,
+                searchTerm: '',
+            };
+        },
         methods: {
             async getData() {
                 let result = await this.sj.getPlaylist({id: this.$route.params.id}).then(this.sj.returnContent);
                 return this.sj.one(result);
+            },
+
+            async search() {
             },
         },
     }
@@ -23,10 +32,23 @@
         <h1>{{data.name}}</h1>
         <h2>{{data.visibility}}</h2>
         <p>{{data.description}}</p>
-        <track-display-list :query='{playlistId: data.id}'></track-display-list>
+
+        <button @click='edit = !edit'>Edit</button>
+
+        <div id='main'>
+            <track-display-list :query='{playlistId: data.id}'></track-display-list>
+
+            <div v-if='edit'>
+                <input v-model='searchTerm'>
+                <button @click='search'>Search</button>
+            </div>
+        </div>
     </async-switch>
 </template>
 
 
 <style scoped lang='scss'>
+    #main {
+        display: flex;
+    }
 </style>

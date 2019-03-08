@@ -1,6 +1,7 @@
 <script>
     import reload from '../mixins/reload.mjs';
 
+    import AsyncDelay from './AsyncDelay.vue';
     import AsyncLoading from './AsyncLoading.vue';
     import AsyncError from './AsyncError.vue';
 
@@ -12,13 +13,23 @@
         props: {
             state: String,
             error: [Object, Error], //TODO will warn if not Object or Error, any way to catch stray data types?
+            DelayComponent: {
+                type: Object,
+                default() {
+                    return AsyncDelay;
+                },
+            },
             LoadingComponent: {
                 type: Object,
-                default: AsyncLoading,
+                default() {
+                    return AsyncLoading;
+                },
             },
             ErrorComponent: {
                 type: Object,
-                default: AsyncError,
+                default() {
+                    return AsyncError;
+                },
             },
         },
     }
@@ -34,6 +45,9 @@
             <!-- TODO put an error component here as default -->
         </slot>
     </div>
+    <component v-else-if='state === "delay"'
+        :is='DelayComponent'
+    ></component>
     <component v-else-if='state === "loading"'
         :is='LoadingComponent'
         @reload='reload'

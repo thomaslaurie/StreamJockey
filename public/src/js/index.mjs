@@ -181,6 +181,7 @@ Vue.mixin({
 //    ╚═══╝   ╚═════╝ ╚══════╝
 
 import AppMain from '../vue/main/AppMain.vue';
+import HomePage from '../vue/page/HomePage.vue';
 import UserPage from '../vue/page/UserPage.vue';
 import PlaylistPage from '../vue/page/PlaylistPage.vue';
 import TrackPage from '../vue/page/TrackPage.vue';
@@ -198,6 +199,10 @@ const router = new VueRouter({
 			path: '/',
 			component: AppMain,
 			children: [
+                {
+                    path: '/',
+					component: HomePage,
+                },
 				{
 					path: '/user/:id',
 					component: UserPage,
@@ -237,14 +242,14 @@ const router = new VueRouter({
 	],
 });
 const store = new VueX.Store({
-    //TODO //L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
+    //? if user needs to be stored here (they dont, that happens with sessions atm) //L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
 	state: {
-		me: null, //TODO probably replace this with a NoUser object so that functions don't break
+		//me: null, //TODO probably replace this with a NoUser object so that functions don't break
 	},
 	mutations: {
-		setMe(state, user) {
-			state.me = user;
-		},
+		// setMe(state, user) {
+		// 	state.me = user;
+		// },
 	},
 
 });

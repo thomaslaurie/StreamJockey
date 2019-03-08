@@ -147,16 +147,20 @@ apiRouter
 })
 
 // auth
-.get('/spotify/startAuthRequest', async (ctx, next) => {
+.get('/spotify/authRequestStart', async (ctx, next) => {
+    //C retrieves an auth request URL and it's respective local key (for event handling)
+
 	//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 	//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
-
 	ctx.response.body = await auth.startAuthRequest().catch(sj.andResolve);
 })
-.get('/spotify/authRedirect', async (ctx, next) => {
+.get('/spotify/authRedirect', async (ctx, next) => { //! this URL is sensitive to the url given to spotify developer site (i think)
+    //C receives credentials from spotify in another window, emits an event & payload that can then be sent back to the original client
+
 	//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-	let result = await auth.receiveAuthRequest(ctx).catch(sj.andResolve);
-	
+    let result = await auth.receiveAuthRequest(ctx).catch(sj.andResolve); 
+    
+    //? why is this being sorted?
 	if (sj.typeOf(result) === 'sj.Credentials') {
 		emitter.emit(result.authRequestKey, result);
 	} else if (sj.typeOf(result) === 'sj.Error') {
@@ -166,9 +170,10 @@ apiRouter
 		emitter.emit(result.content, result); 
 	}
 
-	//TODO set default message here, (this should be closed oops)
+    //TODO set default message here: 'this should be closed oops'
+    //TODO possible to toss a vue error component here?
 })
-.post('/spotify/endAuthRequest', async (ctx, next) => {
+.post('/spotify/authRequestEnd', async (ctx, next) => {
 	//TODO timeout for this?
 	await new Promise((resolve, reject) => {
 		//C once the event with the same key as that passed in the body is triggered, call
@@ -287,9 +292,7 @@ router
     } 
     
     //C redirect if not logged in
-    console.log(ctx.session.user);
     if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') { //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
-        console.log('not logged in');
         ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
         ctx.redirect('/login');
         return;

@@ -766,35 +766,45 @@ sj.youtube = new sj.Source({
 
 // auth
 sj.spotify.auth = async function () {
-    let authRequestWindow;
-    
-    //C request authURL & authKey
-    return fetch(`http://localhost:3000/api/spotify/startAuthRequest`).then(resolved => {
-        return resolved.json();
-    }).then(resolved => {
-        //C open spotify auth request window
-        //L https://www.w3schools.com/jsref/met_win_open.asp
-        authRequestWindow = window.open(resolved.authRequestURL);
-        
-        return resolved;
-    }).then(resolved => {
-        //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-        return fetch(`http://localhost:3000/api/spotify/endAuthRequest`,  {
-            method: 'post',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(resolved),
+    //C request url
+    let requestCredentials = await sj.request('GET', `${sj.API_URL}/spotify/authRequestStart`);
+
+    //C open spotify auth request window
+    //L https://www.w3schools.com/jsref/met_win_open.asp
+    let authWindow = window.open(requestCredentials.authRequestURL)
+
+    //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
+    let authCredentials = await sj.request('POST', `${sj.API_URL}/spotify/authRequestEnd`, requestCredentials);
+
+    authWindow.close();
+    return authCredentials;
+
+    /* old
+        //C request authURL & authKey
+        return fetch(`${sj.API_URL}/spotify/startAuthRequest`).then(resolved => {
+            //C open spotify auth request window
+            //L https://www.w3schools.com/jsref/met_win_open.asp
+            authRequestWindow = window.open(resolved.authRequestURL);
+            return resolved;
+        }).then(resolved => {
+            //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
+            return fetch(`${sj.API_URL}/spotify/endAuthRequest`,  {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(resolved),
+            });
+        }).then(resolved => {
+            return resolved.json();
+        }).then(resolved => {
+            authRequestWindow.close();
+            return resolved;
+        }).catch(rejected => {
+            throw sj.propagateError(rejected);
         });
-    }).then(resolved => {
-        return resolved.json();
-    }).then(resolved => {
-        authRequestWindow.close();
-        return resolved;
-    }).catch(rejected => {
-        throw sj.propagateError(rejected);
-    });
+    */
 }
 sj.youtube.auth = async function () {
     //TODO
@@ -807,12 +817,14 @@ sj.youtube.auth = async function () {
 
 // api
 sj.spotify.loadApi = async function () {
+    //? what does this do? it seems unneeded
+
 	return new Promise(function (resolve, reject) {
 		try {
-			// https://beta.developer.spotify.com/documentation/web-api/
-			// https://doxdox.org/jmperez/spotify-web-api-js
+			//L https://beta.developer.spotify.com/documentation/web-api/
+			//L https://doxdox.org/jmperez/spotify-web-api-js
 
-			// window is basically the global object and is how to define variables within a function
+			//C window is basically the global object and is how to define variables within a function
 			window.spotifyApi = new SpotifyWebApi();
 			spotifyApi.setAccessToken(spotifyAccessToken);
 
@@ -1072,7 +1084,6 @@ sj.spotify.loadPlayer = async function () {
 		});
 	});
 }
-//TODO make this async
 sj.youtube.loadPlayer = function () {
     //TODO make this async
 
@@ -1808,95 +1819,96 @@ sj.Volume(obj) = function () {
 */
 
 
-// sj.playbackQueue = {
-// 	sent: noAction,
-// 	queue: [],
+/*
+sj.playbackQueue = {
+	sent: noAction,
+	queue: [],
 
-// 	push: async function (action) {
-// 		// redundancy checks
-// 		action.removeOld(this.queue);
+	push: async function (action) {
+		// redundancy checks
+		action.removeOld(this.queue);
 		
-// 		// count parents in queue
-// 		var parents = 0;
-// 		this.queue.forEach(function (item) {
-// 			if (item.isParentAction(action)) {
-// 				parents++;
-// 			}
-// 		});
+		// count parents in queue
+		var parents = 0;
+		this.queue.forEach(function (item) {
+			if (item.isParentAction(action)) {
+				parents++;
+			}
+		});
 
-// 		// push only if action has a parent in the way or if action is different from sentAction
-// 		if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
-// 			this.queue.push(action);
-// 			this.sendNext();
-// 		}
-// 	},
+		// push only if action has a parent in the way or if action is different from sentAction
+		if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
+			this.queue.push(action);
+			this.sendNext();
+		}
+	},
 
-// 	/* //R
-// 		Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
-// 		Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
-// 					Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
-// 		Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
-// 		Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
-// 					Putting a short delay between sj.playbackQueue calls gives enough time for the apis to sort themselves out.
-// 	*/
+	//  //R
+	// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
+	// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
+	// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
+	// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
+	// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
+	// 				Putting a short delay between sj.playbackQueue calls gives enough time for the apis to sort themselves out.
+	// 
 
-// 	sendNext: async function () {
-// 		// restart if finished sent action && queue not empty
-// 		if (this.sent === noAction && this.queue.length > 0) {
-// 			this.sent = this.queue[0];
-// 			this.queue.splice(0, 1);
+	sendNext: async function () {
+		// restart if finished sent action && queue not empty
+		if (this.sent === noAction && this.queue.length > 0) {
+			this.sent = this.queue[0];
+			this.queue.splice(0, 1);
 
-// 			// TODO checkPlaybackState every action just like before, find a better way
-// 			// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
-// 			// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-// 			checkPlayback().then(resolved => {
-// 				// !!! why arrow functions? because of lexical scoping, this is able to refer to sj.playbackQueue not just the function's body
-// 				return this.sent.trigger();
-// 			}).then(resolved => {
-// 				// TODO temporary delay - see reflection
-// 				return delay(500);
-// 			}).then(resolved => {
-// 				// TODO handle resolved, nothing needed to be handled before???
-// 				this.sent = noAction;
-// 				this.sendNext();
-// 			}, rejected => {
-// 				// TODO handle action rejected
+			// TODO checkPlaybackState every action just like before, find a better way
+			// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
+			// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
+			checkPlayback().then(resolved => {
+				// !!! why arrow functions? because of lexical scoping, this is able to refer to sj.playbackQueue not just the function's body
+				return this.sent.trigger();
+			}).then(resolved => {
+				// TODO temporary delay - see reflection
+				return delay(500);
+			}).then(resolved => {
+				// TODO handle resolved, nothing needed to be handled before???
+				this.sent = noAction;
+				this.sendNext();
+			}, rejected => {
+				// TODO handle action rejected
 
-// 				/* 	Action Failure Handling 
-// 					!!! old, meant for individual action types
+				//  	Action Failure Handling 
+				// 	!!! old, meant for individual action types
 
-// 				send action, change pendingAction to true, wait
-// 					if success: change pendingAction to false
-// 						if queuedAction exists: change action to queuedAction, clear queued action, repeat...
-// 						else: nothing
-// 					if failure: 
-// 						if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
-// 						else: trigger auto-retry process
-// 							if success: repeat...
-// 							if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
+				// send action, change pendingAction to true, wait
+				// 	if success: change pendingAction to false
+				// 		if queuedAction exists: change action to queuedAction, clear queued action, repeat...
+				// 		else: nothing
+				// 	if failure: 
+				// 		if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+				// 		else: trigger auto-retry process
+				// 			if success: repeat...
+				// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
 
-// 				*/
+				
 
-// 				handleError(rejected);
-// 				this.sent = noAction;
-// 			});
-// 		}
-// 	},
+				handleError(rejected);
+				this.sent = noAction;
+			});
+		}
+	},
 
-// 	hasObject: function (type) {
-// 		if (sent.objectType === type) {
-// 			return true;
-// 		} else {
-// 			this.queue.forEach(function (item) {
-// 				if (item.objectType === type) {
-// 					return true;
-// 				}
-// 			});
-// 			return false;
-// 		}
-// 	},
-// }
-
+	hasObject: function (type) {
+		if (sent.objectType === type) {
+			return true;
+		} else {
+			this.queue.forEach(function (item) {
+				if (item.objectType === type) {
+					return true;
+				}
+			});
+			return false;
+		}
+	},
+}
+*/
 
 
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     

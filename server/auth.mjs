@@ -58,7 +58,7 @@ let spotify = new sj.Source({
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
         redirectUri: process.env.SPOTIFY_REDIRECT_URI,
     }),
-    get scopes() {
+    get scopes() { //? why does this need to be a getter?
         return [
             /* //C
             contains an array of all scopes sent with the auth request
@@ -139,6 +139,8 @@ auth.startAuthRequest = async function () {
     });
 }
 auth.receiveAuthRequest = async function (ctx) {
+    //C receives and transforms credentials from spotify after the user confirms the authorization
+
     /*//C 
         if the user accepts the request:
         code	An authorization code that can be exchanged for an access token.

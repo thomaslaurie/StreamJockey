@@ -4,6 +4,7 @@
     //TODO it would be nice if async and static display were the same component so that async could be use solo, static in a list where data is already provided, but then items in the list could be refreshed and they change to async - however this would mean the extra loading and error components would be multipled for every instance if they are not destroyed (//TODO)
 
     import AsyncSwitch from './AsyncSwitch.vue';
+    import AsyncDelay from './AsyncDelay.vue';
     import AsyncLoading from './AsyncLoading.vue';
     import AsyncError from './AsyncError.vue';
 
@@ -11,7 +12,7 @@
         name: 'async-display',
         components: {
             AsyncSwitch,
-            DelayComponent: {}, //TODO temp
+            DelayComponent: AsyncDelay,
             LoadingComponent: AsyncLoading,
             ErrorComponent: AsyncError,
             //TODO make actual default components
@@ -21,7 +22,7 @@
             return {
                 state: 'delay',
 
-                delay: 1000, 
+                delay: 1000, //TODO i can still see delay flickering
                 delayId: null,
                 timeout: 2147483647, //C cannot be larger than this, don't use Infinity, //L: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
                 timeoutId: null,
