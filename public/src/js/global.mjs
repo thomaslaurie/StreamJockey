@@ -71,6 +71,27 @@
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 let sj = {};
+if (typeof fetch !== 'undefined') {
+	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
+	//L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
+	sj.fetch = fetch.bind(window);
+} else {
+	sj.fetch = async function () {
+		throw new sj.Error({
+			log: true,
+			origin: 'global.mjs init',
+			reason: 'fetch is not defined',
+		});
+	}
+}
+
+//TODO make these actually constant with Object.defineProperty?
+sj.SERVER_URL = `http://localhost:3000`;
+sj.API_URL = `${sj.SERVER_URL}/api`;
+sj.JSON_HEADER = {
+	'Accept': 'application/json',
+	'Content-Type': 'application/json',
+};
 
 
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
@@ -157,7 +178,33 @@ sj.objectList = [
 sj.isType = function (input, type) {
 	//R created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
-	//TODO see if this can be even more cleanly structured
+    //TODO see if this can be even more cleanly structured
+    
+    //! do not use object notation for primitives (String, Number, Boolean, etc.) these are not literals and are of type Object
+
+	let t = typeof input;
+
+	if (t === 'undefined') {
+		/* //R nevermind, uundefined variables cant be passed anyways
+			//! undefined check goes at top so that reference errors aren't thrown, cannot use input === undefined, typeof doesn't throw reference errors
+			//L https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
+		*/
+		return type === 'undefined' || type === undefined;
+	}
+
+	if (input === null) {
+		//! null check goes at top so that t === 'object' can identify only objects
+		return type === 'null' || type === null;
+	}
+
+	if (Array.isArray(input)) {
+		//! array check goes at top so that t === 'object can identify only objects
+		if (type === 'array') {
+			return true;
+		}
+		return false; //! remove if Array sub-types are added
+	}
+
 
 	// exact value
 	if (input === type) {
@@ -170,25 +217,11 @@ sj.isType = function (input, type) {
 			return true;
 		}
 	} catch (e) {
-		//C don't error if type is not constructable, just move on
-	} 
+		//C if type is not constructable, just move on
+	}
+
 
 	// typeof
-	if (input === null) {
-		if (type === 'null') {
-			return true;
-		}
-		return false; //! remove if null sub-types are added
-	}
-
-	if (Array.isArray(input)) {
-		if (type === 'array') {
-			return true;
-		}
-		return false; //! remove if Array sub-types are added
-	}
-	
-	let t = typeof input;
 	if (t === type) {
 		return true;
 	}
@@ -1180,7 +1213,9 @@ sj.Source = class extends sj.Object {
 			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
 			idPrefix: '',
 			playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
-			realSource: true,
+            realSource: true,
+            
+            credentials: new sj.Credentials({}),
 
 			//TODO this should only be server-side
 			api: {},
@@ -1188,7 +1223,7 @@ sj.Source = class extends sj.Object {
 			authRequestManually: true,
 			makeAuthRequestURL: function () {},
 
-			//C empty throw functions
+			//C empty throw functions, used in standard playback functions
 			loadApi: async function () {
 				throw new sj.Error({
 					log: true,
@@ -1282,7 +1317,7 @@ sj.Source = class extends sj.Object {
 			this.playback.playing = true;
 			this.playback.track = track;
 			this.playback.progress = 0;
-			this.playback.timeStamp = Date.now();
+			this.playback.timestamp = Date.now();
 
 			return resolved;
 		}).catch(rejected => {
@@ -1324,7 +1359,7 @@ sj.Source = class extends sj.Object {
 	async seek() {
 		return this.apiSeek(ms).then(resolved => {
 			this.playback.progress = ms;
-			this.playback.timeStamp = Date.now();
+			this.playback.timestamp = Date.now();
 			return resolved;
 		}).catch(rejected => {
 			throw sj.propagateError(rejected);
@@ -1355,15 +1390,17 @@ sj.Credentials = class extends sj.Object {
 		this.objectType = 'sj.Credentials',
 
 		sj.Object.init(this, options, {
-			//TODO this should only be server-side 
+			//TODO this part should only be server-side 
 			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
             authRequestTimestamp: 0,
             authRequestTimeout: 300000, //C default 5 minutes
 			authRequestURL: '',
-
-			authCode: '',
-			authAccessToken: '',
-			authRefreshToken: '',
+            authCode: Symbol(),
+            
+            accessToken: Symbol(),
+            expires: 0,
+            refreshToken: Symbol(),
+            tokenBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
 		});
 
 		this.onCreate();
@@ -1380,7 +1417,7 @@ sj.Playback = class extends sj.Object {
 			track: sj.noTrack,
 			playing: false,
 			progress: 0,
-			timeStamp: Date.now(),
+			timestamp: Date.now(),
 			volume: 0,
 		});
 
@@ -1878,6 +1915,83 @@ sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 		return result;
 	}
 	return await loop(count);
+}
+
+
+// request
+sj.encodeURL = function (obj) {
+	return Object.keys(obj).map(key => {
+		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
+	}).join('&');
+}
+sj.request = async function (method, url, body, headers) {
+	//! in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't, use UPPERCASE HTTP methods
+	//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
+	//L https://github.com/whatwg/fetch/issues/50
+	//L https://github.com/github/fetch/pull/243
+
+	//C stringify objects
+	if (sj.isType(body, Object)) {
+		try {
+			body = JSON.stringify(body);
+		} catch (e) {
+			//C catch stringify error (should be a cyclic reference)
+			throw new sj.Error({
+				log: true,
+				origin: 'request()',
+				message: 'could not send request',
+				reason: e.message,
+				content: body,
+			});
+		}
+	};
+
+	//L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+	let result = await sj.fetch(url, {
+		method: method,
+        headers: sj.isType(headers, 'object') ? headers : sj.JSON_HEADER,
+		body: body,
+	}).catch(rejected => {
+		//C catch network error
+		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+		//TODO properly parse
+		throw sj.propagateError(rejected);
+	});
+	
+	//C parse via fetch .json()
+	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
+	let parsedResult = await result.json().catch(rejected => {
+		throw sj.propagateError(rejected);
+	});
+
+	//C catch non-ok status codes
+	if (!result.ok) {
+		//TODO properly parse
+		throw sj.propagateError(parsedResult);
+	}
+
+	//C rebuild single objects or array of objects
+	if (sj.isType(parsedResult, Array)) {
+		parsedResult = await sj.asyncForEach(parsedResult, item => {
+			item = sj.rebuild(item);
+			if (sj.isError(item)) {
+				throw item;
+			}
+			return parsedResult;
+		}).catch(rejected => {
+			throw new sj.ErrorList({
+				log: true,
+				origin: 'sj.request()',
+				message: 'request failed',
+			});
+		});
+	} else {
+		parsedResult = sj.rebuild(parsedResult);
+		if (sj.isError(parsedResult)) {
+			throw parsedResult;
+		}
+	}
+	return parsedResult;
 }
 
 

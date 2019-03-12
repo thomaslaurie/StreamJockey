@@ -35,10 +35,11 @@
 import EventEmitter from 'events';
 
 // external
+import btoa from 'btoa';
 import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
  
 // internal
-import sj from '../public/src/js/global.mjs';
+import sj from './global-server.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -141,7 +142,7 @@ sj.spotify.startAuthRequest = async function () {
         authRequestURL: this.makeAuthRequestURL(pack.key),
     });
 
-    
+
 }
 sj.spotify.receiveAuthRequest = async function (query) {
     //C receives and transforms credentials from spotify after the user confirms the authorization
@@ -188,17 +189,17 @@ sj.spotify.receiveAuthRequest = async function (query) {
         authCode: query.code,
     }));
 }
-sj.spotify.endAuthRequest = async function (ctx) {
+sj.spotify.endAuthRequest = async function (credentials) {
     //C catches events emitted by receiveAuthRequest() and sends them to the waiting router request
 
 	return await new Promise((resolve, reject) => { //! needs to be a promise wrapper because emitter.once uses a callback function
         //C setup listener for authRequestKey
-        emitter.once(ctx.request.body.authRequestKey, (result) => {
+        emitter.once(credentials.authRequestKey, (result) => {
             resolve(result);
         });
 
         //C setup timeout
-        sj.wait(ctx.request.body.authRequestTimeout).then(() => {
+        sj.wait(credentials.authRequestTimeout).then(() => {
             reject(new sj.Error({
                 log: true,
                 origin: 'sj.spotify.endAuthRequest()',
@@ -206,6 +207,84 @@ sj.spotify.endAuthRequest = async function (ctx) {
             }));
         });
 	});	
+}
+
+
+//C while the client triggers the refresh of the tokens (so that the server doesn't have to keep track of which users are online), they are stored for the user in the database so that they can be retrieved between sessions
+sj.spotify.exchangeToken = async function (credentials) {
+    //C exchange auth code for access and refresh tokens
+
+    //C grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
+	let timestamp = Date.now();
+
+    //C exchange the auth code for tokens
+	//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
+    let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', sj.encodeURL({
+        grant_type: 'authorization_code',
+        code: credentials.authCode,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI, //C only used for validation, no need to make a second redirect handler
+
+        //client_id: process.env.SPOTIFY_CLIENT_ID,
+		//client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+	}), {
+        'Accept': 'application/json',
+		'Content-Type': 'application/x-www-form-urlencoded',
+		'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+	}).catch(rejected => {
+		throw new sj.Error({
+			log: true,
+			message: 'failed to authorize spotify',
+			reason: 'token exchange failed',
+			content: rejected,
+		});
+	});
+
+    //TODO store in database
+
+    //C wrap and return
+    return new sj.Credentials({
+        accessToken: result.access_token,
+        expires: timestamp + result.expires_in,
+        refreshToken: result.refresh_token,
+    });
+}
+sj.spotify.refreshToken = async function (credentials) {
+    let timestamp = Date.now();
+
+    let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', {
+        grant_type: 'refresh_token',
+        refresh_token: credentials.refreshToken,
+
+        //TODO test that this works specifically for the refresh, because this might have to go in the header (it wasn't mentioned in the refresh part)
+        //client_id: process.env.SPOTIFY_CLIENT_ID,
+        //client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+    }, {
+        'Accept': 'application/json',
+		'Content-Type': 'application/x-www-form-urlencoded',
+		'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+    }).catch(rejected => {
+		throw new sj.Error({
+			log: true,
+			message: 'failed to authorize spotify',
+			reason: 'token refresh failed',
+			content: rejected,
+		});
+	});
+
+    //TODO store in database
+
+    let tokens = {
+        accessToken: result.access_token,
+        expires: timestamp + result.expires_in,
+        refreshToken: result.refresh_token,
+    };
+
+    //C if result.refresh_token wasn't sent, delete the entire property so that Object.assign() can still be used
+    if (!sj.isType(result.refresh_token, 'string')) {
+        delete tokens.refreshToken;
+    }
+
+    return tokens;
 }
 
 

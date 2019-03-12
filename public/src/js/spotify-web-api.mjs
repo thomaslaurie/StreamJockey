@@ -1763,3 +1763,5 @@ var SpotifyWebApi = (function() {
 if (typeof module === 'object' && typeof module.exports === 'object') {
   module.exports = SpotifyWebApi;
 }
+
+export default SpotifyWebApi; //C manually added in for module support

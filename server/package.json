@@ -13,12 +13,14 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^3.0.2",
+    "btoa": "^1.2.1",
     "dotenv": "^6.0.0",
     "koa": "^2.5.1",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "koa-send": "^5.0.0",
     "koa-session": "^5.8.2",
+    "node-fetch": "^2.3.0",
     "pg": "^7.4.3",
     "pg-promise": "^8.4.5",
     "spotify-web-api-node": "^4.0.0"

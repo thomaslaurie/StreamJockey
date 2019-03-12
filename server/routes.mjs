@@ -145,8 +145,6 @@ apiRouter
 // auth
 .get('/spotify/authRequestStart', async (ctx, next) => {
     //C retrieves an auth request URL and it's respective local key (for event handling)
-	//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
-	//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
 	ctx.response.body = await sj.spotify.startAuthRequest().catch(sj.andResolve);
 })
 .get('/spotify/authRedirect', async (ctx, next) => { 
@@ -156,7 +154,13 @@ apiRouter
     await send(ctx, app, {root: root});
 })
 .post('/spotify/authRequestEnd', async (ctx, next) => {
-    ctx.response.body = await sj.spotify.endAuthRequest(ctx).catch(sj.andResolve);
+    ctx.response.body = await sj.spotify.endAuthRequest(ctx.request.body).catch(sj.andResolve);
+})
+.post('/spotify/exchangeToken', async (ctx, next) => {
+    ctx.response.body = await sj.spotify.exchangeToken(ctx.request.body).catch(sj.andResolve);
+})
+.post('/spotify/refreshToken', async (ctx, next) => {
+    ctx.response.body = await sj.spotify.refreshToken(ctx.request.body).catch(sj.andResolve);
 })
 
 // session

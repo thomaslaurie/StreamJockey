@@ -117,6 +117,7 @@
 // builtin
 
 // external
+import fetch from 'node-fetch'; //C global.mjs uses fetch
 import bcrypt from 'bcrypt';
 
 // internal
@@ -130,6 +131,8 @@ import database, {pgp} from './db.mjs';
 //  ██║██║╚██╗██║██║   ██║   
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+sj.fetch = fetch;
 
 // polyfill
 if (!Array.prototype.flat) {

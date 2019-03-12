@@ -2,6 +2,8 @@
     export default {	
         name: 'auth-redirect-page',
     }
+
+    //TODO make this have a delay with async-switch so that it doesn't flicker
 </script>
 
 
