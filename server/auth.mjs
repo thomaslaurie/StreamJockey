@@ -241,12 +241,12 @@ sj.spotify.exchangeToken = async function (credentials) {
 
     //TODO store in database
 
-    //C wrap and return
-    return new sj.Credentials({
-        accessToken: result.access_token,
+	//C repack and return
+	return {
+		accessToken: result.access_token,
         expires: timestamp + result.expires_in,
         refreshToken: result.refresh_token,
-    });
+	};
 }
 sj.spotify.refreshToken = async function (credentials) {
     let timestamp = Date.now();
@@ -273,16 +273,17 @@ sj.spotify.refreshToken = async function (credentials) {
 
     //TODO store in database
 
+	//C repack
     let tokens = {
         accessToken: result.access_token,
         expires: timestamp + result.expires_in,
         refreshToken: result.refresh_token,
     };
-
-    //C if result.refresh_token wasn't sent, delete the entire property so that Object.assign() can still be used
-    if (!sj.isType(result.refresh_token, 'string')) {
+    if (!sj.isType(result.refresh_token, 'string')) { //C if result.refresh_token wasn't sent, delete the entire property so that Object.assign() can still be used
         delete tokens.refreshToken;
     }
+
+	console.log('TOKENS: ', tokens);
 
     return tokens;
 }

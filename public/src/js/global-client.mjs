@@ -709,8 +709,12 @@ sj.spotify.auth = async function () {
     authWindow.close();
 
     //C exchange auth code for tokens
-    let tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
+	let tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
+	
+	console.log('TOKENS: ', tokens);
     Object.assign(this.credentials, tokens);
+
+	
 
     return new sj.Success({
         origin: 'sj.spotify.auth()',

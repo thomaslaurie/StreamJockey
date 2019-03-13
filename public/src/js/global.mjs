@@ -176,41 +176,39 @@ sj.objectList = [
 	'sj.Volume',
 ];
 sj.isType = function (input, type) {
-	//R created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
+	//! do not use object notation for primitives (String, Number, Boolean, etc.) these are not literals and are of type Object
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
-    //TODO see if this can be even more cleanly structured
-    
-    //! do not use object notation for primitives (String, Number, Boolean, etc.) these are not literals and are of type Object
+	//TODO see if this can be even more cleanly structured
+	
+	/*	//R
+		created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
+	*/
 
-	let t = typeof input;
 
-	if (t === 'undefined') {
-		/* //R nevermind, uundefined variables cant be passed anyways
-			//! undefined check goes at top so that reference errors aren't thrown, cannot use input === undefined, typeof doesn't throw reference errors
-			//L https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
-		*/
-		return type === 'undefined' || type === undefined;
+	// short circuits
+	//C may quickly return false if type matches the category (type is more likely to be one of these categories than input), this is to skip more expensive checks below because these categories have no sub-types (yet)
+	// undefined
+	if (type === undefined || type === 'undefined') {
+		//! this will not catch undefined variables (but will catch undefined properties) because they cannot be passed to functions without throwing a reference error
+		//L tried to do this: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
+		return input === undefined;
+	}
+	// null
+	if (type === null || type === 'null') {
+		//! null check goes at top so that typeof null wont be 'object'
+		return input === null;
+	}
+	// array
+	if (Array.isArray(type) || type === 'array') {
+		//! array check goes at top so that typeof array wont be 'object'
+		return Array.isArray(input);
 	}
 
-	if (input === null) {
-		//! null check goes at top so that t === 'object' can identify only objects
-		return type === 'null' || type === null;
-	}
 
-	if (Array.isArray(input)) {
-		//! array check goes at top so that t === 'object can identify only objects
-		if (type === 'array') {
-			return true;
-		}
-		return false; //! remove if Array sub-types are added
-	}
-
-
-	// exact value
+	// value
 	if (input === type) {
 		return true;
 	}
-
 	// instanceof
 	try {
 		if (input instanceof type) {
@@ -222,27 +220,86 @@ sj.isType = function (input, type) {
 
 
 	// typeof
+	let t = typeof input;
 	if (t === type) {
 		return true;
 	}
-
-	// objects
+	// object sub-types
 	if (t === 'object') {
-		// sj.Objects
-		if (sj.objectList.indexOf(input.objectType) !== -1) {
-			// any sj.Object
-			if (type === 'sj.Object') {
+		// sj.Object & sub-types
+		//R this implementation removes the need for a custom object list, because if everything extends sj.Object, everything can also be compared as an instanceof sj.Object - keeping a list of string names (to reduce the need for building an object) wont work in the long run because inheritance cant be checked that way
+		let tempInput = input;
+		let tempType = type;
+		if ((input instanceof sj.Object || (typeof input.objectType === 'string' && (() => { //C input or input.objectType is constructible
+			let Target = sj[input.objectType.replace('sj.', '')];
+			if (typeof Target === 'function') {
+				tempInput = new Target();
 				return true;
 			}
-
-			// exact sj.Object
-			if (input.objectType === type) {
+			return false;
+		})())) && (type instanceof sj.Object || (typeof type === 'string' && (() => { //C and type is constructible
+			let Target = sj[type.replace('sj.', '')];
+			if (typeof Target === 'function') {
+				tempType = Target;
+				return true;
+			}
+			return false;
+		})()))) {
+			if (tempInput instanceof tempType) { //C catch [input instance] instanceof [type constructible]
 				return true;
 			}
 		}
-	}
 
-	// numbers
+		/* old
+			if (Object.keys(sj).indexOf(input.objectType) !== -1 && type !== undefined) { //C if objectType and type are valid
+				if (input instanceof sj.Object && input instanceof ) {
+					
+				}
+
+
+				//C object instanceof type or any ancestor
+				if (new sj[input.objectType.replace('sj.', '')] instanceof sj[type.replace('sj.', '')]) {
+
+				}
+
+				// any ancestor class, has 
+				if (type === 'sj.Object' || type === sj.Object || input instanceof sj[type.replace('sj.', '')]) {
+					return true;
+				}
+
+				if (type instanceof sj[input.objectType.replace('sj.', '')] instanceof type) {
+
+				}
+
+
+				// any custom class
+				if (type === 'sj.Object' || type === sj.Object) {
+					return true;
+				}
+
+				// exact match
+				if (type === input.objectType || type === sj[input.objectType.replace('sj.', '')]) { //TODO untested
+					return true;
+				}
+
+				//TODO is a child class an instance of a parent class? otherwise need to build out tree of customClass 
+			}
+		*/
+		/* old
+			if (sj.objectList.indexOf(input.objectType) !== -1) {
+				// any sj.Object
+				if (type === 'sj.Object' || type === sj.Object) {
+					return true;
+				}
+				
+				// exact sj.Object
+				if (type === input.objectType || type === sj[input.objectType.replace('sj.', '')]) { //TODO untested
+					return true;
+				}	
+			}
+		*/
+	}
+	// number sub-types
 	if (t === 'number') {
 		// NaN
 		if (Number.isNaN(input) && (type === 'NaN' || type === 'nan')) {
@@ -557,7 +614,7 @@ sj.unpackQuery = function (queryObject) {
 
 sj.Object = class {
 	constructor(options = {}) {
-		this.objectType = 'sj.Object';
+		this.objectType = 'sj.Object'; //! wanted to use this.constructor.name here to dynamically get the class name, however it cannot be inferred specifically when declared like: object.property = class, it would work if the class had its own name, but this is an issue because i'm using reserved names and it breaks functions inside the class, defining the classes in a separate object wont work either because they then can't extend each other
 
 		sj.Object.init(this, options, {
 			// debug
@@ -1391,6 +1448,7 @@ sj.Credentials = class extends sj.Object {
 
 		sj.Object.init(this, options, {
 			//TODO this part should only be server-side 
+			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
 			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
             authRequestTimestamp: 0,
             authRequestTimeout: 300000, //C default 5 minutes
@@ -1786,11 +1844,10 @@ sj.filterList = async function (list, type, successList, errorList) { //TODO leg
 }
 
 // rebuild
-sj.rebuild = function (input) {
-	//C turns input JSON into a javascript object (with access to functions n such) based on it's objectType
+sj.rebuild = function (input, strict) {
+	//C turns a bare object back into its custom class if it has a valid objectType property
 
-	//C parse if string
-	if (sj.isType(input, 'string')) {
+	if (sj.isType(input, 'string')) { //C parse if string
 		try {
 			input = JSON.parse(input);
 		} catch (e) {
@@ -1803,8 +1860,7 @@ sj.rebuild = function (input) {
 			});
 		}
 	}
-
-	if (!sj.isType(input, 'object')) {
+	if (!sj.isType(input, 'object')) { //C throw if not object
 		return new sj.Error({
 			log: true,
 			origin: 'sj.rebuild()',
@@ -1813,7 +1869,12 @@ sj.rebuild = function (input) {
 			content: input,
 		});
 	}
-	if (!sj.isType(input, 'sj.Object')) {
+
+
+	let rebuilt = input;
+	if (sj.isType(input, 'sj.Object')) { //C rebuild if possible
+		rebuilt = new sj[input.objectType.replace('sj.', '')](input);
+	} else if (strict) { //C throw if not possible and strict
 		return new sj.Error({
 			log: true,
 			origin: 'sj.rebuild()',
@@ -1823,10 +1884,7 @@ sj.rebuild = function (input) {
 		});
 	}
 
-	//C do not log, as this will announce the error a second time on the client side
-	//input.log = false;
-	//R used to be window[...] but now that sj.Objects have a namespace (sj) these can simply be called with sj[...]
-	return new sj[input.objectType.replace('sj.', '')](input);
+	return rebuilt;
 }
 
 // recursive shells
@@ -1970,28 +2028,21 @@ sj.request = async function (method, url, body, headers) {
 		throw sj.propagateError(parsedResult);
 	}
 
-	//C rebuild single objects or array of objects
+	//C rebuild and throw if error
+	let build = function (item) {
+		item = sj.rebuild(item);
+		if (sj.isError(item)) {
+			throw item;
+		}
+		return item;
+	}
 	if (sj.isType(parsedResult, Array)) {
 		parsedResult = await sj.asyncForEach(parsedResult, item => {
-			item = sj.rebuild(item);
-			if (sj.isError(item)) {
-				throw item;
-			}
-			return parsedResult;
-		}).catch(rejected => {
-			throw new sj.ErrorList({
-				log: true,
-				origin: 'sj.request()',
-				message: 'request failed',
-			});
+			return build(item);
 		});
 	} else {
-		parsedResult = sj.rebuild(parsedResult);
-		if (sj.isError(parsedResult)) {
-			throw parsedResult;
-		}
+		return build(parsedResult);
 	}
-	return parsedResult;
 }
 
 
