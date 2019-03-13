@@ -1,4 +1,4 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[0],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([["spotify-player"],{
 
 /***/ "../public/src/js/spotify-player.js":
 /*!******************************************!*\

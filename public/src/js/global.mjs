@@ -92,6 +92,10 @@ sj.JSON_HEADER = {
 	'Accept': 'application/json',
 	'Content-Type': 'application/json',
 };
+sj.URL_HEADER = {
+	'Accept': 'application/json',
+	'Content-Type': 'application/x-www-form-urlencoded',
+};
 
 
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
@@ -2016,6 +2020,19 @@ sj.request = async function (method, url, body, headers) {
 		throw sj.propagateError(rejected);
 	});
 	
+
+	//TODO sort out the codes and parsing below
+
+	//C catch ok, no content code
+	if (result.status === 204) {
+		return new sj.Success({
+			origin: 'sj.request()',
+			code: '204',
+			message: 'success',
+			reason: 'request successful, no content returned',
+		});
+	}
+
 	//C parse via fetch .json()
 	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
 	let parsedResult = await result.json().catch(rejected => {
@@ -2043,6 +2060,8 @@ sj.request = async function (method, url, body, headers) {
 	} else {
 		return build(parsedResult);
 	}
+
+
 }
 
 

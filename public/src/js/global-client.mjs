@@ -43,7 +43,7 @@ import sj from './global.mjs';
 
 
 // external
-//import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice
+//import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './spotify-web-api.mjs'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 
 
@@ -156,8 +156,6 @@ var elementErrorList = new sj.ErrorList({
 	origin: 'global variable elementErrorList',
 });
 function clearElementError(elementError) {
-	// console.log('clearElementError('+elementError.target+') called');
-
 	// reverse deletion loop
 	for (var i = elementErrorList.content.length - 1; i >= 0; i--) {
 		if (elementError.target === elementErrorList.content[i].target) {
@@ -169,8 +167,6 @@ function clearElementError(elementError) {
 function clearElementErrorList(elementList) {
 	// any call that creates element errors must be responsible for cleaning them up
 
-	// console.log('addElementError('+elementList+') called');
-	
 	elementList.forEach(function(element, i) {
 		// backwards delete loop
 		for (var j = elementErrorList.content.length - 1; j >= 0; j--) {
@@ -183,8 +179,6 @@ function clearElementErrorList(elementList) {
 	});
 }
 function addElementError(elementError) {
-	// console.log('addElementError('+elementError.target+') called');
-
 	// if the error has a target
 	if (elementError.target !== '') {
 		// delete old, push new
@@ -193,8 +187,6 @@ function addElementError(elementError) {
 	}
 }
 function updateElementErrors() {
-	// console.log('updateErrorElements() called');
-
 	// list of all elementErrorClasses 
 	// TODO keep me updated
 	var elementErrorClasses = [
@@ -710,11 +702,7 @@ sj.spotify.auth = async function () {
 
     //C exchange auth code for tokens
 	let tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
-	
-	console.log('TOKENS: ', tokens);
-    Object.assign(this.credentials, tokens);
-
-	
+	Object.assign(this.credentials, tokens);
 
     return new sj.Success({
         origin: 'sj.spotify.auth()',
@@ -760,7 +748,7 @@ sj.youtube.auth = async function () {
 }
 
 sj.spotify.getAccessToken = async function () {
-    //C gets the api access token, handles all refreshing, initializing, errors, etc.
+	//C gets the api access token, handles all refreshing, initializing, errors, etc.
 
     //TODO if client doesn't have the access token, retrieve it from the server (and refresh),. if the server doesn't have it prompt to authorize
     //TODO must respond to denials by spotify too
@@ -768,10 +756,9 @@ sj.spotify.getAccessToken = async function () {
 
     let that = this;
     let refresh = async function (that) {
-        return await sj.request('POST', `${sj.API_URL}/spotify/refreshToken`, {refreshToken: this.refreshToken}).then(resolved => {
-            Object.assign(that.credentials, resolved);
-        });
-    }
+		let result = await sj.request('POST', `${sj.API_URL}/spotify/refreshToken`, {refreshToken: that.credentials.refreshToken});
+		Object.assign(that.credentials, result);
+    };
 
     if (this.expires <= Date.now()) {
         //TODO do a refresh before getting token
@@ -779,9 +766,9 @@ sj.spotify.getAccessToken = async function () {
     }
     if (this.expires <= Date.now() + this.tokenBuffer) {
         refresh(that);
-    }
-    
-    return this.accessToken;
+	}
+
+    return this.credentials.accessToken;
 }
 sj.spotify.request = async function (method, path, body) {
 	//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
@@ -892,21 +879,19 @@ sj.youtube.loadApi = async function () {
 sj.spotify.loadPlayer = async function () {
 	let that = this;
 	return await new Promise((resolve, reject) => {
-		//C setup player
 		window.onSpotifyWebPlaybackSDKReady = function () { // this can be async if needed
 			const player = new window.Spotify.Player({
 				name: 'StreamJockey', //TODO make global //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-				getOAuthToken: async callback => { //? is this allowed to be async?
-					let token = await that.getAccessToken(); 
+				getOAuthToken: async callback => {
+					let token = await that.getAccessToken();
 					callback(token);
 				},
 				//volume: 1, //C initialize with a custom volume (default is 1)
 			});
 			
 
-			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-
 			//C events
+			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
 			player.on('ready', async ({device_id}) => {
 				//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
 				//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
@@ -918,16 +903,15 @@ sj.spotify.loadPlayer = async function () {
 				}).catch(rejected => {
 					reject(new sj.Error({
 						log: true,
-						code: JSON.parse(error.response).error.status,
+						//code: JSON.parse(error.response).error.status,
 						origin: 'spotify.loadPlayer()',
 						message: 'spotify player could not be loaded',
-						reason: JSON.parse(error.response).error.message,
+						//reason: JSON.parse(error.response).error.message,
 						content: rejected,
 					}));
 				});
 
 				resolve(new sj.Success({
-					log: true,
 					origin: 'spotify.loadPlayer()',
 					message: 'spotify player loaded',
 				}));
@@ -935,7 +919,6 @@ sj.spotify.loadPlayer = async function () {
 				/* old
 					spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
 						triggerResolve(new sj.Success({
-							log: true,
 							origin: 'spotify.loadPlayer()',
 							message: 'spotify player loaded',
 						}));
@@ -995,7 +978,7 @@ sj.spotify.loadPlayer = async function () {
 				}));
 			});
 
-			//C ongoing
+			//C ongoing listeners
 			player.on('player_state_changed', state => {
 				/* 
 					//C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
@@ -1028,7 +1011,7 @@ sj.spotify.loadPlayer = async function () {
 					}
 				*/
 	
-				console.log('STATE: ', state);
+				//console.log('STATE: ', state);
 	
 				that.playback.timestamp = state.timestamp;
 				that.playback.playing = !state.paused;
@@ -1053,10 +1036,20 @@ sj.spotify.loadPlayer = async function () {
 
 
 			//C connect player
-			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-			//! do not resolve here, the player will trigger the 'ready' event when its truly ready
-			let successful = player.connect().catch(rejected => {
-				//C 'returns a promise with a boolean for whether or not the connection was successful', a rejection shouldn't be possible here
+			player.connect().then(resolved => {
+				//C 'returns a promise with a boolean for whether or not the connection was successful'
+				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+				//! do not resolve here, the player will trigger the 'ready' event when its truly ready
+				if (!resolved) {
+					reject(new sj.Error({
+						log: true,
+						origin: 'spotify.loadPlayer()',
+						message: 'spotify player failed to connect',
+						reason: 'spotify.connect() failed',
+					}));
+				}
+			}, rejected => {
+				//! a rejection shouldn't be possible here
 				reject(new sj.Error({
 					log: true,
 					origin: 'spotify.loadPlayer()',
@@ -1065,14 +1058,6 @@ sj.spotify.loadPlayer = async function () {
 					content: rejected,
 				}));
 			});
-			if (!successful) {
-				reject(new sj.Error({
-					log: true,
-					origin: 'spotify.loadPlayer()',
-					message: 'spotify player failed to connect',
-					reason: 'spotify.connect() failed',
-				}));
-			}
 
 			/* //R
 				//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
@@ -1099,7 +1084,7 @@ sj.spotify.loadPlayer = async function () {
 		//C dynamic import spotify's sdk
 		//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
 		//! might cause some webpack issue
-		import('./spotify-player.js');
+		import(/* webpackChunkName: 'spotify-player' */ './spotify-player.js');
 	});
 
 	/* old
@@ -1211,7 +1196,6 @@ sj.spotify.loadPlayer = async function () {
 
 						spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
 							triggerResolve(new sj.Success({
-								log: true,
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player loaded',
 							}));
@@ -1576,8 +1560,6 @@ sj.youtube.getTracks = async function (ids) {
 
 // display
 function refreshSearchResults() {
-	// console.log('refreshSearchResults() called');
-
 	// arrange and display
 	sj.searchResults.all = arrangeResults('mix', ['spotify', 'youtube']);
 	displayList(sj.searchResults.all);

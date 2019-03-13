@@ -7,7 +7,11 @@ module.exports = {
 	entry: '../public/src/js/index.mjs',
 	output: {
 		filename: 'index.bundle.js',
-		path: path.resolve(__dirname, '../public/dist')
+		chunkFilename: '[name].chunk.js',
+		path: path.resolve(__dirname, '../public/dist'),
+		publicPath: 'dist/',
+		//L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
+		//TODO consider tossing not-yet-bundled resources into dist too (index.html, css)
     },
     devtool: 'cheap-module-eval-source-map', //L https://webpack.js.org/configuration/devtool/
     module: {
@@ -37,5 +41,5 @@ module.exports = {
     },
     plugins: [
         new VueLoaderPlugin()
-    ],
+	],
 };

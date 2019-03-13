@@ -6,7 +6,6 @@
         methods: {
             async auth() {
                 let temp = await this.sj.spotify.auth();
-                console.log('AUTH RESULT: ', temp);
             },
             async loadApi() {
                 await this.sj.spotify.loadApi();

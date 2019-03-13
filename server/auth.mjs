@@ -35,7 +35,7 @@
 import EventEmitter from 'events';
 
 // external
-import btoa from 'btoa';
+//import btoa from 'btoa';
 import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
  
 // internal
@@ -181,7 +181,7 @@ sj.spotify.receiveAuthRequest = async function (query) {
             reason: query.error,
             content: query,
         }));
-    }
+	}
 
     //C send the event and credentials for endAuthRequest() to pick up
     emitter.emit(query.state, new sj.Credentials({
@@ -224,13 +224,10 @@ sj.spotify.exchangeToken = async function (credentials) {
         code: credentials.authCode,
         redirect_uri: process.env.SPOTIFY_REDIRECT_URI, //C only used for validation, no need to make a second redirect handler
 
-        //client_id: process.env.SPOTIFY_CLIENT_ID,
-		//client_secret: process.env.SPOTIFY_CLIENT_SECRET,
-	}), {
-        'Accept': 'application/json',
-		'Content-Type': 'application/x-www-form-urlencoded',
-		'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
-	}).catch(rejected => {
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+		client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+		// alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+	}), sj.URL_HEADER).catch(rejected => {
 		throw new sj.Error({
 			log: true,
 			message: 'failed to authorize spotify',
@@ -239,30 +236,27 @@ sj.spotify.exchangeToken = async function (credentials) {
 		});
 	});
 
-    //TODO store in database
+	//TODO store in database
 
 	//C repack and return
 	return {
 		accessToken: result.access_token,
         expires: timestamp + result.expires_in,
-        refreshToken: result.refresh_token,
+		refreshToken: result.refresh_token,
+		scopes: result.scope.split(' '),
+		//C result.token_type is the only omitted property, this is always 'Bearer'
 	};
 }
 sj.spotify.refreshToken = async function (credentials) {
     let timestamp = Date.now();
 
-    let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', {
+    let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', sj.encodeURL({
         grant_type: 'refresh_token',
-        refresh_token: credentials.refreshToken,
-
-        //TODO test that this works specifically for the refresh, because this might have to go in the header (it wasn't mentioned in the refresh part)
-        //client_id: process.env.SPOTIFY_CLIENT_ID,
-        //client_secret: process.env.SPOTIFY_CLIENT_SECRET,
-    }, {
-        'Accept': 'application/json',
-		'Content-Type': 'application/x-www-form-urlencoded',
-		'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
-    }).catch(rejected => {
+		refresh_token: credentials.refreshToken,
+		
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+    }), sj.URL_HEADER).catch(rejected => {
 		throw new sj.Error({
 			log: true,
 			message: 'failed to authorize spotify',
@@ -282,8 +276,6 @@ sj.spotify.refreshToken = async function (credentials) {
     if (!sj.isType(result.refresh_token, 'string')) { //C if result.refresh_token wasn't sent, delete the entire property so that Object.assign() can still be used
         delete tokens.refreshToken;
     }
-
-	console.log('TOKENS: ', tokens);
 
     return tokens;
 }

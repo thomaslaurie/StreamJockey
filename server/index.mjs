@@ -117,7 +117,7 @@ app.use(async (ctx, next) => {
 		let n = ctx.session.views || 0;
 		ctx.session.views = ++n;
 	} 
-	console.log(ctx.session.views + ' views');
+	//console.log(ctx.session.views + ' views');
 	await next();
 });
 
