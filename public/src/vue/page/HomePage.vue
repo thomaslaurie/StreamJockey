@@ -7,11 +7,11 @@
             async auth() {
                 let temp = await this.sj.spotify.auth();
             },
-            async loadApi() {
-                await this.sj.spotify.loadApi();
-            },
             async loadPlayer() {
                 await this.sj.spotify.loadPlayer();
+			},
+			async search() {
+				await this.sj.spotify.search('test');
             },
         },
     }
@@ -21,8 +21,8 @@
 <template>
     <div>
         <button @click='auth()'>Auth</button>
-        <button @click='loadApi()'>Load Api</button>
         <button @click='loadPlayer()'>Load Player</button>
+		<button @click='search()'>Search</button>
     </div>
 </template>
 

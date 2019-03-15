@@ -180,16 +180,28 @@ sj.objectList = [
 	'sj.Volume',
 ];
 sj.isType = function (input, type) {
-	//! do not use object notation for primitives (String, Number, Boolean, etc.) these are not literals and are of type Object
+	//C matches 'input' type or super-type to 'type' value or string representation or builtin object
+	//! will match if values match, but not if types match - ('someString' wont match to 'someOtherString')
+
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
 	//TODO see if this can be even more cleanly structured
+	//TODO consider allowing the user of builtin objects
+	//TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I dont think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
 	
 	/*	//R
 		created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
 	*/
 
+	// value
+	if (input === type) {
+		return true;
+	}
+	// instanceof
+	if (typeof type === 'function' && input instanceof type) {
+		return true;
+	}
 
-	// short circuits
+	// no sub-types
 	//C may quickly return false if type matches the category (type is more likely to be one of these categories than input), this is to skip more expensive checks below because these categories have no sub-types (yet)
 	// undefined
 	if (type === undefined || type === 'undefined') {
@@ -203,33 +215,31 @@ sj.isType = function (input, type) {
 		return input === null;
 	}
 	// array
-	if (Array.isArray(type) || type === 'array') {
+	if (type === Array || type === 'array' || Array.isArray(type)) {
 		//! array check goes at top so that typeof array wont be 'object'
 		return Array.isArray(input);
 	}
+	// boolean
+	if (type === Boolean || type === 'boolean' || type === true || type === false) {
+		return input === true || input === false;
+	}
+	// string
+	if (type === String || type === 'string') {
+		return typeof input === 'string';
+	}
 
-
-	// value
-	if (input === type) {
+	// sub-types
+	// all
+	let t = typeof input;
+	if (t === type) { //! this must go after null and array because typeof doesn't reveal these
 		return true;
 	}
-	// instanceof
-	try {
-		if (input instanceof type) {
+	// object
+	if (t === 'object') {
+		if (type === Object || type === 'object') {
 			return true;
 		}
-	} catch (e) {
-		//C if type is not constructable, just move on
-	}
 
-
-	// typeof
-	let t = typeof input;
-	if (t === type) {
-		return true;
-	}
-	// object sub-types
-	if (t === 'object') {
 		// sj.Object & sub-types
 		//R this implementation removes the need for a custom object list, because if everything extends sj.Object, everything can also be compared as an instanceof sj.Object - keeping a list of string names (to reduce the need for building an object) wont work in the long run because inheritance cant be checked that way
 		let tempInput = input;
@@ -303,10 +313,16 @@ sj.isType = function (input, type) {
 			}
 		*/
 	}
-	// number sub-types
+	// number
 	if (t === 'number') {
+		//C will catch Infinity
+
+		if (type === Number || type === 'number') {
+			return true;
+		}
+
 		// NaN
-		if (Number.isNaN(input) && (type === 'NaN' || type === 'nan')) {
+		if (Number.isNaN(input) && (type === NaN || type === 'NaN' || type === 'nan')) {
 			//! isNaN() and Number.isNaN() are slightly different: //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN
 			return true;
 		}
@@ -317,7 +333,7 @@ sj.isType = function (input, type) {
 		}
 
 		// float
-		if (!Number.isInteger(input) && type === 'float') {
+		if (!Number.isInteger(input) && (type === 'float')) {
 			return true;
 		}
 	}
@@ -552,7 +568,8 @@ sj.resolveBoth = function (resolved, rejected) {
 }
 
 // HTTP
-sj.buildQuery = function (items, props) {
+sj.multiQuery = function (items, props) {
+	//! not called automatically by sj.request() because its useful to see when a multiQuery exists as it needs to be unpacked on the other end
 	let query = [];
 	sj.any(items).forEach((item, index) => {
 		props.forEach(prop => {
@@ -565,7 +582,7 @@ sj.buildQuery = function (items, props) {
 	query = query.join('&');
 	return query;
 }
-sj.unpackQuery = function (queryObject) {
+sj.unpackMultiQuery = function (queryObject) {
 	//TODO there is a potential vulnerability here, any values passed by the url query parameters will be passed into the object that reaches the CRUD functions, is this ok or does their need to be a list of accepted parameters on the server side too?
 
 	//TODO weird numbers at the end may also break this, also how do double digits work?
@@ -598,6 +615,105 @@ sj.unpackQuery = function (queryObject) {
 	}
 
 	return items;
+}
+
+sj.objectToQuery = function (obj) {
+	if (!sj.isType(obj, 'object')) {
+		throw new sj.Error({
+			origin: 'sj.objectToQuery()',
+			reason: 'object was not passed',
+		});
+	}
+	return Object.keys(obj).map(key => `${key}=${obj[key]}`).join('&');
+}
+sj.encodeURL = function (obj) {
+	return Object.keys(obj).map(key => {
+		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
+	}).join('&');
+}
+sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
+	/* //! use UPPERCASE HTTP methods...
+		//! ...because in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't
+		//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
+		//L https://github.com/whatwg/fetch/issues/50
+		//L https://github.com/github/fetch/pull/243
+	*/
+
+	let options = {
+		method,
+		headers,
+		body,
+	};
+	if (method === 'GET') {
+		if (sj.isType(body, Object)) {
+			url += `?${sj.objectToQuery(body)}`;
+		}
+		delete options.body;
+	} 
+	if (sj.isType(options.body, Object)) { //C stringify body
+		try {
+			options.body = JSON.stringify(options.body);
+		} catch (e) {
+			//C catch stringify error (should be a cyclic reference)
+			throw new sj.Error({
+				log: true,
+				origin: 'request()',
+				message: 'could not send request',
+				reason: e.message,
+				content: options.body,
+			});
+		}
+	}
+
+	let result = await sj.fetch(url, options).catch(rejected => { //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+		//C catch network error
+		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
+		//TODO properly parse
+		throw sj.propagateError(rejected);
+	});
+	
+
+	//TODO sort out the codes and parsing below
+
+	//C catch ok, no content code
+	if (result.status === 204) {
+		return new sj.Success({
+			origin: 'sj.request()',
+			code: '204',
+			message: 'success',
+			reason: 'request successful, no content returned',
+		});
+	}
+
+	//C parse via fetch .json()
+	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
+	let parsedResult = await result.json().catch(rejected => {
+		throw sj.propagateError(rejected);
+	});
+
+	//C catch non-ok status codes
+	if (!result.ok) {
+		//TODO properly parse
+		throw sj.propagateError(parsedResult);
+	}
+
+	//C rebuild and throw if error
+	let build = function (item) {
+		item = sj.rebuild(item);
+		if (sj.isError(item)) {
+			throw item;
+		}
+		return item;
+	}
+	if (sj.isType(parsedResult, Array)) {
+		parsedResult = await sj.asyncForEach(parsedResult, item => {
+			return build(item);
+		});
+	} else {
+		return build(parsedResult);
+	}
+
+
 }
 
 	
@@ -1977,91 +2093,6 @@ sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 		return result;
 	}
 	return await loop(count);
-}
-
-
-// request
-sj.encodeURL = function (obj) {
-	return Object.keys(obj).map(key => {
-		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
-	}).join('&');
-}
-sj.request = async function (method, url, body, headers) {
-	//! in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't, use UPPERCASE HTTP methods
-	//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
-	//L https://github.com/whatwg/fetch/issues/50
-	//L https://github.com/github/fetch/pull/243
-
-	//C stringify objects
-	if (sj.isType(body, Object)) {
-		try {
-			body = JSON.stringify(body);
-		} catch (e) {
-			//C catch stringify error (should be a cyclic reference)
-			throw new sj.Error({
-				log: true,
-				origin: 'request()',
-				message: 'could not send request',
-				reason: e.message,
-				content: body,
-			});
-		}
-	};
-
-	//L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-	let result = await sj.fetch(url, {
-		method: method,
-        headers: sj.isType(headers, 'object') ? headers : sj.JSON_HEADER,
-		body: body,
-	}).catch(rejected => {
-		//C catch network error
-		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-		//TODO properly parse
-		throw sj.propagateError(rejected);
-	});
-	
-
-	//TODO sort out the codes and parsing below
-
-	//C catch ok, no content code
-	if (result.status === 204) {
-		return new sj.Success({
-			origin: 'sj.request()',
-			code: '204',
-			message: 'success',
-			reason: 'request successful, no content returned',
-		});
-	}
-
-	//C parse via fetch .json()
-	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
-	let parsedResult = await result.json().catch(rejected => {
-		throw sj.propagateError(rejected);
-	});
-
-	//C catch non-ok status codes
-	if (!result.ok) {
-		//TODO properly parse
-		throw sj.propagateError(parsedResult);
-	}
-
-	//C rebuild and throw if error
-	let build = function (item) {
-		item = sj.rebuild(item);
-		if (sj.isError(item)) {
-			throw item;
-		}
-		return item;
-	}
-	if (sj.isType(parsedResult, Array)) {
-		parsedResult = await sj.asyncForEach(parsedResult, item => {
-			return build(item);
-		});
-	} else {
-		return build(parsedResult);
-	}
-
-
 }
 
 
