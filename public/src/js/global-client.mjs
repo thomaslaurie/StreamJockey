@@ -1118,7 +1118,7 @@ sj.spotify.search = async function (term) {
 			return new sj.Track({
 				source: sj.spotify,
 				sourceId: track.id,
-				title: track.name,
+				name: track.name,
 				duration: track.duration_ms,
 				link: track.external_urls.spotify,
 				artists: track.artists.map(artist => artist.name),

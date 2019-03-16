@@ -14,7 +14,9 @@
 <template>
     <div>
         <h2>Default Error Component</h2>
-        <p>Error: {{JSON.stringify(error)}}</p>
+        <p>Error: {{error.toString()}}</p>
+		<p>Stack: {{error.stack}}</p>
+		<button @click='reload()'>Reload</button>
     </div>
 </template>
 

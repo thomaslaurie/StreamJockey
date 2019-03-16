@@ -15,14 +15,19 @@
             };
         },
         methods: {
+			alternateQuery() {
+				return {id: this.$route.params.id};
+			},
             async getData() {
-                let result = await this.sj.getPlaylist({id: this.$route.params.id}).then(this.sj.returnContent);
+                let result = await this.sj.getPlaylist(this.query).then(this.sj.returnContent);
                 return this.sj.one(result);
             },
 
             async search() {
+				let result = await this.sj.spotify.search(this.searchTerm);
+				console.log(result);
             },
-        },
+		},
     }
 </script>
 
@@ -36,7 +41,7 @@
         <button @click='edit = !edit'>Edit</button>
 
         <div id='main'>
-            <track-display-list :query='{playlistId: data.id}'></track-display-list>
+            <track-display-list :p-query='{playlistId: data.id}'></track-display-list>
 
             <div v-if='edit'>
                 <input v-model='searchTerm'>

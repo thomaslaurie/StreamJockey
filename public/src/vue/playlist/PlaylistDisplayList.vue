@@ -1,17 +1,18 @@
 <script>
-    import AsyncDisplayList from '../async/AsyncDisplayList.vue';
+	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
+	import PlaylistDisplay from './PlaylistDisplay.vue';
 
     export default {
         name: 'playlist-display-list',
-        extends: AsyncDisplayList,
+		extends: AsyncDisplayList,
+		components:  {
+			PlaylistDisplay,
+		},
         methods: {
             async getData() {
-                return await this.sj.getPlaylist(this.query).then(this.sj.returnContent);
+				return await this.sj.getPlaylist(this.query).then(this.sj.returnContent);
             },
-            async open(id) {
-                this.$router.push(`/playlist/${id}`);
-            },
-        },
+		},
     }
 </script>
 
@@ -24,10 +25,7 @@
                 :key='playlist.id' 
                 :display='playlist'
             >
-                <p>{{playlist.id}}</p>
-                <p>{{playlist.name}}</p>
-                <button @click='open(playlist.id)'>Open</button>
-                <button>Play</button>
+				<playlist-display :p-data='playlist'></playlist-display>
             </li>
         </ul>
     </async-switch>

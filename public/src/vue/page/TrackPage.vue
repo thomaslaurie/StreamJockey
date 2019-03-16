@@ -5,11 +5,14 @@
         name: 'track-page',
         extends: AsyncDisplay,
         methods: {
+			alternateQuery() {
+				return {id: this.$route.params.id};
+			},
             async getData() {
-                let result = await this.sj.getTrack({id: this.$route.params.id}).then(this.sj.returnContent);
+                let result = await this.sj.getTrack(this.query).then(this.sj.returnContent);
                 return this.sj.one(result);
             },
-        },
+		},
     }
 </script>
 

@@ -1,8 +1,13 @@
 <script>
-    import AsyncDisplayList from '../async/AsyncDisplayList.vue';
+	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
+	import TrackDisplay from './TrackDisplay.vue';
+	
     export default {
         name: 'track-display-list',
-        extends: AsyncDisplayList,
+		extends: AsyncDisplayList,
+		components: {
+			TrackDisplay,
+		},
         methods: {
             async getData() {
                 return await this.sj.getTrack(this.query).then(this.sj.returnContent);
@@ -25,13 +30,7 @@
                 :key='track.id' 
                 :display='track'
             >
-                <p>Playlist ID: {{track.playlistId}}</p>
-                <p>Position: {{track.position}}</p>
-                <p>Source: {{track.source}}</p>
-                <p>Name: {{track.name}}</p>
-                <p>Duration: {{track.duration}}</p>
-                <button @click='open(track.id)'>Info</button>
-                <button @click='play()'>Play</button>
+				<track-display :p-data='track'></track-display>
             </li>
         </ul>
     </async-switch>

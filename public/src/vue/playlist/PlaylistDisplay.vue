@@ -9,20 +9,19 @@
                 let list = await this.sj.getPlaylist(this.query).then(this.sj.returnContent);
                 return this.sj.one(list);
             },
-            async open() {
+            async open(id) {
+                this.$router.push(`/playlist/${id}`);
             },
-        },
+		},
     }
 </script>
 
 <template>
     <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
-        <li>
-            <p>{{display.id}}</p>
-            <p>{{display.name}}</p>
-            <button @click='open'>Open</button>
-            <button>Play</button>
-        </li>
+		<p>{{data.id}}</p>
+		<p>{{data.name}}</p>
+		<button @click='open(data.id)'>Open</button>
+		<button>Play</button>
     </async-switch>
 </template>
 

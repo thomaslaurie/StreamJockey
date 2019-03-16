@@ -9,8 +9,11 @@
             PlaylistDisplayList,
         },
         methods: {
+			alternateQuery() {
+				return {id: this.$route.params.id};
+			},
             async getData() {
-                let result = await this.sj.getUser({id: this.$route.params.id}).then(this.sj.returnContent);
+				let result = await this.sj.getUser(this.query).then(this.sj.returnContent);
                 return this.sj.one(result);
             },
             async logout() {
@@ -22,7 +25,7 @@
                 this.$store.commit('setMe', null);
                 this.$router.push('/login');
             },
-        },
+		},
     }
 </script>
 
@@ -33,7 +36,7 @@
         <h4>user #{{data.id}}</h4>
         <h1>{{data.name}}</h1>
         <h3>{{data.email}}</h3>
-        <playlist-display-list :query='{userId: data.id}'></playlist-display-list>
+        <playlist-display-list :p-query='{userId: data.id}'></playlist-display-list>
     </async-switch>
 </template>
 

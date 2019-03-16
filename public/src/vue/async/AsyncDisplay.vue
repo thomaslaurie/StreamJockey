@@ -27,43 +27,38 @@
                 timeout: 2147483647, //C cannot be larger than this, don't use Infinity, //L: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
                 timeoutId: null,
 
+				query: undefined,
                 data: {},
                 error: {}, //C store error separately so that it doesn't overwrite previously fetched data
             };
         },
         props: {
-            query: [Object, Array],
-
-            //data2: Object, //TODO this might be needed for static display in the future, set the display as the passed in prop as default (or null) so this can be used staticly //?            
-        },
-        created() {
-            this.load();
-        },
+			pQuery: [Object, Array],
+			pData:  [Object],
+		},
+		watch: {
+			//L https://vuejs.org/v2/api/#vm-watch
+			//C these will initially pass props to query and data and then update everytime they are updated
+			//R simple props aren't here because both data and query need to be modifiable (in the case of the need for a non-prop query, see page components)
+			//R v-bind.sync isn't used here either because query and data might not always come directly from these props, also it would require having to declare both props every time these are used
+			pQuery: {
+				handler(value) {
+					this.query = value || this.query;
+				},
+				deep: true,
+				immediate: true,
+			},
+			pData: {
+				handler(value) {
+					this.data = value || this.data;
+				},
+				deep: true,
+				immediate: true,
+			},
+		},
         methods: {
-            async getData() {
-                //! getData() should usually use the query prop
-                return {};
-            },
-
-            handleSuccess(resolved) {
-                this.clearTimeouts();
-                this.data = resolved;
-                this.state = 'display';
-            },
-            handleError(rejected) {
-                this.clearTimeouts();
-                this.error = rejected;
-                this.state = 'error';
-            },
-
-            load() {
-                this.clearTimeouts();
-                this.state = 'delay';
-                this.startTimeouts();
-                this.getData().then(this.handleSuccess, this.handleError);
-            },
-
-            startTimeouts() {
+			// timeouts
+			startTimeouts() {
                 //TODO what happens if an old timed-out request comes back and replaces new data that was fetched?
                 this.delayId = setTimeout(() => {
                     this.state = 'loading';
@@ -80,6 +75,47 @@
                 clearTimeout(this.delayId);
                 clearTimeout(this.timeoutId);
             },
+
+			// async data
+			alternateQuery() {
+				//C used for passing a custom value (other than pQuery) to query before load() is called, this is neccesary because child calls to created() happen after their parent's
+				//! should only return an object or an array
+				return undefined;
+			},
+            async getData() { 
+				//! getData() should only use this.query for queries, update it instead of using passing another variable so that load() can ignore this call if undefined
+				return {};
+            },
+
+			// handlers
+            handleSuccess(resolved) {
+                this.clearTimeouts();
+                this.data = resolved;
+				this.state = 'display';
+				//console.log(this.$options.name, 'RECEIVED ASYNC DATA:', JSON.stringify(this.data));
+            },
+            handleError(rejected) {
+                this.clearTimeouts();
+                this.error = rejected;
+				this.state = 'error';
+				//console.error(this.$options.name, 'RECEIVED ASYNC ERROR:', JSON.stringify(this.error));
+            },
+
+            load() {
+				//console.log(this.$options.name, 'QUERYING:', JSON.stringify(this.query));
+				if (this.sj.isType(this.query, Object) || this.sj.isType(this.query, Array)) { //C ignores getData() if no query is provided, will not error or overwrite existing data when load() is called
+					this.clearTimeouts();
+					this.state = 'delay';
+					this.startTimeouts();
+					this.getData().then(this.handleSuccess, this.handleError);
+				} else {
+					this.state = 'display';
+				}
+            },
+		},
+		created() {
+			this.query = this.alternateQuery() || this.query;
+			this.load();
         },
     }
 </script>
