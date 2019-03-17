@@ -10,7 +10,7 @@
         },
         data() {
             return {
-                edit: false,
+                edit: true,
                 searchTerm: '',
             };
         },
@@ -25,7 +25,7 @@
 
             async search() {
 				let result = await this.sj.spotify.search(this.searchTerm);
-				console.log(result);
+				console.log('RESULT: ', result);
             },
 		},
     }

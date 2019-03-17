@@ -1392,7 +1392,7 @@ sj.Source = class extends sj.Object {
 			playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
             realSource: true,
             
-            credentials: new sj.Credentials({}),
+            credentials: new sj.Credentials(),
 
 			//TODO this should only be server-side
 			api: {},

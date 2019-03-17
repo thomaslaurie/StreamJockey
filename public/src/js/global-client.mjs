@@ -502,13 +502,13 @@ sj.spotify.getAccessToken = async function () {
     let refresh = async function (that) {
 		let result = await sj.request('POST', `${sj.API_URL}/spotify/refreshToken`, {refreshToken: that.credentials.refreshToken});
 		Object.assign(that.credentials, result);
-    };
+	};
 
-    if (this.expires <= Date.now()) {
+    if (this.credentials.expires <= Date.now()) {
         //TODO do a refresh before getting token
         await refresh(that);
     }
-    if (this.expires <= Date.now() + this.tokenBuffer) {
+    if (this.credentials.expires <= Date.now() + this.tokenBuffer) {
         refresh(that);
 	}
 
@@ -827,8 +827,7 @@ sj.spotify.loadPlayer = async function () {
 
 		//C dynamic import spotify's sdk
 		//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
-		//! might cause some webpack issue
-		import(/* webpackChunkName: 'spotify-player' */ './spotify-player.js');
+		import(/* webpackChunkName: 'spotify-player' */ `./spotify-player.js`);
 	});
 
 	/* old
