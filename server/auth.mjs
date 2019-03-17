@@ -41,7 +41,6 @@ import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinm
 // internal
 import sj from './global-server.mjs';
 
-
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -141,8 +140,6 @@ sj.spotify.startAuthRequest = async function () {
         authRequestTimeout: pack.timeout,
         authRequestURL: this.makeAuthRequestURL(pack.key),
     });
-
-
 }
 sj.spotify.receiveAuthRequest = async function (query) {
     //C receives and transforms credentials from spotify after the user confirms the authorization
@@ -184,7 +181,7 @@ sj.spotify.receiveAuthRequest = async function (query) {
 	}
 
     //C send the event and credentials for endAuthRequest() to pick up
-    emitter.emit(query.state, new sj.Credentials({
+    emitter.emit(query.state, new sj.Credentials({ //? sj.success here?
         authRequestKey: query.state, //? is this needed anymore?
         authCode: query.code,
     }));
@@ -206,17 +203,16 @@ sj.spotify.endAuthRequest = async function (credentials) {
                 message: 'request timeout',
             }));
         });
-	});	
+	});
+
+
 }
-
-
-//C while the client triggers the refresh of the tokens (so that the server doesn't have to keep track of which users are online), they are stored for the user in the database so that they can be retrieved between sessions
-sj.spotify.exchangeToken = async function (credentials) {
-    //C exchange auth code for access and refresh tokens
+sj.spotify.exchangeToken = async function (ctx, credentials) {
+	//C exchange auth code for access and refresh tokens
+	//C exchangeToken() is only outside of endAuthRequest() because the auth window should close and not have to wait for the exchange to happen - to reduce flickering of the redirect page
 
     //C grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
 	let timestamp = Date.now();
-
     //C exchange the auth code for tokens
 	//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
     let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', sj.encodeURL({
@@ -236,23 +232,36 @@ sj.spotify.exchangeToken = async function (credentials) {
 		});
 	});
 
-	//TODO store in database
+	//C store refresh token in database
+	//C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
+	let me = await sj.getMe(ctx).then(sj.returnContent);
+	await sj.editUser(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token});
 
 	//C repack and return
-	return {
+	return new sj.Credentials({
 		accessToken: result.access_token,
         expires: timestamp + result.expires_in,
-		refreshToken: result.refresh_token,
+		//refreshToken: result.refresh_token,
 		scopes: result.scope.split(' '),
 		//C result.token_type is the only omitted property, this is always 'Bearer'
-	};
+	});
 }
-sj.spotify.refreshToken = async function (credentials) {
-    let timestamp = Date.now();
 
+sj.spotify.refreshToken = async function (ctx) {
+	//C get the refresh token from the database
+	let me = await sj.getMe(ctx).then(sj.content);
+	let refreshToken = await sj.getUser(sj.db, me).then(sj.content).then(sj.one).then(resolved => resolved.spotifyRefreshToken);
+
+	//C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+	if (sj.isEmpty(refreshToken)) {
+		throw new sj.AuthRequired();
+	}
+
+	//C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
+    let timestamp = Date.now();
     let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', sj.encodeURL({
         grant_type: 'refresh_token',
-		refresh_token: credentials.refreshToken,
+		refresh_token: refreshToken,
 		
         client_id: process.env.SPOTIFY_CLIENT_ID,
         client_secret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -265,19 +274,18 @@ sj.spotify.refreshToken = async function (credentials) {
 		});
 	});
 
-    //TODO store in database
-
-	//C repack
-    let tokens = {
-        accessToken: result.access_token,
-        expires: timestamp + result.expires_in,
-        refreshToken: result.refresh_token,
-    };
-    if (!sj.isType(result.refresh_token, 'string')) { //C if result.refresh_token wasn't sent, delete the entire property so that Object.assign() can still be used
-        delete tokens.refreshToken;
-    }
-
-    return tokens;
+	//C if a new refresh token was sent
+	if (sj.isType(result.refresh_token, 'string')) { //? better validation?
+		//C store it
+		await sj.editUser(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token});	
+	}
+	
+	//C send only the accessToken and the expiry time
+	return new sj.Credentials({
+		origin: 'sj.spotify.refreshToken()',
+		accessToken: result.access_token,
+		expires: timestamp + result.expires_in,
+	});
 }
 
 

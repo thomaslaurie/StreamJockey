@@ -37,6 +37,8 @@
 		display: flex;
 		height: $height;
 		justify-content: space-between;
+
+		background-color: $test-color;
 	}
 	#play-button {
 		width: $height;

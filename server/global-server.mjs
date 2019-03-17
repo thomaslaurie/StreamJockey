@@ -346,10 +346,11 @@ const visibilityStates = [
         }).then(resolved => {
             // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
             return t.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
-                "id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
+				"id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
                 "name" text CONSTRAINT "users_name_key" UNIQUE,
                 "password" text,
-                "email" text CONSTRAINT "users_email_key" UNIQUE
+				"email" text CONSTRAINT "users_email_key" UNIQUE,
+				"spotifyRefreshToken" text
             );`).catch(rejected => {
                 throw new sj.Error({
                     log: true,
@@ -940,6 +941,13 @@ sj.emailRules = new sj.Rule({
     //TODO useFilter: ___, filterMessage: ___, 
     //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
 });
+sj.spotifyRefreshTokenRules = new sj.Rule({
+	origin: 'spotifyRefreshTokenRules',
+	message: 'token validated',
+
+	valueName: 'Token',
+	//TODO empty for now
+});
 
 /*
     sj.validateEmail = async function (email) {
@@ -1185,8 +1193,9 @@ sj.editUser = async function (db, users) {
             ]).then(sj.returnContent).catch(sj.propagate);
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
-                [false, 'name',         sj.userNameRules,   user,   'name'],
-                [true, 	'email',		sj.emailRules, 		user, 		'email'],
+                [false, 'name',     sj.userNameRules,   user,   'name'],
+				[false, 'email',	sj.emailRules, 		user, 	'email'],
+				[false, 'spotifyRefreshToken',	sj.spotifyRefreshTokenRules, user, 'spotifyRefreshToken'],
             ]).then(sj.returnContent).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairsWhere);

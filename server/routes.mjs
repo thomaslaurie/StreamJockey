@@ -157,10 +157,10 @@ apiRouter
     ctx.response.body = await sj.spotify.endAuthRequest(ctx.request.body).catch(sj.andResolve);
 })
 .post('/spotify/exchangeToken', async (ctx, next) => {
-    ctx.response.body = await sj.spotify.exchangeToken(ctx.request.body).catch(sj.andResolve);
+    ctx.response.body = await sj.spotify.exchangeToken(ctx, ctx.request.body).catch(sj.andResolve);
 })
-.post('/spotify/refreshToken', async (ctx, next) => {
-    ctx.response.body = await sj.spotify.refreshToken(ctx.request.body).catch(sj.andResolve);
+.get('/spotify/refreshToken', async (ctx, next) => {
+	ctx.response.body = await sj.spotify.refreshToken(ctx).catch(sj.andResolve);
 })
 
 // session

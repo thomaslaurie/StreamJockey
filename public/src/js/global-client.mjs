@@ -446,7 +446,9 @@ sj.spotify.auth = async function () {
 
     //C exchange auth code for tokens
 	let tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
-	Object.assign(this.credentials, tokens);
+	this.credentials.accessToken = tokens.accessToken;
+	this.credentials.expires = tokens.accessToken;
+	this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
     return new sj.Success({
         origin: 'sj.spotify.auth()',
@@ -493,27 +495,39 @@ sj.youtube.auth = async function () {
 
 sj.spotify.getAccessToken = async function () {
 	//C gets the api access token, handles all refreshing, initializing, errors, etc.
+	//C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
 
-    //TODO if client doesn't have the access token, retrieve it from the server (and refresh),. if the server doesn't have it prompt to authorize
     //TODO must respond to denials by spotify too
-    // doing this here is useful because it removes the need to check on init, and only prompts when it is needed
 
+	//C refresh
     let that = this;
     let refresh = async function (that) {
-		let result = await sj.request('POST', `${sj.API_URL}/spotify/refreshToken`, {refreshToken: that.credentials.refreshToken});
-		Object.assign(that.credentials, result);
+		let result = await sj.request('GET', `${sj.API_URL}/spotify/refreshToken`).catch(sj.andResolve);
+		if (sj.isType(result, sj.AuthRequired)) {
+			//C call auth() if server doesn't have a refresh token
+			await that.auth();
+		} else if (sj.isType(result, sj.Error)) {
+			throw sj.propagateError(result);
+		} else {
+			//C assign sj.spotify.credentials
+			that.credentials.accessToken = result.accessToken;
+			that.credentials.expires = result.accessToken;
+		}	
 	};
 
-    if (this.credentials.expires <= Date.now()) {
-        //TODO do a refresh before getting token
+	//C if client doesn't have token or if it has expired, refresh it immediately
+    if (sj.isEmpty(this.credentials.accessToken) || this.credentials.expires <= Date.now()) {
         await refresh(that);
-    }
-    if (this.credentials.expires <= Date.now() + this.tokenBuffer) {
+	}
+	//C if token is soon to expire, refresh in the background, return the existing token
+    if (this.credentials.expires <= Date.now() + this.refreshBuffer) {
         refresh(that);
 	}
 
     return this.credentials.accessToken;
 }
+
+// spotify api specific requests
 sj.spotify.request = async function (method, path, body) {
 	//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
 	let urlPrefix = 'https://api.spotify.com/v1';

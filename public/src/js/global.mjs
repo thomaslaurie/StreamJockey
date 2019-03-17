@@ -97,6 +97,10 @@ sj.URL_HEADER = {
 	'Content-Type': 'application/x-www-form-urlencoded',
 };
 
+//C used to indicate a specific server error
+sj.resolveActions = {
+	spotifyAuth: 'spotify auth',
+}
 
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
@@ -105,6 +109,9 @@ sj.URL_HEADER = {
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
+//C these don't reference any sj.Objects
+
+// misc
 sj.wait = async function (ms) {
     //C used for basic waiting, //! should not be used if the callback needs to be canceled
 	return new Promise(resolve => {
@@ -114,21 +121,6 @@ sj.wait = async function (ms) {
 			}, ms);
 		}
 	});
-}
-
-//! these can't reference any sj.Objects
-
-sj.deepFreeze = function (obj) {
-	// TODO test me
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
-
-	// freeze nested objects
-	Object.keys(obj).forEach(function(key) {
-		obj[key] = obj[key] && typeof value === 'object' ? sj.deepFreeze(obj[key]) : obj[key];
-	});
-	
-	// then freeze self
-	return Object.freeze(object);
 }
 sj.trace = function () {
 	try {
@@ -150,36 +142,233 @@ sj.trace = function () {
 		return stackTrace;
 	}
 }
-/*
-	//C unused afaik
-	sj.sleep = async function (ms) {
-		return new Promise(resolve => setTimeout(resolve, ms));
+sj.deepFreeze = function (obj) {
+	// TODO test me
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+
+	// freeze nested objects
+	Object.keys(obj).forEach(function(key) {
+		obj[key] = obj[key] && typeof value === 'object' ? sj.deepFreeze(obj[key]) : obj[key];
+	});
+	
+	// then freeze self
+	return Object.freeze(object);
+}
+
+// format
+sj.msFormat = function (ms) {
+	// extract
+	var minutes = Math.floor(ms / 60000);
+	var seconds = Math.ceil(ms % 60000);
+
+	// format
+	seconds = ('0' + seconds).slice(-2);
+
+	// returns ...0:00 format rounded up to the nearest second
+	return minutes + ':' + seconds;
+}
+sj.stringReplaceAll = function(input, search, replace) {
+	return input.split(search).join(replace);
+}
+
+// HTTP
+sj.encodeURL = function (obj) {
+	return Object.keys(obj).map(key => {
+		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
+	}).join('&');
+}
+sj.objectToQuery = function (obj) {
+	return Object.keys(obj).map(key => `${key}=${obj[key]}`).join('&');
+}
+sj.multiQuery = function (items, props) {
+	//! not called automatically by sj.request() because its useful to see when a multiQuery exists as it needs to be unpacked on the other end
+	let query = [];
+	sj.any(items).forEach((item, index) => {
+		props.forEach(prop => {
+            if (!sj.isEmpty(item[prop])) {
+			    query.push(`${prop}-${index}=${item[prop]}`);
+            }
+		});
+	});
+
+	query = query.join('&');
+	return query;
+}
+sj.unpackMultiQuery = function (queryObject) {
+	//TODO there is a potential vulnerability here, any values passed by the url query parameters will be passed into the object that reaches the CRUD functions, is this ok or does their need to be a list of accepted parameters on the server side too?
+
+	//TODO weird numbers at the end may also break this, also how do double digits work?
+	let items = [];
+	let keys = Object.keys(queryObject);
+	for (let i = 0; i < keys.length; i++) {
+
+		//C check that index was given (di = delimiter index)
+		let delimiter = keys[i].lastIndexOf('-');
+		if (delimiter < 0) {break;}
+
+		//C check that index is an integer
+		let j = keys[i].slice(delimiter + 1);
+		j = parseInt(j);
+		if (!sj.isType(j, 'integer')) {break;}
+
+		//C get the real key name
+		let realKey = keys[i].slice(0, delimiter);
+
+		//C if the item was already added
+		if (sj.isType(items[j], Object)) {
+			//C set the key and value
+			items[j][realKey] = queryObject[keys[i]];
+		} else {
+			//C else, add the item with the key and value
+			items[j] = {
+				[realKey]: queryObject[keys[i]],
+			}
+		}
 	}
-*/
+
+	return items;
+}
+
+// sort
+sj.stableSort = function(list, compare) {
+	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
+	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+	
+	let defaultCompare = (a, b) => {
+		//C low to high
+		return a - b;
+	}
+
+	//C set compare to passed function or default
+	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
+
+	//C create new array with original index preserved
+	let frozen = list.map(function (item, index) {
+		return {value: item, index: index};
+	}); 
+
+	let stableCompare = function (a, b) {
+		let order = compare(a.value, b.value);
+
+		if (order === 0) {
+			//C if equal, sort based on their original order
+			return a.index - b.index;
+		} else {
+			//C sort normally
+			return order;
+		}
+	}
+
+	frozen.sort(stableCompare);
+
+	//C feed sorted array back into original array
+	for (let i = 0; i < list.length; i++) {
+		list[i] = frozen[i].value;
+	}
+
+	return list;
+}
+sj.dynamicSort = function(list, ascending, prop) {
+	//C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
+
+	//C ascending will flip the list into descending if false
+	if (ascending) {
+		ascending = 1;
+	} else {
+		ascending = -1;
+	}
+
+	let compare;
+	if (sj.isType(prop, 'string')) {
+		//C if prop is defined, compare props
+		if (list.every(item => sj.isType(item[prop], 'number') || sj.isType(item[prop], 'boolean'))) {
+			//C if values are numbers or boolean, do number compare
+			compare = function (a, b) {
+				return (a[prop] - b[prop]) * ascending;
+			}
+		} else {
+			//C if values are strings, other, or mixed, do a string conversion and string compare
+			compare = function (a, b) {
+				//C convert to strings
+				let as = a[prop] + '';
+				let bs = b[prop] + '';
+
+				//C string compare
+				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
+			}
+		}
+	} else {
+		//C if no prop is defined, compare values
+		//! this is the exact same as above, just without the property
+		if (list.every(item => sj.isType(item, 'number') || sj.isType(item, 'boolean'))) {
+			compare = function (a, b) {
+				return (a - b) * ascending;
+			}
+		} else {
+			compare = function (a, b) {
+				let as = a + '';
+				let bs = b + '';
+				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
+			}
+		}
+	}
+
+	return sj.stableSort(list, compare);
+}
+Array.prototype.stableSort = function(compare) { //TODO legacy
+	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
+	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+	
+	let defaultCompare = (a, b) => {
+		//C low to high
+		return a - b;
+	}
+
+	//C set compare to passed function or default
+	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
+
+	//C create new array with original index preserved
+	let frozenThis = this.map(function (item, index) { //! 'this' refers to the array in [].stableSort()
+		return {value: item, index: index};
+	}); 
+
+	let stableCompare = function (a, b) {
+		let order = compare(a.value, b.value);
+
+		if (order === 0) {
+			//C if equal, sort based on their original order
+			return a.index - b.index;
+		} else {
+			//C sort normally
+			return order;
+		}
+	}
+
+	frozenThis.sort(stableCompare);
+
+	//C feed sorted array back into original array
+	for (let i = 0; i < this.length; i++) {
+		this[i] = frozenThis[i].value;
+	}
+
+	return this;
+}
+
+
+//   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
+//  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
+//  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
+//  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
+//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
+
+//C these reference sj.Objects, don't call these until classes are defined
 
 // type
-sj.objectList = [ 
-	//C list of all valid sj objects
-	//TODO must be a better way
-	// consider: obj.constructor.name //L https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class
-	'sj.Object',
-	'sj.Success',
-	'sj.Error',
-	'sj.ErrorList',
-	'sj.Track',
-	'sj.Playlist',
-	'sj.User',
-	'sj.Rule',
-	'sj.Source',
-	'sj.Credentials',
-	'sj.Playback',
-	'sj.Action',
-	'sj.Start',
-	'sj.Toggle',
-	'sj.Seek',
-	'sj.Volume',
-];
-sj.isType = function (input, type) {
+sj.isType = function (input, type) { //!//TODO this doesn't seem to be properly identifying errors
 	//C matches 'input' type or super-type to 'type' value or string representation or builtin object
 	//! will match if values match, but not if types match - ('someString' wont match to 'someOtherString')
 
@@ -340,7 +529,19 @@ sj.isType = function (input, type) {
 
 	return false;
 }
-sj.typeOf = function (input) { //! legacy, don't use me, //TODO go and replace all typeOf() with isType()
+sj.isEmpty = function (input) {
+	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
+	return !(
+		sj.isType(input, 'boolean') || 
+        sj.isType(input, 'number') || 
+        //C check for empty and whitespace strings and string conversions of null and undefined
+        //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
+        (sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') ||
+        (sj.isType(input, 'object') && Object.keys(input).length > 0) ||
+        (sj.isType(input, 'array') && input.length > 0)
+	);
+}
+sj.typeOf = function (input) { //TODO legacy
 	if (input === null) {
 		return 'null';
 	}
@@ -361,166 +562,87 @@ sj.typeOf = function (input) { //! legacy, don't use me, //TODO go and replace a
 
 	return typeof input;
 }
+sj.objectList = [ //TODO legacy 
+	//C list of all valid sj objects
+	//TODO must be a better way
+	// consider: obj.constructor.name //L https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class
+	'sj.Object',
+	'sj.Success',
+	'sj.Error',
+	'sj.ErrorList',
+	'sj.Track',
+	'sj.Playlist',
+	'sj.User',
+	'sj.Rule',
+	'sj.Source',
+	'sj.Credentials',
+	'sj.Playback',
+	'sj.Action',
+	'sj.Start',
+	'sj.Toggle',
+	'sj.Seek',
+	'sj.Volume',
+];
 
-sj.isEmpty = function (input) {
-	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-	return !(
-		sj.isType(input, 'boolean') || 
-        sj.isType(input, 'number') || 
-        //C check for empty and whitespace strings and string conversions of null and undefined
-        //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-        (sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') ||
-        (sj.isType(input, 'object') && Object.keys(input).length > 0) ||
-        (sj.isType(input, 'array') && input.length > 0)
-	);
-}
-
-// format
-sj.msFormat = function (ms) {
-	// extract
-	var minutes = Math.floor(ms / 60000);
-	var seconds = Math.ceil(ms % 60000);
-
-	// format
-	seconds = ('0' + seconds).slice(-2);
-
-	// returns ...0:00 format rounded up to the nearest second
-	return minutes + ':' + seconds;
-}
-
-// TODO will this carry over through exports? it should: https://stackoverflow.com/questions/46427232/export-import-custom-function-of-built-in-object-in-es6
-sj.stringReplaceAll = function(input, search, replace) {
-	return input.split(search).join(replace);
-}
-
-sj.stableSort = function(list, compare) {
-	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+// error
+sj.catchUnexpected = function (input) {
+	//C determines type of input, creates, announces, and returns a proper sj.Error object
+	//C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 	
-	let defaultCompare = (a, b) => {
-		//C low to high
-		return a - b;
-	}
+	var error = new sj.Error({
+		log: false,
+		origin: 'sj.catchUnexpected()',
+		message: 'an unexpected error ocurred',
+		content: input,
+	});
 
-	//C set compare to passed function or default
-	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
+	if (sj.isType(input, 'null')) {
+		error.reason = 'input is null';
+	} else if (sj.isType(input, 'object')) {
+		if(sj.isType(input, 'sj.Object')) {
+			error.reason = `input is an ${input.objectType}`;
+		} else if (input instanceof Error) {
+			//C This is going to catch the majority of unexpected inputs
 
-	//C create new array with original index preserved
-	let frozen = list.map(function (item, index) {
-		return {value: item, index: index};
-	}); 
+			/* //!
+				!!! JSON.stringify() does not work on native Error objects as they have no enumerable properties
+				therefore these cannot be passed between client & server,so when catching a native Error object
+				properly convert it to a string with Error.toString() then save that in reason
+				https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
+			*/
+			error.reason = input.toString();
 
-	let stableCompare = function (a, b) {
-		let order = compare(a.value, b.value);
-
-		if (order === 0) {
-			//C if equal, sort based on their original order
-			return a.index - b.index;
+			//C replace trace with actual trace (which has clickable URIs)
+			error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
 		} else {
-			//C sort normally
-			return order;
-		}
-	}
-
-	frozen.sort(stableCompare);
-
-	//C feed sorted array back into original array
-	for (let i = 0; i < list.length; i++) {
-		list[i] = frozen[i].value;
-	}
-
-	return list;
-}
-sj.dynamicSort = function(list, ascending, prop) {
-	//C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
-
-	//C ascending will flip the list into descending if false
-	if (ascending) {
-		ascending = 1;
-	} else {
-		ascending = -1;
-	}
-
-	let compare;
-	if (sj.isType(prop, 'string')) {
-		//C if prop is defined, compare props
-		if (list.every(item => sj.isType(item[prop], 'number') || sj.isType(item[prop], 'boolean'))) {
-			//C if values are numbers or boolean, do number compare
-			compare = function (a, b) {
-				return (a[prop] - b[prop]) * ascending;
-			}
-		} else {
-			//C if values are strings, other, or mixed, do a string conversion and string compare
-			compare = function (a, b) {
-				//C convert to strings
-				let as = a[prop] + '';
-				let bs = b[prop] + '';
-
-				//C string compare
-				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
-				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
-			}
+			error.reason = 'input is a non-sj, non-Error object';
 		}
 	} else {
-		//C if no prop is defined, compare values
-		//! this is the exact same as above, just without the property
-		if (list.every(item => sj.isType(item, 'number') || sj.isType(item, 'boolean'))) {
-			compare = function (a, b) {
-				return (a - b) * ascending;
-			}
-		} else {
-			compare = function (a, b) {
-				let as = a + '';
-				let bs = b + '';
-				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
-			}
-		}
+		error.reason = `input is ${typeof input}`;
 	}
 
-	return sj.stableSort(list, compare);
+	error.announce();
+	return error;
 }
-
-
-//TODO legacy
-Array.prototype.stableSort = function(compare) {
-	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
-	
-	let defaultCompare = (a, b) => {
-		//C low to high
-		return a - b;
+sj.propagate = function (input) {
+	//C lets sj.Errors flow through, wraps any non-sj.Errors with sj.catchUnexpected()
+	if (sj.isType(input, sj.Error)) {
+		return input;
+	} else {
+		return sj.catchUnexpected(input);
 	}
-
-	//C set compare to passed function or default
-	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
-
-	//C create new array with original index preserved
-	let frozenThis = this.map(function (item, index) { //! 'this' refers to the array in [].stableSort()
-		return {value: item, index: index};
-	}); 
-
-	let stableCompare = function (a, b) {
-		let order = compare(a.value, b.value);
-
-		if (order === 0) {
-			//C if equal, sort based on their original order
-			return a.index - b.index;
-		} else {
-			//C sort normally
-			return order;
-		}
+}
+sj.propagateError = function (input) { //TODO legacy
+	//C wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
+	//C this basically just ensures sj.Errors recursively wrap each other (Error chain should only be 1 deep)
+	if (sj.isError(input)) {
+		return input;
+	} else {
+		return sj.catchUnexpected(input);
 	}
-
-	frozenThis.sort(stableCompare);
-
-	//C feed sorted array back into original array
-	for (let i = 0; i < this.length; i++) {
-		this[i] = frozenThis[i].value;
-	}
-
-	return this;
+}
+sj.isError = function (obj) { //TODO legacy, just use sj.isType(obj, sj.Error)
+	return sj.isType(obj, sj.Error);
 }
 
 // promises
@@ -555,9 +677,7 @@ sj.andResolve = function (rejected) {
 	//C non-sj errors should also be converted here
 	return sj.propagateError(rejected);
 }
-//? why is resolveBoth needed? why cant .catch(sj.andResolve) work? because the resolved version is returned anyways
-//TODO consider removing resolveBoth in favor for just using .catch(sj.andResolve)
-sj.resolveBoth = function (resolved, rejected) {
+sj.resolveBoth = function (resolved, rejected) { //TODO legacy
 	//C Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
 
 	if (resolved) {
@@ -566,70 +686,240 @@ sj.resolveBoth = function (resolved, rejected) {
 		return sj.propagateError(rejected);
 	}
 }
+sj.filterList = async function (list, type, successList, errorList) { //TODO legacy
+	//TODO go over this
 
-// HTTP
-sj.multiQuery = function (items, props) {
-	//! not called automatically by sj.request() because its useful to see when a multiQuery exists as it needs to be unpacked on the other end
-	let query = [];
-	sj.any(items).forEach((item, index) => {
-		props.forEach(prop => {
-            if (!sj.isEmpty(item[prop])) {
-			    query.push(`${prop}-${index}=${item[prop]}`);
-            }
-		});
+	//C sorts through a list of both successes and errors (usually received from Promise.all and sj.resolveBoth() to avoid fail-fast behavior to process all promises).
+	//C returns either a sj.Success with content as the original list if all match the desired object, or a sj.ErrorList with content as all the items that did not match.
+	//! do not log either the successList or errorList objects, these are announced later
+
+
+	//C ensure errorList.content is an array (though this is currently default)
+	errorList.content = [];
+	successList.content = list;
+
+	//C if item does not match desired type, push it to errorList.content
+	list.forEach(item => {
+		//TODO consider using sj.isType() here, and also implement instanceof into sj.isType() (also allowing to pass objects to use instance of)
+		if (!sj.isType(item, type)) {
+			errorList.content.push(sj.propagateError(item));
+		}
 	});
 
-	query = query.join('&');
-	return query;
+	//C throw errorList if there are any errors
+	if (!(errorList.content.length === 0)) {
+		errorList.announce();
+		throw errorList;
+	}
+
+	successList.announce();
+	return successList;
 }
-sj.unpackMultiQuery = function (queryObject) {
-	//TODO there is a potential vulnerability here, any values passed by the url query parameters will be passed into the object that reaches the CRUD functions, is this ok or does their need to be a list of accepted parameters on the server side too?
+/* old
+	sj.wrapAll = async function (list, type, success, error) {
+		//C wraps a list in a success or error object based on it's contents, keeps all contents on error
+		//! do not log success or error objects, one of the two is announced by this function
+		//L array.every: https://codedam.com/just-so-you-know-array-methods/
 
-	//TODO weird numbers at the end may also break this, also how do double digits work?
-	let items = [];
-	let keys = Object.keys(queryObject);
-	for (let i = 0; i < keys.length; i++) {
+		success.content = error.content = list;
 
-		//C check that index was given (di = delimiter index)
-		let delimiter = keys[i].lastIndexOf('-');
-		if (delimiter < 0) {break;}
-
-		//C check that index is an integer
-		let j = keys[i].slice(delimiter + 1);
-		j = parseInt(j);
-		if (!sj.isType(j, 'integer')) {break;}
-
-		//C get the real key name
-		let realKey = keys[i].slice(0, delimiter);
-
-		//C if the item was already added
-		if (sj.isType(items[j], Object)) {
-			//C set the key and value
-			items[j][realKey] = queryObject[keys[i]];
+		if (list.every(item => sj.isType(item, type))) {
+			success.announce();
+			return success;
 		} else {
-			//C else, add the item with the key and value
-			items[j] = {
-				[realKey]: queryObject[keys[i]],
-			}
+			error.announce();
+			throw error;
 		}
 	}
+	sj.wrapPure = async function (list, type, success, error) {
+		//C like sj.wrapAll, however discards non-errors on error
 
-	return items;
-}
+		success.content = list;
+		error.content = [];
 
-sj.objectToQuery = function (obj) {
-	if (!sj.isType(obj, 'object')) {
-		throw new sj.Error({
-			origin: 'sj.objectToQuery()',
-			reason: 'object was not passed',
+		list.forEach(item => {
+			if (!sj.isType(item, type)) {
+				error.content.push(item);
+			}
+		});
+
+		if (error.content.length === 0) {
+			success.announce();
+			return success;
+		} else {
+			error.announce();
+			throw error;
+		}
+	}
+*/
+
+// format
+sj.one = function (a) {
+	//C unwraps the first item of an array where one item is expected
+	if (!sj.isType(a, Array)) {
+		return a;
+	} else if (a.length === 1) {
+		return a[0];
+	} else if (a.length >= 2) {
+		//TODO make a warning object / handler?
+		console.warn('sj.one() pulled a single value out of an array with many');
+		return a[0];
+	} else if (a.length === 0) {
+		//! this does not return undefined because we are 'expecting' one value (//TODO though this may be changed later to return undefined)
+		return new sj.Error({
+			log: true,
+			origin: 'sj.one()',
+			code: 404,
+			message: 'no data found',
+			reason: 'array has no values, expected one',
+			content: a,
 		});
 	}
-	return Object.keys(obj).map(key => `${key}=${obj[key]}`).join('&');
 }
-sj.encodeURL = function (obj) {
-	return Object.keys(obj).map(key => {
-		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
-	}).join('&');
+sj.any = function (o) {
+	//C wraps a value in an array if not already inside one
+	if (sj.isType(o, Array)) {
+		return o;
+	} else {
+		return [o];
+	}
+}
+sj.content = function (resolved) {
+	//C shorter syntax for immediately returning the content property of a resolved object from a promise chain
+	return resolved.content;
+}
+sj.returnContent = sj.content; //TODO legacy
+
+// recursion
+//TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
+sj.recursiveSyncTime = async function (n, loopCondition, f, ...args) {
+	//L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
+	let timestamp = Date.now();
+	function loop() {
+		if (Date.now() > timestamp + n) {
+			throw new sj.Error({
+				log: true,
+				origin: 'recursiveSyncTime()',
+				reason: 'recursive function timed out',
+				content: f,
+			});
+		}
+
+		let result = f(...args);
+		if (loopCondition(result)) {
+			result = loop();
+		}
+
+		return result;
+	}
+	return loop();
+}
+sj.recursiveSyncCount = async function (n, loopCondition, f, ...args) {
+	let count = 0;
+	function loop(count) {
+		if (count >= n) {
+			throw new sj.Error({
+				log: true,
+				origin: 'recursiveSyncCount',
+				reason: 'recursive function counted out',
+				content: f,
+			});
+		}
+
+		let result = f(...args);
+		if (loopCondition(result)) {
+			result = loop(++count);
+		}
+
+		return result;
+	}
+	return loop(count);
+}
+sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
+	let timestamp = Date.now();
+	async function loop() {
+		if (Date.now() > timestamp + n) {
+			throw new sj.Error({
+				log: true,
+				origin: 'recursiveAsyncTime()',
+				reason: 'recursive function timed out',
+				content: f,
+			});
+		}
+
+		let result = await f(...args);
+		if (loopCondition(result)) {
+			result = await loop();
+		}
+
+		return result;
+	}
+	return await loop();
+}
+sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
+	let count = 0;
+	async function loop(count) {
+		if (count >= n) {
+			throw new sj.Error({
+				log: true,
+				origin: 'recursiveAsyncCount()',
+				reason: 'recursive function counted out',
+				content: f,
+			});
+		}
+
+		let result = await f(...args);
+		if (loopCondition(result)) {
+			result = await loop(++count);
+		}
+
+		return result;
+	}
+	return await loop(count);
+}
+
+// HTTP
+sj.rebuild = function (input, strict) {
+	//C turns a bare object back into its custom class if it has a valid objectType property
+
+	if (sj.isType(input, 'string')) { //C parse if string
+		try {
+			input = JSON.parse(input);
+		} catch (e) {
+			return new sj.Error({
+				log: true,
+				origin: 'sj.rebuild()',
+				message: 'failed to recreate object',
+				reason: e,
+				content: input,
+			});
+		}
+	}
+	if (!sj.isType(input, 'object')) { //C throw if not object
+		return new sj.Error({
+			log: true,
+			origin: 'sj.rebuild()',
+			message: 'failed to recreate object',
+			reason: 'data is not an object',
+			content: input,
+		});
+	}
+
+
+	let rebuilt = input;
+	if (sj.isType(input, 'sj.Object')) { //C rebuild if possible
+		rebuilt = new sj[input.objectType.replace('sj.', '')](input);
+	} else if (strict) { //C throw if not possible and strict
+		return new sj.Error({
+			log: true,
+			origin: 'sj.rebuild()',
+			message: 'failed to recreate object',
+			reason: 'object is not a valid sj.Object',
+			content: input,
+		});
+	}
+
+	return rebuilt;
 }
 sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	/* //! use UPPERCASE HTTP methods...
@@ -730,6 +1020,16 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	consider default values for '' and null, specifically ids (what are the semantics?)
 
 	possibly a cyclical reference preservation function between client and server that replaces a reference to self with 'self1' keyword and also can find lower-level cyclical references by recursively calling the function on each layer with memory for which layer its on
+
+	all responses should either be a:
+		sj.Success
+			which wraps empty content, misc content
+			or a descendant item object
+				//TODO move all item objects (user, playlist, track, etc.) to descend from sj.Success
+		or a sj.Error
+			which wraps empty content, non-sj errors
+	the resolve/reject state indicates whether the function succeeded or failed - so not everything needs to be these exact objects
+	//? should lists be bare or wrapped in sj.Success/sj.Error? the only place where promise state cant be used is in server requests and responses, in this case there does need to be a wrapper so that sj.request() can sort by sj.isType(obj, sj.Error)
 */
 
 sj.Object = class {
@@ -832,7 +1132,7 @@ sj.Error = class extends sj.Object {
 		this.onCreate();
 	}
 }
-sj.ErrorList = class extends sj.Object {
+sj.ErrorList = class extends sj.Object { //TODO legacy
 	//? should ErrorList extend Error?
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
@@ -908,6 +1208,7 @@ sj.User = class extends sj.Object {
 			email: '',
 			password: '',
 			password2: '',
+			spotifyRefreshToken: null,
 		});
 
 		this.onCreate();
@@ -1578,7 +1879,9 @@ sj.Credentials = class extends sj.Object {
             accessToken: Symbol(),
             expires: 0,
             refreshToken: Symbol(),
-            tokenBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
+			refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
+			
+			scopes: [],
 		});
 
 		this.onCreate();
@@ -1597,6 +1900,22 @@ sj.Playback = class extends sj.Object {
 			progress: 0,
 			timestamp: Date.now(),
 			volume: 0,
+		});
+
+		this.onCreate();
+	}
+}
+
+// custom errors
+sj.AuthRequired = class extends sj.Error { 
+	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
+	constructor(options = {}) {
+		super(sj.Object.tellParent(options));
+
+		this.objectType = 'sj.AuthRequired';
+
+		sj.Object.init(this, options, {
+			message: 'authorization required',
 		});
 
 		this.onCreate();
@@ -1791,309 +2110,6 @@ sj.noTrack = new sj.Track();
 sj.noSource = new sj.Source({realSource: false});
 sj.noTrack.source = sj.noSource; // cyclical reference
 // TODO move with actions sj.noAction = new sj.Action();
-
-
-//   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
-//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
-//  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
-//  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
-//  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
-//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
-
-//! these do reference sj.Objects
-
-// error
-sj.isError = function (obj) {
-	// checks for proper SjObject error types
-	return sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.ErrorList';
-}
-sj.catchUnexpected = function (input) {
-	//C determines type of input, creates, announces, and returns a proper sj.Error object
-	//C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
-	
-	var error = new sj.Error({
-		log: false,
-		origin: 'sj.catchUnexpected()',
-		message: 'an unexpected error ocurred',
-		content: input,
-	});
-
-	if (sj.isType(input, 'null')) {
-		error.reason = 'input is null';
-	} else if (sj.isType(input, 'object')) {
-		if(sj.isType(input, 'sj.Object')) {
-			error.reason = `input is an ${input.objectType}`;
-		} else if (input instanceof Error) {
-			//C This is going to catch the majority of unexpected inputs
-
-			/* //!
-				!!! JSON.stringify() does not work on native Error objects as they have no enumerable properties
-				therefore these cannot be passed between client & server,so when catching a native Error object
-				properly convert it to a string with Error.toString() then save that in reason
-				https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
-			*/
-			error.reason = input.toString();
-
-			//C replace trace with actual trace (which has clickable URIs)
-			error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
-		} else {
-			error.reason = 'input is a non-sj, non-Error object';
-		}
-	} else {
-		error.reason = `input is ${typeof input}`;
-	}
-
-	error.announce();
-	return error;
-}
-sj.propagateError = function (input) {
-	//C wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
-	//C this basically just ensures sj.Errors recursively wrap each other (Error chain should only be 1 deep)
-	if (sj.isError(input)) {
-		return input;
-	} else {
-		return sj.catchUnexpected(input);
-	}
-}
-sj.propagate = function (rejected) {
-	//C shorter syntax: .catch(sj.propagate);
-	throw sj.propagateError(rejected);
-}
-
-// sorting
-sj.returnContent = function (resolved) {
-	//C shorter syntax for immediately returning the content property of a resolved object from a promise chain
-	return resolved.content;
-}
-sj.one = function (a) {
-	//C unwraps the first item of an array where one item is expected
-	if (!sj.isType(a, Array)) {
-		return a;
-	} else if (a.length === 1) {
-		return a[0];
-	} else if (a.length >= 2) {
-		//TODO make a warning object / handler?
-		console.warn('sj.one() pulled a single value out of an array with many');
-		return a[0];
-	} else if (a.length === 0) {
-		//! this does not return undefined because we are 'expecting' one value (//TODO though this may be changed later to return undefined)
-		return new sj.Error({
-			log: true,
-			origin: 'sj.one()',
-			code: 404,
-			message: 'no data found',
-			reason: 'array has no values, expected one',
-			content: a,
-		});
-	}
-}
-sj.any = function (o) {
-	//C wraps a value in an array if not already inside one
-	if (sj.isType(o, Array)) {
-		return o;
-	} else {
-		return [o];
-	}
-}
-
-/* old
-	sj.wrapAll = async function (list, type, success, error) {
-		//C wraps a list in a success or error object based on it's contents, keeps all contents on error
-		//! do not log success or error objects, one of the two is announced by this function
-		//L array.every: https://codedam.com/just-so-you-know-array-methods/
-
-		success.content = error.content = list;
-
-		if (list.every(item => sj.isType(item, type))) {
-			success.announce();
-			return success;
-		} else {
-			error.announce();
-			throw error;
-		}
-	}
-	sj.wrapPure = async function (list, type, success, error) {
-		//C like sj.wrapAll, however discards non-errors on error
-
-		success.content = list;
-		error.content = [];
-
-		list.forEach(item => {
-			if (!sj.isType(item, type)) {
-				error.content.push(item);
-			}
-		});
-
-		if (error.content.length === 0) {
-			success.announce();
-			return success;
-		} else {
-			error.announce();
-			throw error;
-		}
-	}
-*/
-sj.filterList = async function (list, type, successList, errorList) { //TODO legacy
-	//TODO go over this
-
-	//C sorts through a list of both successes and errors (usually received from Promise.all and sj.resolveBoth() to avoid fail-fast behavior to process all promises).
-	//C returns either a sj.Success with content as the original list if all match the desired object, or a sj.ErrorList with content as all the items that did not match.
-	//! do not log either the successList or errorList objects, these are announced later
-
-
-	//C ensure errorList.content is an array (though this is currently default)
-	errorList.content = [];
-	successList.content = list;
-
-	//C if item does not match desired type, push it to errorList.content
-	list.forEach(item => {
-		//TODO consider using sj.isType() here, and also implement instanceof into sj.isType() (also allowing to pass objects to use instance of)
-		if (!sj.isType(item, type)) {
-			errorList.content.push(sj.propagateError(item));
-		}
-	});
-
-	//C throw errorList if there are any errors
-	if (!(errorList.content.length === 0)) {
-		errorList.announce();
-		throw errorList;
-	}
-
-	successList.announce();
-	return successList;
-}
-
-// rebuild
-sj.rebuild = function (input, strict) {
-	//C turns a bare object back into its custom class if it has a valid objectType property
-
-	if (sj.isType(input, 'string')) { //C parse if string
-		try {
-			input = JSON.parse(input);
-		} catch (e) {
-			return new sj.Error({
-				log: true,
-				origin: 'sj.rebuild()',
-				message: 'failed to recreate object',
-				reason: e,
-				content: input,
-			});
-		}
-	}
-	if (!sj.isType(input, 'object')) { //C throw if not object
-		return new sj.Error({
-			log: true,
-			origin: 'sj.rebuild()',
-			message: 'failed to recreate object',
-			reason: 'data is not an object',
-			content: input,
-		});
-	}
-
-
-	let rebuilt = input;
-	if (sj.isType(input, 'sj.Object')) { //C rebuild if possible
-		rebuilt = new sj[input.objectType.replace('sj.', '')](input);
-	} else if (strict) { //C throw if not possible and strict
-		return new sj.Error({
-			log: true,
-			origin: 'sj.rebuild()',
-			message: 'failed to recreate object',
-			reason: 'object is not a valid sj.Object',
-			content: input,
-		});
-	}
-
-	return rebuilt;
-}
-
-// recursive shells
-//TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-sj.recursiveSyncTime = async function (n, loopCondition, f, ...args) {
-	//L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
-	let timestamp = Date.now();
-	function loop() {
-		if (Date.now() > timestamp + n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveSyncTime()',
-				reason: 'recursive function timed out',
-				content: f,
-			});
-		}
-
-		let result = f(...args);
-		if (loopCondition(result)) {
-			result = loop();
-		}
-
-		return result;
-	}
-	return loop();
-}
-sj.recursiveSyncCount = async function (n, loopCondition, f, ...args) {
-	let count = 0;
-	function loop(count) {
-		if (count >= n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveSyncCount',
-				reason: 'recursive function counted out',
-				content: f,
-			});
-		}
-
-		let result = f(...args);
-		if (loopCondition(result)) {
-			result = loop(++count);
-		}
-
-		return result;
-	}
-	return loop(count);
-}
-sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
-	let timestamp = Date.now();
-	async function loop() {
-		if (Date.now() > timestamp + n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveAsyncTime()',
-				reason: 'recursive function timed out',
-				content: f,
-			});
-		}
-
-		let result = await f(...args);
-		if (loopCondition(result)) {
-			result = await loop();
-		}
-
-		return result;
-	}
-	return await loop();
-}
-sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
-	let count = 0;
-	async function loop(count) {
-		if (count >= n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveAsyncCount()',
-				reason: 'recursive function counted out',
-				content: f,
-			});
-		}
-
-		let result = await f(...args);
-		if (loopCondition(result)) {
-			result = await loop(++count);
-		}
-
-		return result;
-	}
-	return await loop(count);
-}
 
 
 export default sj;
