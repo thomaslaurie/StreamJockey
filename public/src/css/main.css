@@ -1,21 +1,21 @@
 section {
 	margin: 10px;
 	padding: 10px;
-	background: rgb(240, 240, 240);
+	/* background: rgb(240, 240, 240); */
 }
 
 ul {
 	list-style-type: none;
 	padding: 0;
 	margin: 5px;
-	background-color: blanchedalmond;
+	/* background-color: blanchedalmond; */
 }
 
 li {
 	list-style-type: none;
 	padding: 5px;
 	margin: 5px;
-	background-color: plum;
+	/* background-color: plum; */
 }
 
 li button,

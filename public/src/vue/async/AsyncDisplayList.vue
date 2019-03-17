@@ -17,7 +17,7 @@
             ascending: Boolean,
 
             //C change data from Object to Array type, if used //TODO
-            //data2: Array,
+            pData: [Array],
         },
         methods: {
             async getData() {

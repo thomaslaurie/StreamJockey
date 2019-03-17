@@ -11,7 +11,8 @@
         data() {
             return {
                 edit: true,
-                searchTerm: '',
+				searchTerm: '',
+				searchResults: [],
             };
         },
         methods: {
@@ -24,8 +25,7 @@
             },
 
             async search() {
-				let result = await this.sj.spotify.search(this.searchTerm);
-				console.log('RESULT: ', result);
+				this.searchResults = await this.sj.spotify.search(this.searchTerm).then(this.sj.returnContent);
             },
 		},
     }
@@ -41,19 +41,33 @@
         <button @click='edit = !edit'>Edit</button>
 
         <div id='main'>
-            <track-display-list :p-query='{playlistId: data.id}'></track-display-list>
+            <track-display-list id='playlist' :p-query='{playlistId: data.id}'></track-display-list>
 
-            <div v-if='edit'>
+            <div id='search-div' v-if='edit'>
                 <input v-model='searchTerm'>
                 <button @click='search'>Search</button>
+				<track-display-list :p-data='searchResults'></track-display-list>
             </div>
         </div>
+
+		<div id='test'>
+			<p id='one'>one</p>
+			<p id='two'>two</p>
+		</div>
     </async-switch>
 </template>
-
 
 <style scoped lang='scss'>
     #main {
         display: flex;
     }
+	#playlist {
+		flex: 1 1 0;
+	}
+	#search-div {
+		flex: 1 1 0;
+	}
+	#test {
+		display: flex;
+	}
 </style>

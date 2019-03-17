@@ -424,7 +424,7 @@ const visibilityStates = [
                 "sourceId" text,
                 "name" text,
                 "duration" integer,
-                "artists" text[],
+                "artists" text ARRAY,
 
                 CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
             );`).catch(rejected => {
@@ -654,15 +654,16 @@ sj.buildValues = function (pairs) {
         pairs.forEach((item, index) => {
             columns.push(item.column);
             values.push(item.value);
-            placeholders.push(`$${index+1}`);
+            placeholders.push(`$${index+1}`); //C $1 based placeholders
         });
 
-        columns = columns.join('", "');
-        columns = `("${columns}")`;
+        columns = columns.join('", "'); //C inner delimiter
+        columns = `("${columns}")`; //C outer
 
         placeholders = placeholders.join(', ');
         placeholders = `(${placeholders})`;
 
+		//? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
         return pgp.as.format(`${columns} VALUES ${placeholders}`, values);
     }
 }

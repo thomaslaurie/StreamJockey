@@ -1475,7 +1475,7 @@ async function checkPlayback() {
 	});
 }
 
-// !!! checkPlayback functions must save timestamp immediately after progress is available, however playing is one property type
+//! checkPlayback functions must save timestamp immediately after progress is available, however playing is one property type
 sj.spotify.checkPlayback = async function () {
 	// 1 api call (all)
 

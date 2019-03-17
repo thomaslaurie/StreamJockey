@@ -38,4 +38,13 @@
 
 
 <style scoped lang='scss'>
+	$margin: 5px;
+	ul {
+		padding: 0;
+		margin: $margin 0 $margin 0;
+	}
+	li {
+		padding: 0;
+		margin: $margin 0 $margin 0;
+	}
 </style>
