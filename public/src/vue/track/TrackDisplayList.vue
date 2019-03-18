@@ -11,40 +11,38 @@
         methods: {
             async getData() {
                 return await this.sj.getTrack(this.query).then(this.sj.returnContent);
-            },
-            async open(id) {
-                this.$router.push(`/track/${id}`);
-            },
-            async play() {
-            },
-        },
+			},
+		},
     }
 </script>
 
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
+	class='track-display-list'>
         <ul>
             <li
                 v-for='track in data' 
                 :key='track.id' 
                 :display='track'
             >
-				<track-display :p-data='track'></track-display>
+				<track-display :p-data='track' v-bind='attrs' v-on='listeners'></track-display>
             </li>
         </ul>
     </async-switch>
 </template>
 
 
-<style scoped lang='scss'>
-	$margin: 5px;
-	ul {
-		padding: 0;
-		margin: $margin 0 $margin 0;
-	}
-	li {
-		padding: 0;
-		margin: $margin 0 $margin 0;
+<style lang='scss'>
+	.track-display-list {
+		$margin: 5px;
+		ul {
+			padding: 0;
+			margin: $margin 0 $margin 0;
+		}
+		li {
+			padding: 0;
+			margin: $margin 0 $margin 0;
+		}
 	}
 </style>

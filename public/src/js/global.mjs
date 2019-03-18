@@ -943,6 +943,9 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	if (sj.isType(options.body, Object)) { //C stringify body
 		try {
 			options.body = JSON.stringify(options.body);
+
+			//------------- was in the middle of testing new TrackDisplay component, but have to solve circular referneces
+			//TODO make a solution to circular references, maybe add a method to sj.Object that does this for all sj objects, and uses a library to remove circular references in addition to a custom extension for each object if a reference needs to be converted in a certain way (track.source should go to the source string? i forget how this was implemented)
 		} catch (e) {
 			//C catch stringify error (should be a cyclic reference)
 			throw new sj.Error({

@@ -3,23 +3,36 @@
 	
     export default {
         name: 'track-display',
-        extends: AsyncDisplay,
+		extends: AsyncDisplay,
+		props: {
+			addButton: Boolean,
+			deleteButton: Boolean,
+		},
         methods: {
             async getData() {
-				let list = await this.sj.getTrack(this.query).then(this.sj.returnContent);
-				let temp = this.sj.one(list);
-				console.log('TRACK DATA: ', temp);
-				return temp;
+				return await this.sj.getTrack(this.query).then(this.sj.content).then(this.sj.one);
+			},
+			async open(id) {
+                this.$router.push(`/track/${id}`);
             },
             async play() {
-            },
+			},
+			async del() { //! shortened to del to avoid delete reserved word
+				await this.sj.deleteTrack(this.data);
+				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for deletes because this component can get it's own data
+			},
+			async add() {
+				//C does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
+				this.$emit('add', this.data);
+			},
         },
     }
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
-		<div id='container'>
+    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent' 
+	class='track-display'>
+		<div id='left'>
 			<button id='play-button' @click='play()'>Play</button>
 
 			<div id='content'>
@@ -27,35 +40,53 @@
 				<p id='name'>{{data.name}}</p>
 			</div>
 		</div>
-		<!-- <button @click='open(data.id)'>Info</button> -->
+		<div id='right'>
+			<button v-if='addButton' @click='add'>Add</button>
+			<button v-if='deleteButton' @click='del'>Delete</button>
+		</div>
+		<!-- //TODO <button @click='open(data.id)'>Info</button> -->
     </async-switch>
 </template>
 
-<style scoped lang='scss'>
-	$height: 50px;
-	#container {
-		display: flex;
-		height: $height;
-		justify-content: space-between;
+<style lang='scss'>
+	$track-height: 50px;
 
-		background-color: $test-color;
-	}
-	#play-button {
-		width: $height;
-		height: 100%;
-	}
-	#content {
-		width: auto;
-		height: 100%;
-
+	.track-display{
+		height: $track-height;
+		background-color: $list-item-color;
 		display: flex;
-    	flex-direction: column;
-    	justify-content: space-between;
-	}
-	#artists {
-		font-size: 18px;
-	}
-	#name {
-		font-size: 24px;
+		#left, #right {
+			display: inline-flex;
+		}
+		#left {
+			height: 100%;
+			justify-content: flex-start;
+			flex-grow: 1;
+		}
+		#right {
+			height: 100%;
+			justify-content: flex-end;
+		}
+		#play-button {
+			width: $track-height;
+			height: 100%;
+		}
+		#content {
+			height: 100%;
+
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+		}
+		#artists {
+			font-size: 18px;
+			padding: 0;
+			margin: 0;
+		}
+		#name {
+			font-size: 24px;
+			padding: 0;
+			margin: 0;
+		}
 	}
 </style>

@@ -27,7 +27,19 @@
         computed: {
             orderedData() {
                 return this.sj.dynamicSort(this.data, this.ascending, this.orderBy);
-            },
+			},
+			//C transparent wrapper for list items just apply v-on='listeners' and v-bind='attrs' to any element that needs them
+			//C any listeners/attrs for this list component can be pulled out of those that are passed down by adding the name to the destructured object:
+			// const {listenerForThisList, ...listeners} = this.$listeners;
+			//L https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
+			attrs() {
+    			const {...attrs} = this.$attrs;
+    			return attrs;
+  			},
+			listeners() {
+				const {...listeners} = this.$listeners;
+				return listeners;
+			},
         },
     }
 </script>
