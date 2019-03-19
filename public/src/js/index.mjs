@@ -247,6 +247,20 @@ const router = new VueRouter({
 	],
 });
 const store = new VueX.Store({
+	//TODO //? how to sync server data with vuex? updating parent components, unrelated components, etc. is a nightmare - which is what vuex is for anyways
+	/* ideas:
+		//L https://forum.vuejs.org/t/vuejs-vuex-data-synchronization-with-server-backend/16340/2
+
+		global event bus that calls the object type (user, playlist, track, etc) and its id when updated - this prompts anything using that object to refresh
+
+		vuex store of 'watched' objects, when getSomething is called it adds the item to the list and the component itself to the item's watchers list - the component then uses this item in the object's store, any updates are propagated - when the component is destroyed the watcher is removed, when the last watcher is remove the item is removed, when an item is deleted the parent item (a playlist or something) will also have to watch it and update somehow, if its just the single item the component refreshes as normal and displays a not found error
+
+		or just find an existing library that does this
+
+		//! the entire database must not be synced, it must just be the data that is currently used by components, anything that is destroyed and reappears will update when it fetches its data
+	*/
+
+
     //? if user needs to be stored here (they dont, that happens with sessions atm) //L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
 	state: {
 		//me: null, //TODO probably replace this with a NoUser object so that functions don't break

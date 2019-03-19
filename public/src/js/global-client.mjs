@@ -67,7 +67,7 @@ import sj from './global.mjs';
 	// sorting
 	function isError(obj) {
 		// checks for proper sj.Object error types
-		if (sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.ErrorList') {
+		if (sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.Error') {
 			return true;
 		} else {
 			return false;
@@ -110,7 +110,7 @@ import sj from './global.mjs';
 	}
 
 	function sj.filterList(resolvedList, type, resolvedObj, rejectedObj) {
-		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an sj.ErrorList with all objects that aren't of that type
+		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an sj.Error with all objects that aren't of that type
 
 		resolvedObj.content = resolvedList;
 		rejectedObj.content = [];
@@ -139,7 +139,7 @@ import sj from './global.mjs';
 		if (sj.typeOf(error) === 'sj.Error') {
 			console.error(error);
 			addElementError(error);
-		} else if (sj.typeOf(error) === 'sj.ErrorList') {
+		} else if (sj.typeOf(error) === 'sj.Error') {
 			error.content.forEach(function (item) {
 				console.error(error);
 				addElementError(error);
@@ -152,7 +152,7 @@ import sj from './global.mjs';
 	}
 
 	// element errors
-	var elementErrorList = new sj.ErrorList({
+	var elementErrorList = new sj.Error({
 		origin: 'global variable elementErrorList',
 	});
 	function clearElementError(elementError) {
@@ -1148,7 +1148,7 @@ async function search(term) {
 		return sj.filterList(resolved, sj.Success, new sj.Success({
 			origin: 'search()',
 			message: 'search succeeded',
-		}), new sj.ErrorList( {
+		}), new sj.Error( {
 			origin: 'search()',
 			message: 'search failed',
 		}));
@@ -1478,7 +1478,7 @@ async function checkPlayback() {
 		return sj.filterList(resolved, sj.Success, new sj.Success({
 			origin: 'checkPlayback()',
 			message: 'checked playback state',
-		}), new sj.ErrorList({
+		}), new sj.Error({
 			origin: 'checkPlayback()',
 			message: 'failed to check playback state',
 		}));
@@ -1677,7 +1677,7 @@ sj.Start(obj) = function () {
 			return sj.filterList(resolved, sj.Success, new sj.Success({
 				origin: 'sj.Start.trigger()',
 				message: 'changed track',
-			}), new sj.ErrorList({
+			}), new sj.Error({
 				origin: 'sj.Start.trigger()',
 				message: 'failed to change track',
 			}));
@@ -1717,7 +1717,7 @@ sj.Toggle(obj) = function () {
 				return sj.filterList(resolved, sj.Success, new sj.Success({
 					origin: 'sj.Toggle.trigger()',
 					message: 'playing updated',
-				}), new sj.ErrorList({
+				}), new sj.Error({
 					origin: 'sj.Toggle.trigger()',
 					message: 'playing failed to update',
 				}));
@@ -1734,7 +1734,7 @@ sj.Toggle(obj) = function () {
 				return sj.filterList(resolved, sj.Success, new sj.Success({
 					origin: 'updatePlaybackPlaying()',
 					message: 'playing updated',
-				}), new sj.ErrorList({
+				}), new sj.Error({
 					origin: 'updatePlaybackPlaying()',
 					message: 'playing failed to update',
 				}));

@@ -70,6 +70,8 @@
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+import fClone from './fclone.mjs'; //C https://github.com/soyuka/fclone
+
 let sj = {};
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
@@ -122,26 +124,36 @@ sj.wait = async function (ms) {
 		}
 	});
 }
-sj.trace = function () {
+sj.trace = function (test) {
 	try {
 		throw Error('');
 	} catch (e) {
 		//TODO figure out how to properly display newlines as strings inside objects
 
 		//C get stack
-		let stackTrace = e.stack;
+		let stackTrace0 = e.stack;
 		//C 'file:///' is removed (so that the URIs are clickable in node)
-		stackTrace = sj.stringReplaceAll(stackTrace, 'file:///', '');
+		let stackTrace1 = sj.stringReplaceAll(stackTrace0, 'file:///', '');
 		//C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-		stackTrace = sj.stringReplaceAll(stackTrace, 'Error\n', '');
-		//C removes any line with Object.sj.trace //TODO cant seem to match this, might have to do with line breaks?
-		//TODO this still has some bugs: Object.sj.trace isnt being removed
-		stackTrace = sj.stringReplaceAll(stackTrace, /(?:(?:\\n|\n|\r|$)at )(?:Object\.sj\.trace|new sj\.Object|new sj\.Error)(?:.+?(?=\\n|\n|\r|$))/g, '');
-		// |Object\.sj\.catchUnexpected|Object\.sj\.propagateError|sj\.andResolve
-		
-		return stackTrace;
+		let stackTrace2 = sj.stringReplaceAll(stackTrace1, 'Error\n', '');
+		//C removes any line with Object.sj.trace
+
+		let ignore = [
+			'Object.sj.trace',
+			'new sj.Object',
+			'new sj.Error',
+			'Object.sj.catchUnexpected',
+			'Object.sj.propagate',
+			'sj.Error.announce',
+		];
+		ignore = sj.stringReplaceAll(ignore.join('|'), '.', '\.');
+		let exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
+		let stackTrace3 = sj.stringReplaceAll(stackTrace2, exp, '');
+
+		return stackTrace3;
 	}
 }
+
 sj.deepFreeze = function (obj) {
 	// TODO test me
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
@@ -370,7 +382,8 @@ Array.prototype.stableSort = function(compare) { //TODO legacy
 // type
 sj.isType = function (input, type) { //!//TODO this doesn't seem to be properly identifying errors
 	//C matches 'input' type or super-type to 'type' value or string representation or builtin object
-	//! will match if values match, but not if types match - ('someString' wont match to 'someOtherString')
+	//! will not match typeof input to typeof type, unless their exact values match 
+	//R this intentional because it would be difficult to separate string identifiers from typeof 'anyString'
 
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
 	//TODO see if this can be even more cleanly structured
@@ -391,39 +404,29 @@ sj.isType = function (input, type) { //!//TODO this doesn't seem to be properly 
 	}
 
 	// no sub-types
-	//C may quickly return false if type matches the category (type is more likely to be one of these categories than input), this is to skip more expensive checks below because these categories have no sub-types (yet)
-	// undefined
-	if (type === undefined || type === 'undefined') {
-		//! this will not catch undefined variables (but will catch undefined properties) because they cannot be passed to functions without throwing a reference error
-		//L tried to do this: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
-		return input === undefined;
+	//C these early return false to skip more expensive checks below
+	if (input === undefined) {
+		//! won't catch undeclared variables because they cannot be passed to functions without throwing a reference error
+		return type === undefined || type === 'undefined';
 	}
-	// null
-	if (type === null || type === 'null') {
-		//! null check goes at top so that typeof null wont be 'object'
-		return input === null;
+	if (input === null) {
+		return type === null || type === 'null';
 	}
-	// array
-	if (type === Array || type === 'array' || Array.isArray(type)) {
-		//! array check goes at top so that typeof array wont be 'object'
-		return Array.isArray(input);
+	if (Array.isArray(input)) {
+		return type === Array || type === 'array';
 	}
-	// boolean
-	if (type === Boolean || type === 'boolean' || type === true || type === false) {
-		return input === true || input === false;
+	let t = typeof input; //! typeof fixes must go above this (null = 'object', array = 'object')
+	if (t === 'boolean') {
+		return type === Boolean || type === 'boolean';
 	}
-	// string
-	if (type === String || type === 'string') {
-		return typeof input === 'string';
+	if (t === 'string') {
+		return type === String || type === 'string';
 	}
 
 	// sub-types
-	// all
-	let t = typeof input;
-	if (t === type) { //! this must go after null and array because typeof doesn't reveal these
+	if (t === type) {
 		return true;
 	}
-	// object
 	if (t === 'object') {
 		if (type === Object || type === 'object') {
 			return true;
@@ -502,9 +505,8 @@ sj.isType = function (input, type) { //!//TODO this doesn't seem to be properly 
 			}
 		*/
 	}
-	// number
 	if (t === 'number') {
-		//C will catch Infinity
+		//C Infinity is a number
 
 		if (type === Number || type === 'number') {
 			return true;
@@ -569,7 +571,6 @@ sj.objectList = [ //TODO legacy
 	'sj.Object',
 	'sj.Success',
 	'sj.Error',
-	'sj.ErrorList',
 	'sj.Track',
 	'sj.Playlist',
 	'sj.User',
@@ -624,11 +625,13 @@ sj.catchUnexpected = function (input) {
 	error.announce();
 	return error;
 }
-sj.propagate = function (input) {
-	//C lets sj.Errors flow through, wraps any non-sj.Errors with sj.catchUnexpected()
-	if (sj.isType(input, sj.Error)) {
+sj.propagate = function (input, overwrite) {
+	if (sj.isType(input, sj.Error)) { //C lets sj.Errors flow through, with possible overwrite of properties (like message)
+		if (sj.isType(overwrite, Object)) {
+			input = new input.constructor({...input, ...overwrite});
+		}
 		return input;
-	} else {
+	} else { //C wraps any non-sj.Errors with sj.catchUnexpected()
 		return sj.catchUnexpected(input);
 	}
 }
@@ -656,26 +659,30 @@ sj.asyncForEach = async function (list, callback) {
 			content: resolved,
 		}
 	}, rejected => {
-		//C temporarily hold rejections so that every function may finish
+		//C temporarily resolve rejections in a pack so that every item will be processed
 		return {
 			resolved: false,
-			content: sj.propagateError(rejected),
+			content: sj.propagate(rejected),
 		}
 	})));
 
+
+	//C check if any rejected
 	let allResolved = results.every(item => item.resolved);
-	results = results.map(item => item.content);
+
+	//C un-pack
+	results = results.map(item => item.content); 
 
 	if (allResolved) {
 		return results;
 	} else {
-		throw sj.propagateError(results);
+		throw results;
 	}
 }
 sj.andResolve = function (rejected) {
 	//C use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
 	//C non-sj errors should also be converted here
-	return sj.propagateError(rejected);
+	return sj.propagate(rejected);
 }
 sj.resolveBoth = function (resolved, rejected) { //TODO legacy
 	//C Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
@@ -690,7 +697,7 @@ sj.filterList = async function (list, type, successList, errorList) { //TODO leg
 	//TODO go over this
 
 	//C sorts through a list of both successes and errors (usually received from Promise.all and sj.resolveBoth() to avoid fail-fast behavior to process all promises).
-	//C returns either a sj.Success with content as the original list if all match the desired object, or a sj.ErrorList with content as all the items that did not match.
+	//C returns either a sj.Success with content as the original list if all match the desired object, or a sj.Error with content as all the items that did not match.
 	//! do not log either the successList or errorList objects, these are announced later
 
 
@@ -942,10 +949,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	} 
 	if (sj.isType(options.body, Object)) { //C stringify body
 		try {
-			options.body = JSON.stringify(options.body);
-
-			//------------- was in the middle of testing new TrackDisplay component, but have to solve circular referneces
-			//TODO make a solution to circular references, maybe add a method to sj.Object that does this for all sj objects, and uses a library to remove circular references in addition to a custom extension for each object if a reference needs to be converted in a certain way (track.source should go to the source string? i forget how this was implemented)
+			options.body = JSON.stringify(fClone(options.body));
 		} catch (e) {
 			//C catch stringify error (should be a cyclic reference)
 			throw new sj.Error({
@@ -1024,15 +1028,19 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 
 	possibly a cyclical reference preservation function between client and server that replaces a reference to self with 'self1' keyword and also can find lower-level cyclical references by recursively calling the function on each layer with memory for which layer its on
 
-	all responses should either be a:
+	//G
+	higher order functions should either return:
 		sj.Success
-			which wraps empty content, misc content
+			which wraps empty content, arrays of other objects, and misc content
 			or a descendant item object
-				//TODO move all item objects (user, playlist, track, etc.) to descend from sj.Success
 		or a sj.Error
-			which wraps empty content, non-sj errors
-	the resolve/reject state indicates whether the function succeeded or failed - so not everything needs to be these exact objects
-	//? should lists be bare or wrapped in sj.Success/sj.Error? the only place where promise state cant be used is in server requests and responses, in this case there does need to be a wrapper so that sj.request() can sort by sj.isType(obj, sj.Error)
+			which wraps empty content, arrays of other objects with at least one error, non-sj errors (wrapper)
+			or a custom error
+	the resolve/reject state indicates whether the function succeeded or failed, so simpler functions can just return raw values, especially if they can't error
+
+	//R//? should lists be bare or wrapped in sj.Success/sj.Error? the only place where promise state cant be used is in server requests and responses, in this case there does need to be a wrapper so that sj.request() can sort by sj.isType(obj, sj.Error)
+
+	//R even though resolve and rejections don't need to be the same format, its still useful to have the ability influence resolved values with a success wrapper for say logging or debugging
 */
 
 sj.Object = class {
@@ -1097,10 +1105,10 @@ sj.Object = class {
 
 	announce() {
 		// include 'log: true' in options if object should be announced on creation, call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new sj.Object()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
-		if (sj.isError(this)) {
-			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message}\nat ${sj.trace()}\n`, this, `\n  ▮ ✗ `);
+		if (!sj.isType(this, sj.Error)) {
+			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\n${sj.trace()}`);
 		} else {
-			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\nat ${sj.trace()}`);
+			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message} ${this.content}\n${this.trace}`, `\n▮ ✗ `);
 		}	
 	}
 	onCreate() {
@@ -1110,6 +1118,10 @@ sj.Object = class {
 	}
 }
 
+
+//C success and error objects are returned from functions (mostly async ones)
+
+// success
 sj.Success = class extends sj.Object {
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
@@ -1121,31 +1133,15 @@ sj.Success = class extends sj.Object {
 		this.onCreate();
 	}
 }
-sj.Error = class extends sj.Object {
+sj.SuccessList = class extends sj.Success {
+	//C wrapper for an array of successful items
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
 
-		this.objectType = 'sj.Error';
+		this.objectType = 'sj.SuccessList';
 
 		sj.Object.init(this, options, {
-			code: 400,
-			type: 'Bad Request',
-		});
-
-		this.onCreate();
-	}
-}
-sj.ErrorList = class extends sj.Object { //TODO legacy
-	//? should ErrorList extend Error?
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.ErrorList';
-
-		sj.Object.init(this, options, {
-			code: 400,
-			type: 'Bad Request',
-			reason: 'One or more errors thrown',
+			reason: 'all items successful',
 			content: [],
 		});
 
@@ -1153,7 +1149,8 @@ sj.ErrorList = class extends sj.Object { //TODO legacy
 	}
 }
 
-sj.Track = class extends sj.Object {
+// items (these can be returned from functions)
+sj.Track = class extends sj.Success {
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
 
@@ -1175,7 +1172,7 @@ sj.Track = class extends sj.Object {
 		this.onCreate();
 	}
 }
-sj.Playlist = class extends sj.Object {
+sj.Playlist = class extends sj.Success {
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
 
@@ -1197,8 +1194,7 @@ sj.Playlist = class extends sj.Object {
 		this.onCreate();
 	}
 }
-
-sj.User = class extends sj.Object {
+sj.User = class extends sj.Success {
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
 
@@ -1217,7 +1213,281 @@ sj.User = class extends sj.Object {
 		this.onCreate();
 	}
 }
+sj.Credentials = class extends sj.Success {
+	constructor(options = {}) {
+		super(sj.Object.tellParent(options));
 
+		this.objectType = 'sj.Credentials',
+
+		sj.Object.init(this, options, {
+			//TODO this part should only be server-side 
+			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
+			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+            authRequestTimestamp: 0,
+            authRequestTimeout: 300000, //C default 5 minutes
+			authRequestURL: '',
+            authCode: Symbol(),
+            
+            accessToken: Symbol(),
+            expires: 0,
+            refreshToken: Symbol(),
+			refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
+			
+			scopes: [],
+		});
+
+		this.onCreate();
+	}
+}
+
+
+// error
+sj.Error = class extends sj.Object {
+	constructor(options = {}) {
+		super(sj.Object.tellParent(options));
+
+		this.objectType = 'sj.Error';
+
+		sj.Object.init(this, options, {
+			code: 400,
+			type: 'Bad Request',
+		});
+
+		this.onCreate();
+	}
+}
+sj.ErrorList = class extends sj.Error {
+	//C wrapper for an array with one or more errors
+	constructor(options = {}) {
+		super(sj.Object.tellParent(options));
+
+		this.objectType = 'sj.ErrorList'; //TODO //? in chrome dev tools this still shows up as 'sj.Error' but only on the preview line, is announce being called too early?
+
+		sj.Object.init(this, options, {
+			reason: 'one or more errors occurred with items',
+			content: [],
+		});
+
+		this.onCreate();
+	}
+}
+// custom errors
+sj.AuthRequired = class extends sj.Error { 
+	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
+	constructor(options = {}) {
+		super(sj.Object.tellParent(options));
+
+		this.objectType = 'sj.AuthRequired';
+
+		sj.Object.init(this, options, {
+			message: 'authorization required',
+		});
+
+		this.onCreate();
+	}
+}
+
+
+// other
+sj.Source = class extends sj.Object {
+	constructor(options = {}) {
+		super(sj.Object.tellParent(options));
+
+		this.objectType = 'sj.Source',
+
+		sj.Object.init(this, options, {
+			// new properties
+			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
+			idPrefix: '',
+			playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
+            realSource: true,
+            
+            credentials: new sj.Credentials(),
+
+			//TODO this should only be server-side
+			api: {},
+			scopes: [],
+			authRequestManually: true,
+			makeAuthRequestURL: function () {},
+
+			//C empty throw functions, used in standard playback functions
+			loadApi: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'loadApi()',
+					message: 'api could not be loaded',
+					reason: 'no source',
+				});
+			},
+			loadPlayer: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'loadPlayer()',
+					message: 'player could not be loaded',
+					reason: 'no source',
+				});
+			},
+
+			search: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'search()',
+					message: 'unable to search',
+					reason: 'no source',
+				});
+			},
+			getTracks: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'getTracks()',
+					message: 'unable to get tracks',
+					reason: 'no source',
+				});
+			},
+
+			checkPlayback: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiStart()',
+					message: 'could not check playback',
+					reason: 'no source',
+				});
+			},
+
+			apiStart: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiStart()',
+					message: 'track could not be started',
+					reason: 'no source',
+				});
+			},
+			apiResume: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiResume()',
+					message: 'track could not be resumed',
+					reason: 'no source',
+				});
+			},
+			apiPause: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiPause()',
+					message: 'track could not be paused',
+					reason: 'no source',
+				});
+			},
+			apiSeek: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiSeek()',
+					message: 'track could not be seeked',
+					reason: 'no source',
+				});
+			},
+			apiVolume: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiVolume()',
+					message: 'volume could not be changed',
+					reason: 'no source',
+				});
+			},
+		});
+
+		this.onCreate();
+	}
+
+	async start() {
+		return this.apiStart(track).then(resolved => {
+			this.playback.playing = true;
+			this.playback.track = track;
+			this.playback.progress = 0;
+			this.playback.timestamp = Date.now();
+
+			return resolved;
+		}).catch(rejected => {
+			throw sj.propagateError(rejected);
+		});
+	}
+	async resume() {
+		if (!this.playback.playing) { 
+			return this.apiResume().then(resolved => {
+				this.playback.playing = true;
+				return resolved;
+			}).catch(rejected => {
+				throw rejected;
+			});
+		} else {
+			return new sj.Success({
+				log: true,
+				origin: this.name + '.resume()',
+				message: 'track already playing',
+			});
+		}
+	}
+	async pause() {
+		if (this.playback.playing) {
+			return this.apiPause().then(resolved => {
+				this.playback.playing = false;
+				return resolved;
+			}).catch(rejected => {
+				throw sj.propagateError(rejected);
+			});
+		} else {
+			return new sj.Success({
+				log: true,
+				origin: this.name + '.pause()',
+				message: 'track already paused',
+			});
+		}	
+	}
+	async seek() {
+		return this.apiSeek(ms).then(resolved => {
+			this.playback.progress = ms;
+			this.playback.timestamp = Date.now();
+			return resolved;
+		}).catch(rejected => {
+			throw sj.propagateError(rejected);
+		});
+	}
+	async volume() {
+		return this.apiVolume(volume).then(resolved => {
+			this.playback.volume = volume;
+			return resolved;
+		}).catch(rejected => {
+			throw sj.propagateError(rejected);
+		});
+	}
+
+	onCreate() {
+		super.onCreate();
+
+		// extend with: add to source list
+		if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
+			sj.sourceList.push(this);
+		}
+	}
+}
+sj.Playback = class extends sj.Object {
+	constructor(options = {}) {
+		super(sj.Object.tellParent(options));
+
+		this.objectType = 'sj.Playback';
+
+		sj.Object.init(this, options, {
+			// new properties
+			track: sj.noTrack,
+			playing: false,
+			progress: 0,
+			timestamp: Date.now(),
+			volume: 0,
+		});
+
+		this.onCreate();
+	}
+}
 sj.Rule = class extends sj.Object {
 	constructor(options = {}) {
 		super(sj.Object.tellParent(options));
@@ -1602,7 +1872,7 @@ sj.Rule = class extends sj.Object {
 				return sj.filterList(resolved, sj.Success, new sj.Success({
 					origin: 'sj.Rule.checkRuleSet()',
 					message: 'all rules validated',
-				}), new sj.ErrorList({
+				}), new sj.Error({
 					origin: 'sj.Rule.checkRuleSet()',
 					message: 'one or more issues with rules',
 					reason: 'validation functions returned one or more errors',
@@ -1671,7 +1941,7 @@ sj.Rule = class extends sj.Object {
 				return sj.filterList(resolved, sj.Success, new sj.Success({
 					origin: 'checkRuleSet()',
 					message: 'all rules validated',
-				}), new sj.ErrorList({
+				}), new sj.Error({
 					origin: 'checkRuleSet()',
 					message: 'one or more issues with fields',
 					reason: 'validation functions returned one or more errors',
@@ -1681,248 +1951,6 @@ sj.Rule = class extends sj.Object {
 			});
 		}
 	*/
-}
-
-sj.Source = class extends sj.Object {
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.Source',
-
-		sj.Object.init(this, options, {
-			// new properties
-			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
-			idPrefix: '',
-			playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
-            realSource: true,
-            
-            credentials: new sj.Credentials(),
-
-			//TODO this should only be server-side
-			api: {},
-			scopes: [],
-			authRequestManually: true,
-			makeAuthRequestURL: function () {},
-
-			//C empty throw functions, used in standard playback functions
-			loadApi: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'loadApi()',
-					message: 'api could not be loaded',
-					reason: 'no source',
-				});
-			},
-			loadPlayer: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'loadPlayer()',
-					message: 'player could not be loaded',
-					reason: 'no source',
-				});
-			},
-
-			search: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'search()',
-					message: 'unable to search',
-					reason: 'no source',
-				});
-			},
-			getTracks: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'getTracks()',
-					message: 'unable to get tracks',
-					reason: 'no source',
-				});
-			},
-
-			checkPlayback: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiStart()',
-					message: 'could not check playback',
-					reason: 'no source',
-				});
-			},
-
-			apiStart: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiStart()',
-					message: 'track could not be started',
-					reason: 'no source',
-				});
-			},
-			apiResume: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiResume()',
-					message: 'track could not be resumed',
-					reason: 'no source',
-				});
-			},
-			apiPause: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiPause()',
-					message: 'track could not be paused',
-					reason: 'no source',
-				});
-			},
-			apiSeek: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiSeek()',
-					message: 'track could not be seeked',
-					reason: 'no source',
-				});
-			},
-			apiVolume: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiVolume()',
-					message: 'volume could not be changed',
-					reason: 'no source',
-				});
-			},
-		});
-
-		this.onCreate();
-	}
-
-	async start() {
-		return this.apiStart(track).then(resolved => {
-			this.playback.playing = true;
-			this.playback.track = track;
-			this.playback.progress = 0;
-			this.playback.timestamp = Date.now();
-
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagateError(rejected);
-		});
-	}
-	async resume() {
-		if (!this.playback.playing) { 
-			return this.apiResume().then(resolved => {
-				this.playback.playing = true;
-				return resolved;
-			}).catch(rejected => {
-				throw rejected;
-			});
-		} else {
-			return new sj.Success({
-				log: true,
-				origin: this.name + '.resume()',
-				message: 'track already playing',
-			});
-		}
-	}
-	async pause() {
-		if (this.playback.playing) {
-			return this.apiPause().then(resolved => {
-				this.playback.playing = false;
-				return resolved;
-			}).catch(rejected => {
-				throw sj.propagateError(rejected);
-			});
-		} else {
-			return new sj.Success({
-				log: true,
-				origin: this.name + '.pause()',
-				message: 'track already paused',
-			});
-		}	
-	}
-	async seek() {
-		return this.apiSeek(ms).then(resolved => {
-			this.playback.progress = ms;
-			this.playback.timestamp = Date.now();
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagateError(rejected);
-		});
-	}
-	async volume() {
-		return this.apiVolume(volume).then(resolved => {
-			this.playback.volume = volume;
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagateError(rejected);
-		});
-	}
-
-	onCreate() {
-		super.onCreate();
-
-		// extend with: add to source list
-		if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
-			sj.sourceList.push(this);
-		}
-	}
-}
-sj.Credentials = class extends sj.Object {
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.Credentials',
-
-		sj.Object.init(this, options, {
-			//TODO this part should only be server-side 
-			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-            authRequestTimestamp: 0,
-            authRequestTimeout: 300000, //C default 5 minutes
-			authRequestURL: '',
-            authCode: Symbol(),
-            
-            accessToken: Symbol(),
-            expires: 0,
-            refreshToken: Symbol(),
-			refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-			
-			scopes: [],
-		});
-
-		this.onCreate();
-	}
-}
-sj.Playback = class extends sj.Object {
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.Playback';
-
-		sj.Object.init(this, options, {
-			// new properties
-			track: sj.noTrack,
-			playing: false,
-			progress: 0,
-			timestamp: Date.now(),
-			volume: 0,
-		});
-
-		this.onCreate();
-	}
-}
-
-// custom errors
-sj.AuthRequired = class extends sj.Error { 
-	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.AuthRequired';
-
-		sj.Object.init(this, options, {
-			message: 'authorization required',
-		});
-
-		this.onCreate();
-	}
 }
 
 
@@ -1997,7 +2025,7 @@ sj.Start = class extends sj.Action {
 			return filterList(resolved, sj.Success, new sj.Success({
 				origin: 'sj.Start.trigger()',
 				message: 'changed track',
-			}), new sj.ErrorList({
+			}), new sj.Error({
 				origin: 'sj.Start.trigger()',
 				message: 'failed to change track',
 			}));
@@ -2035,7 +2063,7 @@ sj.Toggle = class extends sj.Action {
 				return filterList(resolved, sj.Success, new sj.Success({
 					origin: 'sj.Toggle.trigger()',
 					message: 'playing updated',
-				}), new sj.ErrorList({
+				}), new sj.Error({
 					origin: 'sj.Toggle.trigger()',
 					message: 'playing failed to update',
 				}));
@@ -2050,7 +2078,7 @@ sj.Toggle = class extends sj.Action {
 				return filterList(resolved, sj.Success, new sj.Success({
 					origin: 'updatePlaybackPlaying()',
 					message: 'playing updated',
-				}), new sj.ErrorList({
+				}), new sj.Error({
 					origin: 'updatePlaybackPlaying()',
 					message: 'playing failed to update',
 				}));

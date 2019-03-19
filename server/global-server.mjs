@@ -614,7 +614,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
             //C validate property, possibly modify obj[prop] if successful
             //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
             let checked = await rule.check(obj[prop], value2);
-            obj[prop] = sj.returnContent(checked);
+            obj[prop] = sj.content(checked);
             //C add value to columnPairs
             //! if rule.check() throws, this won't be pushed, but that doesn't matter because columnPairs won't be returned if there is any error
             columnPairs.push({column: column, value: obj[prop]});
@@ -1013,11 +1013,11 @@ sj.addUser = async function (db, users) {
             let columnPairs = await sj.Rule.checkRuleSet([
 				[true, 'name',		sj.userNameRules,		user, 'name'],
 				[true, 'email',		sj.emailRules, 			user, 'email'],
-			]).then(sj.returnContent).catch(sj.propagate);
+			]).then(sj.content).catch(sj.propagate);
 			
 
 			//C check password separately
-			user.password = await sj.passwordRules.check(user.password, user.password2).then(sj.returnContent);
+			user.password = await sj.passwordRules.check(user.password, user.password2).then(sj.content);
 			//C hash
 			let hash = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
 				throw new sj.Error({
@@ -1053,7 +1053,7 @@ sj.addUser = async function (db, users) {
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.addUser()',
             message: 'added users',
             content: results,
@@ -1115,7 +1115,7 @@ sj.getUser = async function (db, users) {
             let columnPairs = await sj.Rule.checkRuleSet([
                 [false, 'id',           sj.idRules,			user,   'id'],
                 [false, 'name',         sj.userNameRules,   user,   'name'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairs);
 
@@ -1145,7 +1145,7 @@ sj.getUser = async function (db, users) {
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.getUser()',
             message: 'retrieved users',
             content: results.flat(1), 
@@ -1190,13 +1190,13 @@ sj.editUser = async function (db, users) {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairsWhere = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, user, 'id'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
                 [false, 'name',     sj.userNameRules,   user,   'name'],
 				[false, 'email',	sj.emailRules, 		user, 	'email'],
 				[false, 'spotifyRefreshToken',	sj.spotifyRefreshTokenRules, user, 'spotifyRefreshToken'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairsWhere);
             let set = sj.buildSet(columnPairsSet);
@@ -1220,7 +1220,7 @@ sj.editUser = async function (db, users) {
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.editUser()',
             message: 'edited users',
             content: results,
@@ -1233,7 +1233,7 @@ sj.deleteUser = async function (db, users) {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairs = await sj.Rule.checkRuleSet([
             	[true, 'id', sj.idRules, user, 'id'],
-			]).then(sj.returnContent).catch(sj.propagate);
+			]).then(sj.content).catch(sj.propagate);
 			
 			let where = sj.buildWhere(columnPairs);
 
@@ -1256,7 +1256,7 @@ sj.deleteUser = async function (db, users) {
             });
 		});
 
-		return new sj.Success({
+		return new sj.SuccessList({
 			origin: 'sj.deleteUser()',
             message: 'deleted user',
             content: results,
@@ -1465,7 +1465,7 @@ sj.addPlaylist = async function (db, playlists) {
                 [true,  'userId',       sj.idRules,             playlist,   'userId'],
                 [true,  'name',         sj.playlistNameRules,   playlist,   'name'],
                 [false, 'description',  sj.descriptionRules,    playlist,   'description'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
             
             let values = sj.buildValues(columnPairs);
 
@@ -1488,7 +1488,7 @@ sj.addPlaylist = async function (db, playlists) {
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.addPlaylist()',
             message: 'added playlists',
             content: results,
@@ -1537,7 +1537,7 @@ sj.getPlaylist = async function (db, playlists) {
                 [false, 'userId',       sj.idRules,             playlist,   'userId'],
                 [false, 'name',         sj.playlistNameRules,   playlist,   'name'],
                 [false, 'description',  sj.descriptionRules,    playlist,   'description'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairs);
 
@@ -1559,7 +1559,6 @@ sj.getPlaylist = async function (db, playlists) {
             });
             return rows;
         }).catch(rejected => {
-            console.log('REJECTED: ', rejected);
             throw new sj.ErrorList({
                 log: true,
                 origin: 'sj.getPlaylist()',
@@ -1568,7 +1567,7 @@ sj.getPlaylist = async function (db, playlists) {
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.getPlaylist()',
             message: 'retrieved playlists',
             content: results.flat(1), 
@@ -1633,12 +1632,12 @@ sj.editPlaylist = async function (db, playlists) {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairsWhere = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, playlist, 'id'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
                 [false, 'name',         sj.playlistNameRules,   playlist,   'name'],
                 [false, 'description',  sj.descriptionRules,    playlist,   'description'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairsWhere);
             let set = sj.buildSet(columnPairsSet);
@@ -1662,7 +1661,7 @@ sj.editPlaylist = async function (db, playlists) {
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.editPlaylist()',
             message: 'edited playlists',
             content: results,
@@ -1675,7 +1674,7 @@ sj.deletePlaylist = async function (db, playlists) {
         let results = await sj.asyncForEach(playlists, async playlist => {
             let columnPairs = await sj.Rule.checkRuleSet([
             	[true, 'id', sj.idRules, playlist, 'id'],
-			]).then(sj.returnContent).catch(sj.propagate);
+			]).then(sj.content).catch(sj.propagate);
 			
 			let where = sj.buildWhere(columnPairs);
 
@@ -1698,7 +1697,7 @@ sj.deletePlaylist = async function (db, playlists) {
             });
 		});
 
-		return new sj.Success({
+		return new sj.SuccessList({
 			origin: 'sj.deletePlaylist()',
             message: 'deleted playlists',
             content: results,
@@ -1780,14 +1779,16 @@ sj.trackNameRules = new sj.Rule({
 
 // CRUD
 sj.addTrack = async function (db, tracks) {
-	//console.log('original tracks', tracks);
     tracks = sj.any(tracks);
     return await db.tx(async t => {
 		//C get playlist lengths
 		//! //R playlist lengths cannot be retrieved inside the same asyncForEach() iterator that INSERTS them because they are executed in parallel (all getTracks() calls will happen before insertions), resulting in all existingTracks images being exactly the same, resulting in track.position collision
+
+		console.log('FIRST: ', tracks);
+
 		let lengths = {};
 		await sj.asyncForEach(tracks, async track => {
-			let existingTracks = await sj.getTrack(t, new sj.Track({playlistId: track.playlistId})).then(sj.returnContent);
+			let existingTracks = await sj.getTrack(t, new sj.Track({playlistId: track.playlistId})).then(sj.content);
 			lengths[track.playlistId] = existingTracks.length;
 		});
 
@@ -1798,14 +1799,13 @@ sj.addTrack = async function (db, tracks) {
                 [true, 'sourceId',      sj.sourceIdRules,   track, 'sourceId'],
                 [true, 'name',          sj.trackNameRules,  track, 'name'],
                 [true, 'duration',      sj.posIntRules,     track, 'duration'],
-			]).then(sj.returnContent).catch(sj.propagate);
-			
+			]).then(sj.content).catch(sj.propagate);
+
+
 			//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
 			track.position = lengths[track.playlistId] + i;
 			columnPairs.push({column: 'position', value: track.position});
 			let values = sj.buildValues(columnPairs);
-			
-			console.log('inserting values: ', values);
 
             let row = await t.one('INSERT INTO "sj"."tracks" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1832,7 +1832,6 @@ sj.addTrack = async function (db, tracks) {
         //! requires the INSERT command to be executed one at at a time for each input track
         //R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
         tracks.forEach((track, i) => {
-			//console.log('actual: ', results[i].id, results[i].position, track.position);
             if(!sj.isEmpty(track.position)) {
                 track.id = results[i].id;
 				results[i].position = track.position;
@@ -1843,7 +1842,7 @@ sj.addTrack = async function (db, tracks) {
         await sj.moveTracks(t, tracks);;
 
         //C return the result tracks
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.addTrack()',
             message: 'added tracks',
             content: results,
@@ -1873,7 +1872,7 @@ sj.addTrack = async function (db, tracks) {
             //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
         ]); 
         
-            // var errorList = new sj.ErrorList({
+            // var errorList = new sj.Error({
             //     origin: 'addPlaylist()',
             //     message: 'one or more issues with fields',
             //     reason: 'validation functions returned one or more errors',
@@ -1952,7 +1951,7 @@ sj.getTrack = async function (db, tracks) {
                 [false, 'position',     sj.posIntRules, 	track, 'position'],
                 [false, 'source',       sj.sourceRules,     track, 'source'],
                 [false, 'sourceId',		sj.sourceIdRules,   track, 'sourceId'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             //C build where clause
             let where = sj.buildWhere(columnPairs);
@@ -1980,15 +1979,16 @@ sj.getTrack = async function (db, tracks) {
             throw new sj.ErrorList({
                 log: true,
                 origin: 'sj.getTrack()',
-                message: 'unable to retrieve tracks',
+                message: `unable to get tracks`,
                 content: sj.any(rejected).flat(1),
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.getTrack()',
-            message: 'retrieved tracks',
-            //C bring each sub-array's tracks up to the root level (because t.any() returns an array, not a single object)
+			message: `retrieved tracks`,
+			//C because each track in the query could return multiple tracks via t.any(), bring each sub-array's tracks up to the root level
+			//C flat is only used in get functions because only they can return multiple results per query item
             content: results.flat(1), 
         });
     }).catch(sj.propagate);
@@ -2056,7 +2056,7 @@ sj.editTrack = async function (db, tracks) {
         let results = await sj.asyncForEach(tracks, async track => {
             let columnPairsWhere = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, track, 'id'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let columnPairsSet = await sj.Rule.checkRuleSet([
                 //! do not edit position here
@@ -2065,7 +2065,7 @@ sj.editTrack = async function (db, tracks) {
                 [false, 'sourceId',     sj.sourceIdRules,  track, 'sourceId'],
                 [false, 'name',         sj.trackNameRules, track, 'name'],
                 [false, 'duration',     sj.posIntRules,    track, 'duration'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
 			let set = sj.buildSet(columnPairsSet);
             let where = sj.buildWhere(columnPairsWhere);
@@ -2089,7 +2089,7 @@ sj.editTrack = async function (db, tracks) {
             });
         });
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.editTrack()',
             message: 'edited tracks',
             content: results,
@@ -2102,7 +2102,7 @@ sj.deleteTrack = async function (db, tracks) {
         let results = await sj.asyncForEach(tracks, async track => {
 			let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, track, 'id'],
-            ]).then(sj.returnContent).catch(sj.propagate);
+            ]).then(sj.content).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairs);
 
@@ -2129,7 +2129,7 @@ sj.deleteTrack = async function (db, tracks) {
         //C order after deleting
         await sj.orderTracks(t, results);
 
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.deleteTrack()',
             message: 'deleted tracks',
             content: results,
@@ -2281,8 +2281,8 @@ sj.moveTracks = async function (db, tracks) {
         //! because a new item is not always being added to playlists, we cant simply set playlists to the result of asyncForEach(), just throw an error list if anything failed
         await sj.asyncForEach(movingTracks, async track => {
             //C validate
-            track.id = await sj.idRules.check(track.id).then(sj.returnContent);
-            track.position = await sj.posIntRules.check(track.position).then(sj.returnContent);
+            track.id = await sj.idRules.check(track.id).then(sj.content);
+            track.position = await sj.posIntRules.check(track.position).then(sj.content);
 
             //C get track's playlist based on track.id, using a sub-query
             //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
@@ -2441,7 +2441,7 @@ sj.moveTracks = async function (db, tracks) {
         });
         
         //C will return a list of playlists that were updated (however will return this playlist even if a track was set to the same position it already was)
-        return new sj.Success({
+        return new sj.SuccessList({
             origin: 'sj.moveTracks()',
             message: 'moved tracks',
             content: playlists,
@@ -2460,7 +2460,7 @@ sj.orderTracks = async function (db, tracks) {
         //C filter for unique playlist ids
         if (self.slice(index+1).every(itemAfter => track.playlistId !== itemAfter.playlistId)) {
             //C validate
-            let id = await sj.idRules.check(track.playlistId).then(sj.returnContent);
+            let id = await sj.idRules.check(track.playlistId).then(sj.content);
             playlistIds.push(id);
         }
         return;
@@ -2477,7 +2477,7 @@ sj.orderTracks = async function (db, tracks) {
         return await sj.asyncForEach(playlistIds, async playlistId => {
             //C get
 			//let playlist = await sj.getTrack(t, new sj.Track({playlistId: playlistId}));
-			let playlist = await sj.getTrack(t, new sj.Track({playlistId: playlistId})).then(sj.returnContent);
+			let playlist = await sj.getTrack(t, new sj.Track({playlistId: playlistId})).then(sj.content);
 
 			//C early return if playlist is empty (will happen if an entire playlist is deleted)
 			if (playlist.length <= 0) {
