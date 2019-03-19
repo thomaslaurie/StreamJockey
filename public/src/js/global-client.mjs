@@ -63,76 +63,6 @@ import sj from './global.mjs';
 //  ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║
 //  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
 
-/*
-	// sorting
-	function isError(obj) {
-		// checks for proper sj.Object error types
-		if (sj.typeOf(obj) === 'sj.Error' || sj.typeOf(obj) === 'sj.Error') {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	function catchUnexpected(obj) {
-		// determines type of input, creates, announces, and returns a proper sj.Error object
-		// use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
-
-		var error = new sj.Error({
-			message: 'function received unexpected result',
-			content: obj,
-		});
-
-		if (sj.typeOf(obj) === 'undefined') {
-			error.reason = 'object is undefined';
-		} else if (sj.typeOf(obj) === 'null') {
-			error.reason = 'object is null';
-		} else if (sj.typeOf(obj) === 'object') {
-			if (typeof obj.objectType === 'undefined' || typeof obj.objectType === 'null' || obj.objectType.indexOf('sj') !== 0) {
-				error.reason = 'object is a non sj object';
-			} else {
-				error.reason = 'object is of unexpected sj objectType: ' + obj.objectType;
-			}
-		} else {
-			error.reason = 'object is of unexpected type: ' + typeof obj;
-		}
-		error.announce();
-		return error;
-	}
-
-	function sj.propagateError(obj) {
-		// wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
-		if (sj.isError(obj)) {
-			return obj;
-		} else {
-			return catchUnexpected(obj);
-		}
-	}
-
-	function sj.filterList(resolvedList, type, resolvedObj, rejectedObj) {
-		// used to filter a list of resolved objects from Promise.all(function() {... resolveAll} for a specified resolve type, then returns the list if all are of that type or an sj.Error with all objects that aren't of that type
-
-		resolvedObj.content = resolvedList;
-		rejectedObj.content = [];
-
-		resolvedList.forEach(function (item) {
-			if (sj.typeOf(item) !== type) {
-				rejectedObj.content.push(sj.propagateError(item));
-			}
-		});
-
-		return new Promise(function (resolve, reject) {
-			if (rejectedObj.content.length === 0) {
-				resolvedObj.announce();
-				resolve(resolvedObj);
-			} else {
-				rejectedObj.announce();
-				reject(rejectedObj);
-			}
-		});
-	}
-*/
-
 /* //TODO update and move these into sj
 	// handling
 	function handleError(error) {
@@ -480,7 +410,7 @@ sj.spotify.auth = async function () {
             authRequestWindow.close();
             return resolved;
         }).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
     */
 }
@@ -507,7 +437,7 @@ sj.spotify.getAccessToken = async function () {
 			//C call auth() if server doesn't have a refresh token
 			await that.auth();
 		} else if (sj.isType(result, sj.Error)) {
-			throw sj.propagateError(result);
+			throw sj.propagate(result);
 		} else {
 			//C assign sj.spotify.credentials
 			that.credentials.accessToken = result.accessToken;
@@ -1140,10 +1070,10 @@ sj.spotify.search = async function (term) {
 	});
 }
 
-
+/* old
 async function search(term) {
 	return Promise.all(sj.sourceList.map(function (source) {
-		return source.search(term).then(resolveBoth);
+		return source.search(term).then(sj.andResolve);
 	})).then(function (resolved) {
 		return sj.filterList(resolved, sj.Success, new sj.Success({
 			origin: 'search()',
@@ -1160,6 +1090,7 @@ async function search(term) {
 		throw rejected;
 	});
 }
+*/
 /*
 	sj.spotify.search = async function (term) {
 		var options = {
@@ -1194,7 +1125,7 @@ async function search(term) {
 				message: 'tracks retrieved',
 			});
 		}).catch(function (rejected) {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 */
@@ -1279,7 +1210,7 @@ sj.youtube.search = async function (term) {
 			content: resolved,
 		});
 	}).catch(function (rejected) {
-		throw sj.propagateError(rejected);
+		throw sj.propagate(rejected);
 	});
 }
 sj.youtube.getTracks = async function (ids) {
@@ -1344,7 +1275,7 @@ sj.youtube.getTracks = async function (ids) {
 		playlist.announce();
 		return playlist;
 	}).catch(function (rejected) {
-		throw sj.propagateError(rejected);
+		throw sj.propagate(rejected);
 	});
 }
 
@@ -1471,9 +1402,10 @@ sj.desiredPlayback.current = function () {
 	return sj.desiredPlayback.track.source.playback;
 }
 
+//TODO rewrite me
 async function checkPlayback() {
 	return Promise.all(sj.sourceList.map(function (source) {
-		return source.checkPlayback().then(resolveBoth);
+		return source.checkPlayback().then(sj.andResolve);
 	})).then(function (resolved) {
 		return sj.filterList(resolved, sj.Success, new sj.Success({
 			origin: 'checkPlayback()',
@@ -1528,7 +1460,7 @@ sj.spotify.checkPlayback = async function () {
 			message: 'spotify playback state checked',
 		});
 	}).catch(function (rejected) {
-		throw sj.propagateError(rejected);
+		throw sj.propagate(rejected);
 	});
 }
 sj.youtube.checkPlayback = async function () {
@@ -1555,7 +1487,7 @@ sj.youtube.checkPlayback = async function () {
 
 
 		var url = youtubePlayer.getVideoUrl(); // !!! can sometimes return undefined
-		var id = sj.typeOf(url) === 'string' ? url.split('v=')[1] : '';
+		var id = sj.isType(url, String) ? url.split('v=')[1] : '';
 		if (id) {
 			// if not empty
 			var andPosition = id.indexOf('&'); 
@@ -1580,7 +1512,7 @@ sj.youtube.checkPlayback = async function () {
 					});
 				}
 			}).catch(function (rejected) {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		} else {
 			// no track is playing
@@ -1671,7 +1603,7 @@ sj.Start(obj) = function () {
 	this.trigger = async function () {
 		return Promise.all(sj.sourceList.map(source => {
 			// pause all
-			return source.pause().then(resolveBoth);
+			return source.pause().then(sj.andResolve);
 		})).then(resolved => {
 			// filter errors
 			return sj.filterList(resolved, sj.Success, new sj.Success({
@@ -1687,7 +1619,7 @@ sj.Start(obj) = function () {
 		}).then(resolved => {
 			return resolved;
 		}, rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 
@@ -1708,10 +1640,10 @@ sj.Toggle(obj) = function () {
 			return Promise.all(sj.sourceList.map(source => {
 				if (source === this.source) {
 					// resume desired source
-					return source.resume().then(resolveBoth);
+					return source.resume().then(sj.andResolve);
 				} else {
 					// pause all other sources
-					return source.pause().then(resolveBoth);
+					return source.pause().then(sj.andResolve);
 				}
 			})).then(resolved => {
 				return sj.filterList(resolved, sj.Success, new sj.Success({
@@ -1724,12 +1656,12 @@ sj.Toggle(obj) = function () {
 			}).then(resolved => {
 				return resolved;
 			}, rejected => {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		} else {
 			return Promise.all(sj.sourceList.map(source => {
 				// pause all sources
-				return source.pause().then(resolveBoth);
+				return source.pause().then(sj.andResolve);
 			})).then(resolved => {
 				return sj.filterList(resolved, sj.Success, new sj.Success({
 					origin: 'updatePlaybackPlaying()',
@@ -1741,7 +1673,7 @@ sj.Toggle(obj) = function () {
 			}).then(resolved => {
 				return resolved;
 			}, rejected => {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		}
 	}
@@ -1765,7 +1697,7 @@ sj.Seek(obj) = function () {
 				message: 'playback progress changed',
 			});
 		}).catch(rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 
@@ -1923,7 +1855,7 @@ sj.playbackQueue = {
 	// 			content: rejected,
 	// 		});
 	// 	}).catch(function (rejected) {
-	// 		throw sj.propagateError(rejected);
+	// 		throw sj.propagate(rejected);
 	// 	});
 	// }
 	// sj.youtube.apiStart = async function (track) {
@@ -1966,7 +1898,7 @@ sj.playbackQueue = {
 	// 			content: rejected,
 	// 		});
 	// 	}).catch(function (rejected) {
-	// 		throw sj.propagateError(rejected);
+	// 		throw sj.propagate(rejected);
 	// 	});
 	// }
 	// sj.youtube.apiResume = async function () {
@@ -2007,7 +1939,7 @@ sj.playbackQueue = {
 	// 			content: rejected,
 	// 		});
 	// 	}).catch(function (rejected) {
-	// 		throw sj.propagateError(rejected);
+	// 		throw sj.propagate(rejected);
 	// 	});
 	// }
 	// sj.youtube.apiPause = async function () {
@@ -2048,7 +1980,7 @@ sj.playbackQueue = {
 	// 			content: rejected,
 	// 		});
 	// 	}).catch(function (rejected) {
-	// 		throw sj.propagateError(rejected);
+	// 		throw sj.propagate(rejected);
 	// 	});
 	// }
 	// sj.youtube.apiSeek = async function (ms) {

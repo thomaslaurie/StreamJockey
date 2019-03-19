@@ -40,7 +40,7 @@
 
 	Big:
 	Break every single part of every module, see if all possible outcomes are caught and handled properly.
-	Ensure everything has an error handler - most of the time 'throw sj.propagateError(rejected);'.
+	Ensure everything has an error handler - most of the time 'throw sj.propagate(rejected);'.
 	Fill in and make consistent content for all success, error, data objects.
 
 	Add timeouts to async functions.
@@ -253,7 +253,7 @@ sj.stableSort = function(list, compare) {
 	}
 
 	//C set compare to passed function or default
-	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
+	compare = typeof compare === 'function' ? compare : defaultCompare;
 
 	//C create new array with original index preserved
 	let frozen = list.map(function (item, index) {
@@ -329,45 +329,6 @@ sj.dynamicSort = function(list, ascending, prop) {
 
 	return sj.stableSort(list, compare);
 }
-Array.prototype.stableSort = function(compare) { //TODO legacy
-	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
-	
-	let defaultCompare = (a, b) => {
-		//C low to high
-		return a - b;
-	}
-
-	//C set compare to passed function or default
-	compare = sj.typeOf(compare) === 'function' ? compare : defaultCompare;
-
-	//C create new array with original index preserved
-	let frozenThis = this.map(function (item, index) { //! 'this' refers to the array in [].stableSort()
-		return {value: item, index: index};
-	}); 
-
-	let stableCompare = function (a, b) {
-		let order = compare(a.value, b.value);
-
-		if (order === 0) {
-			//C if equal, sort based on their original order
-			return a.index - b.index;
-		} else {
-			//C sort normally
-			return order;
-		}
-	}
-
-	frozenThis.sort(stableCompare);
-
-	//C feed sorted array back into original array
-	for (let i = 0; i < this.length; i++) {
-		this[i] = frozenThis[i].value;
-	}
-
-	return this;
-}
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
@@ -380,7 +341,7 @@ Array.prototype.stableSort = function(compare) { //TODO legacy
 //C these reference sj.Objects, don't call these until classes are defined
 
 // type
-sj.isType = function (input, type) { //!//TODO this doesn't seem to be properly identifying errors
+sj.isType = function (input, type) {
 	//C matches 'input' type or super-type to 'type' value or string representation or builtin object
 	//! will not match typeof input to typeof type, unless their exact values match 
 	//R this intentional because it would be difficult to separate string identifiers from typeof 'anyString'
@@ -543,47 +504,6 @@ sj.isEmpty = function (input) {
         (sj.isType(input, 'array') && input.length > 0)
 	);
 }
-sj.typeOf = function (input) { //TODO legacy
-	if (input === null) {
-		return 'null';
-	}
-
-	let t = typeof input;
-
-	if (t === 'object') {
-		if (sj.isType(input, 'sj.Object')) {
-			return input.objectType;
-		} else {
-			return 'object';
-		}
-	}
-
-	if (t === 'number' && isNaN(input)) {
-			return 'NaN';
-	}
-
-	return typeof input;
-}
-sj.objectList = [ //TODO legacy 
-	//C list of all valid sj objects
-	//TODO must be a better way
-	// consider: obj.constructor.name //L https://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class
-	'sj.Object',
-	'sj.Success',
-	'sj.Error',
-	'sj.Track',
-	'sj.Playlist',
-	'sj.User',
-	'sj.Rule',
-	'sj.Source',
-	'sj.Credentials',
-	'sj.Playback',
-	'sj.Action',
-	'sj.Start',
-	'sj.Toggle',
-	'sj.Seek',
-	'sj.Volume',
-];
 
 // error
 sj.catchUnexpected = function (input) {
@@ -630,22 +550,10 @@ sj.propagate = function (input, overwrite) {
 		if (sj.isType(overwrite, Object)) {
 			input = new input.constructor({...input, ...overwrite});
 		}
-		return input;
+		throw input;
 	} else { //C wraps any non-sj.Errors with sj.catchUnexpected()
-		return sj.catchUnexpected(input);
+		throw sj.catchUnexpected(input);
 	}
-}
-sj.propagateError = function (input) { //TODO legacy
-	//C wrapper code for repeated error handling where: one or many sj.Object results are expected, sj.Errors are propagated, and anything else needs to be caught and transformed into a proper sj.Error
-	//C this basically just ensures sj.Errors recursively wrap each other (Error chain should only be 1 deep)
-	if (sj.isError(input)) {
-		return input;
-	} else {
-		return sj.catchUnexpected(input);
-	}
-}
-sj.isError = function (obj) { //TODO legacy, just use sj.isType(obj, sj.Error)
-	return sj.isType(obj, sj.Error);
 }
 
 // promises
@@ -666,10 +574,8 @@ sj.asyncForEach = async function (list, callback) {
 		}
 	})));
 
-
 	//C check if any rejected
 	let allResolved = results.every(item => item.resolved);
-
 	//C un-pack
 	results = results.map(item => item.content); 
 
@@ -684,81 +590,6 @@ sj.andResolve = function (rejected) {
 	//C non-sj errors should also be converted here
 	return sj.propagate(rejected);
 }
-sj.resolveBoth = function (resolved, rejected) { //TODO legacy
-	//C Promise.all will reject when the first promise in the list rejects, not waiting for others to finish. Therefore, resolve these rejections so they all get put into the list, then handle the list.
-
-	if (resolved) {
-		return resolved;
-	} else if (rejected) {
-		return sj.propagateError(rejected);
-	}
-}
-sj.filterList = async function (list, type, successList, errorList) { //TODO legacy
-	//TODO go over this
-
-	//C sorts through a list of both successes and errors (usually received from Promise.all and sj.resolveBoth() to avoid fail-fast behavior to process all promises).
-	//C returns either a sj.Success with content as the original list if all match the desired object, or a sj.Error with content as all the items that did not match.
-	//! do not log either the successList or errorList objects, these are announced later
-
-
-	//C ensure errorList.content is an array (though this is currently default)
-	errorList.content = [];
-	successList.content = list;
-
-	//C if item does not match desired type, push it to errorList.content
-	list.forEach(item => {
-		//TODO consider using sj.isType() here, and also implement instanceof into sj.isType() (also allowing to pass objects to use instance of)
-		if (!sj.isType(item, type)) {
-			errorList.content.push(sj.propagateError(item));
-		}
-	});
-
-	//C throw errorList if there are any errors
-	if (!(errorList.content.length === 0)) {
-		errorList.announce();
-		throw errorList;
-	}
-
-	successList.announce();
-	return successList;
-}
-/* old
-	sj.wrapAll = async function (list, type, success, error) {
-		//C wraps a list in a success or error object based on it's contents, keeps all contents on error
-		//! do not log success or error objects, one of the two is announced by this function
-		//L array.every: https://codedam.com/just-so-you-know-array-methods/
-
-		success.content = error.content = list;
-
-		if (list.every(item => sj.isType(item, type))) {
-			success.announce();
-			return success;
-		} else {
-			error.announce();
-			throw error;
-		}
-	}
-	sj.wrapPure = async function (list, type, success, error) {
-		//C like sj.wrapAll, however discards non-errors on error
-
-		success.content = list;
-		error.content = [];
-
-		list.forEach(item => {
-			if (!sj.isType(item, type)) {
-				error.content.push(item);
-			}
-		});
-
-		if (error.content.length === 0) {
-			success.announce();
-			return success;
-		} else {
-			error.announce();
-			throw error;
-		}
-	}
-*/
 
 // format
 sj.one = function (a) {
@@ -795,7 +626,6 @@ sj.content = function (resolved) {
 	//C shorter syntax for immediately returning the content property of a resolved object from a promise chain
 	return resolved.content;
 }
-sj.returnContent = sj.content; //TODO legacy
 
 // recursion
 //TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
@@ -966,7 +796,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 		//C catch network error
 		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
 		//TODO properly parse
-		throw sj.propagateError(rejected);
+		throw sj.propagate(rejected);
 	});
 	
 
@@ -985,19 +815,19 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	//C parse via fetch .json()
 	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
 	let parsedResult = await result.json().catch(rejected => {
-		throw sj.propagateError(rejected);
+		throw sj.propagate(rejected);
 	});
 
 	//C catch non-ok status codes
 	if (!result.ok) {
 		//TODO properly parse
-		throw sj.propagateError(parsedResult);
+		throw sj.propagate(parsedResult);
 	}
 
 	//C rebuild and throw if error
 	let build = function (item) {
 		item = sj.rebuild(item);
-		if (sj.isError(item)) {
+		if (sj.isType(item, sj.Error)) {
 			throw item;
 		}
 		return item;
@@ -1408,7 +1238,7 @@ sj.Source = class extends sj.Object {
 
 			return resolved;
 		}).catch(rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 	async resume() {
@@ -1433,7 +1263,7 @@ sj.Source = class extends sj.Object {
 				this.playback.playing = false;
 				return resolved;
 			}).catch(rejected => {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		} else {
 			return new sj.Success({
@@ -1449,7 +1279,7 @@ sj.Source = class extends sj.Object {
 			this.playback.timestamp = Date.now();
 			return resolved;
 		}).catch(rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 	async volume() {
@@ -1457,7 +1287,7 @@ sj.Source = class extends sj.Object {
 			this.playback.volume = volume;
 			return resolved;
 		}).catch(rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 
@@ -1538,50 +1368,14 @@ sj.Rule = class extends sj.Object {
 	//TODO how to deal with returning the password field since its sensitive
 
 	async checkType(value) {
-		//! uses positive guard clauses to search for a single match rather than a single error
-
-		//C check against all desired dataTypes
-		let t = sj.typeOf(value);
+		//C check against each datatype
 		for (let i = 0; i < this.dataTypes.length; i++) {
-			//C quick type check
-			if (t === this.dataTypes[i]) {
+			if (sj.isType(value, this.dataTypes[i])) {
 				return new sj.Success({
 					origin: `${this.origin}.checkType()`,
 					message: 'validated data type',
 					content: value,
 				});
-			}
-
-			//C special dataTypes not revealed by typeof or sj.typeOf()
-			if (this.dataTypes[i] === 'integer' && Number.isInteger(value)) {
-				return new sj.Success({
-					origin: `${this.origin}.checkType()`,
-					message: 'validated data type',
-					content: value,
-				});
-			}
-
-			//C parse string for other dataTypes
-			if (t === 'string') {
-				let parsed = NaN;
-
-				//C attempt parse according to dataTypes[i]
-				if (this.dataTypes[i] === 'number') {
-					parsed = Number.parseFloat(value);
-				} else if (this.dataTypes[i] === 'integer') {
-					parsed = Number.parseInt(value);
-				}
-
-				//C if parsed is a valid number
-				if (!Number.isNaN(parsed)) {
-					return new sj.Success({
-						origin: `${this.origin}.checkType()`,
-						message: 'validated data type',
-						content: parsed,
-					});
-				}
-
-				//TODO parse strings for boolean & symbols & other?
 			}
 		}
 
@@ -1594,10 +1388,9 @@ sj.Rule = class extends sj.Object {
 		});
 	}
 	async checkSize(value) {
-		let t = sj.typeOf(value);
 		let m = `${this.valueName} must be between ${this.min} and ${this.max}`;
 
-		if (t === 'string') {
+		if (sj.isType(value, String)) {
 			//C string length
 			if (!(value.length >= this.min && value.length <= this.max)) {
 				throw new sj.Error({
@@ -1607,7 +1400,7 @@ sj.Rule = class extends sj.Object {
 					content: value,
 				});
 			}
-		} else if (t === 'number' || Number.isInteger(value)) {
+		} else if (sj.isType(value, Number)) {
 			//C number size
 			if (!(value >= this.min && value <= this.max)) {
 				throw new sj.Error({
@@ -1626,7 +1419,7 @@ sj.Rule = class extends sj.Object {
 	}
 	async checkAgainst(value, value2) {
 		//C custom againstValue
-		if (sj.typeOf(value2) !== 'undefined') {
+		if (!sj.isType(value2, undefined)) {
 			this.againstValue = value2;
 		}
 
@@ -1661,7 +1454,7 @@ sj.Rule = class extends sj.Object {
 	}
 	async checkFilter(value, value2) {
 		//C custom againstValue
-		if (sj.typeOf(value2) !== 'undefined') {
+		if (sj.isType(value2, undefined)) {
 			this.filterExpression = value2;
 		}
 
@@ -1673,7 +1466,7 @@ sj.Rule = class extends sj.Object {
 		});
 	}
 
-	/*
+	/* old
 		//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
 		checkType(value) {
 			let t = sj.typeOf(value);
@@ -1744,12 +1537,12 @@ sj.Rule = class extends sj.Object {
 		//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
 		//C trim
-		if (this.trim && sj.typeOf(value) === 'string') {
+		if (this.trim && sj.isType(value, String)) {
 			value = value.trim();
 		}
 
 		//C checks & possibly modifies
-		value = await this.checkType(value).then(sj.returnContent); //R no need to catch and return the content as it will be in the thrown error anyways
+		value = await this.checkType(value).then(sj.content); //R no need to catch and return the content as it will be in the thrown error anyways
 		await this.checkSize(value);
 		if (this.useAgainst) {
 			await this.checkAgainst(value, value2);
@@ -1839,7 +1632,7 @@ sj.Rule = class extends sj.Object {
 			let result = this.check(obj[prop], value2).catch(rejected => {
 				//C throw error if failed 
 				//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 
 			//C modify and return if successful
@@ -1878,7 +1671,7 @@ sj.Rule = class extends sj.Object {
 					reason: 'validation functions returned one or more errors',
 				}));
 			}).catch(rejected => {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		}
 	*/
@@ -1928,9 +1721,9 @@ sj.Rule = class extends sj.Object {
 
 				//C call check() with 1 or 2 values
 				if (sj.typeOf(value2) === 'undefined') {
-					result = await rules.check(obj[prop]).then(sj.resolveBoth());
+					result = await rules.check(obj[prop]).then(sj.sj.andResolve());
 				} else {
-					result = await rules.check(obj[prop], value2).then(sj.resolveBoth());
+					result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
 				}
 
 				//C pass the possibly modified value back to the original object
@@ -1947,7 +1740,7 @@ sj.Rule = class extends sj.Object {
 					reason: 'validation functions returned one or more errors',
 				}));
 			}).catch(rejected => {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		}
 	*/
@@ -2019,7 +1812,7 @@ sj.Start = class extends sj.Action {
 	async trigger() {
 		return Promise.all(sourceList.map(source => {
 			// pause all
-			return source.pause().then(resolveBoth);
+			return source.pause().then(sj.andResolve);
 		})).then(resolved => {
 			// filter errors
 			return filterList(resolved, sj.Success, new sj.Success({
@@ -2033,7 +1826,7 @@ sj.Start = class extends sj.Action {
 			// start
 			return this.source.start(this.state);
 		}).catch(rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 }
@@ -2054,10 +1847,10 @@ sj.Toggle = class extends sj.Action {
 			return Promise.all(sourceList.map(source => {
 				if (source === this.source) {
 					// resume desired source
-					return source.resume().then(resolveBoth);
+					return source.resume().then(sj.andResolve);
 				} else {
 					// pause all other sources
-					return source.pause().then(resolveBoth);
+					return source.pause().then(sj.andResolve);
 				}
 			})).then(resolved => {
 				return filterList(resolved, sj.Success, new sj.Success({
@@ -2068,12 +1861,12 @@ sj.Toggle = class extends sj.Action {
 					message: 'playing failed to update',
 				}));
 			}).catch(rejected => {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		} else { // if not playing
 			return Promise.all(sourceList.map(source => {
 				// pause all sources
-				return source.pause().then(resolveBoth);
+				return source.pause().then(sj.andResolve);
 			})).then(resolved => {
 				return filterList(resolved, sj.Success, new sj.Success({
 					origin: 'updatePlaybackPlaying()',
@@ -2083,7 +1876,7 @@ sj.Toggle = class extends sj.Action {
 					message: 'playing failed to update',
 				}));
 			}).catch(rejected => {
-				throw sj.propagateError(rejected);
+				throw sj.propagate(rejected);
 			});
 		}
 	}
@@ -2108,7 +1901,7 @@ sj.Seek = class extends sj.Action {
 				message: 'playback progress changed',
 			});
 		}).catch(rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	}
 }

@@ -425,7 +425,7 @@ const visibilityStates = [
                 "sourceId" text,
                 "name" text,
                 "duration" integer,
-                "artists" text ARRAY,
+                "artists" text ARRAY DEFAULT ARRAY[]::text[],
 
                 CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
             );`).catch(rejected => {
@@ -440,10 +440,10 @@ const visibilityStates = [
                 });
             });
         }).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
     }).catch(rejected => {
-        throw sj.propagateError(rejected);
+        throw sj.propagate(rejected);
     });
 })().then(resolved => {
     new sj.Success({
@@ -556,6 +556,7 @@ sj.checkKey = async function (list, key) {
     });
 }
 
+//TODO consider rewriting this to just check and pack the values without changing the originals
 sj.Rule.checkRuleSet = async function (ruleSet) {
     //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
     //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
@@ -706,6 +707,14 @@ sj.buildSet = function (pairs) {
 //  ██║  ██║╚██████╔╝███████╗███████╗███████║
 //  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
+sj.noRules = new sj.Rule({
+	origin: 'noRules',
+    message: 'value validated',
+
+    valueName: 'Value',
+
+    dataTypes: ['string', 'number', 'boolean', 'array'], //TODO etc. or just make functionality for this
+});
 sj.posIntRules = new sj.Rule({
     origin: 'positiveIntegerRules',
     message: 'number validated',
@@ -834,7 +843,7 @@ sj.logout = async function (ctx) {
 
 // util
 sj.isLoggedIn = async function (ctx) {
-    if (!(sj.typeOf(ctx.session.user) !== 'undefined' && sj.typeOf(ctx.session.user.id) !== 'undefined')) {
+    if (!sj.isType(ctx.session.user, sj.User) || !sj.isType(ctx.session.user.id, 'integer')) {
         throw new sj.Error({
             log: true,
             origin: 'isLoggedIn()',
@@ -1104,7 +1113,7 @@ sj.addUser = async function (db, users) {
 				content: user,
 			});
 		}).catch(rejected => {
-			throw sj.propagateError(rejected);
+			throw sj.propagate(rejected);
 		});
 	*/
 }
@@ -1524,7 +1533,7 @@ sj.addPlaylist = async function (db, playlists) {
                 content: playlist,
             });
         }).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
     */
 }
@@ -1619,7 +1628,7 @@ sj.getPlaylist = async function (db, playlists) {
 
             return item;
         })).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
 
 
@@ -1732,7 +1741,7 @@ sj.deletePlaylist = async function (db, playlists) {
                 cssClass: 'notify success',
             });
         }).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
     */
 }
@@ -1793,15 +1802,17 @@ sj.addTrack = async function (db, tracks) {
 		});
 
         let results = await sj.asyncForEach(tracks, async (track, i) => {
+			console.log('CALLED ██████████████████');
             let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'playlistId',    sj.idRules,         track, 'playlistId'],
-                [true, 'source',        sj.sourceRules,     track, 'source'],
+                [true, 'source',        sj.sourceRules,     track.source, 'name'],
                 [true, 'sourceId',      sj.sourceIdRules,   track, 'sourceId'],
                 [true, 'name',          sj.trackNameRules,  track, 'name'],
-                [true, 'duration',      sj.posIntRules,     track, 'duration'],
+				[true, 'duration',      sj.posIntRules,     track, 'duration'],
+				[true, 'artists',		sj.noRules,			track, 'artists'],
 			]).then(sj.content).catch(sj.propagate);
 
-
+			console.log('RESOLVED ██████████████████');
 			//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
 			track.position = lengths[track.playlistId] + i;
 			columnPairs.push({column: 'position', value: track.position});
@@ -1855,7 +1866,7 @@ sj.addTrack = async function (db, tracks) {
 
         //C retrieve playlist
         let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
         //C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
         
@@ -1936,7 +1947,7 @@ sj.addTrack = async function (db, tracks) {
                 content: track,
             });
         }).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
     */
 }
@@ -2158,7 +2169,7 @@ sj.deleteTrack = async function (db, tracks) {
         
         //C retrieve playlist
         let playlist = await sj.getPlaylist(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
 
         //TODO change this to just id based
@@ -2195,7 +2206,7 @@ sj.deleteTrack = async function (db, tracks) {
                 cssClass: 'notifySuccess', 
             });
         }).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
     */
 }
@@ -2622,7 +2633,7 @@ sj.orderTracks = async function (db, tracks) {
             });
             return resolved;
         }).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
     }
 */
@@ -2631,7 +2642,7 @@ sj.orderTracks = async function (db, tracks) {
         //TODO what if edit cant change position, only move can? but then how does that interact with the REST? figure this out
 
         let playlist = await sj.getPlaylist(ctx, track.playlistId).catch(rejected => {
-            throw sj.propagateError(rejected);
+            throw sj.propagate(rejected);
         });
 
         if (position >= playlist.content.length) {
