@@ -234,7 +234,7 @@ sj.spotify.exchangeToken = async function (ctx, credentials) {
 
 	//C store refresh token in database
 	//C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
-	let me = await sj.getMe(ctx).then(sj.returnContent);
+	let me = await sj.getMe(ctx).then(sj.content);
 	await sj.editUser(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token});
 
 	//C repack and return

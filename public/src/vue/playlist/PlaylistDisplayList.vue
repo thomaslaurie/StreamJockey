@@ -10,7 +10,7 @@
 		},
         methods: {
             async getData() {
-				return await this.sj.getPlaylist(this.query).then(this.sj.returnContent);
+				return await this.sj.getPlaylist(this.query).then(this.sj.content);
             },
 		},
     }

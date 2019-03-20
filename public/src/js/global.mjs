@@ -397,14 +397,16 @@ sj.isType = function (input, type) {
 		//R this implementation removes the need for a custom object list, because if everything extends sj.Object, everything can also be compared as an instanceof sj.Object - keeping a list of string names (to reduce the need for building an object) wont work in the long run because inheritance cant be checked that way
 		let tempInput = input;
 		let tempType = type;
-		if ((input instanceof sj.Object || (typeof input.objectType === 'string' && (() => { //C input or input.objectType is constructible
+		if ((input instanceof sj.Object || (typeof input.objectType === 'string' && (() => { 
+			//C input or input.objectType is an instance of a constructible
 			let Target = sj[input.objectType.replace('sj.', '')];
 			if (typeof Target === 'function') {
 				tempInput = new Target();
 				return true;
 			}
 			return false;
-		})())) && (type instanceof sj.Object || (typeof type === 'string' && (() => { //C and type is constructible
+		})())) && (typeof type === 'function' || (typeof type === 'string' && (() => {
+			//C and type is constructible
 			let Target = sj[type.replace('sj.', '')];
 			if (typeof Target === 'function') {
 				tempType = Target;
@@ -416,55 +418,6 @@ sj.isType = function (input, type) {
 				return true;
 			}
 		}
-
-		/* old
-			if (Object.keys(sj).indexOf(input.objectType) !== -1 && type !== undefined) { //C if objectType and type are valid
-				if (input instanceof sj.Object && input instanceof ) {
-					
-				}
-
-
-				//C object instanceof type or any ancestor
-				if (new sj[input.objectType.replace('sj.', '')] instanceof sj[type.replace('sj.', '')]) {
-
-				}
-
-				// any ancestor class, has 
-				if (type === 'sj.Object' || type === sj.Object || input instanceof sj[type.replace('sj.', '')]) {
-					return true;
-				}
-
-				if (type instanceof sj[input.objectType.replace('sj.', '')] instanceof type) {
-
-				}
-
-
-				// any custom class
-				if (type === 'sj.Object' || type === sj.Object) {
-					return true;
-				}
-
-				// exact match
-				if (type === input.objectType || type === sj[input.objectType.replace('sj.', '')]) { //TODO untested
-					return true;
-				}
-
-				//TODO is a child class an instance of a parent class? otherwise need to build out tree of customClass 
-			}
-		*/
-		/* old
-			if (sj.objectList.indexOf(input.objectType) !== -1) {
-				// any sj.Object
-				if (type === 'sj.Object' || type === sj.Object) {
-					return true;
-				}
-				
-				// exact sj.Object
-				if (type === input.objectType || type === sj[input.objectType.replace('sj.', '')]) { //TODO untested
-					return true;
-				}	
-			}
-		*/
 	}
 	if (t === 'number') {
 		//C Infinity is a number
@@ -517,42 +470,48 @@ sj.catchUnexpected = function (input) {
 		content: input,
 	});
 
-	if (sj.isType(input, 'null')) {
-		error.reason = 'input is null';
-	} else if (sj.isType(input, 'object')) {
-		if(sj.isType(input, 'sj.Object')) {
-			error.reason = `input is an ${input.objectType}`;
-		} else if (input instanceof Error) {
-			//C This is going to catch the majority of unexpected inputs
+	if (sj.isType(input, null)) {
+		error.reason = 'unexpected null';
+	} else if (sj.isType(input, Object)) {
+		if (input instanceof Error) {
+			//C this is going to catch the majority of unexpected inputs
 
-			/* //!
-				!!! JSON.stringify() does not work on native Error objects as they have no enumerable properties
-				therefore these cannot be passed between client & server,so when catching a native Error object
-				properly convert it to a string with Error.toString() then save that in reason
-				https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
-			*/
+			//! JSON.stringify() does not work on native Error objects as they have no enumerable properties therefore these cannot be passed between client & server,so when catching a native Error object properly convert it to a string with Error.toString() then save that in reason
+			//L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 			error.reason = input.toString();
 
 			//C replace trace with actual trace (which has clickable URIs)
 			error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
+		} else if (sj.isType(input, sj.Object)) {
+			error.reason = `unexpected ${input.objectType}`;
 		} else {
-			error.reason = 'input is a non-sj, non-Error object';
+			error.reason = 'unexpected object';
 		}
 	} else {
-		error.reason = `input is ${typeof input}`;
+		error.reason = `unexpected ${typeof input}`;
 	}
 
 	error.announce();
 	return error;
 }
 sj.propagate = function (input, overwrite) {
-	if (sj.isType(input, sj.Error)) { //C lets sj.Errors flow through, with possible overwrite of properties (like message)
-		if (sj.isType(overwrite, Object)) {
-			input = new input.constructor({...input, ...overwrite});
+	//C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
+	if (sj.isType(input, sj.Error)) { //C let sj.Errors flow through
+		if (sj.isType(overwrite, Object)) { //C overwrite properties (for example making a more specific message)
+			input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
 		}
 		throw input;
-	} else { //C wraps any non-sj.Errors with sj.catchUnexpected()
+	} else { //C wrap any non-sj.Errors
 		throw sj.catchUnexpected(input);
+	}
+}
+sj.andResolve = function (rejected) {
+	//C resolves/returns any errors thrown by sj.propagate()
+	//G someAsyncFunction().catch(sj.andResolve);
+	try {
+		return sj.propagate(rejected);
+	} catch (e) {
+		return e;
 	}
 }
 
@@ -585,11 +544,7 @@ sj.asyncForEach = async function (list, callback) {
 		throw results;
 	}
 }
-sj.andResolve = function (rejected) {
-	//C use when just catch is chained, usually when a var x = promise, and the var needs to accept the return value even if its an error object
-	//C non-sj errors should also be converted here
-	return sj.propagate(rejected);
-}
+
 
 // format
 sj.one = function (a) {
@@ -616,14 +571,10 @@ sj.one = function (a) {
 }
 sj.any = function (o) {
 	//C wraps a value in an array if not already inside one
-	if (sj.isType(o, Array)) {
-		return o;
-	} else {
-		return [o];
-	}
+	return sj.isType(o, Array) ? o : [o];
 }
 sj.content = function (resolved) {
-	//C shorter syntax for immediately returning the content property of a resolved object from a promise chain
+	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
 	return resolved.content;
 }
 
@@ -1377,7 +1328,25 @@ sj.Rule = class extends sj.Object {
 					content: value,
 				});
 			}
+
+			//C parse strings for numbers
+			if (sj.isType(value, String)) {
+				let parsed = Number.parseFloat(value);
+				if (this.dataTypes[i] === 'number' && !Number.isNaN(parsed) 
+				|| this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
+					return new sj.Success({
+						origin: `${this.origin}.checkType()`,
+						message: 'validated data type',
+						content: parsed,
+					});
+				}
+
+				//TODO parse strings for boolean & symbols & other?
+			}
 		}
+
+
+
 
 		//C throw if no matches
 		throw new sj.Error({

@@ -13,8 +13,10 @@
 				return {id: this.$route.params.id};
 			},
             async getData() {
-				let result = await this.sj.getUser(this.query).then(this.sj.returnContent);
-                return this.sj.one(result);
+				console.log('query:', this.query);
+				let result = await this.sj.getUser(this.query);
+				console.log('result:', result);
+                return this.sj.one(this.sj.content(result));
             },
             async logout() {
                 await this.sj.logout().catch(rejected => {

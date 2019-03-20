@@ -6,7 +6,7 @@
         extends: AsyncDisplay,
         methods: {
             async getData() {
-                let list = await this.sj.getPlaylist(this.query).then(this.sj.returnContent);
+                let list = await this.sj.getPlaylist(this.query).then(this.sj.content);
                 return this.sj.one(list);
             },
             async open(id) {

@@ -9,7 +9,7 @@
 				return {id: this.$route.params.id};
 			},
             async getData() {
-                let result = await this.sj.getTrack(this.query).then(this.sj.returnContent);
+                let result = await this.sj.getTrack(this.query).then(this.sj.content);
                 return this.sj.one(result);
             },
 		},

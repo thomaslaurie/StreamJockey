@@ -1118,7 +1118,8 @@ sj.addUser = async function (db, users) {
 	*/
 }
 sj.getUser = async function (db, users) {
-    users = sj.any(users);
+	users = sj.any(users);
+	console.log('users:', users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1152,7 +1153,9 @@ sj.getUser = async function (db, users) {
                 message: 'unable to retrieve users',
                 content: sj.any(rejected).flat(1),
             });
-        });
+		});
+		
+		console.log('results:', results);
 
         return new sj.SuccessList({
             origin: 'sj.getUser()',
@@ -1567,7 +1570,7 @@ sj.getPlaylist = async function (db, playlists) {
                 row = new sj.Playlist(row);
             });
             return rows;
-        }).catch(rejected => {
+		}).catch(rejected => {
             throw new sj.ErrorList({
                 log: true,
                 origin: 'sj.getPlaylist()',

@@ -14,15 +14,13 @@
         },
         methods: {
             async submit() {
-                let result = await this.sj.addPlaylist({
+                let playlist = await this.sj.addPlaylist({
                     userId: this.me.id, //TODO security issue here, maybe get the user from the server?
                     ...this,
-                }).catch(rejected => {
+				}).then(this.sj.content).then(this.sj.one).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
-                });
-
-                let playlist = this.sj.one(result.content);
+                })
                 this.$router.push(`/playlist/${playlist.id}`);
             },
         },
