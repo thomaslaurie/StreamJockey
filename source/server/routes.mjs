@@ -86,8 +86,8 @@ import auth from './auth.mjs';
 //L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
 //TODO there has to be a cleaner way of doing this (especially the replace manipulation)
 const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-const root = path.join(__dirname, '..', 'public');
-const app = '/src/index.html';
+const root = path.join(__dirname, '../../build/public');
+const app = '/index.html';
 
 // router
 const router = new Router();

@@ -11,7 +11,7 @@
 			//G the <base href='/'> tag in html5 is used to specify the base path that resources should be fetched from when using features that modify the url and push history - ie. vue history mode
 		-->
 		
-		<link rel='stylesheet' href='/src/css/normalize.css'>
+		<!-- <link rel='stylesheet' href='/css/normalize.css'> -->
 		<!-- <link rel='stylesheet' href='/src/css/main.css'> added in webpack config sass-loader -->
     </head>
 
@@ -19,6 +19,6 @@
         <div id="app">
             <router-view></router-view>
         </div>
-    </body>
-    <script src='/dist/index.bundle.js' type='module'></script>
+    <script type="text/javascript" src="index.bundle.js"></script></body>
+    <!-- <script src='../../build/public/index.bundle.js' type='module'></script> added in html-webpack-plugin -->
 </html>

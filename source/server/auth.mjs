@@ -91,10 +91,10 @@ sj.spotify = new sj.Source({
     },
     authRequestManually: true,
     makeAuthRequestURL: function (key) {
-        //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-        if (sj.typeOf(this.api._credentials.clientId) !== 'string' || 
-        sj.typeOf(this.api._credentials.clientSecret) !== 'string' || 
-        sj.typeOf(this.api._credentials.redirectUri) !== 'string') {
+		//TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
+		if (!sj.isType(this.api._credentials.clientId, String) ||
+		!sj.isType(this.api._credentials.clientSecret, String) ||
+		!sj.isType(this.api._credentials.redirectUri, String)) {
             throw new sj.Error({
                 log: true,
                 origin: 'spotify.makeAuthRequestURL()',
@@ -235,7 +235,8 @@ sj.spotify.exchangeToken = async function (ctx, credentials) {
 	//C store refresh token in database
 	//C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 	let me = await sj.getMe(ctx).then(sj.content);
-	await sj.editUser(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token});
+	await sj.editUser(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token}).then(resolved => {
+	});
 
 	//C repack and return
 	return new sj.Credentials({

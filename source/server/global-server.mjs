@@ -121,7 +121,7 @@ import fetch from 'node-fetch'; //C global.mjs uses fetch
 import bcrypt from 'bcrypt';
 
 // internal
-import sj from '../public/src/js/global.mjs';
+import sj from '../public/js/global.mjs';
 import database, {pgp} from './db.mjs';
 
 
@@ -203,107 +203,35 @@ const visibilityStates = [
 // postgres
 //? this should be called once on startup, where should this go?
 (async () => {
+	/*
+		const schema = {
+			name: 'sj',
+			tables: {
+				users: {
+					name: 'users',
+					columns: {
+						id: {
+							name: 'id',
+						},
+						name: {
+							name: 'name',
+						},
+						password: {
+							name: 'password',
+						},
+						email: {
+							name: 'email',
+						},
+						spotifyRefreshToken: {
+							name: 'spotifyRefreshToken',
+						},
+					},
+				},
+			},
+		};
+	*/
+
     // initialize
-
-    // N (name) strings must have double quotes around them to avoid reserved postgres words
-    /*
-        let P_SCHEMA = {
-            N = 'sj',
-            USERS = {
-                N = '"users"',
-                ID = {
-                    N = '"id"',
-                    T = 'integer',
-                },
-                NAME = {
-                    N = '"name"',
-                    T = 'text'
-                },
-                PASSWORD = {
-                    N = '"password"',
-                    T = 'text',
-                },
-                EMAIL = {
-                    N = '"email"',
-                    T = 'text',
-                },
-                IMAGE = {
-                    N = '"image"',
-                    T = 'text',
-                },
-                COLOR = {
-                    N = '"color"',
-                    T = 'text',
-                },
-            },
-            PLAYLISTS = {
-                ID = {
-                    N = '"id"',
-                    T = 'integer',
-                },
-                USER_ID = {
-                    N = '"userId"',
-                    T = 'integer',
-                },
-                NAME = {
-                    N = '"name"',
-                    T = 'text',
-                },
-                DESCRIPTION = {
-                    N = '"description"',
-                    T = 'text',
-                },
-                VISIBILITY = {
-                    N = '"visibility"',
-                    T = 'text',
-                },
-                IMAGE = {
-                    N = '"image"',
-                    T = 'text',
-                },
-                COLOR = {
-                    N = '"color"',
-                    T = 'text',
-                },
-            },
-            TRACKS = {
-                ID = {
-                    N = '"id"',
-                    T = 'integer',
-                },
-                PLAYLIST_ID = {
-                    N = '"playlistId"',
-                    T = 'integer',
-                },
-                SOURCE = {
-                    N = '"source"',
-                    T = 'text',
-                },
-                SOURCE_ID = {
-                    N = '"sourceId"',
-                    T = 'text',
-                },
-                NAME = {
-                    N = '"name"',
-                    T = 'text',
-                },
-                DURATION = {
-                    N = 'duration',
-                    T = 'integer',
-                },
-                ARTISTS = {
-                    N = '"artists"',
-                    T = 'text[]',
-                },
-                IMAGE = {
-                    N = '"image"',
-                    T = 'text',
-                },
-            }         
-        }
-
-        const SCHEMA = sj.deepFreeze(P_SCHEMA);
-    */
     return sj.db.tx(async function (t) {
         // TODO this will not alter tables if they do already exist (save this for migration)
         
@@ -344,7 +272,8 @@ const visibilityStates = [
                 cssClass: 'notifyError',
             });
         }).then(resolved => {
-            // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
+			// https://www.postgresql.org/docs/9.1/static/sql-createtable.html
+			//! spotifyRefreshToken is specifically pascal case to match object property names
             return t.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
 				"id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
                 "name" text CONSTRAINT "users_name_key" UNIQUE,
@@ -1208,9 +1137,9 @@ sj.editUser = async function (db, users) {
             ]).then(sj.content).catch(sj.propagate);
 
             let where = sj.buildWhere(columnPairsWhere);
-            let set = sj.buildSet(columnPairsSet);
-
-            let row = await t.one('UPDATE "sj"."users" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
+			let set = sj.buildSet(columnPairsSet);
+			
+            let row = await t.one(`UPDATE "sj"."users" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.editUser()',
@@ -1227,7 +1156,9 @@ sj.editUser = async function (db, users) {
                 message: 'unable to edit users',
                 content: rejected,
             });
-        });
+		});
+		
+		console.log('RESULTS', results);
 
         return new sj.SuccessList({
             origin: 'sj.editUser()',
@@ -1246,7 +1177,7 @@ sj.deleteUser = async function (db, users) {
 			
 			let where = sj.buildWhere(columnPairs);
 
-			let row = await t.one('DELETE FROM "sj"."users" WHERE $1:raw RETURNING *', where).catch(rejected => {
+			let row = await t.one(`DELETE FROM "sj"."users" WHERE $1:raw RETURNING *`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.deleteUser()',
@@ -1478,7 +1409,7 @@ sj.addPlaylist = async function (db, playlists) {
             
             let values = sj.buildValues(columnPairs);
 
-            let row = await t.one('INSERT INTO "sj"."playlists" $1:raw RETURNING *', values).catch(rejected => {
+            let row = await t.one(`INSERT INTO "sj"."playlists" $1:raw RETURNING *`, values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.addPlaylist()',
@@ -1651,7 +1582,7 @@ sj.editPlaylist = async function (db, playlists) {
             let where = sj.buildWhere(columnPairsWhere);
             let set = sj.buildSet(columnPairsSet);
 
-            let row = await t.one('UPDATE "sj"."playlists" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
+            let row = await t.one(`UPDATE "sj"."playlists" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.editPlaylist()',
@@ -1687,7 +1618,7 @@ sj.deletePlaylist = async function (db, playlists) {
 			
 			let where = sj.buildWhere(columnPairs);
 
-			let row = await t.one('DELETE FROM "sj"."playlists" WHERE $1:raw RETURNING *', where).catch(rejected => {
+			let row = await t.one(`DELETE FROM "sj"."playlists" WHERE $1:raw RETURNING *`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.deletePlaylist()',
@@ -1814,7 +1745,7 @@ sj.addTrack = async function (db, tracks) {
 			columnPairs.push({column: 'position', value: track.position});
 			let values = sj.buildValues(columnPairs);
 
-            let row = await t.one('INSERT INTO "sj"."tracks" $1:raw RETURNING *', values).catch(rejected => {
+            let row = await t.one(`INSERT INTO "sj"."tracks" $1:raw RETURNING *`, values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.addTrack()',
@@ -2077,7 +2008,7 @@ sj.editTrack = async function (db, tracks) {
 			let set = sj.buildSet(columnPairsSet);
             let where = sj.buildWhere(columnPairsWhere);
 
-            let row = await t.one('UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *', [set, where]).catch(rejected => {
+            let row = await t.one(`UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.editTrack()',
@@ -2114,7 +2045,7 @@ sj.deleteTrack = async function (db, tracks) {
             let where = sj.buildWhere(columnPairs);
 
             //! deletion will return the deleted row, however this will still (eventually) have visibility limitations and should not be used to restore data
-            let row = await t.one('DELETE FROM "sj"."tracks" WHERE $1:raw RETURNING *', where).catch(rejected => {
+            let row = await t.one(`DELETE FROM "sj"."tracks" WHERE $1:raw RETURNING *`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.deleteTrack()',
@@ -2399,7 +2330,7 @@ sj.moveTracks = async function (db, tracks) {
             //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
             //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
             //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-            await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
+            await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
                     log: false,
                     origin: 'sj.moveTracks()',
@@ -2509,7 +2440,7 @@ sj.orderTracks = async function (db, tracks) {
 			cases = cases.join(' ');
 
 			//C defer constraints
-			await t.none('SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED').catch(rejected => {
+			await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
 				throw sj.parsePostgresError(rejected, new sj.Error({
 					log: false,
 					origin: 'sj.orderTracks()',
