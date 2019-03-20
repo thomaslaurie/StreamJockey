@@ -1119,7 +1119,6 @@ sj.addUser = async function (db, users) {
 }
 sj.getUser = async function (db, users) {
 	users = sj.any(users);
-	console.log('users:', users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
             let columnPairs = await sj.Rule.checkRuleSet([
@@ -1154,8 +1153,6 @@ sj.getUser = async function (db, users) {
                 content: sj.any(rejected).flat(1),
             });
 		});
-		
-		console.log('results:', results);
 
         return new sj.SuccessList({
             origin: 'sj.getUser()',
@@ -1796,8 +1793,6 @@ sj.addTrack = async function (db, tracks) {
 		//C get playlist lengths
 		//! //R playlist lengths cannot be retrieved inside the same asyncForEach() iterator that INSERTS them because they are executed in parallel (all getTracks() calls will happen before insertions), resulting in all existingTracks images being exactly the same, resulting in track.position collision
 
-		console.log('FIRST: ', tracks);
-
 		let lengths = {};
 		await sj.asyncForEach(tracks, async track => {
 			let existingTracks = await sj.getTrack(t, new sj.Track({playlistId: track.playlistId})).then(sj.content);
@@ -1805,7 +1800,6 @@ sj.addTrack = async function (db, tracks) {
 		});
 
         let results = await sj.asyncForEach(tracks, async (track, i) => {
-			console.log('CALLED ██████████████████');
             let columnPairs = await sj.Rule.checkRuleSet([
                 [true, 'playlistId',    sj.idRules,         track, 'playlistId'],
                 [true, 'source',        sj.sourceRules,     track.source, 'name'],
@@ -1815,7 +1809,6 @@ sj.addTrack = async function (db, tracks) {
 				[true, 'artists',		sj.noRules,			track, 'artists'],
 			]).then(sj.content).catch(sj.propagate);
 
-			console.log('RESOLVED ██████████████████');
 			//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
 			track.position = lengths[track.playlistId] + i;
 			columnPairs.push({column: 'position', value: track.position});
