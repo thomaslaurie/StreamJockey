@@ -59,7 +59,9 @@
 
     sort out methods vs functions & function () vs arrow functions
     
-    consider making some default values (like '' and null) into Symbol(), so that they can't equal any passed value (null === null returns true), just beware of the behavior when stringifying symbols
+	consider making some default values (like '' and null) into Symbol(), so that they can't equal any passed value (null === null returns true), just beware of the behavior when stringifying symbols
+	
+	//L nesting optimization: https://thorstenlorenz.wordpress.com/2012/06/02/performance-concerns-for-nested-javascript-functions/
 */
 
 
@@ -184,29 +186,47 @@ sj.stringReplaceAll = function(input, search, replace) {
 }
 
 // HTTP
-sj.encodeURL = function (obj) {
+sj.shake = function (obj, props) {
+	//C returns a new object with only the desired properties
+	let s = (obj, props) => {
+		let newObj = {};
+		props.forEach(prop => {
+			if (obj[prop] !== undefined) {
+				newObj[prop] = obj[prop];
+			}
+		});
+		return newObj;
+	}
+
+	//C handle objects and arrays of objects
+	if (typeof obj === 'object' && obj !== null) {
+		return s(obj, props);
+	} else if (Array.isArray(obj)) {
+		return obj.map(item => s(item, props));
+	}
+}
+sj.encodeProps = function (obj) {
 	return Object.keys(obj).map(key => {
 		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
 	}).join('&');
 }
-sj.objectToQuery = function (obj) {
-	return Object.keys(obj).map(key => `${key}=${obj[key]}`).join('&');
-}
-sj.multiQuery = function (items, props) {
-	//! not called automatically by sj.request() because its useful to see when a multiQuery exists as it needs to be unpacked on the other end
-	let query = [];
-	sj.any(items).forEach((item, index) => {
-		props.forEach(prop => {
-            if (!sj.isEmpty(item[prop])) {
-			    query.push(`${prop}-${index}=${item[prop]}`);
-            }
-		});
+sj.decodeProps = function (str) {
+	let pairs = str.split('&');
+	let obj = {};
+	pairs.forEach(pair => {
+		let parts = pair.split('=');
+		obj[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
 	});
-
-	query = query.join('&');
-	return query;
+	return obj;
 }
-sj.unpackMultiQuery = function (queryObject) {
+sj.encodeMulti = function (items) {
+	//C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
+	//! not called automatically by sj.request() because its useful to see when a encodeMulti exists as it needs to be unpacked on the other end
+	return sj.any(items).map((item, i) => {
+		return Object.keys(item).map(key => `${encodeURIComponent(`key-${i}`)}=${encodeURIComponent(item[key])}`);
+	}).flat().join('&');
+}
+sj.decodeMulti = function (queryObject) { //TODO
 	//TODO there is a potential vulnerability here, any values passed by the url query parameters will be passed into the object that reaches the CRUD functions, is this ok or does their need to be a list of accepted parameters on the server side too?
 
 	//TODO weird numbers at the end may also break this, also how do double digits work?
@@ -215,16 +235,16 @@ sj.unpackMultiQuery = function (queryObject) {
 	for (let i = 0; i < keys.length; i++) {
 
 		//C check that index was given (di = delimiter index)
-		let delimiter = keys[i].lastIndexOf('-');
-		if (delimiter < 0) {break;}
+		let delimiterIndex = keys[i].lastIndexOf('-');
+		if (delimiterIndex < 0) {break;}
 
 		//C check that index is an integer
-		let j = keys[i].slice(delimiter + 1);
+		let j = keys[i].slice(delimiterIndex + 1);
 		j = parseInt(j);
 		if (!sj.isType(j, 'integer')) {break;}
 
 		//C get the real key name
-		let realKey = keys[i].slice(0, delimiter);
+		let realKey = decodeURIComponent(keys[i].slice(0, delimiterIndex));
 
 		//C if the item was already added
 		if (sj.isType(items[j], Object)) {
@@ -724,7 +744,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	};
 	if (method === 'GET') {
 		if (sj.isType(body, Object)) {
-			url += `?${sj.objectToQuery(body)}`;
+			url += `?${sj.encodeProps(body)}`;
 		}
 		delete options.body;
 	} 

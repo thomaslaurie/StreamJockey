@@ -276,7 +276,7 @@ sj.addUser = async function (user) {
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
-	let query = sj.multiQuery(user, ['id', 'name', 'email']);
+	let query = sj.encodeMulti(sj.shake(user, ['id', 'name', 'email']));
 	return await sj.request('GET', `${sj.API_URL}/user?${query}`);
 }
 sj.editUser = async function (user) {
@@ -299,7 +299,7 @@ sj.addPlaylist = async function (playlist) {
 	return await sj.request('POST', `${sj.API_URL}/playlist`, new sj.Playlist(playlist));
 }
 sj.getPlaylist = async function (playlist) {
-    let query = sj.multiQuery(playlist, ['id', 'userId', 'name']);
+    let query = sj.encodeMulti(sj.shake(playlist, ['id', 'userId', 'name']));
 	return await sj.request('GET', `${sj.API_URL}/playlist?${query}`);
 }
 sj.editPlaylist = async function (playlist) {
@@ -314,7 +314,7 @@ sj.addTrack = async function (track) {
 	return await sj.request('POST', `${sj.API_URL}/track`, new sj.Track(track));
 }
 sj.getTrack = async function (track) {
-	let query = sj.multiQuery(track, ['id', 'playlistId', 'position', 'source', 'sourceId', 'name']);
+	let query = sj.encodeMulti(sj.shake(track, ['id', 'playlistId', 'position', 'source', 'sourceId', 'name']));
 	return await sj.request('GET', `${sj.API_URL}/track?${query}`);
 }
 sj.editTrack = async function (track) {

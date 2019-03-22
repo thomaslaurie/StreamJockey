@@ -490,7 +490,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
     //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
 
-    let columnPairs = [];
+    let validated = {};
     await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
         //C validate arguments
         if (!sj.isType(isRequired, 'boolean')) {
@@ -539,19 +539,30 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
             });
         }
 
-        //C if property is required, or [isn't required and] isn't empty
+        //C if property is required or is not required but has a value
         if (isRequired || !sj.isEmpty(obj[prop])) {
-            //C validate property, possibly modify obj[prop] if successful
-            //R the check has to specifically happen before the push to columnPairs (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
-            let checked = await rule.check(obj[prop], value2);
-            obj[prop] = sj.content(checked);
-            //C add value to columnPairs
-            //! if rule.check() throws, this won't be pushed, but that doesn't matter because columnPairs won't be returned if there is any error
-            columnPairs.push({column: column, value: obj[prop]});
-            //C return the success message of rule.check()
-            //! this doesn't end up being returned from the function, but is here for maintainability
-            return checked;
+			//C validate property 
+			let checked = await rule.check(obj[prop, value2]);
+			//C pack into validated as	prop: {value: v, column: c}
+			validateObject[prop] = {};
+			validated[prop].column = column;
+			validated[prop].value = sj.content(checked);
+			return checked;
+
+			/* old
+				//C validate property, possibly modify obj[prop] if successful
+				//R the check has to specifically happen before the push to validated (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
+				let checked = await rule.check(obj[prop], value2);
+				obj[prop] = sj.content(checked);
+				//C add value to validated
+				//! if rule.check() throws, this won't be pushed, but that doesn't matter because validated won't be returned if there is any error
+				validated.push({column: column, value: obj[prop]});
+				//C return the success message of rule.check()
+				//! this doesn't end up being returned from the function, but is here for maintainability
+				return checked;
+			*/
         } else {
+			//C don't pack into validated
             return new sj.Success({
                 origin: 'sj.Rule.checkRuleSet()',
                 message: `optional empty property ${prop} skipped validation`,
@@ -570,11 +581,11 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     return new sj.Success({
         origin: 'sj.Rule.checkRuleSet()',
         message: 'all rules validated',
-        content: columnPairs,
+        content: validated,
     });
 }
-sj.buildValues = function (pairs) {
-    if (pairs.length === 0) {
+sj.buildValues = function (obj) {
+    if (Object.keys[obj].length === 0) {
         //C this shouldn't insert anything
         return `("id") SELECT 0 WHERE 0 = 1`;
     } else {
@@ -582,11 +593,18 @@ sj.buildValues = function (pairs) {
         let values = [];
         let placeholders = [];
 
-        pairs.forEach((item, index) => {
-            columns.push(item.column);
-            values.push(item.value);
-            placeholders.push(`$${index+1}`); //C $1 based placeholders
-        });
+		Object.keys(obj).forEach((key, i) => {
+			columns.push(obj[key].column);
+			values.push(obj[key].value);
+			placeholders.push(`$${i+1}`); //C $1 based placeholders
+		});
+		/* old array version
+			pairs.forEach((item, index) => {
+				columns.push(item.column);
+				values.push(item.value);
+				placeholders.push(`$${index+1}`); //C $1 based placeholders
+			});
+		*/
 
         columns = columns.join('", "'); //C inner delimiter
         columns = `("${columns}")`; //C outer
@@ -598,30 +616,43 @@ sj.buildValues = function (pairs) {
         return pgp.as.format(`${columns} VALUES ${placeholders}`, values);
     }
 }
-sj.buildWhere = function (pairs) {
-    if (pairs.length === 0) {
+sj.buildWhere = function (obj) {
+    if (Object.keys[obj].length === 0) {
         //C return a false clause
         return '0 = 1';
     } else {
-        //C change pairs to formatted string
-        pairs = pairs.map(item => {
-            return pgp.as.format(`"${item.column}" = $1`, item.value);
-        });
-        //C joined with ' AND '
-        let test = pairs.join(' AND ');
-        return test;
+		//C pair as formatted string
+		let pairs = [];
+		pairs = Object.keys(obj).map(key => {
+			return pgp.as.format(`"${obj[key].column}" = $1`, obj[key].value);
+		});
+        /* old array version
+			pairs = pairs.map(item => {
+				return pgp.as.format(`"${item.column}" = $1`, item.value);
+			});
+		*/
+
+        //C join with ' AND '
+        return pairs.join(' AND ');
     }
 }
-sj.buildSet = function (pairs) {
-    if (pairs.length === 0) {
+sj.buildSet = function (obj) {
+    if (Object.keys[obj].length === 0) {
         //C don't make any change 
         //! this does have to reference a column that exists however
         return '"id" = "id"';
     } else {
-        //C change pairs to formatted string
-        pairs = pairs.map(item => {
-            return pgp.as.format(`"${item.column}" = $1`, item.value);
-        })
+		let pairs = [];
+		//C pair as formatted string
+		pairs = Object.keys(obj).map(key => {
+			return pgp.as.format(`"${obj[key].column}" = $1`, obj[key].value);
+		});
+
+		/* old array version
+			pairs = pairs.map(item => {
+				return pgp.as.format(`"${item.column}" = $1`, item.value);
+			});
+		*/
 
         //C join with ', '
         return pairs.join(', ');
@@ -948,7 +979,7 @@ sj.addUser = async function (db, users) {
     users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
 				[true, 'name',		sj.userNameRules,		user, 'name'],
 				[true, 'email',		sj.emailRules, 			user, 'email'],
 			]).then(sj.content).catch(sj.propagate);
@@ -967,10 +998,10 @@ sj.addUser = async function (db, users) {
 				});
             });
 
-			//C add to columnPairs
-			columnPairs.push({column: 'password', value: hash});
+			//C add to validated
+			validated.password = {column: 'password', value: hash};
 
-            let values = sj.buildValues(columnPairs);
+            let values = sj.buildValues(validated);
 
             let row = await t.one('INSERT INTO "sj"."users" $1:raw RETURNING *', values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1050,12 +1081,12 @@ sj.getUser = async function (db, users) {
 	users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
                 [false, 'id',           sj.idRules,			user,   'id'],
                 [false, 'name',         sj.userNameRules,   user,   'name'],
             ]).then(sj.content).catch(sj.propagate);
 
-            let where = sj.buildWhere(columnPairs);
+            let where = sj.buildWhere(validated);
 
 			let rows = await t.any(`
 				SELECT * 
@@ -1126,18 +1157,18 @@ sj.editUser = async function (db, users) {
     users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
-            let columnPairsWhere = await sj.Rule.checkRuleSet([
-                [true, 'id', sj.idRules, user, 'id'],
-            ]).then(sj.content).catch(sj.propagate);
-
-            let columnPairsSet = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
+				[true,	'id',		sj.idRules,			user,	'id'],
                 [false, 'name',     sj.userNameRules,   user,   'name'],
 				[false, 'email',	sj.emailRules, 		user, 	'email'],
 				[false, 'spotifyRefreshToken',	sj.spotifyRefreshTokenRules, user, 'spotifyRefreshToken'],
-            ]).then(sj.content).catch(sj.propagate);
+			]).then(sj.content).catch(sj.propagate);
+			
+			let {id, ...validatedSet} = validated;
+			let validatedWhere = {id};
 
-            let where = sj.buildWhere(columnPairsWhere);
-			let set = sj.buildSet(columnPairsSet);
+			let set = sj.buildSet(validatedSet);
+            let where = sj.buildWhere(validatedWhere);
 			
             let row = await t.one(`UPDATE "sj"."users" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1171,11 +1202,11 @@ sj.deleteUser = async function (db, users) {
     users = sj.any(users);
 	return await db.tx(async t => {
         let results = await sj.asyncForEach(users, async user => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
             	[true, 'id', sj.idRules, user, 'id'],
 			]).then(sj.content).catch(sj.propagate);
 			
-			let where = sj.buildWhere(columnPairs);
+			let where = sj.buildWhere(validated);
 
 			let row = await t.one(`DELETE FROM "sj"."users" WHERE $1:raw RETURNING *`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1401,13 +1432,13 @@ sj.addPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
                 [true,  'userId',       sj.idRules,             playlist,   'userId'],
                 [true,  'name',         sj.playlistNameRules,   playlist,   'name'],
                 [false, 'description',  sj.descriptionRules,    playlist,   'description'],
             ]).then(sj.content).catch(sj.propagate);
             
-            let values = sj.buildValues(columnPairs);
+            let values = sj.buildValues(validated);
 
             let row = await t.one(`INSERT INTO "sj"."playlists" $1:raw RETURNING *`, values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1472,14 +1503,14 @@ sj.getPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
                 [false, 'id',           sj.idRules,             playlist,   'id'],
                 [false, 'userId',       sj.idRules,             playlist,   'userId'],
                 [false, 'name',         sj.playlistNameRules,   playlist,   'name'],
                 [false, 'description',  sj.descriptionRules,    playlist,   'description'],
             ]).then(sj.content).catch(sj.propagate);
 
-            let where = sj.buildWhere(columnPairs);
+            let where = sj.buildWhere(validated);
 
 			let rows = await t.any(`
 				SELECT * 
@@ -1570,17 +1601,17 @@ sj.editPlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
-            let columnPairsWhere = await sj.Rule.checkRuleSet([
-                [true, 'id', sj.idRules, playlist, 'id'],
-            ]).then(sj.content).catch(sj.propagate);
-
-            let columnPairsSet = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
+				[true,	'id',			sj.idRules,				playlist,	'id'],
                 [false, 'name',         sj.playlistNameRules,   playlist,   'name'],
                 [false, 'description',  sj.descriptionRules,    playlist,   'description'],
-            ]).then(sj.content).catch(sj.propagate);
+			]).then(sj.content).catch(sj.propagate);
+			
+			let {id, ...validatedSet} = validated;
+			let validatedWhere = {id};
 
-            let where = sj.buildWhere(columnPairsWhere);
-            let set = sj.buildSet(columnPairsSet);
+			let set = sj.buildSet(validatedSet);
+            let where = sj.buildWhere(validatedWhere);
 
             let row = await t.one(`UPDATE "sj"."playlists" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1612,11 +1643,11 @@ sj.deletePlaylist = async function (db, playlists) {
     playlists = sj.any(playlists);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(playlists, async playlist => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
             	[true, 'id', sj.idRules, playlist, 'id'],
 			]).then(sj.content).catch(sj.propagate);
 			
-			let where = sj.buildWhere(columnPairs);
+			let where = sj.buildWhere(validated);
 
 			let row = await t.one(`DELETE FROM "sj"."playlists" WHERE $1:raw RETURNING *`, where).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1731,7 +1762,7 @@ sj.addTrack = async function (db, tracks) {
 		});
 
         let results = await sj.asyncForEach(tracks, async (track, i) => {
-            let columnPairs = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
                 [true, 'playlistId',    sj.idRules,         track, 'playlistId'],
                 [true, 'source',        sj.sourceRules,     track.source, 'name'],
                 [true, 'sourceId',      sj.sourceIdRules,   track, 'sourceId'],
@@ -1742,8 +1773,8 @@ sj.addTrack = async function (db, tracks) {
 
 			//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
 			track.position = lengths[track.playlistId] + i;
-			columnPairs.push({column: 'position', value: track.position});
-			let values = sj.buildValues(columnPairs);
+			validated.position = {column: 'position', value: track.position};
+			let values = sj.buildValues(validated);
 
             let row = await t.one(`INSERT INTO "sj"."tracks" $1:raw RETURNING *`, values).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -1882,8 +1913,8 @@ sj.getTrack = async function (db, tracks) {
     tracks = sj.any(tracks);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
-            //C checkRuleSet and set columnPairs
-            let columnPairs = await sj.Rule.checkRuleSet([
+            //C checkRuleSet and set validated
+            let validated = await sj.Rule.checkRuleSet([
                 [false, 'id',           sj.idRules,     	track, 'id'],
                 [false, 'playlistId',   sj.idRules,     	track, 'playlistId'],
                 [false, 'position',     sj.posIntRules, 	track, 'position'],
@@ -1892,7 +1923,7 @@ sj.getTrack = async function (db, tracks) {
             ]).then(sj.content).catch(sj.propagate);
 
             //C build where clause
-            let where = sj.buildWhere(columnPairs);
+            let where = sj.buildWhere(validated);
 
             //C query
 			let rows = await t.any(`
@@ -1992,21 +2023,21 @@ sj.editTrack = async function (db, tracks) {
         await sj.moveTracks(t, tracks);
 
         let results = await sj.asyncForEach(tracks, async track => {
-            let columnPairsWhere = await sj.Rule.checkRuleSet([
-                [true, 'id', sj.idRules, track, 'id'],
-            ]).then(sj.content).catch(sj.propagate);
-
-            let columnPairsSet = await sj.Rule.checkRuleSet([
+            let validated = await sj.Rule.checkRuleSet([
+				[true,	'id',			sj.idRules,			track,	'id'],
                 //! do not edit position here
                 //[false, 'playlistId',   sj.idRules,        track, 'playlistId'],
-                [false, 'source',       sj.sourceRules,    track, 'source'],
-                [false, 'sourceId',     sj.sourceIdRules,  track, 'sourceId'],
-                [false, 'name',         sj.trackNameRules, track, 'name'],
-                [false, 'duration',     sj.posIntRules,    track, 'duration'],
-            ]).then(sj.content).catch(sj.propagate);
-
-			let set = sj.buildSet(columnPairsSet);
-            let where = sj.buildWhere(columnPairsWhere);
+                [false,	'source',		sj.sourceRules,		track,	'source'],
+                [false, 'sourceId',     sj.sourceIdRules,	track,	'sourceId'],
+                [false, 'name',         sj.trackNameRules,	track,	'name'],
+                [false, 'duration',     sj.posIntRules,		track,	'duration'],
+			]).then(sj.content).catch(sj.propagate);
+			
+			let {id, ...validatedSet} = validated;
+			let validatedWhere = {id};
+			
+			let set = sj.buildSet(validatedSet);
+			let where = sj.buildWhere(validatedWhere);
 
             let row = await t.one(`UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
                 throw sj.parsePostgresError(rejected, new sj.Error({
@@ -2038,11 +2069,11 @@ sj.deleteTrack = async function (db, tracks) {
 	tracks = sj.any(tracks);
     return await db.tx(async t => {
         let results = await sj.asyncForEach(tracks, async track => {
-			let columnPairs = await sj.Rule.checkRuleSet([
+			let validated = await sj.Rule.checkRuleSet([
                 [true, 'id', sj.idRules, track, 'id'],
             ]).then(sj.content).catch(sj.propagate);
 
-            let where = sj.buildWhere(columnPairs);
+            let where = sj.buildWhere(validated);
 
             //! deletion will return the deleted row, however this will still (eventually) have visibility limitations and should not be used to restore data
             let row = await t.one(`DELETE FROM "sj"."tracks" WHERE $1:raw RETURNING *`, where).catch(rejected => {

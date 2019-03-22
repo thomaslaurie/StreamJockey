@@ -144,6 +144,7 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
+// external
 //L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js //! renamed from .js to .mjs
 import Vue from './vue.esm.browser.mjs'; 
 //L https://unpkg.com/vue-router@3.0.2/ //! renamed from .js to .mjs, manually converted to esm (remove closure & export default instead of return)
@@ -151,6 +152,9 @@ import VueRouter from './vue-router.esm.browser.mjs';
 //L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! renamed from .js to .mjs, manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
 import VueX from './vuex.esm.browser.mjs'; 
 
+import SocketIo from 'socket.io-client';
+
+// internal
 import sj from './global-client.mjs';
 
 
@@ -172,6 +176,73 @@ Vue.mixin({
     },
 });
 
+const databaseSocket = new SocketIo('/database');
+databaseSocket.on('connect', () => {
+	console.log(databaseSocket.id);
+});
+databaseSocket.emit('request to join room', {id: 3});
+
+databaseSocket.on('test response', data => {
+	console.log('data: ', data);
+});
+
+/*
+
+mirroredTracks = [
+	{
+		query: {
+			//? could be the string itself
+			//? could also be array
+		},
+		watchers: [
+
+		],
+		data [
+			{
+
+			},
+			{
+
+			},
+		]
+	},
+
+]
+	
+*/
+
+//C if an item in a list is refreshed and manually retrieves its own unique query (query only by id), it will add its own query in the mirrored database, if the parent list updates, then it switches back reactively based on p-data (the switch will have to include a destroy for the individual query), but this creates duplicate data and wont this mess up other foreign components representing the same data?
+
+//C what if any queries with multiple results just have references to single queries?
+
+//C the key should be the query itself
+
+//C encoding keys into a string could mess up types by converting them all into strings, however this shouldn't be an issue as each column in the database only ever has one type
+
+//? how will the mirrored database interact with non-async components, those that have been passed data without querying it via p-data? maybe still give it a reference but put it in a different list than 'watchers'?
+
+//someGetMethod = () {
+	//send http get method with subscribe parameter set to databaseSocket.id
+	// or this could also be sent as a second request throught he socket - because it can run through the same validation and therefroe shoud be exactly the same
+	// get the data, store it in the mirrored database, add itself to the watcher list
+	// return the refrence to the data in the mirrored database
+
+//}
+//onUnneeded = () {
+	// when the data is no longer needed, the component destroys itself, and should call the unGet function - the removes the watcher from the mirrored data
+	// if all watchers are gone, destroy the mirrored data
+	// send an event to the server to remove the subscription
+//}
+
+//onServe = () {
+	// filters down to database method, 
+	//after validating return to be got values, 
+	//add the socket id to a room with the same name as the stringified query
+//}
+
+// in every create, edit, and delete database method, before returning, send the returned values to a notification queue (all of these should be the changed entries)
+//TODO this will not catch some items if there are permission limitations - so maybe the enire object has to be returned and then filtered script-side? but even then wont this just call updates on items the subscriber doesn't even have access to? would a permission check need to be implemented?
+// for each item in the notification queue, sort through open rooms and see if they match the item, if they do, send an event to every socket in the room
 
 //  ██╗   ██╗██╗   ██╗███████╗
 //  ██║   ██║██║   ██║██╔════╝

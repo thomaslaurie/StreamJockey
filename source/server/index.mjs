@@ -46,6 +46,11 @@ import Koa from 'koa'; //L https://github.com/koajs
 import bodyParser from 'koa-bodyparser'; //L https://github.com/koajs/bodyparser
 import session from 'koa-session'; //L https://github.com/koajs/session
 
+//L https://github.com/socketio/socket.io#in-conjunction-with-koa
+import SocketIo from 'socket.io'; 
+import http from 'http'; //TODO consider changing to the https module?
+
+
 // internal
 import router from './routes.mjs';
 
@@ -79,6 +84,34 @@ const sessionConfig = {
 	renew: false, 
 };
 
+//L https://github.com/socketio/socket.io#in-conjunction-with-koa
+const server = http.createServer(app.callback());
+const sockets = new SocketIo(server); 
+const databaseSockets = sockets.of('/database');
+
+
+//L https://socket.io/docs/emit-cheatsheet/
+databaseSockets.on('connect', (socket) => {
+	console.log('connected');
+	console.log(socket.id);
+	socket.on('disconnecting', (reason) => {
+		console.log('disconnecting');
+	});
+	socket.on('disconnect', (reason) => {
+		console.log('disconnected');
+	});
+
+	socket.on('error', (reason) => {
+		console.log('socket.io error');
+	});
+
+	socket.on('request to join room', data => {
+		console.log('request', data);
+		console.log(`room-${data.id}`);
+		socket.join(`room-${data.id}`);
+	});
+});
+
 const PORT = process.env.PORT || 3000;
 
 
@@ -100,6 +133,8 @@ app.use(async (ctx, next) => {
 // request logger
 app.use(async (ctx, next) => {
 	console.log(`${ctx.request.method} ${ctx.request.path}`);
+	databaseSockets.to('room-3993').emit('test response', 'test response bad');
+	databaseSockets.to('room-3').emit('test response', 'test response');
 	await next();
 });
 
@@ -134,7 +169,7 @@ app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#
 //  ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝
 
 // listen to requests
-app.listen(PORT, () => {
+server.listen(PORT, () => {
 	console.log(`Server listening on port: ${PORT}`);
 	console.log('███████████████████████████████████████');
 });

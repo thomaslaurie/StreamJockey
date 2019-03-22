@@ -183,7 +183,7 @@ apiRouter
 	ctx.response.body = await sj.addUser(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/user', async (ctx, next) => {
-	ctx.response.body = await sj.getUser(sj.db, sj.unpackMultiQuery(ctx.query)).catch(sj.andResolve);
+	ctx.response.body = await sj.getUser(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
 })
 .patch('/user', async (ctx, next) => {
 	ctx.response.body = await sj.editUser(sj.db, ctx.request.body).catch(sj.andResolve);
@@ -197,7 +197,7 @@ apiRouter
 	ctx.response.body = await sj.addPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/playlist', async (ctx, next) => {
-	ctx.response.body = await sj.getPlaylist(sj.db, sj.unpackMultiQuery(ctx.query)).catch(sj.andResolve);
+	ctx.response.body = await sj.getPlaylist(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
 })
 .patch('/playlist', async (ctx, next) => {
 	ctx.response.body = await sj.editPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
@@ -211,7 +211,7 @@ apiRouter
 	ctx.response.body = await sj.addTrack(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 .get('/track', async (ctx, next) => {
-	ctx.response.body = await sj.getTrack(sj.db, sj.unpackMultiQuery(ctx.query)).catch(sj.andResolve);
+	ctx.response.body = await sj.getTrack(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
 })
 .patch('/track', async (ctx, next) => {
 	ctx.response.body = await sj.editTrack(sj.db, ctx.request.body).catch(sj.andResolve);
