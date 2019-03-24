@@ -179,44 +179,44 @@ apiRouter
 
 
 // user
-.post('/user', async (ctx, next) => {
+.post('/users', async (ctx, next) => {
 	ctx.response.body = await sj.addUser(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.get('/user', async (ctx, next) => {
+.get('/users', async (ctx, next) => {
 	ctx.response.body = await sj.getUser(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
 })
-.patch('/user', async (ctx, next) => {
+.patch('/users', async (ctx, next) => {
 	ctx.response.body = await sj.editUser(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.delete('/user', async (ctx, next) => {
+.delete('/users', async (ctx, next) => {
 	ctx.response.body = await sj.deleteUser(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // playlist
-.post('/playlist', async (ctx, next) => {
+.post('/playlists', async (ctx, next) => {
 	ctx.response.body = await sj.addPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.get('/playlist', async (ctx, next) => {
+.get('/playlists', async (ctx, next) => {
 	ctx.response.body = await sj.getPlaylist(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
 })
-.patch('/playlist', async (ctx, next) => {
+.patch('/playlists', async (ctx, next) => {
 	ctx.response.body = await sj.editPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.delete('/playlist', async (ctx, next) => {
+.delete('/playlists', async (ctx, next) => {
 	ctx.response.body = await sj.deletePlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // track
-.post('/track', async (ctx, next) => {
+.post('/tracks', async (ctx, next) => {
 	ctx.response.body = await sj.addTrack(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.get('/track', async (ctx, next) => {
+.get('/tracks', async (ctx, next) => {
 	ctx.response.body = await sj.getTrack(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
 })
-.patch('/track', async (ctx, next) => {
+.patch('/tracks', async (ctx, next) => {
 	ctx.response.body = await sj.editTrack(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.delete('/track', async (ctx, next) => {
+.delete('/tracks', async (ctx, next) => {
 	ctx.response.body = await sj.deleteTrack(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 

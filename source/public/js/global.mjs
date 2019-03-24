@@ -968,6 +968,7 @@ sj.Track = class extends sj.Success {
 			name: '',
 			duration: null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
 			link: '',
+			table: 'tracks', //TODO make immutable and maybe throw into a schema
 		});
 
 		this.onCreate();
@@ -990,6 +991,7 @@ sj.Playlist = class extends sj.Success {
 			description: '',
 			color: '',
 			image: '',
+			table: 'playlists',
 		});
 
 		this.onCreate();
@@ -1009,6 +1011,7 @@ sj.User = class extends sj.Success {
 			password: '',
 			password2: '',
 			spotifyRefreshToken: null,
+			table: 'users',
 		});
 
 		this.onCreate();
@@ -1923,6 +1926,22 @@ sj.noTrack = new sj.Track();
 sj.noSource = new sj.Source({realSource: false});
 sj.noTrack.source = sj.noSource; // cyclical reference
 // TODO move with actions sj.noAction = new sj.Action();
+
+
+
+// performance test
+// var iterations = 1000000;
+// console.time('Function #1');
+// for(var i = 0; i < iterations; i++ ){
+//     functionOne();
+// };
+// console.timeEnd('Function #1')
+
+// console.time('Function #2');
+// for(var i = 0; i < iterations; i++ ){
+//     functionTwo();
+// };
+// console.timeEnd('Function #2')
 
 
 export default sj;
