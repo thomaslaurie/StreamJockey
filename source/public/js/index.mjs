@@ -391,7 +391,8 @@ const store = new VueX.Store({
 			}
 						
 			//C filter and encode a list of objects for query
-			let shook = sj.shake(queryEntity, queryEntity.constructor.filter.get);
+			console.log('FILTERS', queryEntity.filters);
+			let shook = sj.shake(queryEntity, queryEntity.filters.get);
 			let query = sj.encodeMulti(shook);			console.log('QUERY:', query);
 
 			//C subscribe to the query

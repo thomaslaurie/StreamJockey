@@ -1097,7 +1097,7 @@ sj.User = class extends sj.Entity {
 		delete: ['id'],
 	}}
 }
-sj.Playlist = class extends sj.Success {
+sj.Playlist = class extends sj.Entity {
 	constructor(options = {}) {
 		super(sj.Object.giveParent(options));
 
@@ -1128,7 +1128,7 @@ sj.Playlist = class extends sj.Success {
 		delete: ['id'],
 	}}
 }
-sj.Track = class extends sj.Success {
+sj.Track = class extends sj.Entity {
 	constructor(options = {}) {
 		super(sj.Object.giveParent(options));
 
