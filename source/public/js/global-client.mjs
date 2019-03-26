@@ -271,31 +271,8 @@ sj.logout = async function () {
 /* TODO 
 	maxLength attribute can be used for input elements, use this to get real-time validation checks for max length
 */
-sj.User.filter = {};
-sj.User.filter.add = ['name', 'email'];
-sj.User.filter.get = ['id', 'name'];
-sj.User.filter.edit = ['id', 'name', 'email', 'spotifyRefreshToken'];
-sj.User.filter.delete = ['id'];
-
-sj.choose = function(owner, multi) {
-	return sj.isType(multi, Array) ? multi : owner;
-}
 
 // CRUD
-sj.User.add = async function (multi) {
-	return await sj.request('POST', `${sj.API_URL}/users`, sj.shake(sj.choose(this, multi), this.filter.add));
-};
-sj.User.get = async function (multi) {
-	let query = sj.encodeMulti(sj.shake(sj.choose(this, multi), this.filter.get)); //TODO update these shake properties, maybe apply them to all methods
-	return await sj.request('GET', `${sj.API_URL}/users?${query}`);
-};
-sj.User.edit = async function (multi) {
-	return await sj.request('PATCH', `${sj.API_URL}/users`, sj.shake(sj.choose(this, multi), this.filter.edit));
-};
-sj.User.delete = async function (multi) {
-	return await sj.request('DELETE', `${sj.API_URL}/users`, sj.shake(sj.choose(this, multi), this.filter.delete));
-}
-
 //TODO legacy
 sj.addUser = async function (user) {
 	return await sj.request('POST', `${sj.API_URL}/users`, new sj.User(user));
@@ -320,27 +297,8 @@ sj.deleteUser = async function (user) {
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
-sj.Playlist.filter = {};
-sj.Playlist.filter.add = ['userId', 'name', 'description'];
-sj.Playlist.filter.get = ['id', 'userId', 'name', 'description'];
-sj.Playlist.filter.edit = ['id', 'name', 'description'];
-sj.Playlist.filter.delete = ['id'];
 
 // CRUD
-sj.Playlist.add = async function (multi) {
-	return await sj.request('POST', `${sj.API_URL}/playlists`, sj.shake(sj.choose(this, multi), this.filter.add));
-};
-sj.Playlist.get = async function (multi) {
-    let query = sj.encodeMulti(sj.shake(sj.choose(this, multi), this.filter.get));
-	return await sj.request('GET', `${sj.API_URL}/playlists?${query}`);
-};
-sj.Playlist.edit = async function (multi) {
-	return await sj.request('PATCH', `${sj.API_URL}/playlists`, sj.shake(sj.choose(this, multi), this.filer.edit));
-}
-sj.Playlist.delete = async function (multi) {
-	return await sj.request('DELETE', `${sj.API_URL}/playlists`, sj.shake(sj.choose(this, multi), this.filer.delete));
-}
-
 //TODO legacy
 sj.addPlaylist = async function (playlist) {
 	return await sj.request('POST', `${sj.API_URL}/playlists`, playlist);
@@ -357,27 +315,7 @@ sj.deletePlaylist = async function (playlist) {
 }
 
 
-sj.Track.filter = {};
-sj.Track.filter.add = ['playlistId', 'source', 'sourceId', 'name', 'duration', 'artists'];
-sj.Track.filter.get = ['id', 'playlistId', 'position', 'source', 'sourceId'];
-sj.Track.filter.edit = ['id', 'source', 'sourceId', 'name', 'duration'];
-sj.Track.filter.delete = ['id'];
-
 // CRUD
-sj.Track.add = async function (multi) {
-	return await sj.request('POST', `${sj.API_URL}/tracks`, sj.shake(sj.choose(this, multi), this.filter.add));
-}
-sj.Track.get = async function (multi) {
-	let query = sj.encodeMulti(sj.shake(sj.choose(this, multi), this.filter.get));
-	return await sj.request('GET', `${sj.API_URL}/tracks?${query}`);
-}
-sj.Track.edit = async function (multi) {
-	return await sj.request('PATCH', `${sj.API_URL}/tracks`, sj.shake(sj.choose(this, multi), this.filer.edit));
-}
-sj.Track.delete = async function (multi) {
-	return await sj.request('DELETE', `${sj.API_URL}/tracks`, sj.shake(sj.choose(this, multi), this.filer.delete));
-}
-
 //TODO legacy
 sj.addTrack = async function (track) {
 	return await sj.request('POST', `${sj.API_URL}/tracks`, new sj.Track(track));

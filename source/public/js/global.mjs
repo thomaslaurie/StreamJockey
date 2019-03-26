@@ -219,11 +219,12 @@ sj.decodeProps = function (str) {
 	});
 	return obj;
 }
+//TODO consider having the multi functions use the base Props functions, only difference is that they add the suffix to the actual object property first
 sj.encodeMulti = function (items) {
 	//C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
 	//! not called automatically by sj.request() because its useful to see when a encodeMulti exists as it needs to be unpacked on the other end
 	return sj.any(items).map((item, i) => {
-		return Object.keys(item).map(key => `${encodeURIComponent(`key-${i}`)}=${encodeURIComponent(item[key])}`);
+		return Object.keys(item).map(key => `${encodeURIComponent(`${key}-${i}`)}=${encodeURIComponent(item[key])}`);
 	}).flat().join('&');
 }
 sj.decodeMulti = function (queryObject) { //TODO
@@ -843,6 +844,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 
 	//R even though resolve and rejections don't need to be the same format, its still useful to have the ability influence resolved values with a success wrapper for say logging or debugging
 */
+//G Object.assign(sj.Object, {...}) is used to assign static variables and methods
 
 sj.Object = class {
 	constructor(options = {}) {
@@ -871,41 +873,8 @@ sj.Object = class {
 		this.onCreate();
 	}
 
-	static init(obj, options, defaults) {
-		//TODO figure out how I made this work
-		//? not quite sure what this does, doesn't this just set this to be false all the time?
-		//! all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Object.tellParent(options));
-		obj.isParent = typeof options.isParent !== 'undefined' ? options.isParent : false;
-		//C isParent usually isn't listed in defaults so this doesn't get trasfered?
-		options.isParent = false; //? why is this part needed if it isn't initialized?
-
-		//? deep assign (this seems like a regular assign), //! breaks circular references (though these should never need to be passed)
-		Object.keys(defaults).forEach(key => { 
-			//L enumerable properties (from Object.keys https://hashnode.com/post/what-are-enumerable-properties-in-javascript-ciljnbtqa000exx53n5nbkykx
-			
-			//C if options property is not undefined (short circuit evaluation incase options itself is undefined)
-			if (typeof options !== 'undefined' && typeof options[key] !== 'undefined') {
-				//C this property = options property
-				obj[key] = options[key];
-			} else {
-				//C this property = default property
-				obj[key] = defaults[key];
-			}
-
-			//TODO create a warning for when options contains extra properties not passed to the object
-
-			//OLD obj[key] = typeof options !== 'undefined' && typeof options[key] !== 'undefined' ? options[key] : defaults[key];
-		});
-	}
-	
-	static tellParent(options) {
-		//C used to pass options (except with a true isParent property) to a parent class
-		options.isParent = true;
-		return options;
-	}
-
 	announce() {
-		// include 'log: true' in options if object should be announced on creation, call obj.announce if wanted at a later time, this essentially replaces need for console.log in functions (still one line) - but with additional capability to get information from an anonymous class (return new sj.Object()), doing it the other way (boolean for not announcing on create) creates more problems and still requires writing lines and patches ---> its just better to do a positive action
+		//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
 		if (!sj.isType(this, sj.Error)) {
 			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\n${sj.trace()}`);
 		} else {
@@ -913,19 +882,67 @@ sj.Object = class {
 		}	
 	}
 	onCreate() {
+		//G include 'log: true' in options if instance should be announced on creation, call instance.announce() to announce manually
+		//R inverting the behavior is wrong and requires more lines, its easier to log actively or change behavior here if everything needs to be logged
 		if (this.log === true && this.isParent === false) {
 			this.announce();
 		}
 	}
+
+	static init(that, options = {}, defaults = {}) {
+		//C give that a boolean cast of options.isParent, then delete from options
+		that.isParent = (options.isParent == true);
+		delete options.isParent;
+
+		Object.keys(defaults).forEach(key => {
+			//C if default is overwritten, give that the option, otherwise the default
+			//! ignores existing props with the value undefined
+			that[key] = typeof options[key] === 'undefined' ? defaults[key] : options[key];
+		});
+
+		//G if a class wants to allow any option, call init to assign defaults, then Object.assign(this, options) outside of init
+
+		/* //OLD
+			//TODO figure out how I made this work
+			//? not quite sure what this does, doesn't this just set this to be false all the time?
+			//! all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Object.giveParent(options));
+			//C set this.isParent to the passed isParent (if true) or false
+			//obj.isParent = typeof options.isParent !== 'undefined' ? options.isParent : false;
+			//C isParent usually isn't listed in defaults so this doesn't get trasfered?
+			//options.isParent = false; //? why is this part needed if it isn't initialized?
+
+			//? deep assign (this seems like a regular assign), //! breaks circular references (though these should never need to be passed)
+			// Object.keys(defaults).forEach(key => { 
+			// 	//L enumerable properties (from Object.keys https://hashnode.com/post/what-are-enumerable-properties-in-javascript-ciljnbtqa000exx53n5nbkykx
+				
+			// 	//C if options property is not undefined (short circuit evaluation incase options itself is undefined)
+			// 	if (typeof options !== 'undefined' && typeof options[key] !== 'undefined') {
+			// 		//C this property = options property
+			// 		obj[key] = options[key];
+			// 	} else {
+			// 		//C this property = default property
+			// 		obj[key] = defaults[key];
+			// 	}
+
+			// 	//TODO create a warning for when options contains extra properties not passed to the object
+
+			// 	//OLD obj[key] = typeof options !== 'undefined' && typeof options[key] !== 'undefined' ? options[key] : defaults[key];
+			// });
+		*/
+	}
+	static giveParent(options) {
+		return {
+			...options,
+			isParent: true,
+		}
+	}
 }
 
-
 //C success and error objects are returned from functions (mostly async ones)
-
 // success
 sj.Success = class extends sj.Object {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Success';
 
@@ -937,7 +954,7 @@ sj.Success = class extends sj.Object {
 sj.SuccessList = class extends sj.Success {
 	//C wrapper for an array of successful items
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.SuccessList';
 
@@ -951,75 +968,9 @@ sj.SuccessList = class extends sj.Success {
 }
 
 // items (these can be returned from functions)
-sj.Track = class extends sj.Success {
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.Track';
-
-		sj.Object.init(this, options, {
-			// new properties
-			id: null,
-			playlistId: null,
-			position: null,
-			source: null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-			sourceId: null, // TODO assumes ids are unique, even across all sources
-			artists: [],
-			name: '',
-			duration: null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
-			link: '',
-			table: 'tracks', //TODO make immutable and maybe throw into a schema
-		});
-
-		this.onCreate();
-	}
-}
-sj.Playlist = class extends sj.Success {
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.Playlist';
-
-		sj.Object.init(this, options, {
-			content: [],
-
-			// new properties
-			id: null,
-			userId: null,
-			name: '',
-			visibility: '',
-			description: '',
-			color: '',
-			image: '',
-			table: 'playlists',
-		});
-
-		this.onCreate();
-	}
-}
-sj.User = class extends sj.Success {
-	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
-
-		this.objectType = 'sj.User';
-
-		sj.Object.init(this, options, {
-			// new properties
-			id: null,
-			name: '',
-			email: '',
-			password: '',
-			password2: '',
-			spotifyRefreshToken: null,
-			table: 'users',
-		});
-
-		this.onCreate();
-	}
-}
 sj.Credentials = class extends sj.Success {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Credentials',
 
@@ -1044,11 +995,174 @@ sj.Credentials = class extends sj.Success {
 	}
 }
 
+// entities (these represent database entities)
+sj.Entity = class extends sj.Success {
+	constructor(options = {}) {
+		super(sj.Object.giveParent(options));
+
+		this.objectType = 'sj.Entity';
+
+		sj.Object.init(this, options, {
+			id: undefined,
+		});
+
+		//C make instance getter for every static filter
+		let that = this;
+		this.filters = {};
+		Object.keys(that.constructor.filters).forEach(key => {
+			Object.defineProperties(that.filters, {
+				[key]: {
+					get: function () { 
+						return sj.shake(that, that.constructor.filters[key]);
+					}
+				}
+			});
+		});
+
+		this.onCreate();
+	};
+	
+
+	async add() { //C instance method calling static method with self as query
+		return await this.constructor.add(this);
+	}
+	async get() {
+		return await this.constructor.get(this);
+	}
+	async edit() {
+		return await this.constructor.edit(this);
+	}
+	async delete() {
+		return await this.constructor.delete(this);
+	}
+
+	//C static getters to be used like static properties
+	//TODO how to make these immutable?
+	static get table() {return undefined};
+	static get filters() {return {
+		id: ['id'],
+		add: [],
+		get: [],
+		edit: [],
+		delete: [],
+	}}
+	static get filter() {
+		let temp = {};
+		Object.keys(this.filters).forEach(key => {
+			temp[key] = sj.shake(this, )
+		})
+		
+		return {
+
+	}}
+
+	static async add(query) { //C static method, used for non-self queries
+		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.add));
+	}
+	static async get(query) {
+		return await sj.request('GET', `${sj.API_URL}${this.table}?${sj.encodeMulti(sj.shake(query, this.filters.get))}`);
+	}
+	static async edit(query) {
+		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.edit));
+	}
+	static async delete(query) {
+		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.delete));
+	}
+}
+sj.User = class extends sj.Entity {
+	constructor(options = {}) {
+		super(sj.Object.giveParent(options));
+
+		this.objectType = 'sj.User';
+
+		sj.Object.init(this, options, {
+			// new properties
+			name: '',
+			email: '',
+			password: '',
+			password2: '',
+			spotifyRefreshToken: null,
+		});
+
+		this.onCreate();
+	}
+
+	static get table() {return 'users'}
+	static get filters() {
+		return {
+		...super.filters,
+		add: ['name', 'email'],
+		get: ['id', 'name'],
+		edit: ['id', 'name', 'email', 'spotifyRefreshToken'],
+		delete: ['id'],
+	}}
+}
+sj.Playlist = class extends sj.Success {
+	constructor(options = {}) {
+		super(sj.Object.giveParent(options));
+
+		this.objectType = 'sj.Playlist';
+
+		sj.Object.init(this, options, {
+			content: [],
+
+			// new properties
+			userId: null,
+			name: '',
+			visibility: '',
+			description: '',
+			color: '',
+			image: '',
+			
+		});
+
+		this.onCreate();
+	}
+	
+	static get table() {return 'playlists'}
+	static get filters() {return {
+		...super.filters,
+		add: ['userId', 'name', 'description'],
+		get: ['id', 'userId', 'name', 'description'],
+		edit: ['id', 'name', 'description'],
+		delete: ['id'],
+	}}
+}
+sj.Track = class extends sj.Success {
+	constructor(options = {}) {
+		super(sj.Object.giveParent(options));
+
+		this.objectType = 'sj.Track';
+
+		sj.Object.init(this, options, {
+			// new properties
+			playlistId: null,
+			position: null,
+			source: null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
+			sourceId: null, // TODO assumes ids are unique, even across all sources
+			artists: [],
+			name: '',
+			duration: null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
+			link: '',
+		});
+
+		this.onCreate();
+	}
+
+	static get table() {return 'tracks'}
+	static get filters() {return {
+		...super.filters,
+		add: ['playlistId', 'source', 'sourceId', 'name', 'duration', 'artists'],
+		get: ['id', 'playlistId', 'position', 'source', 'sourceId'],
+		edit: ['id', 'source', 'sourceId', 'name', 'duration'],
+		delete: ['id'],
+	}}
+}
 
 // error
 sj.Error = class extends sj.Object {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Error';
 
@@ -1063,7 +1177,7 @@ sj.Error = class extends sj.Object {
 sj.ErrorList = class extends sj.Error {
 	//C wrapper for an array with one or more errors
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.ErrorList'; //TODO //? in chrome dev tools this still shows up as 'sj.Error' but only on the preview line, is announce being called too early?
 
@@ -1079,7 +1193,7 @@ sj.ErrorList = class extends sj.Error {
 sj.AuthRequired = class extends sj.Error { 
 	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.AuthRequired';
 
@@ -1095,7 +1209,7 @@ sj.AuthRequired = class extends sj.Error {
 // other
 sj.Source = class extends sj.Object {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Source',
 
@@ -1276,7 +1390,7 @@ sj.Source = class extends sj.Object {
 }
 sj.Playback = class extends sj.Object {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Playback';
 
@@ -1294,7 +1408,7 @@ sj.Playback = class extends sj.Object {
 }
 sj.Rule = class extends sj.Object {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Rule';
 
@@ -1743,7 +1857,7 @@ sj.Rule = class extends sj.Object {
 /* // TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
 sj.Action = class extends sj.Object {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Action';
 		source = sj.desiredPlayback.track.source;
@@ -1787,7 +1901,7 @@ sj.Action = class extends sj.Object {
 }
 sj.Start = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Start';
 		state = sj.desiredPlayback.track;
@@ -1824,7 +1938,7 @@ sj.Start = class extends sj.Action {
 }
 sj.Toggle = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Toggle';
 		this.state = desiredPlayback.playing;
@@ -1875,7 +1989,7 @@ sj.Toggle = class extends sj.Action {
 }
 sj.Seek = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Seek';
 		this.state = desiredPlayback.progress;
@@ -1899,7 +2013,7 @@ sj.Seek = class extends sj.Action {
 }
 sj.Volume = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.tellParent(options));
+		super(sj.Object.giveParent(options));
 
 		this.objectType = 'sj.Volume';
 		this.state = desiredPlayback.volume;
@@ -1942,7 +2056,6 @@ sj.noTrack.source = sj.noSource; // cyclical reference
 //     functionTwo();
 // };
 // console.timeEnd('Function #2')
-
 
 export default sj;
 /* 

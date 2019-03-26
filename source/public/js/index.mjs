@@ -187,9 +187,19 @@ databaseSocket.on('test response', data => {
 	console.log('data: ', data);
 });
 
-databaseSocket.on('update', data => {
-	store.dispatch('updateMirror', data);
-});
+// databaseSocket.on('update', data => {
+// 	store.dispatch('updateMirror', data);
+// });
+
+sj.testRun = async function (store) {
+	let queryEntity = new sj.Track({id: 65});
+	let subscriber = 'test subscriber';
+	console.log('DB MIRROR BEFORE:', store.state.dbMirror);
+	await store.dispatch('subscribe', {queryEntity, subscriber});
+	console.log('DB MIRROR DURING:', store.state.dbMirror);
+	await store.dispatch('unsubscribe', {queryEntity, subscriber});
+	console.log('DB MIRROR AFTER:', store.state.dbMirror);
+}
 
 /* //R  
 	how to sync server data with vuex? updating parent components, unrelated components, etc. is a nightmare - which is what vuex is for anyways
@@ -244,6 +254,8 @@ databaseSocket.on('update', data => {
 */
 sj.QueryMirror = class extends sj.Object {
 	constructor(options = {}) {
+		super(sj.Object.giveParent(options));
+
 		this.objectType = 'sj.QueryMirror';
 
 		sj.Object.init(this, options, {
@@ -258,6 +270,9 @@ sj.QueryMirror = class extends sj.Object {
 }
 sj.EntityMirror = class extends sj.QueryMirror {
 	constructor(options = {}) {
+		super(sj.Object.giveParent(options));
+
+
 		this.objectType = 'sj.EntityMirror';
 
 		sj.Object.init(this, options, {
@@ -365,6 +380,53 @@ const store = new VueX.Store({
 	},
 	actions: { //! all actions are async via dispatch('functionName', payload)
 		// database sync
+		async subscribe(context, {queryEntity, subscriber}) {
+			//C ensure the query entity is a database entity
+			//TODO consider extending sj.Success for database objects (user, playlist, track) which have additional properties relating to the database (table, columns, validation rules, etc)
+			if (!(sj.isType(queryEntity, sj.User) || sj.isType(queryEntity, sj.Playlist) || sj.isType(queryEntity, sj.Track))) {
+				throw new sj.Error({
+					origin: 'vuex subscribe()',
+					message: 'queryEntity is not a user, playlist, or track'
+				});
+			}
+						
+			//C filter and encode a list of objects for query
+			let shook = sj.shake(queryEntity, queryEntity.constructor.filter.get);
+			let query = sj.encodeMulti(shook);			console.log('QUERY:', query);
+
+			//C subscribe to the query
+			await new Promise((resolve, reject) => {
+				console.log('CALLED');
+				//TODO add a timeout
+				databaseSocket.emit('subscribe', query, socketResult => {
+					//TODO //? socket result will be a string no? probably need to parse
+					if (!sj.isType(socketResult, sj.Error)) {
+						//C modified query should be returned here
+						resolve(socketResult);		console.log('subscribe request resolved', socketResult);
+					} else {
+						reject(socketResult);		console.error('subscribe request rejected', socketResult);
+					}
+				});
+			}).catch(sj.propagate);
+
+			//C add subscriber to the mirrored database, from here on it will live update //! sj.Objects must have their table property
+			await context.dispatch('addSubscriber', {table: queryEntity.table, query, subscriber});
+
+			//C trigger a manual update
+			await context.dispatch('updateQuery', {table: queryEntity.table, query, timestamp: Date.now()});
+
+			//C return the query item's data
+			//C no components will update until this is done - so no need to worry about flickering
+			return context.getters.getQueryData(table, query);
+		},
+		async unsubscribe(context, {queryEntity, subscriber}) {
+			//C filter and encode a list of objects for query
+			let shook = sj.shake(queryEntity, queryEntity.filter.get);
+			let query = sj.encodeMulti(shook);			console.log('QUERY:', query);
+
+			await context.dispatch('deleteSubscriber', {table: queryEntity.table, query, subscriber});
+		},
+		
 		async addSubscriber(context, {table, query, subscriber}) {
 			//! this does not refer directly to the queryMirror because ...[table][query] must be assigned a reference below
 			let tableMirror = context.state.dbMirror[table]; 
@@ -446,6 +508,7 @@ const store = new VueX.Store({
 			let decoded = sj.decodeMulti(query);
 			//C assign the proper database entity class and send it's http GET request
 			let entities;
+			console.log('class test', sj.Track.get);
 			if (table === 'users') {
 				entities = await sj.User.get(decoded).then(sj.content);
 			} else if (table === 'playlists') {
@@ -464,7 +527,7 @@ const store = new VueX.Store({
 				//! always ensure this will create an EntityMirror not a QueryMirror (ie. no nesting of QueryMirrors), or things will break
 				
 				let newReferences = [];
-				entities.forEach(entity => {
+				await sj.asyncForEach(entities, async entity => {
 					let entityQuery = sj.encodeMulti(sj.shake(entity), ['id']);
 
 					//C if this entity is new to the query results, add this QueryMirror as a subscriber (if it already exists, nothing changes)
@@ -483,7 +546,7 @@ const store = new VueX.Store({
 
 				//C if an existing entity reference has been removed from the query results, remove this QueryMirror as a subscriber
 				let newReferenceQueries = newReferences.map(reference => reference.query);
-				queryTable[query].content.forEach(entityMirror => {
+				await sj.asyncForEach(queryTable[query].content, async entityMirror => {
 					if (!(entityMirror.query in newReferenceQueries)) {
 						await context.dispatch('deleteSubscriber', {table, query: entityMirror.query, subscriber: queryTable[query]});
 					}
@@ -495,61 +558,21 @@ const store = new VueX.Store({
 				}});
 			}
 		},
-
-		async subscribe(context, {queryEntity, subscriber}) {
-			//C ensure the query entity is a database entity
-			//TODO consider extending sj.Success for database objects (user, playlist, track) which have additional properties relating to the database (table, columns, validation rules, etc)
-			if (!(sj.isType(queryEntity, sj.User) || sj.isType(queryEntity, sj.Playlist) || sj.isType(queryEntity, sj.Track))) {
-				throw new sj.Error({
-					origin: 'vuex subscribe()',
-					message: 'queryEntity is not a user, playlist, or track'
-				});
-			}
-						
-			//C filter and encode a list of objects for query
-			let shook = sj.shake(queryEntity, queryEntity.filter.get);
-			let query = sj.encodeMulti(shook);			console.log('QUERY:', query);
-
-			//C subscribe to the query
-			await new Promise((resolve, reject) => {
-				databaseSocket.emit('subscribe', query, socketResult => {
-					//TODO //? socket result will be a string no? probably need to parse
-					if (!sj.isType(subscribeResult, sj.Error)) {
-						//C modified query should be returned here
-						resolve(subscribeResult);		console.log('subscribe request resolved', subscribeResult);
-					} else {
-						reject(subscribeResult);		console.error('subscribe request rejected', subscribeResult);
-					}
-				});
-			}).catch(sj.propagate);
-
-			//C add subscriber to the mirrored database, from here on it will live update //! sj.Objects must have their table property
-			await context.dispatch('addSubscriber', {table: queryEntity.table, query, subscriber});
-
-			//----------
-
-			//C trigger a manual update
-			await context.dispatch('update', {table: obj.table, query});
-
-			//C return the query item's data, no components will update until this is done - so no need to worry about flickering
-			let item = context.state.dbMirror[table].query;
-			return item.entities; //C returns the array of data objects, can be references to other query items though
-		},
-		async unsubscribe(context, {table, query, subscriber}) {
-			await context.dispatch('deleteSubscriber', {table, query, subscriber});
-		},
 	},
 	mutations: { //G these are bare-bones setters, data should already be checked and formatted
 		// database sync
 		replaceQueryMirror(state, {table, queryMirror}) {
-			state.dbMirror[table][queryMirror] = queryMirror;
+			console.log(`called replaceQueryMirror(table: ${table}, queryMirror: ${queryMirror})`);
+			state.dbMirror[table][queryMirror.query] = queryMirror;
 		},
 		editQueryMirror(state, {table, query, props}) {
+			console.log(`called editQueryMirror(table: ${table}, query: ${query}, props: ${props})`);
 			Object.keys(props).forEach(key => {
 				state.dbMirror[table][query][key] = props[key];
 			});
 		},
 		deleteQueryMirror(state, {table, query}) {
+			console.log(`called deleteQueryMirror(table: ${table}, query: ${query})`);
 			delete state.dbMirror[table][query];
 		},
 	},
@@ -571,3 +594,5 @@ const vm = new Vue({
 	router,
 	store,
 });
+
+sj.testRun(store);

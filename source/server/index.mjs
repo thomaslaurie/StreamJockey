@@ -110,6 +110,11 @@ databaseSockets.on('connect', (socket) => {
 		console.log(`room-${data.id}`);
 		socket.join(`room-${data.id}`);
 	});
+
+	socket.on('subscribe', (query, callback) => {
+		console.log('SUBSCRIBE RECEIVED:', query);
+		callback('subscribe acknowlegement');
+	});
 });
 
 const PORT = process.env.PORT || 3000;
