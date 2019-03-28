@@ -205,13 +205,14 @@ sj.shake = function (obj, props) {
 		return obj.map(item => s(item, props));
 	}
 }
+
 sj.encodeProps = function (obj) {
 	return Object.keys(obj).map(key => {
 		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
 	}).join('&');
 }
-sj.decodeProps = function (str) {
-	let pairs = str.split('&');
+sj.decodeProps = function (encoded) {
+	let pairs = encoded.split('&');
 	let obj = {};
 	pairs.forEach(pair => {
 		let parts = pair.split('=');
@@ -219,47 +220,46 @@ sj.decodeProps = function (str) {
 	});
 	return obj;
 }
-//TODO consider having the multi functions use the base Props functions, only difference is that they add the suffix to the actual object property first
-sj.encodeMulti = function (items) {
+sj.encodeList = function (list) {
 	//C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
-	//! not called automatically by sj.request() because its useful to see when a encodeMulti exists as it needs to be unpacked on the other end
-	return sj.any(items).map((item, i) => {
-		return Object.keys(item).map(key => `${encodeURIComponent(`${key}-${i}`)}=${encodeURIComponent(item[key])}`);
-	}).flat().join('&');
+	//! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
+	let indexed = {};
+	sj.any(list).forEach((obj, i) => {
+		Object.keys(obj).forEach(key => {
+			indexed[`${key}-${i}`] = obj[key];
+		});
+	});
+	return sj.encodeProps(indexed);
 }
-sj.decodeMulti = function (queryObject) { //TODO
-	//TODO there is a potential vulnerability here, any values passed by the url query parameters will be passed into the object that reaches the CRUD functions, is this ok or does their need to be a list of accepted parameters on the server side too?
+sj.decodeList = function (encoded) {
+	//C decodes a list of encoded objects with '-i' suffixed property keys
+	//! any key not matching the format will be discarded
+	let indexed = sj.decodeProps(encoded);
+	let list = [];
+	let indexedKeys = Object.keys(indexed);
+	for (let i = 0; i < indexedKeys.length; i++) {
+		//C validate delimiter
+		let delimiterIndex = indexedKeys[i].lastIndexOf('-');
+		if (delimiterIndex < 0) {break}
 
-	//TODO weird numbers at the end may also break this, also how do double digits work?
-	let items = [];
-	let keys = Object.keys(queryObject);
-	for (let i = 0; i < keys.length; i++) {
+		//C validate index
+		let objIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
+		if (!sj.isType(objIndex, 'integer')) {break}
 
-		//C check that index was given (di = delimiter index)
-		let delimiterIndex = keys[i].lastIndexOf('-');
-		if (delimiterIndex < 0) {break;}
+		//C get the real key
+		let key = indexedKeys[i].slice(0, delimiterIndex);
 
-		//C check that index is an integer
-		let j = keys[i].slice(delimiterIndex + 1);
-		j = parseInt(j);
-		if (!sj.isType(j, 'integer')) {break;}
-
-		//C get the real key name
-		let realKey = decodeURIComponent(keys[i].slice(0, delimiterIndex));
-
-		//C if the item was already added
-		if (sj.isType(items[j], Object)) {
-			//C set the key and value
-			items[j][realKey] = queryObject[keys[i]];
+		if (!sj.isType(list[objIndex], Object)) {
+			//C if the obj doesn't exist yet, add it with the prop
+			list[objIndex] = {
+				[key]: indexed[indexedKeys[i]],
+			};
 		} else {
-			//C else, add the item with the key and value
-			items[j] = {
-				[realKey]: queryObject[keys[i]],
-			}
+			//C otherwise add the prop to the existing object
+			list[objIndex][key] = indexed[indexedKeys[i]];
 		}
 	}
-
-	return items;
+	return list;
 }
 
 // sort
@@ -517,14 +517,16 @@ sj.catchUnexpected = function (input) {
 }
 sj.propagate = function (input, overwrite) {
 	//C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
-	if (sj.isType(input, sj.Error)) { //C let sj.Errors flow through
-		if (sj.isType(overwrite, Object)) { //C overwrite properties (for example making a more specific message)
-			input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
-		}
-		throw input;
-	} else { //C wrap any non-sj.Errors
-		throw sj.catchUnexpected(input);
+	let error = input;
+
+	if (!sj.isType(input, sj.Error)) { //C wrap any non-sj errors, let sj.Errors flow through
+		input = sj.catchUnexpected(input);
 	}
+	if (sj.isType(overwrite, Object)) { //C overwrite properties (for example making a more specific message)
+		Object.assign(input, overwrite);
+		// old, this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
+	}
+	throw input;
 }
 sj.andResolve = function (rejected) {
 	//C resolves/returns any errors thrown by sj.propagate()
@@ -784,10 +786,12 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 		});
 	}
 
+
 	//C parse via fetch .json()
 	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
-	let parsedResult = await result.json().catch(rejected => {
-		throw sj.propagate(rejected);
+	let raw = await result.clone().text();
+	let parsedResult = await result.clone().json().catch(rejected => {
+		throw sj.propagate(rejected, {content: raw});
 	});
 
 	//C catch non-ok status codes
@@ -1022,23 +1026,11 @@ sj.Entity = class extends sj.Success {
 		this.onCreate();
 	};
 	
-
-	async add() { //C instance method calling static method with self as query
-		return await this.constructor.add(this);
-	}
-	async get() {
-		return await this.constructor.get(this);
-	}
-	async edit() {
-		return await this.constructor.edit(this);
-	}
-	async delete() {
-		return await this.constructor.delete(this);
-	}
-
 	//C static getters to be used like static properties
 	//TODO how to make these immutable?
-	static get table() {return undefined};
+	static get name() {return 'entity'}
+	static get table() {return `${this.name}s`}; //! table names are the plural of the entity name
+	
 	static get filters() {return {
 		id: ['id'],
 		add: [],
@@ -1046,29 +1038,8 @@ sj.Entity = class extends sj.Success {
 		edit: [],
 		delete: [],
 	}}
-	static get filter() {
-		let temp = {};
-		Object.keys(this.filters).forEach(key => {
-			temp[key] = sj.shake(this, )
-		})
-		
-		return {
-
-	}}
-
-	static async add(query) { //C static method, used for non-self queries
-		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.add));
-	}
-	static async get(query) {
-		return await sj.request('GET', `${sj.API_URL}${this.table}?${sj.encodeMulti(sj.shake(query, this.filters.get))}`);
-	}
-	static async edit(query) {
-		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.edit));
-	}
-	static async delete(query) {
-		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.delete));
-	}
 }
+
 sj.User = class extends sj.Entity {
 	constructor(options = {}) {
 		super(sj.Object.giveParent(options));
@@ -1087,7 +1058,7 @@ sj.User = class extends sj.Entity {
 		this.onCreate();
 	}
 
-	static get table() {return 'users'}
+	static get name() {return 'user'}
 	static get filters() {
 		return {
 		...super.filters,
@@ -1119,7 +1090,7 @@ sj.Playlist = class extends sj.Entity {
 		this.onCreate();
 	}
 	
-	static get table() {return 'playlists'}
+	static get name() {return 'playlist'}
 	static get filters() {return {
 		...super.filters,
 		add: ['userId', 'name', 'description'],
@@ -1149,7 +1120,7 @@ sj.Track = class extends sj.Entity {
 		this.onCreate();
 	}
 
-	static get table() {return 'tracks'}
+	static get name() {return 'track'}
 	static get filters() {return {
 		...super.filters,
 		add: ['playlistId', 'source', 'sourceId', 'name', 'duration', 'artists'],

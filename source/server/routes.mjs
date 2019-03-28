@@ -179,45 +179,45 @@ apiRouter
 
 
 // user
-.post('/users', async (ctx, next) => {
-	ctx.response.body = await sj.addUser(sj.db, ctx.request.body).catch(sj.andResolve);
+.post(`/${sj.User.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.User.add(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.get('/users', async (ctx, next) => {
-	ctx.response.body = await sj.getUser(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
+.get(`/${sj.User.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.User.get(sj.db, sj.decodeList(ctx.querystring)).catch(sj.andResolve);
 })
-.patch('/users', async (ctx, next) => {
-	ctx.response.body = await sj.editUser(sj.db, ctx.request.body).catch(sj.andResolve);
+.patch(`/${sj.User.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.User.edit(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.delete('/users', async (ctx, next) => {
-	ctx.response.body = await sj.deleteUser(sj.db, ctx.request.body).catch(sj.andResolve);
+.delete(`/${sj.User.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.User.delete(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // playlist
-.post('/playlists', async (ctx, next) => {
-	ctx.response.body = await sj.addPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
+.post(`/${sj.Playlist.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Playlist.add(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.get('/playlists', async (ctx, next) => {
-	ctx.response.body = await sj.getPlaylist(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
+.get(`/${sj.Playlist.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Playlist.get(sj.db, sj.decodeList(ctx.querystring)).catch(sj.andResolve);
 })
-.patch('/playlists', async (ctx, next) => {
-	ctx.response.body = await sj.editPlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
+.patch(`/${sj.Playlist.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Playlist.edit(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.delete('/playlists', async (ctx, next) => {
-	ctx.response.body = await sj.deletePlaylist(sj.db, ctx.request.body).catch(sj.andResolve);
+.delete(`/${sj.Playlist.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Playlist.delete(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // track
-.post('/tracks', async (ctx, next) => {
-	ctx.response.body = await sj.addTrack(sj.db, ctx.request.body).catch(sj.andResolve);
+.post(`/${sj.Track.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Track.add(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.get('/tracks', async (ctx, next) => {
-	ctx.response.body = await sj.getTrack(sj.db, sj.decodeMulti(ctx.query)).catch(sj.andResolve);
+.get(`/${sj.Track.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Track.get(sj.db, sj.decodeList(ctx.querystring)).catch(sj.andResolve);
 })
-.patch('/tracks', async (ctx, next) => {
-	ctx.response.body = await sj.editTrack(sj.db, ctx.request.body).catch(sj.andResolve);
+.patch(`/${sj.Track.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Track.edit(sj.db, ctx.request.body).catch(sj.andResolve);
 })
-.delete('/tracks', async (ctx, next) => {
-	ctx.response.body = await sj.deleteTrack(sj.db, ctx.request.body).catch(sj.andResolve);
+.delete(`/${sj.Track.table}`, async (ctx, next) => {
+	ctx.response.body = await sj.Track.delete(sj.db, ctx.request.body).catch(sj.andResolve);
 })
 
 // catch

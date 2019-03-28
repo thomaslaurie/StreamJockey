@@ -52,6 +52,7 @@ import http from 'http'; //TODO consider changing to the https module?
 
 
 // internal
+import sj from '../public/js/global.mjs';
 import router from './routes.mjs';
 
 
@@ -92,28 +93,29 @@ const databaseSockets = sockets.of('/database');
 
 //L https://socket.io/docs/emit-cheatsheet/
 databaseSockets.on('connect', (socket) => {
-	console.log('connected');
-	console.log(socket.id);
+	console.log('SOCKET - CONNECTED', socket.id);
+
 	socket.on('disconnecting', (reason) => {
-		console.log('disconnecting');
+		console.log('SOCKET - DISCONNECTING', socket.id);
 	});
 	socket.on('disconnect', (reason) => {
-		console.log('disconnected');
+		console.log('SOCKET - DISCONNECTED', socket.id);
 	});
-
 	socket.on('error', (reason) => {
-		console.log('socket.io error');
+		console.log('SOCKET - ERROR', socket.id, reason);
 	});
 
-	socket.on('request to join room', data => {
-		console.log('request', data);
-		console.log(`room-${data.id}`);
-		socket.join(`room-${data.id}`);
-	});
+	socket.on('SUBSCRIBE', (query, callback) => {
+		console.log('SOCKET - SUBSCRIBE', query);
 
-	socket.on('subscribe', (query, callback) => {
-		console.log('SUBSCRIBE RECEIVED:', query);
-		callback('subscribe acknowlegement');
+		//TODO validate query
+		let validatedQuery = query;
+
+		socket.join(validatedQuery);
+
+		callback(new sj.Success({
+			content: validatedQuery,
+		}));
 	});
 });
 

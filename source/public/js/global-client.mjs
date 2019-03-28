@@ -57,6 +57,44 @@ import sj from './global.mjs';
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 
+//   ██████╗██╗      █████╗ ███████╗███████╗
+//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
+//  ██║     ██║     ███████║███████╗███████╗
+//  ██║     ██║     ██╔══██║╚════██║╚════██║
+//  ╚██████╗███████╗██║  ██║███████║███████║
+//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+
+// static CRUD
+Object.assign(sj.Entity, {
+	async add(query) {
+		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.add));
+	},
+	async get(query) {
+		return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(query, this.filters.get))}`);
+	},
+	async edit(query) {
+		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.edit));
+	},
+	async delete(query) {
+		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.delete));
+	},
+});
+// instance CRUD
+Object.assign(sj.Entity.prototype, {
+	async add() {
+		return await this.constructor.add(this);
+	},
+	async get() {
+		return await this.constructor.get(this);
+	},
+	async edit() {
+		return await this.constructor.edit(this);
+	},
+	async delete() {
+		return await this.constructor.delete(this);
+	},
+});
+
 
 //  ███████╗██████╗ ██████╗  ██████╗ ██████╗ 
 //  ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
@@ -279,7 +317,7 @@ sj.addUser = async function (user) {
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
-	let query = sj.encodeMulti(sj.shake(user, ['id', 'name', 'email']));
+	let query = sj.encodeList(sj.shake(user, ['id', 'name', 'email']));
 	return await sj.request('GET', `${sj.API_URL}/users?${query}`);
 }
 sj.editUser = async function (user) {
@@ -304,7 +342,7 @@ sj.addPlaylist = async function (playlist) {
 	return await sj.request('POST', `${sj.API_URL}/playlists`, playlist);
 }
 sj.getPlaylist = async function (playlist) {
-    let query = sj.encodeMulti(sj.shake(playlist, ['id', 'userId', 'name', 'description']));
+    let query = sj.encodeList(sj.shake(playlist, ['id', 'userId', 'name', 'description']));
 	return await sj.request('GET', `${sj.API_URL}/playlists?${query}`);
 }
 sj.editPlaylist = async function (playlist) {
@@ -321,7 +359,7 @@ sj.addTrack = async function (track) {
 	return await sj.request('POST', `${sj.API_URL}/tracks`, new sj.Track(track));
 }
 sj.getTrack = async function (track) {
-	let query = sj.encodeMulti(sj.shake(track, ['id', 'playlistId', 'position', 'source', 'sourceId', 'name']));
+	let query = sj.encodeList(sj.shake(track, ['id', 'playlistId', 'position', 'source', 'sourceId', 'name']));
 	return await sj.request('GET', `${sj.API_URL}/tracks?${query}`);
 }
 sj.editTrack = async function (track) {
