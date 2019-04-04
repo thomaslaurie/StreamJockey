@@ -136,7 +136,7 @@ import database, {pgp} from './db.mjs';
 
 sj.fetch = fetch;
 
-// polyfill
+// polyfill //TODO consider putting this just into global.mjs because it caused some problems earlier and it has a polyfill check anyways
 if (!Array.prototype.flat) {
     //L https://github.com/jonathantneal/array-flat-polyfill
 	Object.defineProperties(Array.prototype, {
@@ -487,105 +487,6 @@ sj.checkKey = async function (list, key) {
     });
 }
 
-//TODO consider rewriting this to just check and pack the values without changing the originals
-sj.Rule.checkRuleSet = async function (ruleSet) {
-    //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
-    //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
-
-    let validated = {};
-    await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
-        //C validate arguments
-        if (!sj.isType(isRequired, 'boolean')) {
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `isRequired is not a boolean`,
-                content: isRequired,
-            });
-        }
-        if (!sj.isType(column, 'string') | sj.isEmpty(column)){
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `column is not a string or is empty`,
-                content: column,
-            });
-        }
-        if (!rule instanceof this) {
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `rule is not an sj.Rule`,
-                content: rule,
-            });
-        }
-        if (!sj.isType(rule, 'object')) {
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `obj is not an object`,
-                content: obj,
-            });
-        }
-        if (!prop in obj) {
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `${prop} is not a property of the passed object`,
-                content: obj,
-            });
-        }
-
-        //C if property is required or is not required but has a value
-        if (isRequired || !sj.isEmpty(obj[prop])) {
-			//C validate property 
-			let checked = await rule.check(obj[prop, value2]);
-			//C pack into validated as	prop: {value: v, column: c}
-			validateObject[prop] = {};
-			validated[prop].column = column;
-			validated[prop].value = sj.content(checked);
-			return checked;
-
-			/* old
-				//C validate property, possibly modify obj[prop] if successful
-				//R the check has to specifically happen before the push to validated (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
-				let checked = await rule.check(obj[prop], value2);
-				obj[prop] = sj.content(checked);
-				//C add value to validated
-				//! if rule.check() throws, this won't be pushed, but that doesn't matter because validated won't be returned if there is any error
-				validated.push({column: column, value: obj[prop]});
-				//C return the success message of rule.check()
-				//! this doesn't end up being returned from the function, but is here for maintainability
-				return checked;
-			*/
-        } else {
-			//C don't pack into validated
-            return new sj.Success({
-                origin: 'sj.Rule.checkRuleSet()',
-                message: `optional empty property ${prop} skipped validation`,
-            });
-        }
-    }).catch(rejected => {
-        throw new sj.ErrorList({
-            log: true,
-            origin: 'sj.Rule.checkRuleSet()',
-            message: 'one or more issues with rules',
-            reason: 'validation functions returned one or more errors',
-            content: rejected,
-        });
-    });
-
-    return new sj.Success({
-        origin: 'sj.Rule.checkRuleSet()',
-        message: 'all rules validated',
-        content: validated,
-    });
-}
 sj.buildValues = function (obj) {
     if (Object.keys[obj].length === 0) {
         //C this shouldn't insert anything
@@ -669,6 +570,105 @@ sj.buildSet = function (obj) {
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
+// rule
+//TODO consider rewriting this to just check and pack the values without changing the originals
+sj.Rule.checkRuleSet = async function (ruleSet) {
+    //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
+    //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
+
+    let validated = {};
+    await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
+        //C validate arguments
+        if (!sj.isType(isRequired, 'boolean')) {
+            throw new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `isRequired is not a boolean`,
+                content: isRequired,
+            });
+        }
+        if (!sj.isType(column, 'string') | sj.isEmpty(column)){
+            throw new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `column is not a string or is empty`,
+                content: column,
+            });
+        }
+        if (!rule instanceof this) {
+            throw new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `rule is not an sj.Rule`,
+                content: rule,
+            });
+        }
+        if (!sj.isType(rule, 'object')) {
+            throw new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `obj is not an object`,
+                content: obj,
+            });
+        }
+        if (!prop in obj) {
+            throw new sj.Error({
+                log: true,
+                origin: 'sj.Rule.checkRuleSet()',
+                message: 'validation error',
+                reason: `${prop} is not a property of the passed object`,
+                content: obj,
+            });
+        }
+
+        //C if property is required or is not required but has a value
+        if (isRequired || !sj.isEmpty(obj[prop])) {
+			//C validate property 
+			let checked = await rule.check(obj[prop], value2);
+			//C pack into validated as	prop: {value: v, column: c}
+			validated[prop] = {column, value: sj.content(checked)};
+			return checked;
+
+			/* old
+				//C validate property, possibly modify obj[prop] if successful
+				//R the check has to specifically happen before the push to validated (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
+				let checked = await rule.check(obj[prop], value2);
+				obj[prop] = sj.content(checked);
+				//C add value to validated
+				//! if rule.check() throws, this won't be pushed, but that doesn't matter because validated won't be returned if there is any error
+				validated.push({column: column, value: obj[prop]});
+				//C return the success message of rule.check()
+				//! this doesn't end up being returned from the function, but is here for maintainability
+				return checked;
+			*/
+        } else {
+			//C don't pack into validated
+            return new sj.Success({
+                origin: 'sj.Rule.checkRuleSet()',
+                message: `optional empty property ${prop} skipped validation`,
+            });
+        }
+    }).catch(rejected => {
+        throw new sj.ErrorList({
+            log: true,
+            origin: 'sj.Rule.checkRuleSet()',
+            message: 'one or more issues with rules',
+            reason: 'validation functions returned one or more errors',
+            content: rejected,
+        });
+    });
+
+    return new sj.Success({
+        origin: 'sj.Rule.checkRuleSet()',
+        message: 'all rules validated',
+        content: validated,
+    });
+}
+
 // entity
 let noCRUDError = new sj.Error({
 	log: true,
@@ -703,6 +703,14 @@ Object.assign(sj.Entity.prototype, { // instance
 		return await this.constructor.delete(db, this);
 	},
 });
+
+
+//  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
+//  ██╔══██╗██║   ██║██║     ██╔════╝██╔════╝
+//  ██████╔╝██║   ██║██║     █████╗  ███████╗
+//  ██╔══██╗██║   ██║██║     ██╔══╝  ╚════██║
+//  ██║  ██║╚██████╔╝███████╗███████╗███████║
+//  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
 
 // rule
 Object.assign(sj.Rule, {
@@ -759,14 +767,6 @@ Object.assign(sj.Rule, {
 });
 
 
-//  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
-//  ██╔══██╗██║   ██║██║     ██╔════╝██╔════╝
-//  ██████╔╝██║   ██║██║     █████╗  ███████╗
-//  ██╔══██╗██║   ██║██║     ██╔══╝  ╚════██║
-//  ██║  ██║╚██████╔╝███████╗███████╗███████║
-//  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
-
-
 //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
 //  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
 //  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
@@ -774,8 +774,11 @@ Object.assign(sj.Rule, {
 //  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
-//TODO could these just return the base object since they don't need to deal with arrays? but what about keeping consistency with the logout function
-//TODO consider making a session object to hold these functions, server side and client side
+/* TODO
+	//TODO could these just return the base object since they don't need to deal with arrays? but what about keeping consistency with the logout function
+	//TODO consider making a session object to hold these functions, server side and client side
+*/
+
 
 // CRUD
 sj.login = async function (db, ctx, user) {
@@ -891,6 +894,10 @@ sj.isLoggedIn = async function (ctx) {
     //TODO ensure that password is not being returned here (no matter the view/permission), remember to use views in all CRUD functions, not just the tables
 */
 
+/*
+	live update system should listen to add, edit, and delete database calls - the items after for add and edit, and the items before for edit and delete - is it possible to return the items edited before their edit?
+*/
+
 // rules
 Object.assign(sj.Rule, {
 	self: new sj.Rule({
@@ -968,62 +975,6 @@ Object.assign(sj.Rule, {
 	}),
 });
 
-/* //OLD
-    sj.validateEmail = async function (email) {
-        let rules = new sj.Rule({
-            origin: 'validateEmail()',
-            message: 'email validated',
-            target: 'registerEmail',
-            cssClass: 'inputError',
-
-            content: email,
-
-            valueName: 'E-mail',
-            min: 3,
-            max: stringMaxLength,
-            trim: true,
-            // TODO useFilter: ___, filterMessage: ___, // https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-        });
-
-        return rules.checkAll();
-    }
-    sj.validateUserName = async function (name) {
-        let rules = new sj.Rule({
-            origin: 'validateUserName()',
-            message: 'username validated',
-            target: 'registerUserName',
-            cssClass: 'inputError',
-
-            content: name,
-
-            valueName: 'Username',
-            min: nameMinLength,
-            max: nameMaxLength,
-            trim: true,
-        });
-
-    return rules.checkAll();
-    }
-    sj.validatePassword = async function (password, password2) {
-        let rules = new sj.Rule({
-            origin: 'validatePassword()',
-            message: 'password validated',
-            target: 'registerPassword',
-            cssClass: 'inputError',
-
-            content: password,
-
-            valueName: 'Password',
-            min: 6,
-            max: 72, // as per bcrypt
-            against: password2,
-            againstMessage: 'Passwords do not match',
-        });
-    
-        return rules.checkAll();
-    }
-*/
-
 // CRUD
 Object.assign(sj.User, {
 	async add(db, users) {
@@ -1077,7 +1028,7 @@ Object.assign(sj.User, {
 				origin: 'sj.User.add()',
 				message: 'added users',
 				content: results,
-			})
+			});
 		}).catch(sj.propagate);
 	
 	
@@ -1394,93 +1345,6 @@ Object.assign(sj.Rule, {
 		trim: true,
 	}),
 });
-
-/* //OLD
-    sj.validatePlaylistName = async function (name) {
-        let rules = new sj.Rule({
-            origin: 'validatePlaylistName()',
-            message: 'name validated',
-            target: 'playlistName',
-            cssClass: 'inputError',
-
-            content: name,
-
-            valueName: 'Name',
-            min: nameMinLength,
-            max: stringMaxLength,
-            trim: true,
-        });
-
-        return rules.checkAll();
-    }
-    sj.validateVisibility = async function (visibility) {
-        let rules = new sj.Rule({
-            origin: 'validateVisibility()',
-            message: 'visibility validated',
-            target: 'playlistVisibility',
-            cssClass: 'inputError',
-
-            content: visibility,
-
-            valueName: 'Visibility',
-            against: visibilityStates,
-            againstMessage: 'please select a valid visibility level',
-        });
-
-        return rules.checkAll();
-    }
-    sj.validateDescription = async function (description) {
-        let rules = new sj.Rule({
-            origin: 'validateDescription()',
-            message: 'description validated',
-            target: 'playlistDescription',
-            cssClass: 'inputError',
-
-            content: description,
-
-            valueName: 'Visibility',
-            max: bigStringMaxLength,
-            trim: true,
-        });
-
-        return rules.checkAll();
-    }
-    sj.validateColor = async function (color) {
-        let rules = new sj.Rule({
-            origin: 'validateColor()',
-            message: 'color validated',
-            target: 'playlistColor',
-            cssClass: 'inputError',
-
-            content: color,
-
-            valueName: 'Color',
-            trim: true,
-            filter: '/#([a-f0-9]{3}){1,2}\b/', // TODO is this correct?
-            filterMessage: 'Color must be in hex format #XXXXXX',
-        });
-
-        return rules.checkAll();
-    }
-    sj.validateImage = async function (image) {
-        let rules = new sj.Rule({
-            origin: 'validateColor()',
-            message: 'image validated',
-            target: 'playlistImage',
-            cssClass: 'inputError',
-
-            content: image,
-
-            valueName: 'Image',
-            max: bigStringMaxLength,
-            trim: true,
-            // TODO filter: ___,
-            filterMessage: 'Image must be a valid url',
-        });
-
-        return rules.checkAll();
-    }
-*/
 
 // CRUD
 Object.assign(sj.Playlist, {
@@ -2592,7 +2456,7 @@ Object.assign(sj.Track.prototype, { // instance
 	}
 });
 
-/* old
+/* //OLD
     sj.orderTracks = async function (db, playlistId) {
         // update
         return db.tx(async function (t) {
@@ -2665,8 +2529,6 @@ Object.assign(sj.Track.prototype, { // instance
             throw sj.propagate(rejected);
         });
     }
-*/
-/* old, rewritten
     sj.moveTrack = async function (ctx, track, position) {
         //TODO what if edit cant change position, only move can? but then how does that interact with the REST? figure this out
 

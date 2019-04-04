@@ -45,6 +45,7 @@ import '../config/config.mjs';
 import Koa from 'koa'; //L https://github.com/koajs
 import bodyParser from 'koa-bodyparser'; //L https://github.com/koajs/bodyparser
 import session from 'koa-session'; //L https://github.com/koajs/session
+import cookie from 'cookie'; //L https://www.npmjs.com/package/cookie
 
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 import SocketIo from 'socket.io'; 
@@ -87,19 +88,26 @@ const sessionConfig = {
 
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 const server = http.createServer(app.callback());
+
+// socket io
 const sockets = new SocketIo(server); 
 const databaseSockets = sockets.of('/database');
+
 
 
 //L https://socket.io/docs/emit-cheatsheet/
 databaseSockets.on('connect', (socket) => {
 	console.log('SOCKET - CONNECTED', socket.id);
 
+	console.log('socket.request.headers.cookie', cookie.parse(socket.request.headers.cookie));
+
 	socket.on('disconnecting', (reason) => {
 		console.log('SOCKET - DISCONNECTING', socket.id);
 	});
 	socket.on('disconnect', (reason) => {
 		console.log('SOCKET - DISCONNECTED', socket.id);
+
+		//C socket has left all of its rooms at this point
 	});
 	socket.on('error', (reason) => {
 		console.log('SOCKET - ERROR', socket.id, reason);
@@ -116,6 +124,14 @@ databaseSockets.on('connect', (socket) => {
 		callback(new sj.Success({
 			content: validatedQuery,
 		}));
+	});
+
+	socket.on('UNSUBSCRIBE', (query, callback) => {
+		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
+		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
+
+
+		socket.leave(query);
 	});
 });
 
@@ -168,6 +184,8 @@ app.use(router.routes());
 app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
 
 
+
+
 //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
 //  ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║
 //  ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║
@@ -188,3 +206,21 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 //TODO errors thrown in some places (like routes) still aren't caught
+
+
+//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
+sockets.use((socket, next) => {
+	let error = null;
+	try {
+		// create a new (fake) Koa context to decrypt the session cookie
+		let ctx = app.createContext(socket.request, new http.OutgoingMessage());
+		console.log('ctx.session', ctx.session);
+		socket.session = ctx.session;
+	} catch (err) {
+		error = err;
+	}
+
+	console.log('socket.session', socket.session);
+
+	return next(error);
+});

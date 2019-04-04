@@ -179,6 +179,10 @@ Vue.mixin({
 
 const databaseSocket = new SocketIo('/database');
 
+//TODO client must re-subscribe everything in the database mirror when the socket disconnects then reconnects
+
+//TODO consider putting specific listeners into the mirrored database instead of having a generic event listener
+
 // databaseSocket.on('update', data => {
 // 	store.dispatch('updateMirror', data);
 // });
@@ -298,6 +302,62 @@ import AuthRedirectPage from '../vue/page/AuthRedirectPage.vue';
 import ErrorPage from '../vue/page/ErrorPage.vue';
 import NotFoundPage from '../vue/page/NotFoundPage.vue';
 
+
+/*
+
+	server-side database changes:
+
+	any user changes the database
+		adds an entity
+		edits an entity
+		deletes an entity
+		get can be ignored
+	the function executes as normal, but also dispatches (without awaiting) the event to [somewhere]
+		this event includes the entity with all of its (queriable) properties (not just id, because get may query by any property)
+		add 	- dispatches the entity after the change
+		delete 	- dispatches the entity before the change
+		edit 	- dispatches both the entity before and after the change
+	this entity is sent to [where ever query subscriptions are stored] where its compared against each query
+		try to compare in reverse order of frequency of properties, so that comparisons will short circuit as fast as possible
+		use a timeout for each query that is checked against the timestamp of the database change, remove subscription if exceeding (maybe like a day or something?)
+		//? more things in here (property filter, permission check, )
+	if it matches, send a socket event to the connected client that the query has updated
+		//? or could just send the new data directly (makes validation + permissions a bit harder)
+	...
+
+
+	server-side subscription:
+
+	socket event received to subscribe to a table & query
+	query is validated & returned
+		user permissions & returned properties should be calculated here
+	query goes into some list
+
+	socket event received to unsubscribe from a query
+	delete the query from the list
+
+
+	client-side subscription:
+		make a module that offers spreads for vuex
+
+	component calls vuex to subscribe to a query
+	query is sent to server via socket
+	validated query gets returned from socket
+	setup query mirror in vuex
+	send get request for initial data
+	give the query mirror the data
+	return the reference to the query mirror data
+
+	socket receives an event that a query has updated, trigger a new get request for the query
+		identified by the table, & query
+	update the data
+
+	component calls vuex to unsubscribe from a query (on destroy, or query change)
+	send a socket message to unsubscribe
+	delete the query mirror
+*/
+
+
 const router = new VueRouter({
 	//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
 	mode: 'history',
@@ -358,6 +418,7 @@ const store = new VueX.Store({
 		//? if user needs to be stored here (they dont, that happens with sessions atm) //L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
 
 		//TODO consider having the table as another parameter in the encoded query?
+		//R a good reason not to is that table is a property that all entities will have, so making it part of the data structure will make searches faster
 		databaseMirror: {
 			[sj.User.table]: {},
 			[sj.Playlist.table]: {},
@@ -409,6 +470,8 @@ const store = new VueX.Store({
 		async unsubscribe(context, {queryEntity, subscriber}) {
 			let query = sj.encodeList(queryEntity.filters.get);
 			let table = queryEntity.constructor.table;
+
+			//TODO unsubscribe from the server socket
 
 			await context.dispatch('deleteSubscriber', {table, query, subscriber});
 		},

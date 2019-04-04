@@ -186,32 +186,14 @@ sj.stringReplaceAll = function(input, search, replace) {
 }
 
 // HTTP
-sj.shake = function (obj, props) {
-	//C returns a new object with only the desired properties
-	let s = (obj, props) => {
-		let newObj = {};
-		props.forEach(prop => {
-			if (obj[prop] !== undefined) {
-				newObj[prop] = obj[prop];
-			}
-		});
-		return newObj;
-	}
-
-	//C handle objects and arrays of objects
-	if (typeof obj === 'object' && obj !== null) {
-		return s(obj, props);
-	} else if (Array.isArray(obj)) {
-		return obj.map(item => s(item, props));
-	}
-}
-
 sj.encodeProps = function (obj) {
+	//! every value is encoded as a string, objects as [object Object] and arrays as comma delimited encoded values
 	return Object.keys(obj).map(key => {
 		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
 	}).join('&');
 }
 sj.decodeProps = function (encoded) {
+	//! every value is decoded as a string
 	let pairs = encoded.split('&');
 	let obj = {};
 	pairs.forEach(pair => {
@@ -260,6 +242,35 @@ sj.decodeList = function (encoded) {
 		}
 	}
 	return list;
+}
+
+sj.shake = function (obj, props) {
+	//C returns a new object with only the desired properties
+	let s = (obj, props) => {
+		let newObj = {};
+		props.forEach(prop => {
+			if (obj[prop] !== undefined) {
+				newObj[prop] = obj[prop];
+			}
+		});
+		return newObj;
+	}
+
+	//C handle objects and arrays of objects
+	if (typeof obj === 'object' && obj !== null) {
+		return s(obj, props);
+	} else if (Array.isArray(obj)) {
+		return obj.map(item => s(item, props));
+	}
+}
+sj.isSuperSet = function (set, superSet) {
+	//C compares each prop in set to the respective prop in superSet, returns true if all are equal, ignores extra props in superSet
+	for (prop in set) {
+		if (superSet[prop] !== set[prop]) {
+			return false;
+		}
+	}
+	return true;
 }
 
 // sort
@@ -1452,9 +1463,6 @@ sj.Rule = class extends sj.Object {
 				//TODO parse strings for boolean & symbols & other?
 			}
 		}
-
-
-
 
 		//C throw if no matches
 		throw new sj.Error({
