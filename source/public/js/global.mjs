@@ -184,6 +184,9 @@ sj.msFormat = function (ms) {
 sj.stringReplaceAll = function(input, search, replace) {
 	return input.split(search).join(replace);
 }
+sj.capFirst = function(string) {
+	return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 // HTTP
 sj.encodeProps = function (obj) {
@@ -528,16 +531,16 @@ sj.catchUnexpected = function (input) {
 }
 sj.propagate = function (input, overwrite) {
 	//C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
-	let error = input;
-
 	if (!sj.isType(input, sj.Error)) { //C wrap any non-sj errors, let sj.Errors flow through
 		input = sj.catchUnexpected(input);
 	}
 	if (sj.isType(overwrite, Object)) { //C overwrite properties (for example making a more specific message)
 		Object.assign(input, overwrite);
-		// old, this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
+		//OLD this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
 	}
 	throw input;
+
+	//TODO //? why not just use Object.assign(input) instead?
 }
 sj.andResolve = function (rejected) {
 	//C resolves/returns any errors thrown by sj.propagate()

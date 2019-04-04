@@ -48,7 +48,7 @@ import session from 'koa-session'; //L https://github.com/koajs/session
 import cookie from 'cookie'; //L https://www.npmjs.com/package/cookie
 
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
-import SocketIo from 'socket.io'; 
+import SocketIO from 'socket.io'; 
 import http from 'http'; //TODO consider changing to the https module?
 
 
@@ -63,6 +63,8 @@ import router from './routes.mjs';
 //  ██║██║╚██╗██║██║   ██║   
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+const PORT = process.env.PORT || 3000;
 
 // koa
 const app = new Koa();
@@ -90,10 +92,8 @@ const sessionConfig = {
 const server = http.createServer(app.callback());
 
 // socket io
-const sockets = new SocketIo(server); 
-const databaseSockets = sockets.of('/database');
-
-
+const socketIO = new SocketIO(server); 
+const databaseSockets = socketIO.of('/database');
 
 //L https://socket.io/docs/emit-cheatsheet/
 databaseSockets.on('connect', (socket) => {
@@ -134,8 +134,6 @@ databaseSockets.on('connect', (socket) => {
 		socket.leave(query);
 	});
 });
-
-const PORT = process.env.PORT || 3000;
 
 
 //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
@@ -184,6 +182,17 @@ app.use(router.routes());
 app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
 
 
+// socket session
+socketIO.use((socket, next) => {
+	//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
+	//L https://github.com/koajs/session/issues/53#issuecomment-311601304
+	//! socket.session is static, whereas koa ctx.session is dynamic //?
+	//L https://socket.io/docs/server-api/#namespace-use-fn
+
+	//C uses a temporary koa context to decrypt the session
+	socket.session = app.createContext(socket.request, new http.OutgoingMessage()).session;
+	return next();
+});
 
 
 //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
@@ -208,19 +217,3 @@ process.on('unhandledRejection', (reason, p) => {
 //TODO errors thrown in some places (like routes) still aren't caught
 
 
-//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
-sockets.use((socket, next) => {
-	let error = null;
-	try {
-		// create a new (fake) Koa context to decrypt the session cookie
-		let ctx = app.createContext(socket.request, new http.OutgoingMessage());
-		console.log('ctx.session', ctx.session);
-		socket.session = ctx.session;
-	} catch (err) {
-		error = err;
-	}
-
-	console.log('socket.session', socket.session);
-
-	return next(error);
-});

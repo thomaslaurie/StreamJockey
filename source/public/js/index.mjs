@@ -152,7 +152,7 @@ import VueRouter from './vue-router.esm.browser.mjs';
 //L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! renamed from .js to .mjs, manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
 import VueX from './vuex.esm.browser.mjs'; 
 
-import SocketIo from 'socket.io-client';
+import SocketIO from 'socket.io-client';
 
 // internal
 import sj from './global-client.mjs';
@@ -177,7 +177,7 @@ Vue.mixin({
 });
 
 
-const databaseSocket = new SocketIo('/database');
+const databaseSocket = new SocketIO('/database');
 
 //TODO client must re-subscribe everything in the database mirror when the socket disconnects then reconnects
 
@@ -303,11 +303,16 @@ import ErrorPage from '../vue/page/ErrorPage.vue';
 import NotFoundPage from '../vue/page/NotFoundPage.vue';
 
 
+//R two approaches: use a rest request to subscribe and start the socket process, or using a socket request to subscribe and fetch via rest
+//R rest doesn't make as much sense as no method matches exactly what is being done (need to add a subscriber by sending a query and a socket id)
+//R maybe: use a subscribe request, which returns the initial query results, then updates via the socket - completely bypassing any get request
+//R or keep rest requests for transmitting data, just use the socket to transmit changes
+
 /*
 
 	server-side database changes:
 
-	any user changes the database
+	--> any user changes the database
 		adds an entity
 		edits an entity
 		deletes an entity
@@ -321,40 +326,47 @@ import NotFoundPage from '../vue/page/NotFoundPage.vue';
 		try to compare in reverse order of frequency of properties, so that comparisons will short circuit as fast as possible
 		use a timeout for each query that is checked against the timestamp of the database change, remove subscription if exceeding (maybe like a day or something?)
 		//? more things in here (property filter, permission check, )
-	if it matches, send a socket event to the connected client that the query has updated
+	<-- if it matches, send a socket event to the connected client that the query has updated
 		//? or could just send the new data directly (makes validation + permissions a bit harder)
-	...
+
 
 
 	server-side subscription:
 
-	socket event received to subscribe to a table & query
-	query is validated & returned
-		user permissions & returned properties should be calculated here
-	query goes into some list
+	--> socket event received
+		includes a table property and the query entity
+	query is validated, modified
+	query is also stored along with the user id (permissions) and socket id in [some query store], also with a timestamp
+		somehow also calculate the needed properties (ie don't return password)
+		//R it doesn't matter too much that the queries are grouped - because users won't often be using the same queries anyways
+	<-- query is transformed into a string query, and returned
 
-	socket event received to unsubscribe from a query
-	delete the query from the list
+	--> socket event received to unsubscribe from a query with query string
+	<-- find the query string in the store, validate user id & socket id, and delete it, return success
+
 
 
 	client-side subscription:
 		make a module that offers spreads for vuex
 
-	component calls vuex to subscribe to a query
-	query is sent to server via socket
-	validated query gets returned from socket
+	-> component calls vuex to subscribe to a query
+	<-- query is sent to server via socket to subscribe
+	--> validated query gets returned from socket
 	setup query mirror in vuex
 	send get request for initial data
 	give the query mirror the data
-	return the reference to the query mirror data
+	<- return the reference to the query mirror data
 
-	socket receives an event that a query has updated, trigger a new get request for the query
-		identified by the table, & query
-	update the data
+	--> socket receives an event that a query has updated
+	<-- trigger a new get request for the query identified by the table, & query
+	--> receive new data
+	update
 
-	component calls vuex to unsubscribe from a query (on destroy, or query change)
-	send a socket message to unsubscribe
+	-> component calls vuex to unsubscribe from a query (on destroy, or query change)
+	<-- send a socket message to unsubscribe
+	--> receive success
 	delete the query mirror
+	<- return success
 */
 
 
