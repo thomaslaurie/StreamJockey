@@ -488,7 +488,7 @@ sj.checkKey = async function (list, key) {
 }
 
 sj.buildValues = function (obj) {
-    if (Object.keys[obj].length === 0) {
+    if (Object.keys(obj).length === 0) {
         //C this shouldn't insert anything
         return `("id") SELECT 0 WHERE 0 = 1`;
     } else {
@@ -520,7 +520,7 @@ sj.buildValues = function (obj) {
     }
 }
 sj.buildWhere = function (obj) {
-    if (Object.keys[obj].length === 0) {
+    if (Object.keys(obj).length === 0) {
         //C return a false clause
         return '0 = 1';
     } else {
@@ -540,7 +540,7 @@ sj.buildWhere = function (obj) {
     }
 }
 sj.buildSet = function (obj) {
-    if (Object.keys[obj].length === 0) {
+    if (Object.keys(obj).length === 0) {
         //C don't make any change 
         //! this does have to reference a column that exists however
         return '"id" = "id"';
@@ -671,75 +671,62 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 // entity
 let noCoreError = new sj.Error({
-	log: true,
 	origin: 'sj.Entity static CRUD',
 	reason: `try to call a CRUD function of sj.Entity, it doesn't have any`,
 });
 Object.assign(sj.Entity, { // static
 	// calling functions
 	async add(db, query) {
-		let method = 'add';
-		return await this.crudWrapper(db, query, 
-			this[`${method}Before`],
-			this[`${method}Core`],
-			this[`${method}After`],
-			this[`${method}Success`],
-			this[`${method}Error`],
-		);
+		return await this.wrapper(db, query, 'add');
 	},
 	async get(db, query) {
-		let method = 'get';
-		return await this.crudWrapper(db, query, 
-			this[`${method}Before`],
-			this[`${method}Core`],
-			this[`${method}After`],
-			this[`${method}Success`],
-			this[`${method}Error`],
-		);
+		return await this.wrapper(db, query, 'get');
 	},
 	async edit(db, query) {
-		let method = 'edit';
-		return await this.crudWrapper(db, query, 
-			this[`${method}Before`],
-			this[`${method}Core`],
-			this[`${method}After`],
-			this[`${method}Success`],
-			this[`${method}Error`],
-		);
+		return await this.wrapper(db, query, 'edit');
 	},
 	async delete(db, query) {
-		let method = 'delete';
-		return await this.crudWrapper(db, query, 
-			this[`${method}Before`],
-			this[`${method}Core`],
-			this[`${method}After`],
-			this[`${method}Success`],
-			this[`${method}Error`],
-		);
+		return await this.wrapper(db, query, 'delete');
 	},
 
-	// common crud wrapper
-	async crudWrapper(db, entities, before, core, after, successList, errorList) {
+	// common CRUD wrapper
+	async wrapper(db, entities, method) {
 		let anyEntities = sj.any(entities);
 		return await db.tx(async t => {
-			let payload = await before(t, entities);
+			//C process list before iteration
+			let accessory = await this[`${method}Before`](t, anyEntities);
 
 			let results = await sj.asyncForEach(anyEntities, async entity => {
-				return await core(t, entity, payload);
+				//C validate
+				let validated = await sj.Rule.checkRuleSet(this[`${method}ValidateList`](entity)).then(sj.content).catch(sj.propagate);
+
+				//C prepare for insert, gets access to accessory
+				let prepared = await this[`${method}Prepare`](t, entity, validated, accessory).catch(sj.propagate);
+
+				//C SQL query & return
+				return await this[`${method}Query`](t, prepared).catch(sj.propagate);
 			}).catch(rejected => {
-				Object.assign(errorList, {content: rejected.flat(1)});
+				let errorList = this[`${method}Error`];
+				Object.assign(errorList, {
+					content: Array.isArray(rejected) ? rejected.flat(1) : rejected,
+					trace: sj.trace(),
+				});
 				errorList.announce();
 				sj.propagate(errorList);
 			}); 
 
-			results = await after(t, entities, results, payload);
+			//C process results after iteration, should also have access to entities & accessory
+			await this[`${method}After`](t, results, anyEntities, accessory).catch(sj.propagate);
 
 			//C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or delete (because they return single objects)
-			return Object.assign(successList, {content: results.flat(1)});
+			return Object.assign(this[`${method}Success`], {
+				content: Array.isArray(results) ? results.flat(1) : results,
+				trace: sj.trace(),
+			});
 		}).catch(sj.propagate);
 	},
 
-	//C executes before entity iteration, returns an object payload that is optionally passed as the last parameter of the core function
+	// before //C executes before entity iteration, returns an object accessory that is optionally passed as the last parameter of the core function
 	async addBefore(t, entities) {
 		return undefined;
 	},
@@ -753,35 +740,119 @@ Object.assign(sj.Entity, { // static
 		return undefined;
 	},
 
-	//C executes for each entity, optionally receives the payload object
-	async addCore(t, entity, payload) {
-		throw noCoreError;
+	// validate list
+	addValidateList() {
+		return [];
 	},
-	async getCore(t, entity, payload) {
-		throw noCoreError;
+	getValidateList() {
+		return [];
 	},
-	async editCore(t, entity, payload) {
-		throw noCoreError;
+	editValidateList() {
+		return [];
 	},
-	async deleteCore(t, entity, payload) {
-		throw noCoreError;
-	},
-
-	//C executes after entity iteration, returns the potentially modified results list, 
-	async addAfter(t, entities, results, payload) {
-		return results;
-	},
-	async getAfter(t, entities, results, payload) {
-		return results;
-	},
-	async editAfter(t, entities, results, payload) {
-		return results;
-	},
-	async deleteAfter(t, entities, results, payload) {
-		return results;
+	deleteValidateList() {
+		return [];
 	},
 
-	// success & error returns
+	// prepare
+	async addPrepare(t, entity, validated, accessory) {
+		return {values: sj.buildValues(validated)};
+	},
+	async getPrepare(t, entity, validated, accessory) {
+		return {where: sj.buildWhere(validated)};
+	},
+	async editPrepare(t, entity, validated, accessory) {
+		let {id, ...validatedSet} = validated;
+		return {
+			set: sj.buildSet(validatedSet),
+			where: sj.buildWhere({id}),
+		};
+	},
+	async deletePrepare(t, entity, validated, accessory) {
+		return {where: sj.buildWhere(validated)};
+	},
+
+	// query
+	async addQuery(t, {values}) {
+		//? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+		let row = await t.one(`
+			INSERT INTO "sj"."${this.table}" 
+			$1:raw RETURNING *
+		`, [values]).catch(rejected => { 
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: `sj.${this.name}.add()`,
+				message: `could not add ${this.name}s`,
+			}));
+		});
+
+		return new this(row);
+	},
+	async getQuery(t, {where}) { 
+		let rows = await t.any(`
+			SELECT * 
+			FROM "sj"."${this.table}" 
+			WHERE $1:raw
+			${this.getQueryOrder}
+		`, [where]).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: `sj.${this.name}.get()`,
+				message: `could not get ${this.name}s`,
+			}));
+		});
+
+		rows.forEach(row => {
+			row = new this(row);
+		});
+		return rows;
+	},
+	getQueryOrder: `ORDER BY "id" ASC`, //! this should be overwritten with different ORDER BY columns
+	async editQuery(t, {set, where}) {
+		let row = await t.one(`
+		UPDATE "sj"."${this.table}" 
+		SET $1:raw 
+		WHERE $2:raw 
+		RETURNING *`, [set, where]).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: `sj.${this.name}.edit()`,
+				message: `could not edit ${this.names}`,
+			}));
+		});
+
+		return new this(row);
+	},
+	async deleteQuery(t, {where}) {
+		let row = await t.one(`
+		DELETE FROM "sj"."${this.table}" 
+		WHERE $1:raw 
+		RETURNING *`, where).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: `sj.${this.name}.delete()`,
+				message: `could not delete ${this.names}s`,
+			}));
+		});
+		
+		return new this(row);
+	},
+
+	// after //C executes after entity iteration, returns the potentially modified results list
+	async addAfter(t, results, entities, accessory) {
+		return undefined;
+	},
+	async getAfter(t, results, entities, accessory) {
+		return undefined;
+	},
+	async editAfter(t, results, entities, accessory) {
+		return undefined;
+	},
+	async deleteAfter(t, results, entities, accessory) {
+		return undefined;
+	},
+
+	// success
 	get addSuccess() {
 		return new sj.SuccessList({
 			origin: `sj.${this.name}.add()`,
@@ -807,6 +878,7 @@ Object.assign(sj.Entity, { // static
 		});
 	},
 
+	// error
 	get addError() {
 		return new sj.ErrorList({
 			origin: `sj.${this.name}.add()`,
@@ -1037,10 +1109,6 @@ sj.isLoggedIn = async function (ctx) {
     //TODO ensure that password is not being returned here (no matter the view/permission), remember to use views in all CRUD functions, not just the tables
 */
 
-/*
-	live update system should listen to add, edit, and delete database calls - the items after for add and edit, and the items before for edit and delete - is it possible to return the items edited before their edit?
-*/
-
 // rules
 Object.assign(sj.Rule, {
 	self: new sj.Rule({
@@ -1120,14 +1188,36 @@ Object.assign(sj.Rule, {
 
 // CRUD
 Object.assign(sj.User, {
-	async addCore(t, user) {
-		let validated = await sj.Rule.checkRuleSet([
-			[true, 'name',		sj.Rule.userName,		user, 'name'],
-			[true, 'email',		sj.Rule.email, 			user, 'email'],
-		]).then(sj.content).catch(sj.propagate);
-		
+	// validate 
+	addValidateList(user) {
+		return [
+			[true, 'name',		sj.Rule.userName,	user, 'name'],
+			[true, 'email',		sj.Rule.email,		user, 'email'],
+		];
+	},
+	getValidateList(user) {
+		return [
+			[false, 'id',       sj.Rule.id,			user,   'id'],
+			[false, 'name',     sj.Rule.userName,   user,   'name'],
+		];
+	},
+	editValidateList(user) {
+		return [
+			[true,	'id',		sj.Rule.id,			user,	'id'],
+			[false, 'name',     sj.Rule.userName,   user,   'name'],
+			[false, 'email',	sj.Rule.email, 		user, 	'email'],
+			[false, 'spotifyRefreshToken',	sj.Rule.spotifyRefreshToken, user, 'spotifyRefreshToken'],
+		];
+	},
+	deleteValidateList(user) {
+		return [
+			[true, 'id',		sj.Rule.id,			user,	'id'],
+		];
+	},
 
-		//C check password separately
+	// overwrite
+	async addPrepare(t, user, validated, accessory) {
+		//C check password separately //? why? consider moving this back into addValidateList - think this was moved outside because validated used to be a string & wouldnt work for Rule.check modifications
 		user.password = await sj.Rule.password.check(user.password, user.password2).then(sj.content);
 		//C hash
 		let hash = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
@@ -1143,228 +1233,101 @@ Object.assign(sj.User, {
 		//C add to validated
 		validated.password = {column: 'password', value: hash};
 
-		let values = sj.buildValues(validated);
+		return {values: sj.buildValues(validated)};
+	},
+	getQueryOrder: 'ORDER BY "id" ASC',
 
-		let row = await t.one('INSERT INTO "sj"."users" $1:raw RETURNING *', values).catch(rejected => {
+	/* //OLD get
+		//R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
+		//R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
+		//R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
+
+		let where = await sj.checkAndBuild([
+			['id', sj.Rule.id, user, 'id'],
+			['name', sj.Rule.userName, user, 'name'],
+			//! don't query email because that is not visible to users_public (maybe allow it once permissions are implemented?)
+			//TODO expand properties
+		]);
+
+		//L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
+		let users = db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
-				origin: 'sj.User.add()',
-				message: 'could not add users',
+					origin: 'getUser()',
+					message: 'could not get user',
+					target: 'notify',
+					cssClass: 'notifyError',
 			}));
 		});
 
-		row = new sj.User(row);
-		return row;
+		//C cast
+		//! requires that table names are the same as object property names
+		users.forEach(item => {
+			item = new sj.User(item);
+		});
+		
+		return users;
+	*/
+	/* //OLD delete
+		await sj.isLoggedIn(ctx);
 
-		/* old
-			//C validate
-			await sj.Rule.checkRuleSet([
-				[sj.Rule.userName, user, 'name'],
-				[sj.Rule.setPassword, user, 'password', user.password2],
-				[sj.Rule.email, user, 'email'],
-			]);
-	
-			return bcrypt.hash(user.password, saltRounds).catch(rejected => {
+		await sj.Rule.checkRuleSet([
+			[sj.Rule.password, user, 'password'],
+		]);
+
+		return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: 'deleteUser()',
+				message: 'could not delete user',
+				target: 'notify',
+				cssClass: 'notifyError',
+			}));
+		}).then(resolved => {
+			return bcrypt.compare(user.password, resolved.password).catch(rejected => {
 				throw new sj.Error({
 					log: true,
-					origin: 'register()',
-					message: 'failed to register user',
-					reason: 'hash failed',
+					origin: 'deleteUser()',
+					message: 'server error',
+					reason: 'hash compare failed',
 					content: rejected,
-					target: 'notify',
-					cssClass: 'notifyError',
+					target: 'loginPassword',
+					cssClass: 'inputError',
 				});
-			}).then(resolved => {
-				return db.none('INSERT INTO "sj"."users" ("name", "password", "email") VALUES ($1, $2, $3)', [user.name, resolved, user.email]).catch(rejected => {
-					// replaces default error info with info based on error code 
+			});
+		}).then(resolved => {
+			if (resolved) {
+				return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
 					throw sj.parsePostgresError(rejected, new sj.Error({
 						log: false,
-						origin: 'addUser()',
-						message: 'could not add user',
+						origin: 'deleteUser()',
+						message: 'could not delete user',
 						target: 'notify',
 						cssClass: 'notifyError',
 					}));
 				});
-			}).then(resolved => {
-				//C strip passwords
-				user.password = undefined;
-				user.password2 = undefined;
-	
-				//C return user object
-				return new sj.Success({
-					log: true,
-					origin: 'register()',
-					message: `${user.name} registered`,
-					cssClass: 'notifySuccess',
-					content: user,
-				});
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		*/
-	},
-	async getCore(t, user) {
-		let validated = await sj.Rule.checkRuleSet([
-			[false, 'id',           sj.Rule.id,			user,   'id'],
-			[false, 'name',         sj.Rule.userName,   user,   'name'],
-		]).then(sj.content).catch(sj.propagate);
-
-		let where = sj.buildWhere(validated);
-
-		let rows = await t.any(`
-			SELECT * 
-			FROM "sj"."users" 
-			WHERE $1:raw
-			ORDER BY "id" ASC
-		`, where).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.User.get()',
-				message: 'could not get users',
-			}));
-		});
-
-		rows.forEach(row => {
-			row = new sj.User(row);
-		});
-		return rows;
-
-		/* old
-			//R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
-			//R there also isn't a good enough reason for handling an edge case where some input properties may be incorrect and others are correct, making a system to figure out which entry to return would never be useful (unless some advanced search system is implemented) and may actually hide errors
-			//R for all get functions, setup optional parameters for each unique key combination (id, containerId & otherUniqueParam, etc.)
-	
-			let where = await sj.checkAndBuild([
-				['id', sj.Rule.id, user, 'id'],
-				['name', sj.Rule.userName, user, 'name'],
-				//! don't query email because that is not visible to users_public (maybe allow it once permissions are implemented?)
-				//TODO expand properties
-			]);
-	
-			//L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
-			let users = db.any('SELECT * FROM "sj"."users_public" $1:raw', where).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
-					log: false,
-						origin: 'getUser()',
-						message: 'could not get user',
-						target: 'notify',
-						cssClass: 'notifyError',
-				}));
-			});
-	
-			//C cast
-			//! requires that table names are the same as object property names
-			users.forEach(item => {
-				item = new sj.User(item);
-			});
-			
-			return users;
-		*/
-	},
-	async editCore(t, user) {
-		let validated = await sj.Rule.checkRuleSet([
-			[true,	'id',		sj.Rule.id,			user,	'id'],
-			[false, 'name',     sj.Rule.userName,   user,   'name'],
-			[false, 'email',	sj.Rule.email, 		user, 	'email'],
-			[false, 'spotifyRefreshToken',	sj.Rule.spotifyRefreshToken, user, 'spotifyRefreshToken'],
-		]).then(sj.content).catch(sj.propagate);
-		
-		let {id, ...validatedSet} = validated;
-		let validatedWhere = {id};
-
-		let set = sj.buildSet(validatedSet);
-		let where = sj.buildWhere(validatedWhere);
-		
-		let row = await t.one(`UPDATE "sj"."users" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.User.edit()',
-				message: 'could not edit users',
-			}));
-		});
-
-		row = new sj.User(row);
-		return row;
-	},
-	async deleteCore(t, user) {
-		let validated = await sj.Rule.checkRuleSet([
-			[true, 'id', sj.Rule.id, user, 'id'],
-		]).then(sj.content).catch(sj.propagate);
-		
-		let where = sj.buildWhere(validated);
-
-		let row = await t.one(`DELETE FROM "sj"."users" WHERE $1:raw RETURNING *`, where).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.User.delete()',
-				message: 'could not delete user',
-			}));
-		});
-		
-		row = new sj.User(row);
-		return row;
-	
-		/* old
-			await sj.isLoggedIn(ctx);
-	
-			await sj.Rule.checkRuleSet([
-				[sj.Rule.password, user, 'password'],
-			]);
-	
-			return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
-					log: false,
-					origin: 'deleteUser()',
-					message: 'could not delete user',
-					target: 'notify',
-					cssClass: 'notifyError',
-				}));
-			}).then(resolved => {
-				return bcrypt.compare(user.password, resolved.password).catch(rejected => {
-					throw new sj.Error({
-						log: true,
-						origin: 'deleteUser()',
-						message: 'server error',
-						reason: 'hash compare failed',
-						content: rejected,
-						target: 'loginPassword',
-						cssClass: 'inputError',
-					});
-				});
-			}).then(resolved => {
-				if (resolved) {
-					return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
-						throw sj.parsePostgresError(rejected, new sj.Error({
-							log: false,
-							origin: 'deleteUser()',
-							message: 'could not delete user',
-							target: 'notify',
-							cssClass: 'notifyError',
-						}));
-					});
-				} else {
-					throw new sj.Error({
-						log: true,
-						origin: 'deleteUser()',
-						message: 'incorrect password',
-						target: 'deleteUserPassword',
-						cssClass: 'inputError',
-					});
-				}
-			}).then(resolved => {
-				//C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
-				return logout().catch(sj.andResolve);     
-			}).then(resolved => {
-				return new sj.Success({
+			} else {
+				throw new sj.Error({
 					log: true,
 					origin: 'deleteUser()',
-					message: `user ${user.name} deleted`,
+					message: 'incorrect password',
+					target: 'deleteUserPassword',
+					cssClass: 'inputError',
 				});
-			}).catch(rejected => {
-				throw propagateError(rejected);
+			}
+		}).then(resolved => {
+			//C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
+			return logout().catch(sj.andResolve);     
+		}).then(resolved => {
+			return new sj.Success({
+				log: true,
+				origin: 'deleteUser()',
+				message: `user ${user.name} deleted`,
 			});
-		*/
-	},
+		}).catch(rejected => {
+			throw propagateError(rejected);
+		});
+	*/
 });
 
 
@@ -1416,211 +1379,150 @@ Object.assign(sj.Rule, {
 
 // CRUD
 Object.assign(sj.Playlist, {
-	async addCore(t, playlist) {
-		let validated = await sj.Rule.checkRuleSet([
+	// validate
+	addValidateList() {
+		return [
 			[true,  'userId',       sj.Rule.id,             playlist,   'userId'],
 			[true,  'name',         sj.Rule.playlistName,   playlist,   'name'],
 			[false, 'description',  sj.Rule.description,    playlist,   'description'],
-		]).then(sj.content).catch(sj.propagate);
-		
-		let values = sj.buildValues(validated);
-
-		let row = await t.one(`INSERT INTO "sj"."playlists" $1:raw RETURNING *`, values).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Playlist.add()',
-				message: 'could not add playlists',
-			}));
-		});
-
-		row = new sj.Playlist(row);
-		return row;
-
-		/* old
-			await sj.isLoggedIn(ctx);
-
-			await sj.Rule.checkRuleSet([
-				[sj.Rule.playlistName, playlist, 'name'],
-				[sj.Rule.visibility, playlist, 'visibility'],
-				[sj.Rule.description, playlist, 'description'],
-				[sj.Rule.image, playlist, 'image'],
-				[sj.Rule.color, playlist, 'color'],
-			]);
-
-			return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
-					log: false,
-					origin: 'addPlaylist()',
-					message: 'failed to add playlist, database error',
-					target: 'notify',
-					cssClass: 'notifyError',
-				}));
-			}).then (resolved => {
-				return new sj.Success({
-					log: true,
-					origin: 'addPlaylist()',
-					message: `${playlist.name} added`,
-					cssClass: 'notifySuccess',
-					content: playlist,
-				});
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		*/
+		];
 	},
-	async getCore(t, playlist) {
-		let validated = await sj.Rule.checkRuleSet([
+	getValidateList() {
+		return [
 			[false, 'id',           sj.Rule.id,             playlist,   'id'],
 			[false, 'userId',       sj.Rule.id,             playlist,   'userId'],
 			[false, 'name',         sj.Rule.playlistName,   playlist,   'name'],
 			[false, 'description',  sj.Rule.description,    playlist,   'description'],
-		]).then(sj.content).catch(sj.propagate);
-
-		let where = sj.buildWhere(validated);
-
-		let rows = await t.any(`
-			SELECT * 
-			FROM "sj"."playlists" 
-			WHERE $1:raw
-			ORDER BY "userId" ASC, "id" ASC
-		`, where).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Playlist.get()',
-				message: 'could not get playlists',
-			}));
-		});
-
-		rows.forEach(row => {
-			row = new sj.Playlist(row);
-		});
-		return rows;
-	
-		/* old
-			//C build where
-			let where = await sj.checkAndBuild([
-				['id', sj.Rule.id, playlist, 'id'],
-				['userId', sj.Rule.id, playlist, 'userId'],
-				['name', sj.Rule.playlistName, playlist, 'name'],
-			]);
-	
-			//C query
-			let playlists = await db.any('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
-					log: false,
-					origin: 'sj.Playlist.get()',
-					message: 'could not get playlist, database error',
-					target: 'notify',
-					cssClass: 'notifyError',
-				}));
-			});
-	
-			//C cast
-			playlists.forEach(item => {
-				item = new sj.Playlist(item);
-			});
-	
-	
-			playlists = await Promise.all(playlists.map(async item => {
-				//C get tracks
-				item.content = sj.Track.get(ctx, new sj.Track({playlistId: item.id})).catch(rejected => {   
-					//TODO warning
-					console.warn('getPlaylist() succeeded, but a getTrack() failed')
-					return propagateError(rejected); //! returned, not thrown
-				});
-	
-				// await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, item.id).catch(rejected => {  
-				//     throw sj.parsePostgresError(rejected, new sj.Error({
-				//         log: false,
-				//         origin: 'getPlaylist() tracks query',
-				//         message: 'could not get playlist, database error',
-				//         target: 'notify',
-				//         cssClass: 'notifyError',
-				//     }));
-				// });
-	
-				return item;
-			})).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-	
-	
-			return playlists;
-		*/
+		];
 	},
-	async editCore(t, playlist) {
-		let validated = await sj.Rule.checkRuleSet([
+	editValidateList() {
+		return [
 			[true,	'id',			sj.Rule.id,				playlist,	'id'],
 			[false, 'name',         sj.Rule.playlistName,   playlist,   'name'],
 			[false, 'description',  sj.Rule.description,    playlist,   'description'],
-		]).then(sj.content).catch(sj.propagate);
-		
-		let {id, ...validatedSet} = validated;
-		let validatedWhere = {id};
-
-		let set = sj.buildSet(validatedSet);
-		let where = sj.buildWhere(validatedWhere);
-
-		let row = await t.one(`UPDATE "sj"."playlists" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Playlist.edit()',
-				message: 'could not edit playlists',
-			}));
-		});
-
-		row = new sj.Playlist(row);
-		return row;
+		];
 	},
-	async deleteCore(t, playlist) {
-		let validated = await sj.Rule.checkRuleSet([
+	deleteValidateList() {
+		return [
 			[true, 'id', sj.Rule.id, playlist, 'id'],
-		]).then(sj.content).catch(sj.propagate);
-		
-		let where = sj.buildWhere(validated);
+		];
+	},
 
-		let row = await t.one(`DELETE FROM "sj"."playlists" WHERE $1:raw RETURNING *`, where).catch(rejected => {
+	// overwrite
+	getQueryOrder: 'ORDER BY "userId" ASC, "id" ASC',
+
+	/* //OLD add
+		await sj.isLoggedIn(ctx);
+
+		await sj.Rule.checkRuleSet([
+			[sj.Rule.playlistName, playlist, 'name'],
+			[sj.Rule.visibility, playlist, 'visibility'],
+			[sj.Rule.description, playlist, 'description'],
+			[sj.Rule.image, playlist, 'image'],
+			[sj.Rule.color, playlist, 'color'],
+		]);
+
+		return db.none('INSERT INTO "sj"."playlists" ("userId", "name", "description", "visibility", "image", "color") VALUES ($1, $2, $3, $4, $5, $6)', [ctx.session.user.id, playlist.name, playlist.description, playlist.visibility, playlist.image, playlist.color]).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
-				origin: 'sj.Playlist.delete()',
-				message: 'could not delete playlist',
+				origin: 'addPlaylist()',
+				message: 'failed to add playlist, database error',
+				target: 'notify',
+				cssClass: 'notifyError',
+			}));
+		}).then (resolved => {
+			return new sj.Success({
+				log: true,
+				origin: 'addPlaylist()',
+				message: `${playlist.name} added`,
+				cssClass: 'notifySuccess',
+				content: playlist,
+			});
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	*/
+	/* //OLD get
+		//C build where
+		let where = await sj.checkAndBuild([
+			['id', sj.Rule.id, playlist, 'id'],
+			['userId', sj.Rule.id, playlist, 'userId'],
+			['name', sj.Rule.playlistName, playlist, 'name'],
+		]);
+
+		//C query
+		let playlists = await db.any('SELECT * FROM "sj"."playlists" $1:raw', where).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: 'sj.Playlist.get()',
+				message: 'could not get playlist, database error',
+				target: 'notify',
+				cssClass: 'notifyError',
 			}));
 		});
-		
-		row = new sj.Playlist(row);
-		return row;
-	
-		/* old
-			await sj.isLoggedIn(ctx);
-	
-			playlist = await sj.Playlist.get(ctx, playlist);
-	
-			await sj.Rule.checkRuleSet([
-				[sj.Rule.id, playlist, 'id'],
-				[sj.Rule.self, playlist, 'userId', ctx.session.user.id],
-			]);
-			
-			return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1', [playlist.id]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
-					log: false,
-					origin: 'deletePlaylist()',
-					message: 'could not delete playlist, database error',
-					target: 'notify',
-					cssClass: 'notifyError',
-				}));
-			}).then(resolved => {
-				return new sj.Success({
-					log: true,
-					origin: 'deletePlaylist()',
-					message: 'playlist deleted',
-					target: 'notify',
-					cssClass: 'notify success',
-				});
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
+
+		//C cast
+		playlists.forEach(item => {
+			item = new sj.Playlist(item);
+		});
+
+
+		playlists = await Promise.all(playlists.map(async item => {
+			//C get tracks
+			item.content = sj.Track.get(ctx, new sj.Track({playlistId: item.id})).catch(rejected => {   
+				//TODO warning
+				console.warn('getPlaylist() succeeded, but a getTrack() failed')
+				return propagateError(rejected); //! returned, not thrown
 			});
-		*/
-	},
+
+			// await db.any(`SELECT * FROM "sj"."tracks" WHERE "playlistId" = $1`, item.id).catch(rejected => {  
+			//     throw sj.parsePostgresError(rejected, new sj.Error({
+			//         log: false,
+			//         origin: 'getPlaylist() tracks query',
+			//         message: 'could not get playlist, database error',
+			//         target: 'notify',
+			//         cssClass: 'notifyError',
+			//     }));
+			// });
+
+			return item;
+		})).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+
+
+		return playlists;
+	*/
+	/* //OLD delete
+		await sj.isLoggedIn(ctx);
+
+		playlist = await sj.Playlist.get(ctx, playlist);
+
+		await sj.Rule.checkRuleSet([
+			[sj.Rule.id, playlist, 'id'],
+			[sj.Rule.self, playlist, 'userId', ctx.session.user.id],
+		]);
+		
+		return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1', [playlist.id]).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: 'deletePlaylist()',
+				message: 'could not delete playlist, database error',
+				target: 'notify',
+				cssClass: 'notifyError',
+			}));
+		}).then(resolved => {
+			return new sj.Success({
+				log: true,
+				origin: 'deletePlaylist()',
+				message: 'playlist deleted',
+				target: 'notify',
+				cssClass: 'notify success',
+			});
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	*/
 });
 
 
@@ -1667,6 +1569,44 @@ Object.assign(sj.Rule, {
 
 // CRUD
 Object.assign(sj.Track, {
+	// validate
+	addValidateList() {
+		return [
+			[true, 'playlistId',    sj.Rule.id,         track, 'playlistId'],
+			[true, 'source',        sj.Rule.source,     track.source, 'name'],
+			[true, 'sourceId',      sj.Rule.sourceId,   track, 'sourceId'],
+			[true, 'name',          sj.Rule.trackName,  track, 'name'],
+			[true, 'duration',      sj.Rule.posInt,     track, 'duration'],
+			[true, 'artists',		sj.Rule.none,		track, 'artists'],
+		];
+	},
+	getValidateList() {
+		return [
+			[false, 'id',           sj.Rule.id,     	track, 'id'],
+			[false, 'playlistId',   sj.Rule.id,     	track, 'playlistId'],
+			[false, 'position',     sj.Rule.posInt, 	track, 'position'],
+			[false, 'source',       sj.Rule.source,     track, 'source'],
+			[false, 'sourceId',		sj.Rule.sourceId,   track, 'sourceId'],
+		];
+	},
+	editValidateList() {
+		return [
+			[true,	'id',			sj.Rule.id,			track,	'id'],
+			//! do not edit position here
+			//[false, 'playlistId',   sj.Rule.id,        track, 'playlistId'],
+			[false,	'source',		sj.Rule.source,		track,	'source'],
+			[false, 'sourceId',     sj.Rule.sourceId,	track,	'sourceId'],
+			[false, 'name',         sj.Rule.trackName,	track,	'name'],
+			[false, 'duration',     sj.Rule.posInt,		track,	'duration'],
+		];
+	},
+	deleteValidateList() {
+		return [
+			[true, 'id', sj.Rule.id, track, 'id'],
+		];
+	},
+
+	// overwrite
 	async addBefore(t, tracks) {
 		//C get playlist lengths
 		//! //R playlist lengths cannot be retrieved inside the same asyncForEach() iterator that INSERTS them because they are executed in parallel (all getTracks() calls will happen before insertions), resulting in all existingTracks images being exactly the same, resulting in track.position collision
@@ -1679,121 +1619,12 @@ Object.assign(sj.Track, {
 
 		return lengths;
 	},
-	async addCore(t, track, lengths) {
-		let validated = await sj.Rule.checkRuleSet([
-			[true, 'playlistId',    sj.Rule.id,         track, 'playlistId'],
-			[true, 'source',        sj.Rule.source,     track.source, 'name'],
-			[true, 'sourceId',      sj.Rule.sourceId,   track, 'sourceId'],
-			[true, 'name',          sj.Rule.trackName,  track, 'name'],
-			[true, 'duration',      sj.Rule.posInt,     track, 'duration'],
-			[true, 'artists',		sj.Rule.none,		track, 'artists'],
-		]).then(sj.content).catch(sj.propagate);
-
+	async addPrepare(t, track, validated, accessory) {
 		//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
 		track.position = lengths[track.playlistId] + i;
 		validated.position = {column: 'position', value: track.position};
-		let values = sj.buildValues(validated);
 
-		let row = await t.one(`INSERT INTO "sj"."tracks" $1:raw RETURNING *`, values).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Track.add()',
-				message: 'could not add tracks',
-			}));
-		});
-
-		row = new sj.Track(row);
-		return row;
-	
-		/* old
-			//await sj.isLoggedIn(ctx);
-	
-			//C retrieve playlist
-			let playlist = await sj.Playlist.get(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-			//C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
-			
-			track.position = playlist.content.length;
-	
-			await sj.Rule.checkRuleSet([
-				[sj.Rule.self, ctx.session.user, 'id', playlist.userId],
-				[sj.Rule.id, track, 'playlistId'],
-				[sj.Rule.posInt, track, 'position'],
-				[sj.Rule.source, track, 'source'],
-				[sj.Rule.sourceId, track, 'sourceId'],
-				[sj.Rule.trackName, track, 'name'],
-				[sj.Rule.posInt, track, 'duration'],
-				//TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
-			]); 
-			
-				// var errorList = new sj.Error({
-				//     origin: 'addPlaylist()',
-				//     message: 'one or more issues with fields',
-				//     reason: 'validation functions returned one or more errors',
-				// });
-				// track.playlistId = await sj.Rule.id.check(track.playlistId).catch(rejected => {
-				//     errorList.content.push(rejected);
-				//     return rejected.content;
-				// });
-				// track.position = await sj.Rule.posInt.check(track.position).catch(rejected => {
-				//     errorList.content.push(rejected);
-				//     return rejected.content;
-				// });
-				// track.source = await sj.Rule.source.check(track.source).catch(rejected => {
-				//     errorList.content.push(rejected);
-				//     return rejected.content;
-				// });
-				// track.sourceId = await sj.Rule.sourceId.check(track.sourceId).catch(rejected => {
-				//     errorList.content.push(rejected);
-				//     return rejected.content;
-				// });
-				// track.name = await sj.Rule.trackName.check(track.name).catch(rejected => {
-				//     errorList.content.push(rejected);
-				//     return rejected.content;
-				// });
-				// track.duration = await sj.Rule.posInt.check(track.duration).catch(rejected => {
-				//     errorList.content.push(rejected);
-				//     return rejected.content;
-				// });
-				// //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
-				// if (!(errorList.content.length === 0)) {
-				//     errorList.announce();
-				//     throw errorList;
-				// }
-			
-	
-			//! artists is simply stored as an array, eg. TEXT[]
-			return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.sourceId, track.name, track.duration, track.artists]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
-					log: false,
-					origin: 'addTrack()',
-					message: 'could not add track, database error',
-					target: 'notify',
-					cssClass: 'notifyError',
-				}));
-			}).then(resolved => {
-				return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-					throw sj.parsePostgresError(rejected, new sj.Error({
-						log: false,
-						origin: 'addTrack()',
-						message: 'could not order playlist, database error',
-						target: 'notify',
-						cssClass: 'notifyError',
-					}));
-				});
-			}).then(resolved => {
-				return new sj.Success({
-					log: true,
-					origin: 'addTrack()',
-					target: 'notify',
-					cssClass: 'notifySuccess',
-					content: track,
-				});
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		*/
+		return {values: sj.buildValues(validated)};
 	},
 	async addAfter(t, tracks, results) {
 		//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
@@ -1813,215 +1644,221 @@ Object.assign(sj.Track, {
 
 		return results;
 	},
-
-	async getCore(t, track) {
-		//C checkRuleSet and set validated
-		let validated = await sj.Rule.checkRuleSet([
-			[false, 'id',           sj.Rule.id,     	track, 'id'],
-			[false, 'playlistId',   sj.Rule.id,     	track, 'playlistId'],
-			[false, 'position',     sj.Rule.posInt, 	track, 'position'],
-			[false, 'source',       sj.Rule.source,     track, 'source'],
-			[false, 'sourceId',		sj.Rule.sourceId,   track, 'sourceId'],
-		]).then(sj.content).catch(sj.propagate);
-
-		//C build where clause
-		let where = sj.buildWhere(validated);
-
-		//C query
-		let rows = await t.any(`
-			SELECT * 
-			FROM "sj"."tracks" 
-			WHERE $1:raw
-			ORDER BY "playlistId" ASC, "position" ASC
-		`, where).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Track.get()',
-				message: 'could not get tracks',
-			}));
-		});
-
-		//C cast
-		rows.forEach(row => {
-			row = new sj.Track(row);
-		});
-		return rows;
-
-		/* old
-			//C build where
-			let where = await sj.checkAndBuild([
-				['id', sj.Rule.id, track, 'id'],
-				['playlistId', sj.Rule.id, track, 'playlistId'],
-				['position', sj.Rule.posInt, track, 'position'],
-			]);
-	
-			//C query
-			let tracks = await db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
-					log: false,
-						origin: 'getTrack()',
-						message: 'could not get track',
-						target: 'notify',
-						cssClass: 'notifyError',
-				}));
-			});
-	
-			//C cast
-			tracks.forEach(item => {
-				item = new sj.Track(item);
-			});
-	
-			return tracks;
-		*/
-		/* old (from getPlaylist() ?) //! do not order tracks here because these will not always be an entire playlist
-			//C check and fix order
-			for (let i = 0; i < tracks.length; i++) {
-				if (tracks[i].position !== i) {
-					tracks = await sj.orderPlaylist
-				}
-			}
-	
-	
-			for (let i = 0; i < item.content.length; i++) {
-				if (item.content[i].position !== i) {
-					//C if not, order them
-					item = await sj.orderPlaylist(item).catch(rejected => {
-						throw sj.parsePostgresError(rejected, new sj.Error({
-							log: false,
-							origin: 'getPlaylist()',
-							message: 'could not order playlist, database error',
-							target: 'notify',
-							cssClass: 'notifyError',
-						}));
-					});
-					break;
-				}
-			}
-		*/
-	},
-
+	getQueryOrder: 'ORDER BY "playlistId" ASC, "position" ASC',
 	async editBefore(t, tracks) {
 		//C move before editing other data, so that final position may be accurate in returned results 
 		//! results will not include other tracks moved by moveTracks()
 		await sj.Track.move(t, tracks);
 		return undefined;
 	},
-	async editCore(t, track) {
-		let validated = await sj.Rule.checkRuleSet([
-			[true,	'id',			sj.Rule.id,			track,	'id'],
-			//! do not edit position here
-			//[false, 'playlistId',   sj.Rule.id,        track, 'playlistId'],
-			[false,	'source',		sj.Rule.source,		track,	'source'],
-			[false, 'sourceId',     sj.Rule.sourceId,	track,	'sourceId'],
-			[false, 'name',         sj.Rule.trackName,	track,	'name'],
-			[false, 'duration',     sj.Rule.posInt,		track,	'duration'],
-		]).then(sj.content).catch(sj.propagate);
-		
-		let {id, ...validatedSet} = validated;
-		let validatedWhere = {id};
-		
-		let set = sj.buildSet(validatedSet);
-		let where = sj.buildWhere(validatedWhere);
-
-		let row = await t.one(`UPDATE "sj"."tracks" SET $1:raw WHERE $2:raw RETURNING *`, [set, where]).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Track.edit()',
-				message: 'could not edit track',
-			}));
-		});
-
-		row = new sj.Track(row);
-		return row;
-
-	},
-
-	async deleteCore(t, track) {
-		let validated = await sj.Rule.checkRuleSet([
-			[true, 'id', sj.Rule.id, track, 'id'],
-		]).then(sj.content).catch(sj.propagate);
-
-		let where = sj.buildWhere(validated);
-
-		//! deletion will return the deleted row, however this will still (eventually) have visibility limitations and should not be used to restore data
-		let row = await t.one(`DELETE FROM "sj"."tracks" WHERE $1:raw RETURNING *`, where).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Track.delete()',
-				message: 'could not delete track',
-			}));
-		});
-		
-		row = new sj.Track(row);
-		return row;
-	
-		/* old
-			//! requires an sj.Track with playlistId and position properties
-	
-			await sj.isLoggedIn(ctx);
-	
-			await sj.Rule.checkRuleSet([
-				[sj.Rule.id, track, 'playlistId'],
-				[sj.Rule.posInt, track, 'position'],
-			]);
-	
-			
-			// `
-			// SELECT * 
-			// FROM "sj"."playlists" 
-			// JOIN "sj"."tracks" 
-			// ON "sj"."playlists"."id" = "sj"."tracks"."playlistId" 
-			// WHERE "sj"."tracks"."id" = $1`
-			
-			
-			//C retrieve playlist
-			let playlist = await sj.Playlist.get(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-	
-			//TODO change this to just id based
-			await sj.Rule.checkRuleSet([
-				[sj.Rule.self, playlist, 'userId', ctx.session.userId],
-			]);
-	
-			//TODO check to make sure it exists (like deletePlaylist has getPlaylist)
-	
-			return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
-				throw sj.parsePostgresError({
-					log: true,
-					origin: 'deleteTrack()',
-					message: 'failed to delete track, database error',
-					target: 'notify',
-					cssClass: 'notifyError',
-				});
-			}).then(resolved => {
-				return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
-					throw sj.parsePostgresError(rejected, new sj.Error({
-						log: false,
-						origin: 'deleteTrack()',
-						message: 'could not order playlist, database error',
-						target: 'notify',
-						cssClass: 'notifyError',
-					}));
-				});
-			}).then(resolved => {
-				return new sj.Success({
-					log: false,
-					origin: 'deleteTrack()',
-					content: track,
-					target: 'notify',
-					cssClass: 'notifySuccess', 
-				});
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		*/
-	},
 	async deleteAfter(t, tracks, results) {
 		//C order after deleting
 		await sj.Track.order(t, results); //TODO //? will this modify results? i dont think so, i think results needs to = sj.Track.order(), no this is just to order the database
 		return results;
 	},
+
+	/* //OLD add
+		//await sj.isLoggedIn(ctx);
+
+		//C retrieve playlist
+		let playlist = await sj.Playlist.get(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+		//C add track position //! playlist.content.length is accurate because the getPlaylist() orders the playlist
+		
+		track.position = playlist.content.length;
+
+		await sj.Rule.checkRuleSet([
+			[sj.Rule.self, ctx.session.user, 'id', playlist.userId],
+			[sj.Rule.id, track, 'playlistId'],
+			[sj.Rule.posInt, track, 'position'],
+			[sj.Rule.source, track, 'source'],
+			[sj.Rule.sourceId, track, 'sourceId'],
+			[sj.Rule.trackName, track, 'name'],
+			[sj.Rule.posInt, track, 'duration'],
+			//TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
+		]); 
+		
+			// var errorList = new sj.Error({
+			//     origin: 'addPlaylist()',
+			//     message: 'one or more issues with fields',
+			//     reason: 'validation functions returned one or more errors',
+			// });
+			// track.playlistId = await sj.Rule.id.check(track.playlistId).catch(rejected => {
+			//     errorList.content.push(rejected);
+			//     return rejected.content;
+			// });
+			// track.position = await sj.Rule.posInt.check(track.position).catch(rejected => {
+			//     errorList.content.push(rejected);
+			//     return rejected.content;
+			// });
+			// track.source = await sj.Rule.source.check(track.source).catch(rejected => {
+			//     errorList.content.push(rejected);
+			//     return rejected.content;
+			// });
+			// track.sourceId = await sj.Rule.sourceId.check(track.sourceId).catch(rejected => {
+			//     errorList.content.push(rejected);
+			//     return rejected.content;
+			// });
+			// track.name = await sj.Rule.trackName.check(track.name).catch(rejected => {
+			//     errorList.content.push(rejected);
+			//     return rejected.content;
+			// });
+			// track.duration = await sj.Rule.posInt.check(track.duration).catch(rejected => {
+			//     errorList.content.push(rejected);
+			//     return rejected.content;
+			// });
+			// //TODO validation for arrays (requires nested type checks, and possibly multiple valid types in sj.Rule)
+			// if (!(errorList.content.length === 0)) {
+			//     errorList.announce();
+			//     throw errorList;
+			// }
+		
+
+		//! artists is simply stored as an array, eg. TEXT[]
+		return db.none('INSERT INTO "sj"."tracks" ("playlistId", "position", "source", "sourceId", "name", "duration", "artists") VALUES ($1, $2, $3, $4, $5, $6, $7)', [track.playlistId, track.position, track.source, track.sourceId, track.name, track.duration, track.artists]).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: 'addTrack()',
+				message: 'could not add track, database error',
+				target: 'notify',
+				cssClass: 'notifyError',
+			}));
+		}).then(resolved => {
+			return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: 'addTrack()',
+					message: 'could not order playlist, database error',
+					target: 'notify',
+					cssClass: 'notifyError',
+				}));
+			});
+		}).then(resolved => {
+			return new sj.Success({
+				log: true,
+				origin: 'addTrack()',
+				target: 'notify',
+				cssClass: 'notifySuccess',
+				content: track,
+			});
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	*/
+	/* //OLD get
+		//C build where
+		let where = await sj.checkAndBuild([
+			['id', sj.Rule.id, track, 'id'],
+			['playlistId', sj.Rule.id, track, 'playlistId'],
+			['position', sj.Rule.posInt, track, 'position'],
+		]);
+
+		//C query
+		let tracks = await db.any('SELECT * FROM "sj"."tracks" $1:raw', where).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+					origin: 'getTrack()',
+					message: 'could not get track',
+					target: 'notify',
+					cssClass: 'notifyError',
+			}));
+		});
+
+		//C cast
+		tracks.forEach(item => {
+			item = new sj.Track(item);
+		});
+
+		return tracks;
+	*/
+	/* //OLD (from getPlaylist() ?) //! do not order tracks here because these will not always be an entire playlist
+		//C check and fix order
+		for (let i = 0; i < tracks.length; i++) {
+			if (tracks[i].position !== i) {
+				tracks = await sj.orderPlaylist
+			}
+		}
+
+
+		for (let i = 0; i < item.content.length; i++) {
+			if (item.content[i].position !== i) {
+				//C if not, order them
+				item = await sj.orderPlaylist(item).catch(rejected => {
+					throw sj.parsePostgresError(rejected, new sj.Error({
+						log: false,
+						origin: 'getPlaylist()',
+						message: 'could not order playlist, database error',
+						target: 'notify',
+						cssClass: 'notifyError',
+					}));
+				});
+				break;
+			}
+		}
+	*/
+	//! deletion will return the deleted row, however this will still (eventually) have visibility limitations and should not be used to restore data
+	/* //OLD delete
+		//! requires an sj.Track with playlistId and position properties
+
+		await sj.isLoggedIn(ctx);
+
+		await sj.Rule.checkRuleSet([
+			[sj.Rule.id, track, 'playlistId'],
+			[sj.Rule.posInt, track, 'position'],
+		]);
+
+		
+		// `
+		// SELECT * 
+		// FROM "sj"."playlists" 
+		// JOIN "sj"."tracks" 
+		// ON "sj"."playlists"."id" = "sj"."tracks"."playlistId" 
+		// WHERE "sj"."tracks"."id" = $1`
+		
+		
+		//C retrieve playlist
+		let playlist = await sj.Playlist.get(ctx, new sj.Playlist({id: track.playlistId})).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+
+		//TODO change this to just id based
+		await sj.Rule.checkRuleSet([
+			[sj.Rule.self, playlist, 'userId', ctx.session.userId],
+		]);
+
+		//TODO check to make sure it exists (like deletePlaylist has getPlaylist)
+
+		return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
+			throw sj.parsePostgresError({
+				log: true,
+				origin: 'deleteTrack()',
+				message: 'failed to delete track, database error',
+				target: 'notify',
+				cssClass: 'notifyError',
+			});
+		}).then(resolved => {
+			return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: 'deleteTrack()',
+					message: 'could not order playlist, database error',
+					target: 'notify',
+					cssClass: 'notifyError',
+				}));
+			});
+		}).then(resolved => {
+			return new sj.Success({
+				log: false,
+				origin: 'deleteTrack()',
+				content: track,
+				target: 'notify',
+				cssClass: 'notifySuccess', 
+			});
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	*/
 });
 
 // utility
@@ -2503,5 +2340,7 @@ Object.assign(sj.Track.prototype, { // instance
     }
 */
 
+// test
+//sj.User.add(sj.db, {name: 'tetsads', email: 'tettea@dfadfsd.com', password: 'password', password2: 'password'});
 
 export default sj;
