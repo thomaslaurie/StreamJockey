@@ -89,6 +89,43 @@ if (typeof fetch !== 'undefined') {
 	}
 }
 
+// polyfill //TODO consider putting this just into global.mjs because it caused some problems earlier and it has a polyfill check anyways
+if (!Array.prototype.flat) {
+    //L https://github.com/jonathantneal/array-flat-polyfill
+	Object.defineProperties(Array.prototype, {
+		flat: {
+			configurable: true,
+			value: function flat() {
+				let depth = isNaN(arguments[0]) ? 1 : Number(arguments[0]);
+				const stack = Array.prototype.slice.call(this);
+				const result = [];
+
+				while (depth && stack.length) {
+					const next = stack.pop();
+
+					if (Object(next) instanceof Array) {
+						--depth;
+
+						Array.prototype.push.apply(stack, next);
+					} else {
+						result.unshift(next);
+					}
+				}
+
+				return result.concat(stack);
+			},
+			writable: true
+		},
+		flatMap: {
+			configurable: true,
+			value: function flatMap(callback) {
+				return Array.prototype.map.apply(this, arguments).flat();
+			},
+			writable: true
+		}
+	});
+}
+
 //TODO make these actually constant with Object.defineProperty?
 sj.SERVER_URL = `http://localhost:3000`;
 sj.API_URL = `${sj.SERVER_URL}/api`;
@@ -541,6 +578,7 @@ sj.propagate = function (input, overwrite) {
 	throw input;
 
 	//TODO //? why not just use Object.assign(input) instead?
+	//TODO better yet, why not just use a spread operator at the top?
 }
 sj.andResolve = function (rejected) {
 	//C resolves/returns any errors thrown by sj.propagate()
@@ -1152,6 +1190,8 @@ sj.Error = class extends sj.Object {
 		this.objectType = 'sj.Error';
 
 		sj.Object.init(this, options, {
+			log: true, //TODO remove log: true from errors
+
 			code: 400,
 			type: 'Bad Request',
 		});
