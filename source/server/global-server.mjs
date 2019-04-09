@@ -51,8 +51,13 @@
     //R DO use return await
     //? can async arrow functions that have a single line return omit 'return await' ? 
 
-    //L proper use of array methods: https://medium.com/front-end-weekly/stop-array-foreach-and-start-using-filter-map-some-reduce-functions-298b4dabfa09
-    
+	//L proper use of array methods: https://medium.com/front-end-weekly/stop-array-foreach-and-start-using-filter-map-some-reduce-functions-298b4dabfa09
+	
+	//R I started using Object.assign() to supplement sj.Entity (and other classes) for server-specific functionality, however it was limiting me to shallow assignment - which required a bunch of functions to have prefixes (addPrepare, getPrepare, etc.), and I really wanted to avoid calling these functions like: this[`${method}Prepare`](), I wanted functional assignment much like class constructors, so I decided to switch to using  (function () {}).call()  which acts kind of reverse to how its used as 'super' in function classes, basically calling another constructor(?) later
+	//R two ways to implement: namespace within the class - this requires those namespaced functions to be called via this.namespace.fn.call(this, ...), or just prefix the functions which requires them to be called via this[`${namespace}Fn`](...), still not sure which is better
+	//R actually - don't do that namespace thing, as the namespace is still a reference to an object, so if a child class changes one of its properties, it changes it for all classes with that same namespace
+
+	//L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
 */
 
 
@@ -135,43 +140,6 @@ import database, {pgp} from './db.mjs';
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 sj.fetch = fetch;
-
-// polyfill //TODO consider putting this just into global.mjs because it caused some problems earlier and it has a polyfill check anyways
-if (!Array.prototype.flat) {
-    //L https://github.com/jonathantneal/array-flat-polyfill
-	Object.defineProperties(Array.prototype, {
-		flat: {
-			configurable: true,
-			value: function flat() {
-				let depth = isNaN(arguments[0]) ? 1 : Number(arguments[0]);
-				const stack = Array.prototype.slice.call(this);
-				const result = [];
-
-				while (depth && stack.length) {
-					const next = stack.pop();
-
-					if (Object(next) instanceof Array) {
-						--depth;
-
-						Array.prototype.push.apply(stack, next);
-					} else {
-						result.unshift(next);
-					}
-				}
-
-				return result.concat(stack);
-			},
-			writable: true
-		},
-		flatMap: {
-			configurable: true,
-			value: function flatMap(callback) {
-				return Array.prototype.map.apply(this, arguments).flat();
-			},
-			writable: true
-		}
-	});
-}
 
 // bcrypt
 const saltRounds = 10; 
@@ -439,7 +407,7 @@ sj.makeKey = function (length) {
         key += characters.charAt(Math.floor(Math.random() * characters.length));
     }
     return key;
-}
+};
 sj.addKey = async function (list, timeout) {
     let pack = {};
     let defaultTimeout = 300000; //C default 5 minutes
@@ -461,7 +429,7 @@ sj.addKey = async function (list, timeout) {
 
     list.push(pack);
     return pack;
-}
+};
 sj.checkKey = async function (list, key) {
     //C checks a list for a key, will remove and return if found, will clean up timed-out keys
     
@@ -485,7 +453,7 @@ sj.checkKey = async function (list, key) {
         origin: 'checkKey()',
         message: 'request timeout, or just an invalid key',
     });
-}
+};
 
 sj.buildValues = function (obj) {
     if (Object.keys(obj).length === 0) {
@@ -518,7 +486,7 @@ sj.buildValues = function (obj) {
 		//? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
         return pgp.as.format(`${columns} VALUES ${placeholders}`, values);
     }
-}
+};
 sj.buildWhere = function (obj) {
     if (Object.keys(obj).length === 0) {
         //C return a false clause
@@ -538,7 +506,7 @@ sj.buildWhere = function (obj) {
         //C join with ' AND '
         return pairs.join(' AND ');
     }
-}
+};
 sj.buildSet = function (obj) {
     if (Object.keys(obj).length === 0) {
         //C don't make any change 
@@ -560,7 +528,7 @@ sj.buildSet = function (obj) {
         //C join with ', '
         return pairs.join(', ');
     }
-}
+};
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -667,113 +635,142 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
         message: 'all rules validated',
         content: validated,
     });
-}
+};
 
 // entity
-let noCoreError = new sj.Error({
-	origin: 'sj.Entity static CRUD',
-	reason: `try to call a CRUD function of sj.Entity, it doesn't have any`,
-});
-Object.assign(sj.Entity, { // static
-	// calling functions
-	async add(db, query) {
-		return await this.wrapper(db, query, 'add');
-	},
-	async get(db, query) {
-		return await this.wrapper(db, query, 'get');
-	},
-	async edit(db, query) {
-		return await this.wrapper(db, query, 'edit');
-	},
-	async delete(db, query) {
-		return await this.wrapper(db, query, 'delete');
-	},
+(function () { // static
+	this.add = async function (db, query) {
+		return await this.common(db, query, 'add');
+	};
+	this.get = async function (db, query) {
+		return await this.common(db, query, 'get');
+	};
+	this.edit = async function (db, query) {
+		return await this.common(db, query, 'edit');
+	};
+	this.delete = async function (db, query) {
+		return await this.common(db, query, 'delete');
+	};
 
-	// common CRUD wrapper
-	async wrapper(db, entities, method) {
-		let anyEntities = sj.any(entities);
+	this.common = async function (db, anyEntities, crud) {
+		if (this === sj.Entity) {
+			throw new sj.Error({
+				origin: 'sj.Entity.[CRUD]',
+				reason: `cannot call CRUD method directly on sj.Entity`,
+			});
+		}
+
+		let entities = sj.any(anyEntities);
 		return await db.tx(async t => {
 			//C process list before iteration
-			let accessory = await this[`${method}Before`](t, anyEntities);
+			let accessory = await this[crud+'Before'](t, entities);
 
-			let results = await sj.asyncForEach(anyEntities, async entity => {
+			// all - before
+			
+			// each - validate
+
+			// all/each - intermediate
+
+			//! its good to have a final commit here because when things are being re-ordered (above), the logOld and logNew will catch these changes, (just make sure to filter out things that aren't changing)
+			// each - change (+ old + new) (includes prepare)
+
+			// all - flat
+
+			// all - after (+ old +new) (format old & new the same as current)
+
+
+
+			//C iterate
+			let {logOlds, results, logNews} = await sj.asyncForEach(entities, async entity => {
 				//C validate
-				let validated = await sj.Rule.checkRuleSet(this[`${method}ValidateList`](entity)).then(sj.content).catch(sj.propagate);
+				let validated = await sj.Rule.checkRuleSet(this[crud+'ValidateList'](entity)).then(sj.content).catch(sj.propagate);
 
-				//C prepare for insert, gets access to accessory
-				let prepared = await this[`${method}Prepare`](t, entity, validated, accessory).catch(sj.propagate);
+				//C prepare for insert, gets access to entity and accessory
+				let prepared = await this[crud+'Prepare'](t, validated, {entity, accessory}).catch(sj.propagate);
 
 				//C SQL query & return
-				return await this[`${method}Query`](t, prepared).catch(sj.propagate);
+				let pack = {};
+
+				if (crud === 'edit' || crud === 'delete') {
+					pack.logOld = await this.getQuery(t, prepared).catch(sj.propagate);
+				}
+
+				pack.result = await this[crud+'Query'](t, prepared).catch(sj.propagate);
+
+				if (crud === 'edit' || crud === 'add') {
+					pack.logNew = await await this.getQuery(t, prepared).catch(sj.propagate);
+				}
+
+				return pack
 			}).catch(rejected => {
-				let errorList = this[`${method}Error`];
-				Object.assign(errorList, {
+				throw sj.propagate(new sj.ErrorList({
+					...this[crud+'Error'](),
+					log: true,
 					content: Array.isArray(rejected) ? rejected.flat(1) : rejected,
-					trace: sj.trace(),
-				});
-				errorList.announce();
-				sj.propagate(errorList);
-			}); 
+				}));
+			});
 
-			//C process results after iteration, should also have access to entities & accessory
-			await this[`${method}After`](t, results, anyEntities, accessory).catch(sj.propagate);
+			//----------
+			//! this will cause problems as it is, specifically with Track.move(), its gonna be called 3 times
 
-			//C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or delete (because they return single objects)
-			return Object.assign(this[`${method}Success`], {
+			//C process results after iteration, gets access to entities and accessory
+			if (crud === 'edit' || crud === 'delete') {
+				await this[crud+'After'](t, logOlds, {entities, accessory}).catch(sj.propagate);
+			}
+			await this[crud+'After'](t, results, {entities, accessory}).catch(sj.propagate);
+			if (crud === 'edit' || crud === 'add') {
+				await this[crud+'After'](t, logNews, {entities, accessory}).catch(sj.propagate);
+			}
+			
+
+			return new sj.SuccessList({
+				...this[crud+'Success'](),
+				//C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or delete (because they return single objects)
 				content: Array.isArray(results) ? results.flat(1) : results,
-				trace: sj.trace(),
 			});
 		}).catch(sj.propagate);
-	},
+	};
 
-	// before //C executes before entity iteration, returns an object accessory that is optionally passed as the last parameter of the core function
-	async addBefore(t, entities) {
-		return undefined;
-	},
-	async getBefore(t, entities) {
-		return undefined;
-	},
-	async editBefore(t, entities) {
-		return undefined;
-	},
-	async deleteBefore(t, entities) {
-		return undefined;
-	},
+	this.getLogOld =
+	this.getLogNew =
+	this.addLogOld =
+	this.deleteLogNew =  async function () {
+		return;
+	};
 
-	// validate list
-	addValidateList() {
-		return [];
-	},
-	getValidateList() {
-		return [];
-	},
-	editValidateList() {
-		return [];
-	},
-	deleteValidateList() {
-		return [];
-	},
+	//C executes before entity iteration, optionally returns an accessory object that other functions receive
+	this.addBefore = 
+	this.getBefore = 
+	this.editBefore = 
+	this.deleteBefore = async function (t, entities) {
+		return;
+	};
 
-	// prepare
-	async addPrepare(t, entity, validated, accessory) {
+	this.addValidateList = 
+	this.getValidateList = 
+	this.editValidateList = 
+	this.deleteValidateList = function (entity) {
+		return [];
+	};
+
+	this.addPrepare = async function (t, validated, {entity, accessory}) {
 		return {values: sj.buildValues(validated)};
-	},
-	async getPrepare(t, entity, validated, accessory) {
+	};
+	this.getPrepare = async function (t, validated, {entity, accessory}) {
 		return {where: sj.buildWhere(validated)};
-	},
-	async editPrepare(t, entity, validated, accessory) {
+	};
+	this.editPrepare = async function (t, validated, {entity, accessory}) {
 		let {id, ...validatedSet} = validated;
 		return {
 			set: sj.buildSet(validatedSet),
 			where: sj.buildWhere({id}),
 		};
-	},
-	async deletePrepare(t, entity, validated, accessory) {
+	};
+	this.deletePrepare = async function (t, validated, {entity, accessory}) {
 		return {where: sj.buildWhere(validated)};
-	},
-
-	// query
-	async addQuery(t, {values}) {
+	};
+	
+	this.addQuery = async function (t, {values}) {
 		//? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
 		let row = await t.one(`
 			INSERT INTO "sj"."${this.table}" 
@@ -787,8 +784,9 @@ Object.assign(sj.Entity, { // static
 		});
 
 		return new this(row);
-	},
-	async getQuery(t, {where}) { 
+	};
+	this.getQueryOrder = `ORDER BY "id" ASC`; //! this should be overwritten with different ORDER BY columns
+	this.getQuery = async function (t, {where}) {
 		let rows = await t.any(`
 			SELECT * 
 			FROM "sj"."${this.table}" 
@@ -806,9 +804,8 @@ Object.assign(sj.Entity, { // static
 			row = new this(row);
 		});
 		return rows;
-	},
-	getQueryOrder: `ORDER BY "id" ASC`, //! this should be overwritten with different ORDER BY columns
-	async editQuery(t, {set, where}) {
+	};
+	this.editQuery = async function (t, {set, where}) {
 		let row = await t.one(`
 		UPDATE "sj"."${this.table}" 
 		SET $1:raw 
@@ -822,8 +819,8 @@ Object.assign(sj.Entity, { // static
 		});
 
 		return new this(row);
-	},
-	async deleteQuery(t, {where}) {
+	};
+	this.deleteQuery = async function (t, {where}) {
 		let row = await t.one(`
 		DELETE FROM "sj"."${this.table}" 
 		WHERE $1:raw 
@@ -836,88 +833,72 @@ Object.assign(sj.Entity, { // static
 		});
 		
 		return new this(row);
-	},
+	};
 
-	// after //C executes after entity iteration, returns the potentially modified results list
-	async addAfter(t, results, entities, accessory) {
+	//C executes after entity iteration, returns the potentially modified results list
+	this.addAfter = 
+	this.getAfter = 
+	this.editAfter = 
+	this.deleteAfter = async function (t, results, {entities, accessory}) {
 		return undefined;
-	},
-	async getAfter(t, results, entities, accessory) {
-		return undefined;
-	},
-	async editAfter(t, results, entities, accessory) {
-		return undefined;
-	},
-	async deleteAfter(t, results, entities, accessory) {
-		return undefined;
-	},
+	};
 
-	// success
-	get addSuccess() {
-		return new sj.SuccessList({
-			origin: `sj.${this.name}.add()`,
-			message: `added ${this.name}s`,
-		});
-	},
-	get getSuccess() {
-		return new sj.SuccessList({
-			origin: `sj.${this.name}.get()`,
-			message: `retrieved ${this.name}s`,
-		});
-	},
-	get editSuccess() {
-		return new sj.SuccessList({
-			origin: `sj.${this.name}.edit()`,
-			message: `edited ${this.name}s`,
-		});
-	},
-	get deleteSuccess() {
-		new sj.SuccessList({
-			origin: `sj.${this.name}.get()`,
-			message: `deleted ${this.name}s`,
-		});
-	},
+	this.addSuccess = function () {
+		return {
+		origin: `sj.${this.name}.add()`,
+		message: `added ${this.name}s`,
+	}};
+	this.getSuccess = function () {
+		return {
+		origin: `sj.${this.name}.get()`,
+		message: `retrieved ${this.name}s`,
+	}};
+	this.editSuccess = function () {
+		return {
+		origin: `sj.${this.name}.edit()`,
+		message: `edited ${this.name}s`,
+	}};
+	this.deleteSuccess = function () {
+		return {
+		origin: `sj.${this.name}.get()`,
+		message: `deleted ${this.name}s`,
+	}};
 
-	// error
-	get addError() {
-		return new sj.ErrorList({
-			origin: `sj.${this.name}.add()`,
-			message: `failed to add ${this.name}s`,
-		});
-	},
-	get getError() {
-		return new sj.ErrorList({
-			origin: `sj.${this.name}.get()`,
-			message: `failed to retrieve ${this.name}s`,
-		});
-	},
-	get editError() {
-		return new sj.ErrorList({
-			origin: `sj.${this.name}.edit()`,
-			message: `failed to edit ${this.name}s`,
-		});
-	},
-	get deleteError() {
-		return new sj.ErrorList({
-			origin: `sj.${this.name}.delete()`,
-			message: `failed to delete ${this.name}s`,
-		});
-	},
-});
-Object.assign(sj.Entity.prototype, { // instance
-	async add(db = sj.db) {
+	this.addError = function () {
+		return {
+		origin: `sj.${this.name}.add()`,
+		message: `failed to add ${this.name}s`,
+	}};
+	this.getError = function () {
+		return {
+		origin: `sj.${this.name}.get()`,
+		message: `failed to retrieve ${this.name}s`,
+	}};
+	this.editError = function () {
+		return {
+		origin: `sj.${this.name}.edit()`,
+		message: `failed to edit ${this.name}s`,
+	}};
+	this.deleteError = function () {
+		return {
+		origin: `sj.${this.name}.delete()`,
+		message: `failed to delete ${this.name}s`,
+	}};
+}).call(sj.Entity);
+(function () { // instance
+	this.add = async function (db = sj.db) {
 		return await this.constructor.add(db, this);
-	},
-	async get(db = sj.db) {
+	};
+	this.get = async function (db = sj.db) {
 		return await this.constructor.get(db, this);
-	},
-	async edit(db = sj.db) {
+	};
+	this.edit = async function (db = sj.db) {
 		return await this.constructor.edit(db, this);
-	},
-	async delete(db = sj.db) {
+	};
+	this.delete = async function (db = sj.db) {
 		return await this.constructor.delete(db, this);
-	},
-});
+	};
+}).call(sj.Entity.prototype);
 
 
 //  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
@@ -1051,14 +1032,14 @@ sj.login = async function (db, ctx, user) {
         message: 'user logged in',
         content: ctx.session.user,
     });
-}
+};
 sj.getMe = async function (ctx) {
     await sj.isLoggedIn(ctx);
     return new sj.Success({
         origin: 'getMe()',
         content: ctx.session.user,
     });
-}
+};
 sj.logout = async function (ctx) {
     delete ctx.session.user;
     return new sj.Success({
@@ -1066,7 +1047,7 @@ sj.logout = async function (ctx) {
         origin: 'logout()',
         message: 'user logged out',
     });
-}
+};
 
 // util
 sj.isLoggedIn = async function (ctx) {
@@ -1093,7 +1074,7 @@ sj.isLoggedIn = async function (ctx) {
         origin: 'isLoggedIn()',
         message: 'user is logged in',
     });
-}
+};
 
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
@@ -1187,36 +1168,36 @@ Object.assign(sj.Rule, {
 });
 
 // CRUD
-Object.assign(sj.User, {
-	// validate 
-	addValidateList(user) {
+(function () {
+	// validate
+	this.addValidateList = function (user) {
 		return [
 			[true, 'name',		sj.Rule.userName,	user, 'name'],
 			[true, 'email',		sj.Rule.email,		user, 'email'],
 		];
-	},
-	getValidateList(user) {
+	};
+	this.getValidateList = function (user) {
 		return [
 			[false, 'id',       sj.Rule.id,			user,   'id'],
 			[false, 'name',     sj.Rule.userName,   user,   'name'],
 		];
-	},
-	editValidateList(user) {
+	};
+	this.editValidateList = function (user) {
 		return [
 			[true,	'id',		sj.Rule.id,			user,	'id'],
 			[false, 'name',     sj.Rule.userName,   user,   'name'],
 			[false, 'email',	sj.Rule.email, 		user, 	'email'],
 			[false, 'spotifyRefreshToken',	sj.Rule.spotifyRefreshToken, user, 'spotifyRefreshToken'],
 		];
-	},
-	deleteValidateList(user) {
+	};
+	this.deleteValidateList = function (user) {
 		return [
 			[true, 'id',		sj.Rule.id,			user,	'id'],
 		];
-	},
+	};
 
 	// overwrite
-	async addPrepare(t, user, validated, accessory) {
+	this.addPrepare = async function (t, validated, {entity: user}) {
 		//C check password separately //? why? consider moving this back into addValidateList - think this was moved outside because validated used to be a string & wouldnt work for Rule.check modifications
 		user.password = await sj.Rule.password.check(user.password, user.password2).then(sj.content);
 		//C hash
@@ -1234,8 +1215,8 @@ Object.assign(sj.User, {
 		validated.password = {column: 'password', value: hash};
 
 		return {values: sj.buildValues(validated)};
-	},
-	getQueryOrder: 'ORDER BY "id" ASC',
+	};
+	this.getQueryOrder = 'ORDER BY "id" ASC';
 
 	/* //OLD get
 		//R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
@@ -1328,7 +1309,7 @@ Object.assign(sj.User, {
 			throw propagateError(rejected);
 		});
 	*/
-});
+}).call(sj.User);
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
@@ -1378,38 +1359,38 @@ Object.assign(sj.Rule, {
 });
 
 // CRUD
-Object.assign(sj.Playlist, {
+(function () {
 	// validate
-	addValidateList() {
+	this.addValidateList = function (playlist) {
 		return [
 			[true,  'userId',       sj.Rule.id,             playlist,   'userId'],
 			[true,  'name',         sj.Rule.playlistName,   playlist,   'name'],
 			[false, 'description',  sj.Rule.description,    playlist,   'description'],
 		];
-	},
-	getValidateList() {
+	};
+	this.getValidateList = function (playlist) {
 		return [
 			[false, 'id',           sj.Rule.id,             playlist,   'id'],
 			[false, 'userId',       sj.Rule.id,             playlist,   'userId'],
 			[false, 'name',         sj.Rule.playlistName,   playlist,   'name'],
 			[false, 'description',  sj.Rule.description,    playlist,   'description'],
 		];
-	},
-	editValidateList() {
+	};
+	this.editValidateList = function (playlist) {
 		return [
 			[true,	'id',			sj.Rule.id,				playlist,	'id'],
 			[false, 'name',         sj.Rule.playlistName,   playlist,   'name'],
 			[false, 'description',  sj.Rule.description,    playlist,   'description'],
 		];
-	},
-	deleteValidateList() {
+	};
+	this.deleteValidateList = function (playlist) {
 		return [
 			[true, 'id', sj.Rule.id, playlist, 'id'],
 		];
-	},
+	};
 
 	// overwrite
-	getQueryOrder: 'ORDER BY "userId" ASC, "id" ASC',
+	this.getQueryOrder = 'ORDER BY "userId" ASC, "id" ASC';
 
 	/* //OLD add
 		await sj.isLoggedIn(ctx);
@@ -1523,7 +1504,7 @@ Object.assign(sj.Playlist, {
 			throw sj.propagate(rejected);
 		});
 	*/
-});
+}).call(sj.Playlist);
 
 
 //  ████████╗██████╗  █████╗  ██████╗██╗  ██╗
@@ -1568,9 +1549,9 @@ Object.assign(sj.Rule, {
 });
 
 // CRUD
-Object.assign(sj.Track, {
+(function () {
 	// validate
-	addValidateList() {
+	this.addValidateList = function (track) {
 		return [
 			[true, 'playlistId',    sj.Rule.id,         track, 'playlistId'],
 			[true, 'source',        sj.Rule.source,     track.source, 'name'],
@@ -1579,8 +1560,8 @@ Object.assign(sj.Track, {
 			[true, 'duration',      sj.Rule.posInt,     track, 'duration'],
 			[true, 'artists',		sj.Rule.none,		track, 'artists'],
 		];
-	},
-	getValidateList() {
+	};
+	this.getValidateList = function (track) {
 		return [
 			[false, 'id',           sj.Rule.id,     	track, 'id'],
 			[false, 'playlistId',   sj.Rule.id,     	track, 'playlistId'],
@@ -1588,8 +1569,8 @@ Object.assign(sj.Track, {
 			[false, 'source',       sj.Rule.source,     track, 'source'],
 			[false, 'sourceId',		sj.Rule.sourceId,   track, 'sourceId'],
 		];
-	},
-	editValidateList() {
+	};
+	this.editValidateList = function (track) {
 		return [
 			[true,	'id',			sj.Rule.id,			track,	'id'],
 			//! do not edit position here
@@ -1599,17 +1580,18 @@ Object.assign(sj.Track, {
 			[false, 'name',         sj.Rule.trackName,	track,	'name'],
 			[false, 'duration',     sj.Rule.posInt,		track,	'duration'],
 		];
-	},
-	deleteValidateList() {
+	};
+	this.deleteValidateList = function (track) {
 		return [
 			[true, 'id', sj.Rule.id, track, 'id'],
 		];
-	},
+	};
 
 	// overwrite
-	async addBefore(t, tracks) {
+	this.addBefore = async function (t, tracks) {
 		//C get playlist lengths
 		//! //R playlist lengths cannot be retrieved inside the same asyncForEach() iterator that INSERTS them because they are executed in parallel (all getTracks() calls will happen before insertions), resulting in all existingTracks images being exactly the same, resulting in track.position collision
+		//console.log('CALLED');
 
 		let lengths = {};
 		await sj.asyncForEach(tracks, async track => {
@@ -1618,20 +1600,22 @@ Object.assign(sj.Track, {
 		});
 
 		return lengths;
-	},
-	async addPrepare(t, track, validated, accessory) {
+	};
+	this.addPrepare = async function (t, validated, {entity: track, accessory}) {
 		//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
 		track.position = lengths[track.playlistId] + i;
 		validated.position = {column: 'position', value: track.position};
 
 		return {values: sj.buildValues(validated)};
-	},
-	async addAfter(t, tracks, results) {
+	};
+	this.addAfter = async function (t, results, {entities: tracks}) {
 		//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
 
 		//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
 		//! requires the INSERT command to be executed one at at a time for each input track
 		//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
+
+		//----------- //! i said up here that the tracks would be inserted one at a time (in order), how is this true when using asyncForEach?
 		tracks.forEach((track, i) => {
 			if(!sj.isEmpty(track.position)) {
 				track.id = results[i].id;
@@ -1643,19 +1627,21 @@ Object.assign(sj.Track, {
 		await sj.Track.move(t, tracks);
 
 		return results;
-	},
-	getQueryOrder: 'ORDER BY "playlistId" ASC, "position" ASC',
-	async editBefore(t, tracks) {
+	};
+	this.getQueryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
+	this.editBefore = async function (t, tracks) {
 		//C move before editing other data, so that final position may be accurate in returned results 
+		//TODO but if returned results are retrieved after the move, then this can be editAfter
+
 		//! results will not include other tracks moved by moveTracks()
 		await sj.Track.move(t, tracks);
 		return undefined;
-	},
-	async deleteAfter(t, tracks, results) {
+	};
+	this.deleteAfter = async function (t, results, {entities: tracks}) {
 		//C order after deleting
 		await sj.Track.order(t, results); //TODO //? will this modify results? i dont think so, i think results needs to = sj.Track.order(), no this is just to order the database
 		return results;
-	},
+	};
 
 	/* //OLD add
 		//await sj.isLoggedIn(ctx);
@@ -1859,7 +1845,7 @@ Object.assign(sj.Track, {
 			throw sj.propagate(rejected);
 		});
 	*/
-});
+}).call(sj.Track);
 
 // utility
 Object.assign(sj.Track, { // static
@@ -1910,7 +1896,7 @@ Object.assign(sj.Track, { // static
 		*/
 		//C remove tracks without an id or position, define a new array so original is not modified
 		let movingTracks = tracks.filter(item => !(sj.isEmpty(item.id) || sj.isEmpty(item.position)));
-		//C remove duplicates (keeping last), filters for items where every item after does not have the same id
+		//C remove duplicates (keeping last), by filtering for items where every item after does not have the same id
 		movingTracks = movingTracks.filter((item, index, self) => self.slice(index+1).every(itemAfter => item.id !== itemAfter.id));
 	
 		//C return early if none are being re-positioned
@@ -2340,7 +2326,206 @@ Object.assign(sj.Track.prototype, { // instance
     }
 */
 
-// test
-//sj.User.add(sj.db, {name: 'tetsads', email: 'tettea@dfadfsd.com', password: 'password', password2: 'password'});
+
+
+
+let addIntermediate = async function (t, tracks) {
+	// add wont work because if a track position is replaced then it will need to be edited not inserted, which is a different query, unless two queries are used for add - which would be fine, old would have any tracks that were moved, and new would have the added tracks in addition to moved tracks
+
+};
+
+let editIntermediate = async function (db, tracks) {
+	//! tracks properties should already be validated
+
+	//---------- //! what happens if a track's playlistId is being changed???
+
+
+	//C filter out tracks without an id or position
+	let movingTracks = tracks.filter(track => !sj.isEmpty(track.id) && !sj.isEmpty(track.position));
+	//C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+	movingTracks = movingTracks.filter((track, index, self) => self.slice(index+1).every(trackAfter => track.id !== trackAfter.id));
+
+	//C return early if none are moving
+	if (movingTracks.length === 0) {
+		return new sj.Success({
+			origin: 'sj.Track.editIntermediate()',
+			message: 'track positions did not need to be set',
+		});
+	}
+
+	//C list of all referenced playlists
+	let playlists = [];
+	let inputIndex = Symbol();
+	return await db.tx(async t => {
+		await sj.asyncForEach(movingTracks, async (track, index) => {
+			//C temporarily store input index, this is needed because the input order is destroyed when tracks are grouped into playlists and movement types
+			track[inputIndex] = index;
+
+			//C get track's playlist based on track.id, using a sub-query
+			//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+			let retrievedPlaylist = await t.any(`
+				SELECT "id", "position", "playlistId"
+				FROM "sj"."tracks" 
+				WHERE "playlistId" = (
+					SELECT "playlistId"
+					FROM "sj"."tracks"
+					WHERE "id" = $1
+				) 
+			`, track.id).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: 'sj.Track.editIntermediate()',
+					message: 'could not move tracks',
+				}));
+			});
+
+			//C playlist should not be empty
+			if (retrievedPlaylist.length === 0) {
+				throw new sj.Error({
+					origin: 'sj.Track.editIntermediate()',
+					message: 'failed to move tracks',
+					reason: `the playlist retrieved by this track's id returned no rows, there must be an error with the query command`,
+				});
+			}
+
+			//C store and strip playlistId from tracks
+			//! this is done so that only modified properties will remain on the track objects
+			let playlistId = retrievedPlaylist[0].playlistId;
+			retrievedPlaylist.forEach(retrievedTrack => {
+				delete retrievedTrack.playlistId;
+			});
+
+			//C group tracks by playlist and their movement type
+			let group = function (moveType, id) {
+				let exists = false;
+				playlists.forEach(playlist => {
+					if (playlist.id === id) {
+						//C if the playlist is already stored, push this track
+						playlist[moveType].push(track);
+						exists = true;
+					}
+				});
+				if (!exists) {
+					//C if the playlist isn't stored yet, push a new one with the track
+					let newPlaylist = {
+						id: playlistId,
+
+						original: retrievedPlaylist,
+
+						// actions
+						adding: [],
+						removing: [],
+						moving: [],
+						notMoving: [],
+
+						merged: [],
+						changed: [],
+					};
+					newPlaylist[moveType].push(track);
+					playlists.push(newPlaylist);
+				}
+			}
+			if (track.playlistId === undefined || track.playlistId === playlistId) {
+				//C if track is moving within the same playlist
+				group('moving', playlistId);
+			} else {
+				//C else if the track is moving from one playlist to another
+				group('removing', playlistId);
+				group('adding', track.playlistId);
+			}
+
+			return new sj.Success({
+				origin: 'sj.Track.editIntermediate() - movingTracks iterator',
+				message: "retrieved track's playlist",
+			});
+		}).catch(rejected => {
+			throw new sj.ErrorList({
+				origin: 'sj.Track.editIntermediate() - movingTracks iterator',
+				message: `could not retrieve some track's playlist`,
+				content: rejected,
+			});
+		});
+
+		playlists.forEach(playlist => {
+			//? what happens if the same track is moved twice?, what happens if its moved and not moved in either order? what happens if it changes playlists and moves in either order?
+			//? is playlistId on adding tracks maintained?
+
+			//C populate notMoving with tracks in original that are not in adding, removing, or moving
+			playlist.notMoving = playlist.original.filter(originalTrack => 
+				!playlist.adding.some(addingTrack => addingTrack.id === originalTrack.id) &&
+				!playlist.removing.some(removingTrack => removingTrack.id === originalTrack.id) &&
+				!playlist.moving.some(movingTrack => movingTrack.id === originalTrack.id)
+			);
+
+			//! from here playlist.removing can just be ignored, these tracks aren't included in notMoving and wont be added to the final ordered list
+
+			//C sort
+			sj.stableSort(playlist.adding, (a, b) => a.position - b.position);
+			sj.stableSort(playlist.moving, (a, b) => a.position - b.position);
+			sj.stableSort(playlist.notMoving, (a, b) => a.position - b.position);
+
+			//C fill notMoving tracks around adding and moving tracks
+			//! must used original.length here because the other lists are being emptied
+			//R using a for loop instead here because only the length of playlist.original is needed
+			let i = 0;
+			while (playlist.adding.length > 0 && playlist.moving.length > 0 && playlist.merged.length > 0) {
+				let nextIsAdding = playlist.adding.length > 0 && playlist.adding[0].position <= i;
+				let nextIsMoving = playlist.moving.length > 0 && playlist.moving[0].position <= i;
+
+				//C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
+				//C this will properly handle negative and duplicate positions
+				//G shift removes the first item of an array and returns that item
+				if (nextIsAdding && nextIsMoving) {
+					if (playlist.adding[0].position === playlist.moving[0].position) {
+						//C if same position - push the one with the lower inputIndex
+						playlist.adding[0][inputIndex] < playlist.moving[0][inputIndex]
+						? playlist.merged.push(playlist.adding.shift())
+						: playlist.merged.push(playlist.moving.shift());
+					} else {
+						//C else - push the one with the lower position
+						playlist.adding[0].position < playlist.moving[0].position
+						? playlist.merged.push(playlist.adding.shift())
+						: playlist.merged.push(playlist.moving.shift());
+					}
+				} else if (nextIsAdding) {
+					playlist.merged.push(playlist.adding.shift());
+				} else if (nextIsMoving) {
+					playlist.merged.push(playlist.moving.shift());
+				} else if (playlist.notMoving.length > 0) {
+					//C else - transfer the next notMoving track
+					playlist.merged.push(playlist.notMoving.shift());
+				}
+
+				i++;
+			}
+
+			//C assign new positions
+			playlist.merged.forEach((mergedTrack, index) => {
+				mergedTrack.position = index;
+			});
+
+			//C populate playlist.changed with tracks that have new positions
+			playlist.changed = playlist.merged.filter(mergedTrack => mergedTrack.position !== playlist.original.find(originalTrack => originalTrack.id === mergedTrack.id).position);
+		});
+
+		// remove input index
+
+		// strip playlist ids
+		// entered tracks should still have all their props
+		// other changed tracks should only have their id and new position
+	});
+};
+
+let deleteIntermediate = async function (t, tracks) {
+};
+
+let addAndEditMove = async function (t, anyTracks) {
+	
+}
+
+let deleteOnlyOder = async function (t, tracks) {
+
+}
+
 
 export default sj;
