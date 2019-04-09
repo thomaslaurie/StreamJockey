@@ -57,7 +57,7 @@
 	//R two ways to implement: namespace within the class - this requires those namespaced functions to be called via this.namespace.fn.call(this, ...), or just prefix the functions which requires them to be called via this[`${namespace}Fn`](...), still not sure which is better
 	//R actually - don't do that namespace thing, as the namespace is still a reference to an object, so if a child class changes one of its properties, it changes it for all classes with that same namespace
 
-	//L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
+
 */
 
 
@@ -2328,16 +2328,14 @@ Object.assign(sj.Track.prototype, { // instance
 
 
 
+//R add wont work because if a track position is replaced then it will need to be edited not inserted, which is a different query, unless two queries are used for add - which would be fine, old would have any tracks that were moved, and new would have the added tracks in addition to moved tracks
 
-let addIntermediate = async function (t, tracks) {
-	// add wont work because if a track position is replaced then it will need to be edited not inserted, which is a different query, unless two queries are used for add - which would be fine, old would have any tracks that were moved, and new would have the added tracks in addition to moved tracks
-
-};
-
-let editIntermediate = async function (db, tracks) {
+let order = async function (db, tracks) {
 	//! tracks properties should already be validated
 
-	//---------- //! what happens if a track's playlistId is being changed???
+	//?	 what happens if a track's playlistId is being changed???
+	//? what happens if the same track is moved twice?, what happens if its moved and not moved in either order? what happens if it changes playlists and moves in either order?
+	//? is playlistId on adding tracks maintained?
 
 
 	//C filter out tracks without an id or position
@@ -2353,10 +2351,10 @@ let editIntermediate = async function (db, tracks) {
 		});
 	}
 
-	//C list of all referenced playlists
-	let playlists = [];
-	let inputIndex = Symbol();
 	return await db.tx(async t => {
+		let playlists = [];
+		let inputIndex = Symbol();
+
 		await sj.asyncForEach(movingTracks, async (track, index) => {
 			//C temporarily store input index, this is needed because the input order is destroyed when tracks are grouped into playlists and movement types
 			track[inputIndex] = index;
@@ -2413,13 +2411,9 @@ let editIntermediate = async function (db, tracks) {
 						original: retrievedPlaylist,
 
 						// actions
-						adding: [],
 						removing: [],
+						adding: [],
 						moving: [],
-						notMoving: [],
-
-						merged: [],
-						changed: [],
 					};
 					newPlaylist[moveType].push(track);
 					playlists.push(newPlaylist);
@@ -2447,9 +2441,6 @@ let editIntermediate = async function (db, tracks) {
 		});
 
 		playlists.forEach(playlist => {
-			//? what happens if the same track is moved twice?, what happens if its moved and not moved in either order? what happens if it changes playlists and moves in either order?
-			//? is playlistId on adding tracks maintained?
-
 			//C populate notMoving with tracks in original that are not in adding, removing, or moving
 			playlist.notMoving = playlist.original.filter(originalTrack => 
 				!playlist.adding.some(addingTrack => addingTrack.id === originalTrack.id) &&
@@ -2460,72 +2451,65 @@ let editIntermediate = async function (db, tracks) {
 			//! from here playlist.removing can just be ignored, these tracks aren't included in notMoving and wont be added to the final ordered list
 
 			//C sort
-			sj.stableSort(playlist.adding, (a, b) => a.position - b.position);
-			sj.stableSort(playlist.moving, (a, b) => a.position - b.position);
 			sj.stableSort(playlist.notMoving, (a, b) => a.position - b.position);
+			//C combine both adding and moving, stable sort by inputIndex then position to resolve clashes by position then inputIndex
+			playlist.combined = [...playlist.adding, playlist.moving];
+			sj.stableSort(playlist.combined, (a, b) => a[inputIndex] - b[inputIndex]);
+			sj.stableSort(playlist.combined, (a, b) => a.position - b.position);
 
-			//C fill notMoving tracks around adding and moving tracks
-			//! must used original.length here because the other lists are being emptied
-			//R using a for loop instead here because only the length of playlist.original is needed
+			//C inputIndex is no longer needed, remove it from anything it was added to
+			playlist.combined.forEach(combinedTrack => {
+				delete combinedTrack[inputIndex];
+			});
+			playlist.removing.forEach(removingTrack => {
+				delete removingTrack[inputIndex];
+			});
+
+			//C populate merged by filling notMoving tracks around combined tracks
+			playlist.merged = [];
 			let i = 0;
-			while (playlist.adding.length > 0 && playlist.moving.length > 0 && playlist.merged.length > 0) {
-				let nextIsAdding = playlist.adding.length > 0 && playlist.adding[0].position <= i;
-				let nextIsMoving = playlist.moving.length > 0 && playlist.moving[0].position <= i;
-
-				//C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
-				//C this will properly handle negative and duplicate positions
-				//G shift removes the first item of an array and returns that item
-				if (nextIsAdding && nextIsMoving) {
-					if (playlist.adding[0].position === playlist.moving[0].position) {
-						//C if same position - push the one with the lower inputIndex
-						playlist.adding[0][inputIndex] < playlist.moving[0][inputIndex]
-						? playlist.merged.push(playlist.adding.shift())
-						: playlist.merged.push(playlist.moving.shift());
-					} else {
-						//C else - push the one with the lower position
-						playlist.adding[0].position < playlist.moving[0].position
-						? playlist.merged.push(playlist.adding.shift())
-						: playlist.merged.push(playlist.moving.shift());
-					}
-				} else if (nextIsAdding) {
-					playlist.merged.push(playlist.adding.shift());
-				} else if (nextIsMoving) {
-					playlist.merged.push(playlist.moving.shift());
-				} else if (playlist.notMoving.length > 0) {
+			while (playlist.notMoving.length > 0) {
+				if (playlist.combined.length > 0 && playlist.combined[0].position <= i) {
+					//C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
+					//C this will properly handle negative and duplicate positions
+					//G shift removes the first item of an array and returns that item
+					playlist.merged.push(playlist.combined.shift());
+				} else {
 					//C else - transfer the next notMoving track
 					playlist.merged.push(playlist.notMoving.shift());
 				}
-
 				i++;
 			}
+
+			//C push rest of combined tracks
+			//R this method was chosen over including combined.length > 0 in the while condition to prevent needless loops caused by ridiculously high positions, this was also chosen over original.length because adding + moving tracks could be greater the playlist length
+			//L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
+			playlist.merged.push(...playlist.combined);
+			playlist.combined.length = 0; //! remove combined tracks for consistent behavior
 
 			//C assign new positions
 			playlist.merged.forEach((mergedTrack, index) => {
 				mergedTrack.position = index;
 			});
 
-			//C populate playlist.changed with tracks that have new positions
-			playlist.changed = playlist.merged.filter(mergedTrack => mergedTrack.position !== playlist.original.find(originalTrack => originalTrack.id === mergedTrack.id).position);
+			//C populate playlist.changed with tracks from merged that are not found or whose position has changed
+			playlist.changed = playlist.merged.filter(mergedTrack => {
+				let foundOriginal = playlist.original.find(originalTrack => originalTrack.id === mergedTrack.id);
+				return !foundOriginal || mergedTrack.position !== foundOriginal.position;
+			});
 		});
 
-		// remove input index
-
-		// strip playlist ids
 		// entered tracks should still have all their props
 		// other changed tracks should only have their id and new position
+
+		//C return a flattened list of all changed tracks
+		return playlists.reduce((changed, playlist) => {
+			playlist.changed.forEach(track => {
+				changed.push(track);
+			})
+		}, []);
 	});
 };
-
-let deleteIntermediate = async function (t, tracks) {
-};
-
-let addAndEditMove = async function (t, anyTracks) {
-	
-}
-
-let deleteOnlyOder = async function (t, tracks) {
-
-}
 
 
 export default sj;
