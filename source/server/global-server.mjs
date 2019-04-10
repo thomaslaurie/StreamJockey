@@ -1859,10 +1859,6 @@ Object.assign(sj.Rule, {
 		//C duplicate positions will be in order of input order
 		//C overlapping positions will be be in order of input position, this will only be caused by other track's out-of-bounds or duplicate positions
 
-		//TODO test that input track's positions are being modified in the case of duplicate or out-of-bounds positions
-		//TODO test that tracks in a playlist that a track is moving into (via playlistId change) are having their positions updated
-
-
 		//C filter out tracks without an id and position or playlistId
 		let inputTracks = tracks.filter(track => !sj.isEmpty(track.id) && (!sj.isEmpty(track.position) || !sj.isEmpty(track.playlistId)));
 		//C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
@@ -1888,17 +1884,28 @@ Object.assign(sj.Rule, {
 				//C temporarily store inputIndex, this is needed because the input order is destroyed when tracks are grouped into playlists and moveType
 				track[inputIndex] = index;
 
-				//C get track's current playlist based on track.id, using a sub-query
-				//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
-				let retrievedPlaylist = await t.any(`
+				//C retrieve own playlist or playlist track is being moved to
+				let where = `
 					SELECT "id", "position", "playlistId"
 					FROM "sj"."tracks" 
-					WHERE "playlistId" = (
+					WHERE "playlistId" = 
+				`;
+				let identifier;
+				if (sj.isEmpty(track.playlistId)) {
+					where += `(
 						SELECT "playlistId"
 						FROM "sj"."tracks"
 						WHERE "id" = $1
-					) 
-				`, track.id).catch(rejected => {
+					)`;
+					identifier = track.id;
+				} else {
+					where += `$1`;
+					identifier = track.playlistId;
+				}
+
+				//C get track's current playlist based on track.id, using a sub-query
+				//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+				let retrievedPlaylist = await t.any(where, identifier).catch(rejected => {
 					throw sj.parsePostgresError(rejected, new sj.Error({
 						log: false,
 						origin: 'sj.Track.editIntermediate()',
@@ -1964,8 +1971,6 @@ Object.assign(sj.Rule, {
 					group('inputsToAdd', track.playlistId);
 				}
 
-				console.log('playlists.length:', playlists.length);
-
 				return new sj.Success({
 					origin: 'sj.Track.editIntermediate() - movingTracks iterator',
 					message: "retrieved track's playlist",
@@ -1977,6 +1982,8 @@ Object.assign(sj.Rule, {
 					content: rejected,
 				});
 			});
+
+			console.log('playlists.length:', playlists.length, '\n ---');
 
 			//C calculate new track positions required to accommodate input tracks' positions
 			playlists.forEach(playlist => {
@@ -2014,10 +2021,10 @@ Object.assign(sj.Rule, {
 
 				//C inputIndex is no longer needed, remove it from anything it was added to
 				playlist.inputsToPosition.forEach(trackToPosition => {
-					delete trackToPosition[inputIndex];
+					//delete trackToPosition[inputIndex]; //TODO temp
 				});
 				playlist.inputsToRemove.forEach(trackToRemove => {
-					delete trackToRemove[inputIndex];
+					//delete trackToRemove[inputIndex]; //TODO temp
 				});
 
 
@@ -2046,24 +2053,23 @@ Object.assign(sj.Rule, {
 				playlist.merged.push(...playlist.inputsToPositionCopy);
 				playlist.inputsToPositionCopy.length = 0; //! remove combined tracks for consistent behavior
 
-				console.log('playlist.merged.length:', playlist.merged.length);
-				console.log('playlist.merged:', playlist.merged, '\n ---');
-
 
 				//C populate playlist.influenced with all non-input tracks that have moved
 				playlist.influenced = playlist.merged.filter((mergedTrack, index) => {
 					let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
-					if (inOthers && index !== inOthers.position) {
-						//C assign new position and add to playlist.changed
-						mergedTrack.position = index;
-						return true;
-					} else {
-						return false;
-					}
+					let influenced = inOthers && index !== inOthers.position;
+
+					//C assign new position (inputTracks too)
+					mergedTrack.position = index;
+					
+					return influenced;
 				});
 
-				console.log('playlist.changed.length:', playlist.influenced.length);
-				console.log('playlist.changed:', playlist.influenced, '\n ---');
+				console.log('playlist.merged.length:', playlist.merged.length);
+				console.log('playlist.merged:\n', playlist.merged, '\n ---');
+
+				console.log('playlist.influenced.length:', playlist.influenced.length);
+				console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
 
 				influencedTracks.push(...playlist.influenced);
 			});
@@ -2565,20 +2571,32 @@ Object.assign(sj.Rule, {
 
 
 //test
+//TODO test that input track's positions are being modified in the case of duplicate or out-of-bounds positions
+//TODO test that tracks in a playlist that a track is moving into (via playlistId change) are having their positions updated
+
+//!//!//!//!//!//! in the case where an input needs to have its position modified - this isn't done
 
 async function test() {
 	await sj.wait(1000);
 
 	let input = [
 		{
+			id: 65,
+			position: 3,
+		},
+		{
 			id: 55,
-			position: 1,
+			position: 3,
+			playlistId: 2,
 		},
 	];
-	let influenced = await sj.Track.order(sj.db, input);
 
-	console.log('INPUT:', input);
-	console.log('INFLUENCED TRACKS:', influenced);
+	console.log('INPUT BEFORE:\n', input, '\n ---');
+
+	let influenced = await sj.Track.order(sj.db, input);
+	
+	console.log('INPUT AFTER:\n', input, '\n ---');
+	console.log('INFLUENCED TRACKS:\n', influenced);
 }
 
 test();
