@@ -58,6 +58,7 @@
 	//R actually - don't do that namespace thing, as the namespace is still a reference to an object, so if a child class changes one of its properties, it changes it for all classes with that same namespace
 
 
+	//G modifying & returning passed objects in functions, in general I'm deciding to modify passed objects in functions and return the same reference, however when the data-structure changes (nesting, cloning, etc.), the passed object should not be modified. this can be seen in sj.Entity.common() validation, where any nested validated properties are flattened into a root object
 */
 
 
@@ -161,6 +162,42 @@ const visibilityStates = [
     'private',
     'linkOnly',
 ];
+
+/* schema, might need classes for this to work
+	sj.schema = (function () {
+		this.tables = (function () {
+			this.user = (function () {
+				this.columns = (function () {
+						this.id = (function () {
+							this.name = 'id';
+							this.dbName = this.name;
+							
+
+							return this;
+						}).call({});
+
+					return this;
+				}).call({});
+
+				return this;
+			}).call({});
+		
+			this.playlist = (function () {
+		
+				return this;
+			}).call({});
+		
+			this.track = (function () {
+		
+				return this;
+			}).call({});
+
+			return this;
+		}).call({});
+
+		return this;
+	}).call({});
+*/
 
 
 //  ██╗   ██╗████████╗██╗██╗     
@@ -455,79 +492,84 @@ sj.checkKey = async function (list, key) {
     });
 };
 
-sj.buildValues = function (obj) {
-    if (Object.keys(obj).length === 0) {
-        //C this shouldn't insert anything
-        return `("id") SELECT 0 WHERE 0 = 1`;
-    } else {
-        let columns = [];
-        let values = [];
-        let placeholders = [];
+sj.mapColumns = function (entities, columnMap) {
+	//C switches entities' js named keys for column named keys based on columnMap
+	//C this is so that database column names can even be any valid string
+	return entities.map(entity => {
+		let mappedEntity = {};
+		Object.keys(entity).forEach(key => {
+			if (columnMap[key] !== undefined) mappedEntity[columnMap[key]] = entity[key];
+		});
+		return mappedEntity;
+	});
+};
+sj.unmapColumns = function (mappedEntities, columnMap) {
+	//C inverse of mapColumns()
+	return mappedEntities.map(mappedEntity => {
+		let entity = {};
+		Object.keys(mappedEntity).forEach(columnName => {
+			let key = Object.keys(columnMap).find(key => key === columnName);
+			if (key !== undefined) entity[key] = mappedEntity[columnName];
+		});
+		return entity;
+	});
+}
 
-		Object.keys(obj).forEach((key, i) => {
-			columns.push(obj[key].column);
-			values.push(obj[key].value);
+sj.buildValues = function (mappedEntity) {
+	if (Object.keys(mappedEntity).length === 0) {
+		//C this shouldn't insert anything
+		return `("id") SELECT 0 WHERE 0 = 1`;
+	} else {
+		let columns = [];
+		let values = [];
+		let placeholders = [];
+
+		Object.keys(mappedEntity).forEach((key, i) => {
+			columns.push(key);
+			values.push(mappedEntity[key]);
 			placeholders.push(`$${i+1}`); //C $1 based placeholders
 		});
-		/* old array version
-			pairs.forEach((item, index) => {
-				columns.push(item.column);
-				values.push(item.value);
-				placeholders.push(`$${index+1}`); //C $1 based placeholders
-			});
-		*/
 
-        columns = columns.join('", "'); //C inner delimiter
-        columns = `("${columns}")`; //C outer
+		columns = columns.join('", "'); //C inner delimiter
+		columns = `("${columns}")`; //C outer
 
-        placeholders = placeholders.join(', ');
-        placeholders = `(${placeholders})`;
+		placeholders = placeholders.join(', ');
+		placeholders = `(${placeholders})`;
 
 		//? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
-        return pgp.as.format(`${columns} VALUES ${placeholders}`, values);
-    }
+		return pgp.as.format(`${columns} VALUES ${placeholders}`, values);
+	}
 };
-sj.buildWhere = function (obj) {
-    if (Object.keys(obj).length === 0) {
-        //C return a false clause
-        return '0 = 1';
-    } else {
+sj.buildWhere = function (mappedEntity) {
+	if (Object.keys(mappedEntity).length === 0) { //TODO hacky
+		//C return a false clause
+		return '0 = 1';
+	} else {
 		//C pair as formatted string
 		let pairs = [];
-		pairs = Object.keys(obj).map(key => {
-			return pgp.as.format(`"${obj[key].column}" = $1`, obj[key].value);
+		pairs = Object.keys(mappedEntity).map(key => {
+			return pgp.as.format(`"${key}" = $1`, mappedEntity[key]);
 		});
-        /* old array version
-			pairs = pairs.map(item => {
-				return pgp.as.format(`"${item.column}" = $1`, item.value);
-			});
-		*/
 
-        //C join with ' AND '
-        return pairs.join(' AND ');
-    }
+		//C join with ' AND '
+		return pairs.join(' AND ');
+	}
 };
-sj.buildSet = function (obj) {
-    if (Object.keys(obj).length === 0) {
-        //C don't make any change 
-        //! this does have to reference a column that exists however
-        return '"id" = "id"';
-    } else {
+sj.buildSet = function (mappedEntity) {
+	if (Object.keys(mappedEntity).length === 0) { //TODO hacky
+		//C don't make any change
+		//! this does have to reference a column that always exists (id)
+		return '"id" = "id"';
+	} else {
 		let pairs = [];
 		//C pair as formatted string
-		pairs = Object.keys(obj).map(key => {
-			return pgp.as.format(`"${obj[key].column}" = $1`, obj[key].value);
+		pairs = Object.keys(mappedEntity).map(key => {
+			return pgp.as.format(`"${key}" = $1`, mappedEntity[key]);
 		});
 
-		/* old array version
-			pairs = pairs.map(item => {
-				return pgp.as.format(`"${item.column}" = $1`, item.value);
-			});
-		*/
-
-        //C join with ', '
-        return pairs.join(', ');
-    }
+		//C join with ', '
+		return pairs.join(', ');
+	}
 };
 
 
@@ -539,13 +581,13 @@ sj.buildSet = function (obj) {
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
 // rule
-//TODO consider rewriting this to just check and pack the values without changing the originals
 sj.Rule.checkRuleSet = async function (ruleSet) {
-    //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to properties
-    //C takes a 2D array: [[isRequired, columnName, sj.Rule, object, propertyName, value2], [], ...]
+    //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to propertyNames
+    //C takes a 2D array: [[isRequired,  sj.Rule, object, propertyName, against], [], ...]
+	//! nested object properties can be referenced: entity.nest[propertyName], however the validated properties will be flattened to the root object: validated[propertyName]
 
     let validated = {};
-    await sj.asyncForEach(ruleSet, async ([isRequired, column, rule, obj, prop, value2]) => {
+    await sj.asyncForEach(ruleSet, async ([isRequired, rule, obj, propertyName, against]) => {
         //C validate arguments
         if (!sj.isType(isRequired, 'boolean')) {
             throw new sj.Error({
@@ -555,16 +597,18 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 reason: `isRequired is not a boolean`,
                 content: isRequired,
             });
-        }
-        if (!sj.isType(column, 'string') | sj.isEmpty(column)){
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `column is not a string or is empty`,
-                content: column,
-            });
-        }
+		}
+		/* //OLD column
+			if (!sj.isType(column, 'string') | sj.isEmpty(column)){
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'validation error',
+					reason: `column is not a string or is empty`,
+					content: column,
+				});
+			}
+		*/
         if (!rule instanceof this) {
             throw new sj.Error({
                 log: true,
@@ -583,32 +627,35 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 content: obj,
             });
         }
-        if (!prop in obj) {
+        if (!propertyName in obj) {
             throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
-                reason: `${prop} is not a property of the passed object`,
+                reason: `${propertyName} is not a propertyNameerty of the passed object`,
                 content: obj,
             });
         }
 
-        //C if property is required or is not required but has a value
-        if (isRequired || !sj.isEmpty(obj[prop])) {
-			//C validate property 
-			let checked = await rule.check(obj[prop], value2);
-			//C pack into validated as	prop: {value: v, column: c}
-			validated[prop] = {column, value: sj.content(checked)};
+        //C if propertyName is required or is not required but has a value
+        if (isRequired || !sj.isEmpty(obj[propertyName])) {
+			//C validate propertyName 
+			let checked = await rule.check(obj[propertyName], against);
+			
+			//C pack into validated as	propertyName: {value: v, column: c}
+			validated[propertyName] = sj.content(checked);
+			//OLD validated[propertyName] = {column, value: sj.content(checked)};
+
 			return checked;
 
-			/* old
-				//C validate property, possibly modify obj[prop] if successful
-				//R the check has to specifically happen before the push to validated (not just storing to a ruleSet array) because the check can change the value or type of obj[prop] which could then create issues when the original is used in the where clause
-				let checked = await rule.check(obj[prop], value2);
-				obj[prop] = sj.content(checked);
+			/* //OLD
+				//C validate propertyNameerty, possibly modify obj[propertyName] if successful
+				//R the check has to specifically happen before the push to validated (not just storing to a ruleSet array) because the check can change the value or type of obj[propertyName] which could then create issues when the original is used in the where clause
+				let checked = await rule.check(obj[propertyName], against);
+				obj[propertyName] = sj.content(checked);
 				//C add value to validated
 				//! if rule.check() throws, this won't be pushed, but that doesn't matter because validated won't be returned if there is any error
-				validated.push({column: column, value: obj[prop]});
+				validated.push({column: column, value: obj[propertyName]});
 				//C return the success message of rule.check()
 				//! this doesn't end up being returned from the function, but is here for maintainability
 				return checked;
@@ -617,12 +664,11 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			//C don't pack into validated
             return new sj.Success({
                 origin: 'sj.Rule.checkRuleSet()',
-                message: `optional empty property ${prop} skipped validation`,
+                message: `optional empty propertyName ${propertyName} skipped validation`,
             });
         }
     }).catch(rejected => {
         throw new sj.ErrorList({
-            log: true,
             origin: 'sj.Rule.checkRuleSet()',
             message: 'one or more issues with rules',
             reason: 'validation functions returned one or more errors',
@@ -662,90 +708,89 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 		let entities = sj.any(anyEntities);
 		return await db.tx(async t => {
+			let accessory = {};
+
 			//C process list before iteration
-			let accessory = await this[crud+'Before'](t, entities);
+			await this[crud+'Before'](t, entities, accessory);
 
-			// all - before
-			
-			// each - validate
+			//C validate
+			let validatedEntities = await sj.asyncForEach(entities, async entity => {
+				return await sj.rule.checkRuleSet(this[crud+'ValidateList'](entity)).then(sj.content).catch(sj.propagate);
+			});
 
-			// all/each - intermediate
+			//C prepare
+			await sj.asyncForEach(validatedEntities, async entity => {
+				return await this[crud+'Prepare'](entity, accessory).catch(sj.propagate);
+			});
 
-			//! its good to have a final commit here because when things are being re-ordered (above), the logOld and logNew will catch these changes, (just make sure to filter out things that aren't changing)
-			// each - change (+ old + new) (includes prepare)
+			//C accommodate other influenced entities
+			if (crud !== 'get') var influencedEntities = await this[crud+'Accommodate'](validatedEntities, accessory).then(sj.content).catch(sj.propagate);
 
-			// all - flat
+			//C map properties to columns
+			let validatedMapped = this.mapColumns(validatedEntities, this.columnMap);
+			if (crud !== 'get') var influencedMapped = this.mapColumns(influencedEntities, this.columnMap);
 
-			// all - after (+ old +new) (format old & new the same as current)
+			//C execute query
+			let {before, after} = await sj.asyncForEach(entities, async entity => {
+				let pack = {before: [], after: []};
 
+				if (crud !== 'get') {
+					let influencedBefore = await this.getQuery(t, influencedMapped).catch(sj.propagate);
+					let influencedAfter = await this.editQuery(t, influencedMapped).catch(sj.propagate);
 
+					//C before, ignore add
+					let validatedBefore = crud !== 'add' ? [] : await this.getQuery(t, validatedMapped).catch(sj.propagate);
 
-			//C iterate
-			let {logOlds, results, logNews} = await sj.asyncForEach(entities, async entity => {
-				//C validate
-				let validated = await sj.Rule.checkRuleSet(this[crud+'ValidateList'](entity)).then(sj.content).catch(sj.propagate);
-
-				//C prepare for insert, gets access to entity and accessory
-				let prepared = await this[crud+'Prepare'](t, validated, {entity, accessory}).catch(sj.propagate);
-
-				//C SQL query & return
-				let pack = {};
-
-				if (crud === 'edit' || crud === 'delete') {
-					pack.logOld = await this.getQuery(t, prepared).catch(sj.propagate);
+					pack.before = [
+						...influencedBefore,
+						...validatedBefore,
+					];
+					pack.after = [
+						...influencedAfter,
+					];
 				}
 
-				pack.result = await this[crud+'Query'](t, prepared).catch(sj.propagate);
-
-				if (crud === 'edit' || crud === 'add') {
-					pack.logNew = await await this.getQuery(t, prepared).catch(sj.propagate);
-				}
-
-				return pack
+				//C after 
+				//? is there a situation where a get query after the main query would be preferable over just a returning statement?
+				let validatedAfter = await this[crud+'Query'](t, validatedMapped).catch(sj.propagate);
+				
+				//C ignore delete
+				if (crud !== 'delete') pack.after.push(...validatedAfter);
+				return pack;
 			}).catch(rejected => {
 				throw sj.propagate(new sj.ErrorList({
 					...this[crud+'Error'](),
-					log: true,
-					content: Array.isArray(rejected) ? rejected.flat(1) : rejected,
+					content: Array.isArray(rejected) ? rejected.flat(1) : rejected, //C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or delete (because they return single objects)
 				}));
 			});
 
-			//----------
-			//! this will cause problems as it is, specifically with Track.move(), its gonna be called 3 times
+			//C unmap columns to properties
+			let unmappedBefore = this.unmapColumns(before, this[crud+'ColumnMap']);
+			let unmappedAfter = this.unmapColumns(after, this[crud+'ColumnMap']);
 
-			//C process results after iteration, gets access to entities and accessory
-			if (crud === 'edit' || crud === 'delete') {
-				await this[crud+'After'](t, logOlds, {entities, accessory}).catch(sj.propagate);
-			}
-			await this[crud+'After'](t, results, {entities, accessory}).catch(sj.propagate);
-			if (crud === 'edit' || crud === 'add') {
-				await this[crud+'After'](t, logNews, {entities, accessory}).catch(sj.propagate);
-			}
-			
+			//C process list after iteration
+			await this[crud+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
+			await this[crud+'After'](t, unmappedAfter, accessory).catch(sj.propagate);
+
+			//TODO notify...
 
 			return new sj.SuccessList({
 				...this[crud+'Success'](),
-				//C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or delete (because they return single objects)
-				content: Array.isArray(results) ? results.flat(1) : results,
+				content: Array.isArray(unmappedAfter) ? unmappedAfter.flat(1) : unmappedAfter,
 			});
 		}).catch(sj.propagate);
 	};
 
-	this.getLogOld =
-	this.getLogNew =
-	this.addLogOld =
-	this.deleteLogNew =  async function () {
-		return;
-	};
-
-	//C executes before entity iteration, optionally returns an accessory object that other functions receive
+	//C modifies entities before validation
 	this.addBefore = 
 	this.getBefore = 
 	this.editBefore = 
-	this.deleteBefore = async function (t, entities) {
+	this.deleteBefore = async function (t, entities, accessory) {
 		return;
 	};
 
+	//C returns a 2D validateList based on the passed entity: [[isRequired, rule, obj, propertyName, againstValue], ...]
+	//TODO consider making default rules for select properties by overwritting custom with the spread operator (but still require the individual isRequired to be listed)
 	this.addValidateList = 
 	this.getValidateList = 
 	this.editValidateList = 
@@ -753,24 +798,31 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		return [];
 	};
 
-	this.addPrepare = async function (t, validated, {entity, accessory}) {
-		return {values: sj.buildValues(validated)};
+	//C modifies each entity after validation
+	this.addPrepare =
+	this.getPrepare =
+	this.editPrepare = 
+	this.deletePrepare = function (t, entity, accessory) {
+		return;
 	};
-	this.getPrepare = async function (t, validated, {entity, accessory}) {
-		return {where: sj.buildWhere(validated)};
+
+	//C modifies input entities, returns other entities
+	//C checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
+	this.addAccommodate =
+	this.getAccommodate =
+	this.editAccommodate =
+	this.deleteAccommodate = function (t, entities, accessory) {
+		return [];
 	};
-	this.editPrepare = async function (t, validated, {entity, accessory}) {
-		let {id, ...validatedSet} = validated;
-		return {
-			set: sj.buildSet(validatedSet),
-			where: sj.buildWhere({id}),
-		};
-	};
-	this.deletePrepare = async function (t, validated, {entity, accessory}) {
-		return {where: sj.buildWhere(validated)};
-	};
-	
-	this.addQuery = async function (t, {values}) {
+
+	//C map of js property names to database column names (there is no reason to have differences but this will handle them either way)
+	this.columnMap = [];
+
+	//C query executors
+	this.getQueryOrder = `ORDER BY "id" ASC`; //! this should be overwritten with different ORDER BY columns
+	this.addQuery = async function (t, mappedEntity) {
+		let values = sj.buildValues(mappedEntity);
+
 		//? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
 		let row = await t.one(`
 			INSERT INTO "sj"."${this.table}" 
@@ -785,8 +837,9 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 		return new this(row);
 	};
-	this.getQueryOrder = `ORDER BY "id" ASC`; //! this should be overwritten with different ORDER BY columns
-	this.getQuery = async function (t, {where}) {
+	this.getQuery = async function (t, mappedEntity) {
+		let where = sj.buildWhere(mappedEntity);
+
 		let rows = await t.any(`
 			SELECT * 
 			FROM "sj"."${this.table}" 
@@ -805,12 +858,17 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		});
 		return rows;
 	};
-	this.editQuery = async function (t, {set, where}) {
+	this.editQuery = async function (t, mappedEntity) {
+		let {id, ...mappedEntitySet} = mappedEntity;
+		let set = sj.buildSet(mappedEntitySet);
+		let where = sj.buildWhere({id});
+
 		let row = await t.one(`
-		UPDATE "sj"."${this.table}" 
-		SET $1:raw 
-		WHERE $2:raw 
-		RETURNING *`, [set, where]).catch(rejected => {
+			UPDATE "sj"."${this.table}" 
+			SET $1:raw 
+			WHERE $2:raw 
+			RETURNING *
+		`, [set, where]).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
 				origin: `sj.${this.name}.edit()`,
@@ -820,7 +878,9 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 		return new this(row);
 	};
-	this.deleteQuery = async function (t, {where}) {
+	this.deleteQuery = async function (t, mappedEntity) {
+		let where = sj.buildWhere(mappedEntity);
+
 		let row = await t.one(`
 		DELETE FROM "sj"."${this.table}" 
 		WHERE $1:raw 
@@ -835,52 +895,45 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		return new this(row);
 	};
 
-	//C executes after entity iteration, returns the potentially modified results list
+	//C modifies entities after iteration
 	this.addAfter = 
 	this.getAfter = 
 	this.editAfter = 
-	this.deleteAfter = async function (t, results, {entities, accessory}) {
-		return undefined;
+	this.deleteAfter = async function (t, entities, accessory) {
+		return;
 	};
 
-	this.addSuccess = function () {
-		return {
+	//C custom SuccessList and ErrorList
+	this.addSuccess = function () { return {
 		origin: `sj.${this.name}.add()`,
 		message: `added ${this.name}s`,
 	}};
-	this.getSuccess = function () {
-		return {
+	this.getSuccess = function () { return {
 		origin: `sj.${this.name}.get()`,
 		message: `retrieved ${this.name}s`,
 	}};
-	this.editSuccess = function () {
-		return {
+	this.editSuccess = function () { return {
 		origin: `sj.${this.name}.edit()`,
 		message: `edited ${this.name}s`,
 	}};
-	this.deleteSuccess = function () {
-		return {
+	this.deleteSuccess = function () { return {
 		origin: `sj.${this.name}.get()`,
 		message: `deleted ${this.name}s`,
 	}};
 
-	this.addError = function () {
-		return {
+	this.addError = function () { return {
 		origin: `sj.${this.name}.add()`,
 		message: `failed to add ${this.name}s`,
 	}};
-	this.getError = function () {
-		return {
+	this.getError = function () { return {
 		origin: `sj.${this.name}.get()`,
 		message: `failed to retrieve ${this.name}s`,
 	}};
-	this.editError = function () {
-		return {
+	this.editError = function () { return {
 		origin: `sj.${this.name}.edit()`,
 		message: `failed to edit ${this.name}s`,
 	}};
-	this.deleteError = function () {
-		return {
+	this.deleteError = function () { return {
 		origin: `sj.${this.name}.delete()`,
 		message: `failed to delete ${this.name}s`,
 	}};
@@ -1170,38 +1223,86 @@ Object.assign(sj.Rule, {
 // CRUD
 (function () {
 	// validate
+	[
+		{
+			required: boolean,
+			rule: sj.Rule,
+
+		}
+	]
+
+	//---------- trying to redo the validateLists 
+	//---------- trying to figure out deep property access, this function here works but has some bugs
+	/*
+		const get = (p, o) =>
+		p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
+
+		let bar = {
+		bar: true,
+		}
+
+		console.log(get(['bar', 'bar'], bar));
+
+		// let foo = function (root, path) {
+		//   return path.reduce((dir, next) => {
+		//     if (dir && dir[next]) {
+		//       return dir[next];
+		//     } else {
+		//       return undefined;
+		//     }
+			
+			
+		//     if (current && current[next]) {
+		//       return current[next];
+		//     } else {
+		//       return 
+		//     }
+		//   }, root};
+		// }
+	*/
+
+	// use filters for specific
+	// use overwrites for specific if needed
+
 	this.addValidateList = function (user) {
 		return [
-			[true, 'name',		sj.Rule.userName,	user, 'name'],
-			[true, 'email',		sj.Rule.email,		user, 'email'],
+			[true, sj.Rule.userName,	user, 'name'],
+			[true, sj.Rule.email,		user, 'email'],
+			[true, sj.Rule.password,	user, 'password'],
 		];
 	};
 	this.getValidateList = function (user) {
 		return [
-			[false, 'id',       sj.Rule.id,			user,   'id'],
-			[false, 'name',     sj.Rule.userName,   user,   'name'],
+			[false, sj.Rule.id,			user,   'id'],
+			[false, sj.Rule.userName,   user,   'name'],
 		];
 	};
 	this.editValidateList = function (user) {
 		return [
-			[true,	'id',		sj.Rule.id,			user,	'id'],
-			[false, 'name',     sj.Rule.userName,   user,   'name'],
-			[false, 'email',	sj.Rule.email, 		user, 	'email'],
-			[false, 'spotifyRefreshToken',	sj.Rule.spotifyRefreshToken, user, 'spotifyRefreshToken'],
+			[true,	sj.Rule.id,			user,	'id'],
+			[false, sj.Rule.userName,   user,   'name'],
+			[false, sj.Rule.email, 		user, 	'email'],
+			[false, sj.Rule.spotifyRefreshToken, user, 'spotifyRefreshToken'],
 		];
 	};
 	this.deleteValidateList = function (user) {
 		return [
-			[true, 'id',		sj.Rule.id,			user,	'id'],
+			[true, sj.Rule.id,			user,	'id'],
 		];
 	};
 
+	this.columnMap = {
+		id: 'id',
+		name: 'name',
+		email: 'email',
+		password: 'password',
+		spotifyRefreshToken: 'spotifyRefreshToken',
+	};
+
 	// overwrite
-	this.addPrepare = async function (t, validated, {entity: user}) {
-		//C check password separately //? why? consider moving this back into addValidateList - think this was moved outside because validated used to be a string & wouldnt work for Rule.check modifications
-		user.password = await sj.Rule.password.check(user.password, user.password2).then(sj.content);
-		//C hash
-		let hash = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
+	this.addPrepare = async function (t, user) {
+		//C hash password
+		user.password = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
 			throw new sj.Error({
 				log: true,
 				origin: 'sj.User.add()',
@@ -1210,12 +1311,8 @@ Object.assign(sj.Rule, {
 				content: rejected,
 			});
 		});
-
-		//C add to validated
-		validated.password = {column: 'password', value: hash};
-
-		return {values: sj.buildValues(validated)};
 	};
+
 	this.getQueryOrder = 'ORDER BY "id" ASC';
 
 	/* //OLD get
@@ -1363,30 +1460,37 @@ Object.assign(sj.Rule, {
 	// validate
 	this.addValidateList = function (playlist) {
 		return [
-			[true,  'userId',       sj.Rule.id,             playlist,   'userId'],
-			[true,  'name',         sj.Rule.playlistName,   playlist,   'name'],
-			[false, 'description',  sj.Rule.description,    playlist,   'description'],
+			[true,  sj.Rule.id,             playlist,   'userId'],
+			[true,  sj.Rule.playlistName,   playlist,   'name'],
+			[false, sj.Rule.description,    playlist,   'description'],
 		];
 	};
 	this.getValidateList = function (playlist) {
 		return [
-			[false, 'id',           sj.Rule.id,             playlist,   'id'],
-			[false, 'userId',       sj.Rule.id,             playlist,   'userId'],
-			[false, 'name',         sj.Rule.playlistName,   playlist,   'name'],
-			[false, 'description',  sj.Rule.description,    playlist,   'description'],
+			[false, sj.Rule.id,             playlist,   'id'],
+			[false, sj.Rule.id,             playlist,   'userId'],
+			[false, sj.Rule.playlistName,   playlist,   'name'],
+			[false, sj.Rule.description,    playlist,   'description'],
 		];
 	};
 	this.editValidateList = function (playlist) {
 		return [
-			[true,	'id',			sj.Rule.id,				playlist,	'id'],
-			[false, 'name',         sj.Rule.playlistName,   playlist,   'name'],
-			[false, 'description',  sj.Rule.description,    playlist,   'description'],
+			[true,	sj.Rule.id,				playlist,	'id'],
+			[false, sj.Rule.playlistName,   playlist,   'name'],
+			[false, sj.Rule.description,    playlist,   'description'],
 		];
 	};
 	this.deleteValidateList = function (playlist) {
 		return [
-			[true, 'id', sj.Rule.id, playlist, 'id'],
+			[true, sj.Rule.id, playlist, 'id'],
 		];
+	};
+
+	this.columnMap = {
+		id: 'id',
+		userId: 'userId',
+		name: 'name',
+		description: 'description',
 	};
 
 	// overwrite
@@ -1553,96 +1657,124 @@ Object.assign(sj.Rule, {
 	// validate
 	this.addValidateList = function (track) {
 		return [
-			[true, 'playlistId',    sj.Rule.id,         track, 'playlistId'],
-			[true, 'source',        sj.Rule.source,     track.source, 'name'],
-			[true, 'sourceId',      sj.Rule.sourceId,   track, 'sourceId'],
-			[true, 'name',          sj.Rule.trackName,  track, 'name'],
-			[true, 'duration',      sj.Rule.posInt,     track, 'duration'],
-			[true, 'artists',		sj.Rule.none,		track, 'artists'],
+			[true, sj.Rule.id,			track, 'playlistId'],
+			[true, sj.Rule.source,		track.source, 'name'], //TODO //! this will be overwritten by the name property
+			[true, sj.Rule.sourceId,	track, 'sourceId'],
+			[true, sj.Rule.trackName,	track, 'name'],
+			[true, sj.Rule.posInt,		track, 'duration'],
+			[true, sj.Rule.none,		track, 'artists'],
 		];
 	};
 	this.getValidateList = function (track) {
 		return [
-			[false, 'id',           sj.Rule.id,     	track, 'id'],
-			[false, 'playlistId',   sj.Rule.id,     	track, 'playlistId'],
-			[false, 'position',     sj.Rule.posInt, 	track, 'position'],
-			[false, 'source',       sj.Rule.source,     track, 'source'],
-			[false, 'sourceId',		sj.Rule.sourceId,   track, 'sourceId'],
+			[false, sj.Rule.id,     	track, 'id'],
+			[false, sj.Rule.id,     	track, 'playlistId'],
+			[false, sj.Rule.posInt, 	track, 'position'],
+			[false, sj.Rule.source,     track, 'source'],
+			[false, sj.Rule.sourceId,   track, 'sourceId'],
 		];
 	};
 	this.editValidateList = function (track) {
 		return [
-			[true,	'id',			sj.Rule.id,			track,	'id'],
-			//! do not edit position here
-			//[false, 'playlistId',   sj.Rule.id,        track, 'playlistId'],
-			[false,	'source',		sj.Rule.source,		track,	'source'],
-			[false, 'sourceId',     sj.Rule.sourceId,	track,	'sourceId'],
-			[false, 'name',         sj.Rule.trackName,	track,	'name'],
-			[false, 'duration',     sj.Rule.posInt,		track,	'duration'],
+			[true,	sj.Rule.id,			track,	'id'],
+			[false, sj.Rule.id,			track,	'playlistId'],
+			[false, sj.Rule.posInt, 	track,	'position'],
+			[false,	sj.Rule.source,		track,	'source'],
+			[false, sj.Rule.sourceId,	track,	'sourceId'],
+			[false, sj.Rule.trackName,	track,	'name'],
+			[false, sj.Rule.posInt,		track,	'duration'],
 		];
 	};
 	this.deleteValidateList = function (track) {
 		return [
-			[true, 'id', sj.Rule.id, track, 'id'],
+			[true, sj.Rule.id, track, 'id'],
 		];
 	};
 
+	this.columnMap = {
+		id: 'id',
+		playlistId: 'playlistId',
+		position: 'position',
+		source: 'source',
+		sourceId: 'sourceId',
+		name: 'name',
+		duration: 'duration',
+		artists: 'artists',
+	};
+
 	// overwrite
-	this.addBefore = async function (t, tracks) {
-		//C get playlist lengths
-		//! //R playlist lengths cannot be retrieved inside the same asyncForEach() iterator that INSERTS them because they are executed in parallel (all getTracks() calls will happen before insertions), resulting in all existingTracks images being exactly the same, resulting in track.position collision
-		//console.log('CALLED');
-
-		let lengths = {};
-		await sj.asyncForEach(tracks, async track => {
-			let existingTracks = await sj.Track.get(t, new sj.Track({playlistId: track.playlistId})).then(sj.content);
-			lengths[track.playlistId] = existingTracks.length;
-		});
-
-		return lengths;
-	};
-	this.addPrepare = async function (t, validated, {entity: track, accessory}) {
-		//C position track at end of playlist, make tracks in the same playlist have a different position (but same order) using their index //! this index is the index of ALL the tracks being added however, so there will be holes - //R these get ordered later anyways so its not worth the extra code to separate all tracks into their playlists however
-		track.position = lengths[track.playlistId] + i;
-		validated.position = {column: 'position', value: track.position};
-
-		return {values: sj.buildValues(validated)};
-	};
-	this.addAfter = async function (t, results, {entities: tracks}) {
-		//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
-
-		//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
-		//! requires the INSERT command to be executed one at at a time for each input track
-		//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
-
-		//----------- //! i said up here that the tracks would be inserted one at a time (in order), how is this true when using asyncForEach?
-		tracks.forEach((track, i) => {
-			if(!sj.isEmpty(track.position)) {
-				track.id = results[i].id;
-				results[i].position = track.position;
-			}
-		});
-
-		//C use the input tracks to properly order
-		await sj.Track.move(t, tracks);
-
-		return results;
+	this.addPrepare = async function (t, track) {
+		let existingTracks = await sj.Track.get(t, {playlistId: track.playlistId}).then(sj.content);
+		track.position = existingTracks.length;
 	};
 	this.getQueryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
-	this.editBefore = async function (t, tracks) {
-		//C move before editing other data, so that final position may be accurate in returned results 
-		//TODO but if returned results are retrieved after the move, then this can be editAfter
 
-		//! results will not include other tracks moved by moveTracks()
-		await sj.Track.move(t, tracks);
-		return undefined;
-	};
-	this.deleteAfter = async function (t, results, {entities: tracks}) {
-		//C order after deleting
-		await sj.Track.order(t, results); //TODO //? will this modify results? i dont think so, i think results needs to = sj.Track.order(), no this is just to order the database
-		return results;
+	this.addAccommodate = 
+	this.editAccommodate =
+	this.deleteAccommodate = async function (t, tracks) {
+		await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
+			throw sj.parsePostgresError(rejected, new sj.Error({
+				log: false,
+				origin: 'sj.Track.move()',
+				message: 'could not order tracks, database error',
+				target: 'notify',
+				cssClass: 'notifyError',
+			}));
+		});
+		return await this.order(t, tracks).catch(sj.propagate);
 	};
 
+
+	/* //OLD
+		this.addBefore = async function (t, tracks, accessory) {
+			//C get playlist lengths
+			//! //R playlist lengths cannot be retrieved inside the same asyncForEach() iterator that INSERTS them because they are executed in parallel (all getTracks() calls will happen before insertions), resulting in all existingTracks images being exactly the same, resulting in track.position collision
+			//console.log('CALLED');
+
+			let lengths = {};
+			await sj.asyncForEach(tracks, async track => {
+				let existingTracks = await sj.Track.get(t, new sj.Track({playlistId: track.playlistId})).then(sj.content);
+				lengths[track.playlistId] = existingTracks.length;
+			});
+
+			accessory.lengths = lengths;
+		};
+	*/
+	/* //OLD
+		this.addAfter = async function (t, results, {entities: tracks}) {
+			//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
+
+			//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
+			//! requires the INSERT command to be executed one at at a time for each input track
+			//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
+
+			//----------- //! i said up here that the tracks would be inserted one at a time (in order), how is this true when using asyncForEach?
+			tracks.forEach((track, i) => {
+				if(!sj.isEmpty(track.position)) {
+					track.id = results[i].id;
+					results[i].position = track.position;
+				}
+			});
+
+			//C use the input tracks to properly order
+			await sj.Track.move(t, tracks);
+
+			return results;
+		};
+		this.editBefore = async function (t, tracks) {
+			//C move before editing other data, so that final position may be accurate in returned results 
+			//TODO but if returned results are retrieved after the move, then this can be editAfter
+
+			//! results will not include other tracks moved by moveTracks()
+			await sj.Track.move(t, tracks);
+			return undefined;
+		};
+		this.deleteAfter = async function (t, results, {entities: tracks}) {
+			//C order after deleting
+			await sj.Track.order(t, results); //TODO //? will this modify results? i dont think so, i think results needs to = sj.Track.order(), no this is just to order the database
+			return results;
+		};
+	*/
 	/* //OLD add
 		//await sj.isLoggedIn(ctx);
 
@@ -2059,7 +2191,7 @@ Object.assign(sj.Rule, {
 					let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
 					let influenced = inOthers && index !== inOthers.position;
 
-					//C assign new position (inputTracks too)
+					//C assign new positions (inputTracks too)
 					mergedTrack.position = index;
 					
 					return influenced;
@@ -2076,7 +2208,7 @@ Object.assign(sj.Rule, {
 
 			return influencedTracks;
 		});
-	}
+	};
 
 	/* //OLD
 
@@ -2565,44 +2697,32 @@ Object.assign(sj.Rule, {
 }).call(sj.Track.prototype);
 
 
-//-----------  todo implement sj.Track.order(), use with the main query and an edit query for other changed tracks
-//R add wont work because if a track position is replaced then it will need to be edited not inserted, which is a different query, unless two queries are used for add - which would be fine, old would have any tracks that were moved, and new would have the added tracks in addition to moved tracks
-
-
-
-//test
-//TODO test that input track's positions are being modified in the case of duplicate or out-of-bounds positions
-//TODO test that tracks in a playlist that a track is moving into (via playlistId change) are having their positions updated
-
-//!//!//!//!//!//! in the case where an input needs to have its position modified - this isn't done
-
-async function test() {
-	await sj.wait(1000);
-
-	let input = [
-		{
-			id: 65,
-			position: 3,
-		},
-		{
-			id: 55,
-			position: 3,
-			playlistId: 2,
-		},
-	];
-
-	console.log('INPUT BEFORE:\n', input, '\n ---');
-
-	let influenced = await sj.Track.order(sj.db, input);
-	
-	console.log('INPUT AFTER:\n', input, '\n ---');
-	console.log('INFLUENCED TRACKS:\n', influenced);
-}
-
-test();
-
-
-
-
-
 export default sj;
+
+
+/* test
+	async function test() {
+		await sj.wait(1000);
+
+		let input = [
+			{
+				id: 65,
+				position: 3,
+			},
+			{
+				id: 55,
+				position: 3,
+				playlistId: 2,
+			},
+		];
+
+		console.log('INPUT BEFORE:\n', input, '\n ---');
+
+		let influenced = await sj.Track.order(sj.db, input);
+		
+		console.log('INPUT AFTER:\n', input, '\n ---');
+		console.log('INFLUENCED TRACKS:\n', influenced);
+	}
+
+	test();
+*/

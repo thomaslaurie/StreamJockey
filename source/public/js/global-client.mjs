@@ -1181,6 +1181,7 @@ sj.spotify.getTracks = async function (items) {
 
 	// array of track objects
 	var playlist = new sj.Playlist({
+		log: false,
 		origin: 'spotify.getTracks()',
 	});
 
@@ -1288,6 +1289,7 @@ sj.youtube.getTracks = async function (ids) {
 	}).then(function(resolved) {
 		// array of track objects
 		var playlist = new sj.Playlist({
+			log: false,
 			origin: 'youtube.getTracks()',
 		});
 
@@ -1334,6 +1336,7 @@ function arrangeResults(type, selection) {
 	// TODO update this with the new source object model
 
 	var arrangedResults = new sj.Playlist({
+		log: false,
 		origin: 'arrangeResults()',
 		// no id or database relevant properties
 		title: 'Search Results',
