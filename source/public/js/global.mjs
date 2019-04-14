@@ -473,7 +473,7 @@ sj.isType = function (input, type) {
 			//C input or input.objectType is an instance of a constructible
 			let Target = sj[input.objectType.replace('sj.', '')];
 			if (typeof Target === 'function') {
-				tempInput = new Target();
+				tempInput = new Target({log: false});
 				return true;
 			}
 			return false;
@@ -809,7 +809,6 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 		} catch (e) {
 			//C catch stringify error (should be a cyclic reference)
 			throw new sj.Error({
-				log: true,
 				origin: 'request()',
 				message: 'could not send request',
 				reason: e.message,
@@ -934,7 +933,7 @@ sj.Object = class {
 		if (!sj.isType(this, sj.Error)) {
 			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\n${sj.trace()}`);
 		} else {
-			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message} ${this.content}\n${this.trace}`, `\n▮ ✗ `);
+			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
 		}	
 	}
 	onCreate() {

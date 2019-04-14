@@ -715,7 +715,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 			//C validate
 			let validatedEntities = await sj.asyncForEach(entities, async entity => {
-				return await sj.rule.checkRuleSet(this[crud+'ValidateList'](entity)).then(sj.content).catch(sj.propagate);
+				return await sj.Rule.checkRuleSet(this[crud+'ValidateList'](entity)).then(sj.content).catch(sj.rejected);
 			});
 
 			//C prepare
@@ -727,46 +727,46 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			if (crud !== 'get') var influencedEntities = await this[crud+'Accommodate'](validatedEntities, accessory).then(sj.content).catch(sj.propagate);
 
 			//C map properties to columns
-			let validatedMapped = this.mapColumns(validatedEntities, this.columnMap);
-			if (crud !== 'get') var influencedMapped = this.mapColumns(influencedEntities, this.columnMap);
+			let inputMapped = sj.mapColumns(validatedEntities, this.columnMap);
+			if (crud !== 'get') var influencedMapped = sj.mapColumns(influencedEntities, this.columnMap);
 
 			//C execute query
-			let {before, after} = await sj.asyncForEach(entities, async entity => {
-				let pack = {before: [], after: []};
-
-				if (crud !== 'get') {
-					let influencedBefore = await this.getQuery(t, influencedMapped).catch(sj.propagate);
-					let influencedAfter = await this.editQuery(t, influencedMapped).catch(sj.propagate);
-
-					//C before, ignore add
-					let validatedBefore = crud !== 'add' ? [] : await this.getQuery(t, validatedMapped).catch(sj.propagate);
-
-					pack.before = [
-						...influencedBefore,
-						...validatedBefore,
-					];
-					pack.after = [
-						...influencedAfter,
-					];
+			let before = [];
+			let after = [];
+			await sj.asyncForEach(inputMapped, async entity => {
+				//C before, ignore add
+				if (crud !== 'get' && crud !== 'add') {
+					let inputBefore = await this.getQuery(t, entity).catch(sj.propagate);
+					before.push(...inputBefore);
 				}
 
-				//C after 
-				//? is there a situation where a get query after the main query would be preferable over just a returning statement?
-				let validatedAfter = await this[crud+'Query'](t, validatedMapped).catch(sj.propagate);
-				
-				//C ignore delete
-				if (crud !== 'delete') pack.after.push(...validatedAfter);
-				return pack;
+				//C after, ignore delete //? would a final get query ever be preferable over a RETURNING statement?
+				let inputAfter = await this[crud+'Query'](t, entity).catch(sj.propagate);
+				if (crud !== 'delete') after.push(...inputAfter);
 			}).catch(rejected => {
 				throw sj.propagate(new sj.ErrorList({
 					...this[crud+'Error'](),
 					content: Array.isArray(rejected) ? rejected.flat(1) : rejected, //C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or delete (because they return single objects)
 				}));
 			});
+			if (crud !== 'get') {
+				await sj.asyncForEach(influencedMapped, async influencedEntity => {
+					let influencedBefore = await this.getQuery(t, influencedEntity).catch(sj.propagate);
+					let influencedAfter = await this.editQuery(t, influencedEntity).catch(sj.propagate);
+
+					before.push(...influencedBefore);
+					after.push(...influencedAfter);
+				}).catch(rejected => {
+					throw sj.propagate(new sj.ErrorList({
+						...this[crud+'Error'](),
+						content: Array.isArray(rejected) ? rejected.flat(1) : rejected,
+					}));
+				});
+			}
 
 			//C unmap columns to properties
-			let unmappedBefore = this.unmapColumns(before, this[crud+'ColumnMap']);
-			let unmappedAfter = this.unmapColumns(after, this[crud+'ColumnMap']);
+			let unmappedBefore = sj.unmapColumns(before, this.columnMap);
+			let unmappedAfter = sj.unmapColumns(after, this.columnMap);
 
 			//C process list after iteration
 			await this[crud+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
@@ -794,15 +794,13 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.addValidateList = 
 	this.getValidateList = 
 	this.editValidateList = 
-	this.deleteValidateList = function (entity) {
-		return [];
-	};
+	this.deleteValidateList = function (entity) { return []; };
 
 	//C modifies each entity after validation
 	this.addPrepare =
 	this.getPrepare =
 	this.editPrepare = 
-	this.deletePrepare = function (t, entity, accessory) {
+	this.deletePrepare = async function (t, entity, accessory) {
 		return;
 	};
 
@@ -811,7 +809,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.addAccommodate =
 	this.getAccommodate =
 	this.editAccommodate =
-	this.deleteAccommodate = function (t, entities, accessory) {
+	this.deleteAccommodate = async function (t, entities, accessory) {
 		return [];
 	};
 
@@ -1033,8 +1031,8 @@ Object.assign(sj.Rule, {
 sj.login = async function (db, ctx, user) {
     //C validate
     await sj.Rule.checkRuleSet([
-        [true, 'name', sj.Rule.userName, user, 'name'],
-        [true, 'password', sj.Rule.password, user, 'password'],
+        [true, sj.Rule.userName, user, 'name'],
+        [true, sj.Rule.password, user, 'password'],
     ]);
 
     //C get password
@@ -1096,7 +1094,6 @@ sj.getMe = async function (ctx) {
 sj.logout = async function (ctx) {
     delete ctx.session.user;
     return new sj.Success({
-        log: true,
         origin: 'logout()',
         message: 'user logged out',
     });
@@ -1223,13 +1220,13 @@ Object.assign(sj.Rule, {
 // CRUD
 (function () {
 	// validate
-	[
-		{
-			required: boolean,
-			rule: sj.Rule,
+	// [
+	// 	{
+	// 		required: boolean,
+	// 		rule: sj.Rule,
 
-		}
-	]
+	// 	}
+	// ]
 
 	//---------- trying to redo the validateLists 
 	//---------- trying to figure out deep property access, this function here works but has some bugs

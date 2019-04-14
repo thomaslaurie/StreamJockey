@@ -204,8 +204,10 @@ socketIO.use((socket, next) => {
 
 // listen to requests
 server.listen(PORT, () => {
-	console.log(`Server listening on port: ${PORT}`);
-	console.log('███████████████████████████████████████');
+	sj.wait(3500).then(() => {
+		console.log('███████████████████████████████████████');
+		console.log(`Server listening on port: ${PORT}`);
+	});
 });
 
 //L unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar

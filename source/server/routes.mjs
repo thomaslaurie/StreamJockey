@@ -270,7 +270,7 @@ router
     } 
     
     //C redirect if not logged in
-    if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login') { //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
+    if (sj.isEmpty(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
         ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
         ctx.redirect('/login');
         return;

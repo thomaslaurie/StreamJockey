@@ -301,6 +301,7 @@ import EntryPage from '../vue/page/EntryPage.vue';
 import AuthRedirectPage from '../vue/page/AuthRedirectPage.vue';
 import ErrorPage from '../vue/page/ErrorPage.vue';
 import NotFoundPage from '../vue/page/NotFoundPage.vue';
+import DatabasePage from '../vue/page/DatabasePage.vue';
 
 
 //R two approaches: use a rest request to subscribe and start the socket process, or using a socket request to subscribe and fetch via rest
@@ -412,7 +413,11 @@ const router = new VueRouter({
 		{
 			path: '/error',
 			component: ErrorPage,
-        },
+		},
+		{
+			path: '/database',
+			component: DatabasePage,
+		},
         {
             path: '/*/authRedirect',
 			component: AuthRedirectPage,
@@ -660,4 +665,4 @@ const vm = new Vue({
 	store,
 });
 
-sj.testRun(store);
+//sj.testRun(store);
