@@ -589,7 +589,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
     let validated = {};
     await sj.asyncForEach(ruleSet, async ([isRequired, rule, obj, propertyName, against]) => {
         //C validate arguments
-        if (!sj.isType(isRequired, 'boolean')) {
+        if (!sj.isType(isRequired, Boolean)) {
             throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
@@ -618,7 +618,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 content: rule,
             });
         }
-        if (!sj.isType(rule, 'object')) {
+        if (!sj.isType(rule, Object)) {
             throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
@@ -626,13 +626,13 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 reason: `obj is not an object`,
                 content: obj,
             });
-        }
-        if (!propertyName in obj) {
+		}
+        if (isRequired && !(propertyName in obj)) { //? shouldn't rule.check just catch this case as undefined?
             throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
                 message: 'validation error',
-                reason: `${propertyName} is not a propertyNameerty of the passed object`,
+                reason: `${propertyName} is not a property name of the passed object`,
                 content: obj,
             });
         }
@@ -685,16 +685,16 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 // entity
 (function () { // static
-	this.add = async function (db, query) {
+	this.add = async function (query, db = sj.db) {
 		return await this.common(db, query, 'add');
 	};
-	this.get = async function (db, query) {
+	this.get = async function (query, db = sj.db) {
 		return await this.common(db, query, 'get');
 	};
-	this.edit = async function (db, query) {
+	this.edit = async function (query, db = sj.db) {
 		return await this.common(db, query, 'edit');
 	};
-	this.delete = async function (db, query) {
+	this.delete = async function (query, db = sj.db) {
 		return await this.common(db, query, 'delete');
 	};
 
@@ -710,6 +710,8 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		return await db.tx(async t => {
 			let accessory = {};
 
+			console.log('ENTITIES:', entities);
+
 			//C process list before iteration
 			await this[crud+'Before'](t, entities, accessory);
 
@@ -720,15 +722,17 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 			//C prepare
 			await sj.asyncForEach(validatedEntities, async entity => {
-				return await this[crud+'Prepare'](entity, accessory).catch(sj.propagate);
+				return await this[crud+'Prepare'](t, entity, accessory).catch(sj.propagate);
 			});
 
 			//C accommodate other influenced entities
-			if (crud !== 'get') var influencedEntities = await this[crud+'Accommodate'](validatedEntities, accessory).then(sj.content).catch(sj.propagate);
+			if (crud !== 'get') var influencedEntities = await this[crud+'Accommodate'](t, validatedEntities, accessory).then(sj.content).catch(sj.propagate);
 
 			//C map properties to columns
 			let inputMapped = sj.mapColumns(validatedEntities, this.columnMap);
 			if (crud !== 'get') var influencedMapped = sj.mapColumns(influencedEntities, this.columnMap);
+
+			console.log('INPUT MAPPED', inputMapped);
 
 			//C execute query
 			let before = [];
@@ -741,7 +745,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 				}
 
 				//C after, ignore delete //? would a final get query ever be preferable over a RETURNING statement?
-				let inputAfter = await this[crud+'Query'](t, entity).catch(sj.propagate);
+				let inputAfter = await this[crud+'Query'](t, entity).then(sj.any).catch(sj.propagate);
 				if (crud !== 'delete') after.push(...inputAfter);
 			}).catch(rejected => {
 				throw sj.propagate(new sj.ErrorList({
@@ -776,7 +780,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 			return new sj.SuccessList({
 				...this[crud+'Success'](),
-				content: Array.isArray(unmappedAfter) ? unmappedAfter.flat(1) : unmappedAfter,
+				content: unmappedAfter,
 			});
 		}).catch(sj.propagate);
 	};
@@ -937,17 +941,17 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	}};
 }).call(sj.Entity);
 (function () { // instance
-	this.add = async function (db = sj.db) {
-		return await this.constructor.add(db, this);
+	this.add = async function (db) {
+		return await this.constructor.add(this, db);
 	};
-	this.get = async function (db = sj.db) {
-		return await this.constructor.get(db, this);
+	this.get = async function (db) {
+		return await this.constructor.get(this, db);
 	};
-	this.edit = async function (db = sj.db) {
-		return await this.constructor.edit(db, this);
+	this.edit = async function (db) {
+		return await this.constructor.edit(this, db);
 	};
-	this.delete = async function (db = sj.db) {
-		return await this.constructor.delete(db, this);
+	this.delete = async function (db) {
+		return await this.constructor.delete(this, db);
 	};
 }).call(sj.Entity.prototype);
 
@@ -1620,8 +1624,6 @@ Object.assign(sj.Rule, {
 	trackName: new sj.Rule({
 		origin: 'trackNameRules()',
 		message: 'name validated',
-		target: 'trackName',
-		cssClass: 'inputError',
 	
 		valueName: 'Name',
 		trim: true,
@@ -1647,6 +1649,14 @@ Object.assign(sj.Rule, {
 	
 		//? any source id rules (other than being a string)? length? trim?
 	}),
+	artists: new sj.Rule({
+		origin: 'sj.Rules.artists',
+		message: 'artists validated',
+
+		valueName: 'Artists',
+
+		dataTypes: ['array'],
+	}),
 });
 
 // CRUD
@@ -1656,10 +1666,11 @@ Object.assign(sj.Rule, {
 		return [
 			[true, sj.Rule.id,			track, 'playlistId'],
 			[true, sj.Rule.source,		track.source, 'name'], //TODO //! this will be overwritten by the name property
+			//---------- source name not working, artists not working
 			[true, sj.Rule.sourceId,	track, 'sourceId'],
 			[true, sj.Rule.trackName,	track, 'name'],
 			[true, sj.Rule.posInt,		track, 'duration'],
-			[true, sj.Rule.none,		track, 'artists'],
+			[true, sj.Rule.artists,		track, 'artists'],
 		];
 	};
 	this.getValidateList = function (track) {
@@ -1667,7 +1678,7 @@ Object.assign(sj.Rule, {
 			[false, sj.Rule.id,     	track, 'id'],
 			[false, sj.Rule.id,     	track, 'playlistId'],
 			[false, sj.Rule.posInt, 	track, 'position'],
-			[false, sj.Rule.source,     track, 'source'],
+			[false, sj.Rule.source,     track.source, 'source'],
 			[false, sj.Rule.sourceId,   track, 'sourceId'],
 		];
 	};
@@ -1676,7 +1687,7 @@ Object.assign(sj.Rule, {
 			[true,	sj.Rule.id,			track,	'id'],
 			[false, sj.Rule.id,			track,	'playlistId'],
 			[false, sj.Rule.posInt, 	track,	'position'],
-			[false,	sj.Rule.source,		track,	'source'],
+			[false,	sj.Rule.source,		track.source,	'source'],
 			[false, sj.Rule.sourceId,	track,	'sourceId'],
 			[false, sj.Rule.trackName,	track,	'name'],
 			[false, sj.Rule.posInt,		track,	'duration'],
@@ -1701,7 +1712,7 @@ Object.assign(sj.Rule, {
 
 	// overwrite
 	this.addPrepare = async function (t, track) {
-		let existingTracks = await sj.Track.get(t, {playlistId: track.playlistId}).then(sj.content);
+		let existingTracks = await sj.Track.get({playlistId: track.playlistId}, t).then(sj.content);
 		track.position = existingTracks.length;
 	};
 	this.getQueryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
@@ -1995,8 +2006,8 @@ Object.assign(sj.Rule, {
 
 		//C return early if none are moving
 		if (inputTracks.length === 0) {
-			return new sj.Success({
-				origin: 'sj.Track.editIntermediate()',
+			return new sj.SuccessList({
+				origin: 'sj.Track.order()',
 				message: 'track positions did not need to be set',
 			});
 		}
@@ -2203,7 +2214,11 @@ Object.assign(sj.Rule, {
 				influencedTracks.push(...playlist.influenced);
 			});
 
-			return influencedTracks;
+			return new sj.SuccessList({
+				origin: 'sj.Track.order()',
+				message: 'influenced tracks calculated',
+				content: influencedTracks,
+			});
 		});
 	};
 

@@ -22,12 +22,15 @@
 					id: '',
 					playlistId: '',
 					position: '',
-					source: '',
+					source: {name: ''},
 					sourceId: '',
 					name: '',
 					duration: '',
-					artists: '',
+					artists: [],
 				},
+				inputSource: '',
+				inputArtists: '',
+
 				inputPlaylist: {
 					id: '',
 					userId: '',
@@ -73,6 +76,14 @@
 				},
 			},
 		},
+		watch: {
+			inputSource: function (value) {
+				this.inputTrack.source.name = value;
+			},
+			inputArtists: function (value) {
+				this.inputTrack.artists = value.split(',');
+			},
+		},
 		methods: {
             async login() {
                 this.currentUser = await this.sj.login({name: this.name, password: this.password}).then(this.sj.content).catch(rejected => {
@@ -112,7 +123,12 @@
 				});
 				this.retrieved = this.result.content;
 			},
-        },
+		},
+		created: function () {
+			this.inputTrack.source = this.sj.spotify;
+		},
+		
+		//TODO playlist display not working
     }
 </script>
 
@@ -167,10 +183,11 @@
 				<input class='property' v-model='inputTrack.id'			placeholder='id'>
 				<input class='property' v-model='inputTrack.playlistId'	placeholder='playlistId'>
 				<input class='property' v-model='inputTrack.position'	placeholder='position'>
-				<input class='property' v-model='inputTrack.source'		placeholder='source'>
+				<input class='property' v-model='inputSource'			placeholder='source'>
 				<input class='property' v-model='inputTrack.sourceId'	placeholder='sourceId'>
 				<input class='property' v-model='inputTrack.name'		placeholder='name'>
 				<input class='property' v-model='inputTrack.duration'	placeholder='duration'>
+				<input class='property' v-model='inputArtists'			placeholder='artists'>
 			</section>
 			<section v-else-if='entityType === "playlist"'>
 				<input class='property' v-model='inputPlaylist.id'		placeholder='id'>

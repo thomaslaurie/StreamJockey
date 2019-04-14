@@ -180,44 +180,44 @@ apiRouter
 
 // user
 .post(`/${sj.User.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.User.add(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.User.add(ctx.request.body).catch(sj.andResolve);
 })
 .get(`/${sj.User.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.User.get(sj.db, sj.decodeList(ctx.querystring)).catch(sj.andResolve);
+	ctx.response.body = await sj.User.get(sj.decodeList(ctx.querystring)).catch(sj.andResolve);
 })
 .patch(`/${sj.User.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.User.edit(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.User.edit(ctx.request.body).catch(sj.andResolve);
 })
 .delete(`/${sj.User.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.User.delete(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.User.delete(ctx.request.body).catch(sj.andResolve);
 })
 
 // playlist
 .post(`/${sj.Playlist.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Playlist.add(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Playlist.add(ctx.request.body).catch(sj.andResolve);
 })
 .get(`/${sj.Playlist.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Playlist.get(sj.db, sj.decodeList(ctx.querystring)).catch(sj.andResolve);
+	ctx.response.body = await sj.Playlist.get(sj.decodeList(ctx.querystring)).catch(sj.andResolve);
 })
 .patch(`/${sj.Playlist.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Playlist.edit(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Playlist.edit(ctx.request.body).catch(sj.andResolve);
 })
 .delete(`/${sj.Playlist.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Playlist.delete(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Playlist.delete(ctx.request.body).catch(sj.andResolve);
 })
 
 // track
 .post(`/${sj.Track.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Track.add(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Track.add(ctx.request.body).catch(sj.andResolve);
 })
 .get(`/${sj.Track.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Track.get(sj.db, sj.decodeList(ctx.querystring)).catch(sj.andResolve);
+	ctx.response.body = await sj.Track.get(sj.decodeList(ctx.querystring)).catch(sj.andResolve);
 })
 .patch(`/${sj.Track.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Track.edit(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Track.edit(ctx.request.body).catch(sj.andResolve);
 })
 .delete(`/${sj.Track.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Track.delete(sj.db, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Track.delete(ctx.request.body).catch(sj.andResolve);
 })
 
 // catch
