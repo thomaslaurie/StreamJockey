@@ -1280,6 +1280,7 @@ Object.assign(sj.Rule, {
 		return [
 			[false, sj.Rule.id,			user,   'id'],
 			[false, sj.Rule.userName,   user,   'name'],
+			[false,	sj.Rule.email,		user, 'email'],
 		];
 	};
 	this.editValidateList = function (user) {

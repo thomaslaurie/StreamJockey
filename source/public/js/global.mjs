@@ -1109,8 +1109,8 @@ sj.User = class extends sj.Entity {
 	static get filters() {
 		return {
 		...super.filters,
-		add: ['name', 'email'],
-		get: ['id', 'name'],
+		add: ['name', 'email', 'password'],
+		get: ['id', 'name', 'email'],
 		edit: ['id', 'name', 'email', 'spotifyRefreshToken'],
 		delete: ['id'],
 	}}

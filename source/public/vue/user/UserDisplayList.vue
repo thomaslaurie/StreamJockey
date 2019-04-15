@@ -1,16 +1,16 @@
 <script>
 	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
-	import PlaylistDisplay from './PlaylistDisplay.vue';
+	import UserDisplay from './UserDisplay.vue';
 
     export default {
-        name: 'playlist-display-list',
+        name: 'user-display-list',
 		extends: AsyncDisplayList,
 		components:  {
-			PlaylistDisplay,
+			UserDisplay,
 		},
         methods: {
             async getData() {
-				return await this.sj.getPlaylist(this.query).then(this.sj.content);
+				return await this.sj.getUser(this.query).then(this.sj.content);
             },
 		},
     }
@@ -19,14 +19,14 @@
 
 <template>
     <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
-	class='playlist-display-list'>
+	class='user-display-list'>
         <ul>
             <li
-                v-for='playlist in data' 
-                :key='playlist.id' 
-                :display='playlist'
+                v-for='user in data' 
+                :key='user.id' 
+                :display='user'
             >
-				<playlist-display :p-data='playlist' v-bind='attrs' v-on='listeners'></playlist-display>
+				<user-display :p-data='user' v-bind='attrs' v-on='listeners'></user-display>
             </li>
         </ul>
     </async-switch>
@@ -34,7 +34,7 @@
 
 
 <style lang='scss'>
-	.playlist-display-list {
+	.user-display-list {
 		$margin: 5px;
 		ul {
 			padding: 0;

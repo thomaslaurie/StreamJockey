@@ -317,7 +317,7 @@ sj.addUser = async function (user) {
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
-	let query = sj.encodeList(sj.shake(user, ['id', 'name', 'email']));
+	let query = sj.encodeList(sj.shake(user, sj.User.filters.get));
 	return await sj.request('GET', `${sj.API_URL}/users?${query}`);
 }
 sj.editUser = async function (user) {
@@ -342,7 +342,7 @@ sj.addPlaylist = async function (playlist) {
 	return await sj.request('POST', `${sj.API_URL}/playlists`, playlist);
 }
 sj.getPlaylist = async function (playlist) {
-    let query = sj.encodeList(sj.shake(playlist, ['id', 'userId', 'name', 'description']));
+    let query = sj.encodeList(sj.shake(playlist, sj.Playlist.filters.get));
 	return await sj.request('GET', `${sj.API_URL}/playlists?${query}`);
 }
 sj.editPlaylist = async function (playlist) {
@@ -359,7 +359,7 @@ sj.addTrack = async function (track) {
 	return await sj.request('POST', `${sj.API_URL}/tracks`, new sj.Track(track));
 }
 sj.getTrack = async function (track) {
-	let query = sj.encodeList(sj.shake(track, ['id', 'playlistId', 'position', 'source', 'sourceId', 'name']));
+	let query = sj.encodeList(sj.shake(track, sj.Track.filters.get));
 	return await sj.request('GET', `${sj.API_URL}/tracks?${query}`);
 }
 sj.editTrack = async function (track) {

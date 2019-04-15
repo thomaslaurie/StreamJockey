@@ -1,12 +1,14 @@
 <script>
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
+	import UserDisplayList from '../user/UserDisplayList.vue';
 
     export default {
 		name: 'database-page',
 		components: {
 			TrackDisplayList,
 			PlaylistDisplayList,
+			UserDisplayList,
 		},
         data() {
             return {
@@ -124,8 +126,6 @@
 		created: function () {
 			this.inputTrack.source = this.sj.spotify;
 		},
-		
-		//TODO playlist display not working
     }
 </script>
 
@@ -197,7 +197,6 @@
 				<input class='property' v-model='inputUser.name'		placeholder='name'>
 				<input class='property' v-model='inputUser.email'		placeholder='email'>
 				<input class='property' v-model='inputUser.password'	placeholder='password'>
-				<input class='property' v-model='inputUser.password2'	placeholder='password2'>
 			</section>
 		</keep-alive>
 
@@ -207,7 +206,7 @@
 		<h3>Content</h3>
 		<track-display-list v-if='entityType === "track"' :p-data='retrievedTracks'></track-display-list>
 		<playlist-display-list  v-else-if='entityType === "playlist"' :p-data='retrievedPlaylists'></playlist-display-list>
-		<!-- <user-display-list  v-else-if='entityType === "user"' :p-data='retrievedUsers'></user-display-list> -->
+		<user-display-list  v-else-if='entityType === "user"' :p-data='retrievedUsers'></user-display-list>
 		
     </div>
 </template>
