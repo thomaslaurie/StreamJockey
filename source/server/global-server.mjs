@@ -8,13 +8,13 @@
 /*
     //? user id being in the session.user object is basically the user's access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out - I think this info is never sent to the client, just stored in the server and accessed via cookie key
 
-    //? is a check to see if a to-be-deleted item necessary? should the user be made aware if it doesn't exist? will this actually ever happen?
+    //? is a check to see if a to-be-removed item necessary? should the user be made aware if it doesn't exist? will this actually ever happen?
 
     //G
     Create -> add
     Retrieve -> get
     Update -> edit
-    Delete -> delete
+    Delete -> remove
 
     //! right now the CRUD functions are called with sj.Objects with some set of parameters (not always id, even for get) - these parameters are all ones that are fine to publicly carry around with the object (except in particular cases like passwords) and so should always be with the object. If theres a point in the future where these have to be called with a consistent argument (id) then the next step would be to make all these consistent about using that parameter and then also maybe have fallbacks for incase that parameter doesn't exist but other sufficient ones do (playlistId, position). This would be an order of properties and their respective validation checks and query modifications.
 
@@ -27,8 +27,8 @@
     TODO
     //C get functions will be allowed to get multiple resources (just a simple query based on matches), for example getting a playlist with only userId will get all playlists by that user
     //C there is some confusion about what is 'known' information - because playlists hold data on the tracks they contain, but users don't hold data on the playlists they have. get needs the ability for multiple matches because it is not 'known' by the client what it contains (playlist is only able to do this because the multiple query is done manually server-side when getting the original playlist, this is not done for user)
-    //C two directions - either make user retrieve all of it's containing playlists (lots of data being passed around here, no way to do a different query for playlists or tracks separated from user), or allow multiple querying (creates a difference between get and the other CRUD methods (add, edit, and delete could be done in multiple but these are all methods where the client 'knows' the exact resource they're manipulating and can be done iteratively on the client-side)
-    //C maybe make all CRUD methods multiply possible (for admin stuff? delete all tracks in a playlist (at once) without doing them iteratively client-side), all of these would have to fail if any one part fails (using that postgres thing (transaction commit?))
+    //C two directions - either make user retrieve all of it's containing playlists (lots of data being passed around here, no way to do a different query for playlists or tracks separated from user), or allow multiple querying (creates a difference between get and the other CRUD methods (add, edit, and remove could be done in multiple but these are all methods where the client 'knows' the exact resource they're manipulating and can be done iteratively on the client-side)
+    //C maybe make all CRUD methods multiply possible (for admin stuff? remove all tracks in a playlist (at once) without doing them iteratively client-side), all of these would have to fail if any one part fails (using that postgres thing (transaction commit?))
     //TODO also consider then including a light version of tracks/playlists that only includes ids?
 
     //TODO add admin privacy level: [admin, self, password, link, public, etc.]
@@ -37,7 +37,7 @@
 
     //R GET should be the only method used for search/query. EDIT & DELETE (& ADD) should not, therefore, editing or deleting a resource should only be done when it's id is known (after probably GETing it), (this clears up confusion: say we want to edit a track where its property is x, this is done in the GET method, but here is an issue when determining what data is the replacement data and what data is the query data - therefore only the id should be used as the query data (because it cant be changed), an the rest is the replacement data)
 
-    because of this it becomes: get | add, edit, delete   or   get, delete | add, edit    (because it could make sense for delete to query too because it doesn't have replacement data, but not add because it doesn't need a query), it comes down to consistency, get could take a single object, add, edit, delete, could take an array of objects (and return single success/failure?), what about get taking an array and returning an array
+    because of this it becomes: get | add, edit, remove   or   get, remove | add, edit    (because it could make sense for remove to query too because it doesn't have replacement data, but not add because it doesn't need a query), it comes down to consistency, get could take a single object, add, edit, remove, could take an array of objects (and return single success/failure?), what about get taking an array and returning an array
 
     
     //C ErrorList should not be a wrapper for a list of errors, ErrorList should be a version of a single error that has multiple 'parallel' parts (ie: adding a user and having an issue with multiple fields - its still a single error with one resource (a user) but there are multiple parts to the error that need to be evaluated in parallel not in sequence)
@@ -245,7 +245,7 @@ const visibilityStates = [
         // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
         // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
         // foreign keys - REFERENCES otherTable (column) *if the column is omitted then the primary key of the referenced table is used
-        // ON DELETE CASCADE also deletes any referencing rows when the referenced row is deleted
+        // ON DELETE CASCADE also removes any referencing rows when the referenced row is removed
         // TODO CHECK constraint that visibility, source matches possible  states
         // quotes: https://stackoverflow.com/questions/41396195/what-is-the-difference-between-single-quotes-and-double-quotes-in-postgresql
         
@@ -694,8 +694,8 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.edit = async function (query, db = sj.db) {
 		return await this.common(db, query, 'edit');
 	};
-	this.delete = async function (query, db = sj.db) {
-		return await this.common(db, query, 'delete');
+	this.remove = async function (query, db = sj.db) {
+		return await this.common(db, query, 'remove');
 	};
 
 	this.common = async function (db, anyEntities, crud) {
@@ -744,13 +744,13 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 					before.push(...inputBefore);
 				}
 
-				//C after, ignore delete //? would a final get query ever be preferable over a RETURNING statement?
+				//C after, ignore remove //? would a final get query ever be preferable over a RETURNING statement?
 				let inputAfter = await this[crud+'Query'](t, entity).then(sj.any).catch(sj.propagate);
-				if (crud !== 'delete') after.push(...inputAfter);
+				if (crud !== 'remove') after.push(...inputAfter);
 			}).catch(rejected => {
 				throw sj.propagate(new sj.ErrorList({
 					...this[crud+'Error'](),
-					content: Array.isArray(rejected) ? rejected.flat(1) : rejected, //C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or delete (because they return single objects)
+					content: Array.isArray(rejected) ? rejected.flat(1) : rejected, //C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or remove (because they return single objects)
 				}));
 			});
 			if (crud !== 'get') {
@@ -785,21 +785,21 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		}).catch(sj.propagate);
 	};
 
-	//C modifies entities before validation
+	//C modifies entities before validation (this includes modifying the entities so that their data structure matches the schema) //? return a new object then?
 	this.commonBefore = async function (t, entities, accessory) {
 		return;
 	};
 	this.addBefore = 
 	this.getBefore = 
 	this.editBefore = 
-	this.deleteBefore = this.commonBefore;
+	this.removeBefore = this.commonBefore;
 
 	//C returns a 2D validateList based on the passed entity: [[isRequired, rule, obj, propertyName, againstValue], ...]
 	//TODO consider making default rules for select properties by overwritting custom with the spread operator (but still require the individual isRequired to be listed)
 	this.addValidateList = 
 	this.getValidateList = 
 	this.editValidateList = 
-	this.deleteValidateList = function (entity) { return []; };
+	this.removeValidateList = function (entity) { return []; };
 
 	//C modifies each entity after validation
 	this.commonPrepare = async function (t, entity, accessory) {
@@ -808,7 +808,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.addPrepare =
 	this.getPrepare =
 	this.editPrepare = 
-	this.deletePrepare = this.commonPrepare;
+	this.removePrepare = this.commonPrepare;
 
 	//C modifies input entities, returns other entities
 	//C checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
@@ -818,7 +818,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.addAccommodate =
 	this.getAccommodate =
 	this.editAccommodate =
-	this.deleteAccommodate = this.commonAccommodate;
+	this.removeAccommodate = this.commonAccommodate;
 
 	//C map of js property names to database column names (there is no reason to have differences but this will handle them either way)
 	this.columnMap = [];
@@ -883,7 +883,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 
 		return new this(row);
 	};
-	this.deleteQuery = async function (t, mappedEntity) {
+	this.removeQuery = async function (t, mappedEntity) {
 		let where = sj.buildWhere(mappedEntity);
 
 		let row = await t.one(`
@@ -892,8 +892,8 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		RETURNING *`, where).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
-				origin: `sj.${this.name}.delete()`,
-				message: `could not delete ${this.names}s`,
+				origin: `sj.${this.name}.remove()`,
+				message: `could not remove ${this.names}s`,
 			}));
 		});
 		
@@ -907,7 +907,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.addAfter = 
 	this.getAfter = 
 	this.editAfter = 
-	this.deleteAfter = this.commonAfter;
+	this.removeAfter = this.commonAfter;
 
 	//C custom SuccessList and ErrorList
 	this.addSuccess = function () { return {
@@ -922,9 +922,9 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		origin: `sj.${this.name}.edit()`,
 		message: `edited ${this.name}s`,
 	}};
-	this.deleteSuccess = function () { return {
+	this.removeSuccess = function () { return {
 		origin: `sj.${this.name}.get()`,
-		message: `deleted ${this.name}s`,
+		message: `removed ${this.name}s`,
 	}};
 
 	this.addError = function () { return {
@@ -939,9 +939,9 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		origin: `sj.${this.name}.edit()`,
 		message: `failed to edit ${this.name}s`,
 	}};
-	this.deleteError = function () { return {
-		origin: `sj.${this.name}.delete()`,
-		message: `failed to delete ${this.name}s`,
+	this.removeError = function () { return {
+		origin: `sj.${this.name}.remove()`,
+		message: `failed to remove ${this.name}s`,
 	}};
 }).call(sj.Entity);
 (function () { // instance
@@ -954,8 +954,8 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.edit = async function (db) {
 		return await this.constructor.edit(this, db);
 	};
-	this.delete = async function (db) {
-		return await this.constructor.delete(this, db);
+	this.remove = async function (db) {
+		return await this.constructor.remove(this, db);
 	};
 }).call(sj.Entity.prototype);
 
@@ -1266,6 +1266,67 @@ Object.assign(sj.Rule, {
 		// }
 	*/
 
+	this.schema = {
+		//G 0 = unused, 1 = optional, 2 = required
+		id: {
+			columnName: 'id',
+			rule: sj.Rule.id,
+			add: 0,
+			get: 1,
+			edit: 2,
+			remove: 2,
+		},
+		name: {
+			columnName: 'name',
+			rule: sj.Rule.userName,
+			add: 2,
+			get: 1,
+			edit: 1,
+			remove: 0,
+		},
+		email: {
+			columnName: 'email',
+			rule: sj.Rule.email,
+			add: 2,
+			get: 1,
+			edit: 1,
+			remove: 0,
+		},
+		password: {
+			columnName: 'email',
+			rule: sj.Rule.password,
+			add: 2,
+			get: 0,
+			edit: 1,
+			remove: 0,
+		},
+		spotifyRefreshToken: {
+			columnName: 'email',
+			rule: sj.Rule.spotifyRefreshToken,
+			add: 0,
+			get: 0,
+			edit: 1,
+			remove: 0,
+		},
+	};
+
+	let crudFilters = {
+		add: [],
+		get: [],
+		edit: [],
+		remove: [],
+	};
+	Object.keys(this.schema).forEach(key => {
+		if (this.schema[key].add) crudFilters.add.push(key);
+		if (this.schema[key].get) crudFilters.get.push(key);
+		if (this.schema[key].edit) crudFilters.edit.push(key);
+		if (this.schema[key].remove) crudFilters.remove.push(key);
+	});
+	this.filters = {
+		...this.filters,
+		...crudFilters,
+	}
+
 	// use filters for specific
 	// use overwrites for specific if needed
 
@@ -1291,7 +1352,7 @@ Object.assign(sj.Rule, {
 			[false, sj.Rule.spotifyRefreshToken, user, 'spotifyRefreshToken'],
 		];
 	};
-	this.deleteValidateList = function (user) {
+	this.removeValidateList = function (user) {
 		return [
 			[true, sj.Rule.id,			user,	'id'],
 		];
@@ -1306,6 +1367,7 @@ Object.assign(sj.Rule, {
 	};
 
 	// overwrite
+	//TODO hash password on edit too
 	this.addPrepare = async function (t, user) {
 		//C hash password
 		user.password = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
@@ -1352,7 +1414,7 @@ Object.assign(sj.Rule, {
 		
 		return users;
 	*/
-	/* //OLD delete
+	/* //OLD remove
 		await sj.isLoggedIn(ctx);
 
 		await sj.Rule.checkRuleSet([
@@ -1362,8 +1424,8 @@ Object.assign(sj.Rule, {
 		return db.one('SELECT password FROM "sj"."users_self" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
-				origin: 'deleteUser()',
-				message: 'could not delete user',
+				origin: 'removeUser()',
+				message: 'could not remove user',
 				target: 'notify',
 				cssClass: 'notifyError',
 			}));
@@ -1371,7 +1433,7 @@ Object.assign(sj.Rule, {
 			return bcrypt.compare(user.password, resolved.password).catch(rejected => {
 				throw new sj.Error({
 					log: true,
-					origin: 'deleteUser()',
+					origin: 'removeUser()',
 					message: 'server error',
 					reason: 'hash compare failed',
 					content: rejected,
@@ -1384,8 +1446,8 @@ Object.assign(sj.Rule, {
 				return db.none('DELETE FROM "sj"."users" WHERE "id" = $1', [ctx.session.user.id]).catch(rejected => {
 					throw sj.parsePostgresError(rejected, new sj.Error({
 						log: false,
-						origin: 'deleteUser()',
-						message: 'could not delete user',
+						origin: 'removeUser()',
+						message: 'could not remove user',
 						target: 'notify',
 						cssClass: 'notifyError',
 					}));
@@ -1393,20 +1455,20 @@ Object.assign(sj.Rule, {
 			} else {
 				throw new sj.Error({
 					log: true,
-					origin: 'deleteUser()',
+					origin: 'removeUser()',
 					message: 'incorrect password',
-					target: 'deleteUserPassword',
+					target: 'removeUserPassword',
 					cssClass: 'inputError',
 				});
 			}
 		}).then(resolved => {
-			//C resolve logout() rejection - the user is still deleted even if logout fails (which it shouldn't), the user doesn't need to know this
+			//C resolve logout() rejection - the user is still removed even if logout fails (which it shouldn't), the user doesn't need to know this
 			return logout().catch(sj.andResolve);     
 		}).then(resolved => {
 			return new sj.Success({
 				log: true,
-				origin: 'deleteUser()',
-				message: `user ${user.name} deleted`,
+				origin: 'removeUser()',
+				message: `user ${user.name} removed`,
 			});
 		}).catch(rejected => {
 			throw propagateError(rejected);
@@ -1486,7 +1548,7 @@ Object.assign(sj.Rule, {
 			[false, sj.Rule.description,    playlist,   'description'],
 		];
 	};
-	this.deleteValidateList = function (playlist) {
+	this.removeValidateList = function (playlist) {
 		return [
 			[true, sj.Rule.id, playlist, 'id'],
 		];
@@ -1584,7 +1646,7 @@ Object.assign(sj.Rule, {
 
 		return playlists;
 	*/
-	/* //OLD delete
+	/* //OLD remove
 		await sj.isLoggedIn(ctx);
 
 		playlist = await sj.Playlist.get(ctx, playlist);
@@ -1597,16 +1659,16 @@ Object.assign(sj.Rule, {
 		return db.none('DELETE FROM "sj"."playlists" WHERE "id" = $1', [playlist.id]).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
-				origin: 'deletePlaylist()',
-				message: 'could not delete playlist, database error',
+				origin: 'removePlaylist()',
+				message: 'could not remove playlist, database error',
 				target: 'notify',
 				cssClass: 'notifyError',
 			}));
 		}).then(resolved => {
 			return new sj.Success({
 				log: true,
-				origin: 'deletePlaylist()',
-				message: 'playlist deleted',
+				origin: 'removePlaylist()',
+				message: 'playlist removed',
 				target: 'notify',
 				cssClass: 'notify success',
 			});
@@ -1697,7 +1759,7 @@ Object.assign(sj.Rule, {
 			[false, sj.Rule.posInt,		track,	'duration'],
 		];
 	};
-	this.deleteValidateList = function (track) {
+	this.removeValidateList = function (track) {
 		return [
 			[true, sj.Rule.id, track, 'id'],
 		];
@@ -1730,7 +1792,7 @@ Object.assign(sj.Rule, {
 
 	this.addAccommodate = 
 	this.editAccommodate =
-	this.deleteAccommodate = async function (t, tracks) {
+	this.removeAccommodate = async function (t, tracks) {
 		await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
@@ -1792,7 +1854,7 @@ Object.assign(sj.Rule, {
 			await sj.Track.move(t, tracks);
 			return undefined;
 		};
-		this.deleteAfter = async function (t, results, {entities: tracks}) {
+		this.removeAfter = async function (t, results, {entities: tracks}) {
 			//C order after deleting
 			await sj.Track.order(t, results); //TODO //? will this modify results? i dont think so, i think results needs to = sj.Track.order(), no this is just to order the database
 			return results;
@@ -1938,8 +2000,8 @@ Object.assign(sj.Rule, {
 			}
 		}
 	*/
-	//! deletion will return the deleted row, however this will still (eventually) have visibility limitations and should not be used to restore data
-	/* //OLD delete
+	//! deletion will return the removed row, however this will still (eventually) have visibility limitations and should not be used to restore data
+	/* //OLD remove
 		//! requires an sj.Track with playlistId and position properties
 
 		await sj.isLoggedIn(ctx);
@@ -1968,13 +2030,13 @@ Object.assign(sj.Rule, {
 			[sj.Rule.self, playlist, 'userId', ctx.session.userId],
 		]);
 
-		//TODO check to make sure it exists (like deletePlaylist has getPlaylist)
+		//TODO check to make sure it exists (like removePlaylist has getPlaylist)
 
 		return db.none('DELETE FROM "sj"."tracks" WHERE "playlistId" = $1 AND "position" = $2', [parseInt(track.playlistId), parseInt(track.position)]).catch(rejected => {
 			throw sj.parsePostgresError({
 				log: true,
-				origin: 'deleteTrack()',
-				message: 'failed to delete track, database error',
+				origin: 'removeTrack()',
+				message: 'failed to remove track, database error',
 				target: 'notify',
 				cssClass: 'notifyError',
 			});
@@ -1982,7 +2044,7 @@ Object.assign(sj.Rule, {
 			return sj.orderPlaylist(new sj.Playlist({id: track.playlistId})).catch(rejected => {
 				throw sj.parsePostgresError(rejected, new sj.Error({
 					log: false,
-					origin: 'deleteTrack()',
+					origin: 'removeTrack()',
 					message: 'could not order playlist, database error',
 					target: 'notify',
 					cssClass: 'notifyError',
@@ -1991,7 +2053,7 @@ Object.assign(sj.Rule, {
 		}).then(resolved => {
 			return new sj.Success({
 				log: false,
-				origin: 'deleteTrack()',
+				origin: 'removeTrack()',
 				content: track,
 				target: 'notify',
 				cssClass: 'notifySuccess', 
@@ -2176,10 +2238,10 @@ Object.assign(sj.Rule, {
 
 				//C inputIndex is no longer needed, remove it from anything it was added to
 				playlist.inputsToPosition.forEach(trackToPosition => {
-					//delete trackToPosition[inputIndex]; //TODO temp
+					//remove trackToPosition[inputIndex]; //TODO temp
 				});
 				playlist.inputsToRemove.forEach(trackToRemove => {
-					//delete trackToRemove[inputIndex]; //TODO temp
+					//remove trackToRemove[inputIndex]; //TODO temp
 				});
 
 
@@ -2489,7 +2551,7 @@ Object.assign(sj.Rule, {
 		async order(db, tracks) {
 			//C takes a list of tracks with playlistId, returns a list of playlists affected by the sort
 
-			//R there is a recursive loop hazard in here (basically if sj.Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, delete can use these and sj.Track.get() but not each other - this is written down in that paper chart
+			//R there is a recursive loop hazard in here (basically if sj.Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
 
 			tracks = sj.any(tracks);
 
@@ -2517,7 +2579,7 @@ Object.assign(sj.Rule, {
 					//let playlist = await sj.Track.get(t, new sj.Track({playlistId: playlistId}));
 					let playlist = await sj.Track.get(t, new sj.Track({playlistId: playlistId})).then(sj.content);
 
-					//C early return if playlist is empty (will happen if an entire playlist is deleted)
+					//C early return if playlist is empty (will happen if an entire playlist is removed)
 					if (playlist.length <= 0) {
 						return new sj.Playlist({
 							origin: 'sj.Track.order()',

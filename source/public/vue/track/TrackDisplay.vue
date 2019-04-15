@@ -6,7 +6,7 @@
 		extends: AsyncDisplay,
 		props: {
 			addButton: Boolean,
-			deleteButton: Boolean,
+			removeButton: Boolean,
 		},
         methods: {
             async getData() {
@@ -18,8 +18,8 @@
             async play() {
 			},
 			async del() { //! shortened to del to avoid delete reserved word
-				await this.sj.deleteTrack(this.data);
-				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for deletes because this component can get it's own data
+				await this.sj.removeTrack(this.data);
+				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own data
 			},
 			async add() {
 				//C does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
@@ -42,7 +42,7 @@
 		</div>
 		<div id='right'>
 			<button v-if='addButton' @click='add'>Add</button>
-			<button v-if='deleteButton' @click='del'>Delete</button>
+			<button v-if='removeButton' @click='del'>Delete</button>
 		</div>
 		<!-- //TODO <button @click='open(data.id)'>Info</button> -->
     </async-switch>

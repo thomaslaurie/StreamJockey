@@ -1083,7 +1083,7 @@ sj.Entity = class extends sj.Success {
 		add: [],
 		get: [],
 		edit: [],
-		delete: [],
+		remove: [],
 	}}
 }
 
@@ -1112,7 +1112,7 @@ sj.User = class extends sj.Entity {
 		add: ['name', 'email', 'password'],
 		get: ['id', 'name', 'email'],
 		edit: ['id', 'name', 'email', 'spotifyRefreshToken'],
-		delete: ['id'],
+		remove: ['id'],
 	}}
 }
 sj.Playlist = class extends sj.Entity {
@@ -1143,7 +1143,7 @@ sj.Playlist = class extends sj.Entity {
 		add: ['userId', 'name', 'description'],
 		get: ['id', 'userId', 'name', 'description'],
 		edit: ['id', 'name', 'description'],
-		delete: ['id'],
+		remove: ['id'],
 	}}
 }
 sj.Track = class extends sj.Entity {
@@ -1173,7 +1173,7 @@ sj.Track = class extends sj.Entity {
 		add: ['playlistId', 'source', 'sourceId', 'name', 'duration', 'artists'],
 		get: ['id', 'playlistId', 'position', 'source', 'sourceId'],
 		edit: ['id', 'source', 'sourceId', 'name', 'duration'],
-		delete: ['id'],
+		remove: ['id'],
 	}}
 }
 

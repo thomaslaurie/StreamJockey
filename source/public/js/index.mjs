@@ -316,12 +316,12 @@ import DatabasePage from '../vue/page/DatabasePage.vue';
 	--> any user changes the database
 		adds an entity
 		edits an entity
-		deletes an entity
+		removes an entity
 		get can be ignored
 	the function executes as normal, but also dispatches (without awaiting) the event to [somewhere]
 		this event includes the entity with all of its (queriable) properties (not just id, because get may query by any property)
 		add 	- dispatches the entity after the change
-		delete 	- dispatches the entity before the change
+		remove 	- dispatches the entity before the change
 		edit 	- dispatches both the entity before and after the change
 	this entity is sent to [where ever query subscriptions are stored] where its compared against each query
 		try to compare in reverse order of frequency of properties, so that comparisons will short circuit as fast as possible
@@ -366,7 +366,7 @@ import DatabasePage from '../vue/page/DatabasePage.vue';
 	-> component calls vuex to unsubscribe from a query (on destroy, or query change)
 	<-- send a socket message to unsubscribe
 	--> receive success
-	delete the query mirror
+	remove the query mirror
 	<- return success
 */
 
@@ -490,7 +490,7 @@ const store = new VueX.Store({
 
 			//TODO unsubscribe from the server socket
 
-			await context.dispatch('deleteSubscriber', {table, query, subscriber});
+			await context.dispatch('removeSubscriber', {table, query, subscriber});
 		},
 		
 		async updateQuery(context, {table, query, timestamp}) {
@@ -511,7 +511,7 @@ const store = new VueX.Store({
 
 				//TODO it seems like theres a ton of potential edge-case issues here with the timestamp checks, 
 				//TODO consider the difference between the socket notification timestamp and the http data request timestamp
-				//TODO consider the difference between add subscription, edit data, and delete subscription, how are they affected by the timestamp?
+				//TODO consider the difference between add subscription, edit data, and remove subscription, how are they affected by the timestamp?
 			}
 
 			//C decode it's query
@@ -557,7 +557,7 @@ const store = new VueX.Store({
 				let newReferenceQueries = newReferences.map(reference => reference.query);
 				await sj.asyncForEach(queryTable[query].content, async entityMirror => {
 					if (!(entityMirror.query in newReferenceQueries)) {
-						await context.dispatch('deleteSubscriber', {table, query: entityMirror.query, subscriber: queryTable[query]});
+						await context.dispatch('removeSubscriber', {table, query: entityMirror.query, subscriber: queryTable[query]});
 					}
 				});
 
@@ -605,7 +605,7 @@ const store = new VueX.Store({
 				//console.log('addSubscriber() - added new subscriber subscriber', tableMirror[query], subscriber);
 			}
 		},
-		async deleteSubscriber(context, {table, query, subscriber}) {
+		async removeSubscriber(context, {table, query, subscriber}) {
 			let queryTable = context.state.databaseMirror[table];
 			if (sj.isType(queryTable[query], sj.QueryMirror)) {
 				//C find subscriber in subscribers
@@ -615,15 +615,15 @@ const store = new VueX.Store({
 						//! do not use splice here as it modifies the original array
 						subscribers: queryTable[query].subscribers.filter(existingSubscriber => existingSubscriber !== subscriber),
 					}});
-					//console.log('deleteSubscriber() - removed subscriber', queryTable[query], subscriber);
+					//console.log('removeSubscriber() - removed subscriber', queryTable[query], subscriber);
 				}
-				//C if no more subscribers exist, delete the item
+				//C if no more subscribers exist, remove the item
 				if (queryTable[query].subscribers.length <= 0) {
-					//console.log('deleteSubscriber() - removing item', queryTable[query]);
-					context.commit('deleteQueryMirror', {table, query});
+					//console.log('removeSubscriber() - removing item', queryTable[query]);
+					context.commit('removeQueryMirror', {table, query});
 				}
 			} else {
-				//console.warn('VueX: deleteSubscriber() - not found or wrong item query type:', state.databaseMirror[table][query]);
+				//console.warn('VueX: removeSubscriber() - not found or wrong item query type:', state.databaseMirror[table][query]);
 			}
 		},
 
@@ -640,8 +640,8 @@ const store = new VueX.Store({
 				state.databaseMirror[table][query][key] = props[key];
 			});
 		},
-		deleteQueryMirror(state, {table, query}) {
-			//console.log(`called deleteQueryMirror(table: ${table}, query: ${query})`);
+		removeQueryMirror(state, {table, query}) {
+			//console.log(`called removeQueryMirror(table: ${table}, query: ${query})`);
 			delete state.databaseMirror[table][query];
 		},
 	},

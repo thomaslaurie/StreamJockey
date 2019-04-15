@@ -164,7 +164,7 @@ apiRouter
 })
 
 // session
-//R //L login/logout are create/delete for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
+//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 .post('/session', async (ctx, next) => {
 	ctx.response.body = await sj.login(sj.db, ctx, ctx.request.body).catch(sj.andResolve);
@@ -189,7 +189,7 @@ apiRouter
 	ctx.response.body = await sj.User.edit(ctx.request.body).catch(sj.andResolve);
 })
 .delete(`/${sj.User.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.User.delete(ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.User.remove(ctx.request.body).catch(sj.andResolve);
 })
 
 // playlist
@@ -203,7 +203,7 @@ apiRouter
 	ctx.response.body = await sj.Playlist.edit(ctx.request.body).catch(sj.andResolve);
 })
 .delete(`/${sj.Playlist.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Playlist.delete(ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Playlist.remove(ctx.request.body).catch(sj.andResolve);
 })
 
 // track
@@ -217,7 +217,7 @@ apiRouter
 	ctx.response.body = await sj.Track.edit(ctx.request.body).catch(sj.andResolve);
 })
 .delete(`/${sj.Track.table}`, async (ctx, next) => {
-	ctx.response.body = await sj.Track.delete(ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.Track.remove(ctx.request.body).catch(sj.andResolve);
 })
 
 // catch

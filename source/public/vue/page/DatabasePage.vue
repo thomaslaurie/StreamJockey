@@ -118,7 +118,7 @@
 				});
 			},
 			async remove() {
-				this.retrieved = await this.entity.delete(this.input).then(this.sj.content).catch(rejected => {
+				this.retrieved = await this.entity.remove(this.input).then(this.sj.content).catch(rejected => {
                     return this.retrieved;
 				});
 			},
@@ -159,8 +159,8 @@
 				<input type='radio' name='methodType' v-model='method' value='edit' id='editRadio'>
 				<label for='editRadio'>Edit</label>
 
-				<input type='radio' name='methodType' v-model='method' value='delete' id='deleteRadio'>
-				<label for='deleteRadio'>Delete</label> 
+				<input type='radio' name='methodType' v-model='method' value='remove' id='removeRadio'>
+				<label for='removeRadio'>Delete</label> 
 			-->
 		</section>
 

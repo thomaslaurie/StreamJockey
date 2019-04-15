@@ -75,8 +75,8 @@ Object.assign(sj.Entity, {
 	async edit(query) {
 		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.edit));
 	},
-	async delete(query) {
-		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.delete));
+	async remove(query) {
+		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.remove));
 	},
 });
 // instance CRUD
@@ -90,8 +90,8 @@ Object.assign(sj.Entity.prototype, {
 	async edit() {
 		return await this.constructor.edit(this);
 	},
-	async delete() {
-		return await this.constructor.delete(this);
+	async remove() {
+		return await this.constructor.remove(this);
 	},
 });
 
@@ -323,7 +323,7 @@ sj.getUser = async function (user) {
 sj.editUser = async function (user) {
 	return await sj.request('PATCH', `${sj.API_URL}/users`, new sj.User(user));
 }
-sj.deleteUser = async function (user) {
+sj.removeUser = async function (user) {
 	return await sj.request('DELETE', `${sj.API_URL}/users`, new sj.User(user));
 }
 
@@ -348,7 +348,7 @@ sj.getPlaylist = async function (playlist) {
 sj.editPlaylist = async function (playlist) {
 	return await sj.request('PATCH', `${sj.API_URL}/playlists`, playlist);
 }
-sj.deletePlaylist = async function (playlist) {
+sj.removePlaylist = async function (playlist) {
 	return await sj.request('DELETE', `${sj.API_URL}/playlists`, playlist);
 }
 
@@ -365,7 +365,7 @@ sj.getTrack = async function (track) {
 sj.editTrack = async function (track) {
 	return await sj.request('PATCH', `${sj.API_URL}/tracks`, new sj.Track(track));
 }
-sj.deleteTrack = async function (track) {
+sj.removeTrack = async function (track) {
 	return await sj.request('DELETE', `${sj.API_URL}/tracks`, new sj.Track(track));
 }
 

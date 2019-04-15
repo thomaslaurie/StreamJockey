@@ -373,7 +373,7 @@
                 } else if (childConfig[prop] != null) {
                     res[prop] = childConfig[prop];
                 } else {
-                    delete res[prop];
+                    remove res[prop];
                 }
             }
         }
@@ -1915,7 +1915,7 @@
             return locales[name];
         } else {
             // useful for testing
-            delete locales[name];
+            remove locales[name];
             return null;
         }
     }
@@ -1941,7 +1941,7 @@
                 if (locales[name].parentLocale != null) {
                     locales[name] = locales[name].parentLocale;
                 } else if (locales[name] != null) {
-                    delete locales[name];
+                    remove locales[name];
                 }
             }
         }
@@ -2352,14 +2352,14 @@
 
         configFromISO(config);
         if (config._isValid === false) {
-            delete config._isValid;
+            remove config._isValid;
         } else {
             return;
         }
 
         configFromRFC2822(config);
         if (config._isValid === false) {
-            delete config._isValid;
+            remove config._isValid;
         } else {
             return;
         }

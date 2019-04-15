@@ -46,7 +46,7 @@
         <button @click='edit = !edit'>Edit</button>
 
         <div id='main'>
-            <track-display-list id='playlist' :p-query='{playlistId: data.id}' deleteButton @update='getData'></track-display-list>
+            <track-display-list id='playlist' :p-query='{playlistId: data.id}' removeButton @update='getData'></track-display-list>
 
             <div id='search-div' v-if='edit'>
                 <input v-model='searchTerm'>
