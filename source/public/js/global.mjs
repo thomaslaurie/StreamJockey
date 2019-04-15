@@ -919,10 +919,6 @@ sj.Object = class {
 			message: '',
 			reason: '',
 			content: {},
-
-			// DOM
-			target: '',
-			cssClass: '',
 		});
 
 		this.onCreate();

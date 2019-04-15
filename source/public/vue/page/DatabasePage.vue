@@ -100,28 +100,25 @@
 			},
 			
 			async add() {
-				this.result = await this.entity.add(this.input).catch(rejected => {
-                    console.error(rejected);
+				this.retrieved = await this.entity.add(this.input).then(this.sj.content).catch(rejected => {
+					//C don't change
+                    return this.retrieved;
 				});
-				this.retrieved = this.result.content;
 			},
 			async get() {
-				this.result = await this.entity.get(this.input).catch(rejected => {
-                    console.error(rejected);
+				this.retrieved = await this.entity.get(this.input).then(this.sj.content).catch(rejected => {
+                    return this.retrieved;
 				});
-				this.retrieved = this.result.content;
 			},
 			async edit() {
-				this.result = await this.entity.edit(this.input).catch(rejected => {
-                    console.error(rejected);
+				this.retrieved = await this.entity.edit(this.input).then(this.sj.content).catch(rejected => {
+                    return this.retrieved;
 				});
-				this.retrieved = this.result.content;
 			},
 			async remove() {
-				this.result = await this.entity.delete(this.input).catch(rejected => {
-                    console.error(rejected);
+				this.retrieved = await this.entity.delete(this.input).then(this.sj.content).catch(rejected => {
+                    return this.retrieved;
 				});
-				this.retrieved = this.result.content;
 			},
 		},
 		created: function () {
@@ -209,7 +206,7 @@
 
 		<h3>Content</h3>
 		<track-display-list v-if='entityType === "track"' :p-data='retrievedTracks'></track-display-list>
-		<playlist-display-list  v-else-if='entityType === "playist"' :p-data='retrievedPlaylists'></playlist-display-list>
+		<playlist-display-list  v-else-if='entityType === "playlist"' :p-data='retrievedPlaylists'></playlist-display-list>
 		<!-- <user-display-list  v-else-if='entityType === "user"' :p-data='retrievedUsers'></user-display-list> -->
 		
     </div>

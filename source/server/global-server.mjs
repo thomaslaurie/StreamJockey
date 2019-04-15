@@ -627,7 +627,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
                 content: obj,
             });
 		}
-        if (isRequired && !(propertyName in obj)) { //? shouldn't rule.check just catch this case as undefined?
+        if (isRequired && obj && !(propertyName in obj)) { //? shouldn't rule.check just catch this case as undefined?
             throw new sj.Error({
                 log: true,
                 origin: 'sj.Rule.checkRuleSet()',
@@ -638,7 +638,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
         }
 
         //C if propertyName is required or is not required but has a value
-        if (isRequired || !sj.isEmpty(obj[propertyName])) {
+        if (isRequired || (obj && !sj.isEmpty(obj[propertyName]))) {
 			//C validate propertyName 
 			let checked = await rule.check(obj[propertyName], against);
 			
@@ -710,10 +710,10 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 		return await db.tx(async t => {
 			let accessory = {};
 
-			console.log('ENTITIES:', entities);
-
 			//C process list before iteration
 			await this[crud+'Before'](t, entities, accessory);
+
+			console.log('ENTITIES:', entities);
 
 			//C validate
 			let validatedEntities = await sj.asyncForEach(entities, async entity => {
@@ -786,12 +786,13 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	};
 
 	//C modifies entities before validation
+	this.commonBefore = async function (t, entities, accessory) {
+		return;
+	};
 	this.addBefore = 
 	this.getBefore = 
 	this.editBefore = 
-	this.deleteBefore = async function (t, entities, accessory) {
-		return;
-	};
+	this.deleteBefore = this.commonBefore;
 
 	//C returns a 2D validateList based on the passed entity: [[isRequired, rule, obj, propertyName, againstValue], ...]
 	//TODO consider making default rules for select properties by overwritting custom with the spread operator (but still require the individual isRequired to be listed)
@@ -801,21 +802,23 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	this.deleteValidateList = function (entity) { return []; };
 
 	//C modifies each entity after validation
+	this.commonPrepare = async function (t, entity, accessory) {
+		return;
+	}
 	this.addPrepare =
 	this.getPrepare =
 	this.editPrepare = 
-	this.deletePrepare = async function (t, entity, accessory) {
-		return;
-	};
+	this.deletePrepare = this.commonPrepare;
 
 	//C modifies input entities, returns other entities
 	//C checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
+	this.commonAccommodate = async function (t, entities, accessory) {
+		return new sj.SuccessList();
+	};
 	this.addAccommodate =
 	this.getAccommodate =
 	this.editAccommodate =
-	this.deleteAccommodate = async function (t, entities, accessory) {
-		return [];
-	};
+	this.deleteAccommodate = this.commonAccommodate;
 
 	//C map of js property names to database column names (there is no reason to have differences but this will handle them either way)
 	this.columnMap = [];
@@ -898,12 +901,13 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	};
 
 	//C modifies entities after iteration
+	this.commonAfter = async function (t, entities, accessory) {
+		return;
+	};
 	this.addAfter = 
 	this.getAfter = 
 	this.editAfter = 
-	this.deleteAfter = async function (t, entities, accessory) {
-		return;
-	};
+	this.deleteAfter = this.commonAfter;
 
 	//C custom SuccessList and ErrorList
 	this.addSuccess = function () { return {
@@ -1664,22 +1668,21 @@ Object.assign(sj.Rule, {
 	// validate
 	this.addValidateList = function (track) {
 		return [
-			[true, sj.Rule.id,			track, 'playlistId'],
-			[true, sj.Rule.source,		track.source, 'name'], //TODO //! this will be overwritten by the name property
-			//---------- source name not working, artists not working
-			[true, sj.Rule.sourceId,	track, 'sourceId'],
-			[true, sj.Rule.trackName,	track, 'name'],
-			[true, sj.Rule.posInt,		track, 'duration'],
-			[true, sj.Rule.artists,		track, 'artists'],
+			[true, sj.Rule.id,			track,	'playlistId'],
+			[true, sj.Rule.source,		track,	'source'],
+			[true, sj.Rule.sourceId,	track,	'sourceId'],
+			[true, sj.Rule.trackName,	track,	'name'],
+			[true, sj.Rule.posInt,		track,	'duration'],
+			[true, sj.Rule.artists,		track,	'artists'],
 		];
 	};
 	this.getValidateList = function (track) {
 		return [
-			[false, sj.Rule.id,     	track, 'id'],
-			[false, sj.Rule.id,     	track, 'playlistId'],
-			[false, sj.Rule.posInt, 	track, 'position'],
-			[false, sj.Rule.source,     track.source, 'source'],
-			[false, sj.Rule.sourceId,   track, 'sourceId'],
+			[false, sj.Rule.id,     	track,	'id'],
+			[false, sj.Rule.id,     	track,	'playlistId'],
+			[false, sj.Rule.posInt, 	track,	'position'],
+			[false, sj.Rule.source,     track,	'source'],
+			[false, sj.Rule.sourceId,   track,	'sourceId'],
 		];
 	};
 	this.editValidateList = function (track) {
@@ -1687,7 +1690,7 @@ Object.assign(sj.Rule, {
 			[true,	sj.Rule.id,			track,	'id'],
 			[false, sj.Rule.id,			track,	'playlistId'],
 			[false, sj.Rule.posInt, 	track,	'position'],
-			[false,	sj.Rule.source,		track.source,	'source'],
+			[false,	sj.Rule.source,		track,	'source'],
 			[false, sj.Rule.sourceId,	track,	'sourceId'],
 			[false, sj.Rule.trackName,	track,	'name'],
 			[false, sj.Rule.posInt,		track,	'duration'],
@@ -1711,6 +1714,13 @@ Object.assign(sj.Rule, {
 	};
 
 	// overwrite
+	this.commonBefore = async function (t, entities) {
+		entities.forEach(entity => {
+			entity.source = sj.isType(entity.source, sj.Source) && sj.isType(entity.source, String)
+			? entity.source.name
+			: 'unknown source';
+		});
+	};
 	this.addPrepare = async function (t, track) {
 		let existingTracks = await sj.Track.get({playlistId: track.playlistId}, t).then(sj.content);
 		track.position = existingTracks.length;
@@ -1731,6 +1741,10 @@ Object.assign(sj.Rule, {
 		});
 		return await this.order(t, tracks).catch(sj.propagate);
 	};
+
+	// this.commonAfter = async function (t, entities) {
+	//TODO convert source string to source object
+	// };
 
 
 	/* //OLD

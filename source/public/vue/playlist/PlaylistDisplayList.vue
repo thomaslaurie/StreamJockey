@@ -18,19 +18,32 @@
 
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
+	class='playlist-display-list'>
         <ul>
             <li
                 v-for='playlist in data' 
                 :key='playlist.id' 
                 :display='playlist'
             >
-				<playlist-display :p-data='playlist'></playlist-display>
+				<playlist-display :p-data='playlist' v-bind='attrs' v-on='listeners'></playlist-display>
             </li>
         </ul>
+		<div>test</div>
     </async-switch>
 </template>
 
 
-<style scoped lang='scss'>
+<style lang='scss'>
+	.playlist-display-list {
+		$margin: 5px;
+		ul {
+			padding: 0;
+			margin: $margin 0 $margin 0;
+		}
+		li {
+			padding: 0;
+			margin: $margin 0 $margin 0;
+		}
+	}
 </style>
