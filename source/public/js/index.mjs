@@ -248,13 +248,13 @@ sj.testRun = async function (store) {
 
 	//? one more issue: how do i prevent events being broadcast to clients for private entries (ie clients dont have permission to view), this works as it is but basically it will trigger the client to update whenever something that matches updates server-side, but that is private so the client receives no new information- maybe consider putting permissions as part of the database query so it also applies to the rooms?
 */
-sj.QueryMirror = class extends sj.Object {
+sj.QueryMirror = class extends sj.Base {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.QueryMirror';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			query: undefined,
 			subscribers: [], 
 			timestamp: 0, 
@@ -272,11 +272,11 @@ sj.EntityMirror = class extends sj.QueryMirror {
 
 	//C same as QueryMirror
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.EntityMirror';
 
-		sj.Object.init(this, options, {});
+		sj.Base.init(this, options, {});
 
 		this.onCreate();
 	}
@@ -474,7 +474,7 @@ const store = new VueX.Store({
 				}, 10000); //TODO default timeout
 			}).then(sj.content).catch(sj.propagate);
 
-			//C add subscriber to the mirrored database, from here on it will live update //! sj.Objects must have their table property
+			//C add subscriber to the mirrored database, from here on it will live update //! sj.Bases must have their table property
 			await context.dispatch('addSubscriber', {table, query, subscriber});
 
 			//C trigger a manual update

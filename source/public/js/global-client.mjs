@@ -23,7 +23,7 @@
 	Is there a significant discrepancy between potential synchronous/local sources (listeners) and asynchronous api calls for progress checks? Which information sources are synchronous/local? Should their information override the api information?
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
 
-	consider moving the sj.addUser(), sj.getTrack(), etc. functions into the sj.Object classes?
+	consider moving the sj.addUser(), sj.getTrack(), etc. functions into the sj.Base classes?
 
 	//TODO should CRUD functions have propagateErrors on them?
 
@@ -67,16 +67,16 @@ import sj from './global.mjs';
 // static CRUD
 Object.assign(sj.Entity, {
 	async add(query) {
-		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.add));
+		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.addIn));
 	},
 	async get(query) {
-		return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(query, this.filters.get))}`);
+		return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(query, this.filters.getIn))}`);
 	},
 	async edit(query) {
-		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.edit));
+		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.editIn));
 	},
 	async remove(query) {
-		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.remove));
+		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.removeIn));
 	},
 });
 // instance CRUD
@@ -317,7 +317,7 @@ sj.addUser = async function (user) {
 }
 sj.getUser = async function (user) {
 	//! get requests must use query parameters cause they have no body
-	let query = sj.encodeList(sj.shake(user, sj.User.filters.get));
+	let query = sj.encodeList(sj.shake(user, sj.User.filters.getIn));
 	return await sj.request('GET', `${sj.API_URL}/users?${query}`);
 }
 sj.editUser = async function (user) {
@@ -342,7 +342,7 @@ sj.addPlaylist = async function (playlist) {
 	return await sj.request('POST', `${sj.API_URL}/playlists`, playlist);
 }
 sj.getPlaylist = async function (playlist) {
-    let query = sj.encodeList(sj.shake(playlist, sj.Playlist.filters.get));
+    let query = sj.encodeList(sj.shake(playlist, sj.Playlist.filters.getIn));
 	return await sj.request('GET', `${sj.API_URL}/playlists?${query}`);
 }
 sj.editPlaylist = async function (playlist) {
@@ -359,7 +359,7 @@ sj.addTrack = async function (track) {
 	return await sj.request('POST', `${sj.API_URL}/tracks`, new sj.Track(track));
 }
 sj.getTrack = async function (track) {
-	let query = sj.encodeList(sj.shake(track, sj.Track.filters.get));
+	let query = sj.encodeList(sj.shake(track, sj.Track.filters.getIn));
 	return await sj.request('GET', `${sj.API_URL}/tracks?${query}`);
 }
 sj.editTrack = async function (track) {
@@ -1583,7 +1583,7 @@ sj.youtube.checkPlayback = async function () {
 /*
 sj.Action(obj) = function () {
 	// super
-	sj.Object.call(this, obj);
+	sj.Base.call(this, obj);
 
 	// overwritten properties
 	this.objectType = 'sj.Action';

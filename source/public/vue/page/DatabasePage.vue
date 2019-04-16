@@ -123,9 +123,6 @@
 				});
 			},
 		},
-		created: function () {
-			this.inputTrack.source = this.sj.spotify;
-		},
     }
 </script>
 

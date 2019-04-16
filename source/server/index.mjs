@@ -99,7 +99,7 @@ const databaseSockets = socketIO.of('/database');
 databaseSockets.on('connect', (socket) => {
 	console.log('SOCKET - CONNECTED', socket.id);
 
-	console.log('socket.request.headers.cookie', cookie.parse(socket.request.headers.cookie));
+	//console.log('socket.request.headers.cookie', cookie.parse(socket.request.headers.cookie));
 
 	socket.on('disconnecting', (reason) => {
 		console.log('SOCKET - DISCONNECTING', socket.id);

@@ -24,6 +24,10 @@
 	//L fetch vs axios: https://www.reddit.com/r/javascript/comments/6e0o99/fetch_polyfill_or_axios/
 	//R axios is high level, fetch is middle level - i want this because its less magic, i actually want the functionality of fetch to be able to distinguish between failed requests and bad requests, i'm making a wrapper function anyways so the extra detail doesn't matter
 
+	
+	//G Object.assign(sj.Base, {...}) is used to assign static variables and methods
+	//G (function () {..}).call(sj.Base); is better 
+
 */
 
 
@@ -72,9 +76,10 @@
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+let sj = {};
+
 import fClone from './fclone.mjs'; //C https://github.com/soyuka/fclone
 
-let sj = {};
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
 	//L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
@@ -88,8 +93,6 @@ if (typeof fetch !== 'undefined') {
 		});
 	}
 }
-
-// polyfill //TODO consider putting this just into global.mjs because it caused some problems earlier and it has a polyfill check anyways
 if (!Array.prototype.flat) {
     //L https://github.com/jonathantneal/array-flat-polyfill
 	Object.defineProperties(Array.prototype, {
@@ -143,6 +146,7 @@ sj.resolveActions = {
 	spotifyAuth: 'spotify auth',
 }
 
+
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
@@ -150,7 +154,7 @@ sj.resolveActions = {
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
-//C these don't reference any sj.Objects
+//C these don't reference any sj.Bases
 
 // misc
 sj.wait = async function (ms) {
@@ -179,7 +183,7 @@ sj.trace = function (test) {
 
 		let ignore = [
 			'Object.sj.trace',
-			'new sj.Object',
+			'new sj.Base',
 			'new sj.Error',
 			'Object.sj.catchUnexpected',
 			'Object.sj.propagate',
@@ -410,7 +414,7 @@ sj.dynamicSort = function(list, ascending, prop) {
 //  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 
-//C these reference sj.Objects, don't call these until classes are defined
+//C these reference sj.Bases, don't call these until classes are defined
 
 // type
 sj.isType = function (input, type) {
@@ -424,7 +428,7 @@ sj.isType = function (input, type) {
 	//TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I dont think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
 	
 	/*	//R
-		created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Object types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
+		created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Base types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
 	*/
 
 	// value
@@ -465,11 +469,11 @@ sj.isType = function (input, type) {
 			return true;
 		}
 
-		// sj.Object & sub-types
-		//R this implementation removes the need for a custom object list, because if everything extends sj.Object, everything can also be compared as an instanceof sj.Object - keeping a list of string names (to reduce the need for building an object) wont work in the long run because inheritance cant be checked that way
+		// sj.Base & sub-types
+		//R this implementation removes the need for a custom object list, because if everything extends sj.Base, everything can also be compared as an instanceof sj.Base - keeping a list of string names (to reduce the need for building an object) wont work in the long run because inheritance cant be checked that way
 		let tempInput = input;
 		let tempType = type;
-		if ((input instanceof sj.Object || (typeof input.objectType === 'string' && (() => { 
+		if ((input instanceof sj.Base || (typeof input.objectType === 'string' && (() => { 
 			//C input or input.objectType is an instance of a constructible
 			let Target = sj[input.objectType.replace('sj.', '')];
 			if (typeof Target === 'function') {
@@ -554,7 +558,7 @@ sj.catchUnexpected = function (input) {
 
 			//C replace trace with actual trace (which has clickable URIs)
 			error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
-		} else if (sj.isType(input, sj.Object)) {
+		} else if (sj.isType(input, sj.Base)) {
 			error.reason = `unexpected ${input.objectType}`;
 		} else {
 			error.reason = 'unexpected object';
@@ -619,7 +623,6 @@ sj.asyncForEach = async function (list, callback) {
 		throw results;
 	}
 }
-
 
 // format
 sj.one = function (a) {
@@ -770,14 +773,14 @@ sj.rebuild = function (input, strict) {
 
 
 	let rebuilt = input;
-	if (sj.isType(input, 'sj.Object')) { //C rebuild if possible
+	if (sj.isType(input, 'sj.Base')) { //C rebuild if possible
 		rebuilt = new sj[input.objectType.replace('sj.', '')](input);
 	} else if (strict) { //C throw if not possible and strict
 		return new sj.Error({
 			log: true,
 			origin: 'sj.rebuild()',
 			message: 'failed to recreate object',
-			reason: 'object is not a valid sj.Object',
+			reason: 'object is not a valid sj.Base',
 			content: input,
 		});
 	}
@@ -878,6 +881,8 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
+//L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
+
 /* TODO
 	auto name can be included in: console.trace();
 
@@ -899,13 +904,12 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 
 	//R even though resolve and rejections don't need to be the same format, its still useful to have the ability influence resolved values with a success wrapper for say logging or debugging
 */
-//G Object.assign(sj.Object, {...}) is used to assign static variables and methods
 
-sj.Object = class {
+sj.Base = class Base {
 	constructor(options = {}) {
-		this.objectType = 'sj.Object'; //! wanted to use this.constructor.name here to dynamically get the class name, however it cannot be inferred specifically when declared like: object.property = class, it would work if the class had its own name, but this is an issue because i'm using reserved names and it breaks functions inside the class, defining the classes in a separate object wont work either because they then can't extend each other
+		this.objectType = 'sj.Base'; //! wanted to use this.constructor.name here to dynamically get the class name, however it cannot be inferred specifically when declared like: object.property = class, it would work if the class had its own name, but this is an issue because i'm using reserved names and it breaks functions inside the class, defining the classes in a separate object wont work either because they then can't extend each other
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			// debug
 			log: false,
 
@@ -924,6 +928,9 @@ sj.Object = class {
 		this.onCreate();
 	}
 
+	//G instance methods go outside the constructor, this is so that new functions aren't created for each instance, this is equivalent to assigning methods on the Class.prototype
+	//G static methods can be also defined here, but static variables must be defined as getters, so its probably best to assign all statics outside the class using call(Class)
+
 	announce() {
 		//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
 		if (!sj.isType(this, sj.Error)) {
@@ -939,8 +946,9 @@ sj.Object = class {
 			this.announce();
 		}
 	}
-
-	static init(that, options = {}, defaults = {}) {
+};
+(function () { // static
+	this.init = function (that, options = {}, defaults = {}) {
 		//C give that a boolean cast of options.isParent, then delete from options
 		that.isParent = (options.isParent == true);
 		delete options.isParent;
@@ -956,7 +964,7 @@ sj.Object = class {
 		/* //OLD
 			//TODO figure out how I made this work
 			//? not quite sure what this does, doesn't this just set this to be false all the time?
-			//! all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Object.giveParent(options));
+			//! all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Base.giveParent(options));
 			//C set this.isParent to the passed isParent (if true) or false
 			//obj.isParent = typeof options.isParent !== 'undefined' ? options.isParent : false;
 			//C isParent usually isn't listed in defaults so this doesn't get trasfered?
@@ -980,52 +988,618 @@ sj.Object = class {
 			// 	//OLD obj[key] = typeof options !== 'undefined' && typeof options[key] !== 'undefined' ? options[key] : defaults[key];
 			// });
 		*/
-	}
-	static giveParent(options) {
+	};
+	this.giveParent = function (options) {
 		return {
 			...options,
 			isParent: true,
 		}
-	}
-}
+	};
+}).call(sj.Base);
 
-//C success and error objects are returned from functions (mostly async ones)
-// success
-sj.Success = class extends sj.Object {
+// rule
+sj.Rule = class Rule extends sj.Base {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Rule';
+
+		sj.Base.init(this, options, {
+			// new properties
+			valueName: 'input',
+			trim: false,
+			
+			dataTypes: ['string'],
+
+			min: 0,
+			max: Infinity,
+
+			
+			//! remember to set useAgainst: true, if passing a value2 to use
+			useAgainst: false,
+			//C this is a reference value and should not be able to be equal to anything,
+			//R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
+			againstValue: {},
+			get againstMessage() {
+				//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
+
+				let againstValueName = this.againstValue;
+				//C join array of values if matching against multiple values
+				if (Array.isArray(this.againstValue)) {
+					againstValueName = this.againstValue.join(', ');
+				}
+				return `${this.valueName} did not match against these values: ${againstValueName}`;
+			},
+
+			//! remember to set useFilter: true, if passing a value2 to use
+			useFilter: false,
+			//C match nothing //TODO verify this
+			//L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
+			filterExpression: '\\b\\B',
+			filterRequirements: 'none',
+			get filterMessage() {
+				return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
+			},
+
+			custom: undefined,
+        });
+        
+        this.onCreate();
+	}
+
+	//TODO how to deal with returning the password field since its sensitive
+
+	async checkType(value) {
+		//C check against each datatype
+		for (let i = 0; i < this.dataTypes.length; i++) {
+			if (sj.isType(value, this.dataTypes[i])) {
+				return new sj.Success({
+					origin: `${this.origin}.checkType()`,
+					message: 'validated data type',
+					content: value,
+				});
+			}
+
+			//C parse strings for numbers
+			if (sj.isType(value, String)) {
+				let parsed = Number.parseFloat(value);
+				if (this.dataTypes[i] === 'number' && !Number.isNaN(parsed) 
+				|| this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
+					return new sj.Success({
+						origin: `${this.origin}.checkType()`,
+						message: 'validated data type',
+						content: parsed,
+					});
+				}
+
+				//TODO parse strings for boolean & symbols & other?
+			}
+		}
+
+		//C throw if no matches
+		throw new sj.Error({
+			log: true,
+			origin: `${this.origin}.checkType()`,
+			message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
+			content: value,
+		});
+	}
+	async checkSize(value) {
+		let m = `${this.valueName} must be between ${this.min} and ${this.max}`;
+
+		if (sj.isType(value, String)) {
+			//C string length
+			if (!(value.length >= this.min && value.length <= this.max)) {
+				throw new sj.Error({
+					log: true,
+					origin: `${this.origin}.checkSize()`,
+					message: `${m} characters long`,
+					content: value,
+				});
+			}
+		} else if (sj.isType(value, Number)) {
+			//C number size
+			if (!(value >= this.min && value <= this.max)) {
+				throw new sj.Error({
+					log: true,
+					origin: `${this.origin}.checkSize()`,
+					message: `${m} items long`,
+					content: value,
+				});
+			}
+		}
+
+		return new sj.Success({
+			origin: `${this.origin}.checkSize()`,
+			content: value,
+		});
+	}
+	async checkAgainst(value, value2) {
+		//C custom againstValue
+		if (!sj.isType(value2, undefined)) {
+			this.againstValue = value2;
+		}
+
+		if (Array.isArray(this.againstValue)) {
+			//C arrays
+			//R indexOf apparently uses === so this should be fine
+			//L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
+			if (this.againstValue.indexOf(value) === -1) {
+				throw new sj.Error({
+					log: true,
+					origin: `${this.origin}.checkAgainst() array`,
+					message: this.againstMessage,
+					content: value,
+				});
+			}
+		} else {
+			//C base value
+			if (!(value === this.againstValue)) {
+				throw new sj.Error({
+					log: true,
+					origin: `${this.origin}.checkAgainst() non-array`,
+					message: this.againstMessage,
+					content: value,
+				});
+			}
+		}
+
+		return new sj.Success({
+			origin: `${this.origin}.checkAgainst()`,
+			content: value,
+		});
+	}
+	async checkFilter(value, value2) {
+		//C custom againstValue
+		if (sj.isType(value2, undefined)) {
+			this.filterExpression = value2;
+		}
+
+		//TODO
+
+		return new sj.Success({
+			origin: `${this.origin}.checkAgainst()`,
+			content: value,
+		});
+	}
+
+	async checkCustom(value) {
+		if (typeof this.custom === 'function') {
+			return this.custom(value);
+		} else {
+			return new sj.Success({
+				origin: `${this.origin}.checkCustom()`,
+				content: value,
+			});
+		}
+	}
+
+	/* //OLD
+		//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
+		checkType(value) {
+			let t = sj.typeOf(value);
+
+			//C if value is a string and dataType is a number or integer
+
+			if (this.dataType === 'number' && t === 'string') {
+				//C	try to parse the string and check if it is a number
+				//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
+				let p = parseFloat(value);
+				if (!Number.isNaN(p)) {
+					//C if so, convert it to the parsed number and return
+					value = p;
+					return true;
+				}
+				return false;
+			}
+			if (this.dataType === 'integer') {
+				if (t === 'string') {
+					let p = parseInt(value);
+					if (Number.isInteger(p)) {
+						value = p;
+						return true;
+					}
+					return false;
+				}
+
+				// if not a string, just see if its an integer
+				return Number.isInteger(value);
+			}
+
+			return t === this.dataType;
+		}
+		checkSize(value) {
+			if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
+				return value.length >= this.min && value.length <= this.max;
+			} else if (sj.typeOf(value) === 'number') {
+				return value >= this.min && value <= this.max;
+			} else {
+				return true;
+			}
+		}	
+		checkAgainst(value, value2) {
+			// allow custom check against value
+			if (sj.typeOf(value2) !== 'undefined') {
+				this.againstValue = value2;
+			}
+
+			if (Array.isArray(this.againstValue)) {
+				return this.againstValue.indexOf(value) !== -1;
+			} else {
+				//! no type coercion
+				return value === this.againstValue;
+			}
+		}	
+		checkFilter(value, value2) {
+			//TODO regex, similar to checkAgainst
+			return true;
+		}
+	*/
+
+	//! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
+	//TODO should sj.Rule be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
+
+	//! to use the possibly modified value from check(), set the input value to equal the result.content
+	async check(value, value2) {
+		//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+		//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
+
+		//C trim
+		if (this.trim && sj.isType(value, String)) {
+			value = value.trim();
+		}
+
+		//C checks & possibly modifies
+		value = await this.checkType(value).then(sj.content); //R no need to catch and return the content as it will be in the thrown error anyways
+		await this.checkSize(value);
+		if (this.useAgainst) {
+			await this.checkAgainst(value, value2);
+		}
+		if (this.useFilter) {
+			await this.checkFilter(value, value2);
+		}
+		if (typeof this.custom === 'function') {
+			await this.checkCustom(value);
+		}
+		
+		/*
+			if (!this.checkType(value)) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: `${this.valueName} must be a ${this.dataType}`,
+				})
+			}
+			if (this.trim && sj.typeOf(value) === 'string') {
+				value = value.trim();
+			}
+
+
+			if (!this.checkSize(value)) {
+				let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
+				if (sj.typeOf(value) === 'string') {
+					message = `${message} characters long`;
+				} else if (sj.typeOf(value) === 'array') {
+					message = `${message} items long`;
+				}
+
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: message,
+				});
+			}
+			if (this.useAgainst && !this.checkAgainst(value, value2)) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.againstMessage,
+				});
+			}
+			if (this.useFilter && !this.checkFilter(value, value2)) {
+				throw new sj.Error({
+					log: this.log,
+					origin: this.origin,
+					message: this.filterMessage,
+				});
+			}
+		*/
+		
+		//C remove error-related properties
+		this.target = undefined;
+		//TODO consider inputCorrect styling
+		this.cssClass = undefined; 
+		this.content = value;
+		//C transform object (this will strip any irrelevant properties away)
+		return new sj.Success(this); 		
+	}
+
+	/* //OLD decided this was redundant
+		//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
+		//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
+		async checkProperty(obj, prop, value2) {
+			//C validate arguments
+			if (!sj.isType(obj, 'object')) {
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkProperty()',
+					message: 'validation error',
+					reason: `sj.Rule.checkProperty()'s first argument is not an object`,
+					content: obj,
+				});
+			}
+			if (!prop in obj) {
+				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkProperty()',
+					message: 'validation error',
+					reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
+					content: obj,
+				});
+			}
+
+			//C check rules
+			let result = this.check(obj[prop], value2).catch(rejected => {
+				//C throw error if failed 
+				//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
+				throw sj.propagate(rejected);
+			});
+
+			//C modify and return if successful
+			obj[prop] = result.content;
+			return result;
+		}
+	*/
+	/* //OLD, new check ruleset was created in global-server.mjs
+		static async checkRuleSet(ruleSet) {
+			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
+			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
+				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
+				//C validate arguments
+				if (!rules instanceof this) {
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() is missing a sj.Rule object`,
+						content: rules,
+					});
+				}
+
+				//C check, return errors too
+				return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
+			})).then(resolved => {
+				//C filter for sj.Success objects
+				return sj.filterList(resolved, sj.Success, new sj.Success({
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'all rules validated',
+				}), new sj.Error({
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'one or more issues with rules',
+					reason: 'validation functions returned one or more errors',
+				}));
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		}
+	*/
+	/* //OLD
+		//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
+		static async checkRuleSet(ruleSet) {
+			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
+
+			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
+				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
+				//C validate arguments
+				if (!(rules instanceof sj.Rule)) {
+					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+					//? is it possible to dynamically get this class
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() is missing a sj.Rule object`,
+						content: rules,
+					});
+				}
+				if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
+					//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() is missing an object argument`,
+						content: obj,
+					});
+				}
+				if (!(prop in obj)) {
+					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+					return new sj.Error({
+						log: true,
+						origin: 'checkRuleSet()',
+						message: 'validation error',
+						reason: `checkRuleSet() obj is missing a '${prop}' property`,
+						content: obj,
+					});
+				}
+
+				let result = new sj.Error(); //? why is this here
+
+				//C call check() with 1 or 2 values
+				if (sj.typeOf(value2) === 'undefined') {
+					result = await rules.check(obj[prop]).then(sj.sj.andResolve());
+				} else {
+					result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
+				}
+
+				//C pass the possibly modified value back to the original object
+				obj[prop] = result.content;
+
+				return result;
+			})).then(resolved => {
+				return sj.filterList(resolved, sj.Success, new sj.Success({
+					origin: 'checkRuleSet()',
+					message: 'all rules validated',
+				}), new sj.Error({
+					origin: 'checkRuleSet()',
+					message: 'one or more issues with fields',
+					reason: 'validation functions returned one or more errors',
+				}));
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		}
+	*/
+};
+(function () { // static
+	//! string to be hashed must not be greater than 72 characters (//? or bytes???),
+	this.stringMaxLength = 100;
+	this.bigStringMaxLength = 2000;
+	this.nameMinLength = 3;
+	this.nameMaxLength = 16;
+	this.defaultColor = '#ffffff';
+	this.visibilityStates = [
+		'public',
+		'private',
+		'linkOnly',
+	];
+
+	
+	this.none = new sj.Rule({
+		origin: 'noRules',
+		message: 'value validated',
+	
+		valueName: 'Value',
+	
+		dataTypes: ['string', 'number', 'boolean', 'array'], //TODO etc. or just make functionality for this
+	});
+	this.posInt = new sj.Rule({
+		origin: 'positiveIntegerRules',
+		message: 'number validated',
+	
+		valueName: 'Number',
+	
+		dataTypes: ['integer'],
+	});
+	this.id = new sj.Rule({
+		origin: 'idRules',
+		message: 'id validated',
+	
+		valueName: 'id',
+	
+		dataTypes: ['integer'],
+	});
+	this.image = new sj.Rule({
+		origin: 'imageRules',
+		message: 'image validated',
+		target: 'playlistImage',
+		cssClass: 'inputError',
+	
+		valueName: 'image',
+		trim: true,
+	
+		max: this.bigStringMaxLength,
+	
+		// TODO filter: ___,
+		filterMessage: 'Image must be a valid url',
+	});
+	this.color = new sj.Rule({
+		origin: 'colorRules',
+		message: 'color validated',
+		target: 'playlistColor',
+		cssClass: 'inputError',
+	
+		valueName: 'color',
+		trim: true,
+		
+		filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
+		filterMessage: 'Color must be in hex format #XXXXXX',
+	});
+
+	//TODO other / old
+	//? not sure what these were used for
+	this.self = new sj.Rule({
+		origin: 'selfRules',
+		message: 'self validated',
+		target: 'notify',
+		cssClass: 'notifyError',
+	
+		valueName: 'Id',
+	
+		dataTypes: ['integer'],
+	
+		useAgainst: true,
+		//! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
+		againstMessage: 'you are not the owner of this',
+	});
+	this.setPassword = new sj.Rule({
+		origin: 'setPasswordRules',
+		message: 'password validated',
+		target: 'registerPassword',
+		cssClass: 'inputError',
+	
+		valueName: 'Password',
+	
+		min: 6,
+		max: 72, //! as per bcrypt
+	
+		useAgainst: true,
+		get againstMessage() {return 'Passwords do not match'},
+	});
+	this.visibility = new sj.Rule({
+		origin: 'visibilityRules',
+		message: 'visibility validated',
+		target: 'playlistVisibility',
+		cssClass: 'inputError',
+	
+		valueName: 'Visibility',
+	
+		useAgainst: true,
+		againstValue: this.visibilityStates,
+		againstMessage: 'please select a valid visibility level',
+	});
+}).call(sj.Rule);
+
+
+// success //C success and error objects are returned from functions (mostly async ones)
+sj.Success = class Success extends sj.Base {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Success';
 
-		sj.Object.init(this, options, {});
+		sj.Base.init(this, options, {});
 
 		this.onCreate();
 	}
-}
-sj.SuccessList = class extends sj.Success {
+};
+sj.SuccessList = class SuccessList extends sj.Success {
 	//C wrapper for an array of successful items
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.SuccessList';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			reason: 'all items successful',
 			content: [],
 		});
 
 		this.onCreate();
 	}
-}
+};
 
 // items (these can be returned from functions)
-sj.Credentials = class extends sj.Success {
+sj.Credentials = class Credentials extends sj.Success {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Credentials',
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			//TODO this part should only be server-side 
 			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
 			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
@@ -1044,16 +1618,16 @@ sj.Credentials = class extends sj.Success {
 
 		this.onCreate();
 	}
-}
+};
 
 // entities (these represent database entities)
-sj.Entity = class extends sj.Success {
+sj.Entity = class Entity extends sj.Success {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Entity';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			id: undefined,
 		});
 
@@ -1072,28 +1646,75 @@ sj.Entity = class extends sj.Success {
 
 		this.onCreate();
 	};
-	
-	//C static getters to be used like static properties
+};
+(function () { // static
 	//TODO how to make these immutable?
-	static get name() {return 'entity'}
-	static get table() {return `${this.name}s`}; //! table names are the plural of the entity name
-	
-	static get filters() {return {
-		id: ['id'],
-		add: [],
-		get: [],
-		edit: [],
-		remove: [],
-	}}
-}
 
-sj.User = class extends sj.Entity {
+	Object.defineProperty(this, 'table', {
+		get: function () {
+			return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
+		},
+	}); 
+
+	this.filters = {
+		id: ['id'],
+	};
+
+	//C automatically create new filters based on schema
+	this.updateFilters = function () {
+		let methodNames = ['add', 'get', 'edit', 'remove'];
+		let types = ['in', 'out', 'check'];
+	
+		let schemaFilters = {};
+	
+		Object.keys(this.schema).forEach(key => { //C for each property
+			methodNames.forEach(methodName => { //C for each crud method
+				types.forEach(type => { //C for each filter type
+					if (this.schema[key][methodName][type]) { //C if property is optional or required
+						let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
+						if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+						schemaFilters[filterName].push(key);
+					}
+				});
+			});
+		});
+	
+		this.filters = {
+			...this.filters,
+			...schemaFilters,
+		};
+	};
+}).call(sj.Entity);
+
+// schema property states
+const unused = {
+	in: false,
+	out: false,
+	check: 0,
+};
+const optional = {
+	in: true,
+	out: true,
+	check: 1,
+};
+const required = {
+	in: true,
+	out: true,
+	check: 2,
+};
+const auto = {
+	in: false,
+	out: true,
+	check: 0,
+};
+
+sj.User = class User extends sj.Entity {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.User';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			// new properties
 			name: '',
 			email: '',
@@ -1104,24 +1725,115 @@ sj.User = class extends sj.Entity {
 
 		this.onCreate();
 	}
+};
+(function () { // static
+	this.schema = {
+		//G 0 = unused, 1 = optional, 2 = required
+		id: {
+			columnName: 'id',
+			rule: sj.Rule.id,
 
-	static get name() {return 'user'}
-	static get filters() {
-		return {
-		...super.filters,
-		add: ['name', 'email', 'password'],
-		get: ['id', 'name', 'email'],
-		edit: ['id', 'name', 'email', 'spotifyRefreshToken'],
-		remove: ['id'],
-	}}
-}
-sj.Playlist = class extends sj.Entity {
+			add: auto,
+			get: optional,
+			edit: required,
+			remove: required,
+		},
+		name: {
+			columnName: 'name',
+			rule: new sj.Rule({
+				origin: 'userNameRules',
+				message: 'username validated',
+				target: 'registerUserName',
+				cssClass: 'inputError',
+			
+				valueName: 'Username',
+				trim: true,
+			
+				min: sj.Rule.nameMinLength,
+				max: sj.Rule.nameMaxLength,
+			}),
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		email: {
+			columnName: 'email',
+			rule: new sj.Rule({
+				origin: 'emailRules',
+				message: 'email validated',
+				target: 'registerEmail',
+				cssClass: 'inputError',
+			
+				valueName: 'E-mail',
+				trim: true,
+			
+				min: 3,
+				max: sj.Rule.stringMaxLength,
+			
+				//TODO useFilter: ___, filterMessage: ___, 
+				//L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+			}),
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		password: {
+			columnName: 'password',
+			rule: new sj.Rule({
+				origin: 'passwordRules',
+				message: 'password validated',
+				target: 'registerPassword',
+				cssClass: 'inputError',
+			
+				valueName: 'Password',
+			
+				min: 6,
+				max: 72, //! as per bcrypt
+			}),
+
+			add: required,
+			get: unused,
+			edit: {
+				in: true,
+				out: false,
+				check: 1,
+			},
+			remove: unused,
+		},
+		spotifyRefreshToken: {
+			columnName: 'spotifyRefreshToken',
+			rule: new sj.Rule({
+				origin: 'spotifyRefreshTokenRules',
+				message: 'token validated',
+			
+				valueName: 'Token',
+				//TODO empty for now
+			}),
+
+			add: unused,
+			get: {
+				in: false,
+				out: true,
+				check: 0,
+			},
+			edit: optional,
+			remove: unused,
+		},
+	};
+	this.updateFilters();
+}).call(sj.User);
+
+sj.Playlist = class Playlist extends sj.Entity {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Playlist';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			content: [],
 
 			// new properties
@@ -1136,23 +1848,77 @@ sj.Playlist = class extends sj.Entity {
 
 		this.onCreate();
 	}
-	
-	static get name() {return 'playlist'}
-	static get filters() {return {
-		...super.filters,
-		add: ['userId', 'name', 'description'],
-		get: ['id', 'userId', 'name', 'description'],
-		edit: ['id', 'name', 'description'],
-		remove: ['id'],
-	}}
-}
-sj.Track = class extends sj.Entity {
+};
+(function () { // static
+	this.schema = {
+		id: {
+			columnName: 'id',
+			rule: sj.Rule.id,
+
+			add: auto,
+			get: optional,
+			edit: required,
+			remove: required,
+		},
+		userId: {
+			columnName: 'userId',
+			rule: sj.Rule.id,
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		name: {
+			columnName: 'name',
+			rule: new sj.Rule({
+				origin: 'playlistNameRules()',
+				message: 'name validated',
+				target: 'playlistName',
+				cssClass: 'inputError',
+			
+				valueName: 'Name',
+				trim: true,
+			
+				min: sj.Rule.nameMinLength,
+				max: sj.Rule.stringMaxLength,  
+			}),
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		description: {
+			columnName: 'description',
+			rule: new sj.Rule({
+				origin: 'descriptionRules()',
+				message: 'description validated',
+				target: 'playlistDescription',
+				cssClass: 'inputError',
+			
+				valueName: 'Description',
+			
+				max: sj.Rule.bigStringMaxLength,
+				trim: true,
+			}),
+
+			add: optional,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+	};
+	this.updateFilters();
+}).call(sj.Playlist);
+
+sj.Track = class Track extends sj.Entity {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Track';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			// new properties
 			playlistId: null,
 			position: null,
@@ -1166,25 +1932,129 @@ sj.Track = class extends sj.Entity {
 
 		this.onCreate();
 	}
+};
+(function () {
+	this.schema = {
+		id: {
+			columnName: 'id',
+			rule: sj.Rule.id,
 
-	static get name() {return 'track'}
-	static get filters() {return {
-		...super.filters,
-		add: ['playlistId', 'source', 'sourceId', 'name', 'duration', 'artists'],
-		get: ['id', 'playlistId', 'position', 'source', 'sourceId'],
-		edit: ['id', 'source', 'sourceId', 'name', 'duration'],
-		remove: ['id'],
-	}}
-}
+			add: auto,
+			get: optional,
+			edit: required,
+			remove: required,
+		},
+		playlistId: {
+			columnName: 'playlistId',
+			rule: sj.Rule.id,
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		position: {
+			columnName: 'position',
+			rule: sj.Rule.posInt,
+
+			add: auto,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		name: {
+			columnName: 'name',
+			rule: new sj.Rule({
+				origin: 'trackNameRules()',
+				message: 'name validated',
+			
+				valueName: 'Name',
+				trim: true,
+			
+				min: sj.Rule.nameMinLength,
+				max: sj.Rule.stringMaxLength,  
+			}),
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		duration: {
+			columnName: 'duration',
+			rule: sj.Rule.posInt,
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		source: {
+			columnName: 'source',
+			rule: new sj.Rule({
+				origin: 'sourceRules',
+				message: 'source validated',
+			
+				valueName: 'Source',
+			
+				useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
+
+				custom: function (value) {
+					return sj.sourceList.some(source => value === source.name);
+				}
+			}),
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		sourceId: {
+			columnName: 'sourceId',
+			rule: new sj.Rule({
+				origin: 'sourceIdRules',
+				message: 'source id validated',
+			
+				valueName: 'Source ID',
+			
+				//? any source id rules (other than being a string)? length? trim?
+			}),
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		artists: {
+			columnName: 'artists',
+			rule: new sj.Rule({
+				origin: 'sj.Rules.artists',
+				message: 'artists validated',
+		
+				valueName: 'Artists',
+		
+				dataTypes: ['array'],
+			}),
+
+			add: required,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		}
+	};
+	this.updateFilters();
+}).call(sj.Track);
+
+
 
 // error
-sj.Error = class extends sj.Object {
+sj.Error = class Error extends sj.Base {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Error';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			log: true, //TODO remove log: true from errors
 
 			code: 400,
@@ -1193,47 +2063,47 @@ sj.Error = class extends sj.Object {
 
 		this.onCreate();
 	}
-}
-sj.ErrorList = class extends sj.Error {
+};
+sj.ErrorList = class ErrorList extends sj.Error {
 	//C wrapper for an array with one or more errors
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.ErrorList'; //TODO //? in chrome dev tools this still shows up as 'sj.Error' but only on the preview line, is announce being called too early?
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			reason: 'one or more errors occurred with items',
 			content: [],
 		});
 
 		this.onCreate();
 	}
-}
+};
 // custom errors
-sj.AuthRequired = class extends sj.Error { 
+sj.AuthRequired = class AuthRequired extends sj.Error { 
 	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.AuthRequired';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			message: 'authorization required',
 		});
 
 		this.onCreate();
 	}
-}
+};
 
 
 // other
-sj.Source = class extends sj.Object {
+sj.Source = class Source extends sj.Base {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Source',
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			// new properties
 			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
 			idPrefix: '',
@@ -1407,14 +2277,14 @@ sj.Source = class extends sj.Object {
 			sj.sourceList.push(this);
 		}
 	}
-}
-sj.Playback = class extends sj.Object {
+};
+sj.Playback = class Playback extends sj.Base {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Playback';
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			// new properties
 			track: sj.noTrack,
 			playing: false,
@@ -1425,461 +2295,20 @@ sj.Playback = class extends sj.Object {
 
 		this.onCreate();
 	}
-}
-sj.Rule = class extends sj.Object {
-	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+};
 
-		this.objectType = 'sj.Rule';
-
-		sj.Object.init(this, options, {
-			// new properties
-			valueName: 'input',
-			trim: false,
-			
-			dataTypes: ['string'],
-
-			min: 0,
-			max: Infinity,
-
-			
-			//! remember to set useAgainst: true, if passing a value2 to use
-			useAgainst: false,
-			//C this is a reference value and should not be able to be equal to anything,
-			//R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
-			againstValue: {},
-			get againstMessage() {
-				//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
-
-				let againstValueName = this.againstValue;
-				//C join array of values if matching against multiple values
-				if (Array.isArray(this.againstValue)) {
-					againstValueName = this.againstValue.join(', ');
-				}
-				return `${this.valueName} did not match against these values: ${againstValueName}`;
-			},
-
-			//! remember to set useFilter: true, if passing a value2 to use
-			useFilter: false,
-			//C match nothing //TODO verify this
-			//L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
-			filterExpression: '\\b\\B',
-			filterRequirements: 'none',
-			get filterMessage() {
-				return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
-			},
-        });
-        
-        this.onCreate();
-	}
-
-	//TODO how to deal with returning the password field since its sensitive
-
-	async checkType(value) {
-		//C check against each datatype
-		for (let i = 0; i < this.dataTypes.length; i++) {
-			if (sj.isType(value, this.dataTypes[i])) {
-				return new sj.Success({
-					origin: `${this.origin}.checkType()`,
-					message: 'validated data type',
-					content: value,
-				});
-			}
-
-			//C parse strings for numbers
-			if (sj.isType(value, String)) {
-				let parsed = Number.parseFloat(value);
-				if (this.dataTypes[i] === 'number' && !Number.isNaN(parsed) 
-				|| this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
-					return new sj.Success({
-						origin: `${this.origin}.checkType()`,
-						message: 'validated data type',
-						content: parsed,
-					});
-				}
-
-				//TODO parse strings for boolean & symbols & other?
-			}
-		}
-
-		//C throw if no matches
-		throw new sj.Error({
-			log: true,
-			origin: `${this.origin}.checkType()`,
-			message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
-			content: value,
-		});
-	}
-	async checkSize(value) {
-		let m = `${this.valueName} must be between ${this.min} and ${this.max}`;
-
-		if (sj.isType(value, String)) {
-			//C string length
-			if (!(value.length >= this.min && value.length <= this.max)) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkSize()`,
-					message: `${m} characters long`,
-					content: value,
-				});
-			}
-		} else if (sj.isType(value, Number)) {
-			//C number size
-			if (!(value >= this.min && value <= this.max)) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkSize()`,
-					message: `${m} items long`,
-					content: value,
-				});
-			}
-		}
-
-		return new sj.Success({
-			origin: `${this.origin}.checkSize()`,
-			content: value,
-		});
-	}
-	async checkAgainst(value, value2) {
-		//C custom againstValue
-		if (!sj.isType(value2, undefined)) {
-			this.againstValue = value2;
-		}
-
-		if (Array.isArray(this.againstValue)) {
-			//C arrays
-			//R indexOf apparently uses === so this should be fine
-			//L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
-			if (this.againstValue.indexOf(value) === -1) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkAgainst() array`,
-					message: this.againstMessage,
-					content: value,
-				});
-			}
-		} else {
-			//C base value
-			if (!(value === this.againstValue)) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkAgainst() non-array`,
-					message: this.againstMessage,
-					content: value,
-				});
-			}
-		}
-
-		return new sj.Success({
-			origin: `${this.origin}.checkAgainst()`,
-			content: value,
-		});
-	}
-	async checkFilter(value, value2) {
-		//C custom againstValue
-		if (sj.isType(value2, undefined)) {
-			this.filterExpression = value2;
-		}
-
-		//TODO
-
-		return new sj.Success({
-			origin: `${this.origin}.checkAgainst()`,
-			content: value,
-		});
-	}
-
-	/* old
-		//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
-		checkType(value) {
-			let t = sj.typeOf(value);
-
-			//C if value is a string and dataType is a number or integer
-
-			if (this.dataType === 'number' && t === 'string') {
-				//C	try to parse the string and check if it is a number
-				//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
-				let p = parseFloat(value);
-				if (!Number.isNaN(p)) {
-					//C if so, convert it to the parsed number and return
-					value = p;
-					return true;
-				}
-				return false;
-			}
-			if (this.dataType === 'integer') {
-				if (t === 'string') {
-					let p = parseInt(value);
-					if (Number.isInteger(p)) {
-						value = p;
-						return true;
-					}
-					return false;
-				}
-
-				// if not a string, just see if its an integer
-				return Number.isInteger(value);
-			}
-
-			return t === this.dataType;
-		}
-		checkSize(value) {
-			if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
-				return value.length >= this.min && value.length <= this.max;
-			} else if (sj.typeOf(value) === 'number') {
-				return value >= this.min && value <= this.max;
-			} else {
-				return true;
-			}
-		}	
-		checkAgainst(value, value2) {
-			// allow custom check against value
-			if (sj.typeOf(value2) !== 'undefined') {
-				this.againstValue = value2;
-			}
-
-			if (Array.isArray(this.againstValue)) {
-				return this.againstValue.indexOf(value) !== -1;
-			} else {
-				//! no type coercion
-				return value === this.againstValue;
-			}
-		}	
-		checkFilter(value, value2) {
-			//TODO regex, similar to checkAgainst
-			return true;
-		}
-	*/
-
-	//! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
-	//TODO should sj.Rule be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
-
-	//! to use the possibly modified value from check(), set the input value to equal the result.content
-	async check(value, value2) {
-		//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-		//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
-
-		//C trim
-		if (this.trim && sj.isType(value, String)) {
-			value = value.trim();
-		}
-
-		//C checks & possibly modifies
-		value = await this.checkType(value).then(sj.content); //R no need to catch and return the content as it will be in the thrown error anyways
-		await this.checkSize(value);
-		if (this.useAgainst) {
-			await this.checkAgainst(value, value2);
-		}
-		if (this.useFilter) {
-			await this.checkFilter(value, value2);
-		}
-		
-		/*
-			if (!this.checkType(value)) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: `${this.valueName} must be a ${this.dataType}`,
-				})
-			}
-			if (this.trim && sj.typeOf(value) === 'string') {
-				value = value.trim();
-			}
-
-
-			if (!this.checkSize(value)) {
-				let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
-				if (sj.typeOf(value) === 'string') {
-					message = `${message} characters long`;
-				} else if (sj.typeOf(value) === 'array') {
-					message = `${message} items long`;
-				}
-
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: message,
-				});
-			}
-			if (this.useAgainst && !this.checkAgainst(value, value2)) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.againstMessage,
-				});
-			}
-			if (this.useFilter && !this.checkFilter(value, value2)) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.filterMessage,
-				});
-			}
-		*/
-		
-		//C remove error-related properties
-		this.target = undefined;
-		//TODO consider inputCorrect styling
-		this.cssClass = undefined; 
-		this.content = value;
-		//C transform object (this will strip any irrelevant properties away)
-		return new sj.Success(this); 		
-	}
-
-	/* old, decided this was redundant
-		//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
-		//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
-		async checkProperty(obj, prop, value2) {
-			//C validate arguments
-			if (!sj.isType(obj, 'object')) {
-				throw new sj.Error({
-					log: true,
-					origin: 'sj.Rule.checkProperty()',
-					message: 'validation error',
-					reason: `sj.Rule.checkProperty()'s first argument is not an object`,
-					content: obj,
-				});
-			}
-			if (!prop in obj) {
-				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-				throw new sj.Error({
-					log: true,
-					origin: 'sj.Rule.checkProperty()',
-					message: 'validation error',
-					reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
-					content: obj,
-				});
-			}
-
-			//C check rules
-			let result = this.check(obj[prop], value2).catch(rejected => {
-				//C throw error if failed 
-				//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
-				throw sj.propagate(rejected);
-			});
-
-			//C modify and return if successful
-			obj[prop] = result.content;
-			return result;
-		}
-	*/
-
-	/* old, new check ruleset was created in global-server.mjs
-		static async checkRuleSet(ruleSet) {
-			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
-			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
-				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-
-				//C validate arguments
-				if (!rules instanceof this) {
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() is missing a sj.Rule object`,
-						content: rules,
-					});
-				}
-
-				//C check, return errors too
-				return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
-			})).then(resolved => {
-				//C filter for sj.Success objects
-				return sj.filterList(resolved, sj.Success, new sj.Success({
-					origin: 'sj.Rule.checkRuleSet()',
-					message: 'all rules validated',
-				}), new sj.Error({
-					origin: 'sj.Rule.checkRuleSet()',
-					message: 'one or more issues with rules',
-					reason: 'validation functions returned one or more errors',
-				}));
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	*/
-
-	/* old
-		//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
-		static async checkRuleSet(ruleSet) {
-			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
-
-			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
-				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-
-				//C validate arguments
-				if (!(rules instanceof sj.Rule)) {
-					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
-					//? is it possible to dynamically get this class
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() is missing a sj.Rule object`,
-						content: rules,
-					});
-				}
-				if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
-					//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() is missing an object argument`,
-						content: obj,
-					});
-				}
-				if (!(prop in obj)) {
-					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() obj is missing a '${prop}' property`,
-						content: obj,
-					});
-				}
-
-				let result = new sj.Error(); //? why is this here
-
-				//C call check() with 1 or 2 values
-				if (sj.typeOf(value2) === 'undefined') {
-					result = await rules.check(obj[prop]).then(sj.sj.andResolve());
-				} else {
-					result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
-				}
-
-				//C pass the possibly modified value back to the original object
-				obj[prop] = result.content;
-
-				return result;
-			})).then(resolved => {
-				return sj.filterList(resolved, sj.Success, new sj.Success({
-					origin: 'checkRuleSet()',
-					message: 'all rules validated',
-				}), new sj.Error({
-					origin: 'checkRuleSet()',
-					message: 'one or more issues with fields',
-					reason: 'validation functions returned one or more errors',
-				}));
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	*/
-}
 
 
 // TODO consider if all actions should actually be in main.js instead
 /* // TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
-sj.Action = class extends sj.Object {
+sj.Action = class extends sj.Base {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Action';
 		source = sj.desiredPlayback.track.source;
 
-		sj.Object.init(this, options, {
+		sj.Base.init(this, options, {
 			// new properties
 			state: null,
 		});
@@ -1915,15 +2344,15 @@ sj.Action = class extends sj.Object {
 			}));
 		});
 	}
-}
+};
 sj.Start = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Start';
 		state = sj.desiredPlayback.track;
 
-		sj.Object.init(this, options, {});
+		sj.Base.init(this, options, {});
 
 		this.onCreate();
 	}
@@ -1952,15 +2381,15 @@ sj.Start = class extends sj.Action {
 			throw sj.propagate(rejected);
 		});
 	}
-}
+};
 sj.Toggle = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Toggle';
 		this.state = desiredPlayback.playing;
 
-		sj.Object.init(this, options, {});
+		sj.Base.init(this, options, {});
 
 		this.onCreate();
 	}
@@ -2003,15 +2432,15 @@ sj.Toggle = class extends sj.Action {
 			});
 		}
 	}
-}
+};
 sj.Seek = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Seek';
 		this.state = desiredPlayback.progress;
 
-		sj.Object.init(this, options, {});
+		sj.Base.init(this, options, {});
 
 		this.onCreate();
 	}
@@ -2027,15 +2456,15 @@ sj.Seek = class extends sj.Action {
 			throw sj.propagate(rejected);
 		});
 	}
-}
+};
 sj.Volume = class extends sj.Action {
 	constructor(options = {}) {
-		super(sj.Object.giveParent(options));
+		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.Volume';
 		this.state = desiredPlayback.volume;
 
-		sj.Object.init(this, options, {});
+		sj.Base.init(this, options, {});
 
 		this.onCreate();
 	}
@@ -2043,7 +2472,7 @@ sj.Volume = class extends sj.Action {
 	async trigger() {
 		// TODO
 	}
-}
+};
 */
 
 

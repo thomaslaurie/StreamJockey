@@ -6,7 +6,7 @@ sj.typeOf = function (input) { //TODO legacy
 	let t = typeof input;
 
 	if (t === 'object') {
-		if (sj.isType(input, 'sj.Object')) {
+		if (sj.isType(input, 'sj.Base')) {
 			return input.objectType;
 		} else {
 			return 'object';

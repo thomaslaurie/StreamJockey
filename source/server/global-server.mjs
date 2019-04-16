@@ -16,7 +16,7 @@
     Update -> edit
     Delete -> remove
 
-    //! right now the CRUD functions are called with sj.Objects with some set of parameters (not always id, even for get) - these parameters are all ones that are fine to publicly carry around with the object (except in particular cases like passwords) and so should always be with the object. If theres a point in the future where these have to be called with a consistent argument (id) then the next step would be to make all these consistent about using that parameter and then also maybe have fallbacks for incase that parameter doesn't exist but other sufficient ones do (playlistId, position). This would be an order of properties and their respective validation checks and query modifications.
+    //! right now the CRUD functions are called with sj.Bases with some set of parameters (not always id, even for get) - these parameters are all ones that are fine to publicly carry around with the object (except in particular cases like passwords) and so should always be with the object. If theres a point in the future where these have to be called with a consistent argument (id) then the next step would be to make all these consistent about using that parameter and then also maybe have fallbacks for incase that parameter doesn't exist but other sufficient ones do (playlistId, position). This would be an order of properties and their respective validation checks and query modifications.
 
     //G basic query functions: any(manyOrNone) many none one oneOrNone
 
@@ -59,6 +59,34 @@
 
 
 	//G modifying & returning passed objects in functions, in general I'm deciding to modify passed objects in functions and return the same reference, however when the data-structure changes (nesting, cloning, etc.), the passed object should not be modified. this can be seen in sj.Entity.common() validation, where any nested validated properties are flattened into a root object
+*/
+
+/* deep property access //! this is broken - must fix
+	const get = (p, o) =>
+	p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
+
+	let bar = {
+	bar: true,
+	}
+
+	console.log(get(['bar', 'bar'], bar));
+
+	// let foo = function (root, path) {
+	//   return path.reduce((dir, next) => {
+	//     if (dir && dir[next]) {
+	//       return dir[next];
+	//     } else {
+	//       return undefined;
+	//     }
+		
+		
+	//     if (current && current[next]) {
+	//       return current[next];
+	//     } else {
+	//       return 
+	//     }
+	//   }, root};
+	// }
 */
 
 
@@ -147,57 +175,6 @@ const saltRounds = 10;
 
 // database
 sj.db = database; //C for use of db with globals so that db doesn't have to be imported twice
-
-//! string to be hashed must not be greater than 72 characters (//? or bytes???),
-const stringMaxLength = 100;
-const bigStringMaxLength = 2000;
-
-const nameMinLength = 3;
-const nameMaxLength = 16;
-
-const defaultColor = '#ffffff';
-
-const visibilityStates = [
-    'public',
-    'private',
-    'linkOnly',
-];
-
-/* schema, might need classes for this to work
-	sj.schema = (function () {
-		this.tables = (function () {
-			this.user = (function () {
-				this.columns = (function () {
-						this.id = (function () {
-							this.name = 'id';
-							this.dbName = this.name;
-							
-
-							return this;
-						}).call({});
-
-					return this;
-				}).call({});
-
-				return this;
-			}).call({});
-		
-			this.playlist = (function () {
-		
-				return this;
-			}).call({});
-		
-			this.track = (function () {
-		
-				return this;
-			}).call({});
-
-			return this;
-		}).call({});
-
-		return this;
-	}).call({});
-*/
 
 
 //  ██╗   ██╗████████╗██╗██╗     
@@ -492,28 +469,30 @@ sj.checkKey = async function (list, key) {
     });
 };
 
-sj.mapColumns = function (entities, columnMap) {
-	//C switches entities' js named keys for column named keys based on columnMap
-	//C this is so that database column names can even be any valid string
-	return entities.map(entity => {
-		let mappedEntity = {};
-		Object.keys(entity).forEach(key => {
-			if (columnMap[key] !== undefined) mappedEntity[columnMap[key]] = entity[key];
+/* //OLD
+	sj.mapColumns = function (entities, columnMap) {
+		//C switches entities' js named keys for column named keys based on columnMap
+		//C this is so that database column names can even be any valid string
+		return entities.map(entity => {
+			let mappedEntity = {};
+			Object.keys(entity).forEach(key => {
+				if (columnMap[key] !== undefined) mappedEntity[columnMap[key]] = entity[key];
+			});
+			return mappedEntity;
 		});
-		return mappedEntity;
-	});
-};
-sj.unmapColumns = function (mappedEntities, columnMap) {
-	//C inverse of mapColumns()
-	return mappedEntities.map(mappedEntity => {
-		let entity = {};
-		Object.keys(mappedEntity).forEach(columnName => {
-			let key = Object.keys(columnMap).find(key => key === columnName);
-			if (key !== undefined) entity[key] = mappedEntity[columnName];
+	};
+	sj.unmapColumns = function (mappedEntities, columnMap) {
+		//C inverse of mapColumns()
+		return mappedEntities.map(mappedEntity => {
+			let entity = {};
+			Object.keys(mappedEntity).forEach(columnName => {
+				let key = Object.keys(columnMap).find(key => key === columnName);
+				if (key !== undefined) entity[key] = mappedEntity[columnName];
+			});
+			return entity;
 		});
-		return entity;
-	});
-}
+	}
+*/
 
 sj.buildValues = function (mappedEntity) {
 	if (Object.keys(mappedEntity).length === 0) {
@@ -548,7 +527,9 @@ sj.buildWhere = function (mappedEntity) {
 		//C pair as formatted string
 		let pairs = [];
 		pairs = Object.keys(mappedEntity).map(key => {
-			return pgp.as.format(`"${key}" = $1`, mappedEntity[key]);
+			//C wrap array in another array so that pgp doesn't think its values are for separate placeholders
+			let input = sj.isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+			return pgp.as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
 		});
 
 		//C join with ' AND '
@@ -564,9 +545,9 @@ sj.buildSet = function (mappedEntity) {
 		let pairs = [];
 		//C pair as formatted string
 		pairs = Object.keys(mappedEntity).map(key => {
-			return pgp.as.format(`"${key}" = $1`, mappedEntity[key]);
+			let input = sj.isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+			return pgp.as.format(`"${key}" = $1`, input);
 		});
-
 		//C join with ', '
 		return pairs.join(', ');
 	}
@@ -580,125 +561,23 @@ sj.buildSet = function (mappedEntity) {
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
-// rule
-sj.Rule.checkRuleSet = async function (ruleSet) {
-    //C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to propertyNames
-    //C takes a 2D array: [[isRequired,  sj.Rule, object, propertyName, against], [], ...]
-	//! nested object properties can be referenced: entity.nest[propertyName], however the validated properties will be flattened to the root object: validated[propertyName]
-
-    let validated = {};
-    await sj.asyncForEach(ruleSet, async ([isRequired, rule, obj, propertyName, against]) => {
-        //C validate arguments
-        if (!sj.isType(isRequired, Boolean)) {
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `isRequired is not a boolean`,
-                content: isRequired,
-            });
-		}
-		/* //OLD column
-			if (!sj.isType(column, 'string') | sj.isEmpty(column)){
-				throw new sj.Error({
-					log: true,
-					origin: 'sj.Rule.checkRuleSet()',
-					message: 'validation error',
-					reason: `column is not a string or is empty`,
-					content: column,
-				});
-			}
-		*/
-        if (!rule instanceof this) {
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `rule is not an sj.Rule`,
-                content: rule,
-            });
-        }
-        if (!sj.isType(rule, Object)) {
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `obj is not an object`,
-                content: obj,
-            });
-		}
-        if (isRequired && obj && !(propertyName in obj)) { //? shouldn't rule.check just catch this case as undefined?
-            throw new sj.Error({
-                log: true,
-                origin: 'sj.Rule.checkRuleSet()',
-                message: 'validation error',
-                reason: `${propertyName} is not a property name of the passed object`,
-                content: obj,
-            });
-        }
-
-        //C if propertyName is required or is not required but has a value
-        if (isRequired || (obj && !sj.isEmpty(obj[propertyName]))) {
-			//C validate propertyName 
-			let checked = await rule.check(obj[propertyName], against);
-			
-			//C pack into validated as	propertyName: {value: v, column: c}
-			validated[propertyName] = sj.content(checked);
-			//OLD validated[propertyName] = {column, value: sj.content(checked)};
-
-			return checked;
-
-			/* //OLD
-				//C validate propertyNameerty, possibly modify obj[propertyName] if successful
-				//R the check has to specifically happen before the push to validated (not just storing to a ruleSet array) because the check can change the value or type of obj[propertyName] which could then create issues when the original is used in the where clause
-				let checked = await rule.check(obj[propertyName], against);
-				obj[propertyName] = sj.content(checked);
-				//C add value to validated
-				//! if rule.check() throws, this won't be pushed, but that doesn't matter because validated won't be returned if there is any error
-				validated.push({column: column, value: obj[propertyName]});
-				//C return the success message of rule.check()
-				//! this doesn't end up being returned from the function, but is here for maintainability
-				return checked;
-			*/
-        } else {
-			//C don't pack into validated
-            return new sj.Success({
-                origin: 'sj.Rule.checkRuleSet()',
-                message: `optional empty propertyName ${propertyName} skipped validation`,
-            });
-        }
-    }).catch(rejected => {
-        throw new sj.ErrorList({
-            origin: 'sj.Rule.checkRuleSet()',
-            message: 'one or more issues with rules',
-            reason: 'validation functions returned one or more errors',
-            content: rejected,
-        });
-    });
-
-    return new sj.Success({
-        origin: 'sj.Rule.checkRuleSet()',
-        message: 'all rules validated',
-        content: validated,
-    });
-};
-
 // entity
 (function () { // static
 	this.add = async function (query, db = sj.db) {
-		return await this.common(db, query, 'add');
+		return await this.main(db, query, 'add');
 	};
 	this.get = async function (query, db = sj.db) {
-		return await this.common(db, query, 'get');
+		return await this.main(db, query, 'get');
 	};
 	this.edit = async function (query, db = sj.db) {
-		return await this.common(db, query, 'edit');
+		return await this.main(db, query, 'edit');
 	};
 	this.remove = async function (query, db = sj.db) {
-		return await this.common(db, query, 'remove');
+		return await this.main(db, query, 'remove');
 	};
 
-	this.common = async function (db, anyEntities, crud) {
+	this.main = async function (db, anyEntities, methodName) {
+		//C catch sj.Entity
 		if (this === sj.Entity) {
 			throw new sj.Error({
 				origin: 'sj.Entity.[CRUD]',
@@ -706,125 +585,195 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			});
 		}
 
+		//C cast as array
 		let entities = sj.any(anyEntities);
 		return await db.tx(async t => {
 			let accessory = {};
 
 			//C process list before iteration
-			await this[crud+'Before'](t, entities, accessory);
-
-			console.log('ENTITIES:', entities);
+			await this[methodName+'Before'](t, entities, accessory);
 
 			//C validate
 			let validatedEntities = await sj.asyncForEach(entities, async entity => {
-				return await sj.Rule.checkRuleSet(this[crud+'ValidateList'](entity)).then(sj.content).catch(sj.rejected);
+				return await this.validate(entity, methodName).then(sj.content).catch(sj.propagate);
 			});
 
 			//C prepare
 			await sj.asyncForEach(validatedEntities, async entity => {
-				return await this[crud+'Prepare'](t, entity, accessory).catch(sj.propagate);
+				return await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate);
 			});
 
 			//C accommodate other influenced entities
-			if (crud !== 'get') var influencedEntities = await this[crud+'Accommodate'](t, validatedEntities, accessory).then(sj.content).catch(sj.propagate);
+			if (methodName !== 'get') var influencedEntities = await this[methodName+'Accommodate'](t, validatedEntities, accessory).then(sj.content).catch(sj.propagate);
 
 			//C map properties to columns
-			let inputMapped = sj.mapColumns(validatedEntities, this.columnMap);
-			if (crud !== 'get') var influencedMapped = sj.mapColumns(influencedEntities, this.columnMap);
-
-			console.log('INPUT MAPPED', inputMapped);
+			let inputMapped = this.mapColumns(validatedEntities);
+			if (methodName !== 'get') var influencedMapped = this.mapColumns(influencedEntities);
 
 			//C execute query
 			let before = [];
 			let after = [];
 			await sj.asyncForEach(inputMapped, async entity => {
 				//C before, ignore add
-				if (crud !== 'get' && crud !== 'add') {
-					let inputBefore = await this.getQuery(t, entity).catch(sj.propagate);
+				if (methodName !== 'get' && methodName !== 'add') {
+					let inputBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).catch(sj.propagate);
 					before.push(...inputBefore);
 				}
 
 				//C after, ignore remove //? would a final get query ever be preferable over a RETURNING statement?
-				let inputAfter = await this[crud+'Query'](t, entity).then(sj.any).catch(sj.propagate);
-				if (crud !== 'remove') after.push(...inputAfter);
+				let inputAfter = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
+				if (methodName !== 'remove') after.push(...inputAfter);
 			}).catch(rejected => {
 				throw sj.propagate(new sj.ErrorList({
-					...this[crud+'Error'](),
+					...this[methodName+'Error'](),
 					content: Array.isArray(rejected) ? rejected.flat(1) : rejected, //C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or remove (because they return single objects)
 				}));
 			});
-			if (crud !== 'get') {
+			if (methodName !== 'get') {
 				await sj.asyncForEach(influencedMapped, async influencedEntity => {
-					let influencedBefore = await this.getQuery(t, influencedEntity).catch(sj.propagate);
+					let influencedBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).catch(sj.propagate);
 					let influencedAfter = await this.editQuery(t, influencedEntity).catch(sj.propagate);
 
 					before.push(...influencedBefore);
 					after.push(...influencedAfter);
 				}).catch(rejected => {
 					throw sj.propagate(new sj.ErrorList({
-						...this[crud+'Error'](),
+						...this[methodName+'Error'](),
 						content: Array.isArray(rejected) ? rejected.flat(1) : rejected,
 					}));
 				});
 			}
 
 			//C unmap columns to properties
-			let unmappedBefore = sj.unmapColumns(before, this.columnMap);
-			let unmappedAfter = sj.unmapColumns(after, this.columnMap);
+			let unmappedBefore = this.unmapColumns(before);
+			let unmappedAfter = this.unmapColumns(after);
 
 			//C process list after iteration
-			await this[crud+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
-			await this[crud+'After'](t, unmappedAfter, accessory).catch(sj.propagate);
+			await this[methodName+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
+			await this[methodName+'After'](t, unmappedAfter, accessory).catch(sj.propagate);
+
+			//C shake
+			let shookBefore = unmappedBefore.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
+			let shookAfter = unmappedAfter.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
 
 			//TODO notify...
 
+			//C rebuild
+			let builtAfter = shookAfter.map(entity => new this(entity));
+
 			return new sj.SuccessList({
-				...this[crud+'Success'](),
-				content: unmappedAfter,
+				...this[methodName+'Success'](),
+				content: builtAfter, 
 			});
 		}).catch(sj.propagate);
 	};
 
-	//C modifies entities before validation (this includes modifying the entities so that their data structure matches the schema) //? return a new object then?
-	this.commonBefore = async function (t, entities, accessory) {
-		return;
-	};
+	//C modifies entities before validation
 	this.addBefore = 
 	this.getBefore = 
 	this.editBefore = 
-	this.removeBefore = this.commonBefore;
+	this.removeBefore = async function (t, entities, accessory) {
+		return;
+	};
 
-	//C returns a 2D validateList based on the passed entity: [[isRequired, rule, obj, propertyName, againstValue], ...]
-	//TODO consider making default rules for select properties by overwritting custom with the spread operator (but still require the individual isRequired to be listed)
-	this.addValidateList = 
-	this.getValidateList = 
-	this.editValidateList = 
-	this.removeValidateList = function (entity) { return []; };
+	//C validate using sj.Entity.schema
+	this.validate = async function (entity, methodName) {
+		let validated = {};
+		await sj.asyncForEach(Object.keys(this.schema), async key => {
+			let prop = this.schema[key];
+
+			//C catches
+			if (!(prop.rule instanceof sj.Rule)) { // sj.Rule
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'validation error',
+					reason: `${key}'s rule is not an sj.Rule`,
+					content: prop,
+				});
+			}
+
+			//C check if optional and not empty, or if required
+			if ((prop[methodName].check && !sj.isEmpty(entity[key])) || prop[methodName].check === 2) {
+				//G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
+				let checked = await prop.rule.check(entity[key], entity[prop.against]);
+				validated[key] = sj.content(checked);
+				return checked;
+			} else {
+				//C don't pack into validated
+				return new sj.Success({
+					origin: 'sj.Entity.validate()',
+					message: `optional ${key} is empty, skipped validation`,
+				});
+			}
+		}).catch(rejected => {
+			throw new sj.ErrorList({
+				origin: 'sj.Entity.validate()',
+				message: 'one or more issues with properties',
+				reason: 'validating properties returned one or more errors',
+				content: rejected,
+			});
+		});
+
+		return new sj.Success({
+			origin: 'sj.Entity.validate()',
+			message: 'all rules validated',
+			content: validated,
+		});
+	};
 
 	//C modifies each entity after validation
-	this.commonPrepare = async function (t, entity, accessory) {
-		return;
-	}
 	this.addPrepare =
 	this.getPrepare =
 	this.editPrepare = 
-	this.removePrepare = this.commonPrepare;
+	this.removePrepare = async function (t, entity, accessory) {
+		return;
+	}
 
-	//C modifies input entities, returns other entities
-	//C checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
-	this.commonAccommodate = async function (t, entities, accessory) {
-		return new sj.SuccessList();
-	};
+	//C modifies input entities, returns other entities - checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
 	this.addAccommodate =
 	this.getAccommodate =
 	this.editAccommodate =
-	this.removeAccommodate = this.commonAccommodate;
+	this.removeAccommodate = async function (t, entities, accessory) {
+		return new sj.SuccessList();
+	};
 
-	//C map of js property names to database column names (there is no reason to have differences but this will handle them either way)
-	this.columnMap = [];
+	//C map js property names to database column names
+	this.mapColumns = function (entities) {
+		//C switches entities' js named keys for column named keys based on schema
+		//C this is so that database column names can be any string
+		return entities.map(entity => { //C for each entity
+			let mappedEntity = {};
+			Object.keys(entity).forEach(key => { //C for each property
+				if (sj.isType(this.schema[key], Object) && sj.isType(this.schema[key].columnName, String)) { //C if schema has property 
+					mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
+				} else {
+					console.warn(`sj.Entity.mapColumns() - property ${key} in entity not found in schema`);
+				}
+			});
+			return mappedEntity;
+		});
+	};
+	this.unmapColumns = function (mappedEntities) {
+		//C inverse of mapColumns()
+		return mappedEntities.map(mappedEntity => { //C for each entity
+			let entity = {};
+			Object.keys(mappedEntity).forEach(columnName => { //C for each columnName
+				let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
+				if (sj.isType(key, String)) {
+					//C set entity[key] as value of mappedEntity[columnName]
+					entity[key] = mappedEntity[columnName];
+				} else {
+					console.warn(`sj.Entity.mapColumns() - column ${columnName} in mappedEntity not found in schema`);
+				}
+			});
+			return entity;
+		});
+	};
+
+	this.queryOrder = `ORDER BY "id" ASC`; //! this should be overwritten with different ORDER BY columns
 
 	//C query executors
-	this.getQueryOrder = `ORDER BY "id" ASC`; //! this should be overwritten with different ORDER BY columns
 	this.addQuery = async function (t, mappedEntity) {
 		let values = sj.buildValues(mappedEntity);
 
@@ -840,7 +789,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			}));
 		});
 
-		return new this(row);
+		return row;
 	};
 	this.getQuery = async function (t, mappedEntity) {
 		let where = sj.buildWhere(mappedEntity);
@@ -849,7 +798,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			SELECT * 
 			FROM "sj"."${this.table}" 
 			WHERE $1:raw
-			${this.getQueryOrder}
+			${this.queryOrder}
 		`, [where]).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
@@ -858,9 +807,6 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			}));
 		});
 
-		rows.forEach(row => {
-			row = new this(row);
-		});
 		return rows;
 	};
 	this.editQuery = async function (t, mappedEntity) {
@@ -881,7 +827,7 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			}));
 		});
 
-		return new this(row);
+		return row;
 	};
 	this.removeQuery = async function (t, mappedEntity) {
 		let where = sj.buildWhere(mappedEntity);
@@ -897,17 +843,16 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 			}));
 		});
 		
-		return new this(row);
+		return row;
 	};
 
 	//C modifies entities after iteration
-	this.commonAfter = async function (t, entities, accessory) {
-		return;
-	};
 	this.addAfter = 
 	this.getAfter = 
 	this.editAfter = 
-	this.removeAfter = this.commonAfter;
+	this.removeAfter = async function (t, entities, accessory) {
+		return;
+	};
 
 	//C custom SuccessList and ErrorList
 	this.addSuccess = function () { return {
@@ -959,67 +904,109 @@ sj.Rule.checkRuleSet = async function (ruleSet) {
 	};
 }).call(sj.Entity.prototype);
 
+/* //OLD
+	sj.Rule.checkRuleSet = async function (ruleSet) {
+		//C checks a ruleSet and returns a sj.Success with a list of formated strings pairing columns to propertyNames
+		//C takes a 2D array: [[isRequired,  sj.Rule, object, propertyName, against], [], ...]
+		//! nested object properties can be referenced: entity.nest[propertyName], however the validated properties will be flattened to the root object: validated[propertyName]
 
-//  ██████╗ ██╗   ██╗██╗     ███████╗███████╗
-//  ██╔══██╗██║   ██║██║     ██╔════╝██╔════╝
-//  ██████╔╝██║   ██║██║     █████╗  ███████╗
-//  ██╔══██╗██║   ██║██║     ██╔══╝  ╚════██║
-//  ██║  ██║╚██████╔╝███████╗███████╗███████║
-//  ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝╚══════╝
+		let validated = {};
+		await sj.asyncForEach(ruleSet, async ([isRequired, rule, obj, propertyName, against]) => {
+			//C validate arguments
+			if (!sj.isType(isRequired, Boolean)) {
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'validation error',
+					reason: `isRequired is not a boolean`,
+					content: isRequired,
+				});
+			}
+			// //OLD column
+			// if (!sj.isType(column, 'string') | sj.isEmpty(column)){
+			// 	throw new sj.Error({
+			// 		log: true,
+			// 		origin: 'sj.Rule.checkRuleSet()',
+			// 		message: 'validation error',
+			// 		reason: `column is not a string or is empty`,
+			// 		content: column,
+			// 	});
+			// }
+			
+			if (!rule instanceof this) {
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'validation error',
+					reason: `rule is not an sj.Rule`,
+					content: rule,
+				});
+			}
+			if (!sj.isType(obj, Object)) {
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'validation error',
+					reason: `obj is not an object`,
+					content: obj,
+				});
+			}
+			if (isRequired && obj && !(propertyName in obj)) { //? shouldn't rule.check just catch this case as undefined?
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.Rule.checkRuleSet()',
+					message: 'validation error',
+					reason: `${propertyName} is not a property name of the passed object`,
+					content: obj,
+				});
+			}
 
-// rule
-Object.assign(sj.Rule, {
-	none: new sj.Rule({
-		origin: 'noRules',
-		message: 'value validated',
-	
-		valueName: 'Value',
-	
-		dataTypes: ['string', 'number', 'boolean', 'array'], //TODO etc. or just make functionality for this
-	}),
-	posInt: new sj.Rule({
-		origin: 'positiveIntegerRules',
-		message: 'number validated',
-	
-		valueName: 'Number',
-	
-		dataTypes: ['integer'],
-	}),
-	id: new sj.Rule({
-		origin: 'idRules',
-		message: 'id validated',
-	
-		valueName: 'id',
-	
-		dataTypes: ['integer'],
-	}),
-	image: new sj.Rule({
-		origin: 'imageRules',
-		message: 'image validated',
-		target: 'playlistImage',
-		cssClass: 'inputError',
-	
-		valueName: 'image',
-		trim: true,
-	
-		max: bigStringMaxLength,
-	
-		// TODO filter: ___,
-		filterMessage: 'Image must be a valid url',
-	}),
-	color: new sj.Rule({
-		origin: 'colorRules',
-		message: 'color validated',
-		target: 'playlistColor',
-		cssClass: 'inputError',
-	
-		valueName: 'color',
-		trim: true,
-		
-		filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
-		filterMessage: 'Color must be in hex format #XXXXXX',
-	}),
-});
+			//C if propertyName is required or is not required but has a value
+			if (isRequired || (obj && !sj.isEmpty(obj[propertyName]))) {
+				//C validate propertyName 
+				let checked = await rule.check(obj[propertyName], against);
+				
+				//C pack into validated as	propertyName: {value: v, column: c}
+				validated[propertyName] = sj.content(checked);
+				//OLD validated[propertyName] = {column, value: sj.content(checked)};
+
+				return checked;
+
+				// //OLD
+				// //C validate propertyNameerty, possibly modify obj[propertyName] if successful
+				// //R the check has to specifically happen before the push to validated (not just storing to a ruleSet array) because the check can change the value or type of obj[propertyName] which could then create issues when the original is used in the where clause
+				// let checked = await rule.check(obj[propertyName], against);
+				// obj[propertyName] = sj.content(checked);
+				// //C add value to validated
+				// //! if rule.check() throws, this won't be pushed, but that doesn't matter because validated won't be returned if there is any error
+				// validated.push({column: column, value: obj[propertyName]});
+				// //C return the success message of rule.check()
+				// //! this doesn't end up being returned from the function, but is here for maintainability
+				// return checked;
+				
+			} else {
+				//C don't pack into validated
+				return new sj.Success({
+					origin: 'sj.Rule.checkRuleSet()',
+					message: `optional empty propertyName ${propertyName} skipped validation`,
+				});
+			}
+		}).catch(rejected => {
+			throw new sj.ErrorList({
+				origin: 'sj.Rule.checkRuleSet()',
+				message: 'one or more issues with rules',
+				reason: 'validation functions returned one or more errors',
+				content: rejected,
+			});
+		});
+
+		return new sj.Success({
+			origin: 'sj.Rule.checkRuleSet()',
+			message: 'all rules validated',
+			content: validated,
+		});
+	};
+*/
 
 
 //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
@@ -1034,14 +1021,11 @@ Object.assign(sj.Rule, {
 	//TODO consider making a session object to hold these functions, server side and client side
 */
 
-
 // CRUD
 sj.login = async function (db, ctx, user) {
-    //C validate
-    await sj.Rule.checkRuleSet([
-        [true, sj.Rule.userName, user, 'name'],
-        [true, sj.Rule.password, user, 'password'],
-    ]);
+	//C validate
+	user.name = await sj.User.schema.name.rule.check(user.name).then(sj.content);
+	user.password = await sj.User.schema.password.rule.check(user.password).then(sj.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
 
     //C get password
     let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
@@ -1148,229 +1132,13 @@ sj.isLoggedIn = async function (ctx) {
     //TODO ensure that password is not being returned here (no matter the view/permission), remember to use views in all CRUD functions, not just the tables
 */
 
-// rules
-Object.assign(sj.Rule, {
-	self: new sj.Rule({
-		origin: 'selfRules',
-		message: 'self validated',
-		target: 'notify',
-		cssClass: 'notifyError',
-	
-		valueName: 'Id',
-	
-		dataTypes: ['integer'],
-	
-		useAgainst: true,
-		//! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
-		againstMessage: 'you are not the owner of this',
-	}),
-	userName: new sj.Rule({
-		origin: 'userNameRules',
-		message: 'username validated',
-		target: 'registerUserName',
-		cssClass: 'inputError',
-	
-		valueName: 'Username',
-		trim: true,
-	
-		min: nameMinLength,
-		max: nameMaxLength,
-	}),
-	password: new sj.Rule({
-		origin: 'passwordRules',
-		message: 'password validated',
-		target: 'registerPassword',
-		cssClass: 'inputError',
-	
-		valueName: 'Password',
-	
-		min: 6,
-		max: 72, //! as per bcrypt
-	}),
-	setPassword: new sj.Rule({
-		origin: 'setPasswordRules',
-		message: 'password validated',
-		target: 'registerPassword',
-		cssClass: 'inputError',
-	
-		valueName: 'Password',
-	
-		min: 6,
-		max: 72, //! as per bcrypt
-	
-		useAgainst: true,
-		get againstMessage() {return 'Passwords do not match'},
-	}),
-	email: new sj.Rule({
-		origin: 'emailRules',
-		message: 'email validated',
-		target: 'registerEmail',
-		cssClass: 'inputError',
-	
-		valueName: 'E-mail',
-		trim: true,
-	
-		min: 3,
-		max: stringMaxLength,
-	
-		//TODO useFilter: ___, filterMessage: ___, 
-		//L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-	}),
-	spotifyRefreshToken: new sj.Rule({
-		origin: 'spotifyRefreshTokenRules',
-		message: 'token validated',
-	
-		valueName: 'Token',
-		//TODO empty for now
-	}),
-});
-
 // CRUD
 (function () {
-	// validate
-	// [
-	// 	{
-	// 		required: boolean,
-	// 		rule: sj.Rule,
-
-	// 	}
-	// ]
-
-	//---------- trying to redo the validateLists 
-	//---------- trying to figure out deep property access, this function here works but has some bugs
-	/*
-		const get = (p, o) =>
-		p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
-
-		let bar = {
-		bar: true,
-		}
-
-		console.log(get(['bar', 'bar'], bar));
-
-		// let foo = function (root, path) {
-		//   return path.reduce((dir, next) => {
-		//     if (dir && dir[next]) {
-		//       return dir[next];
-		//     } else {
-		//       return undefined;
-		//     }
-			
-			
-		//     if (current && current[next]) {
-		//       return current[next];
-		//     } else {
-		//       return 
-		//     }
-		//   }, root};
-		// }
-	*/
-
-	this.schema = {
-		//G 0 = unused, 1 = optional, 2 = required
-		id: {
-			columnName: 'id',
-			rule: sj.Rule.id,
-			add: 0,
-			get: 1,
-			edit: 2,
-			remove: 2,
-		},
-		name: {
-			columnName: 'name',
-			rule: sj.Rule.userName,
-			add: 2,
-			get: 1,
-			edit: 1,
-			remove: 0,
-		},
-		email: {
-			columnName: 'email',
-			rule: sj.Rule.email,
-			add: 2,
-			get: 1,
-			edit: 1,
-			remove: 0,
-		},
-		password: {
-			columnName: 'email',
-			rule: sj.Rule.password,
-			add: 2,
-			get: 0,
-			edit: 1,
-			remove: 0,
-		},
-		spotifyRefreshToken: {
-			columnName: 'email',
-			rule: sj.Rule.spotifyRefreshToken,
-			add: 0,
-			get: 0,
-			edit: 1,
-			remove: 0,
-		},
-	};
-
-	let crudFilters = {
-		add: [],
-		get: [],
-		edit: [],
-		remove: [],
-	};
-	Object.keys(this.schema).forEach(key => {
-		if (this.schema[key].add) crudFilters.add.push(key);
-		if (this.schema[key].get) crudFilters.get.push(key);
-		if (this.schema[key].edit) crudFilters.edit.push(key);
-		if (this.schema[key].remove) crudFilters.remove.push(key);
-	});
-	this.filters = {
-		...this.filters,
-		...crudFilters,
-	}
-
-	// use filters for specific
-	// use overwrites for specific if needed
-
-	this.addValidateList = function (user) {
-		return [
-			[true, sj.Rule.userName,	user, 'name'],
-			[true, sj.Rule.email,		user, 'email'],
-			[true, sj.Rule.password,	user, 'password'],
-		];
-	};
-	this.getValidateList = function (user) {
-		return [
-			[false, sj.Rule.id,			user,   'id'],
-			[false, sj.Rule.userName,   user,   'name'],
-			[false,	sj.Rule.email,		user, 'email'],
-		];
-	};
-	this.editValidateList = function (user) {
-		return [
-			[true,	sj.Rule.id,			user,	'id'],
-			[false, sj.Rule.userName,   user,   'name'],
-			[false, sj.Rule.email, 		user, 	'email'],
-			[false, sj.Rule.spotifyRefreshToken, user, 'spotifyRefreshToken'],
-		];
-	};
-	this.removeValidateList = function (user) {
-		return [
-			[true, sj.Rule.id,			user,	'id'],
-		];
-	};
-
-	this.columnMap = {
-		id: 'id',
-		name: 'name',
-		email: 'email',
-		password: 'password',
-		spotifyRefreshToken: 'spotifyRefreshToken',
-	};
-
-	// overwrite
-	//TODO hash password on edit too
-	this.addPrepare = async function (t, user) {
+	this.addPrepare = 
+	this.editPrepare = async function (t, user) {
 		//C hash password
-		user.password = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
+		//TODO might be a vulnerability here with this string check
+		if (sj.isType(user.password, String)) user.password = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
 			throw new sj.Error({
 				log: true,
 				origin: 'sj.User.add()',
@@ -1381,7 +1149,7 @@ Object.assign(sj.Rule, {
 		});
 	};
 
-	this.getQueryOrder = 'ORDER BY "id" ASC';
+	this.queryOrder = 'ORDER BY "id" ASC';
 
 	/* //OLD get
 		//R logic for getUserById, getUserByName, getUserByEmail would have to exist elsewhere anyways if not in this function, so might as well just put it here and handle all combination cases
@@ -1484,85 +1252,9 @@ Object.assign(sj.Rule, {
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
 
-// rules
-Object.assign(sj.Rule, {
-	playlistName: new sj.Rule({
-		origin: 'playlistNameRules()',
-		message: 'name validated',
-		target: 'playlistName',
-		cssClass: 'inputError',
-	
-		valueName: 'Name',
-		trim: true,
-	
-		min: nameMinLength,
-		max: stringMaxLength,  
-	}),
-	visibility: new sj.Rule({
-		origin: 'visibilityRules',
-		message: 'visibility validated',
-		target: 'playlistVisibility',
-		cssClass: 'inputError',
-	
-		valueName: 'Visibility',
-	
-		useAgainst: true,
-		againstValue: visibilityStates,
-		againstMessage: 'please select a valid visibility level',
-	}),
-	description: new sj.Rule({
-		origin: 'descriptionRules()',
-		message: 'description validated',
-		target: 'playlistDescription',
-		cssClass: 'inputError',
-	
-		valueName: 'Description',
-	
-		max: bigStringMaxLength,
-		trim: true,
-	}),
-});
-
 // CRUD
 (function () {
-	// validate
-	this.addValidateList = function (playlist) {
-		return [
-			[true,  sj.Rule.id,             playlist,   'userId'],
-			[true,  sj.Rule.playlistName,   playlist,   'name'],
-			[false, sj.Rule.description,    playlist,   'description'],
-		];
-	};
-	this.getValidateList = function (playlist) {
-		return [
-			[false, sj.Rule.id,             playlist,   'id'],
-			[false, sj.Rule.id,             playlist,   'userId'],
-			[false, sj.Rule.playlistName,   playlist,   'name'],
-			[false, sj.Rule.description,    playlist,   'description'],
-		];
-	};
-	this.editValidateList = function (playlist) {
-		return [
-			[true,	sj.Rule.id,				playlist,	'id'],
-			[false, sj.Rule.playlistName,   playlist,   'name'],
-			[false, sj.Rule.description,    playlist,   'description'],
-		];
-	};
-	this.removeValidateList = function (playlist) {
-		return [
-			[true, sj.Rule.id, playlist, 'id'],
-		];
-	};
-
-	this.columnMap = {
-		id: 'id',
-		userId: 'userId',
-		name: 'name',
-		description: 'description',
-	};
-
-	// overwrite
-	this.getQueryOrder = 'ORDER BY "userId" ASC, "id" ASC';
+	this.queryOrder = 'ORDER BY "userId" ASC, "id" ASC';
 
 	/* //OLD add
 		await sj.isLoggedIn(ctx);
@@ -1686,109 +1378,24 @@ Object.assign(sj.Rule, {
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 
-// rules
-Object.assign(sj.Rule, {
-	trackName: new sj.Rule({
-		origin: 'trackNameRules()',
-		message: 'name validated',
-	
-		valueName: 'Name',
-		trim: true,
-	
-		min: nameMinLength,
-		max: stringMaxLength,  
-	}),
-	source: new sj.Rule({
-		origin: 'sourceRules',
-		message: 'source validated',
-	
-		valueName: 'Source',
-	
-		useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
-		againstValue: sj.sourceList,
-		againstMessage: 'track does not have a valid source',
-	}),
-	sourceId: new sj.Rule({
-		origin: 'sourceIdRules',
-		message: 'source id validated',
-	
-		valueName: 'Source ID',
-	
-		//? any source id rules (other than being a string)? length? trim?
-	}),
-	artists: new sj.Rule({
-		origin: 'sj.Rules.artists',
-		message: 'artists validated',
-
-		valueName: 'Artists',
-
-		dataTypes: ['array'],
-	}),
-});
-
 // CRUD
 (function () {
-	// validate
-	this.addValidateList = function (track) {
-		return [
-			[true, sj.Rule.id,			track,	'playlistId'],
-			[true, sj.Rule.source,		track,	'source'],
-			[true, sj.Rule.sourceId,	track,	'sourceId'],
-			[true, sj.Rule.trackName,	track,	'name'],
-			[true, sj.Rule.posInt,		track,	'duration'],
-			[true, sj.Rule.artists,		track,	'artists'],
-		];
-	};
-	this.getValidateList = function (track) {
-		return [
-			[false, sj.Rule.id,     	track,	'id'],
-			[false, sj.Rule.id,     	track,	'playlistId'],
-			[false, sj.Rule.posInt, 	track,	'position'],
-			[false, sj.Rule.source,     track,	'source'],
-			[false, sj.Rule.sourceId,   track,	'sourceId'],
-		];
-	};
-	this.editValidateList = function (track) {
-		return [
-			[true,	sj.Rule.id,			track,	'id'],
-			[false, sj.Rule.id,			track,	'playlistId'],
-			[false, sj.Rule.posInt, 	track,	'position'],
-			[false,	sj.Rule.source,		track,	'source'],
-			[false, sj.Rule.sourceId,	track,	'sourceId'],
-			[false, sj.Rule.trackName,	track,	'name'],
-			[false, sj.Rule.posInt,		track,	'duration'],
-		];
-	};
-	this.removeValidateList = function (track) {
-		return [
-			[true, sj.Rule.id, track, 'id'],
-		];
-	};
-
-	this.columnMap = {
-		id: 'id',
-		playlistId: 'playlistId',
-		position: 'position',
-		source: 'source',
-		sourceId: 'sourceId',
-		name: 'name',
-		duration: 'duration',
-		artists: 'artists',
-	};
-
-	// overwrite
-	this.commonBefore = async function (t, entities) {
+	this.addBefore = 
+	this.getBefore = 
+	this.editBefore = 
+	this.removeBefore = async function (t, entities) {
 		entities.forEach(entity => {
-			entity.source = sj.isType(entity.source, sj.Source) && sj.isType(entity.source, String)
+			entity.source = sj.isType(entity.source, Object) && sj.isType(entity.source.name, String)
 			? entity.source.name
-			: 'unknown source';
+			: undefined;
 		});
 	};
 	this.addPrepare = async function (t, track) {
 		let existingTracks = await sj.Track.get({playlistId: track.playlistId}, t).then(sj.content);
 		track.position = existingTracks.length;
 	};
-	this.getQueryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
+
+	this.queryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
 
 	this.addAccommodate = 
 	this.editAccommodate =
@@ -1805,9 +1412,14 @@ Object.assign(sj.Rule, {
 		return await this.order(t, tracks).catch(sj.propagate);
 	};
 
-	// this.commonAfter = async function (t, entities) {
-	//TODO convert source string to source object
-	// };
+	this.addAfter =
+	this.getAfter =
+	this.editAfter = 
+	this.deleteAfter = async function (t, entities) {
+		entities.forEach(entity => {
+			entity.source = sj.sourceList.find(source => source.name === entity.source);
+		});
+	};
 
 
 	/* //OLD
@@ -2770,7 +2382,6 @@ Object.assign(sj.Rule, {
 		}
 	*/
 }).call(sj.Track);
-
 (function () {
 	this.order = async function (db = sj.db) {
 		return await this.constructor.order(db, sj.any(this));

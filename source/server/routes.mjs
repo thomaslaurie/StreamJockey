@@ -29,7 +29,7 @@
 	https://github.com/alexmingoia/koa-router#url-parameters
 
 
-	//G all methods (except get) should pass parameters as their respective sj.Object 
+	//G all methods (except get) should pass parameters as their respective sj.Base 
 	//G get uses name as the identifier, TODO but should also accept id in the future
 
 	node module.exports (unused, switched to ES Modules)
