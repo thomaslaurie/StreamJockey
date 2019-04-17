@@ -6,6 +6,8 @@
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
 /*
+	//L ASCII TITLE GENERATOR: http://patorjk.com/software/taag/#p=display&c=c%2B%2B&f=ANSI%20Shadow&t=playlist
+
 	//R Promises: promises always return more promises (that are resolved or rejected), await (and furthermore async) is only needed to transform those resolved or rejected promises in to useable values, promises can be called and returned within a synchronous function (like map) they just pass on their evaluation to whatever they were returned to (see the implementation of Promise.all(...map()))
 	//L Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
 	//R catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
@@ -419,7 +421,8 @@ sj.dynamicSort = function(list, ascending, prop) {
 // type
 sj.isType = function (input, type) {
 	//C matches 'input' type or super-type to 'type' value or string representation or builtin object
-	//! will not match typeof input to typeof type, unless their exact values match 
+	//!//! will not match arrays to Object
+	//! will not match typeof input to typeof type, unless their exact values match - don't rely on this
 	//R this intentional because it would be difficult to separate string identifiers from typeof 'anyString'
 
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
@@ -430,13 +433,16 @@ sj.isType = function (input, type) {
 	/*	//R
 		created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Base types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
 	*/
+	
 
 	// value
 	if (input === type) {
 		return true;
 	}
+	
+	
 	// instanceof
-	if (typeof type === 'function' && input instanceof type) {
+	if (typeof type === 'function' && input instanceof type && !Array.isArray(input)) {
 		return true;
 	}
 
@@ -473,6 +479,7 @@ sj.isType = function (input, type) {
 		//R this implementation removes the need for a custom object list, because if everything extends sj.Base, everything can also be compared as an instanceof sj.Base - keeping a list of string names (to reduce the need for building an object) wont work in the long run because inheritance cant be checked that way
 		let tempInput = input;
 		let tempType = type;
+	
 		if ((input instanceof sj.Base || (typeof input.objectType === 'string' && (() => { 
 			//C input or input.objectType is an instance of a constructible
 			let Target = sj[input.objectType.replace('sj.', '')];
@@ -503,7 +510,7 @@ sj.isType = function (input, type) {
 		}
 
 		// NaN
-		if (Number.isNaN(input) && (type === NaN || type === 'NaN' || type === 'nan')) {
+		if (Number.isNaN(input) && (Number.isNaN(type) || type === 'NaN' || type === 'nan')) {
 			//! isNaN() and Number.isNaN() are slightly different: //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN
 			return true;
 		}
@@ -533,6 +540,159 @@ sj.isEmpty = function (input) {
         (sj.isType(input, 'array') && input.length > 0)
 	);
 }
+
+sj.deepMatch = function (a, b, {
+	deep = true, 
+	depth = 10, 
+	matchIfTooDeep = false, 
+	matchIfSuperSet = false, //C matches objects and arrays if b is a super-set of a 
+	matchOrder = true
+} = {
+	deep: true, 
+	depth: 10, 
+	matchIfTooDeep: false, 
+	matchIfSuperSet: false, 
+	matchOrder: true
+}) {
+	//C comparison function for 
+
+	if (depth <= 0) return matchIfTooDeep;
+
+	if (a === b) return true; // primitives & references
+	if (sj.isType(a, NaN) && sj.isType(b, NaN)) return true; // NaN
+
+	if (deep) {
+		let matchDeeper = function (a, b) {
+			return sj.deepMatch(a, b, {deep, depth: depth-1, matchIfTooDeep, matchIfSuperSet, matchOrder});
+		};
+
+		if (sj.isType(a, Object) && sj.isType(b, Object)) { // objects
+			let matches = true;
+			Object.keys(a).forEach(key => { //C match all keys of a to the same keys in b
+				if (!matchDeeper(a[key], b[key])) matches = false;
+			});
+			if (!matchIfSuperSet) {
+				Object.keys(b).forEach(key => { //C match all keys of b to the same keys in a //TODO optimize here
+					if (!matchDeeper(a[key], b[key])) matches = false;
+				});
+			}
+			return matches;
+		}
+		if (sj.isType(a, Array) && sj.isType(b, Array)) { // arrays
+			let matches = true;
+			a.forEach((inA, i) => {
+				if (matchOrder) {
+					if (!matchDeeper(a[i], b[i])) matches = false;
+				} else { //C match any inB to current inA
+					if (!b.some(inB => matchDeeper(inA, inB))) matches = false;
+				}
+			});
+			if (!matchIfSuperSet) {
+				b.forEach((inB, i) => {
+					if (matchOrder) {
+						if (!matchDeeper(a[i], b[i])) matches = false;
+					} else {
+						if (!a.some(inA => matchDeeper(inA, inB))) matches = false;
+					}
+				});
+			}
+			return matches;
+		}
+	}
+
+	return false;
+}
+sj.deepMatch.test = function () {
+	let oA = {
+		a: 'a',
+		b: 'b',
+	};
+	let oB = {
+		a: 'a',
+		b: 'b',
+	};
+	let oC = {
+		a: 'a',
+		b: 'b',
+		c: 'c',
+	};
+	let oD = {
+		a: 'a',
+		b: 'not b',
+	};
+
+	let aA = ['a', 'b'];
+	let aB = ['a', 'b'];
+	let aC = ['a', 'b', 'c'];
+	let aD = ['a', 'not b'];
+	let aE = ['a', 'c', 'b'];
+
+	let nA = {
+		a: {
+			a: {
+				a: {
+					a: 'a',
+				}
+			}
+		}
+	}
+	let nB = {
+		a: {
+			a: {
+				a: {
+					a: 'a',
+				}
+			}
+		}
+	}
+
+	let tests = [
+		true === sj.deepMatch(1, 1),
+			true === sj.deepMatch(0, 0),
+			true === sj.deepMatch(-1, -1),
+			true === sj.deepMatch(Infinity, Infinity),
+			true === sj.deepMatch(-Infinity, -Infinity),
+			true === sj.deepMatch(NaN, NaN),
+		false === sj.deepMatch(4, 3193),
+			false === sj.deepMatch(-3, 0),
+			false === sj.deepMatch(Infinity, 2345678909875498765456789),
+			false === sj.deepMatch(Infinity, -Infinity),
+			false === sj.deepMatch(NaN, 0),
+		true === sj.deepMatch(true, true),
+			true === sj.deepMatch(false, false),
+		false === sj.deepMatch(true, false),
+		true === sj.deepMatch('test', 'test'),
+			true === sj.deepMatch('', ''),
+			true === sj.deepMatch('undefined', 'undefined'),
+			true === sj.deepMatch('null', 'null'),
+		false === sj.deepMatch('string', 'test'),
+			false === sj.deepMatch('', 'test'),
+		true === sj.deepMatch(oA, oA),
+			true === sj.deepMatch(oA, oB),
+			true === sj.deepMatch(oA, oC, { matchIfSuperSet: true}),
+		false === sj.deepMatch(oA, oB, {deep: false}),
+			false === sj.deepMatch(oA, oC),
+			false === sj.deepMatch(oA, oD),
+		true === sj.deepMatch(aA, aA),
+			true === sj.deepMatch(aA, aB),
+			true === sj.deepMatch(aA, aC, {matchIfSuperSet: true}),
+			true === sj.deepMatch(aC, aE, {matchOrder: false}),
+		false === sj.deepMatch(aA, aB, {deep: false}),
+			false === sj.deepMatch(aA, aC),
+			false === sj.deepMatch(aA, aD),
+			false === sj.deepMatch(aC, aE),
+		false === sj.deepMatch({}, []),
+			false === sj.deepMatch({}, []),
+		true === sj.deepMatch(nA, nB),
+		true === sj.deepMatch(nA, nB, {depth: 2, matchIfTooDeep: true}),
+			false === sj.deepMatch(nA, nB, {depth: 2}),
+	];
+
+	tests.forEach((test, i) => {
+		if (!test) console.error(`sj.match.test() - ${i} failed`);
+	});
+
+};
 
 // error
 sj.catchUnexpected = function (input) {
@@ -2488,23 +2648,9 @@ sj.noTrack.source = sj.noSource; // cyclical reference
 // TODO move with actions sj.noAction = new sj.Action();
 
 
-
-// performance test
-// var iterations = 1000000;
-// console.time('Function #1');
-// for(var i = 0; i < iterations; i++ ){
-//     functionOne();
-// };
-// console.timeEnd('Function #1')
-
-// console.time('Function #2');
-// for(var i = 0; i < iterations; i++ ){
-//     functionTwo();
-// };
-// console.timeEnd('Function #2')
-
 export default sj;
-/* 
+
+/* //OLD
 	//! not used anymore
 
 	(function(sj){
@@ -2523,4 +2669,22 @@ export default sj;
 
 	TODO consider broswerify: https://github.com/browserify/browserify
 	, watchify, webpack, rollup
+*/
+
+
+sj.deepMatch.test();
+
+/* performance test
+	var iterations = 1000000;
+	console.time('Function #1');
+	for(var i = 0; i < iterations; i++ ){
+		functionOne();
+	};
+	console.timeEnd('Function #1');
+
+	console.time('Function #2');
+	for(var i = 0; i < iterations; i++ ){
+		functionTwo();
+	};
+	console.timeEnd('Function #2');
 */

@@ -95,45 +95,7 @@ const server = http.createServer(app.callback());
 const socketIO = new SocketIO(server); 
 const databaseSockets = socketIO.of('/database');
 
-//L https://socket.io/docs/emit-cheatsheet/
-databaseSockets.on('connect', (socket) => {
-	console.log('SOCKET - CONNECTED', socket.id);
 
-	//console.log('socket.request.headers.cookie', cookie.parse(socket.request.headers.cookie));
-
-	socket.on('disconnecting', (reason) => {
-		console.log('SOCKET - DISCONNECTING', socket.id);
-	});
-	socket.on('disconnect', (reason) => {
-		console.log('SOCKET - DISCONNECTED', socket.id);
-
-		//C socket has left all of its rooms at this point
-	});
-	socket.on('error', (reason) => {
-		console.log('SOCKET - ERROR', socket.id, reason);
-	});
-
-	socket.on('SUBSCRIBE', (query, callback) => {
-		console.log('SOCKET - SUBSCRIBE', query);
-
-		//TODO validate query
-		let validatedQuery = query;
-
-		socket.join(validatedQuery);
-
-		callback(new sj.Success({
-			content: validatedQuery,
-		}));
-	});
-
-	socket.on('UNSUBSCRIBE', (query, callback) => {
-		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
-		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
-
-
-		socket.leave(query);
-	});
-});
 
 
 //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
@@ -183,7 +145,7 @@ app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#
 
 
 // socket session
-socketIO.use((socket, next) => {
+databaseSockets.use((socket, next) => {
 	//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
 	//L https://github.com/koajs/session/issues/53#issuecomment-311601304
 	//! socket.session is static, whereas koa ctx.session is dynamic //?
@@ -191,7 +153,49 @@ socketIO.use((socket, next) => {
 
 	//C uses a temporary koa context to decrypt the session
 	socket.session = app.createContext(socket.request, new http.OutgoingMessage()).session;
-	return next();
+	next();
+});
+
+//L https://socket.io/docs/emit-cheatsheet/
+databaseSockets.on('connect', (socket) => {
+	console.log('SOCKET - CONNECTED', socket.id);
+
+	console.log('socket.request.headers.cookie', cookie.parse(socket.request.headers.cookie));
+	console.log('session:', socket.session);
+	
+
+	socket.on('disconnecting', (reason) => {
+		console.log('SOCKET - DISCONNECTING', socket.id);
+	});
+	socket.on('disconnect', (reason) => {
+		console.log('SOCKET - DISCONNECTED', socket.id);
+
+		//C socket has left all of its rooms at this point
+	});
+	socket.on('error', (reason) => {
+		console.log('SOCKET - ERROR', socket.id, reason);
+	});
+
+	socket.on('SUBSCRIBE', async (query, callback) => {
+		console.log('SOCKET - SUBSCRIBE', query);
+
+		await sj.addSubscriber(query);
+
+		//socket.join(validatedQuery);
+
+		// callback(new sj.Success({
+		// 	content: validatedQuery,
+		// }));
+	});
+
+	socket.on('UNSUBSCRIBE', (query, callback) => {
+		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
+		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
+
+		//await sj.removeSubscriber(query);
+
+		socket.leave(query);
+	});
 });
 
 

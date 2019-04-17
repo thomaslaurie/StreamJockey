@@ -179,6 +179,12 @@ Vue.mixin({
 
 const databaseSocket = new SocketIO('/database');
 
+databaseSocket.on('connect', (socket) => {
+	console.log('connected');
+	databaseSocket.emit('SUBSCRIBE', {});
+});
+
+
 //TODO client must re-subscribe everything in the database mirror when the socket disconnects then reconnects
 
 //TODO consider putting specific listeners into the mirrored database instead of having a generic event listener
@@ -190,11 +196,11 @@ const databaseSocket = new SocketIO('/database');
 sj.testRun = async function (store) {
 	let queryEntity = new sj.Track({id: 65});
 	let subscriber = 'test subscriber';
-	console.log('DB MIRROR BEFORE:', JSON.stringify(store.state.databaseMirror.tracks));
+	console.log('DB MIRROR BEFORE:', JSON.stringify(store.state.subscriptions.tracks));
 	await store.dispatch('subscribe', {queryEntity, subscriber});
-	console.log('DB MIRROR DURING:', JSON.stringify(store.state.databaseMirror.tracks));
+	console.log('DB MIRROR DURING:', JSON.stringify(store.state.subscriptions.tracks));
 	await store.dispatch('unsubscribe', {queryEntity, subscriber});
-	console.log('DB MIRROR AFTER:', JSON.stringify(store.state.databaseMirror.tracks));
+	console.log('DB MIRROR AFTER:', JSON.stringify(store.state.subscriptions.tracks));
 }
 
 /* //R  
@@ -248,11 +254,11 @@ sj.testRun = async function (store) {
 
 	//? one more issue: how do i prevent events being broadcast to clients for private entries (ie clients dont have permission to view), this works as it is but basically it will trigger the client to update whenever something that matches updates server-side, but that is private so the client receives no new information- maybe consider putting permissions as part of the database query so it also applies to the rooms?
 */
-sj.QueryMirror = class extends sj.Base {
+sj.QuerySubscription = class extends sj.Base {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.QueryMirror';
+		this.objectType = 'sj.QuerySubscription';
 
 		sj.Base.init(this, options, {
 			query: undefined,
@@ -264,7 +270,7 @@ sj.QueryMirror = class extends sj.Base {
 		this.onCreate();
 	}
 }
-sj.EntityMirror = class extends sj.QueryMirror {
+sj.EntitySubscription = class extends sj.QuerySubscription {
 	//! query should only have one id parameter
 	//! subscribers list can include both component subscribers and parent QueryMirror subscribers
 	//C EntityMirrors without any component subscribers won't be subscribed to on the server, they will be only updated by their parent QueryMirror
@@ -274,7 +280,7 @@ sj.EntityMirror = class extends sj.QueryMirror {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.EntityMirror';
+		this.objectType = 'sj.EntitySubscription';
 
 		sj.Base.init(this, options, {});
 
@@ -436,7 +442,7 @@ const store = new VueX.Store({
 
 		//TODO consider having the table as another parameter in the encoded query?
 		//R a good reason not to is that table is a property that all entities will have, so making it part of the data structure will make searches faster
-		databaseMirror: {
+		subscriptions: {
 			[sj.User.table]: {},
 			[sj.Playlist.table]: {},
 			[sj.Track.table]: {},
@@ -495,8 +501,8 @@ const store = new VueX.Store({
 		
 		async updateQuery(context, {table, query, timestamp}) {
 			//C verify that QueryMirror exists, and that notification is newest
-			let queryTable = context.state.databaseMirror[table];
-			if (!sj.isType(queryTable[query], sj.QueryMirror)) {
+			let queryTable = context.state.subscriptions[table];
+			if (!sj.isType(queryTable[query], sj.QuerySubscription)) {
 				throw new sj.Error({
 					origin: 'vuex update() action',
 					message: 'could not find item to update',
@@ -526,10 +532,10 @@ const store = new VueX.Store({
 				entities = await sj.Track.get(decoded).then(sj.content);
 			}
 
-			if (sj.isType(queryTable[query], sj.EntityMirror)) {
+			if (sj.isType(queryTable[query], sj.EntitySubscription)) {
 				//C if the QueryMirror is a EntityMirror (unique query to a single database entity), update it's data directly
 				context.commit('editQueryMirror', {table, query, props: {
-					content: sj.one(entities), //? should this be wrapped in an array? (see sj.EntityMirror class)
+					content: sj.one(entities), //? should this be wrapped in an array? (see sj.EntitySubscription class)
 				}});
 			} else {
 				//C otherwise, QueryMirrors are are responsible for updating the EntityMirrors they are subscribed to and their references to these EntityMirrors
@@ -572,9 +578,9 @@ const store = new VueX.Store({
 
 		async addSubscriber(context, {table, query, subscriber}) {
 			//! this does not refer directly to the queryMirror because ...[table][query] must be assigned a reference below
-			let tableMirror = context.state.databaseMirror[table]; 
+			let tableMirror = context.state.subscriptions[table]; 
 
-			if (!sj.isType(tableMirror[query], sj.QueryMirror)) {
+			if (!sj.isType(tableMirror[query], sj.QuerySubscription)) {
 				//C create a new query mirror if it doesn't exist (or replace if not a query mirror)
 
 				let props = {
@@ -586,10 +592,10 @@ const store = new VueX.Store({
 				let decodedQuery = sj.decodeList(query);
 				if (decodedQuery.length === 1 && Object.keys(decodedQuery).length === 1 && decodedQuery.id !== undefined) {
 					//C initialize an entity mirror if query refers to a single entity, (should have 1 query object with 1 id parameter)
-					queryMirror = new sj.EntityMirror(props);
+					queryMirror = new sj.EntitySubscription(props);
 				} else {
 					//C otherwise initialize a query mirror
-					queryMirror = new sj.QueryMirror(props);
+					queryMirror = new sj.QuerySubscription(props);
 				}
 				context.commit('replaceQueryMirror', {table, queryMirror});
 
@@ -606,8 +612,8 @@ const store = new VueX.Store({
 			}
 		},
 		async removeSubscriber(context, {table, query, subscriber}) {
-			let queryTable = context.state.databaseMirror[table];
-			if (sj.isType(queryTable[query], sj.QueryMirror)) {
+			let queryTable = context.state.subscriptions[table];
+			if (sj.isType(queryTable[query], sj.QuerySubscription)) {
 				//C find subscriber in subscribers
 				let i = queryTable[query].subscribers.indexOf(subscriber);
 				if (i >= 0) {
@@ -623,7 +629,7 @@ const store = new VueX.Store({
 					context.commit('removeQueryMirror', {table, query});
 				}
 			} else {
-				//console.warn('VueX: removeSubscriber() - not found or wrong item query type:', state.databaseMirror[table][query]);
+				//console.warn('VueX: removeSubscriber() - not found or wrong item query type:', state.subscriptions[table][query]);
 			}
 		},
 
@@ -632,27 +638,27 @@ const store = new VueX.Store({
 		// database sync
 		replaceQueryMirror(state, {table, queryMirror}) {
 			//console.log(`called replaceQueryMirror(table: ${table}, queryMirror: ${queryMirror})`);
-			state.databaseMirror[table][queryMirror.query] = queryMirror;
+			state.subscriptions[table][queryMirror.query] = queryMirror;
 		},
 		editQueryMirror(state, {table, query, props}) {
 			//console.log(`called editQueryMirror(table: ${table}, query: ${query}, props: ${props})`);
 			Object.keys(props).forEach(key => {
-				state.databaseMirror[table][query][key] = props[key];
+				state.subscriptions[table][query][key] = props[key];
 			});
 		},
 		removeQueryMirror(state, {table, query}) {
 			//console.log(`called removeQueryMirror(table: ${table}, query: ${query})`);
-			delete state.databaseMirror[table][query];
+			delete state.subscriptions[table][query];
 		},
 	},
 	getters: {
 		// database sync
 		getQueryData: state => (table, query) => {
-			if (sj.isType(state.databaseMirror[table][query], sj.EntityMirror)) {
+			if (sj.isType(state.subscriptions[table][query], sj.EntitySubscription)) {
 				return sj.one(entity.content);
 			} else {
 				//! QueryMirrors should never be nested, otherwise a recursive data fetch would be required
-				return state.databaseMirror[table][query].content.map(entity => {
+				return state.subscriptions[table][query].content.map(entity => {
 					return sj.one(entity.content);
 				});
 			}
@@ -665,4 +671,5 @@ const vm = new Vue({
 	store,
 });
 
-//sj.testRun(store);
+//sj.testRun(sj.testRun(store));
+

@@ -554,6 +554,48 @@ sj.buildSet = function (mappedEntity) {
 };
 
 
+//  ██╗     ██╗██╗   ██╗███████╗
+//  ██║     ██║██║   ██║██╔════╝
+//  ██║     ██║██║   ██║█████╗  
+//  ██║     ██║╚██╗ ██╔╝██╔══╝  
+//  ███████╗██║ ╚████╔╝ ███████╗
+//  ╚══════╝╚═╝  ╚═══╝  ╚══════╝
+
+sj.subscriptions = {
+	[sj.User.table]: {},
+	[sj.Playlist.table]: {},
+	[sj.Track.table]: {},
+};
+
+// {
+// 	query: obj,
+// 	subscribers: [
+// 		user,
+// 		user,
+// 	]
+// }
+
+sj.addSubscriber = async function (user, query) {
+	
+};
+sj.removeSubscriber = async function (user, query) {
+
+};
+
+
+sj.notifyChange = async function (table, entity, change) {
+	sj.subscriptions[table].forEach(subscription => {
+		if (sj.deepMatch(subscription.query, entity, {matchIfSuperSet: true, matchIfTooDeep: true})) {
+			subscription.subscribers.forEach(subscriber => {
+				//TODO see if the subscriber has the permission to see any changes - this should be similar to if not the same as the validate function for CRUD methods
+				
+				// then dispatch a socket message
+			});
+		}
+	});
+};
+
+
 //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
@@ -656,7 +698,9 @@ sj.buildSet = function (mappedEntity) {
 			let shookBefore = unmappedBefore.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
 			let shookAfter = unmappedAfter.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
 
-			//TODO notify...
+			//C notify subscribers
+			sj.notifyChange(this.table, shookBefore, methodName);
+			sj.notifyChange(this.table, shookAfter, methodName);
 
 			//C rebuild
 			let builtAfter = shookAfter.map(entity => new this(entity));
