@@ -146,7 +146,7 @@ sj.URL_HEADER = {
 //C used to indicate a specific server error
 sj.resolveActions = {
 	spotifyAuth: 'spotify auth',
-}
+};
 
 
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
@@ -168,7 +168,7 @@ sj.wait = async function (ms) {
 			}, ms);
 		}
 	});
-}
+};
 sj.trace = function (test) {
 	try {
 		throw Error('');
@@ -197,7 +197,7 @@ sj.trace = function (test) {
 
 		return stackTrace3;
 	}
-}
+};
 
 sj.deepFreeze = function (obj) {
 	// TODO test me
@@ -210,7 +210,7 @@ sj.deepFreeze = function (obj) {
 	
 	// then freeze self
 	return Object.freeze(object);
-}
+};
 
 // format
 sj.msFormat = function (ms) {
@@ -223,13 +223,13 @@ sj.msFormat = function (ms) {
 
 	// returns ...0:00 format rounded up to the nearest second
 	return minutes + ':' + seconds;
-}
+};
 sj.stringReplaceAll = function(input, search, replace) {
 	return input.split(search).join(replace);
-}
+};
 sj.capFirst = function(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
-}
+};
 
 // HTTP
 sj.encodeProps = function (obj) {
@@ -237,7 +237,7 @@ sj.encodeProps = function (obj) {
 	return Object.keys(obj).map(key => {
 		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
 	}).join('&');
-}
+};
 sj.decodeProps = function (encoded) {
 	//! every value is decoded as a string
 	let pairs = encoded.split('&');
@@ -247,7 +247,7 @@ sj.decodeProps = function (encoded) {
 		obj[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
 	});
 	return obj;
-}
+};
 sj.encodeList = function (list) {
 	//C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
 	//! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
@@ -258,7 +258,7 @@ sj.encodeList = function (list) {
 		});
 	});
 	return sj.encodeProps(indexed);
-}
+};
 sj.decodeList = function (encoded) {
 	//C decodes a list of encoded objects with '-i' suffixed property keys
 	//! any key not matching the format will be discarded
@@ -288,7 +288,7 @@ sj.decodeList = function (encoded) {
 		}
 	}
 	return list;
-}
+};
 
 sj.shake = function (obj, props) {
 	//C returns a new object with only the desired properties
@@ -308,8 +308,8 @@ sj.shake = function (obj, props) {
 	} else if (Array.isArray(obj)) {
 		return obj.map(item => s(item, props));
 	}
-}
-sj.isSuperSet = function (set, superSet) {
+};
+sj.isSuperSet = function (set, superSet) { //? where is this used? //TODO probably legacy, replace with sj.deepMatch
 	//C compares each prop in set to the respective prop in superSet, returns true if all are equal, ignores extra props in superSet
 	for (prop in set) {
 		if (superSet[prop] !== set[prop]) {
@@ -317,7 +317,7 @@ sj.isSuperSet = function (set, superSet) {
 		}
 	}
 	return true;
-}
+};
 
 // sort
 sj.stableSort = function(list, compare) {
@@ -358,7 +358,7 @@ sj.stableSort = function(list, compare) {
 	}
 
 	return list;
-}
+};
 sj.dynamicSort = function(list, ascending, prop) {
 	//C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
 
@@ -406,7 +406,7 @@ sj.dynamicSort = function(list, ascending, prop) {
 	}
 
 	return sj.stableSort(list, compare);
-}
+};
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
@@ -527,7 +527,7 @@ sj.isType = function (input, type) {
 	}
 
 	return false;
-}
+};
 sj.isEmpty = function (input) {
 	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
 	return !(
@@ -539,19 +539,32 @@ sj.isEmpty = function (input) {
         (sj.isType(input, 'object') && Object.keys(input).length > 0) ||
         (sj.isType(input, 'array') && input.length > 0)
 	);
-}
+};
+sj.tableToEntity = function (table) {
+	//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+	//R any metadata (table) should be sent separately (or implicitly) from the query
+	//TODO might be a better way to do this
+	if (table === 'users') return sj.User;
+	else if (table === 'playlists') return sj.Playlist;
+	else if (table === 'tracks') return sj.User;
+	else throw new sj.Error({
+		origin: 'sj.tableToEntity()',
+		reason: `table is not recognized: ${table}`,
+		content: table,
+	});
+};
 
 sj.deepMatch = function (a, b, {
 	deep = true, 
 	depth = 10, 
 	matchIfTooDeep = false, 
-	matchIfSuperSet = false, //C matches objects and arrays if b is a super-set of a 
+	matchIfSubset = false, //C matches objects and arrays if a is a subset of b
 	matchOrder = true
 } = {
 	deep: true, 
 	depth: 10, 
 	matchIfTooDeep: false, 
-	matchIfSuperSet: false, 
+	matchIfSubset: false, 
 	matchOrder: true
 }) {
 	//C comparison function for 
@@ -563,7 +576,7 @@ sj.deepMatch = function (a, b, {
 
 	if (deep) {
 		let matchDeeper = function (a, b) {
-			return sj.deepMatch(a, b, {deep, depth: depth-1, matchIfTooDeep, matchIfSuperSet, matchOrder});
+			return sj.deepMatch(a, b, {deep, depth: depth-1, matchIfTooDeep, matchIfSubset, matchOrder});
 		};
 
 		if (sj.isType(a, Object) && sj.isType(b, Object)) { // objects
@@ -571,7 +584,7 @@ sj.deepMatch = function (a, b, {
 			Object.keys(a).forEach(key => { //C match all keys of a to the same keys in b
 				if (!matchDeeper(a[key], b[key])) matches = false;
 			});
-			if (!matchIfSuperSet) {
+			if (!matchIfSubset) {
 				Object.keys(b).forEach(key => { //C match all keys of b to the same keys in a //TODO optimize here
 					if (!matchDeeper(a[key], b[key])) matches = false;
 				});
@@ -587,7 +600,7 @@ sj.deepMatch = function (a, b, {
 					if (!b.some(inB => matchDeeper(inA, inB))) matches = false;
 				}
 			});
-			if (!matchIfSuperSet) {
+			if (!matchIfSubset) {
 				b.forEach((inB, i) => {
 					if (matchOrder) {
 						if (!matchDeeper(a[i], b[i])) matches = false;
@@ -601,7 +614,7 @@ sj.deepMatch = function (a, b, {
 	}
 
 	return false;
-}
+};
 sj.deepMatch.test = function () {
 	let oA = {
 		a: 'a',
@@ -669,13 +682,13 @@ sj.deepMatch.test = function () {
 			false === sj.deepMatch('', 'test'),
 		true === sj.deepMatch(oA, oA),
 			true === sj.deepMatch(oA, oB),
-			true === sj.deepMatch(oA, oC, { matchIfSuperSet: true}),
+			true === sj.deepMatch(oA, oC, { matchIfSubset: true}),
 		false === sj.deepMatch(oA, oB, {deep: false}),
 			false === sj.deepMatch(oA, oC),
 			false === sj.deepMatch(oA, oD),
 		true === sj.deepMatch(aA, aA),
 			true === sj.deepMatch(aA, aB),
-			true === sj.deepMatch(aA, aC, {matchIfSuperSet: true}),
+			true === sj.deepMatch(aA, aC, {matchIfSubset: true}),
 			true === sj.deepMatch(aC, aE, {matchOrder: false}),
 		false === sj.deepMatch(aA, aB, {deep: false}),
 			false === sj.deepMatch(aA, aC),
@@ -729,7 +742,7 @@ sj.catchUnexpected = function (input) {
 
 	error.announce();
 	return error;
-}
+};
 sj.propagate = function (input, overwrite) {
 	//C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
 	if (!sj.isType(input, sj.Error)) { //C wrap any non-sj errors, let sj.Errors flow through
@@ -743,7 +756,7 @@ sj.propagate = function (input, overwrite) {
 
 	//TODO //? why not just use Object.assign(input) instead?
 	//TODO better yet, why not just use a spread operator at the top?
-}
+};
 sj.andResolve = function (rejected) {
 	//C resolves/returns any errors thrown by sj.propagate()
 	//G someAsyncFunction().catch(sj.andResolve);
@@ -752,7 +765,7 @@ sj.andResolve = function (rejected) {
 	} catch (e) {
 		return e;
 	}
-}
+};
 
 // promises
 sj.asyncForEach = async function (list, callback) {
@@ -782,7 +795,7 @@ sj.asyncForEach = async function (list, callback) {
 	} else {
 		throw results;
 	}
-}
+};
 
 // format
 sj.one = function (a) {
@@ -806,15 +819,15 @@ sj.one = function (a) {
 			content: a,
 		});
 	}
-}
+};
 sj.any = function (o) {
 	//C wraps a value in an array if not already inside one
 	return sj.isType(o, Array) ? o : [o];
-}
+};
 sj.content = function (resolved) {
 	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
 	return resolved.content;
-}
+};
 
 // recursion
 //TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
@@ -839,7 +852,7 @@ sj.recursiveSyncTime = async function (n, loopCondition, f, ...args) {
 		return result;
 	}
 	return loop();
-}
+};
 sj.recursiveSyncCount = async function (n, loopCondition, f, ...args) {
 	let count = 0;
 	function loop(count) {
@@ -860,7 +873,7 @@ sj.recursiveSyncCount = async function (n, loopCondition, f, ...args) {
 		return result;
 	}
 	return loop(count);
-}
+};
 sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
 	let timestamp = Date.now();
 	async function loop() {
@@ -881,7 +894,7 @@ sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
 		return result;
 	}
 	return await loop();
-}
+};
 sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 	let count = 0;
 	async function loop(count) {
@@ -902,7 +915,7 @@ sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 		return result;
 	}
 	return await loop(count);
-}
+};
 
 // HTTP
 sj.rebuild = function (input, strict) {
@@ -933,7 +946,7 @@ sj.rebuild = function (input, strict) {
 
 
 	let rebuilt = input;
-	if (sj.isType(input, 'sj.Base')) { //C rebuild if possible
+	if (sj.isType(input, sj.Base)) { //C rebuild if possible
 		rebuilt = new sj[input.objectType.replace('sj.', '')](input);
 	} else if (strict) { //C throw if not possible and strict
 		return new sj.Error({
@@ -946,7 +959,7 @@ sj.rebuild = function (input, strict) {
 	}
 
 	return rebuilt;
-}
+};
 sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	/* //! use UPPERCASE HTTP methods...
 		//! ...because in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't
@@ -1031,7 +1044,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	}
 
 
-}
+};
 
 	
 //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -1724,6 +1737,7 @@ sj.Rule = class Rule extends sj.Base {
 }).call(sj.Rule);
 
 
+
 // success //C success and error objects are returned from functions (mostly async ones)
 sj.Success = class Success extends sj.Base {
 	constructor(options = {}) {
@@ -1746,6 +1760,20 @@ sj.SuccessList = class SuccessList extends sj.Success {
 		sj.Base.init(this, options, {
 			reason: 'all items successful',
 			content: [],
+		});
+
+		this.onCreate();
+	}
+};
+sj.Warn = class Warn extends sj.Success {
+	//C wrapper for an array of successful items
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.SuccessList';
+
+		sj.Base.init(this, options, {
+			log: true,
 		});
 
 		this.onCreate();
@@ -1881,6 +1909,7 @@ sj.User = class User extends sj.Entity {
 			password: '',
 			password2: '',
 			spotifyRefreshToken: null,
+			socketId: undefined,
 		});
 
 		this.onCreate();
@@ -2456,6 +2485,41 @@ sj.Playback = class Playback extends sj.Base {
 		this.onCreate();
 	}
 };
+
+sj.QuerySubscription = class extends sj.Base {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.QuerySubscription';
+
+		sj.Base.init(this, options, {
+			query: undefined,
+			subscribers: [], 
+			timestamp: 0, 
+			content: [],
+		});
+
+		this.onCreate();
+	}
+};
+sj.EntitySubscription = class extends sj.QuerySubscription {
+	//! query should only have one id parameter
+	//! subscribers list can include both component subscribers and parent QueryMirror subscribers
+	//C EntityMirrors without any component subscribers won't be subscribed to on the server, they will be only updated by their parent QueryMirror
+	//G if an entity is referenced by multiple parent QueryMirrors - it will be called to update multiple times - to avoid this, ensure the same timestamp is generated once on the server when an entity is changed, that way it's mirror on the client will only update once per server update
+
+	//C same as QueryMirror
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.EntitySubscription';
+
+		sj.Base.init(this, options, {});
+
+		this.onCreate();
+	}
+};
+
 
 
 

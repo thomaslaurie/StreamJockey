@@ -179,10 +179,27 @@ Vue.mixin({
 
 const databaseSocket = new SocketIO('/database');
 
+databaseSocket.test =  async function () {
+	databaseSocket.emit('SUBSCRIBE', {table: 'tracks', query: {name: 'common name'}}, result => {
+		console.log('subscribe result: ', result);
+	});
+
+	// databaseSocket.emit('UNSUBSCRIBE', {table: 'tracks', query: {name: 'common name'}}, result => {
+	// 	console.log('unsubscribe result: ', result);
+	// });
+};
+
 databaseSocket.on('connect', (socket) => {
 	console.log('connected');
-	databaseSocket.emit('SUBSCRIBE', {});
+
+	databaseSocket.on('NOTIFY', query => {
+		console.log('notify:', query);
+	});
+
+	test();
 });
+
+
 
 
 //TODO client must re-subscribe everything in the database mirror when the socket disconnects then reconnects
@@ -201,7 +218,7 @@ sj.testRun = async function (store) {
 	console.log('DB MIRROR DURING:', JSON.stringify(store.state.subscriptions.tracks));
 	await store.dispatch('unsubscribe', {queryEntity, subscriber});
 	console.log('DB MIRROR AFTER:', JSON.stringify(store.state.subscriptions.tracks));
-}
+};
 
 /* //R  
 	how to sync server data with vuex? updating parent components, unrelated components, etc. is a nightmare - which is what vuex is for anyways
@@ -254,39 +271,7 @@ sj.testRun = async function (store) {
 
 	//? one more issue: how do i prevent events being broadcast to clients for private entries (ie clients dont have permission to view), this works as it is but basically it will trigger the client to update whenever something that matches updates server-side, but that is private so the client receives no new information- maybe consider putting permissions as part of the database query so it also applies to the rooms?
 */
-sj.QuerySubscription = class extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.QuerySubscription';
-
-		sj.Base.init(this, options, {
-			query: undefined,
-			subscribers: [], 
-			timestamp: 0, 
-			content: [],
-		});
-
-		this.onCreate();
-	}
-}
-sj.EntitySubscription = class extends sj.QuerySubscription {
-	//! query should only have one id parameter
-	//! subscribers list can include both component subscribers and parent QueryMirror subscribers
-	//C EntityMirrors without any component subscribers won't be subscribed to on the server, they will be only updated by their parent QueryMirror
-	//G if an entity is referenced by multiple parent QueryMirrors - it will be called to update multiple times - to avoid this, ensure the same timestamp is generated once on the server when an entity is changed, that way it's mirror on the client will only update once per server update
-
-	//C same as QueryMirror
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.EntitySubscription';
-
-		sj.Base.init(this, options, {});
-
-		this.onCreate();
-	}
-}
 
 
 //  ██╗   ██╗██╗   ██╗███████╗

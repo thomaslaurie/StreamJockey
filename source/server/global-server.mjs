@@ -140,6 +140,8 @@
 	//TODO //! IMPORTANT //! check any CRUD functions (like addTrack()) that rely on the current state of the database for information - because asyncForEach() functions are executed in parallel, and not in series, this could cause collisions
 
 	//TODO consider changing CRUD 'delete' method to 'remove' to avoid that naming collision
+
+	//TODO security issue for private query variables (eg password), if someone queries for users where password = x, the passwords wont be returned, but they will still receive a list of users that that query matches
 */
 
 
@@ -562,37 +564,103 @@ sj.buildSet = function (mappedEntity) {
 //  ╚══════╝╚═╝  ╚═══╝  ╚══════╝
 
 sj.subscriptions = {
-	[sj.User.table]: {},
-	[sj.Playlist.table]: {},
-	[sj.Track.table]: {},
-};
+	[sj.User.table]: [],
+	[sj.Playlist.table]: [],
+	[sj.Track.table]: [],
+	add: async function (table, query, user) {
+		let Entity = sj.tableToEntity(table); //! this[Entity.table] is used over this[table] because sj.tableToEntity() is the validator for table
+		let processedQuery = await Entity.getMimic(query);
 
-// {
-// 	query: obj,
-// 	subscribers: [
-// 		user,
-// 		user,
-// 	]
-// }
+		//C find or add query 
+		let subscription = this[Entity.table].find(subscription => sj.deepMatch(processedQuery, subscription.query)); //! not a super-set
+		if (!subscription) {
+			subscription = new sj.QuerySubscription({query: processedQuery});
+			this[Entity.table].push(subscription);
+		};
+		
+		//C find or add subscriber
+		let subscriber = subscription.subscribers.find(subscriber => subscriber.id === user.id);
+		if (!subscriber) {
+			subscriber = user;
+			subscription.subscribers.push(subscriber);
+		}
 
-sj.addSubscriber = async function (user, query) {
+		return new sj.Success({
+			origin: 'sj.addSubscriber()',
+			message: 'added subscriber',
+			content: processedQuery,
+		});
+	},
+	remove: async function (table, query, user) {
+		let Entity = sj.tableToEntity(table);
+		let processedQuery = await Entity.getMimic(query);
 	
-};
-sj.removeSubscriber = async function (user, query) {
-
-};
-
-
-sj.notifyChange = async function (table, entity, change) {
-	sj.subscriptions[table].forEach(subscription => {
-		if (sj.deepMatch(subscription.query, entity, {matchIfSuperSet: true, matchIfTooDeep: true})) {
-			subscription.subscribers.forEach(subscriber => {
-				//TODO see if the subscriber has the permission to see any changes - this should be similar to if not the same as the validate function for CRUD methods
-				
-				// then dispatch a socket message
+		let subscriptionIndex = -1;
+		let subscription = this[Entity.table].find((subscription, i) => {
+			if (sj.deepMatch(processedQuery, subscription.query)) {
+				subscriptionIndex = i;
+				return true;
+			}
+			return false;
+		});
+		if (!subscription) {
+			return new sj.Warn({
+				origin: 'sj.removeSubscriber()',
+				message: 'no subscription found for this query',
+				content: {query: processedQuery, tableSubscriptions: this[Entity.table]},
 			});
 		}
-	});
+	
+		//C find or add subscriber
+		let subscriberIndex = -1;
+		let subscriber = subscription.subscribers.find((subscriber, i) => {
+			if (subscriber.id === user.id) {
+				subscriberIndex = i;
+				return true;
+			}
+			return false;
+		});
+		if (!subscriber) {
+			return new sj.Warn({
+				origin: 'sj.removeSubscriber()',
+				message: 'no subscriber found for this user',
+				content: {user, subscribers: subscription.subscribers},
+			});
+		}
+	
+		//C remove subscriber
+		subscription.subscribers.splice(subscriberIndex, 1);
+	
+		//C if no more subscribers, remove subscription
+		if (subscription.subscribers.length <= 0) {
+			this[Entity.table].splice(subscriptionIndex, 1);
+		}
+	
+		return new sj.Success({
+			origin: 'sj.removeSubscriber()',
+			message: 'removed subscriber',
+			content: user,
+		});
+	},
+	notify: async function (table, entities, change) {
+		let Entity = sj.tableToEntity(table);
+
+		//C for each changed entity
+		entities.forEach(entity => { 
+			//C for each subscription
+			this[Entity.table].forEach(subscription => { 
+				//C for each query that matches as a subset
+				if (sj.deepMatch(subscription.query, entity, {matchIfSubset: true, matchIfTooDeep: true})) {
+					//C for each subscriber
+					subscription.subscribers.forEach(subscriber => {
+						//TODO see if the subscriber has the permission to see any changes - this should be similar to if not the same as the validate function for CRUD methods
+						
+						sj.databaseSockets.to(subscriber.socketId).emit('NOTIFY', subscription.query);
+					});
+				}
+			});
+		});
+	},
 };
 
 
@@ -618,6 +686,11 @@ sj.notifyChange = async function (table, entity, change) {
 		return await this.main(db, query, 'remove');
 	};
 
+	//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.notifyChange()
+	this.getMimic = async function (query, db = sj.db) {
+		return await this.main(db, query, 'getMimic');
+	};
+
 	this.main = async function (db, anyEntities, methodName) {
 		//C catch sj.Entity
 		if (this === sj.Entity) {
@@ -627,63 +700,70 @@ sj.notifyChange = async function (table, entity, change) {
 			});
 		}
 
+		//C shorthand
+		let isGetMimic = methodName === 'getMimic'; //C store getMimic
+		if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
+		let isGet = methodName === 'get';
+
 		//C cast as array
 		let entities = sj.any(anyEntities);
 		return await db.tx(async t => {
 			let accessory = {};
 
 			//C process list before iteration
-			await this[methodName+'Before'](t, entities, accessory);
+			let beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
 			//C validate
-			let validatedEntities = await sj.asyncForEach(entities, async entity => {
-				return await this.validate(entity, methodName).then(sj.content).catch(sj.propagate);
+			let validatedEntities = await sj.asyncForEach(beforeEntities, async entity => {
+				return await this.validate(entity, methodName).catch(sj.propagate);
 			});
 
 			//C prepare
-			await sj.asyncForEach(validatedEntities, async entity => {
+			let preparedEntities = await sj.asyncForEach(validatedEntities, async entity => {
 				return await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate);
 			});
 
 			//C accommodate other influenced entities
-			if (methodName !== 'get') var influencedEntities = await this[methodName+'Accommodate'](t, validatedEntities, accessory).then(sj.content).catch(sj.propagate);
+			if (!isGet) var influencedEntities = await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate);
 
 			//C map properties to columns
-			let inputMapped = this.mapColumns(validatedEntities);
-			if (methodName !== 'get') var influencedMapped = this.mapColumns(influencedEntities);
+			let inputMapped = this.mapColumns(preparedEntities);
+			if (!isGet) var influencedMapped = this.mapColumns(influencedEntities);
 
-			//C execute query
 			let before = [];
-			let after = [];
-			await sj.asyncForEach(inputMapped, async entity => {
-				//C before, ignore add
-				if (methodName !== 'get' && methodName !== 'add') {
-					let inputBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).catch(sj.propagate);
-					before.push(...inputBefore);
-				}
+			let after = !isGetMimic ? [] : inputMapped;
+			if (!isGetMimic) {
+				//C execute SQL
+				await sj.asyncForEach(inputMapped, async entity => {
+					//C before, ignore add
+					if (!isGet && methodName !== 'add') {
+						let inputBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate);
+						before.push(...inputBefore);
+					}
 
-				//C after, ignore remove //? would a final get query ever be preferable over a RETURNING statement?
-				let inputAfter = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
-				if (methodName !== 'remove') after.push(...inputAfter);
-			}).catch(rejected => {
-				throw sj.propagate(new sj.ErrorList({
-					...this[methodName+'Error'](),
-					content: Array.isArray(rejected) ? rejected.flat(1) : rejected, //C get queries may return arrays with multiple entities, because of t.any(), flat(1) brings each sub-entity up to the root level - this shouldn't affect add, edit, or remove (because they return single objects)
-				}));
-			});
-			if (methodName !== 'get') {
-				await sj.asyncForEach(influencedMapped, async influencedEntity => {
-					let influencedBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).catch(sj.propagate);
-					let influencedAfter = await this.editQuery(t, influencedEntity).catch(sj.propagate);
-
-					before.push(...influencedBefore);
-					after.push(...influencedAfter);
+					//C after, ignore remove (still needs to execute though)
+					let inputAfter = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
+					if (methodName !== 'remove') after.push(...inputAfter);
 				}).catch(rejected => {
 					throw sj.propagate(new sj.ErrorList({
 						...this[methodName+'Error'](),
-						content: Array.isArray(rejected) ? rejected.flat(1) : rejected,
+						content: rejected,
 					}));
 				});
+				if (!isGet) {
+					await sj.asyncForEach(influencedMapped, async influencedEntity => {
+						let influencedBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate);
+						let influencedAfter = await this.editQuery(t, influencedEntity).then(sj.any).catch(sj.propagate);
+
+						before.push(...influencedBefore);
+						after.push(...influencedAfter);
+					}).catch(rejected => {
+						throw sj.propagate(new sj.ErrorList({
+							...this[methodName+'Error'](),
+							content: rejected,
+						}));
+					});
+				}
 			}
 
 			//C unmap columns to properties
@@ -691,16 +771,20 @@ sj.notifyChange = async function (table, entity, change) {
 			let unmappedAfter = this.unmapColumns(after);
 
 			//C process list after iteration
-			await this[methodName+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
-			await this[methodName+'After'](t, unmappedAfter, accessory).catch(sj.propagate);
+			let afterBefore = await this[methodName+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
+			let afterAfter = await this[methodName+'After'](t, unmappedAfter, accessory).catch(sj.propagate);
 
 			//C shake
-			let shookBefore = unmappedBefore.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
-			let shookAfter = unmappedAfter.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
+			let shookBefore = afterBefore.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
+			let shookAfter = afterAfter.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
 
 			//C notify subscribers
-			sj.notifyChange(this.table, shookBefore, methodName);
-			sj.notifyChange(this.table, shookAfter, methodName);
+			if (!isGet) { //C no changes for get
+				sj.subscriptions.notify(this.table, shookBefore, methodName);
+				sj.subscriptions.notify(this.table, shookAfter, methodName);
+			} else if (isGetMimic) { //C return getMimic here to mimic entity notification, is a single query object 
+				return sj.one(shookAfter);
+			}
 
 			//C rebuild
 			let builtAfter = shookAfter.map(entity => new this(entity));
@@ -712,12 +796,12 @@ sj.notifyChange = async function (table, entity, change) {
 		}).catch(sj.propagate);
 	};
 
-	//C modifies entities before validation
+	//C process before execution
 	this.addBefore = 
 	this.getBefore = 
 	this.editBefore = 
 	this.removeBefore = async function (t, entities, accessory) {
-		return;
+		return entities.slice();
 	};
 
 	//C validate using sj.Entity.schema
@@ -759,11 +843,7 @@ sj.notifyChange = async function (table, entity, change) {
 			});
 		});
 
-		return new sj.Success({
-			origin: 'sj.Entity.validate()',
-			message: 'all rules validated',
-			content: validated,
-		});
+		return validated;
 	};
 
 	//C modifies each entity after validation
@@ -771,7 +851,7 @@ sj.notifyChange = async function (table, entity, change) {
 	this.getPrepare =
 	this.editPrepare = 
 	this.removePrepare = async function (t, entity, accessory) {
-		return;
+		return Object.assign({}, entity);
 	}
 
 	//C modifies input entities, returns other entities - checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
@@ -779,7 +859,7 @@ sj.notifyChange = async function (table, entity, change) {
 	this.getAccommodate =
 	this.editAccommodate =
 	this.removeAccommodate = async function (t, entities, accessory) {
-		return new sj.SuccessList();
+		return [];
 	};
 
 	//C map js property names to database column names
@@ -824,7 +904,8 @@ sj.notifyChange = async function (table, entity, change) {
 		//? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
 		let row = await t.one(`
 			INSERT INTO "sj"."${this.table}" 
-			$1:raw RETURNING *
+			$1:raw 
+			RETURNING *
 		`, [values]).catch(rejected => { 
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
@@ -877,9 +958,10 @@ sj.notifyChange = async function (table, entity, change) {
 		let where = sj.buildWhere(mappedEntity);
 
 		let row = await t.one(`
-		DELETE FROM "sj"."${this.table}" 
-		WHERE $1:raw 
-		RETURNING *`, where).catch(rejected => {
+			DELETE FROM "sj"."${this.table}" 
+			WHERE $1:raw 
+			RETURNING *
+		`, where).catch(rejected => {
 			throw sj.parsePostgresError(rejected, new sj.Error({
 				log: false,
 				origin: `sj.${this.name}.remove()`,
@@ -890,12 +972,12 @@ sj.notifyChange = async function (table, entity, change) {
 		return row;
 	};
 
-	//C modifies entities after iteration
+	//C process after execution
 	this.addAfter = 
 	this.getAfter = 
 	this.editAfter = 
 	this.removeAfter = async function (t, entities, accessory) {
-		return;
+		return entities.slice();
 	};
 
 	//C custom SuccessList and ErrorList
@@ -1180,9 +1262,11 @@ sj.isLoggedIn = async function (ctx) {
 (function () {
 	this.addPrepare = 
 	this.editPrepare = async function (t, user) {
+		let newUser = Object.assign([], user);
+
 		//C hash password
 		//TODO might be a vulnerability here with this string check
-		if (sj.isType(user.password, String)) user.password = await bcrypt.hash(user.password, saltRounds).catch(rejected => {
+		if (sj.isType(newUser.password, String)) newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
 			throw new sj.Error({
 				log: true,
 				origin: 'sj.User.add()',
@@ -1191,6 +1275,8 @@ sj.isLoggedIn = async function (ctx) {
 				content: rejected,
 			});
 		});
+
+		return newUser;
 	};
 
 	this.queryOrder = 'ORDER BY "id" ASC';
@@ -1428,15 +1514,19 @@ sj.isLoggedIn = async function (ctx) {
 	this.getBefore = 
 	this.editBefore = 
 	this.removeBefore = async function (t, entities) {
-		entities.forEach(entity => {
+		let newEntities = entities.slice();
+		newEntities.forEach(entity => {
 			entity.source = sj.isType(entity.source, Object) && sj.isType(entity.source.name, String)
 			? entity.source.name
 			: undefined;
 		});
+		return newEntities;
 	};
 	this.addPrepare = async function (t, track) {
-		let existingTracks = await sj.Track.get({playlistId: track.playlistId}, t).then(sj.content);
-		track.position = existingTracks.length;
+		let newTrack = Object.assign({}, track);
+		let existingTracks = await sj.Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
+		newTrack.position = existingTracks.length;
+		return newTrack;
 	};
 
 	this.queryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
@@ -1460,9 +1550,11 @@ sj.isLoggedIn = async function (ctx) {
 	this.getAfter =
 	this.editAfter = 
 	this.deleteAfter = async function (t, entities) {
-		entities.forEach(entity => {
+		let newEntities = entities.slice();
+		newEntities.forEach(entity => {
 			entity.source = sj.sourceList.find(source => source.name === entity.source);
 		});
+		return newEntities;
 	};
 
 

@@ -45,7 +45,6 @@ import '../config/config.mjs';
 import Koa from 'koa'; //L https://github.com/koajs
 import bodyParser from 'koa-bodyparser'; //L https://github.com/koajs/bodyparser
 import session from 'koa-session'; //L https://github.com/koajs/session
-import cookie from 'cookie'; //L https://www.npmjs.com/package/cookie
 
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 import SocketIO from 'socket.io'; 
@@ -93,7 +92,7 @@ const server = http.createServer(app.callback());
 
 // socket io
 const socketIO = new SocketIO(server); 
-const databaseSockets = socketIO.of('/database');
+sj.databaseSockets = socketIO.of('/database');
 
 
 
@@ -116,8 +115,8 @@ app.use(async (ctx, next) => {
 // request logger
 app.use(async (ctx, next) => {
 	console.log(`${ctx.request.method} ${ctx.request.path}`);
-	databaseSockets.to('room-3993').emit('test response', 'test response bad');
-	databaseSockets.to('room-3').emit('test response', 'test response');
+	sj.databaseSockets.to('room-3993').emit('test response', 'test response bad');
+	sj.databaseSockets.to('room-3').emit('test response', 'test response');
 	await next();
 });
 
@@ -145,7 +144,7 @@ app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#
 
 
 // socket session
-databaseSockets.use((socket, next) => {
+sj.databaseSockets.use((socket, next) => {
 	//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
 	//L https://github.com/koajs/session/issues/53#issuecomment-311601304
 	//! socket.session is static, whereas koa ctx.session is dynamic //?
@@ -157,18 +156,16 @@ databaseSockets.use((socket, next) => {
 });
 
 //L https://socket.io/docs/emit-cheatsheet/
-databaseSockets.on('connect', (socket) => {
+sj.databaseSockets.on('connect', (socket) => {
 	console.log('SOCKET - CONNECTED', socket.id);
 
-	console.log('socket.request.headers.cookie', cookie.parse(socket.request.headers.cookie));
-	console.log('session:', socket.session);
-	
+	//C give socket id to session.user //? I don't think the actual cookie receives this, but for now only the socket.session needs it
+	socket.session.user.socketId = socket.id;
 
-	socket.on('disconnecting', (reason) => {
-		console.log('SOCKET - DISCONNECTING', socket.id);
-	});
+
 	socket.on('disconnect', (reason) => {
 		console.log('SOCKET - DISCONNECTED', socket.id);
+		delete socket.session.user.socketId;
 
 		//C socket has left all of its rooms at this point
 	});
@@ -176,25 +173,24 @@ databaseSockets.on('connect', (socket) => {
 		console.log('SOCKET - ERROR', socket.id, reason);
 	});
 
-	socket.on('SUBSCRIBE', async (query, callback) => {
+
+	socket.on('SUBSCRIBE', async ({table, query}, callback) => {
 		console.log('SOCKET - SUBSCRIBE', query);
 
-		await sj.addSubscriber(query);
+		let result = await sj.subscriptions.add(table, query, socket.session.user);
+		callback(result);
 
-		//socket.join(validatedQuery);
-
-		// callback(new sj.Success({
-		// 	content: validatedQuery,
-		// }));
+		sj.subscriptions.notify('tracks', [{id: 3, name: 'common name'}]);
 	});
 
-	socket.on('UNSUBSCRIBE', (query, callback) => {
+	socket.on('UNSUBSCRIBE', async ({table, query}, callback) => {
 		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
 		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
 
-		//await sj.removeSubscriber(query);
+		console.log('SOCKET - UNSUBSCRIBE', query);
 
-		socket.leave(query);
+		let result = await sj.subscriptions.remove(table, query, socket.session.user);
+		callback(result);
 	});
 });
 
