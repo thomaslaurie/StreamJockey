@@ -584,6 +584,7 @@ sj.subscriptions = {
 			subscriber = user;
 			subscription.subscribers.push(subscriber);
 		}
+		Object.assign(subscriber, user); //C update user if any info has changed
 
 		return new sj.Success({
 			origin: 'sj.addSubscriber()',
@@ -642,20 +643,28 @@ sj.subscriptions = {
 			content: user,
 		});
 	},
-	notify: async function (table, entities, change) {
+	notify: async function (table, entities, timestamp, change) {
 		let Entity = sj.tableToEntity(table);
 
 		//C for each changed entity
 		entities.forEach(entity => { 
+			console.log('notified called for:', entity);
+			//console.log('table length:', this[Entity.table].length, 'table is array:', Array.isArray(this[Entity.table]));
 			//C for each subscription
 			this[Entity.table].forEach(subscription => { 
-				//C for each query that matches as a subset
-				if (sj.deepMatch(subscription.query, entity, {matchIfSubset: true, matchIfTooDeep: true})) {
+				//C for each query that matches as a subset && if notification is new
+				if (sj.deepMatch(subscription.query, entity, {matchIfSubset: true, matchIfTooDeep: true}) && timestamp > subscription.timestamp) {
+					//C set new timestamp
+					subscription.timestamp = timestamp;
+
 					//C for each subscriber
 					subscription.subscribers.forEach(subscriber => {
+						console.log('notifying subscriber:', subscriber.name);
+
 						//TODO see if the subscriber has the permission to see any changes - this should be similar to if not the same as the validate function for CRUD methods
-						
-						sj.databaseSockets.to(subscriber.socketId).emit('NOTIFY', subscription.query);
+
+						//C emit socket notification to subscriber
+						sj.databaseSockets.to(subscriber.socketId).emit('NOTIFY', {query: subscription.query, changed: entity, timestamp});
 					});
 				}
 			});
@@ -700,6 +709,7 @@ sj.subscriptions = {
 			});
 		}
 
+
 		//C shorthand
 		let isGetMimic = methodName === 'getMimic'; //C store getMimic
 		if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
@@ -709,6 +719,7 @@ sj.subscriptions = {
 		let entities = sj.any(anyEntities);
 		return await db.tx(async t => {
 			let accessory = {};
+
 
 			//C process list before iteration
 			let beforeEntities = await this[methodName+'Before'](t, entities, accessory);
@@ -722,6 +733,7 @@ sj.subscriptions = {
 			let preparedEntities = await sj.asyncForEach(validatedEntities, async entity => {
 				return await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate);
 			});
+
 
 			//C accommodate other influenced entities
 			if (!isGet) var influencedEntities = await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate);
@@ -766,6 +778,7 @@ sj.subscriptions = {
 				}
 			}
 
+
 			//C unmap columns to properties
 			let unmappedBefore = this.unmapColumns(before);
 			let unmappedAfter = this.unmapColumns(after);
@@ -774,17 +787,25 @@ sj.subscriptions = {
 			let afterBefore = await this[methodName+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
 			let afterAfter = await this[methodName+'After'](t, unmappedAfter, accessory).catch(sj.propagate);
 
-			//C shake
-			let shookBefore = afterBefore.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
-			let shookAfter = afterAfter.map(entity => sj.shake(entity, this.filters[methodName+'Out']));
 
-			//C notify subscribers
+			//C notify subscribers, entities should be shook according to their getOut filter here
+			let getShookBefore = sj.shake(afterBefore, this.filters.getOut);
+			let getShookAfter = sj.shake(afterAfter, this.filters.getOut);
+
+			//C timestamp, used for ignoring duplicate notify in the case of edit
+			let timestamp = Date.now();
+
 			if (!isGet) { //C no changes for get
-				sj.subscriptions.notify(this.table, shookBefore, methodName);
-				sj.subscriptions.notify(this.table, shookAfter, methodName);
-			} else if (isGetMimic) { //C return getMimic here to mimic entity notification, is a single query object 
-				return sj.one(shookAfter);
+				sj.subscriptions.notify(this.table, getShookBefore, timestamp, methodName);
+				sj.subscriptions.notify(this.table, getShookAfter, timestamp, methodName);
+			} else if (isGetMimic) { //C return getMimic here to mimic entity notification, entity is a single query object 
+				return sj.one(getShookAfter);
 			}
+
+
+			//C shake for return
+			let shookBefore = sj.shake(afterBefore, this.filters[methodName+'Out']);
+			let shookAfter = sj.shake(afterAfter, this.filters[methodName+'Out']);
 
 			//C rebuild
 			let builtAfter = shookAfter.map(entity => new this(entity));
@@ -865,7 +886,6 @@ sj.subscriptions = {
 	//C map js property names to database column names
 	this.mapColumns = function (entities) {
 		//C switches entities' js named keys for column named keys based on schema
-		//C this is so that database column names can be any string
 		return entities.map(entity => { //C for each entity
 			let mappedEntity = {};
 			Object.keys(entity).forEach(key => { //C for each property
@@ -1543,7 +1563,7 @@ sj.isLoggedIn = async function (ctx) {
 				cssClass: 'notifyError',
 			}));
 		});
-		return await this.order(t, tracks).catch(sj.propagate);
+		return await this.order(t, tracks).then(sj.content).catch(sj.propagate);
 	};
 
 	this.addAfter =

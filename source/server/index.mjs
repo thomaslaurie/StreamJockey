@@ -157,6 +157,8 @@ sj.databaseSockets.use((socket, next) => {
 
 //L https://socket.io/docs/emit-cheatsheet/
 sj.databaseSockets.on('connect', (socket) => {
+	//TODO errors not caught in here
+
 	console.log('SOCKET - CONNECTED', socket.id);
 
 	//C give socket id to session.user //? I don't think the actual cookie receives this, but for now only the socket.session needs it
@@ -166,6 +168,8 @@ sj.databaseSockets.on('connect', (socket) => {
 	socket.on('disconnect', (reason) => {
 		console.log('SOCKET - DISCONNECTED', socket.id);
 		delete socket.session.user.socketId;
+
+		//TODO remove subscriber on disconnect
 
 		//C socket has left all of its rooms at this point
 	});
@@ -179,13 +183,13 @@ sj.databaseSockets.on('connect', (socket) => {
 
 		let result = await sj.subscriptions.add(table, query, socket.session.user);
 		callback(result);
-
-		sj.subscriptions.notify('tracks', [{id: 3, name: 'common name'}]);
 	});
 
 	socket.on('UNSUBSCRIBE', async ({table, query}, callback) => {
 		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
 		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
+
+		
 
 		console.log('SOCKET - UNSUBSCRIBE', query);
 

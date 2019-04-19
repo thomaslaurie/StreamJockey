@@ -158,6 +158,12 @@ sj.resolveActions = {
 
 //C these don't reference any sj.Bases
 
+sj.test = async function(tests, origin) {
+	tests.forEach((test, i) => {
+		if (!test[1]) console.error(`${origin} - test failed: ${test[0]}`);
+	});
+};
+
 // misc
 sj.wait = async function (ms) {
     //C used for basic waiting, //! should not be used if the callback needs to be canceled
@@ -185,8 +191,8 @@ sj.trace = function (test) {
 
 		let ignore = [
 			'Object.sj.trace',
-			'new sj.Base',
-			'new sj.Error',
+			'new Base',
+			'new Error',
 			'Object.sj.catchUnexpected',
 			'Object.sj.propagate',
 			'sj.Error.announce',
@@ -290,11 +296,35 @@ sj.decodeList = function (encoded) {
 	return list;
 };
 
-sj.shake = function (obj, props) {
+sj.shake = function (obj, properties) {
 	//C returns a new object with only the desired properties
-	let s = (obj, props) => {
+	let s = (obj, properties) => {
+		if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+			throw new sj.Error({
+				origin: 'sj.shake()',
+				reason: 'first argument is not an object',
+				content: obj,
+			});
+		}
+		if (!Array.isArray(properties)) {
+			throw new sj.Error({
+				origin: 'sj.shake()',
+				reason: 'second argument is not an array',
+				content: properties,
+			});
+		}
+		/* //R properties can be symbols, or any variable in maps
+			if (!properties.each(property => typeof property === 'string')) {
+				throw new sj.Error({
+					origin: 'sj.shake()',
+					reason: "second argument's items are not all strings",
+					content: properties,
+				});
+			}
+		*/
+
 		let newObj = {};
-		props.forEach(prop => {
+		properties.forEach(prop => {
 			if (obj[prop] !== undefined) {
 				newObj[prop] = obj[prop];
 			}
@@ -303,12 +333,15 @@ sj.shake = function (obj, props) {
 	}
 
 	//C handle objects and arrays of objects
-	if (typeof obj === 'object' && obj !== null) {
-		return s(obj, props);
-	} else if (Array.isArray(obj)) {
-		return obj.map(item => s(item, props));
-	}
+	if (Array.isArray(obj)) return obj.map(item => s(item, properties));
+	else return s(obj, properties);
 };
+sj.shake.test = function () {
+	sj.test([
+		['simple', true === sj.deepMatch(sj.shake([{a: 'a', b: 'b'}, {a: 'a', c: 'c'}], ['a']), [{a: 'a'}, {a: 'a'}])],
+	], 'sj.shake.test()');
+};
+
 sj.isSuperSet = function (set, superSet) { //? where is this used? //TODO probably legacy, replace with sj.deepMatch
 	//C compares each prop in set to the respective prop in superSet, returns true if all are equal, ignores extra props in superSet
 	for (prop in set) {
@@ -659,52 +692,46 @@ sj.deepMatch.test = function () {
 		}
 	}
 
-	let tests = [
-		true === sj.deepMatch(1, 1),
-			true === sj.deepMatch(0, 0),
-			true === sj.deepMatch(-1, -1),
-			true === sj.deepMatch(Infinity, Infinity),
-			true === sj.deepMatch(-Infinity, -Infinity),
-			true === sj.deepMatch(NaN, NaN),
-		false === sj.deepMatch(4, 3193),
-			false === sj.deepMatch(-3, 0),
-			false === sj.deepMatch(Infinity, 2345678909875498765456789),
-			false === sj.deepMatch(Infinity, -Infinity),
-			false === sj.deepMatch(NaN, 0),
-		true === sj.deepMatch(true, true),
-			true === sj.deepMatch(false, false),
-		false === sj.deepMatch(true, false),
-		true === sj.deepMatch('test', 'test'),
-			true === sj.deepMatch('', ''),
-			true === sj.deepMatch('undefined', 'undefined'),
-			true === sj.deepMatch('null', 'null'),
-		false === sj.deepMatch('string', 'test'),
-			false === sj.deepMatch('', 'test'),
-		true === sj.deepMatch(oA, oA),
-			true === sj.deepMatch(oA, oB),
-			true === sj.deepMatch(oA, oC, { matchIfSubset: true}),
-		false === sj.deepMatch(oA, oB, {deep: false}),
-			false === sj.deepMatch(oA, oC),
-			false === sj.deepMatch(oA, oD),
-		true === sj.deepMatch(aA, aA),
-			true === sj.deepMatch(aA, aB),
-			true === sj.deepMatch(aA, aC, {matchIfSubset: true}),
-			true === sj.deepMatch(aC, aE, {matchOrder: false}),
-		false === sj.deepMatch(aA, aB, {deep: false}),
-			false === sj.deepMatch(aA, aC),
-			false === sj.deepMatch(aA, aD),
-			false === sj.deepMatch(aC, aE),
-		false === sj.deepMatch({}, []),
-			false === sj.deepMatch({}, []),
-		true === sj.deepMatch(nA, nB),
-		true === sj.deepMatch(nA, nB, {depth: 2, matchIfTooDeep: true}),
-			false === sj.deepMatch(nA, nB, {depth: 2}),
-	];
-
-	tests.forEach((test, i) => {
-		if (!test) console.error(`sj.match.test() - ${i} failed`);
-	});
-
+	sj.test([
+		['match positive number', 		true === sj.deepMatch(1, 1)],
+		['match zero', 					true === sj.deepMatch(0, 0)],
+		['match negative number', 		true === sj.deepMatch(-1, -1)],
+		['match infinity', 				true === sj.deepMatch(Infinity, Infinity)],
+		['match negative infinity', 	true === sj.deepMatch(-Infinity, -Infinity)],
+		['match NaN', 					true === sj.deepMatch(NaN, NaN)],
+		['mismatch positive number', 	false === sj.deepMatch(4, 3193)],
+		['mismatch positive negative', 	false === sj.deepMatch(-3, 0)],
+		['mismatch infinity, number', 	false === sj.deepMatch(Infinity, 2345678909875498765456789)],
+		['mismatch infinity, -infinity',false === sj.deepMatch(Infinity, -Infinity)],
+		['mismatch NaN, zero', 			false === sj.deepMatch(NaN, 0)],
+		['match true', 					true === sj.deepMatch(true, true)],
+		['match false', 				true === sj.deepMatch(false, false)],
+		['mismatch true, false', 		false === sj.deepMatch(true, false)],
+		['match string', 				true === sj.deepMatch('test', 'test')],
+		['match empty', 				true === sj.deepMatch('', '')],
+		['match "undefined"', 			true === sj.deepMatch('undefined', 'undefined')],
+		['match "null"', 				true === sj.deepMatch('null', 'null')],
+		['mismatch string', 			false === sj.deepMatch('string', 'test')],
+		['mismatch empty and filled', 	false === sj.deepMatch('', 'test')],
+		['match object reference', 		true === sj.deepMatch(oA, oA)],
+		['match object items', 			true === sj.deepMatch(oA, oB)],
+		['match object subset', 		true === sj.deepMatch(oA, oC, { matchIfSubset: true})],
+		['mismatch object not deep', 	false === sj.deepMatch(oA, oB, {deep: false})],
+		['mismatch object, not subset', false === sj.deepMatch(oA, oC)],
+		['mismatch object props', 		false === sj.deepMatch(oA, oD)],
+		['match array reference', 		true === sj.deepMatch(aA, aA)],
+		['match array items', 			true === sj.deepMatch(aA, aB)],
+		['match array subset', 			true === sj.deepMatch(aA, aC, {matchIfSubset: true})],
+		['match array, not order', 		true === sj.deepMatch(aC, aE, {matchOrder: false})],
+		['mismatch array, not deep', 	false === sj.deepMatch(aA, aB, {deep: false})],
+		['mismatch array, not subset', 	false === sj.deepMatch(aA, aC)],
+		['mismatch array items', 		false === sj.deepMatch(aA, aD)],
+		['mismatch array, order', 		false === sj.deepMatch(aC, aE)],
+		['mismatch object, array', 		false === sj.deepMatch({}, [])],
+		['match nested', 				true === sj.deepMatch(nA, nB)],
+		['match nested if too deep', 	true === sj.deepMatch(nA, nB, {depth: 2, matchIfTooDeep: true})],
+		['mismatch nested if too deep', false === sj.deepMatch(nA, nB, {depth: 2})],
+	]);
 };
 
 // error
@@ -1691,6 +1718,18 @@ sj.Rule = class Rule extends sj.Base {
 		filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
 		filterMessage: 'Color must be in hex format #XXXXXX',
 	});
+	this.visibility = new sj.Rule({
+		origin: 'visibilityRules',
+		message: 'visibility validated',
+		target: 'playlistVisibility',
+		cssClass: 'inputError',
+	
+		valueName: 'Visibility',
+	
+		useAgainst: true,
+		againstValue: this.visibilityStates,
+		againstMessage: 'please select a valid visibility level',
+	});
 
 	//TODO other / old
 	//? not sure what these were used for
@@ -1722,18 +1761,7 @@ sj.Rule = class Rule extends sj.Base {
 		useAgainst: true,
 		get againstMessage() {return 'Passwords do not match'},
 	});
-	this.visibility = new sj.Rule({
-		origin: 'visibilityRules',
-		message: 'visibility validated',
-		target: 'playlistVisibility',
-		cssClass: 'inputError',
-	
-		valueName: 'Visibility',
-	
-		useAgainst: true,
-		againstValue: this.visibilityStates,
-		againstMessage: 'please select a valid visibility level',
-	});
+
 }).call(sj.Rule);
 
 
@@ -2091,6 +2119,33 @@ sj.Playlist = class Playlist extends sj.Entity {
 				max: sj.Rule.bigStringMaxLength,
 				trim: true,
 			}),
+
+			add: optional,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		visibility: {
+			columnName: 'visibility',
+			rule: sj.Rule.visibility,
+
+			add: optional,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		image: {
+			columnName: 'image',
+			rule: sj.Rule.image,
+
+			add: optional,
+			get: optional,
+			edit: optional,
+			remove: unused,
+		},
+		color: {
+			columnName: 'color',
+			rule: sj.Rule.color,
 
 			add: optional,
 			get: optional,
@@ -2737,6 +2792,7 @@ export default sj;
 
 
 sj.deepMatch.test();
+sj.shake.test();
 
 /* performance test
 	var iterations = 1000000;

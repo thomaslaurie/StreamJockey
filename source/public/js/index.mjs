@@ -176,27 +176,170 @@ Vue.mixin({
     },
 });
 
+// temp
+sj.makeKey = function (length) {
+    //C use only characters allowed in URLs
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let key = '';
+    for (let i = 0; i < length; i++) {
+        key += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return key;
+};
 
 const databaseSocket = new SocketIO('/database');
 
-databaseSocket.test =  async function () {
-	databaseSocket.emit('SUBSCRIBE', {table: 'tracks', query: {name: 'common name'}}, result => {
-		console.log('subscribe result: ', result);
-	});
+databaseSocket.test  = async function () {
+	sj.Track.placeholder = {
+		playlistId: 2, 
+		name: 'placeholder name', 
+		duration: 1234, 
+		source: sj.spotify, 
+		sourceId: 'placeholderSourceId', 
+		artists: ['foo', 'bar'],
+	};
+	sj.Playlist.placeholder = {
+		userId: 3,
+		name: 'placeholder name',
+		description: 'placeholder description',
+	};
+	sj.User.placeholder = {
+		name: 'placeholder name',
+		email: 'placeholder email',
+		password: 'placeholder password',
+	};
 
-	// databaseSocket.emit('UNSUBSCRIBE', {table: 'tracks', query: {name: 'common name'}}, result => {
-	// 	console.log('unsubscribe result: ', result);
-	// });
+	let wrap = async function (Entity, queryPack, data, predoF, doF, undoF, data2) {
+		//C subscribe
+		let subscribeResult = await new Promise((resolve, reject) => {
+			databaseSocket.emit('SUBSCRIBE', queryPack, result => {
+				if (sj.isType(result, sj.Success)) {
+					resolve(result);
+				} else {
+					reject(result);
+				}
+			});
+		});
+
+		let accessory = {};
+		let predoResult = await predoF(Entity, data, accessory, data2);
+
+		//C make listener
+		let notified = false;
+		let notifiedResult = {};
+		databaseSocket.on('NOTIFY', notifyResult => {
+			console.log('CALLED');
+			notifiedResult = notifyResult;
+			if (sj.deepMatch(queryPack.query, notifyResult.changed, {matchIfSubset: true})) notified = true;
+		});
+
+		//C do
+		let mainResult = await doF(Entity, data, accessory, data2);
+
+		//C wait some time for notification to come back
+		await sj.wait(1000);
+
+		//C undo
+		let undoResult = await undoF(Entity, data, accessory, data2);
+
+		//C unsubscribe
+		let unsubscribeResult = await new Promise((resolve, reject) => {
+			databaseSocket.emit('UNSUBSCRIBE', queryPack, result => {
+				if (sj.isType(result, sj.Success)) {
+					resolve(result);
+				} else {
+					reject(result);
+				}
+			});
+		});
+
+		if (!notified) console.log('query:', queryPack.query, 'changed:', notifiedResult.changed)
+		return notified;
+	};
+
+	let add = async function (Entity, queryPack, data) {
+		return await wrap(Entity, queryPack, data,
+			async () => undefined, 
+			async (Entity, data, accessory) => {
+				let addResult = await Entity.add({
+					...Entity.placeholder, //C fill in missing data
+					...data,
+				});
+				accessory.id = sj.one(addResult.content).id;
+				return addResult;
+			}, 
+			async (Entity, data, accessory) => {
+				return await Entity.remove({id: accessory.id}); //C delete generated id
+			}
+		);
+	};
+	let edit = async function (Entity, queryPack, dataBefore, dataAfter) {
+		dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
+
+		return await wrap(Entity, queryPack, dataBefore,
+			async (Entity, dataBefore, accessory, dataAfter) => {
+				let addResult = await Entity.add({
+					...Entity.placeholder,
+					...dataBefore,
+				});
+				accessory.id = sj.one(addResult.content).id;
+				return addResult;
+			},
+			async (Entity, dataBefore, accessory, dataAfter) => {
+				return await Entity.edit({
+					...dataAfter,
+					id: accessory.id,
+				});
+			}, async (Entity, dataBefore, accessory, dataAfter) => {
+				return await Entity.remove({id: accessory.id});
+			},
+			dataAfter,
+		);
+	};
+	let remove = async function (Entity, queryPack, data) {
+		return await wrap(Entity, queryPack, data,
+			async (Entity, data, accessory) => {
+				let addResult = await Entity.add({
+					...Entity.placeholder,
+					...data,
+				});
+				accessory.id = sj.one(addResult.content).id;
+				return addResult;
+			},
+			async (Entity, data, accessory) => {
+				return await Entity.remove({id: accessory.id});
+			},
+			async() => undefined,
+		);
+	};
+
+
+	sj.test([
+		//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+		//['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
+		//['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
+
+		//['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
+		//['edit to new name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
+
+
+		['remove track name', 		true === await remove(sj.Track, {table: 'tracks', query: {name: 'some name'}}, {name: 'some name'})],
+		['remove playlist name', 	true === await remove(sj.Playlist, {table: 'playlists', query: {name: 'some name'}}, {name: 'some name'})],
+		['remove user name', 		true === await remove(sj.User, {table: 'users', query: {name: 'some name'}}, {name: 'some name'})],
+		
+	], 'databaseSocket.test()');
+
+
+	delete sj.Track.placeholder;
+	delete sj.Playlist.placeholder;
+	delete sj.User.placeholder;
 };
 
-databaseSocket.on('connect', (socket) => {
-	console.log('connected');
+databaseSocket.on('connect', async socket => {
+	// databaseSocket.on('NOTIFY', query => {
+	// });
 
-	databaseSocket.on('NOTIFY', query => {
-		console.log('notify:', query);
-	});
-
-	test();
+	//databaseSocket.test();
 });
 
 
