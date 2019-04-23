@@ -469,7 +469,7 @@ sj.isType = function (input, type) {
 	
 
 	// value
-	if (input === type) {
+	if (input === type) { //!//TODO this will cause issues with ('object', 'object') and inconsistencies like true === (sj.Entity, sj.Entity) vs false == (sj.Track, sj.Entity)
 		return true;
 	}
 	
@@ -573,7 +573,8 @@ sj.isEmpty = function (input) {
         (sj.isType(input, 'array') && input.length > 0)
 	);
 };
-sj.tableToEntity = function (table) {
+sj.tableToEntity = function (table) { 
+	//TODO things should instead just be sent by their sj.Entity class (http methods don't send table), actually no, because we dont want to send the classes between client and server because they're different, maybe just send the type (user, playlist, track), separately (rather than table name)
 	//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
 	//R any metadata (table) should be sent separately (or implicitly) from the query
 	//TODO might be a better way to do this
@@ -1773,7 +1774,9 @@ sj.Success = class Success extends sj.Base {
 
 		this.objectType = 'sj.Success';
 
-		sj.Base.init(this, options, {});
+		sj.Base.init(this, options, {
+			timestamp: undefined,
+		});
 
 		this.onCreate();
 	}
@@ -1901,6 +1904,7 @@ sj.Entity = class Entity extends sj.Success {
 		};
 	};
 }).call(sj.Entity);
+//TODO in children static constructors, add themselves to an array in sj.Entity, so that sj.Entity has access to all of it's children classes
 
 // schema property states
 const unused = {
@@ -2541,7 +2545,9 @@ sj.Playback = class Playback extends sj.Base {
 	}
 };
 
-sj.QuerySubscription = class extends sj.Base {
+sj.QuerySubscription = class QuerySubscription extends sj.Base {
+	//! don't nest QuerySubscriptions
+
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
@@ -2550,26 +2556,27 @@ sj.QuerySubscription = class extends sj.Base {
 		sj.Base.init(this, options, {
 			query: undefined,
 			subscribers: [], 
-			timestamp: 0, 
+			timestamp: 0,
 			content: [],
 		});
 
 		this.onCreate();
 	}
 };
-sj.EntitySubscription = class extends sj.QuerySubscription {
-	//! query should only have one id parameter
-	//! subscribers list can include both component subscribers and parent QueryMirror subscribers
-	//C EntityMirrors without any component subscribers won't be subscribed to on the server, they will be only updated by their parent QueryMirror
-	//G if an entity is referenced by multiple parent QueryMirrors - it will be called to update multiple times - to avoid this, ensure the same timestamp is generated once on the server when an entity is changed, that way it's mirror on the client will only update once per server update
+sj.EntitySubscription = class EntitySubscription extends sj.QuerySubscription {
+	//C subscribers can include both component subscribers and parent QuerySubscription subscribers
+	//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
+	//G query should only have one query object with one id property: [{id: 8}]
+	//G content is the root data object, not an array
 
-	//C same as QueryMirror
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
 		this.objectType = 'sj.EntitySubscription';
 
-		sj.Base.init(this, options, {});
+		sj.Base.init(this, options, {
+			content: undefined,
+		});
 
 		this.onCreate();
 	}

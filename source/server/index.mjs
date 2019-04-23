@@ -52,7 +52,7 @@ import http from 'http'; //TODO consider changing to the https module?
 
 
 // internal
-import sj from '../public/js/global.mjs';
+import sj from './global-server.mjs';
 import router from './routes.mjs';
 
 
@@ -160,41 +160,53 @@ sj.databaseSockets.on('connect', (socket) => {
 	//TODO errors not caught in here
 
 	console.log('SOCKET - CONNECTED', socket.id);
-
 	//C give socket id to session.user //? I don't think the actual cookie receives this, but for now only the socket.session needs it
-	socket.session.user.socketId = socket.id;
+	//! won't set socketId if not logged in, //TODO this will cause issues when the user logs in but the socket doesn't reconnect
+	if (sj.isType(socket.session.user, Object)) socket.session.user.socketId = socket.id;
+	
+	//C client will send all of it's re-subscribe requests on connect
 
 
-	socket.on('disconnect', (reason) => {
+	socket.on('disconnect', async (reason) => {
 		console.log('SOCKET - DISCONNECTED', socket.id);
-		delete socket.session.user.socketId;
-
-		//TODO remove subscriber on disconnect
-
-		//C socket has left all of its rooms at this point
-	});
-	socket.on('error', (reason) => {
-		console.log('SOCKET - ERROR', socket.id, reason);
+		if (sj.isType(socket.session.user, Object)) {
+			delete socket.session.user.socketId;
+			await sj.subscriptions.disconnect(socket.session.user);
+		}	
 	});
 
 
 	socket.on('SUBSCRIBE', async ({table, query}, callback) => {
 		console.log('SOCKET - SUBSCRIBE', query);
-
-		let result = await sj.subscriptions.add(table, query, socket.session.user);
-		callback(result);
+		if (sj.isType(socket.session.user, Object)) {
+			let result = await sj.subscriptions.add(table, query, socket.session.user);
+			callback(result);
+		} else {
+			callback(new sj.Error({
+				origin: 'SOCKET - SUBSCRIBE',
+				message: 'user is not logged in',
+			}));
+		}
+		
 	});
 
 	socket.on('UNSUBSCRIBE', async ({table, query}, callback) => {
-		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
-		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
-
-		
-
 		console.log('SOCKET - UNSUBSCRIBE', query);
 
-		let result = await sj.subscriptions.remove(table, query, socket.session.user);
-		callback(result);
+		if (sj.isType(socket.session.user, Object)) {
+			let result = await sj.subscriptions.remove(table, query, socket.session.user);
+			callback(result);
+		} else {
+			callback(new sj.Error({
+				origin: 'SOCKET - SUBSCRIBE',
+				message: 'user is not logged in',
+			}));
+		}
+	});
+
+
+	socket.on('error', (reason) => {
+		console.log('SOCKET - ERROR', socket.id, reason);
 	});
 });
 

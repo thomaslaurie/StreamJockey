@@ -563,16 +563,23 @@ sj.buildSet = function (mappedEntity) {
 //  ███████╗██║ ╚████╔╝ ███████╗
 //  ╚══════╝╚═╝  ╚═══╝  ╚══════╝
 
-sj.subscriptions = {
-	[sj.User.table]: [],
-	[sj.Playlist.table]: [],
-	[sj.Track.table]: [],
-	add: async function (table, query, user) {
+sj.subscriptions = (function () {
+	this[sj.User.table] = [];
+	this[sj.Playlist.table] = [];
+	this[sj.Track.table] = [],
+
+	this.tables = [
+		this[sj.User.table],
+		this[sj.Playlist.table],
+		this[sj.Track.table],
+	];
+
+	this.add = async function (table, query, user) {
 		let Entity = sj.tableToEntity(table); //! this[Entity.table] is used over this[table] because sj.tableToEntity() is the validator for table
 		let processedQuery = await Entity.getMimic(query);
 
 		//C find or add query 
-		let subscription = this[Entity.table].find(subscription => sj.deepMatch(processedQuery, subscription.query)); //! not a super-set
+		let subscription = this[Entity.table].find(subscription => sj.deepMatch(processedQuery, subscription.query, {matchOrder: false})); //! not a super-set
 		if (!subscription) {
 			subscription = new sj.QuerySubscription({query: processedQuery});
 			this[Entity.table].push(subscription);
@@ -591,14 +598,17 @@ sj.subscriptions = {
 			message: 'added subscriber',
 			content: processedQuery,
 		});
-	},
-	remove: async function (table, query, user) {
+	};
+	this.remove = async function (table, query, user) {
+		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
+		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
+
 		let Entity = sj.tableToEntity(table);
 		let processedQuery = await Entity.getMimic(query);
 	
 		let subscriptionIndex = -1;
 		let subscription = this[Entity.table].find((subscription, i) => {
-			if (sj.deepMatch(processedQuery, subscription.query)) {
+			if (sj.deepMatch(processedQuery, subscription.query, {matchOrder: false})) {
 				subscriptionIndex = i;
 				return true;
 			}
@@ -640,10 +650,11 @@ sj.subscriptions = {
 		return new sj.Success({
 			origin: 'sj.removeSubscriber()',
 			message: 'removed subscriber',
-			content: user,
+			content: processedQuery,
 		});
-	},
-	notify: async function (table, entities, timestamp, change) {
+	};
+
+	this.notify = async function (table, entities, timestamp, change) {
 		let Entity = sj.tableToEntity(table);
 
 		//C for each changed entity
@@ -664,13 +675,38 @@ sj.subscriptions = {
 						//TODO see if the subscriber has the permission to see any changes - this should be similar to if not the same as the validate function for CRUD methods
 
 						//C emit socket notification to subscriber
-						sj.databaseSockets.to(subscriber.socketId).emit('NOTIFY', {query: subscription.query, changed: entity, timestamp});
+						sj.databaseSockets.to(subscriber.socketId).emit('NOTIFY', {table: Entity.table, query: subscription.query, timestamp, changed: entity}); //TODO changed should eventually be removed
 					});
 				}
 			});
 		});
-	},
-};
+	};
+
+
+	//G connect is called individually by client-side
+	this.disconnect = async function (user) {
+		//C removes user from each subscription
+		this.tables.forEach(table => {
+			table.forEach((subscription, subscriptionIndex) => {
+				subscription.subscribers.forEach((subscriber, subscriberIndex, subscribers) => {
+					if (subscriber.id === user.id) {
+						//C remove subscriber
+						subscribers.splice(subscriberIndex, 1);
+
+						//C remove subscription if now empty
+						if (subscribers.length <= 0) {
+							table.splice(subscriptionIndex, 1);
+						}
+					}
+				});
+			});
+		});
+	};
+
+	return this;
+}).call({});
+
+//? unsubscribe all on disconnect and resubscribe all on connect? or - have a timeout system?
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -792,14 +828,14 @@ sj.subscriptions = {
 			let getShookBefore = sj.shake(afterBefore, this.filters.getOut);
 			let getShookAfter = sj.shake(afterAfter, this.filters.getOut);
 
-			//C timestamp, used for ignoring duplicate notify in the case of edit
+			//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 			let timestamp = Date.now();
 
 			if (!isGet) { //C no changes for get
 				sj.subscriptions.notify(this.table, getShookBefore, timestamp, methodName);
 				sj.subscriptions.notify(this.table, getShookAfter, timestamp, methodName);
-			} else if (isGetMimic) { //C return getMimic here to mimic entity notification, entity is a single query object 
-				return sj.one(getShookAfter);
+			} else if (isGetMimic) { //C return getMimic here to mimic entity notification
+				return getShookAfter;
 			}
 
 
@@ -813,6 +849,7 @@ sj.subscriptions = {
 			return new sj.SuccessList({
 				...this[methodName+'Success'](),
 				content: builtAfter, 
+				timestamp,
 			});
 		}).catch(sj.propagate);
 	};
