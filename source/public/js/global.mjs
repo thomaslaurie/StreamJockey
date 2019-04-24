@@ -1024,7 +1024,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 		}
 		delete options.body;
 	} 
-	if (sj.isType(options.body, Object)) { //C stringify body
+	if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) { //C stringify body
 		try {
 			options.body = JSON.stringify(fClone(options.body));
 		} catch (e) {
@@ -1089,6 +1089,14 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	}
 
 
+};
+
+// data
+sj.Subscriptions = function () {
+	//C creates an array for each Entity type
+	sj.Entity.children.forEach(child => {
+		this[child.table] = [];
+	});
 };
 
 	
@@ -1892,6 +1900,9 @@ sj.Entity = class Entity extends sj.Success {
 		},
 	}); 
 
+	//C list of references to child classes, these should be added in the child's static constructor
+	this.children = [];
+
 	this.filters = {
 		id: ['id'],
 	};
@@ -1965,6 +1976,8 @@ sj.User = class User extends sj.Entity {
 	}
 };
 (function () { // static
+	sj.Entity.children.push(this);
+
 	this.schema = {
 		//G 0 = unused, 1 = optional, 2 = required
 		id: {
@@ -2088,6 +2101,8 @@ sj.Playlist = class Playlist extends sj.Entity {
 	}
 };
 (function () { // static
+	sj.Entity.children.push(this);
+
 	this.schema = {
 		id: {
 			columnName: 'id',
@@ -2199,6 +2214,8 @@ sj.Track = class Track extends sj.Entity {
 	}
 };
 (function () {
+	sj.Entity.children.push(this);
+
 	this.schema = {
 		id: {
 			columnName: 'id',
@@ -2309,7 +2326,6 @@ sj.Track = class Track extends sj.Entity {
 	};
 	this.updateFilters();
 }).call(sj.Track);
-
 
 
 // error

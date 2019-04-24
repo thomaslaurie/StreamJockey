@@ -67,13 +67,13 @@ import sj from './global.mjs';
 // static CRUD
 Object.assign(sj.Entity, {
 	async add(query) {
-		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.addIn));
+		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.addIn));
 	},
 	async get(query) {
-		return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(query, this.filters.getIn))}`);
+		return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(sj.any(query), this.filters.getIn))}`);
 	},
 	async edit(query) {
-		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.editIn));
+		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.editIn));
 	},
 	async remove(query) {
 		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.removeIn));

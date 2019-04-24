@@ -561,11 +561,7 @@ const store = new VueX.Store({
 
 		//TODO consider having the table as another parameter in the encoded query?
 		//R a good reason not to is that table is a property that all entities will have, so making it part of the data structure will make searches faster
-		subscriptions: {
-			[sj.User.table]: [],
-			[sj.Playlist.table]: [],
-			[sj.Track.table]: [],
-		},
+		subscriptions: new sj.Subscriptions(),
 	},
 	actions: { //! all actions are async via dispatch('functionName', payload)
 		//TODO errors should be handled in these actions
@@ -592,15 +588,12 @@ const store = new VueX.Store({
 
 			//C find table, based on Entity
 			let table = context.state.subscriptions[Entity.table];
-			console.log('A');
 
 			//C add subscriber, from this point data will live-update
 			await context.dispatch('addSubscriber', {table, query: processedQuery, subscriber});
-			console.log('B');
 
 			//C trigger the initial update
 			await context.dispatch('updateSubscription', {Entity, table, query: processedQuery, timestamp: Date.now()});
-			console.log('C');
 
 			//C return the subscription's data, from this point component data will update (no need to worry about flickering from above)
 			let subscription = context.getters.findSubscription(table, processedQuery);
@@ -744,7 +737,6 @@ const store = new VueX.Store({
 				});
 
 				//C if an existing QuerySubscription's EntitySubscription is no longer part of the query results, remove this QuerySubscription as a subscriber
-				console.log('existing:', existingSubscription);
 				await sj.asyncForEach(existingSubscription.content, async existingEntitySubscription => {
 					if (!updatedEntitySubscriptions.some(updatedEntitySubscription => sj.deepMatch(updatedEntitySubscription.query, existingEntitySubscription.query))) {
 						await context.dispatch('removeSubscriber', {table, query: existingEntitySubscription.query, subscriber: existingSubscription});
@@ -755,8 +747,6 @@ const store = new VueX.Store({
 				context.commit('editQueryMirror', {table, query, properties: {
 					content: updatedEntitySubscriptions,
 				}});
-
-				//console.log('updateQuery() - updated query', queryTable[query]);
 			}
 		},
 	},
@@ -764,11 +754,9 @@ const store = new VueX.Store({
 		// database sync
 		addSubscription(state, {table, subscription}) {
 			table.push(subscription);
-			//console.log(`called replaceQueryMirror(table: ${table}, queryMirror: ${queryMirror})`);
 		},
 		editSubscription(state, {subscription, properties}) {
 			Object.assign(subscription, properties);
-			//console.log(`called editQueryMirror(table: ${table}, query: ${query}, props: ${props})`);
 		},
 		removeSubscription(state, {table, subscription}) {
 			let index = table.indexOf(subscription);
@@ -778,7 +766,6 @@ const store = new VueX.Store({
 			});
 
 			table.splice(index, 1);
-			//console.log(`called removeQueryMirror(table: ${table}, query: ${query})`);
 		},
 	},
 	getters: {
@@ -823,18 +810,26 @@ databaseSocket.on('NOTIFY', async ({table, query, timestamp}) => {
 
 sj.testTest = async function (store) {
 	let Entity = sj.Track;
-	let query = {id: 65};
+	let query = [{id: 65}];
+	let change = [{id: 65, duration: Math.round(Math.random() * 100)}];
 	let subscriber = 'test subscriber';
 
+	let pass = true;
 
-	console.log('DB MIRROR BEFORE:', JSON.stringify(store.state.subscriptions.tracks));
+	if (store.state.subscriptions[Entity.table].length !== 0) pass = false;
+	console.log('initial query:', query);
 	await store.dispatch('subscribe', {Entity, query, subscriber});
-	console.log('DB MIRROR DURING 1:', JSON.stringify(store.state.subscriptions.tracks[0]));
-	await sj.Track.edit({id: 65, name: sj.makeKey(10)});
-	await sj.wait(5000);
-	console.log('DB MIRROR DURING 2:', JSON.stringify(store.state.subscriptions.tracks[0]));
+	if (!sj.deepMatch(store.state.subscriptions[Entity.table][0].query, query)) pass = false;
+	console.log('subscribed to query:', store.state.subscriptions[Entity.table][0].query);
+	console.log('before content:', store.state.subscriptions[Entity.table][0].content);
+	await Entity.edit(change);
+	await sj.wait(1000);
+	if (!sj.deepMatch(change[0], store.state.subscriptions[Entity.table][0].content, {matchIfSubset: true})) pass = false;
+	console.log('after content:', store.state.subscriptions[Entity.table][0].content);
 	await store.dispatch('unsubscribe', {Entity, query, subscriber});
-	console.log('DB MIRROR AFTER:', JSON.stringify(store.state.subscriptions.tracks));
+	if (store.state.subscriptions[Entity.table].length !== 0) pass = false;
+	console.log('none remaining:', store.state.subscriptions[Entity.table].length === 0);
+	console.log(pass);
 };
 
 sj.testTest(store);

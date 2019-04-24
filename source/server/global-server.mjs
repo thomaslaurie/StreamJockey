@@ -564,15 +564,12 @@ sj.buildSet = function (mappedEntity) {
 //  ╚══════╝╚═╝  ╚═══╝  ╚══════╝
 
 sj.subscriptions = (function () {
-	this[sj.User.table] = [];
-	this[sj.Playlist.table] = [];
-	this[sj.Track.table] = [],
+	Object.assign(this, new sj.Subscriptions());
 
-	this.tables = [
-		this[sj.User.table],
-		this[sj.Playlist.table],
-		this[sj.Track.table],
-	];
+	this.tables = []; //C for iteration of all tables
+	sj.Entity.children.forEach(child => {
+		this.tables.push(this[child.table]);
+	});
 
 	this.add = async function (table, query, user) {
 		let Entity = sj.tableToEntity(table); //! this[Entity.table] is used over this[table] because sj.tableToEntity() is the validator for table
