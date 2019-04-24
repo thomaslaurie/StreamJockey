@@ -163,7 +163,7 @@ sj.databaseSockets.on('connect', (socket) => {
 	//C give socket id to session.user //? I don't think the actual cookie receives this, but for now only the socket.session needs it
 	//! won't set socketId if not logged in, //TODO this will cause issues when the user logs in but the socket doesn't reconnect
 	if (sj.isType(socket.session.user, Object)) socket.session.user.socketId = socket.id;
-	
+
 	//C client will send all of it's re-subscribe requests on connect
 
 
@@ -177,7 +177,7 @@ sj.databaseSockets.on('connect', (socket) => {
 
 
 	socket.on('SUBSCRIBE', async ({table, query}, callback) => {
-		console.log('SOCKET - SUBSCRIBE', query);
+		console.log('SOCKET - SUBSCRIBE', table, query);
 		if (sj.isType(socket.session.user, Object)) {
 			let result = await sj.subscriptions.add(table, query, socket.session.user);
 			callback(result);

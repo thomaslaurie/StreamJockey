@@ -344,10 +344,7 @@ databaseSocket.on('disconnect', async (reason) => {
 	//C client is responsible for re-subscribing on connect, server is responsible for removing subscriptions on disconnect
 });
 
-//C trigger query updates when notified of change
-databaseSocket.on('NOTIFY', async ({table, query, timestamp}) => {
-	store.dispatch('updateQuery', {table, query, timestamp});
-});
+
 
 
 
@@ -579,17 +576,18 @@ const store = new VueX.Store({
 			//C subscribe on server 
 			let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
 			let processedQuery = await new Promise((resolve, reject) => {
-				databaseSocket.emit('SUBSCRIBE', {table: Entity.table, query: preparedQuery}, result => {
-					if (sj.isType(result, sj.Error)) reject(result);
-					else resolve(result);
-				});
-
-				setTimeout(() => {
+				const timeoutId = setTimeout(() => {
 					reject(new sj.Error({
 						log: true,
 						reason: 'socket subscription timed out',
 					}));
 				}, timeout);
+
+				databaseSocket.emit('SUBSCRIBE', {table: Entity.table, query: preparedQuery}, result => {
+					clearTimeout(timeoutId);
+					if (sj.isType(result, sj.Error)) reject(result);
+					else resolve(result);
+				});
 			}).then(sj.content).catch(sj.propagate);
 
 			//C find table, based on Entity
@@ -612,17 +610,18 @@ const store = new VueX.Store({
 			//C subscribe on server
 			let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
 			let processedQuery = await new Promise((resolve, reject) => {
-				databaseSocket.emit('UNSUBSCRIBE', {table: Entity.table, query: preparedQuery}, result => {
-					if (sj.isType(result, sj.Error)) reject(result);
-					else resolve(result);
-				});
-
-				setTimeout(() => {
+				const timeoutId = setTimeout(() => {
 					reject(new sj.Error({
 						log: true,
 						reason: 'socket unsubscription timed out',
 					}));
 				}, timeout);
+
+				databaseSocket.emit('UNSUBSCRIBE', {table: Entity.table, query: preparedQuery}, result => {
+					clearTimeout(timeoutId);
+					if (sj.isType(result, sj.Error)) reject(result);
+					else resolve(result);
+				});
 			}).then(sj.content).catch(sj.propagate);
 
 			//C find table, based on Entity
@@ -677,8 +676,6 @@ const store = new VueX.Store({
 				}
 				//console.log('removeSubscriber() - removed subscriber', queryTable[query], subscriber);
 			});
-
-			console.log('TEAT', table[0] === existingSubscription);
 
 			//C if no subscribers remain
 			if (existingSubscription.subscribers.length <= 0) { 
@@ -780,19 +777,30 @@ const store = new VueX.Store({
 				reason: 'could not find subscription to remove',
 			});
 
-			delete table[index];
+			table.splice(index, 1);
 			//console.log(`called removeQueryMirror(table: ${table}, query: ${query})`);
 		},
 	},
 	getters: {
 		findSubscription: state => (table, query) => {
+			if (!Array.isArray(table)) throw new sj.Error({
+				origin: 'findSubscription()',
+				reason: `table is not an array: ${typeof table}`,
+				content: table,
+			});
 			return table.find(existingSubscription => sj.deepMatch(existingSubscription.query, query, {matchOrder: false}));
 		},
 		getSubscriptionData: state => subscription => {
 			if (sj.isType(subscription, sj.EntitySubscription)) {
 				return subscription.content;
-			} else {
+			} else if (sj.isType(subscription, sj.QuerySubscription)) {
 				return subscription.content.map(entitySubscription => entitySubscription.content);
+			} else {
+				throw new sj.Error({
+					origin: 'getSubscriptionData()',
+					reason: 'subscription is not an EntitySubscription or QuerySubscription',
+					content: subscription,
+				});
 			}
 		},
 	},
@@ -803,17 +811,32 @@ const vm = new Vue({
 	store,
 });
 
+//C trigger query updates when notified of change
+databaseSocket.on('NOTIFY', async ({table, query, timestamp}) => {
+	console.log('NOTIFIED:', table, query);
+
+	let Entity = sj.tableToEntity(table);
+	store.dispatch('updateSubscription', {Entity, table: store.state.subscriptions[Entity.table], query, timestamp});
+});
+
 //sj.testRun(sj.testRun(store));
 
 sj.testTest = async function (store) {
 	let Entity = sj.Track;
 	let query = {id: 65};
 	let subscriber = 'test subscriber';
+
+
 	console.log('DB MIRROR BEFORE:', JSON.stringify(store.state.subscriptions.tracks));
 	await store.dispatch('subscribe', {Entity, query, subscriber});
-	console.log('DB MIRROR DURING:', JSON.stringify(store.state.subscriptions.tracks));
+	console.log('DB MIRROR DURING 1:', JSON.stringify(store.state.subscriptions.tracks[0]));
+	await sj.Track.edit({id: 65, name: sj.makeKey(10)});
+	await sj.wait(5000);
+	console.log('DB MIRROR DURING 2:', JSON.stringify(store.state.subscriptions.tracks[0]));
 	await store.dispatch('unsubscribe', {Entity, query, subscriber});
 	console.log('DB MIRROR AFTER:', JSON.stringify(store.state.subscriptions.tracks));
 };
 
 sj.testTest(store);
+
+

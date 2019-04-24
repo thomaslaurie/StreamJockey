@@ -580,7 +580,7 @@ sj.tableToEntity = function (table) {
 	//TODO might be a better way to do this
 	if (table === 'users') return sj.User;
 	else if (table === 'playlists') return sj.Playlist;
-	else if (table === 'tracks') return sj.User;
+	else if (table === 'tracks') return sj.Track;
 	else throw new sj.Error({
 		origin: 'sj.tableToEntity()',
 		reason: `table is not recognized: ${table}`,
@@ -682,7 +682,7 @@ sj.deepMatch.test = function () {
 				}
 			}
 		}
-	}
+	};
 	let nB = {
 		a: {
 			a: {
@@ -691,7 +691,23 @@ sj.deepMatch.test = function () {
 				}
 			}
 		}
-	}
+	};
+
+	//C aF is subset of aG at first level, but then aG is a subset of aF at second level, this should fail matchIfSubset
+	let aF = [
+		{
+			a: 'a',
+			b: 'b',
+		},
+	];
+	let aG = [
+		{
+			a: 'a',
+		},
+		{
+			b: 'b',
+		},
+	];
 
 	sj.test([
 		['match positive number', 		true === sj.deepMatch(1, 1)],
@@ -732,7 +748,8 @@ sj.deepMatch.test = function () {
 		['match nested', 				true === sj.deepMatch(nA, nB)],
 		['match nested if too deep', 	true === sj.deepMatch(nA, nB, {depth: 2, matchIfTooDeep: true})],
 		['mismatch nested if too deep', false === sj.deepMatch(nA, nB, {depth: 2})],
-	]);
+		['mismatch subset switch',		false === sj.deepMatch(aF, aG, {matchIfSubset: true})],
+	], 'deepMatch');
 };
 
 // error

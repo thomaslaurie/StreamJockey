@@ -654,9 +654,7 @@ sj.subscriptions = (function () {
 		});
 	};
 
-	this.notify = async function (table, entities, timestamp, change) {
-		let Entity = sj.tableToEntity(table);
-
+	this.notify = async function (Entity, entities, timestamp, change) {
 		//C for each changed entity
 		entities.forEach(entity => { 
 			console.log('notified called for:', entity);
@@ -664,7 +662,9 @@ sj.subscriptions = (function () {
 			//C for each subscription
 			this[Entity.table].forEach(subscription => { 
 				//C for each query that matches as a subset && if notification is new
-				if (sj.deepMatch(subscription.query, entity, {matchIfSubset: true, matchIfTooDeep: true}) && timestamp > subscription.timestamp) {
+				//R query is an array of query objects, must iterate each then subset match, or else nothing will match because query switches from superset to subset
+				if (subscription.query.some(part => sj.deepMatch(part, entity, {matchOrder: false, matchIfSubset: true, matchIfTooDeep: true}))
+				&& timestamp > subscription.timestamp) {
 					//C set new timestamp
 					subscription.timestamp = timestamp;
 
@@ -832,8 +832,8 @@ sj.subscriptions = (function () {
 			let timestamp = Date.now();
 
 			if (!isGet) { //C no changes for get
-				sj.subscriptions.notify(this.table, getShookBefore, timestamp, methodName);
-				sj.subscriptions.notify(this.table, getShookAfter, timestamp, methodName);
+				sj.subscriptions.notify(this, getShookBefore, timestamp, methodName);
+				sj.subscriptions.notify(this, getShookAfter, timestamp, methodName);
 			} else if (isGetMimic) { //C return getMimic here to mimic entity notification
 				return getShookAfter;
 			}
