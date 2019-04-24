@@ -3,6 +3,8 @@
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
 	import UserDisplayList from '../user/UserDisplayList.vue';
 
+	//import {mapActions} from '../../js/vuex.esm.browser.mjs';
+
     export default {
 		name: 'database-page',
 		components: {
@@ -52,6 +54,8 @@
 				retrievedUsers: [],
 
 				result: {},
+
+				subscription: {},
             };
 		},
 		computed: {
@@ -87,6 +91,11 @@
 			},
 		},
 		methods: {
+			// ...mapActions([
+			// 	'subscribe',
+			// 	'unsubscribe',
+			// ]),
+
             async login() {
                 this.currentUser = await this.sj.login({name: this.name, password: this.password}).then(this.sj.content).catch(rejected => {
                     console.error(rejected);
@@ -102,7 +111,8 @@
 			},
 			
 			async add() {
-				this.retrieved = await this.entity.add(this.input).then(this.sj.content).catch(rejected => {
+				//this.retrieved = 
+				await this.entity.add(this.input).then(this.sj.content).catch(rejected => {
 					//C don't change
                     return this.retrieved;
 				});
@@ -113,14 +123,21 @@
 				});
 			},
 			async edit() {
-				this.retrieved = await this.entity.edit(this.input).then(this.sj.content).catch(rejected => {
+				//this.retrieved = 
+				await this.entity.edit(this.input).then(this.sj.content).catch(rejected => {
                     return this.retrieved;
 				});
 			},
 			async remove() {
-				this.retrieved = await this.entity.remove(this.input).then(this.sj.content).catch(rejected => {
+				//this.retrieved = 
+				await this.entity.remove(this.input).then(this.sj.content).catch(rejected => {
                     return this.retrieved;
 				});
+			},
+
+			async subscribe() {
+				this.subscription = await this.$store.dispatch('subscribe', {Entity: this.entity, query: this.input, subscriber: this});
+				this.retrieved = this.$store.getters.getSubscriptionData(this.subscription);
 			},
 		},
     }
@@ -146,6 +163,7 @@
 			<button @click='get'>Get</button>
 			<button @click='edit'>Edit</button>
 			<button @click='remove'>Remove</button>
+			<button @click='subscribe'>Subscribe</button>
 			<!-- 
 				<input type='radio' name='methodType' v-model='method' value='add' id='addRadio'>
 				<label for='addRadio'>Add</label>
