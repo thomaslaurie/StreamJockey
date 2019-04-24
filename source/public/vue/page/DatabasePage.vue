@@ -55,7 +55,7 @@
 
 				result: {},
 
-				subscription: {},
+				subscription: undefined,
             };
 		},
 		computed: {
