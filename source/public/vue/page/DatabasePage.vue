@@ -3,8 +3,6 @@
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
 	import UserDisplayList from '../user/UserDisplayList.vue';
 
-	//import {mapActions} from '../../js/vuex.esm.browser.mjs';
-
     export default {
 		name: 'database-page',
 		components: {
@@ -49,37 +47,25 @@
 					password2: '',
 				},
 
-				retrievedTracks: [],
-				retrievedPlaylists: [],
-				retrievedUsers: [],
-
-				result: {},
-
+				result: [],
 				subscription: undefined,
             };
 		},
 		computed: {
-			entity: function () {
+			Entity: function () {
 				if (this.entityType === 'track') return this.sj.Track;
 				else if (this.entityType === 'playlist') return this.sj.Playlist;
 				else if (this.entityType === 'user') return this.sj.User;
 			},
 			input: function () {
-				if (this.entityType === 'track') return this.inputTrack;
-				else if (this.entityType === 'playlist') return this.inputPlaylist;
-				else if (this.entityType === 'user') return this.inputUser;
+				if (this.entityType === 'track') return {...this.defaultTrack, ...this.inputTrack};
+				else if (this.entityType === 'playlist') return {...this.defaultPlaylist, ...this.inputPlaylist};
+				else if (this.entityType === 'user') return {...this.defaultUser, ...this.inputUser};
 			},
-			retrieved:  {
-				get: function () {
-					if (this.entityType === 'track') return this.retrievedTracks;
-					else if (this.entityType === 'playlist') return this.retrievedPlaylists;
-					else if (this.entityType === 'user') return this.retrievedUsers;
-				},
-				set: function (value) {
-					if (this.entityType === 'track') this.retrievedTracks = value;
-					else if (this.entityType === 'playlist') this.retrievedPlaylists = value;
-					else if (this.entityType === 'user') this.retrievedUsers = value;
-				},
+
+			subscriptionData: function () {
+				if (this.subscription) return this.sj.any(this.$store.getters.getSubscriptionData(this.subscription));
+				else return [];
 			},
 		},
 		watch: {
@@ -96,6 +82,41 @@
 			// 	'unsubscribe',
 			// ]),
 
+			handle(rejected) {
+				console.warn('error occured, result unchanged');
+				//C don't change
+				return this.retrieved;
+			},
+
+			autoFill() {
+				if (this.entityType === 'track') {
+					Object.assign(this.inputTrack, {
+						id: 0,
+						playlistId: 1,
+						position: 1000,
+						sourceId: 'abcdefg',
+						name: 'default name',
+						duration: 1000,
+					});
+					this.inputTrack.source.name = 'spotify';
+					this.inputTrack.artists.push('default artist A', 'default artist B');
+				}
+				else if (this.entityType === 'playlist') Object.assign(this.inputPlaylist, {
+					id: 1,
+					userId: 0,
+					name: 'default name',
+					description: 'default description',
+				});
+				else if (this.entityType === 'user') Object.assign(this.inputUser, {
+					id: 1,
+					name: 'default name',
+					email: 'default email',
+					password: 'default password',
+					password2: 'default password',
+				});
+			},
+
+
             async login() {
                 this.currentUser = await this.sj.login({name: this.name, password: this.password}).then(this.sj.content).catch(rejected => {
                     console.error(rejected);
@@ -110,35 +131,24 @@
 				this.currentUser = {};
 			},
 			
+
 			async add() {
-				//this.retrieved = 
-				await this.entity.add(this.input).then(this.sj.content).catch(rejected => {
-					//C don't change
-                    return this.retrieved;
-				});
+				this.result = await this.Entity.add(this.input).then(this.sj.content).catch(this.handle);
 			},
 			async get() {
-				this.retrieved = await this.entity.get(this.input).then(this.sj.content).catch(rejected => {
-                    return this.retrieved;
-				});
+				this.result = await this.Entity.get(this.input).then(this.sj.content).catch(this.handle);
 			},
 			async edit() {
-				//this.retrieved = 
-				await this.entity.edit(this.input).then(this.sj.content).catch(rejected => {
-                    return this.retrieved;
-				});
+				this.result = await this.Entity.edit(this.input).then(this.sj.content).catch(this.handle);
 			},
 			async remove() {
-				//this.retrieved = 
-				await this.entity.remove(this.input).then(this.sj.content).catch(rejected => {
-                    return this.retrieved;
-				});
+				this.result = await this.Entity.remove(this.input).then(this.sj.content).catch(this.handle);
 			},
 
 			async subscribe() {
-				this.subscription = await this.$store.dispatch('subscribe', {Entity: this.entity, query: this.input, subscriber: this});
-				this.retrieved = this.$store.getters.getSubscriptionData(this.subscription);
+				this.subscription = await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.input, subscriber: this});
 			},
+
 		},
     }
 </script>
@@ -159,27 +169,6 @@
 		</section>
 
 		<section>
-			<button @click='add'>Add</button>
-			<button @click='get'>Get</button>
-			<button @click='edit'>Edit</button>
-			<button @click='remove'>Remove</button>
-			<button @click='subscribe'>Subscribe</button>
-			<!-- 
-				<input type='radio' name='methodType' v-model='method' value='add' id='addRadio'>
-				<label for='addRadio'>Add</label>
-
-				<input type='radio' name='methodType' v-model='method' value='get' id='getRadio' checked>
-				<label for='getRadio'>Get</label>
-				
-				<input type='radio' name='methodType' v-model='method' value='edit' id='editRadio'>
-				<label for='editRadio'>Edit</label>
-
-				<input type='radio' name='methodType' v-model='method' value='remove' id='removeRadio'>
-				<label for='removeRadio'>Delete</label> 
-			-->
-		</section>
-
-		<section>
 			<input type='radio' name='entityType' v-model='entityType' value='track' id='trackRadio'>
 			<label for='trackRadio'>Track</label>
 
@@ -188,6 +177,8 @@
 
 			<input type='radio' name='entityType' v-model='entityType' value='user' id='userRadio'>
 			<label for='userRadio'>User</label>
+
+			<button @click='autoFill'>Auto Fill</button>
 		</section>
 
 		<keep-alive>
@@ -215,14 +206,46 @@
 			</section>
 		</keep-alive>
 
-		<h3>Result</h3>
-		<p>{{JSON.stringify(this.result)}}</p>
+		<section>
+			
+			
+			<!-- 
+				<input type='radio' name='methodType' v-model='method' value='add' id='addRadio'>
+				<label for='addRadio'>Add</label>
 
-		<h3>Content</h3>
-		<track-display-list v-if='entityType === "track"' :p-data='retrievedTracks'></track-display-list>
-		<playlist-display-list  v-else-if='entityType === "playlist"' :p-data='retrievedPlaylists'></playlist-display-list>
-		<user-display-list  v-else-if='entityType === "user"' :p-data='retrievedUsers'></user-display-list>
-		
+				<input type='radio' name='methodType' v-model='method' value='get' id='getRadio' checked>
+				<label for='getRadio'>Get</label>
+				
+				<input type='radio' name='methodType' v-model='method' value='edit' id='editRadio'>
+				<label for='editRadio'>Edit</label>
+
+				<input type='radio' name='methodType' v-model='method' value='remove' id='removeRadio'>
+				<label for='removeRadio'>Delete</label> 
+			-->
+		</section>
+
+		<div class='twoColumn'>
+			<section>
+				<button @click='add'>Add</button>
+				<button @click='get'>Get</button>
+				<button @click='edit'>Edit</button>
+				<button @click='remove'>Remove</button>
+
+				<h3>Result</h3>
+				<track-display-list v-if='entityType === "track"' :p-data='result'></track-display-list>
+				<playlist-display-list  v-else-if='entityType === "playlist"' :p-data='result'></playlist-display-list>
+				<user-display-list  v-else-if='entityType === "user"' :p-data='result'></user-display-list>
+			</section>
+
+			<section>
+				<button @click='subscribe'>Subscribe</button>
+
+				<h3>Subscription</h3>
+				<track-display-list v-if='entityType === "track"' :p-data='subscriptionData'></track-display-list>
+				<playlist-display-list  v-else-if='entityType === "playlist"' :p-data='subscriptionData'></playlist-display-list>
+				<user-display-list  v-else-if='entityType === "user"' :p-data='subscriptionData'></user-display-list>
+			</section>
+		</div>
     </div>
 </template>
 
@@ -237,5 +260,14 @@
 	section {
 		margin-top: $section-space;
 		margin-bottom: $section-space;
+	}
+
+	.twoColumn {
+		display: flex;
+		align-content: stretch;
+		section {
+			flex-grow: 1;
+			flex-basis: 0;
+		}
 	}
 </style>

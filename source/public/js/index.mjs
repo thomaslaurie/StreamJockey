@@ -720,7 +720,10 @@ const store = new VueX.Store({
 				//C QuerySubscriptions are are responsible for updating the EntitySubscriptions they are subscribed to and their content references to these EntitySubscriptions
 				
 				let updatedEntitySubscriptions = [];
+
+				//C for each entity in the get result
 				await sj.asyncForEach(entities, async entity => {
+					//C format entity.id as a query for a EntitySubscription
 					let entityQuery = sj.any(sj.shake(entity, Entity.filters.id));
 
 					//C add existingSubscription as a subscriber to EntitySubscription
@@ -751,6 +754,9 @@ const store = new VueX.Store({
 						await context.dispatch('removeSubscriber', {table, query: existingEntitySubscription.query, subscriber: existingSubscription});
 					}
 				});
+
+				console.log('existing subscriptions', existingSubscription.content);
+				console.log('updated subscriptions', updatedEntitySubscriptions);
 
 				//C swap in the new references
 				context.commit('editSubscription', {subscription: existingSubscription, properties: {
@@ -822,7 +828,7 @@ sj.testTest = async function (store) {
 	let query = [{playlistId: 2}];
 	let changedName = sj.makeKey(10);
 
-	let change = [{id: 65, name: changedName}];
+	let change = [{id: 65, name: changedName}]; //TODO I deleted track 65
 	let subscriber = 'test subscriber';
 
 	let pass = true;
@@ -856,6 +862,6 @@ sj.testTest = async function (store) {
 	console.log('result', result);
 };
 
-sj.testTest(store);
+//sj.testTest(store);
 
 
