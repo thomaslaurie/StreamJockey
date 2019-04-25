@@ -132,7 +132,6 @@
 
     //TODO //L dynamic list rendering: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
     
-    
 	//? is v-model secure? it updates a variable with whatever is in the input
 */
 
@@ -176,16 +175,7 @@ Vue.mixin({
     },
 });
 
-// temp
-sj.makeKey = function (length) {
-    //C use only characters allowed in URLs
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let key = '';
-    for (let i = 0; i < length; i++) {
-        key += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return key;
-};
+
 
 const databaseSocket = new SocketIO('/database');
 
@@ -336,75 +326,10 @@ databaseSocket.test  = async function () {
 };
 
 databaseSocket.on('connect', async () => {
-	//databaseSocket.test();
 });
 
 databaseSocket.on('disconnect', async (reason) => {
-	//TODO client must re-subscribe everything in the database mirror when the socket disconnects then reconnects
-	//C client is responsible for re-subscribing on connect, server is responsible for removing subscriptions on disconnect
 });
-
-
-
-
-
-
-
-//TODO consider putting specific listeners into the mirrored database instead of having a generic event listener
-
-
-/* //R  
-	how to sync server data with vuex? updating parent components, unrelated components, etc. is a nightmare - which is what vuex is for anyways
-	//L https://forum.vuejs.org/t/vuejs-vuex-data-synchronization-with-server-backend/16340/2
-
-	global event bus that calls the object type (user, playlist, track, etc) and its id when updated - this prompts anything using that object to refresh
-
-	vuex store of 'watched' objects, when getSomething is called it adds the item to the list and the component itself to the item's watchers list - the component then uses this item in the object's store, any updates are propagated - when the component is destroyed the watcher is removed, when the last watcher is remove the item is removed, when an item is deleted the parent item (a playlist or something) will also have to watch it and update somehow, if its just the single item the component refreshes as normal and displays a not found error
-
-	or just find an existing library that does this
-
-	//! the entire database must not be synced, it must just be the data that is currently used by components, anything that is destroyed and reappears will update when it fetches its data
-*/
-/* //R live database: 
-	//C if an item in a list is refreshed and manually retrieves its own unique query (query only by id), it will add its own query in the mirrored database, if the parent list updates, then it switches back reactively based on p-data (the switch will have to include a destroy for the individual query), but this creates duplicate data and wont this mess up other foreign components representing the same data?
-
-	//C what if any queries with multiple results just have references to single queries?
-
-	//C the key should be the query itself
-
-	//C encoding keys into a string could mess up types by converting them all into strings, however this shouldn't be an issue as each column in the database only ever has one type
-
-	//? how will the mirrored database interact with non-async components, those that have been passed data without querying it via p-data? maybe still give it a reference but put it in a different list than 'watchers'?
-
-	//someGetMethod = () {
-		//send http get method with subscribe parameter set to databaseSocket.id
-		// or this could also be sent as a second request throught he socket - because it can run through the same validation and therefroe shoud be exactly the same
-		// get the data, store it in the mirrored database, add itself to the watcher list
-		// return the refrence to the data in the mirrored database
-
-	//}
-	//onUnneeded = () {
-		// when the data is no longer needed, the component destroys itself, and should call the unGet function - the removes the watcher from the mirrored data
-		// if all watchers are gone, destroy the mirrored data
-		// send an event to the server to remove the subscription
-	//}
-
-	//onServe = () {
-		// filters down to database method, 
-		//after validating return to be got values, 
-		//add the socket id to a room with the same name as the stringified query
-	//}
-
-	// in every create, edit, and delete database method, before returning, send the returned values to a notification queue (all of these should be the changed entries)
-	//TODO this will not catch some items if there are permission limitations - so maybe the enire object has to be returned and then filtered script-side? but even then wont this just call updates on items the subscriber doesn't even have access to? would a permission check need to be implemented?
-	// for each item in the notification queue, sort through open rooms and see if they match the item, if they do, send an event to every socket in the room
-
-	//C to match multiple queries, the socket subscription must parse the multiQuery and split it into single queries, to do direct string matching - do this client side
-	//! socket and http methods must go through the same validator on the server side
-
-	//? one more issue: how do i prevent events being broadcast to clients for private entries (ie clients dont have permission to view), this works as it is but basically it will trigger the client to update whenever something that matches updates server-side, but that is private so the client receives no new information- maybe consider putting permissions as part of the database query so it also applies to the rooms?
-*/
-
 
 
 //  ██╗   ██╗██╗   ██╗███████╗
@@ -427,74 +352,6 @@ import ErrorPage from '../vue/page/ErrorPage.vue';
 import NotFoundPage from '../vue/page/NotFoundPage.vue';
 import DatabasePage from '../vue/page/DatabasePage.vue';
 
-
-//R two approaches: use a rest request to subscribe and start the socket process, or using a socket request to subscribe and fetch via rest
-//R rest doesn't make as much sense as no method matches exactly what is being done (need to add a subscriber by sending a query and a socket id)
-//R maybe: use a subscribe request, which returns the initial query results, then updates via the socket - completely bypassing any get request
-//R or keep rest requests for transmitting data, just use the socket to transmit changes
-
-/*
-
-	server-side database changes:
-
-	--> any user changes the database
-		adds an entity
-		edits an entity
-		removes an entity
-		get can be ignored
-	the function executes as normal, but also dispatches (without awaiting) the event to [somewhere]
-		this event includes the entity with all of its (queriable) properties (not just id, because get may query by any property)
-		add 	- dispatches the entity after the change
-		remove 	- dispatches the entity before the change
-		edit 	- dispatches both the entity before and after the change
-	this entity is sent to [where ever query subscriptions are stored] where its compared against each query
-		try to compare in reverse order of frequency of properties, so that comparisons will short circuit as fast as possible
-		use a timeout for each query that is checked against the timestamp of the database change, remove subscription if exceeding (maybe like a day or something?)
-		//? more things in here (property filter, permission check, )
-	<-- if it matches, send a socket event to the connected client that the query has updated
-		//? or could just send the new data directly (makes validation + permissions a bit harder)
-
-
-
-	server-side subscription:
-
-	--> socket event received
-		includes a table property and the query entity
-	query is validated, modified
-	query is also stored along with the user id (permissions) and socket id in [some query store], also with a timestamp
-		somehow also calculate the needed properties (ie don't return password)
-		//R it doesn't matter too much that the queries are grouped - because users won't often be using the same queries anyways
-	<-- query is transformed into a string query, and returned
-
-	--> socket event received to unsubscribe from a query with query string
-	<-- find the query string in the store, validate user id & socket id, and delete it, return success
-
-
-
-	client-side subscription:
-		make a module that offers spreads for vuex
-
-	-> component calls vuex to subscribe to a query
-	<-- query is sent to server via socket to subscribe
-	--> validated query gets returned from socket
-	setup query mirror in vuex
-	send get request for initial data
-	give the query mirror the data
-	<- return the reference to the query mirror data
-
-	--> socket receives an event that a query has updated
-	<-- trigger a new get request for the query identified by the table, & query
-	--> receive new data
-	update
-
-	-> component calls vuex to unsubscribe from a query (on destroy, or query change)
-	<-- send a socket message to unsubscribe
-	--> receive success
-	remove the query mirror
-	<- return success
-*/
-
-//R I initially thought that encoding a query object as a string and using it as the subscription key would increase performance by decreasing lookup time, however, I'm thinking now that it won't as on the client-side, there won't be very many subscriptions. on the server side, this can't be done because in order to notify a change, these queries need to be subset matched which would require a loop of all subscriptions & subsequent decoding of query stings anyways. just having a list of objects with a query property makes the structure consistent across client and server and shouldn't have too big of a performance cost
 
 const router = new VueRouter({
 	//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
@@ -555,20 +412,158 @@ const router = new VueRouter({
 	],
 });
 const store = new VueX.Store({
-	state: {
-		//me: null, //TODO probably replace this with a NoUser object so that functions don't break
-		//? if user needs to be stored here (they dont, that happens with sessions atm) //L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
+	/* //R	Live Data - Thought Process
+		PROBLEM
 
-		//TODO consider having the table as another parameter in the encoded query?
-		//R a good reason not to is that table is a property that all entities will have, so making it part of the data structure will make searches faster
+			How do I sync server data with VueX? Updating parent components, unrelated components, etc. is a nightmare. This is what I'm using VueX is for anyways.
+			//L https://forum.vuejs.org/t/vuejs-vuex-data-synchronization-with-server-backend/16340/2
+
+			Maybe a global event bus that calls the object type (user, playlist, track, etc) and its id when updated. This would prompt anything using that object to refresh.
+
+			Maybe a store of 'watched' objects, when a GET request is called it adds the item to the list and the component itself to the item's watchers list. The component then uses this item in the object's store and any updates are propagated. When the component is destroyed the watcher is removed. when the last watcher is removed the item is removed. when an item is deleted the parent item (a playlist or something) will also have to watch it and update somehow. If its just the single item the component refreshes as normal and displays a not found error.
+
+			Or just find an existing library that does this.
+
+			The entire database must not be synced, it must just be the data that is currently used by components. Anything that is destroyed and recreated will update when it fetches its data.
+
+
+		CLIENT-SIDE LIVE DATA
+
+			If an item in a list is refreshed and manually retrieves its own unique query (query only by id), it will add its own query in the mirrored database, if the parent list updates, then it switches back reactively based on p-data (the switch will have to include a destroy for the individual query), but this creates duplicate data and wont this mess up other foreign components representing the same data?
+
+			What if any queries with multiple results just have references to single queries?
+
+			The key should be the query itself.
+
+			Encoding keys into a string could mess up types by converting them all into strings, however this shouldn't be an issue as each column in the database only ever has one type.
+
+			How will the mirrored database interact with non-async components, those that have been passed data without querying it via p-data? maybe still give it a reference but put it in a different list than 'watchers'?
+
+			Maybe have the table as another parameter in the encoded query? A good reason not to is that table is a property that all entities will have, so making it part of the data structure will make searches faster.
+
+
+			someGetMethod = () {
+				Send http get method with subscribe parameter set to databaseSocket.id.
+					Or this could also be sent as a second request through the socket. Because it can run through the same validation and therefore should be exactly the same.
+				Receive the data. Store it in the mirrored database, add itself to the watcher list.
+				Return the reference to the data in the mirrored database.
+
+			}
+			onUnneeded = () {
+				When the data is no longer needed, the component destroys itself, and should call the unGet function. This removes the watcher from the mirrored data.
+				If all watchers are gone, destroy the mirrored data.
+				Send an event to the server to remove the subscription.
+			}
+			onServe = () {
+				Filters down to database method.
+				After validating return to be got values.
+				Add the socket id to a room with the same name as the stringified query.
+			}
+
+		
+		SERVER SIDE CONSIDERATIONS
+
+			In every create, edit, and delete database method, before returning, send the returned values to a notification queue, all of these should be the changed entries.
+
+			This will not catch some items if there are permission limitations, so maybe the entire object has to be returned and then filtered script-side? But even then wont this just call updates on items the subscriber doesn't even have access to? Would a permission check need to be implemented?
+			
+			For each item in the notification queue, sort through open rooms and see if they match the item, if they do, send an event to every socket in the room.
+
+			To match multiple queries, the socket subscription must parse the multiQuery and split it into single queries, to do direct string matching - do this client side.
+
+			Socket and http methods must go through the same validator on the server side
+
+			How do I prevent events being broadcast to clients for private entities (ie clients that don't have permission to view them), this works as it is but it will trigger the client to update whenever something that matches updates server-side, but that is private so the client receives no new information. Maybe consider putting permissions as part of the database query so it also applies to the rooms?
+
+
+		PROCEDURES
+			server-side database changes:
+
+			--> any user changes the database
+				adds an entity
+				edits an entity
+				removes an entity
+				get can be ignored
+			the function executes as normal, but also dispatches (without awaiting) the event to [somewhere]
+				this event includes the entity with all of its (query-able) properties (not just id, because get may query by any property)
+				add 	- dispatches the entity after the change
+				remove 	- dispatches the entity before the change
+				edit 	- dispatches both the entity before and after the change
+			this entity is sent to [where ever query subscriptions are stored] where its compared against each query
+				try to compare in reverse order of frequency of properties, so that comparisons will short circuit as fast as possible
+				use a timeout for each query that is checked against the timestamp of the database change, remove subscription if exceeding (maybe like a day or something?)
+				//? more things in here (property filter, permission check, )
+			<-- if it matches, send a socket event to the connected client that the query has updated
+				//? or could just send the new data directly (makes validation + permissions a bit harder)
+
+
+			server-side subscription:
+
+			--> socket event received
+				includes a table property and the query entity
+			query is validated, modified
+			query is also stored along with the user id (permissions) and socket id in [some query store], also with a timestamp
+				somehow also calculate the needed properties (ie don't return password)
+				//R it doesn't matter too much that the queries are grouped - because users won't often be using the same queries anyways
+			<-- query is transformed into a string query, and returned
+
+			--> socket event received to unsubscribe from a query with query string
+			<-- find the query string in the store, validate user id & socket id, and delete it, return success
+
+
+			client-side subscription:
+				make a module that offers spreads for VueX
+
+			-> component calls VueX to subscribe to a query
+			<-- query is sent to server via socket to subscribe
+			--> validated query gets returned from socket
+			setup query mirror in VueX
+			send get request for initial data
+			give the query mirror the data
+			<- return the reference to the query mirror data
+
+			--> socket receives an event that a query has updated
+			<-- trigger a new get request for the query identified by the table, & query
+			--> receive new data
+			update
+
+			-> component calls VueX to unsubscribe from a query (on destroy, or query change)
+			<-- send a socket message to unsubscribe
+			--> receive success
+			remove the query mirror
+			<- return success
+
+
+		SUBSCRIBE - REST vs SOCKET
+			
+			Two approaches: use a rest request to subscribe and start the socket process, or using a socket request to subscribe and fetch via rest
+			Rest doesn't make as much sense as no method matches exactly what is being done (need to add a subscriber by sending a query and a socket id)
+			Maybe use a subscribe request, which returns the initial query results, then updates via the socket - completely bypassing any get request
+			Or keep rest requests for transmitting data, just use the socket to transmit changes
+
+
+		QUERY ENCODING
+			
+			I initially thought that encoding a query object as a string and using it as the subscription key would increase performance by decreasing lookup time, however, I'm thinking now that it won't as on the client-side, there won't be very many subscriptions. on the server side, this can't be done because in order to notify a change, these queries need to be subset matched which would require a loop of all subscriptions & subsequent decoding of query stings anyways. just having a list of objects with a query property makes the structure consistent across client and server and shouldn't have too big of a performance cost
+	*/
+	state: {
+		//L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
+		//R Don't store the user here. Server-side authorization uses session.user, client-side should fetch one's own user.
+
 		subscriptions: new sj.Subscriptions(),
 	},
-	actions: { //! all actions are async via dispatch('functionName', payload)
+	actions: { //G all actions are async via dispatch('functionName', payload)
 		//TODO errors should be handled in these actions
 
-		async subscribe(context, {Entity, query, subscriber, timeout = 10000}) {
-			console.log('Z');
+		//TODO consider putting specific listeners into the mirrored database instead of having a generic event listener
 
+		//TODO client must re-subscribe everything in the database mirror when the socket disconnects then reconnects
+		//C client is responsible for re-subscribing on connect, server is responsible for removing subscriptions on disconnect
+
+		//TODO both client and server must handle duplicate subscriptions
+
+
+		async subscribe(context, {Entity, query, subscriber, timeout = 10000}) {
 			//C subscribe on server 
 			let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
 			let processedQuery = await new Promise((resolve, reject) => {
@@ -593,7 +588,7 @@ const store = new VueX.Store({
 			await context.dispatch('addSubscriber', {table, query: processedQuery, subscriber});
 
 			//C trigger the initial update
-			await context.dispatch('updateSubscription', {Entity, table, query: processedQuery, timestamp: Date.now()});
+			await context.dispatch('update', {Entity, table, query: processedQuery, timestamp: Date.now()});
 
 			//C return the subscription's data, from this point component data will update (no need to worry about flickering from above)
 			let subscription = context.getters.findSubscription(table, processedQuery);
@@ -625,69 +620,7 @@ const store = new VueX.Store({
 			await context.dispatch('removeSubscriber', {table, query: processedQuery, subscriber});
 		},
 
-		async addSubscriber(context, {table, query, subscriber}) { 
-			//C find subscription
-			let existingSubscription = context.getters.findSubscription(table, query);
-			if (!existingSubscription) {
-				//C determine if Query or Entity Subscription
-				if (query.length === 1 && Object.keys(query).length === 1 && sj.isType(query[0].id, Number)) var Type = sj.EntitySubscription;
-				else var Type = sj.QuerySubscription;
-
-				//C create new subscription
-				context.commit('addSubscription', {table, subscription: new Type({
-					query, //TODO make immutable
-					subscribers: [subscriber],
-				})});
-				//console.log('addSubscriber() - added new query mirror for new subscriber', table[query], subscriber);
-			} else {
-				//C find subscriber
-				let existingSubscriber = existingSubscription.subscribers.find(existingSubscriber => existingSubscriber === subscriber);
-
-				if (!existingSubscriber) {
-					//C add subscriber //! can't just push here as only mutations should modify state
-					context.commit('editSubscription', {subscription: existingSubscription, properties: {
-						subscribers: [...existingSubscription.subscribers, subscriber],
-					}});
-					//console.log('addSubscriber() - added new subscriber subscriber', table[query], subscriber);
-				}
-			}
-		},
-		async removeSubscriber(context, {table, query, subscriber}) {
-			//C find subscription
-			let existingSubscription = context.getters.findSubscription(table, query);
-			if (!existingSubscription) throw new sj.Error({
-				origin: 'removeSubscriber()',
-				reason: 'could not find subscription to remove',
-			});
-
-			//C find subscriber
-			existingSubscription.subscribers.forEach((existingSubscriber, index, subscribers) => {
-				if (existingSubscriber === subscriber) { 
-					//C remove subscriber
-					context.commit('editSubscription', {subscription: existingSubscription, properties: {
-						subscribers: subscribers.filter(existingSubscriber => existingSubscriber !== subscriber), 
-					}});
-				}
-				//console.log('removeSubscriber() - removed subscriber', queryTable[query], subscriber);
-			});
-
-			//C if no subscribers remain
-			if (existingSubscription.subscribers.length <= 0) { 
-				//C if QuerySubscription
-				if (!sj.isType(existingSubscription, sj.EntitySubscription)) {
-					//C unsubscribe self from all EntitySubscriptions
-					await sj.asyncForEach(existingSubscription.content, async entitySubscription => {
-						await context.dispatch('removeSubscriber', {table, query: entitySubscription.query, subscriber: existingSubscription});
-					});
-				}
-
-				//C remove self
-				context.commit('removeSubscription', {table, subscription: existingSubscription}); 
-				//console.log('removeSubscriber() - removing item', queryTable[query]);
-			}
-		},
-		
-		async updateSubscription(context, {Entity, table, query, timestamp}) {
+		async update(context, {Entity, table, query, timestamp}) {
 			//C find subscription
 			let existingSubscription = context.getters.findSubscription(table, query);
 			if (!existingSubscription) throw new sj.Error({
@@ -697,7 +630,7 @@ const store = new VueX.Store({
 
 			//C check timestamp to avoid sending redundant get requests
 			if (timestamp <= existingSubscription.timestamp) return sj.Warn({
-				origin: 'updateSubscription()',
+				origin: 'update()',
 				message: 'did not update subscription because newer data has already been received',
 				reason: `existing timestamp: ${existingSubscription.timestamp}, call timestamp: ${timestamp}`
 			});
@@ -731,7 +664,7 @@ const store = new VueX.Store({
 					await context.dispatch('addSubscriber', {table, query: entityQuery, subscriber: existingSubscription});
 					let entitySubscription = context.getters.findSubscription(table, entityQuery);
 					if (!entitySubscription) throw new sj.Error({
-						origin: 'updateSubscription()',
+						origin: 'update()',
 						reason: 'could not find entity subscription that was just added',
 					});
 
@@ -755,18 +688,90 @@ const store = new VueX.Store({
 					}
 				});
 
-				console.log('existing subscriptions', existingSubscription.content);
-				console.log('updated subscriptions', updatedEntitySubscriptions);
-
 				//C swap in the new references
 				context.commit('editSubscription', {subscription: existingSubscription, properties: {
 					content: updatedEntitySubscriptions,
 				}});
 			}
 		},
+
+		async addSubscriber(context, {table, query, subscriber}) { 
+			//C find subscription
+			let existingSubscription = context.getters.findSubscription(table, query);
+			if (!existingSubscription) {
+				//C determine if Query or Entity Subscription
+				if (query.length === 1 && Object.keys(query).length === 1 && sj.isType(query[0].id, Number)) var Type = sj.EntitySubscription;
+				else var Type = sj.QuerySubscription;
+
+				//C create new subscription
+				context.commit('addSubscription', {table, subscription: new Type({
+					query, //TODO make immutable
+					subscribers: [subscriber],
+				})});
+			} else {
+				//C find subscriber
+				let existingSubscriber = existingSubscription.subscribers.find(existingSubscriber => existingSubscriber === subscriber);
+
+				if (!existingSubscriber) {
+					//C add subscriber //! can't just push here as only mutations should modify state
+					context.commit('editSubscription', {subscription: existingSubscription, properties: {
+						subscribers: [...existingSubscription.subscribers, subscriber],
+					}});
+				}
+			}
+		},
+		async removeSubscriber(context, {table, query, subscriber}) {
+			//C find subscription
+			let existingSubscription = context.getters.findSubscription(table, query);
+			if (!existingSubscription) throw new sj.Error({
+				origin: 'removeSubscriber()',
+				reason: 'could not find subscription to remove',
+			});
+
+			//C find subscriber
+			existingSubscription.subscribers.forEach((existingSubscriber, index, subscribers) => {
+				if (existingSubscriber === subscriber) { 
+					//C remove subscriber
+					context.commit('editSubscription', {subscription: existingSubscription, properties: {
+						subscribers: subscribers.filter(existingSubscriber => existingSubscriber !== subscriber), 
+					}});
+				}
+			});
+
+			//C if no subscribers remain
+			if (existingSubscription.subscribers.length <= 0) { 
+				//C if QuerySubscription
+				if (!sj.isType(existingSubscription, sj.EntitySubscription)) {
+					//C unsubscribe self from all EntitySubscriptions
+					await sj.asyncForEach(existingSubscription.content, async entitySubscription => {
+						await context.dispatch('removeSubscriber', {table, query: entitySubscription.query, subscriber: existingSubscription});
+					});
+				}
+
+				//C remove self
+				context.commit('removeSubscription', {table, subscription: existingSubscription});
+			}
+		},
+
+
+		async reconnect(context) {
+			//C for each table
+			await sj.asyncForEach(sj.Entity.children, async child => {
+				//C for each subscription
+				await sj.asyncForEach(context.state.subscriptions[child.table], async subscription => {
+					//C for each subscriber
+					await sj.asyncForEach(subscription.subscribers, subscriber => {
+						if (!sj.isType(subscriber, sj.QuerySubscription)) {
+							//----------
+							context.dispatch('subscribe', {Entity: child, query: subscription.query, subscriber: subscriber})
+						}
+					});
+				});
+				
+			});
+		},
 	},
 	mutations: { //G these are bare-bones setters, data should already be checked and formatted
-		// database sync
 		addSubscription(state, {table, subscription}) {
 			table.push(subscription);
 		},
@@ -815,13 +820,10 @@ const vm = new Vue({
 
 //C trigger query updates when notified of change
 databaseSocket.on('NOTIFY', async ({table, query, timestamp}) => {
-	console.log('NOTIFIED:', table, query);
-
 	let Entity = sj.tableToEntity(table);
-	store.dispatch('updateSubscription', {Entity, table: store.state.subscriptions[Entity.table], query, timestamp});
+	store.dispatch('update', {Entity, table: store.state.subscriptions[Entity.table], query, timestamp});
 });
 
-//sj.testRun(sj.testRun(store));
 
 sj.testTest = async function (store) {
 	let Entity = sj.Track;

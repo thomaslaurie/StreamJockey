@@ -587,7 +587,6 @@ sj.tableToEntity = function (table) {
 		content: table,
 	});
 };
-
 sj.deepMatch = function (a, b, {
 	deep = true, 
 	depth = 10, 
@@ -1097,6 +1096,63 @@ sj.Subscriptions = function () {
 	sj.Entity.children.forEach(child => {
 		this[child.table] = [];
 	});
+};
+
+// random key generation //TODO this is only public for testing
+sj.makeKey = function (length) {
+    //C use only characters allowed in URLs
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let key = '';
+    for (let i = 0; i < length; i++) {
+        key += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return key;
+};
+sj.addKey = async function (list, timeout) {
+    let pack = {};
+    let defaultTimeout = 300000; //C default 5 minutes
+
+    pack.key = await sj.recursiveSyncCount(100, (key) => {
+        let found = false;
+        for (let i = 0; i < list.length; i++) {
+            if (list[i].key === key) {
+                found = true;
+                break;
+            }
+        }
+        return found;
+    }, sj.makeKey, 10);
+
+    pack.timestamp = Date.now();
+    pack.timeout = pack.timestamp;
+    sj.isType(timeout, 'number') ? pack.timeout += timeout : pack.timeout += defaultTimeout;
+
+    list.push(pack);
+    return pack;
+};
+sj.checkKey = async function (list, key) {
+    //C checks a list for a key, will remove and return if found, will clean up timed-out keys
+    
+    for(let i = 0; i < list.length; i++) {
+        //C check if timed out
+        let fresh = list[i].timeout > Date.now() ? true : false;
+        
+        //C if the key is found and not timed out, take it out and return it
+        if (list[i].key === key && fresh) {
+            return list.splice(i, 1)[0];
+        }
+
+        //C remove timed-out keys //TODO check that this works
+        if (!fresh) {
+            list.splice(i, 1);
+        }
+    }
+
+    throw new sj.Error({
+        log: true,
+        origin: 'checkKey()',
+        message: 'request timeout, or just an invalid key',
+    });
 };
 
 	

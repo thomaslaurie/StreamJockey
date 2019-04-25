@@ -102,13 +102,13 @@
 					this.inputTrack.artists.push('default artist A', 'default artist B');
 				}
 				else if (this.entityType === 'playlist') Object.assign(this.inputPlaylist, {
-					id: 1,
-					userId: 0,
+					id: 0,
+					userId: 1,
 					name: 'default name',
 					description: 'default description',
 				});
 				else if (this.entityType === 'user') Object.assign(this.inputUser, {
-					id: 1,
+					id: 0,
 					name: 'default name',
 					email: 'default email',
 					password: 'default password',
