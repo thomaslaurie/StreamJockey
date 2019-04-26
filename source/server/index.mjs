@@ -157,56 +157,45 @@ sj.databaseSockets.use((socket, next) => {
 
 //L https://socket.io/docs/emit-cheatsheet/
 sj.databaseSockets.on('connect', (socket) => {
-	//TODO errors not caught in here
-
 	console.log('SOCKET - CONNECTED', socket.id);
-	//C give socket id to session.user //? I don't think the actual cookie receives this, but for now only the socket.session needs it
-	//! won't set socketId if not logged in, //TODO this will cause issues when the user logs in but the socket doesn't reconnect
-	if (sj.isType(socket.session.user, Object)) socket.session.user.socketId = socket.id;
 
-	//C client will send all of it's re-subscribe requests on connect
+	//C give socket id to session.user //? I don't think the actual cookie.session receives this, but for now only the socket.session needs it
+	if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = socket.id;
 
 
 	socket.on('disconnect', async (reason) => {
 		console.log('SOCKET - DISCONNECTED', socket.id);
-		if (sj.isType(socket.session.user, Object)) {
-			delete socket.session.user.socketId;
-			await sj.subscriptions.disconnect(socket.session.user);
-		}	
+
+		await sj.subscriptions.disconnect(socket.id).catch(rejected => { //TODO better way
+			if (sj.isType(rejected, sj.Base)) rejected.announce();
+			else console.error('subscription disconnect error:', rejected);
+		});
+		if (sj.isType(socket.session.user, sj.User)) delete socket.session.user.socketId;
 	});
 
 
 	socket.on('SUBSCRIBE', async ({table, query}, callback) => {
 		console.log('SOCKET - SUBSCRIBE', table, query);
-		if (sj.isType(socket.session.user, Object)) {
-			let result = await sj.subscriptions.add(table, query, socket.session.user);
-			callback(result);
-		} else {
-			callback(new sj.Error({
-				origin: 'SOCKET - SUBSCRIBE',
-				message: 'user is not logged in',
-			}));
-		}
-		
+
+		//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
+		let subscriber = socket.session.user;
+		if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
+		const result = await sj.subscriptions.add(table, query, subscriber).catch(sj.andResolve);
+		callback(result);		
 	});
 
 	socket.on('UNSUBSCRIBE', async ({table, query}, callback) => {
 		console.log('SOCKET - UNSUBSCRIBE', query);
 
-		if (sj.isType(socket.session.user, Object)) {
-			let result = await sj.subscriptions.remove(table, query, socket.session.user);
-			callback(result);
-		} else {
-			callback(new sj.Error({
-				origin: 'SOCKET - SUBSCRIBE',
-				message: 'user is not logged in',
-			}));
-		}
+		let subscriber = socket.session.user;
+		if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
+		const result = await sj.subscriptions.remove(table, query, subscriber).catch(sj.andResolve);
+		callback(result);
 	});
 
 
 	socket.on('error', (reason) => {
-		console.log('SOCKET - ERROR', socket.id, reason);
+		console.error('SOCKET - ERROR', socket.id, reason);
 	});
 });
 

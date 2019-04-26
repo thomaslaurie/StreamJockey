@@ -98,8 +98,8 @@
 						name: 'default name',
 						duration: 1000,
 					});
-					this.inputTrack.source.name = 'spotify';
-					this.inputTrack.artists.push('default artist A', 'default artist B');
+					this.inputSource = 'spotify';
+					this.inputArtists = 'default artist A,default artist B';
 				}
 				else if (this.entityType === 'playlist') Object.assign(this.inputPlaylist, {
 					id: 0,

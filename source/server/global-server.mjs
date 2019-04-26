@@ -95,7 +95,7 @@
 //     ██║   ██║   ██║██║  ██║██║   ██║
 //     ██║   ██║   ██║██║  ██║██║   ██║
 //     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝  
 
 /*
     //TODO tree-shake any objects that don't need to be exported (remove from sj.x, just hae them locally defined)
@@ -150,7 +150,7 @@
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
 //  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝ 
 
 // builtin
 
@@ -168,7 +168,7 @@ import database, {pgp} from './db.mjs';
 //  ██║██╔██╗ ██║██║   ██║   
 //  ██║██║╚██╗██║██║   ██║   
 //  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝    
 
 sj.fetch = fetch;
 
@@ -184,7 +184,7 @@ sj.db = database; //C for use of db with globals so that db doesn't have to be i
 //  ██║   ██║   ██║   ██║██║     
 //  ██║   ██║   ██║   ██║██║     
 //  ╚██████╔╝   ██║   ██║███████╗
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝
+//   ╚═════╝    ╚═╝   ╚═╝╚══════╝ 
 
 // postgres
 //? this should be called once on startup, where should this go?
@@ -506,30 +506,31 @@ sj.buildSet = function (mappedEntity) {
 //  ██║     ██║██║   ██║█████╗  
 //  ██║     ██║╚██╗ ██╔╝██╔══╝  
 //  ███████╗██║ ╚████╔╝ ███████╗
-//  ╚══════╝╚═╝  ╚═══╝  ╚══════╝
+//  ╚══════╝╚═╝  ╚═══╝  ╚══════╝ 
 
 sj.subscriptions = (function () {
 	Object.assign(this, new sj.Subscriptions());
 
-	this.tables = []; //C for iteration of all tables
-	sj.Entity.children.forEach(child => {
-		this.tables.push(this[child.table]);
-	});
+	//G subscribers/users are identified by their socketId, this is so that not-logged-in clients can still subscribe to data, while still allowing the full user object to be the subscriber
 
 	this.add = async function (table, query, user) {
-		let Entity = sj.tableToEntity(table); //! this[Entity.table] is used over this[table] because sj.tableToEntity() is the validator for table
+		//! this[Entity.table] is used over this[table] because sj.tableToEntity() is the validator for table, which up to this point is client-side input
+		let Entity = sj.tableToEntity(table); 
 		let processedQuery = await Entity.getMimic(query);
 
-		//C find or add query 
-		let subscription = this[Entity.table].find(subscription => sj.deepMatch(processedQuery, subscription.query, {matchOrder: false})); //! not a super-set
+		//C find query //! not a super-set
+		let subscription = this[Entity.table].find(subscription => sj.deepMatch(processedQuery, subscription.query, {matchOrder: false}));
 		if (!subscription) {
+			//C if not found, add a new one
+			//! EntitySubscriptions aren't needed on server-side
 			subscription = new sj.QuerySubscription({query: processedQuery});
 			this[Entity.table].push(subscription);
 		};
 		
-		//C find or add subscriber
-		let subscriber = subscription.subscribers.find(subscriber => subscriber.id === user.id);
+		//C find subscriber
+		let subscriber = subscription.subscribers.find(subscriber => subscriber.socketId === user.socketId);
 		if (!subscriber) {
+			//C if not found, add a new one
 			subscriber = user;
 			subscription.subscribers.push(subscriber);
 		}
@@ -567,7 +568,7 @@ sj.subscriptions = (function () {
 		//C find or add subscriber
 		let subscriberIndex = -1;
 		let subscriber = subscription.subscribers.find((subscriber, i) => {
-			if (subscriber.id === user.id) {
+			if (subscriber.socketId === user.socketId) {
 				subscriberIndex = i;
 				return true;
 			}
@@ -625,21 +626,24 @@ sj.subscriptions = (function () {
 	};
 
 
-	//G connect is called individually by client-side
 	this.disconnect = async function (user) {
+		console.log('disconnect called');
+		//G reconnect is called client-side
 		//C removes user from each subscription
-		this.tables.forEach(table => {
-			table.forEach((subscription, subscriptionIndex) => {
-				subscription.subscribers.forEach((subscriber, subscriberIndex, subscribers) => {
-					if (subscriber.id === user.id) {
-						//C remove subscriber
-						subscribers.splice(subscriberIndex, 1);
+		sj.Entity.children.forEach(child => {
+			this[child.table].forEach(table => {
+				table.forEach((subscription, subscriptionIndex) => {
+					subscription.subscribers.forEach((subscriber, subscriberIndex, subscribers) => {
+						if (subscriber.socketId === user.socketId) {
+							//C remove subscriber
+							subscribers.splice(subscriberIndex, 1);
 
-						//C remove subscription if now empty
-						if (subscribers.length <= 0) {
-							table.splice(subscriptionIndex, 1);
+							//C remove subscription if now empty
+							if (subscribers.length <= 0) {
+								table.splice(subscriptionIndex, 1);
+							}
 						}
-					}
+					});
 				});
 			});
 		});
@@ -656,10 +660,11 @@ sj.subscriptions = (function () {
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
 //  ╚██████╗███████╗██║  ██║███████║███████║
-//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
 
 // entity
 (function () { // static
+	// methods
 	this.add = async function (query, db = sj.db) {
 		return await this.main(db, query, 'add');
 	};
@@ -672,130 +677,125 @@ sj.subscriptions = (function () {
 	this.remove = async function (query, db = sj.db) {
 		return await this.main(db, query, 'remove');
 	};
-
 	//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.notifyChange()
 	this.getMimic = async function (query, db = sj.db) {
 		return await this.main(db, query, 'getMimic');
 	};
 
+	// structure
 	this.main = async function (db, anyEntities, methodName) {
 		//C catch sj.Entity
-		if (this === sj.Entity) {
-			throw new sj.Error({
-				origin: 'sj.Entity.[CRUD]',
-				reason: `cannot call CRUD method directly on sj.Entity`,
-			});
-		}
-
-
-		//C shorthand
-		let isGetMimic = methodName === 'getMimic'; //C store getMimic
-		if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
-		let isGet = methodName === 'get';
+		if (this === sj.Entity) throw new sj.Error({
+			origin: 'sj.Entity.[CRUD]',
+			reason: `cannot call CRUD method directly on sj.Entity`,
+		});
 
 		//C cast as array
-		let entities = sj.any(anyEntities);
+		const entities = sj.any(anyEntities);
+
+		//C shorthand
+		const isGetMimic = methodName === 'getMimic'; //C store getMimic
+		if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
+		const isGet = methodName === 'get';
+
+		const accessory = {};
+		
+
 		return await db.tx(async t => {
-			let accessory = {};
-
-
 			//C process list before iteration
-			let beforeEntities = await this[methodName+'Before'](t, entities, accessory);
+			const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
 			//C validate
-			let validatedEntities = await sj.asyncForEach(beforeEntities, async entity => {
-				return await this.validate(entity, methodName).catch(sj.propagate);
-			});
+			const validatedEntities = await sj.asyncForEach(beforeEntities, async entity => await this.validate(entity, methodName).catch(sj.propagate));
 
 			//C prepare
-			let preparedEntities = await sj.asyncForEach(validatedEntities, async entity => {
-				return await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate);
-			});
-
+			const preparedEntities = await sj.asyncForEach(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate));
 
 			//C accommodate other influenced entities
-			if (!isGet) var influencedEntities = await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate);
+			const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate) : [];
 
 			//C map properties to columns
-			let inputMapped = this.mapColumns(preparedEntities);
-			if (!isGet) var influencedMapped = this.mapColumns(influencedEntities);
+			const inputMapped = this.mapColumns(preparedEntities);
+			const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : [];
 
-			let before = [];
-			let after = !isGetMimic ? [] : inputMapped;
+
+			//C execute SQL
+			const inputBefore = [];
+			const inputAfter = isGetMimic ? inputMapped : [];
 			if (!isGetMimic) {
-				//C execute SQL
 				await sj.asyncForEach(inputMapped, async entity => {
 					//C before, ignore add
 					if (!isGet && methodName !== 'add') {
-						let inputBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate);
-						before.push(...inputBefore);
+						const before = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate)
+						inputBefore.push(...before);
 					}
 
 					//C after, ignore remove (still needs to execute though)
-					let inputAfter = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
-					if (methodName !== 'remove') after.push(...inputAfter);
+					const after = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
+					if (methodName !== 'remove') inputAfter.push(...after);
 				}).catch(rejected => {
 					throw sj.propagate(new sj.ErrorList({
 						...this[methodName+'Error'](),
 						content: rejected,
 					}));
 				});
-				if (!isGet) {
-					await sj.asyncForEach(influencedMapped, async influencedEntity => {
-						let influencedBefore = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate);
-						let influencedAfter = await this.editQuery(t, influencedEntity).then(sj.any).catch(sj.propagate);
+			}
 
-						before.push(...influencedBefore);
-						after.push(...influencedAfter);
-					}).catch(rejected => {
-						throw sj.propagate(new sj.ErrorList({
-							...this[methodName+'Error'](),
-							content: rejected,
-						}));
-					});
-				}
+			//C edit influenced entities
+			const influencedBefore = [];
+			const influencedAfter = [];
+			if (!isGet) {
+				await sj.asyncForEach(influencedMapped, async influencedEntity => {
+					const before = await this.getQuery(t, sj.shake(influencedEntity, this.filters.id)).then(sj.any).catch(sj.propagate);
+					influencedBefore.push(...before);
+
+					const after = await this.editQuery(t, influencedEntity).then(sj.any).catch(sj.propagate);
+					influencedAfter.push(...after);
+				}).catch(rejected => {
+					throw sj.propagate(new sj.ErrorList({
+						...this[methodName+'Error'](),
+						content: rejected,
+					}));
+				});
 			}
 
 
+			//C group for iteration
+			const all = [inputBefore, inputAfter, influencedBefore, influencedAfter];
+
 			//C unmap columns to properties
-			let unmappedBefore = this.unmapColumns(before);
-			let unmappedAfter = this.unmapColumns(after);
+			const unmapped = all.map(list => this.unmapColumns(list));
 
 			//C process list after iteration
-			let afterBefore = await this[methodName+'After'](t, unmappedBefore, accessory).catch(sj.propagate);
-			let afterAfter = await this[methodName+'After'](t, unmappedAfter, accessory).catch(sj.propagate);
+			const after = await sj.asyncForEach(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
 
 
 			//C notify subscribers, entities should be shook according to their getOut filter here
-			let getShookBefore = sj.shake(afterBefore, this.filters.getOut);
-			let getShookAfter = sj.shake(afterAfter, this.filters.getOut);
+			const shookGet = after.map(list => sj.shake(list, this.filters.getOut));
 
 			//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
-			let timestamp = Date.now();
+			const timestamp = Date.now();
 
-			if (!isGet) { //C no changes for get
-				sj.subscriptions.notify(this, getShookBefore, timestamp, methodName);
-				sj.subscriptions.notify(this, getShookAfter, timestamp, methodName);
-			} else if (isGetMimic) { //C return getMimic here to mimic entity notification
-				return getShookAfter;
-			}
+			if (!isGet) shookGet.forEach(list => sj.subscriptions.notify(this, list, timestamp, methodName)); //C if get, don't notify
+			else if (isGetMimic) return shookGet[1]; //C if getMimic, return shookGet-after
 
 
 			//C shake for return
-			let shookBefore = sj.shake(afterBefore, this.filters[methodName+'Out']);
-			let shookAfter = sj.shake(afterAfter, this.filters[methodName+'Out']);
+			const shook = after.map(list => sj.shake(list, this.filters[methodName+'Out']));
 
 			//C rebuild
-			let builtAfter = shookAfter.map(entity => new this(entity));
+			const built = shook.map(list => list.map(entity => new this(entity)));
 
 			return new sj.SuccessList({
 				...this[methodName+'Success'](),
-				content: builtAfter, 
+				content: built[1], 
 				timestamp,
 			});
 		}).catch(sj.propagate);
 	};
 
+	// parts
+	//G all of these parts are dependant on each other (eg. accessory), so it is ok to make assumptions between these functions
 	//C process before execution
 	this.addBefore = 
 	this.getBefore = 
@@ -887,7 +887,7 @@ sj.subscriptions = (function () {
 					//C set entity[key] as value of mappedEntity[columnName]
 					entity[key] = mappedEntity[columnName];
 				} else {
-					console.warn(`sj.Entity.mapColumns() - column ${columnName} in mappedEntity not found in schema`);
+					console.warn(`sj.Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
 				}
 			});
 			return entity;
@@ -1139,7 +1139,7 @@ sj.subscriptions = (function () {
 //  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
 //  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
 //  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
-//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝ 
 
 /* TODO
 	//TODO could these just return the base object since they don't need to deal with arrays? but what about keeping consistency with the logout function
@@ -1249,7 +1249,7 @@ sj.isLoggedIn = async function (ctx) {
 //  ██║   ██║███████╗█████╗  ██████╔╝
 //  ██║   ██║╚════██║██╔══╝  ██╔══██╗
 //  ╚██████╔╝███████║███████╗██║  ██║
-//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
+//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
 
 /* TODO
     userNameRules has userName input field ids, this wont target them because they wont exist (//? why?) - find a fix for this or maybe just send unfound DOM notices to the general notice by default?
@@ -1379,7 +1379,7 @@ sj.isLoggedIn = async function (ctx) {
 //  ██████╔╝██║     ███████║ ╚████╔╝ ██║     ██║███████╗   ██║   
 //  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██║     ██║╚════██║   ██║   
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
-//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
+//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
 
 // CRUD
 (function () {
@@ -1505,7 +1505,7 @@ sj.isLoggedIn = async function (ctx) {
 //     ██║   ██████╔╝███████║██║     █████╔╝ 
 //     ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ 
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
-//     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+//     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
 
 // CRUD
 (function () {
@@ -1521,11 +1521,19 @@ sj.isLoggedIn = async function (ctx) {
 		});
 		return newEntities;
 	};
+
 	this.addPrepare = async function (t, track) {
-		let newTrack = Object.assign({}, track);
-		let existingTracks = await sj.Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
-		newTrack.position = existingTracks.length;
+		//C set id of tracks to be added as a temporary symbol, so that sj.Track.order() is able to identify tracks
+		let newTrack = {...track, id: Symbol()};
+		if (!sj.isType(newTrack.position, 'integer')) {
+			let existingTracks = await sj.Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
+			newTrack.position = existingTracks.length;
+		}
 		return newTrack;
+	};
+	this.removePrepare = async function (t, track) {
+		//C set position of tracks to be removed as null, so that sj.Track.order() recognizes them as tracks to remove
+		return {...track, position: null};
 	};
 
 	this.queryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
@@ -1822,117 +1830,141 @@ sj.isLoggedIn = async function (ctx) {
 		//C out-of-bounds positions will be positioned at the start or end of the playlist
 		//C duplicate positions will be in order of input order
 		//C overlapping positions will be be in order of input position, this will only be caused by other track's out-of-bounds or duplicate positions
+		//! requires tracks to be added have a symbol id, and tracks to be removed have a null position
 
-		//C filter out tracks without an id and position or playlistId
-		let inputTracks = tracks.filter(track => !sj.isEmpty(track.id) && (!sj.isEmpty(track.position) || !sj.isEmpty(track.playlistId)));
+		//C filter out tracks
+		let inputTracks = tracks.filter(track => 
+			//C without an id (including symbol)
+			(!sj.isEmpty(track.id) || typeof track.id === 'symbol') 
+			//C and without a position (including null) or playlistId
+			&& (!sj.isEmpty(track.position) || track.position === null || !sj.isEmpty(track.playlistId))); 
 		//C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 		inputTracks = inputTracks.filter((track, index, self) => self.slice(index+1).every(trackAfter => track.id !== trackAfter.id));
+
 
 		//C return early if none are moving
 		if (inputTracks.length === 0) {
 			return new sj.SuccessList({
+				log: true,
 				origin: 'sj.Track.order()',
 				message: 'track positions did not need to be set',
 			});
 		}
 
-		console.log('inputTracks.length:', inputTracks.length, '\n ---');
+		//console.log('inputTracks.length:', inputTracks.length, '\n ---');
 
 		return await db.tx(async t => {
-			let playlists = [];
-			let inputIndex = Symbol();
-			let influencedTracks = [];
+			const playlists = [];
+			const influencedTracks = [];
+			const inputIndex = Symbol();
 
 			//C retrieve track's playlist, group each track by playlist & moveType
 			await sj.asyncForEach(inputTracks, async (track, index) => {
-				//C temporarily store inputIndex, this is needed because the input order is destroyed when tracks are grouped into playlists and moveType
+				const storePlaylist = function (playlistId, existingTracks) {
+					if (!sj.isType(playlistId, 'integer')) throw new sj.Error({
+						origin: 'sj.Track.order()',
+						reason: `playlistId is not an integer: ${playlistId}`,
+					});
+					if (!Array.isArray(existingTracks)) throw new sj.Error({
+						origin: 'sj.Track.order()',
+						reason: `existingTracks is not an array: ${existingTracks}`,
+					})
+
+					//C stores playlist in playlists if not already stored
+					let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
+					if (!existingPlaylist) {
+						playlists.push({
+							id: playlistId,
+	
+							original: existingTracks,
+	
+							//C move actions, these have priority positioning
+							inputsToMove: [],
+							inputsToAdd: [], 
+							inputsToRemove: [],
+						});
+
+						existingPlaylist = playlists[playlists.length-1];
+					}
+					return existingPlaylist;
+				};
+
+				//C temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
 				track[inputIndex] = index;
 
-				//C retrieve own playlist or playlist track is being moved to
-				let where = `
+				//C determine move action
+				const action =
+				typeof track.id === 'symbol' 	? 'Add' 	:
+				track.position === null 		? 'Remove' 	: 'Move';
+
+
+				//C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
+				//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+				const currentQuery = action === 'Add' 
+				? pgp.as.format(`
 					SELECT "id", "position", "playlistId"
 					FROM "sj"."tracks" 
-					WHERE "playlistId" = 
-				`;
-				let identifier;
-				if (sj.isEmpty(track.playlistId)) {
-					where += `(
+					WHERE "playlistId" = $1
+				`, track.playlistId)
+				: pgp.as.format(`
+					SELECT "id", "position", "playlistId"
+					FROM "sj"."tracks" 
+					WHERE "playlistId" = (
 						SELECT "playlistId"
 						FROM "sj"."tracks"
 						WHERE "id" = $1
-					)`;
-					identifier = track.id;
-				} else {
-					where += `$1`;
-					identifier = track.playlistId;
-				}
-
-				//C get track's current playlist based on track.id, using a sub-query
-				//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
-				let retrievedPlaylist = await t.any(where, identifier).catch(rejected => {
+					)
+				`, track.id);
+				const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
 					throw sj.parsePostgresError(rejected, new sj.Error({
 						log: false,
-						origin: 'sj.Track.editIntermediate()',
+						origin: 'sj.Track.order()',
 						message: 'could not move tracks',
 					}));
 				});
-
-				//C playlist should not be empty
-				if (retrievedPlaylist.length === 0) {
-					throw new sj.Error({
-						origin: 'sj.Track.editIntermediate()',
-						message: 'failed to move tracks',
-						reason: `the playlist retrieved by this track's id returned no rows, there must be an error with the query command`,
-					});
-				}
-
-				console.log('retrievedPlaylist.length:', retrievedPlaylist.length, '\n ---');
-
-				//C store and strip playlistId from retrieved tracks
-				//! this is done so that only modified properties will remain on the track objects
-				let playlistId = retrievedPlaylist[0].playlistId;
-				retrievedPlaylist.forEach(retrievedTrack => {
-					delete retrievedTrack.playlistId;
+				//C current playlist shouldn't be empty
+				if (currentPlaylist.length === 0) throw new sj.Error({
+					origin: 'sj.Track.editIntermediate()',
+					message: 'failed to move tracks',
+					reason: `the playlist retrieved by this track's id returned no rows, there must be an error with the query command`,
 				});
 
-				//C group tracks by playlist and their movement type
-				let group = function (moveType, id) {
-					let exists = false;
-					playlists.forEach(playlist => {
-						if (playlist.id === id) {
-							//C if the playlist is already stored, push this track
-							playlist[moveType].push(track);
-							exists = true;
-						}
+				//C store
+				const currentPlaylistStored = storePlaylist(currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
+				//C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
+				currentPlaylistStored.original.forEach(t => {
+					delete t.playlistId;
+				});
+
+				
+				if (!sj.isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) { 
+					//C if not switching playlists
+					//C group by action
+					currentPlaylistStored['inputsTo'+action].push(track);
+				} else { 
+					//C if switching playlists
+					//C this should catch tracks with playlistIds but no position
+					const anotherPlaylist = await t.any(`
+						SELECT "id", "position", "playlistId"
+						FROM "sj"."tracks" 
+						WHERE "playlistId" = $1
+					`, track.playlistId).catch(rejected => {
+						throw sj.parsePostgresError(rejected, new sj.Error({
+							log: false,
+							origin: 'sj.Track.order()',
+							message: 'could not move tracks',
+						}));
 					});
-					if (!exists) {
-						//C if the playlist isn't stored yet, push a new one with the track
-						let newPlaylist = {
-							id: playlistId,
+					//! anotherPlaylist can be empty
 
-							original: retrievedPlaylist,
+					const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
+					anotherPlaylistStored.original.forEach(t => {
+						delete t.playlistId;
+					});
 
-							// actions
-							inputsToRemove: [],
-							inputsToAdd: [],
-							inputsToMove: [],
-						};
-						newPlaylist[moveType].push(track);
-						playlists.push(newPlaylist);
-					}
-				}
-				if (track.position === null) { 
-					//! position should manually be set to null before calling this function, this keeps all other numbers as viable positions for ordering
-					//C if track is specifically marked to be removed
-					group('inputsToRemove', playlistId);
-				} else if (track.playlistId === undefined || track.playlistId === playlistId) {
-					//C if track is moving within the same playlist
-					group('inputsToMove', playlistId);
-				} else {
-					//C else if the track is moving from one playlist to another
-					//C this will catch tracks that have a playlistId, but no position
-					group('inputsToRemove', playlistId);
-					group('inputsToAdd', track.playlistId);
+					//C track is removed from its current playlist, and added to another playlist
+					currentPlaylistStored.inputsToRemove.push(track);
+					anotherPlaylistStored.inputsToAdd.push(track);
 				}
 
 				return new sj.Success({
@@ -1947,7 +1979,7 @@ sj.isLoggedIn = async function (ctx) {
 				});
 			});
 
-			console.log('playlists.length:', playlists.length, '\n ---');
+			//console.log('playlists.length:', playlists.length, '\n ---');
 
 			//C calculate new track positions required to accommodate input tracks' positions
 			playlists.forEach(playlist => {
@@ -1959,7 +1991,7 @@ sj.isLoggedIn = async function (ctx) {
 					!playlist.inputsToMove.some(movingTrack => movingTrack.id === originalTrack.id)
 				);
 
-				console.log('playlist.others.length:', playlist.others.length);
+				//console.log('playlist.others.length:', playlist.others.length);
 
 				//C combine both adding and moving, 
 				playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove];
@@ -1977,18 +2009,18 @@ sj.isLoggedIn = async function (ctx) {
 				sj.stableSort(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
 				sj.stableSort(playlist.inputsToPosition, (a, b) => a.position - b.position);
 
-				console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
-				console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
-				console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
-				console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
+				//console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+				//console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
+				//console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
+				//console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
 				
 
 				//C inputIndex is no longer needed, remove it from anything it was added to
 				playlist.inputsToPosition.forEach(trackToPosition => {
-					//remove trackToPosition[inputIndex]; //TODO temp
+					delete trackToPosition[inputIndex];
 				});
 				playlist.inputsToRemove.forEach(trackToRemove => {
-					//remove trackToRemove[inputIndex]; //TODO temp
+					delete trackToRemove[inputIndex];
 				});
 
 
@@ -2029,13 +2061,23 @@ sj.isLoggedIn = async function (ctx) {
 					return influenced;
 				});
 
-				console.log('playlist.merged.length:', playlist.merged.length);
-				console.log('playlist.merged:\n', playlist.merged, '\n ---');
+				//console.log('playlist.merged.length:', playlist.merged.length);
+				//console.log('playlist.merged:\n', playlist.merged, '\n ---');
 
-				console.log('playlist.influenced.length:', playlist.influenced.length);
-				console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
+				//console.log('playlist.influenced.length:', playlist.influenced.length);
+				//console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
 
 				influencedTracks.push(...playlist.influenced);
+			});
+
+			//C remove temporary symbol id from add tracks and null position from delete tracks
+			inputTracks.forEach(inputTrack => {
+				if (typeof inputTrack.id === 'symbol') {
+					delete inputTrack.id;
+				}
+				if (inputTrack.position === null) {
+					delete inputTrack.position;
+				}
 			});
 
 			return new sj.SuccessList({
@@ -2533,31 +2575,3 @@ sj.isLoggedIn = async function (ctx) {
 
 
 export default sj;
-
-
-/* test
-	async function test() {
-		await sj.wait(1000);
-
-		let input = [
-			{
-				id: 65,
-				position: 3,
-			},
-			{
-				id: 55,
-				position: 3,
-				playlistId: 2,
-			},
-		];
-
-		console.log('INPUT BEFORE:\n', input, '\n ---');
-
-		let influenced = await sj.Track.order(sj.db, input);
-		
-		console.log('INPUT AFTER:\n', input, '\n ---');
-		console.log('INFLUENCED TRACKS:\n', influenced);
-	}
-
-	test();
-*/

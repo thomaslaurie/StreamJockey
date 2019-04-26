@@ -326,6 +326,7 @@ databaseSocket.test  = async function () {
 };
 
 databaseSocket.on('connect', async () => {
+	await store.dispatch('reconnect');
 });
 
 databaseSocket.on('disconnect', async (reason) => {
@@ -555,13 +556,9 @@ const store = new VueX.Store({
 	actions: { //G all actions are async via dispatch('functionName', payload)
 		//TODO errors should be handled in these actions
 
-		//TODO consider putting specific listeners into the mirrored database instead of having a generic event listener
+		//TODO update should not fire if the current data's timestamp is newer than the notify's timestamp - overall just keep thinking about timestamps with scalability in mind
 
-		//TODO client must re-subscribe everything in the database mirror when the socket disconnects then reconnects
-		//C client is responsible for re-subscribing on connect, server is responsible for removing subscriptions on disconnect
-
-		//TODO both client and server must handle duplicate subscriptions
-
+		//TODO consider using Map() for lookup
 
 		async subscribe(context, {Entity, query, subscriber, timeout = 10000}) {
 			//C subscribe on server 
@@ -723,7 +720,7 @@ const store = new VueX.Store({
 		async removeSubscriber(context, {table, query, subscriber}) {
 			//C find subscription
 			let existingSubscription = context.getters.findSubscription(table, query);
-			if (!existingSubscription) throw new sj.Error({
+			if (!existingSubscription) return new sj.Warn({
 				origin: 'removeSubscriber()',
 				reason: 'could not find subscription to remove',
 			});
@@ -753,21 +750,22 @@ const store = new VueX.Store({
 			}
 		},
 
-
 		async reconnect(context) {
+			console.log('reconnect called');
+			//G disconnect all is called server-side
 			//C for each table
 			await sj.asyncForEach(sj.Entity.children, async child => {
 				//C for each subscription
 				await sj.asyncForEach(context.state.subscriptions[child.table], async subscription => {
 					//C for each subscriber
-					await sj.asyncForEach(subscription.subscribers, subscriber => {
-						if (!sj.isType(subscriber, sj.QuerySubscription)) {
-							//----------
-							context.dispatch('subscribe', {Entity: child, query: subscription.query, subscriber: subscriber})
+					await sj.asyncForEach(subscription.subscribers, async subscriber => {
+						//C if subscriber is another QuerySubscription
+						if (sj.isType(subscriber, sj.QuerySubscription) && !sj.isType(subscriber.EntitySubscription)) {
+							//C re-subscribe
+							await context.dispatch('subscribe', {Entity: child, query: subscription.query, subscriber: subscriber});
 						}
 					});
 				});
-				
 			});
 		},
 	},

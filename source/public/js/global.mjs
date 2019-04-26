@@ -175,7 +175,7 @@ sj.wait = async function (ms) {
 		}
 	});
 };
-sj.trace = function (test) {
+sj.trace = function () {
 	try {
 		throw Error('');
 	} catch (e) {
@@ -816,6 +816,10 @@ sj.asyncForEach = async function (list, callback) {
 	//C executes an async function for each item in an array, throws entire result list if any of it's items were thrown
 	//L this helped: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
 	
+	/*
+		//! list is shallow copied because list could also be an iterateable, wait - don't do this, because then primitives can no longer be modified inside as the map is no longer referencing the original list
+		//L https://stackoverflow.com/questions/31084619/map-a-javascript-es6-map
+	*/
 	let results = await Promise.all(list.map(async (item, index, self) => callback(item, index, self).then(resolved => {
 		return {
 			resolved: true,
@@ -1215,11 +1219,13 @@ sj.Base = class Base {
 
 	announce() {
 		//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-		if (!sj.isType(this, sj.Error)) {
-			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\n${sj.trace()}`);
-		} else {
+		if (sj.isType(this, sj.Error)) {
 			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-		}	
+		} else if (sj.isType(this, sj.Warn)) {
+			console.warn(`W ▮ ${this.objectType} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
+		} else {
+			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\n${sj.trace()}`);
+		}
 	}
 	onCreate() {
 		//G include 'log: true' in options if instance should be announced on creation, call instance.announce() to announce manually
@@ -2295,7 +2301,7 @@ sj.Track = class Track extends sj.Entity {
 			columnName: 'position',
 			rule: sj.Rule.posInt,
 
-			add: auto,
+			add: optional,
 			get: optional,
 			edit: optional,
 			remove: unused,

@@ -290,12 +290,14 @@ Object.assign(sj.Entity.prototype, {
 
 sj.login = async function (user) {
 	return await sj.request('POST', `${sj.API_URL}/session`, new sj.User(user));
+	//TODO reconnect socket subscriptions to update subscriber info
 }
 sj.getMe = async function () {
     return await sj.request('GET', `${sj.API_URL}/session`);
 }
 sj.logout = async function () {
 	return await sj.request('DELETE', `${sj.API_URL}/session`);
+	//TODO reconnect socket subscriptions to update subscriber info
 }
 
 
