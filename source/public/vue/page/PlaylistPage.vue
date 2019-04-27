@@ -20,7 +20,7 @@
 				return {id: this.$route.params.id};
 			},
             async getData() {
-                return await this.sj.getPlaylist(this.query).then(this.sj.content).then(this.sj.one);
+                return await this.sj.Playlist.get(this.query).then(this.sj.content).then(this.sj.one);
             },
 
             async search() {
@@ -28,7 +28,7 @@
 			},
 			async add(track) { //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
 				track.playlistId = this.data.id;
-				await this.sj.addTrack(track);
+				await this.sj.Track.add(track);
 				await this.getData();
 			},
 		},

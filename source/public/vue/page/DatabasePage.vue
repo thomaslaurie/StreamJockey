@@ -118,13 +118,13 @@
 
 
             async login() {
-                this.currentUser = await this.sj.login({name: this.name, password: this.password}).then(this.sj.content).catch(rejected => {
+                this.currentUser = await this.sj.session.login({name: this.name, password: this.password}).then(this.sj.content).catch(rejected => {
                     console.error(rejected);
 				});
 				this.isLoggedIn = true;
 			},
 			async logout() {
-				await this.sj.logout().catch(rejected => {
+				await this.sj.session.logout().catch(rejected => {
 					console.error(rejected);
 				});
 				this.isLoggedIn = false;

@@ -234,8 +234,8 @@ sj.spotify.exchangeToken = async function (ctx, credentials) {
 
 	//C store refresh token in database
 	//C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
-	let me = await sj.getMe(ctx).then(sj.content);
-	await sj.editUser(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token}).then(resolved => {
+	let me = await sj.session.get(ctx).then(sj.content);
+	await sj.User.edit(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token}).then(resolved => {
 	});
 
 	//C repack and return
@@ -250,8 +250,8 @@ sj.spotify.exchangeToken = async function (ctx, credentials) {
 
 sj.spotify.refreshToken = async function (ctx) {
 	//C get the refresh token from the database
-	let me = await sj.getMe(ctx).then(sj.content);
-	let refreshToken = await sj.getUser(sj.db, me).then(sj.content).then(sj.one).then(resolved => resolved.spotifyRefreshToken);
+	let me = await sj.session.get(ctx).then(sj.content);
+	let refreshToken = await sj.User.get(sj.db, me).then(sj.content).then(sj.one).then(resolved => resolved.spotifyRefreshToken);
 
 	//C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 	if (sj.isEmpty(refreshToken)) {
@@ -278,7 +278,7 @@ sj.spotify.refreshToken = async function (ctx) {
 	//C if a new refresh token was sent
 	if (sj.isType(result.refresh_token, 'string')) { //? better validation?
 		//C store it
-		await sj.editUser(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token});	
+		await sj.User.edit(sj.db, {id: me.id, spotifyRefreshToken: result.refresh_token});	
 	}
 	
 	//C send only the accessToken and the expiry time

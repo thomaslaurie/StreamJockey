@@ -6,30 +6,33 @@
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
 /*
-	//L ASCII TITLE GENERATOR: http://patorjk.com/software/taag/#p=display&c=c%2B%2B&f=ANSI%20Shadow&t=playlist
+	//G JAVASCRIPT GUIDES
+		//L Default arguments and parameter destructuring: https://simonsmith.io/destructuring-objects-as-function-parameters-in-es6/
+		
+		//L nesting optimization: https://thorstenlorenz.wordpress.com/2012/06/02/performance-concerns-for-nested-javascript-functions/
 
-	//R Promises: promises always return more promises (that are resolved or rejected), await (and furthermore async) is only needed to transform those resolved or rejected promises in to useable values, promises can be called and returned within a synchronous function (like map) they just pass on their evaluation to whatever they were returned to (see the implementation of Promise.all(...map()))
-	//L Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
-	//R catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
+		Promises: promises always return more promises (that are resolved or rejected), await (and furthermore async) is only needed to transform those resolved or rejected promises in to useable values, promises can be called and returned within a synchronous function (like map) they just pass on their evaluation to whatever they were returned to (see the implementation of Promise.all(...map()))
+		//G catches should be attached behind every async function and not paired next to .then() - this straightens out the chain ordering (as opposed to two steps forward, one step back -style), this also stops upstream errors from triggering all downstream catches and nesting every error
+		
+		//L Arrow Functions: when not to use - https://dmitripavlutin.com/when-not-to-use-arrow-functions-in-javascript/
 
-	.on() should be bound to the closest non-dynamic element (because its faster?)
-	.on('click'... is a delegated event (?) and is needed to work on dynamically generated elements
-	.on() needs to bind to the target element, one that is guaranteed to exist on page creation, however the selector then filters for elements which might not exist yet
+		//L es modules: https://developers.google.com/web/fundamentals/primers/modules, http://2ality.com/2014/09/es6-modules-final.html
+		//L export: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
+		//L import: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
+		//L es modules in node (VERY USEFUL FOR HOW TO CONVERT TO ES MODULES): https://medium.com/@giltayar/native-es-modules-in-nodejs-status-and-future-directions-part-i-ee5ea3001f71
 
-	//L es modules: https://developers.google.com/web/fundamentals/primers/modules, http://2ality.com/2014/09/es6-modules-final.html
-	//L export: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
-	//L import: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
-	//L es modules in node (VERY USEFUL FOR HOW TO CONVERT TO ESMODULES): https://medium.com/@giltayar/native-es-modules-in-nodejs-status-and-future-directions-part-i-ee5ea3001f71
+		//G Object.assign(sj.Base, {...}) is used to assign static variables and methods
+		//G (function () {..}).call(sj.Base); is better 
 
-	//R I use negatively phrased guard clauses (!desired) because they keep the relative error close by in the script (rather than way down below at the bottom of an else statement or early escape function (using positively phrased clauses)) - see sj.rebuild()
-
-	//L fetch vs axios: https://www.reddit.com/r/javascript/comments/6e0o99/fetch_polyfill_or_axios/
-	//R axios is high level, fetch is middle level - i want this because its less magic, i actually want the functionality of fetch to be able to distinguish between failed requests and bad requests, i'm making a wrapper function anyways so the extra detail doesn't matter
-
+		//G use guard clauses over else statements where possible - because they keep the relative error close by in the script (rather than way down below at the bottom of an else statement or early escape function (using positively phrased clauses)) - see sj.rebuild()
+		
+	// DEV TOOLS
+		//L ASCII TITLE GENERATOR: http://patorjk.com/software/taag/#p=display&c=c%2B%2B&f=ANSI%20Shadow&t=playlist
+		//L Console css formatting https://developers.google.com/web/tools/chrome-devtools/console/console-write#styling_console_output_with_css
 	
-	//G Object.assign(sj.Base, {...}) is used to assign static variables and methods
-	//G (function () {..}).call(sj.Base); is better 
-
+	// LIBRARIES
+		//L fetch vs axios: https://www.reddit.com/r/javascript/comments/6e0o99/fetch_polyfill_or_axios/
+		//R axios is high level, fetch is middle level - i want this because its less magic, i actually want the functionality of fetch to be able to distinguish between failed requests and bad requests, i'm making a wrapper function anyways so the extra detail doesn't matter
 */
 
 
@@ -40,34 +43,17 @@
 //     ██║   ╚██████╔╝██████╔╝╚██████╔╝
 //     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
 
-/* TODO 
-	Model:
-	Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
+/* 
+	// BIG
+		Break every single part of every module, see if all possible outcomes are caught and handled properly.
 
-	Big:
-	Break every single part of every module, see if all possible outcomes are caught and handled properly.
-	Ensure everything has an error handler - most of the time 'throw sj.propagate(rejected);'.
-	Fill in and make consistent content for all success, error, data objects.
+		Ensure everything has an error handler - most of the time 'throw sj.propagate(rejected);'.
 
-	Add timeouts to async functions.
+		Fill in and make consistent content for all success, error, data objects.
 
-	Replace all 'var' with 'let' and 'const'
+		Add timeouts to async functions.
 
-	Misc:
-	// TODO replace .name properties with .title as name is reserved, actually name isnt reserved - its just a property of Functions, however all of these are constructor functions that return Objects with that property so it should be safe - convert title to name
-
-	Consider name-spacing
-	Console css formatting https://developers.google.com/web/tools/chrome-devtools/console/console-write#styling_console_output_with_css
-	Default arguments and parameter destructuring: https://simonsmith.io/destructuring-objects-as-function-parameters-in-es6/
-	function myFunc({name = 'Default user', age = 'N/A'} = {}) {}
-	Getter and setter syntaxes (allows the user of getter and setter functions by obj.property rather than obj.getProperty() or obj.setProperty())
-	consider changing target: 'notify' to target: 'general' ?
-
-    sort out methods vs functions & function () vs arrow functions
-    
-	consider making some default values (like '' and null) into Symbol(), so that they can't equal any passed value (null === null returns true), just beware of the behavior when stringifying symbols
-	
-	//L nesting optimization: https://thorstenlorenz.wordpress.com/2012/06/02/performance-concerns-for-nested-javascript-functions/
+		Replace all 'var' with 'let' and 'const'
 */
 
 
@@ -81,6 +67,7 @@
 let sj = {};
 
 import fClone from './fclone.mjs'; //C https://github.com/soyuka/fclone
+
 
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
@@ -131,17 +118,18 @@ if (!Array.prototype.flat) {
 	});
 }
 
-//TODO make these actually constant with Object.defineProperty?
-sj.SERVER_URL = `http://localhost:3000`;
-sj.API_URL = `${sj.SERVER_URL}/api`;
-sj.JSON_HEADER = {
+// CONSTANTS
+Object.defineProperty(sj, 'SERVER_URL', {value: `http://localhost:3000`});
+Object.defineProperty(sj, 'API_URL', {value: `${sj.SERVER_URL}/api`});
+Object.defineProperty(sj, 'JSON_HEADER', {value: Object.freeze({
 	'Accept': 'application/json',
 	'Content-Type': 'application/json',
-};
-sj.URL_HEADER = {
+})});
+Object.defineProperty(sj, 'URL_HEADER', {value: Object.freeze({
 	'Accept': 'application/json',
 	'Content-Type': 'application/x-www-form-urlencoded',
-};
+})});
+
 
 //C used to indicate a specific server error
 sj.resolveActions = {
@@ -158,13 +146,21 @@ sj.resolveActions = {
 
 //C these don't reference any sj.Bases
 
+// TESTING
 sj.test = async function(tests, origin) {
 	tests.forEach((test, i) => {
 		if (!test[1]) console.error(`${origin} - test failed: ${test[0]}`);
 	});
 };
-
-// misc
+sj.performance = function (iterations, fs) {
+	fs.forEach((f, index) => {
+		console.time(`Function ${index} Start`);
+		for(let i = 0; i < iterations; i++) {
+			f();
+		}
+		console.timeEnd(`Function ${index} End`);
+	});
+};
 sj.wait = async function (ms) {
     //C used for basic waiting, //! should not be used if the callback needs to be canceled
 	return new Promise(resolve => {
@@ -205,20 +201,7 @@ sj.trace = function () {
 	}
 };
 
-sj.deepFreeze = function (obj) {
-	// TODO test me
-	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
-
-	// freeze nested objects
-	Object.keys(obj).forEach(function(key) {
-		obj[key] = obj[key] && typeof value === 'object' ? sj.deepFreeze(obj[key]) : obj[key];
-	});
-	
-	// then freeze self
-	return Object.freeze(object);
-};
-
-// format
+// FORMAT
 sj.msFormat = function (ms) {
 	// extract
 	var minutes = Math.floor(ms / 60000);
@@ -296,6 +279,7 @@ sj.decodeList = function (encoded) {
 	return list;
 };
 
+// FILTER
 sj.shake = function (obj, properties) {
 	//C returns a new object with only the desired properties
 	let s = (obj, properties) => {
@@ -342,17 +326,7 @@ sj.shake.test = function () {
 	], 'sj.shake.test()');
 };
 
-sj.isSuperSet = function (set, superSet) { //? where is this used? //TODO probably legacy, replace with sj.deepMatch
-	//C compares each prop in set to the respective prop in superSet, returns true if all are equal, ignores extra props in superSet
-	for (prop in set) {
-		if (superSet[prop] !== set[prop]) {
-			return false;
-		}
-	}
-	return true;
-};
-
-// sort
+// SORT
 sj.stableSort = function(list, compare) {
 	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
 	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
@@ -441,6 +415,34 @@ sj.dynamicSort = function(list, ascending, prop) {
 	return sj.stableSort(list, compare);
 };
 
+/* TODO deep property access //! this is broken - must fix
+	const get = (p, o) =>
+	p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
+
+	let bar = {
+	bar: true,
+	}
+
+	console.log(get(['bar', 'bar'], bar));
+
+	// let foo = function (root, path) {
+	//   return path.reduce((dir, next) => {
+	//     if (dir && dir[next]) {
+	//       return dir[next];
+	//     } else {
+	//       return undefined;
+	//     }
+		
+		
+	//     if (current && current[next]) {
+	//       return current[next];
+	//     } else {
+	//       return 
+	//     }
+	//   }, root};
+	// }
+*/
+
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
@@ -451,7 +453,10 @@ sj.dynamicSort = function(list, ascending, prop) {
 
 //C these reference sj.Bases, don't call these until classes are defined
 
-// type
+// SESSION //C holds login, get, logout, etc. methods
+sj.session = {};
+
+// TYPE
 sj.isType = function (input, type) {
 	//C matches 'input' type or super-type to 'type' value or string representation or builtin object
 	//!//! will not match arrays to Object
@@ -572,20 +577,6 @@ sj.isEmpty = function (input) {
         (sj.isType(input, 'object') && Object.keys(input).length > 0) ||
         (sj.isType(input, 'array') && input.length > 0)
 	);
-};
-sj.tableToEntity = function (table) { 
-	//TODO things should instead just be sent by their sj.Entity class (http methods don't send table), actually no, because we dont want to send the classes between client and server because they're different, maybe just send the type (user, playlist, track), separately (rather than table name)
-	//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-	//R any metadata (table) should be sent separately (or implicitly) from the query
-	//TODO might be a better way to do this
-	if (table === 'users') return sj.User;
-	else if (table === 'playlists') return sj.Playlist;
-	else if (table === 'tracks') return sj.Track;
-	else throw new sj.Error({
-		origin: 'sj.tableToEntity()',
-		reason: `table is not recognized: ${table}`,
-		content: table,
-	});
 };
 sj.deepMatch = function (a, b, {
 	deep = true, 
@@ -751,7 +742,7 @@ sj.deepMatch.test = function () {
 	], 'deepMatch');
 };
 
-// error
+// ERROR
 sj.catchUnexpected = function (input) {
 	//C determines type of input, creates, announces, and returns a proper sj.Error object
 	//C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
@@ -811,7 +802,7 @@ sj.andResolve = function (rejected) {
 	}
 };
 
-// promises
+// PROMISE
 sj.asyncForEach = async function (list, callback) {
 	//C executes an async function for each item in an array, throws entire result list if any of it's items were thrown
 	//L this helped: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
@@ -845,7 +836,7 @@ sj.asyncForEach = async function (list, callback) {
 	}
 };
 
-// format
+// FORMAT
 sj.one = function (a) {
 	//C unwraps the first item of an array where one item is expected
 	if (!sj.isType(a, Array)) {
@@ -876,8 +867,22 @@ sj.content = function (resolved) {
 	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
 	return resolved.content;
 };
+sj.tableToEntity = function (table) { 
+	//TODO things should instead just be sent by their sj.Entity class (http methods don't send table), actually no, because we dont want to send the classes between client and server because they're different, maybe just send the type (user, playlist, track), separately (rather than table name)
+	//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+	//R any metadata (table) should be sent separately (or implicitly) from the query
+	//TODO might be a better way to do this
+	if (table === 'users') return sj.User;
+	else if (table === 'playlists') return sj.Playlist;
+	else if (table === 'tracks') return sj.Track;
+	else throw new sj.Error({
+		origin: 'sj.tableToEntity()',
+		reason: `table is not recognized: ${table}`,
+		content: table,
+	});
+};
 
-// recursion
+// RECURSION
 //TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
 sj.recursiveSyncTime = async function (n, loopCondition, f, ...args) {
 	//L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
@@ -1094,7 +1099,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 
 };
 
-// data
+// LIVE DATA
 sj.Subscriptions = function () {
 	//C creates an array for each Entity type
 	sj.Entity.children.forEach(child => {
@@ -1102,7 +1107,7 @@ sj.Subscriptions = function () {
 	});
 };
 
-// random key generation //TODO this is only public for testing
+// RANDOM KEY GENERATION //TODO this is only public for testing
 sj.makeKey = function (length) {
     //C use only characters allowed in URLs
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -1167,29 +1172,29 @@ sj.checkKey = async function (list, key) {
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
-//L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
+/* //TODO
+	//G wrapper objects vs bare return
+		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive sj.Error
+		more complex functions (async, error-able, client-server transfer) should wrap their result:
+			sj.Success / sj.SuccessList
+				wraps empty content, arrays of other objects, misc content
+				or is a descendant item object
+			or a sj.Error / sj.ErrorList
+				wraps empty content, arrays of other objects with at least one error, non-sj errors
+				or is a custom error
 
-/* TODO
-	auto name can be included in: console.trace();
+		//R
+		client-server transfer is the one place where the resolve/reject state of promises won't work - this is the big reason why wrappers are needed
+		even though resolve and rejections don't need to be the same format, its still useful to have the ability influence resolved values with a success wrapper for say logging or debugging
 
-	consider default values for '' and null, specifically ids (what are the semantics?)
+	reconsider the default values of class properties - semantics of undefined & null, error handling of placeholders '', [], {}, inequality of Symbol(), 'emptiness' sj.isEmpty()
 
 	possibly a cyclical reference preservation function between client and server that replaces a reference to self with 'self1' keyword and also can find lower-level cyclical references by recursively calling the function on each layer with memory for which layer its on
 
-	//G
-	higher order functions should either return:
-		sj.Success
-			which wraps empty content, arrays of other objects, and misc content
-			or a descendant item object
-		or a sj.Error
-			which wraps empty content, arrays of other objects with at least one error, non-sj errors (wrapper)
-			or a custom error
-	the resolve/reject state indicates whether the function succeeded or failed, so simpler functions can just return raw values, especially if they can't error
-
-	//R//? should lists be bare or wrapped in sj.Success/sj.Error? the only place where promise state cant be used is in server requests and responses, in this case there does need to be a wrapper so that sj.request() can sort by sj.isType(obj, sj.Error)
-
-	//R even though resolve and rejections don't need to be the same format, its still useful to have the ability influence resolved values with a success wrapper for say logging or debugging
 */
+
+//L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
+
 
 sj.Base = class Base {
 	constructor(options = {}) {
@@ -1235,7 +1240,7 @@ sj.Base = class Base {
 		}
 	}
 };
-(function () { // static
+(function () { // STATIC
 	this.init = function (that, options = {}, defaults = {}) {
 		//C give that a boolean cast of options.isParent, then delete from options
 		that.isParent = (options.isParent == true);
@@ -1742,7 +1747,7 @@ sj.Rule = class Rule extends sj.Base {
 		}
 	*/
 };
-(function () { // static
+(function () { // STATIC
 	//! string to be hashed must not be greater than 72 characters (//? or bytes???),
 	this.stringMaxLength = 100;
 	this.bigStringMaxLength = 2000;
@@ -1953,7 +1958,7 @@ sj.Entity = class Entity extends sj.Success {
 		this.onCreate();
 	};
 };
-(function () { // static
+(function () { // STATIC
 	//TODO how to make these immutable?
 
 	Object.defineProperty(this, 'table', {
@@ -1994,7 +1999,6 @@ sj.Entity = class Entity extends sj.Success {
 		};
 	};
 }).call(sj.Entity);
-//TODO in children static constructors, add themselves to an array in sj.Entity, so that sj.Entity has access to all of it's children classes
 
 // schema property states
 const unused = {
@@ -2037,7 +2041,7 @@ sj.User = class User extends sj.Entity {
 		this.onCreate();
 	}
 };
-(function () { // static
+(function () { // STATIC
 	sj.Entity.children.push(this);
 
 	this.schema = {
@@ -2162,7 +2166,7 @@ sj.Playlist = class Playlist extends sj.Entity {
 		this.onCreate();
 	}
 };
-(function () { // static
+(function () { // STATIC
 	sj.Entity.children.push(this);
 
 	this.schema = {
@@ -2678,182 +2682,182 @@ sj.EntitySubscription = class EntitySubscription extends sj.QuerySubscription {
 };
 
 
+//TODO consider if all actions should actually be in main.js instead
+//TODO Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
+//TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
+/* 
+	sj.Action = class extends sj.Base {
+		constructor(options = {}) {
+			super(sj.Base.giveParent(options));
 
+			this.objectType = 'sj.Action';
+			source = sj.desiredPlayback.track.source;
 
-// TODO consider if all actions should actually be in main.js instead
-/* // TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
-sj.Action = class extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
+			sj.Base.init(this, options, {
+				// new properties
+				state: null,
+			});
 
-		this.objectType = 'sj.Action';
-		source = sj.desiredPlayback.track.source;
+			this.onCreate();
+		}
 
-		sj.Base.init(this, options, {
-			// new properties
-			state: null,
-		});
+		// comparisons
+		isSimilarAction(item) {
+			return this.objectType === item.objectType;
+		}
+		isIdenticalAction(item) {
+			return this.isSimilarAction(item) && this.state === item.state;
+		}
+		isParentAction(item) {
+			return false; // TODO ??? can this be merged in some way with isParent?
+		}
 
-		this.onCreate();
-	}
-
-	// comparisons
-	isSimilarAction(item) {
-		return this.objectType === item.objectType;
-	}
-	isIdenticalAction(item) {
-		return this.isSimilarAction(item) && this.state === item.state;
-	}
-	isParentAction(item) {
-		return false; // TODO ??? can this be merged in some way with isParent?
-	}
-
-	removeOld(queue) {
-		// backwards deletion loop
-		for (var i = queue.length - 1; i > -1; i--) {
-			if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
-				queue.splice(i, 1);
+		removeOld(queue) {
+			// backwards deletion loop
+			for (var i = queue.length - 1; i > -1; i--) {
+				if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
+					queue.splice(i, 1);
+				}
 			}
 		}
-	}
 
-	async trigger() {
-		return new Promise(resolve => {
-			resolve(new sj.Success({
-				log: true,
-				origin: 'sj.Action.trigger',
-			}));
-		});
-	}
-};
-sj.Start = class extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Start';
-		state = sj.desiredPlayback.track;
-
-		sj.Base.init(this, options, {});
-
-		this.onCreate();
-	}
-
-	isParentAction() {
-		return item.objectType === 'sj.Toggle' || item.objectType === 'sj.Seek';
-	}
-
-	async trigger() {
-		return Promise.all(sourceList.map(source => {
-			// pause all
-			return source.pause().then(sj.andResolve);
-		})).then(resolved => {
-			// filter errors
-			return filterList(resolved, sj.Success, new sj.Success({
-				origin: 'sj.Start.trigger()',
-				message: 'changed track',
-			}), new sj.Error({
-				origin: 'sj.Start.trigger()',
-				message: 'failed to change track',
-			}));
-		}).then(resolved => {
-			// start
-			return this.source.start(this.state);
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-};
-sj.Toggle = class extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Toggle';
-		this.state = desiredPlayback.playing;
-
-		sj.Base.init(this, options, {});
-
-		this.onCreate();
-	}
-
-	async trigger() {
-		if (this.state) { // if playing
-			return Promise.all(sourceList.map(source => {
-				if (source === this.source) {
-					// resume desired source
-					return source.resume().then(sj.andResolve);
-				} else {
-					// pause all other sources
-					return source.pause().then(sj.andResolve);
-				}
-			})).then(resolved => {
-				return filterList(resolved, sj.Success, new sj.Success({
-					origin: 'sj.Toggle.trigger()',
-					message: 'playing updated',
-				}), new sj.Error({
-					origin: 'sj.Toggle.trigger()',
-					message: 'playing failed to update',
+		async trigger() {
+			return new Promise(resolve => {
+				resolve(new sj.Success({
+					log: true,
+					origin: 'sj.Action.trigger',
 				}));
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
 			});
-		} else { // if not playing
+		}
+	};
+	sj.Start = class extends sj.Action {
+		constructor(options = {}) {
+			super(sj.Base.giveParent(options));
+
+			this.objectType = 'sj.Start';
+			state = sj.desiredPlayback.track;
+
+			sj.Base.init(this, options, {});
+
+			this.onCreate();
+		}
+
+		isParentAction() {
+			return item.objectType === 'sj.Toggle' || item.objectType === 'sj.Seek';
+		}
+
+		async trigger() {
 			return Promise.all(sourceList.map(source => {
-				// pause all sources
+				// pause all
 				return source.pause().then(sj.andResolve);
 			})).then(resolved => {
+				// filter errors
 				return filterList(resolved, sj.Success, new sj.Success({
-					origin: 'updatePlaybackPlaying()',
-					message: 'playing updated',
+					origin: 'sj.Start.trigger()',
+					message: 'changed track',
 				}), new sj.Error({
-					origin: 'updatePlaybackPlaying()',
-					message: 'playing failed to update',
+					origin: 'sj.Start.trigger()',
+					message: 'failed to change track',
 				}));
+			}).then(resolved => {
+				// start
+				return this.source.start(this.state);
 			}).catch(rejected => {
 				throw sj.propagate(rejected);
 			});
 		}
-	}
-};
-sj.Seek = class extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
+	};
+	sj.Toggle = class extends sj.Action {
+		constructor(options = {}) {
+			super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Seek';
-		this.state = desiredPlayback.progress;
+			this.objectType = 'sj.Toggle';
+			this.state = desiredPlayback.playing;
 
-		sj.Base.init(this, options, {});
+			sj.Base.init(this, options, {});
 
-		this.onCreate();
-	}
+			this.onCreate();
+		}
 
-	async trigger() {
-		return this.source.seek(this.state).then(resolved => {
-			return new sj.Success({
-				log: true,
-				origin: 'sj.Seek.trigger()',
-				message: 'playback progress changed',
+		async trigger() {
+			if (this.state) { // if playing
+				return Promise.all(sourceList.map(source => {
+					if (source === this.source) {
+						// resume desired source
+						return source.resume().then(sj.andResolve);
+					} else {
+						// pause all other sources
+						return source.pause().then(sj.andResolve);
+					}
+				})).then(resolved => {
+					return filterList(resolved, sj.Success, new sj.Success({
+						origin: 'sj.Toggle.trigger()',
+						message: 'playing updated',
+					}), new sj.Error({
+						origin: 'sj.Toggle.trigger()',
+						message: 'playing failed to update',
+					}));
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
+				});
+			} else { // if not playing
+				return Promise.all(sourceList.map(source => {
+					// pause all sources
+					return source.pause().then(sj.andResolve);
+				})).then(resolved => {
+					return filterList(resolved, sj.Success, new sj.Success({
+						origin: 'updatePlaybackPlaying()',
+						message: 'playing updated',
+					}), new sj.Error({
+						origin: 'updatePlaybackPlaying()',
+						message: 'playing failed to update',
+					}));
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
+				});
+			}
+		}
+	};
+	sj.Seek = class extends sj.Action {
+		constructor(options = {}) {
+			super(sj.Base.giveParent(options));
+
+			this.objectType = 'sj.Seek';
+			this.state = desiredPlayback.progress;
+
+			sj.Base.init(this, options, {});
+
+			this.onCreate();
+		}
+
+		async trigger() {
+			return this.source.seek(this.state).then(resolved => {
+				return new sj.Success({
+					log: true,
+					origin: 'sj.Seek.trigger()',
+					message: 'playback progress changed',
+				});
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
 			});
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-};
-sj.Volume = class extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
+		}
+	};
+	sj.Volume = class extends sj.Action {
+		constructor(options = {}) {
+			super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Volume';
-		this.state = desiredPlayback.volume;
+			this.objectType = 'sj.Volume';
+			this.state = desiredPlayback.volume;
 
-		sj.Base.init(this, options, {});
+			sj.Base.init(this, options, {});
 
-		this.onCreate();
-	}
+			this.onCreate();
+		}
 
-	async trigger() {
-		// TODO
-	}
-};
+		async trigger() {
+			// TODO
+		}
+	};
 */
 
 
@@ -2871,42 +2875,6 @@ sj.noTrack.source = sj.noSource; // cyclical reference
 
 export default sj;
 
-/* //OLD
-	//! not used anymore
-
-	(function(sj){
-	}(typeof exports !== 'undefined' ? exports : this.sj = {}));
-
-	Self executing anonymous function which assigns the enclosing 'global' object to be exported
-	if 'exports' exists, use it, otherwise use 'this.sj.' (window.sj.) (which is set to an empty object container)
-
-	also - this creates a closure, so anything not attached to 'c' is private
-
-	https://stackoverflow.com/questions/3225251/how-can-i-share-code-between-node-js-and-the-browser
-
-	!!! requires that the 'exports' name is not used in client-side js, and that when required in server-side js, the var name 'should' (see rebuild()) be the same as this.'name' in the conditional argument (in order to have the same namespace as the client code
-
-	TODO should this be integrated in a namespace-ing fashion? (sj..Success(), sj..sj.typeOf()), how does that then influence other non-global.js functions in index.js and such?
-
-	TODO consider broswerify: https://github.com/browserify/browserify
-	, watchify, webpack, rollup
-*/
-
 
 sj.deepMatch.test();
 sj.shake.test();
-
-/* performance test
-	var iterations = 1000000;
-	console.time('Function #1');
-	for(var i = 0; i < iterations; i++ ){
-		functionOne();
-	};
-	console.timeEnd('Function #1');
-
-	console.time('Function #2');
-	for(var i = 0; i < iterations; i++ ){
-		functionTwo();
-	};
-	console.timeEnd('Function #2');
-*/

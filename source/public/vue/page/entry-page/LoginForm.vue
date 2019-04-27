@@ -12,7 +12,7 @@
         },
         methods: {
             async submit() {
-                let result = await this.sj.login(this).catch(rejected => {
+                let result = await this.sj.session.login(this).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
                 });

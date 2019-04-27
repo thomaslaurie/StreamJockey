@@ -14,12 +14,12 @@
 			},
             async getData() {
 				console.log('query:', this.query);
-				let result = await this.sj.getUser(this.query);
+				let result = await this.sj.User.get(this.query);
 				console.log('result:', result);
                 return this.sj.one(this.sj.content(result));
             },
             async logout() {
-                await this.sj.logout().catch(rejected => {
+                await this.sj.session.logout().catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
                 });

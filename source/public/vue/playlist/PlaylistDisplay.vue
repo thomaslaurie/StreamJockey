@@ -6,7 +6,7 @@
         extends: AsyncDisplay,
         methods: {
             async getData() {
-                return await this.sj.getPlaylist(this.query).then(this.sj.content).then(this.sj.one);
+                return await this.sj.Playlist.get(this.query).then(this.sj.content).then(this.sj.one);
             },
             async open(id) {
                 this.$router.push(`/playlist/${id}`);

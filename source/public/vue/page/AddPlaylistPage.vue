@@ -14,7 +14,7 @@
         },
         methods: {
             async submit() {
-                let playlist = await this.sj.addPlaylist({
+                let playlist = await this.sj.Playlist.add({
                     userId: this.me.id, //TODO security issue here, maybe get the user from the server?
                     ...this,
 				}).then(this.sj.content).then(this.sj.one).catch(rejected => {

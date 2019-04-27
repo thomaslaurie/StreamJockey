@@ -11,12 +11,12 @@
         },
         methods: {
             async submit() {
-                await this.sj.addUser(this).catch(rejected => {
+                await this.sj.User.add(this).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
                 });
                 
-                let me = await this.sj.login(this).catch(rejected => {
+                let me = await this.sj.session.login(this).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
             	});

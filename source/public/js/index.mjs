@@ -54,7 +54,7 @@
                 //! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
                 //L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
                 component: (async function {
-                    // let playlist = await sj.getPlaylist(new sj.Playlist({
+                    // let playlist = await sj.Playlist.get(new sj.Playlist({
                     //     id: //TODO,
                     // }));
                     await sj.wait(2000);

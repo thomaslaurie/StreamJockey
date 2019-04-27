@@ -167,14 +167,14 @@ apiRouter
 //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 .post('/session', async (ctx, next) => {
-	ctx.response.body = await sj.login(sj.db, ctx, ctx.request.body).catch(sj.andResolve);
+	ctx.response.body = await sj.session.login(sj.db, ctx, ctx.request.body).catch(sj.andResolve);
 })
 .get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await sj.getMe(ctx).catch(sj.andResolve);
+    ctx.response.body = await sj.session.get(ctx).catch(sj.andResolve);
 })
 .delete('/session', async (ctx, next) => {
-	ctx.response.body = await sj.logout(ctx).catch(sj.andResolve);
+	ctx.response.body = await sj.session.logout(ctx).catch(sj.andResolve);
 })
 
 

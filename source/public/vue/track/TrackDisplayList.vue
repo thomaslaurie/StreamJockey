@@ -10,7 +10,7 @@
 		},
         methods: {
             async getData() {
-				return await this.sj.getTrack(this.query).then(this.sj.content);
+				return await this.sj.Track.get(this.query).then(this.sj.content);
 			},
 		},
     }

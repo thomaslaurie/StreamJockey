@@ -10,7 +10,7 @@
 		},
         methods: {
             async getData() {
-				return await this.sj.getUser(this.query).then(this.sj.content);
+				return await this.sj.User.get(this.query).then(this.sj.content);
             },
 		},
     }

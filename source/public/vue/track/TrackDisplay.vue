@@ -10,7 +10,7 @@
 		},
         methods: {
             async getData() {
-				return await this.sj.getTrack(this.query).then(this.sj.content).then(this.sj.one);
+				return await this.sj.Track.get(this.query).then(this.sj.content).then(this.sj.one);
 			},
 			async open(id) {
                 this.$router.push(`/track/${id}`);
@@ -18,7 +18,7 @@
             async play() {
 			},
 			async del() { //! shortened to del to avoid delete reserved word
-				await this.sj.removeTrack(this.data);
+				await this.sj.Track.remove(this.data);
 				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own data
 			},
 			async add() {
