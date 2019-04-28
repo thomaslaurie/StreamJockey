@@ -508,10 +508,8 @@ sj.isLoggedIn = async function (ctx) {
             cssClass: 'notifyError', // TODO consider denial error rather than error error (you messed up vs I messed up)
         });
     }
-    //C redundancy check to make sure id is right format
-    await sj.Rule.checkRuleSet([
-        [true, 'id', sj.Rule.id, ctx.session.user, 'id'],
-    ]);
+	//C redundancy check to make sure id is right format
+	await sj.Rule.id.check(ctx.session.user.id);
 
     //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
 
@@ -839,7 +837,7 @@ sj.subscriptions = (function () {
 			if (!(prop.rule instanceof sj.Rule)) { // sj.Rule
 				throw new sj.Error({
 					log: true,
-					origin: 'sj.Rule.checkRuleSet()',
+					origin: 'sj.Entity.validate()',
 					message: 'validation error',
 					reason: `${key}'s rule is not an sj.Rule`,
 					content: prop,
