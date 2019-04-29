@@ -564,7 +564,7 @@ const store = new VueX.Store({
 			//C subscribe on server 
 			let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
 			let processedQuery = await new Promise((resolve, reject) => {
-				const timeoutId = setTimeout(() => {
+				const timeoutId = sj.setTimeout(() => {
 					reject(new sj.Error({
 						log: true,
 						reason: 'socket subscription timed out',
@@ -595,7 +595,7 @@ const store = new VueX.Store({
 			//C subscribe on server
 			let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
 			let processedQuery = await new Promise((resolve, reject) => {
-				const timeoutId = setTimeout(() => {
+				const timeoutId = sj.setTimeout(() => {
 					reject(new sj.Error({
 						log: true,
 						reason: 'socket unsubscription timed out',

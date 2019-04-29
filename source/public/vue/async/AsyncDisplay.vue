@@ -1,8 +1,6 @@
 <script>
     //TODO consider adding different display types (for components representing the same type of data eg. track) instead of different components?
 
-    //TODO it would be nice if async and static display were the same component so that async could be use solo, static in a list where data is already provided, but then items in the list could be refreshed and they change to async - however this would mean the extra loading and error components would be multipled for every instance if they are not destroyed (//TODO)
-
     import AsyncSwitch from './AsyncSwitch.vue';
     import AsyncDelay from './AsyncDelay.vue';
     import AsyncLoading from './AsyncLoading.vue';
@@ -23,86 +21,77 @@
                 state: 'delay',
 
                 delay: 1000, //TODO I can still see delay flickering
-                delayId: null,
-                timeout: 2147483647, //C cannot be larger than this, don't use Infinity, //L: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
+				delayId: null,
+                timeout: Infinity,
                 timeoutId: null,
 
-				subscriptionEntity: undefined,
-				subscription: undefined,
-				subscriptionData: undefined,
-
-				query: undefined,
+				sQuery: undefined,
+				sDeadQuery: undefined,
+				sData: undefined,
+				sError: {}, //C store error separately so that it doesn't overwrite previously fetched data
 				
-                data: {},
-                error: {}, //C store error separately so that it doesn't overwrite previously fetched data
+				Entity: undefined,	//C used for components that target an sj.Entity type
+				subscription: undefined, //C used to store subscription reference
             };
         },
-        props: {
-			pQuery: [Object, Array],
-			pData:  [Object],
+        props: { 
+			//C queries and data from parent take priority over those from self,
+			//C query takes priorty over dead query, which takes priority over data
+			//! query, dead query, and data should never be used together
+			pQuery: [Object, Array], //C used when this component should get it's own data
+			pDeadQuery: [Object, Array],
+			pData: [Object], //C used when this component is given data //! is a single item here, is an array in AsyncDisplayList 
+			pError,
 		},
 		computed: {
+			query: {
+				get() {
+					//C query prioritized over dead query, parent queries prioritized over self queries
+					if (this.pQuery) return this.pQuery;
+					else if (this.pDeadQuery) return this.pDeadQuery;
+					else if (this.sQuery) return this.sQuery;
+					else return this.sDeadQuery;
+				},
+				set(value) {
+					this.sQuery = value;
+				},
+			},
+			data: {
+				get() {
+					//C parent data prioritized over self data, subscription data prioritized over self data
+					if (this.pData) return this.pData;
+					else if (this.pQuery || this.sQuery) return this.subscriptionData;
+					else return this.sData;
+				},
+				set(value) {
+					this.sData = value;
+				},
+			},
+			error: {
+				get() {
+					if (this.pError) return this.pError;
+					else return this.sError;
+				},
+				set(value) {
+					this.sError = value;
+				},
+			},
+
+
 			subscriptionData() {
-				return this.sj.any(this.$store.getters.getSubscriptionData(this.subscription));
-			},
-
-			/*
-				what do I want?
-				I want a single component that can handle loading of static and async data - both from itself, and from its parent
-
-
-				if a subscription exists, always return the subscription data
-				if pData was last passed, return it
-				if data was last loaded, return it
-			*/
-
-			//? is there a situation where a get request would ever be desired over a subscription?
-			//? maybe the components can either be passed semi-static data, or get their own live data?
-			// when a component is being passed data it is either because the data is to be displayed statically (cannot be retrieved from the database or shouldnt change, or some reason), or its because the data is being retrieved in a group at a higher level so that multiple api requests or subscriptions don't have to be made for each component
-			// there might have to be another prop that states the type of data retrieval, because im having a hard time figuring out how to distinguish between subscription load and get load
-			// look at existing components and see how pQuery and pData are being used, //? when is pQuery used without pData? when is pData used without pQuery?
-
-			//TODO consider using a setter for data which sends an edit request if the data is an entity and the property matches the editIn filter
-
-			// if its queryable, its subscribable, if its subscribable, everything inside of it can be edited via .edit()
-
-			//----------
-			data() {
-				if (this.subscription) return this.subscriptionData;
-				else return this.data;
-			},
+				//! this by default is sj.one() object, AsyncDisplayList by default is sj.any() array
+				return this.sj.one(this.$store.getters.getSubscriptionData(this.subscription));
+			},			
 		},
-		watch: {
-			//L https://vuejs.org/v2/api/#vm-watch
-
-			//C these will initially pass props to query and data and then update everytime they are updated
-			//R simple props aren't here because both data and query need to be modifiable (in the case of the need for a non-prop query, like page components)
-			//R v-bind.sync isn't used here either because query and data might not always come directly from these props, also it would require having to declare both props every time these are used
-			//C uses a || conditional because these props will always be objects
-			pQuery: {
-				handler(value) {
-					this.query = value || this.query;
-				},
-				deep: true,
-				immediate: true,
-			},
-			pData: {
-				handler(value) {
-					this.data = value || this.data;
-				},
-				deep: true,
-				immediate: true,
-			},
-			//? should there be a pError?
-		},
+		//----------
         methods: {
 			// timeouts
 			startTimeouts() {
                 //TODO what happens if an old timed-out request comes back and replaces new data that was fetched?
-                this.delayId = setTimeout(() => {
+                this.delayId = sj.setTimeout(() => {
                     this.state = 'loading';
                 }, this.delay);
-                this.timeoutId = setTimeout(() => { 
+                this.timeoutId = sj.setTimeout(() => { 
                     this.handleError(new this.sj.Error({
                         log: true,
                         origin: 'AsyncDisplay.load()',
@@ -115,51 +104,77 @@
                 clearTimeout(this.timeoutId);
             },
 
-			// async data
-			alternateQuery() {
-				//C used for setting a custom value (other than pQuery) to query before load() is called, this is neccesary because child calls to created() happen after their parent's
-				//! should only return an object or an array
-				return undefined;
+			/*
+				// async data
+				alternateQuery() {
+					//C used for setting a custom value (other than pQuery) to query before load() is called, this is neccesary because child calls to created() happen after their parent's
+					//? why cant query just be set directly? i think because pQuery overwrites before created() is called
+					return undefined;
+				},
+			*/
+
+
+
+
+			/*
+				load() {
+					//console.log(this.$options.name, 'QUERYING:', JSON.stringify(this.query));
+
+					//C will not load new data via getData() if no query exists
+					if (this.sj.isType(this.query, Object) || this.sj.isType(this.query, Array)) {
+						this.clearTimeouts();
+						this.state = 'delay';
+						this.startTimeouts();
+						this.getData().then(this.handleSuccess, this.handleError);
+					} else {
+						this.state = 'display';
+					}
+				},
+			*/
+
+
+			
+			async refresh() {
+				let method;
+				if (this.pQuery || this.sQuery) method = this.refreshSubscription;
+				else if (this.pDeadQuery || this.sDeadQuery) method = this.getData;
+				else return new sj.Warn({
+					origin: 'AsyncDisplay component',
+					reason: 'refresh called but component is using static data',
+				});
+
+				this.clearTimeouts();
+				this.state = 'delay';
+				this.startTimeouts();
+				await method.then(this.handleSuccess, this.handleError);
 			},
-            async getData() { 
-				//G getData() should only use this.query for queries, update it instead of using passing another variable so that load() can ignore this call if undefined
+
+
+			async refreshSubscription() {
+				await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.query, subscriber: this});
+				return;
+			},
+			async getData() {
+				//G deadQuery() should only use this.query for queries, update it instead of using passing another variable so that load() can ignore this call if undefined
 				return {};
-            },
+			},
 
 			// handlers
             handleSuccess(resolved) {
                 this.clearTimeouts();
-                this.data = resolved;
+                if(!(this.pQuery || this.sQuery)) this.sData = resolved;
 				this.state = 'display';
 				//console.log(this.$options.name, 'RECEIVED ASYNC DATA:', JSON.stringify(this.data));
             },
             handleError(rejected) {
                 this.clearTimeouts();
-                this.error = rejected;
+                this.sError = rejected;
 				this.state = 'error';
 				//console.error(this.$options.name, 'RECEIVED ASYNC ERROR:', JSON.stringify(this.error));
             },
-
-            load() {
-				//console.log(this.$options.name, 'QUERYING:', JSON.stringify(this.query));
-
-				//C will not load new data via getData() if no query exists
-				if (this.sj.isType(this.query, Object) || this.sj.isType(this.query, Array)) {
-					this.clearTimeouts();
-					this.state = 'delay';
-					this.startTimeouts();
-					this.getData().then(this.handleSuccess, this.handleError);
-				} else {
-					this.state = 'display';
-				}
-            },
 		},
 		created() {
-			//? what if subscribe fails?
-			this.subscription = await this.$store.dispatch('subscribe', {Entity: this.subscriptionEntity, query: this.query, subscriber: this}).catch(this.handleError);
-
-			this.query = this.alternateQuery() || this.query;
-			this.load();
+			refresh();
         },
     }
 </script>

@@ -32,6 +32,9 @@
 			//C any listeners/attrs for this list component can be pulled out of those that are passed down by adding the name to the destructured object:
 			// const {listenerForThisList, ...listeners} = this.$listeners;
 			//L https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
+
+			// v-bind='attrs' v-on='listeners' is used on components inside AsyncDisplayList that should pass their events up to AsyncDisplayList and have its attributes passed down, this is so that AsyncDisplayList can basically represent every component within its list
+
 			attrs() {
     			const {...attrs} = this.$attrs;
     			return attrs;
