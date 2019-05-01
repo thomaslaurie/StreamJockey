@@ -8,17 +8,16 @@
 		components:  {
 			PlaylistDisplay,
 		},
-        methods: {
-            async getData() {
-				return await this.sj.Playlist.get(this.query).then(this.sj.content);
-            },
-		},
+		data() { return {
+			//OVERWRITES
+			Entity: this.$root.sj.Playlist,
+		}; },
     }
 </script>
 
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
 	class='playlist-display-list'>
         <ul>
             <li

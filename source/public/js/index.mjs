@@ -117,6 +117,12 @@
 	//L how to use dynamic components: https://alligator.io/vuejs/dynamic-components/
 
 	//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
+
+
+	VUE REACTIVITY CAVEATS
+		//L https://v1.vuejs.org/guide/reactivity.html#How-Changes-Are-Tracked
+		//L https://v1.vuejs.org/guide/list.html#Caveats
+		//L https://vuex.vuejs.org/guide/mutations.html#mutations-follow-vue-s-reactivity-rules
 */
 
 
@@ -164,10 +170,15 @@ import sj from './global-client.mjs';
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+//TODO 
+Vue.config.productionTip = false; 
+Vue.config.devtools = false;
+
 Vue.use(VueRouter);
 Vue.use(VueX);
 Vue.mixin({
-    //L global mixins: https://vuejs.org/v2/guide/mixins.html#Global-Mixin, so that sj does not have to be imported into every component
+	//L global mixins: https://vuejs.org/v2/guide/mixins.html#Global-Mixin, so that sj does not have to be imported into every component
+	//G to access mixin before component creation (ie inside data function), use this.$root.x instead of this.x
     data() {
         return {
             sj,
@@ -175,10 +186,7 @@ Vue.mixin({
     },
 });
 
-
-
 const databaseSocket = new SocketIO('/database');
-
 databaseSocket.test  = async function () {
 	sj.Track.placeholder = {
 		playlistId: 2, 
@@ -324,13 +332,6 @@ databaseSocket.test  = async function () {
 	delete sj.Playlist.placeholder;
 	delete sj.User.placeholder;
 };
-
-databaseSocket.on('connect', async () => {
-	await store.dispatch('reconnect');
-});
-
-databaseSocket.on('disconnect', async (reason) => {
-});
 
 
 //  ██╗   ██╗██╗   ██╗███████╗
@@ -697,8 +698,7 @@ const store = new VueX.Store({
 			let existingSubscription = context.getters.findSubscription(table, query);
 			if (!existingSubscription) {
 				//C determine if Query or Entity Subscription
-				if (query.length === 1 && Object.keys(query).length === 1 && sj.isType(query[0].id, Number)) var Type = sj.EntitySubscription;
-				else var Type = sj.QuerySubscription;
+				const Type = (query.length === 1 && Object.keys(query).length === 1 && sj.isType(query[0].id, Number)) ? sj.EntitySubscription : sj.QuerySubscription;
 
 				//C create new subscription
 				context.commit('addSubscription', {table, subscription: new Type({
@@ -750,8 +750,8 @@ const store = new VueX.Store({
 			}
 		},
 
+
 		async reconnect(context) {
-			console.log('reconnect called');
 			//G disconnect all is called server-side
 			//C for each table
 			await sj.asyncForEach(sj.Entity.children, async child => {
@@ -759,8 +759,8 @@ const store = new VueX.Store({
 				await sj.asyncForEach(context.state.subscriptions[child.table], async subscription => {
 					//C for each subscriber
 					await sj.asyncForEach(subscription.subscribers, async subscriber => {
-						//C if subscriber is another QuerySubscription
-						if (sj.isType(subscriber, sj.QuerySubscription) && !sj.isType(subscriber.EntitySubscription)) {
+						//C if subscriber is not a QuerySubscription
+						if (!sj.isType(subscriber, sj.QuerySubscription)) {
 							//C re-subscribe
 							await context.dispatch('subscribe', {Entity: child, query: subscription.query, subscriber: subscriber});
 						}
@@ -816,12 +816,17 @@ const vm = new Vue({
 	store,
 });
 
+databaseSocket.on('connect', async () => {
+	await store.dispatch('reconnect');
+});
+databaseSocket.on('disconnect', async (reason) => {
+});
+
 //C trigger query updates when notified of change
 databaseSocket.on('NOTIFY', async ({table, query, timestamp}) => {
 	let Entity = sj.tableToEntity(table);
 	store.dispatch('update', {Entity, table: store.state.subscriptions[Entity.table], query, timestamp});
 });
-
 
 sj.testTest = async function (store) {
 	let Entity = sj.Track;

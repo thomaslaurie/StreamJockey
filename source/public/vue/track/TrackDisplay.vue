@@ -8,16 +8,18 @@
 			addButton: Boolean,
 			removeButton: Boolean,
 		},
+		data() { return {
+			//OVERWRITES
+			Entity: this.$root.sj.Track,
+		}; },
         methods: {
-            async getData() {
-				return await this.sj.Track.get(this.query).then(this.sj.content).then(this.sj.one);
-			},
+			// NEW
 			async open(id) {
                 this.$router.push(`/track/${id}`);
             },
             async play() {
 			},
-			async del() { //! shortened to del to avoid delete reserved word
+			async remove() { //! shortened to del to avoid delete reserved word
 				await this.sj.Track.remove(this.data);
 				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own data
 			},
@@ -30,7 +32,7 @@
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent' 
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent' 
 	class='track-display'>
 		<div id='left'>
 			<button id='play-button' @click='play()'>Play</button>
@@ -42,7 +44,7 @@
 		</div>
 		<div id='right'>
 			<button v-if='addButton' @click='add'>Add</button>
-			<button v-if='removeButton' @click='del'>Delete</button>
+			<button v-if='removeButton' @click='remove'>Delete</button>
 		</div>
 		<!-- //TODO <button @click='open(data.id)'>Info</button> -->
     </async-switch>

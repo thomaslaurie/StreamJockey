@@ -1,5 +1,5 @@
 <script>
-    import reload from '../mixins/reload.mjs';
+    import emitRefresh from '../mixins/emitRefresh.mjs';
 
     import AsyncDelay from './AsyncDelay.vue';
     import AsyncLoading from './AsyncLoading.vue';
@@ -9,7 +9,7 @@
         //C used to switch markup depending on the state prop, wraps around Display markup (slot) and can be passed custom loading & error components. passes an error prop to the error component and propagates reload events from loading and error components to the parent display component
 
         name: 'async-switch',
-        mixins: [reload],
+        mixins: [emitRefresh],
         props: {
             state: String,
             error: [Object, Error], //TODO will warn if not Object or Error, any way to catch stray data types?
@@ -121,7 +121,7 @@
 
 <template>
     <!-- //C v-if is used here because all parts can be destroyed and created at will because they (the slotted display markup & accessory loading & error components) don't process or store any information -->
-
+	
     <div v-if='state === "display"'>
         <slot>
             <h2>No Slotted Display Content</h2>

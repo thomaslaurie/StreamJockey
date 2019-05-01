@@ -825,11 +825,15 @@ sj.asyncForEach = async function (list, callback) {
 	//C executes an async function for each item in an array, throws entire result list if any of it's items were thrown
 	//L this helped: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
 	
-	/*
-		//! list is shallow copied because list could also be an iterateable, wait - don't do this, because then primitives can no longer be modified inside as the map is no longer referencing the original list
-		//L https://stackoverflow.com/questions/31084619/map-a-javascript-es6-map
-	*/
-	let results = await Promise.all(list.map(async (item, index, self) => callback(item, index, self).then(resolved => {
+	
+
+	//C list is shallow copied because list could also be an array-like object
+	//L https://stackoverflow.com/questions/31084619/map-a-javascript-es6-map
+	let tempList = [...list];
+	if (!Array.isArray(list)) {
+		console.log('EHRE', list, tempList);
+	}
+	let results = await Promise.all(tempList.map(async (item, index, self) => callback(item, index, self).then(resolved => {
 		return {
 			resolved: true,
 			content: resolved,
@@ -841,6 +845,11 @@ sj.asyncForEach = async function (list, callback) {
 			content: sj.propagate(rejected),
 		}
 	})));
+
+	//C while references are fine, primitives need to be given back to the original list
+	for(let i = 0; i < list.length; i++) {
+		list[i] = tempList[i];
+	}
 
 	//C check if any rejected
 	let allResolved = results.every(item => item.resolved);
@@ -2459,6 +2468,19 @@ sj.AuthRequired = class AuthRequired extends sj.Error {
 		this.onCreate();
 	}
 };
+sj.Unreachable = class Unreachable extends sj.Error {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Unreachable';
+
+		sj.Base.init(this, options, {
+			message: 'code reached a place that should be unreachable',
+		});
+
+		this.onCreate();
+	}
+}
 
 
 // other

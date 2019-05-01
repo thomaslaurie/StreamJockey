@@ -14,43 +14,84 @@
             LoadingComponent: AsyncLoading,
             ErrorComponent: AsyncError,
             //TODO make actual default components
-            //TODO consider making a delay component (where no loading graphics are shown), this is definitely needed as I can see the loading component flickering before load
         },
         data() {
             return {
+				//C used with AsyncSwitch to switch the display of the delay, loading, error components, and the slotted content from this component
                 state: 'delay',
 
+				//C delay before displaying the loading component
                 delay: 1000, //TODO I can still see delay flickering
 				delayId: null,
+				//C time before throwing a timeout error and displaying the error component
                 timeout: Infinity,
-                timeoutId: null,
+				timeoutId: null,
+				
+				Entity: undefined, //C used for components that target an sj.Entity type
+				subscription: undefined, //C stores subscription reference
+				deadQueryData: undefined, //C stores data from deadQuery
 
+				//C self
 				sQuery: undefined,
 				sDeadQuery: undefined,
 				sData: undefined,
-				sError: {}, //C store error separately so that it doesn't overwrite previously fetched data
-				
-				Entity: undefined,	//C used for components that target an sj.Entity type
-				subscription: undefined, //C used to store subscription reference
+				sError: undefined, //C store error separately so that it doesn't overwrite previously fetched data
             };
         },
-        props: { 
-			//C queries and data from parent take priority over those from self,
-			//C query takes priorty over dead query, which takes priority over data
-			//! query, dead query, and data should never be used together
-			pQuery: [Object, Array], //C used when this component should get it's own data
+        props: {
+			//! only one query, dead query, or data object should ever be passed, or else one or more will be overridden
+			//C parent queryies used when this component should get it's own data
+			pQuery: [Object, Array], 
 			pDeadQuery: [Object, Array],
-			pData: [Object], //C used when this component is given data //! is a single item here, is an array in AsyncDisplayList 
-			pError,
+			//C parent data used when this component is given data 
+			//! is a single item here, is an array in AsyncDisplayList 
+			pData: [Object], 
+
+			//? if the parent's data is errored, and passed via pError, how will this component know to display error?
+			//R I dont think errors should be passed from parent, cause the parent is either also an async display - in which it will display its error component, or its not, and the data is static - in which the data itself is just wrong
+			//pError,
 		},
 		computed: {
+			// QUERY/DATA SHORTHANDS
+			isDataLive() {
+				return !!(this.pQuery || this.sQuery);
+			},
+			isDataDead() {
+				return !!(!this.isDataLive && (this.pDeadQuery || this.sDeadQuery));
+			},
+			isDataStatic() {
+				return !!(!this.isDataLive && !this.isDataDead);
+			},
+			isDataFromParent() {
+				return !!(this.pQuery || this.pDeadQuery || this.pData);
+			},
+
+
+			queryData() {
+				//! AsyncDisplay uses sj.one(subscription data)
+				if (this.subscription) return this.sj.one(this.$store.getters.getSubscriptionData(this.subscription));
+				else return {}; 
+				//TODO this is a hack right now to suppress undefined property errors, it should really just return undefined. because of slotted markup, even though the elements aren't rendering, they still require their references to the data - but while that data is being retrieved they throw undefined property errors
+				//L custom directive as a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
+			},	
+
 			query: {
 				get() {
-					//C query prioritized over dead query, parent queries prioritized over self queries
-					if (this.pQuery) return this.pQuery;
-					else if (this.pDeadQuery) return this.pDeadQuery;
-					else if (this.sQuery) return this.sQuery;
-					else return this.sDeadQuery;
+					//C live query prioritized over dead query, parent queries prioritized over self queries
+					if 		(this.isDataFromParent && this.isDataLive) return this.pQuery;
+					else if	(this.isDataFromParent && this.isDataDead) return this.pDeadQuery;
+					else if (!this.isDataFromParent && this.isDataLive) return this.sQuery;
+					else if (!this.isDataFromParent && this.isDataDead) return this.sDeadQuery;
+					else throw new this.sj.Error({
+						origin: 'AsyncDisplay',
+						reason: 'component query was referenced but no query was passed to or defined on this component',
+						content: {
+							pQuery: this.pQuery,
+							pDeadQuery: this.pDeadQuery,
+							sQuery: this.sQuery,
+							sDeadQuery: this.sDeadQuery,
+						},
+					});
 				},
 				set(value) {
 					this.sQuery = value;
@@ -58,10 +99,19 @@
 			},
 			data: {
 				get() {
-					//C parent data prioritized over self data, subscription data prioritized over self data
-					if (this.pData) return this.pData;
-					else if (this.pQuery || this.sQuery) return this.subscriptionData;
-					else return this.sData;
+					//C live prioritized over dead, prioritized over static, parent priortized over self
+					if 		(this.isDataLive) return this.queryData;
+					else if (this.isDataDead) return this.deadQueryData;
+					else if (this.isDataStatic && this.isDataFromParent) return this.pData;
+					else if (this.isDataStatic && !this.isDataFromParent) return this.sData;
+					else throw new this.sj.Unreachable({
+						content: {
+							isDataLive: this.isDataLive,
+							isDataDead: this.isDataDead,
+							isDataStatic: this.isDataStatic,
+							isDataFromParent: this.isDataFromParent,
+						},
+					});
 				},
 				set(value) {
 					this.sData = value;
@@ -69,29 +119,42 @@
 			},
 			error: {
 				get() {
-					if (this.pError) return this.pError;
-					else return this.sError;
+					return this.sError;
+					// if (this.pError) return this.pError;
+					// else return this.sError;
 				},
 				set(value) {
 					this.sError = value;
 				},
 			},
-
-
-			subscriptionData() {
-				//! this by default is sj.one() object, AsyncDisplayList by default is sj.any() array
-				return this.sj.one(this.$store.getters.getSubscriptionData(this.subscription));
-			},			
 		},
-		//----------
         methods: {
-			// timeouts
+			async refresh() {
+				let method;
+				if 		(this.isDataLive) method = this.refreshSubscription;
+				else if (this.isDataDead) method = this.refreshData;
+				else return new this.sj.Warn({
+					origin: 'AsyncDisplay component',
+					reason: 'refresh called but component is using static data',
+					content: {
+						pData: this.pData,
+						sData: this.sData,
+					},
+				});
+
+				this.clearTimeouts();
+				this.state = 'delay';
+				this.startTimeouts();
+				await method().then(this.handleSuccess, this.handleError);
+			},
+
+			// TIMEOUTS
 			startTimeouts() {
                 //TODO what happens if an old timed-out request comes back and replaces new data that was fetched?
-                this.delayId = sj.setTimeout(() => {
+                this.delayId = this.sj.setTimeout(() => {
                     this.state = 'loading';
                 }, this.delay);
-                this.timeoutId = sj.setTimeout(() => { 
+                this.timeoutId = this.sj.setTimeout(() => { 
                     this.handleError(new this.sj.Error({
                         log: true,
                         origin: 'AsyncDisplay.load()',
@@ -104,65 +167,24 @@
                 clearTimeout(this.timeoutId);
             },
 
-			/*
-				// async data
-				alternateQuery() {
-					//C used for setting a custom value (other than pQuery) to query before load() is called, this is neccesary because child calls to created() happen after their parent's
-					//? why cant query just be set directly? i think because pQuery overwrites before created() is called
-					return undefined;
-				},
-			*/
-
-
-
-
-			/*
-				load() {
-					//console.log(this.$options.name, 'QUERYING:', JSON.stringify(this.query));
-
-					//C will not load new data via getData() if no query exists
-					if (this.sj.isType(this.query, Object) || this.sj.isType(this.query, Array)) {
-						this.clearTimeouts();
-						this.state = 'delay';
-						this.startTimeouts();
-						this.getData().then(this.handleSuccess, this.handleError);
-					} else {
-						this.state = 'display';
-					}
-				},
-			*/
-
-
-			
-			async refresh() {
-				let method;
-				if (this.pQuery || this.sQuery) method = this.refreshSubscription;
-				else if (this.pDeadQuery || this.sDeadQuery) method = this.getData;
-				else return new sj.Warn({
-					origin: 'AsyncDisplay component',
-					reason: 'refresh called but component is using static data',
-				});
-
-				this.clearTimeouts();
-				this.state = 'delay';
-				this.startTimeouts();
-				await method.then(this.handleSuccess, this.handleError);
+			// REFRESH
+			async refreshSubscription() {;
+				return await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.query, subscriber: this});
+			},
+			async refreshData() {
+				if (!this.Entity) return undefined;
+				return await this.Entity.get(this.query).then(this.sj.content).then(this.sj.one);
 			},
 
-
-			async refreshSubscription() {
-				await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.query, subscriber: this});
-				return;
-			},
-			async getData() {
-				//G deadQuery() should only use this.query for queries, update it instead of using passing another variable so that load() can ignore this call if undefined
-				return {};
-			},
-
-			// handlers
+			// HANLDERS
             handleSuccess(resolved) {
-                this.clearTimeouts();
-                if(!(this.pQuery || this.sQuery)) this.sData = resolved;
+				this.clearTimeouts();
+				if 		(this.isDataLive) this.subscription = resolved;
+				else if (this.isDataDead) this.deadQueryData = resolved;
+				else throw new this.sj.Error({
+					origin: 'AsyncDisplay',
+					reason: 'handleSuccess was called, but component is neither live nor dead, this should never happen',
+				});
 				this.state = 'display';
 				//console.log(this.$options.name, 'RECEIVED ASYNC DATA:', JSON.stringify(this.data));
             },
@@ -171,17 +193,18 @@
                 this.sError = rejected;
 				this.state = 'error';
 				//console.error(this.$options.name, 'RECEIVED ASYNC ERROR:', JSON.stringify(this.error));
-            },
+			},
 		},
 		created() {
-			refresh();
+			if (this.isDataLive || this.isDataDead) this.refresh();
+			else this.state = 'display';
         },
     }
 </script>
 
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
     </async-switch>
 </template>
 

@@ -621,19 +621,17 @@ sj.subscriptions = (function () {
 		//C removes user from each subscription
 		//? unsubscribe all on disconnect and resubscribe all on connect? or have a timeout system?
 		sj.Entity.children.forEach(child => {
-			this[child.table].forEach(table => {
-				table.forEach((subscription, subscriptionIndex) => {
-					subscription.subscribers.forEach((subscriber, subscriberIndex, subscribers) => {
-						if (subscriber.socketId === user.socketId) {
-							//C remove subscriber
-							subscribers.splice(subscriberIndex, 1);
+			this[child.table].forEach((subscription, subscriptionIndex) => {
+				subscription.subscribers.forEach((subscriber, subscriberIndex, subscribers) => {
+					if (subscriber.socketId === user.socketId) {
+						//C remove subscriber
+						subscribers.splice(subscriberIndex, 1);
 
-							//C remove subscription if now empty
-							if (subscribers.length <= 0) {
-								table.splice(subscriptionIndex, 1);
-							}
+						//C remove subscription if now empty
+						if (subscribers.length <= 0) {
+							table.splice(subscriptionIndex, 1);
 						}
-					});
+					}
 				});
 			});
 		});
@@ -642,7 +640,7 @@ sj.subscriptions = (function () {
 	this.notify = async function (Entity, entities, timestamp, change) {
 		//C for each changed entity
 		entities.forEach(entity => { 
-			console.log('notified called for:', entity);
+			//console.log('notified called for:', entity);
 			//console.log('table length:', this[Entity.table].length, 'table is array:', Array.isArray(this[Entity.table]));
 			//C for each subscription
 			this[Entity.table].forEach(subscription => { 
@@ -655,7 +653,7 @@ sj.subscriptions = (function () {
 
 					//C for each subscriber
 					subscription.subscribers.forEach(subscriber => {
-						console.log('notifying subscriber:', subscriber.name);
+						//console.log('notifying subscriber:', subscriber.name);
 
 						//TODO see if the subscriber has the permission to see any changes - this should be similar to if not the same as the validate function for CRUD methods
 
@@ -719,7 +717,7 @@ sj.subscriptions = (function () {
 		const accessory = {};
 		
 
-		return await db.tx(async t => {
+		const after = await db.tx(async t => {
 			//C process
 			const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
@@ -785,34 +783,33 @@ sj.subscriptions = (function () {
 			const unmapped = all.map(list => this.unmapColumns(list));
 
 			//C process
-			const after = await sj.asyncForEach(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
+			return await sj.asyncForEach(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
+		}).catch(sj.propagate); //! finish the transaction here so that notify won't be called before the database has updated
+
+		//C shake for subscriptions with getOut filter
+		const shookGet = after.map(list => sj.shake(list, this.filters.getOut));
+
+		//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+		const timestamp = Date.now();
+
+		//C if get, don't notify
+		if (!isGet) shookGet.forEach(list => sj.subscriptions.notify(this, list, timestamp, methodName));
+		//C if getMimic, return shookGet-after
+		else if (isGetMimic) return shookGet[1]; 
 
 
-			//C shake for subscriptions with getOut filter
-			const shookGet = after.map(list => sj.shake(list, this.filters.getOut));
+		//C shake for return
+		const shook = after.map(list => sj.shake(list, this.filters[methodName+'Out']));
 
-			//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
-			const timestamp = Date.now();
+		//C rebuild
+		const built = shook.map(list => list.map(entity => new this(entity)));
 
-			//C if get, don't notify
-			if (!isGet) shookGet.forEach(list => sj.subscriptions.notify(this, list, timestamp, methodName));
-			//C if getMimic, return shookGet-after
-			else if (isGetMimic) return shookGet[1]; 
-
-
-			//C shake for return
-			const shook = after.map(list => sj.shake(list, this.filters[methodName+'Out']));
-
-			//C rebuild
-			const built = shook.map(list => list.map(entity => new this(entity)));
-
-			return new sj.SuccessList({
-				...this[methodName+'Success'](),
-				//R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
-				content: built[1], 
-				timestamp,
-			});
-		}).catch(sj.propagate);
+		return new sj.SuccessList({
+			...this[methodName+'Success'](),
+			//R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
+			content: built[1], 
+			timestamp,
+		});
 	};
 
 
@@ -1209,6 +1206,8 @@ sj.subscriptions = (function () {
 			const influencedTracks = [];
 			const inputIndex = Symbol();
 
+			console.log('INPUT TRACKS', inputTracks);
+
 			//C retrieve track's playlist, group each track by playlist & moveType
 			await sj.asyncForEach(inputTracks, async (track, index) => {
 				const storePlaylist = function (playlistId, existingTracks) {
@@ -1219,7 +1218,7 @@ sj.subscriptions = (function () {
 					if (!Array.isArray(existingTracks)) throw new sj.Error({
 						origin: 'sj.Track.order()',
 						reason: `existingTracks is not an array: ${existingTracks}`,
-					})
+					});
 
 					//C stores playlist in playlists if not already stored
 					let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
@@ -1273,15 +1272,11 @@ sj.subscriptions = (function () {
 						message: 'could not move tracks',
 					}));
 				});
-				//C current playlist shouldn't be empty
-				if (currentPlaylist.length === 0) throw new sj.Error({
-					origin: 'sj.Track.editIntermediate()',
-					message: 'failed to move tracks',
-					reason: `the playlist retrieved by this track's id returned no rows, there must be an error with the query command`,
-				});
+
+				console.log('action', action);
 
 				//C store
-				const currentPlaylistStored = storePlaylist(currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
+				const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
 				//C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
 				currentPlaylistStored.original.forEach(t => {
 					delete t.playlistId;
@@ -1306,7 +1301,6 @@ sj.subscriptions = (function () {
 							message: 'could not move tracks',
 						}));
 					});
-					//! anotherPlaylist can be empty
 
 					const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
 					anotherPlaylistStored.original.forEach(t => {
@@ -1319,12 +1313,12 @@ sj.subscriptions = (function () {
 				}
 
 				return new sj.Success({
-					origin: 'sj.Track.editIntermediate() - movingTracks iterator',
+					origin: 'sj.Track.order()',
 					message: "retrieved track's playlist",
 				});
 			}).catch(rejected => {
 				throw new sj.ErrorList({
-					origin: 'sj.Track.editIntermediate() - movingTracks iterator',
+					origin: 'sj.Track.order() - movingTracks iterator',
 					message: `could not retrieve some track's playlist`,
 					content: rejected,
 				});

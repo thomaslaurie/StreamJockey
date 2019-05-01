@@ -1,9 +1,9 @@
 <script>
-    import reload from '../mixins/reload.mjs';
+    import emitRefresh from '../mixins/emitRefresh.mjs';
 
     export default {
         name: 'async-error',
-        mixins: [reload],
+        mixins: [emitRefresh],
         props: {
             error: [Object, Error],
         },

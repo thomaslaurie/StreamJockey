@@ -10,33 +10,32 @@
         },
         data() {
             return {
+				// OVERWRITES
+				Entity: this.$root.sj.Playlist,
+				sQuery: {id: this.$route.params.id},
+
+				// NEW
                 edit: true,
 				searchTerm: '',
 				searchResults: [],
             };
         },
         methods: {
-			alternateQuery() {
-				return {id: this.$route.params.id};
-			},
-            async getData() {
-                return await this.sj.Playlist.get(this.query).then(this.sj.content).then(this.sj.one);
-            },
-
+			// NEW
             async search() {
 				this.searchResults = await this.sj.spotify.search(this.searchTerm).then(this.sj.content);
 			},
 			async add(track) { //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
 				track.playlistId = this.data.id;
 				await this.sj.Track.add(track);
-				await this.getData();
+				await this.refreshData(); //TODO
 			},
 		},
     }
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
 	class='playlist-page'>
         <h4>playlist #{{data.id}}, user #{{data.userId}}</h4>
         <h1>{{data.name}}</h1>
@@ -46,7 +45,7 @@
         <button @click='edit = !edit'>Edit</button>
 
         <div id='main'>
-            <track-display-list id='playlist' :p-query='{playlistId: data.id}' removeButton @update='getData'></track-display-list>
+            <track-display-list id='playlist' :p-query='{playlistId: data.id}' removeButton></track-display-list>
 
             <div id='search-div' v-if='edit'>
                 <input v-model='searchTerm'>

@@ -157,14 +157,14 @@ sj.databaseSockets.use((socket, next) => {
 
 //L https://socket.io/docs/emit-cheatsheet/
 sj.databaseSockets.on('connect', (socket) => {
-	console.log('SOCKET - CONNECTED', socket.id);
+	console.log('CONNECT', socket.id);
 
 	//C give socket id to session.user //? I don't think the actual cookie.session receives this, but for now only the socket.session needs it
 	if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = socket.id;
 
 
 	socket.on('disconnect', async (reason) => {
-		console.log('SOCKET - DISCONNECTED', socket.id);
+		console.log('DISCONNECT', socket.id);
 
 		await sj.subscriptions.disconnect(socket.id).catch(rejected => { //TODO better way
 			if (sj.isType(rejected, sj.Base)) rejected.announce();
@@ -175,7 +175,7 @@ sj.databaseSockets.on('connect', (socket) => {
 
 
 	socket.on('SUBSCRIBE', async ({table, query}, callback) => {
-		console.log('SOCKET - SUBSCRIBE', table, query);
+		console.log('SUBSCRIBE', table, query);
 
 		//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
 		let subscriber = socket.session.user;
@@ -185,7 +185,7 @@ sj.databaseSockets.on('connect', (socket) => {
 	});
 
 	socket.on('UNSUBSCRIBE', async ({table, query}, callback) => {
-		console.log('SOCKET - UNSUBSCRIBE', query);
+		console.log('UNSUBSCRIBE', query);
 
 		let subscriber = socket.session.user;
 		if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
@@ -195,7 +195,7 @@ sj.databaseSockets.on('connect', (socket) => {
 
 
 	socket.on('error', (reason) => {
-		console.error('SOCKET - ERROR', socket.id, reason);
+		console.error('ERROR', socket.id, reason);
 	});
 });
 
@@ -209,10 +209,8 @@ sj.databaseSockets.on('connect', (socket) => {
 
 // listen to requests
 server.listen(PORT, () => {
-	sj.wait(3500).then(() => {
-		console.log('███████████████████████████████████████');
-		console.log(`Server listening on port: ${PORT}`);
-	});
+	console.log('███████████████████████████████████████');
+	console.log(`SERVER LISTENING ON PORT ${PORT}`);
 });
 
 //L unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar

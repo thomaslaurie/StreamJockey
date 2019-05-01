@@ -3,11 +3,13 @@
 
     export default {
         name: 'user-display',
-        extends: AsyncDisplay,
+		extends: AsyncDisplay,
+		data() { return {
+			// OVERWRITES
+			Entity: this.$root.sj.User,
+		}; },
         methods: {
-            async getData() {
-                return await this.sj.User.get(this.query).then(this.sj.content).then(this.sj.one);
-            },
+			// NEW
             async open(id) {
                 this.$router.push(`/user/${id}`);
             },
@@ -16,7 +18,7 @@
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
 		<p>{{data.id}}</p>
 		<p>{{data.name}}</p>
 		<button @click='open(data.id)'>Profile</button>

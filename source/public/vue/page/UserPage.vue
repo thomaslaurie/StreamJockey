@@ -7,24 +7,20 @@
         extends: AsyncDisplay,
         components: {
             PlaylistDisplayList,
-        },
+		},
+		data() { return {
+			//OVERWRITES
+			Entity: this.$root.sj.User,
+			sQuery: {id: this.$route.params.id},
+		}; },
         methods: {
-			alternateQuery() {
-				return {id: this.$route.params.id};
-			},
-            async getData() {
-				console.log('query:', this.query);
-				let result = await this.sj.User.get(this.query);
-				console.log('result:', result);
-                return this.sj.one(this.sj.content(result));
-            },
+			// NEW
             async logout() {
                 await this.sj.session.logout().catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
                 });
 
-                this.$store.commit('setMe', null);
                 this.$router.push('/login');
             },
 		},
@@ -33,7 +29,7 @@
 
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
         <button @click='logout'>Logout</button>
         <h4>user #{{data.id}}</h4>
         <h1>{{data.name}}</h1>

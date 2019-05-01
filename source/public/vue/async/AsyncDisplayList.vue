@@ -7,34 +7,40 @@
         extends: AsyncDisplay,
         data() {
             return {
-                //C change data default to empty list so that sj.dynamicSort() wont fail while data is loading
-                data: [],
+				// OVERWRITES
+                sData: [],
             };
         },
         props: {
+			// OVERWRITES
+			//C change data from Object to Array type, if used //TODO
+            pData: [Array],
+
+			// NEW
             //TODO consider making this take an array, which then is able to sort by multiple columns
             orderBy: String,  
             ascending: Boolean,
-
-            //C change data from Object to Array type, if used //TODO
-            pData: [Array],
-        },
-        methods: {
-            async getData() {
-                return [];
-            },
-        },
-        computed: {
-            orderedData() {
-                return this.sj.dynamicSort(this.data, this.ascending, this.orderBy);
+		},
+		computed: {
+			// OVERWRITES
+			queryData() {
+				//! AsyncDisplayList uses sj.any(subscription data)
+				if (this.subscription) return this.sj.any(this.$store.getters.getSubscriptionData(this.subscription));
 			},
-			//C transparent wrapper for list items just apply v-on='listeners' and v-bind='attrs' to any element that needs them
-			//C any listeners/attrs for this list component can be pulled out of those that are passed down by adding the name to the destructured object:
-			// const {listenerForThisList, ...listeners} = this.$listeners;
-			//L https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
 
-			// v-bind='attrs' v-on='listeners' is used on components inside AsyncDisplayList that should pass their events up to AsyncDisplayList and have its attributes passed down, this is so that AsyncDisplayList can basically represent every component within its list
+			// NEW
+            orderedData() {
+                return this.sj.dynamicSort(sj.any(this.data), this.ascending, this.orderBy);
+			},
 
+			/* //G transparent components
+				//C child list components may be made transparent, so that any child listener is passed up to AsyncDisplayList and any attribute on AsyncDisplayList will be passed down to the child component
+				//G just add v-on='listeners' and v-bind='attrs' to any element that needs to be transparent
+
+				//G any listeners/attrs for this AsyncDisplayList component can be pulled out of those that are passed down by adding the name to the destructured object:
+				// const {listenerForThisList, ...listeners} = this.$listeners;
+				//L https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
+			*/
 			attrs() {
     			const {...attrs} = this.$attrs;
     			return attrs;
@@ -44,12 +50,20 @@
 				return listeners;
 			},
         },
+        methods: {
+			// OVERWRITES
+			async refreshData() {
+				if (!this.Entity) return [];
+				return await this.Entity.get(this.query).then(this.sj.content).then(this.sj.any);
+			},			
+        },
+
     }
 </script>
 
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='LoadingComponent' :error-component='ErrorComponent'>
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='LoadingComponent' :error-component='ErrorComponent'>
         <h2>Default List Display Component</h2>
         <p v:for='item in orderedData'>Default Item: {{item}}</p>
     </async-switch>

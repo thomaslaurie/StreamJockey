@@ -3,21 +3,17 @@
 
     export default {
         name: 'track-page',
-        extends: AsyncDisplay,
-        methods: {
-			alternateQuery() {
-				return {id: this.$route.params.id};
-			},
-            async getData() {
-                let result = await this.sj.Track.get(this.query).then(this.sj.content);
-                return this.sj.one(result);
-            },
-		},
+		extends: AsyncDisplay,
+		data() { return {
+			// OVERWRITES
+			Entity: this.$root.sj.Track,
+			sQuery: {id: this.$route.params.id},
+		}; },
     }
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
         <h4>track #{{data.id}}, playlist #{{data.playlistId}}</h4>
         <h4>position #</h4>
         <h1>{{data.name}}</h1>

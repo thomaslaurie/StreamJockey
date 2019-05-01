@@ -3,20 +3,25 @@
 
     export default {
         name: 'playlist-display',
-        extends: AsyncDisplay,
+		extends: AsyncDisplay,
+		data() { return {
+			//OVERWRITES
+			Entity: this.$root.sj.Playlist,
+		}; },
         methods: {
-            async getData() {
-                return await this.sj.Playlist.get(this.query).then(this.sj.content).then(this.sj.one);
-            },
+			// NEW
             async open(id) {
                 this.$router.push(`/playlist/${id}`);
             },
 		},
+		created() {
+			this.sj.wait(3000).then(resolved => console.log(this.state));
+		}
     }
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @reload='load' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
 		<p>{{data.id}}</p>
 		<p>{{data.name}}</p>
 		<button @click='open(data.id)'>Open</button>
