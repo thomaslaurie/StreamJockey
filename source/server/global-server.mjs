@@ -658,7 +658,7 @@ sj.subscriptions = (function () {
 						//TODO see if the subscriber has the permission to see any changes - this should be similar to if not the same as the validate function for CRUD methods
 
 						//C emit socket notification to subscriber
-						sj.databaseSockets.to(subscriber.socketId).emit('NOTIFY', {table: Entity.table, query: subscription.query, timestamp, changed: entity}); //TODO changed should eventually be removed
+						sj.databaseSockets.to(subscriber.socketId).emit('notify', {table: Entity.table, query: subscription.query, timestamp, changed: entity}); //TODO changed should eventually be removed
 					});
 				}
 			});

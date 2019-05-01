@@ -6,25 +6,20 @@
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
 /*
-    //L don't use arrow functions on any component options properties (created, data, etc.) as this will not be available: https://vuejs.org/v2/guide/instance.html#Instance-Lifecycle-Hooks
-    //L methods vs computed vs watch: https://flaviocopes.com/vue-methods-watchers-computed-properties/
+	//G VUE GUIDES
+		//! don't use arrow functions for components: //L https://vuejs.org/v2/guide/instance.html#Data-and-Methods
+		//L don't use arrow functions on any component options properties (created, data, etc.) as this will not be available: https://vuejs.org/v2/guide/instance.html#Instance-Lifecycle-Hooks
+		   
+		//L methods vs computed vs watch: https://flaviocopes.com/vue-methods-watchers-computed-properties/
+		//L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
+		   
+		//L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
+		//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
+		
+    	//L https://vuejs.org/v2/cookbook/form-validation.html
+    	
 
-    //R use null in places where there should be an manually placed empty value - distinguishes between unintentional empty values: undefined, and intentional empty values: null
-    //L "To distinguish between the two, you may want to think of undefined as representing an unexpected absence of value and null as representing an expected absence of value."
-    //L http://ryanmorr.com/exploring-the-eternal-abyss-of-null-and-undefined/
-    
-    //L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
-    //L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
-
-    //L https://vuejs.org/v2/cookbook/form-validation.html
-	
-    //! DONT USE ARROW FUNCTIONS: //L https://vuejs.org/v2/guide/instance.html#Data-and-Methods
-
-
-
-
-    //R figuring out async loading of data, and how to handle display, laoding, and error states
-	//C async components
+	ASYNC COMPONENTS
 		async components are created by using 'factory functions' in place of the component object, 
 		these return promises which are only resolved when the component needs to be rendered.
 		furthermore - for error handling, this factory function can also return an object with 
@@ -39,86 +34,79 @@
 		
 		//L https://vuejs.org/v2/guide/components-dynamic-async.html#Handling-Loading-State
 
+		//R async components don't seem to have any way to pass props, they seem to only be meant to load components from files,
+		//R i want to use them because the loading, error, delay, etc. stuff sounds great - might have to manually create an asyc data loader like this however, or maybe try to access props outside/before component is created? 
+		//L this way? https://stackoverflow.com/questions/38344091/vuejs-can-we-give-props-to-async-component-via-dynamic-component-pattern-compo
 
-	//C arrow functions can have an implicit return, but for object literals, they need to be wrapped in parenthesis to be distinguished from the function block 
-	//L https://www.sitepoint.com/es6-arrow-functions-new-fat-concise-syntax-javascript/
+		//OLD
+		let PlaylistListItem = Vue.component('playlist-list-item', () => {
+				return {
+					//C The component to load (should be a Promise)
+					//! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
+					//L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
+					component: (async function {
+						// let playlist = await sj.Playlist.get(new sj.Playlist({
+						//     id: //TODO,
+						// }));
+						await sj.wait(2000);
+						
+						// let _this = this;
+						// this.$nextTick(() => {
+						//     console.log('HERE: ', JSON.stringify(_this.$options._parentVnode.data));
+						// });
 
-	//R async components don't seem to have any way to pass props, they seem to only be meant to load components from files,
-	//R i want to use them because the loading, error, delay, etc. stuff sounds great - might have to manually create an asyc data loader like this however, or maybe try to access props outside/before component is created? 
-	//L this way? https://stackoverflow.com/questions/38344091/vuejs-can-we-give-props-to-async-component-via-dynamic-component-pattern-compo
+						//console.log('ID:', id);
 
-    old
-    let PlaylistListItem = Vue.component('playlist-list-item', () => {
-            return {
-                //C The component to load (should be a Promise)
-                //! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
-                //L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
-                component: (async function {
-                    // let playlist = await sj.Playlist.get(new sj.Playlist({
-                    //     id: //TODO,
-                    // }));
-                    await sj.wait(2000);
-                    
-                    // let _this = this;
-                    // this.$nextTick(() => {
-                    //     console.log('HERE: ', JSON.stringify(_this.$options._parentVnode.data));
-                    // });
+						let playlist = new sj.Playlist({
+							//id: id,
+							name: 'test',
+						});
 
-                    //console.log('ID:', id);
+						return {
+							data: () => ({
+								playlist: playlist,
+							}),
+							props: {
+								id: Number,
+							},
+							template: `
+								<li class='playlist-list-item'>
+									<p>blah{{id}}blah</p>
+									<p>{{playlist.name}}</p>
+									<button>Open</button>
+									<button>Play</button>
+								</li>
+							`,
+						}
+					})(),
 
-                    let playlist = new sj.Playlist({
-                        //id: id,
-                        name: 'test',
-                    });
+					//C A component to use while the async component is loading
+					loading: {
+						template: `
+							<p>LOADING</p>
+						`,
+					},
 
-                    return {
-                        data: () => ({
-                            playlist: playlist,
-                        }),
-                        props: {
-                            id: Number,
-                        },
-                        template: `
-                            <li class='playlist-list-item'>
-                                <p>blah{{id}}blah</p>
-                                <p>{{playlist.name}}</p>
-                                <button>Open</button>
-                                <button>Play</button>
-                            </li>
-                        `,
-                    }
-                })(),
+					//C A component to use if the load fails
+					error: {
+						template: `
+							<p>ERROR</p>
+						`,
+					},
 
-                //C A component to use while the async component is loading
-                loading: {
-                    template: `
-                        <p>LOADING</p>
-                    `,
-                },
+					//C Delay before showing the loading component. Default: 200ms.
+					delay: 500,
 
-                //C A component to use if the load fails
-                error: {
-                    template: `
-                        <p>ERROR</p>
-                    `,
-                },
+					//C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
+					//! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
+					//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
+					//timeout: 10000,
+				}
+		});
 
-                //C Delay before showing the loading component. Default: 200ms.
-                delay: 500,
+		//L how to use dynamic components: https://alligator.io/vuejs/dynamic-components/
 
-                //C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
-                //! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
-                //L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
-                //timeout: 10000,
-            }
-    });
-
-
-	//L how to use dynamic components: https://alligator.io/vuejs/dynamic-components/
-
-	//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
-
-
+	
 	VUE REACTIVITY CAVEATS
 		//L https://v1.vuejs.org/guide/reactivity.html#How-Changes-Are-Tracked
 		//L https://v1.vuejs.org/guide/list.html#Caveats
@@ -170,7 +158,8 @@ import sj from './global-client.mjs';
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-//TODO 
+// VUE
+//TODO vue dev suppressions
 Vue.config.productionTip = false; 
 Vue.config.devtools = false;
 
@@ -186,152 +175,8 @@ Vue.mixin({
     },
 });
 
+// SOCKET
 const databaseSocket = new SocketIO('/database');
-databaseSocket.test  = async function () {
-	sj.Track.placeholder = {
-		playlistId: 2, 
-		name: 'placeholder name', 
-		duration: 1234, 
-		source: sj.spotify, 
-		sourceId: 'placeholderSourceId', 
-		artists: ['foo', 'bar'],
-	};
-	sj.Playlist.placeholder = {
-		userId: 3,
-		name: 'placeholder name',
-		description: 'placeholder description',
-	};
-	sj.User.placeholder = {
-		name: 'placeholder name',
-		email: 'placeholder email',
-		password: 'placeholder password',
-	};
-
-	let wrap = async function (Entity, queryPack, data, predoF, doF, undoF, data2) {
-		//C subscribe
-		let subscribeResult = await new Promise((resolve, reject) => {
-			databaseSocket.emit('SUBSCRIBE', queryPack, result => {
-				if (sj.isType(result, sj.Success)) {
-					resolve(result);
-				} else {
-					reject(result);
-				}
-			});
-		});
-
-		let accessory = {};
-		let predoResult = await predoF(Entity, data, accessory, data2);
-
-		//C make listener
-		let notified = false;
-		let notifiedResult = {};
-		databaseSocket.on('NOTIFY', notifyResult => {
-			console.log('CALLED');
-			notifiedResult = notifyResult;
-			if (sj.deepMatch(queryPack.query, notifyResult.changed, {matchIfSubset: true})) notified = true;
-		});
-
-		//C do
-		let mainResult = await doF(Entity, data, accessory, data2);
-
-		//C wait some time for notification to come back
-		await sj.wait(1000);
-
-		//C undo
-		let undoResult = await undoF(Entity, data, accessory, data2);
-
-		//C unsubscribe
-		let unsubscribeResult = await new Promise((resolve, reject) => {
-			databaseSocket.emit('UNSUBSCRIBE', queryPack, result => {
-				if (sj.isType(result, sj.Success)) {
-					resolve(result);
-				} else {
-					reject(result);
-				}
-			});
-		});
-
-		if (!notified) console.log('query:', queryPack.query, 'changed:', notifiedResult.changed)
-		return notified;
-	};
-
-	let add = async function (Entity, queryPack, data) {
-		return await wrap(Entity, queryPack, data,
-			async () => undefined, 
-			async (Entity, data, accessory) => {
-				let addResult = await Entity.add({
-					...Entity.placeholder, //C fill in missing data
-					...data,
-				});
-				accessory.id = sj.one(addResult.content).id;
-				return addResult;
-			}, 
-			async (Entity, data, accessory) => {
-				return await Entity.remove({id: accessory.id}); //C delete generated id
-			}
-		);
-	};
-	let edit = async function (Entity, queryPack, dataBefore, dataAfter) {
-		dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
-
-		return await wrap(Entity, queryPack, dataBefore,
-			async (Entity, dataBefore, accessory, dataAfter) => {
-				let addResult = await Entity.add({
-					...Entity.placeholder,
-					...dataBefore,
-				});
-				accessory.id = sj.one(addResult.content).id;
-				return addResult;
-			},
-			async (Entity, dataBefore, accessory, dataAfter) => {
-				return await Entity.edit({
-					...dataAfter,
-					id: accessory.id,
-				});
-			}, async (Entity, dataBefore, accessory, dataAfter) => {
-				return await Entity.remove({id: accessory.id});
-			},
-			dataAfter,
-		);
-	};
-	let remove = async function (Entity, queryPack, data) {
-		return await wrap(Entity, queryPack, data,
-			async (Entity, data, accessory) => {
-				let addResult = await Entity.add({
-					...Entity.placeholder,
-					...data,
-				});
-				accessory.id = sj.one(addResult.content).id;
-				return addResult;
-			},
-			async (Entity, data, accessory) => {
-				return await Entity.remove({id: accessory.id});
-			},
-			async() => undefined,
-		);
-	};
-
-
-	sj.test([
-		//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
-		//['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
-		//['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
-
-		//['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
-		//['edit to new name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
-
-
-		['remove track name', 		true === await remove(sj.Track, {table: 'tracks', query: {name: 'some name'}}, {name: 'some name'})],
-		['remove playlist name', 	true === await remove(sj.Playlist, {table: 'playlists', query: {name: 'some name'}}, {name: 'some name'})],
-		['remove user name', 		true === await remove(sj.User, {table: 'users', query: {name: 'some name'}}, {name: 'some name'})],
-		
-	], 'databaseSocket.test()');
-
-
-	delete sj.Track.placeholder;
-	delete sj.Playlist.placeholder;
-	delete sj.User.placeholder;
-};
 
 
 //  ██╗   ██╗██╗   ██╗███████╗
@@ -572,7 +417,7 @@ const store = new VueX.Store({
 					}));
 				}, timeout);
 
-				databaseSocket.emit('SUBSCRIBE', {table: Entity.table, query: preparedQuery}, result => {
+				databaseSocket.emit('subscribe', {table: Entity.table, query: preparedQuery}, result => {
 					clearTimeout(timeoutId);
 					if (sj.isType(result, sj.Error)) reject(result);
 					else resolve(result);
@@ -603,7 +448,7 @@ const store = new VueX.Store({
 					}));
 				}, timeout);
 
-				databaseSocket.emit('UNSUBSCRIBE', {table: Entity.table, query: preparedQuery}, result => {
+				databaseSocket.emit('unsubscribe', {table: Entity.table, query: preparedQuery}, result => {
 					clearTimeout(timeoutId);
 					if (sj.isType(result, sj.Error)) reject(result);
 					else resolve(result);
@@ -816,19 +661,7 @@ const vm = new Vue({
 	store,
 });
 
-databaseSocket.on('connect', async () => {
-	await store.dispatch('reconnect');
-});
-databaseSocket.on('disconnect', async (reason) => {
-});
-
-//C trigger query updates when notified of change
-databaseSocket.on('NOTIFY', async ({table, query, timestamp}) => {
-	let Entity = sj.tableToEntity(table);
-	store.dispatch('update', {Entity, table: store.state.subscriptions[Entity.table], query, timestamp});
-});
-
-sj.testTest = async function (store) {
+store.test = async function (store) {
 	let Entity = sj.Track;
 	let query = [{playlistId: 2}];
 	let changedName = sj.makeKey(10);
@@ -867,6 +700,172 @@ sj.testTest = async function (store) {
 	console.log('result', result);
 };
 
-//sj.testTest(store);
+
+//  ███████╗ ██████╗  ██████╗██╗  ██╗███████╗████████╗
+//  ██╔════╝██╔═══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝
+//  ███████╗██║   ██║██║     █████╔╝ █████╗     ██║   
+//  ╚════██║██║   ██║██║     ██╔═██╗ ██╔══╝     ██║   
+//  ███████║╚██████╔╝╚██████╗██║  ██╗███████╗   ██║   
+//  ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   
+
+
+databaseSocket.on('connect', async () => {
+	await store.dispatch('reconnect');
+});
+databaseSocket.on('disconnect', async (reason) => {
+});
+
+databaseSocket.on('notify', async ({table, query, timestamp}) => {
+	let Entity = sj.tableToEntity(table);
+	store.dispatch('update', {Entity, table: store.state.subscriptions[Entity.table], query, timestamp});
+});
+
+
+databaseSocket.test  = async function () {
+	sj.Track.placeholder = {
+		playlistId: 2, 
+		name: 'placeholder name', 
+		duration: 1234, 
+		source: sj.spotify, 
+		sourceId: 'placeholderSourceId', 
+		artists: ['foo', 'bar'],
+	};
+	sj.Playlist.placeholder = {
+		userId: 3,
+		name: 'placeholder name',
+		description: 'placeholder description',
+	};
+	sj.User.placeholder = {
+		name: 'placeholder name',
+		email: 'placeholder email',
+		password: 'placeholder password',
+	};
+
+	let wrap = async function (Entity, queryPack, data, predoF, doF, undoF, data2) {
+		//C subscribe
+		let subscribeResult = await new Promise((resolve, reject) => {
+			databaseSocket.emit('subscribe', queryPack, result => {
+				if (sj.isType(result, sj.Success)) {
+					resolve(result);
+				} else {
+					reject(result);
+				}
+			});
+		});
+
+		let accessory = {};
+		let predoResult = await predoF(Entity, data, accessory, data2);
+
+		//C make listener
+		let notified = false;
+		let notifiedResult = {};
+		databaseSocket.on('notify', notifyResult => {
+			console.log('CALLED');
+			notifiedResult = notifyResult;
+			if (sj.deepMatch(queryPack.query, notifyResult.changed, {matchIfSubset: true})) notified = true;
+		});
+
+		//C do
+		let mainResult = await doF(Entity, data, accessory, data2);
+
+		//C wait some time for notification to come back
+		await sj.wait(1000);
+
+		//C undo
+		let undoResult = await undoF(Entity, data, accessory, data2);
+
+		//C unsubscribe
+		let unsubscribeResult = await new Promise((resolve, reject) => {
+			databaseSocket.emit('unsubscribe', queryPack, result => {
+				if (sj.isType(result, sj.Success)) {
+					resolve(result);
+				} else {
+					reject(result);
+				}
+			});
+		});
+
+		if (!notified) console.log('query:', queryPack.query, 'changed:', notifiedResult.changed)
+		return notified;
+	};
+
+	let add = async function (Entity, queryPack, data) {
+		return await wrap(Entity, queryPack, data,
+			async () => undefined, 
+			async (Entity, data, accessory) => {
+				let addResult = await Entity.add({
+					...Entity.placeholder, //C fill in missing data
+					...data,
+				});
+				accessory.id = sj.one(addResult.content).id;
+				return addResult;
+			}, 
+			async (Entity, data, accessory) => {
+				return await Entity.remove({id: accessory.id}); //C delete generated id
+			}
+		);
+	};
+	let edit = async function (Entity, queryPack, dataBefore, dataAfter) {
+		dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
+
+		return await wrap(Entity, queryPack, dataBefore,
+			async (Entity, dataBefore, accessory, dataAfter) => {
+				let addResult = await Entity.add({
+					...Entity.placeholder,
+					...dataBefore,
+				});
+				accessory.id = sj.one(addResult.content).id;
+				return addResult;
+			},
+			async (Entity, dataBefore, accessory, dataAfter) => {
+				return await Entity.edit({
+					...dataAfter,
+					id: accessory.id,
+				});
+			}, async (Entity, dataBefore, accessory, dataAfter) => {
+				return await Entity.remove({id: accessory.id});
+			},
+			dataAfter,
+		);
+	};
+	let remove = async function (Entity, queryPack, data) {
+		return await wrap(Entity, queryPack, data,
+			async (Entity, data, accessory) => {
+				let addResult = await Entity.add({
+					...Entity.placeholder,
+					...data,
+				});
+				accessory.id = sj.one(addResult.content).id;
+				return addResult;
+			},
+			async (Entity, data, accessory) => {
+				return await Entity.remove({id: accessory.id});
+			},
+			async() => undefined,
+		);
+	};
+
+
+	sj.test([
+		//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+		//['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
+		//['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
+
+		//['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
+		//['edit to new name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
+
+
+		['remove track name', 		true === await remove(sj.Track, {table: 'tracks', query: {name: 'some name'}}, {name: 'some name'})],
+		['remove playlist name', 	true === await remove(sj.Playlist, {table: 'playlists', query: {name: 'some name'}}, {name: 'some name'})],
+		['remove user name', 		true === await remove(sj.User, {table: 'users', query: {name: 'some name'}}, {name: 'some name'})],
+		
+	], 'databaseSocket.test()');
+
+
+	delete sj.Track.placeholder;
+	delete sj.Playlist.placeholder;
+	delete sj.User.placeholder;
+};
+
 
 

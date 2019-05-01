@@ -25,12 +25,21 @@
 		//G (function () {..}).call(sj.Base); is better 
 
 		//G use guard clauses over else statements where possible - because they keep the relative error close by in the script (rather than way down below at the bottom of an else statement or early escape function (using positively phrased clauses)) - see sj.rebuild()
+
+		//C arrow functions can have an implicit return, but for object literals, they need to be wrapped in parenthesis to be distinguished from the function block 
+		//L https://www.sitepoint.com/es6-arrow-functions-new-fat-concise-syntax-javascript/
+
+	//G STYLE GUIDES
+		//R use null in places where there should be an manually placed empty value - distinguishes between unintentional empty values: undefined, and intentional empty values: null
+		//L "To distinguish between the two, you may want to think of undefined as representing an unexpected absence of value and null as representing an expected absence of value."
+    	//L http://ryanmorr.com/exploring-the-eternal-abyss-of-null-and-undefined/
 		
-	// DEV TOOLS
+
+	//L DEV TOOLS
 		//L ASCII TITLE GENERATOR: http://patorjk.com/software/taag/#p=display&c=c%2B%2B&f=ANSI%20Shadow&t=playlist
 		//L Console css formatting https://developers.google.com/web/tools/chrome-devtools/console/console-write#styling_console_output_with_css
 	
-	// LIBRARIES
+	//L LIBRARIES
 		//L fetch vs axios: https://www.reddit.com/r/javascript/comments/6e0o99/fetch_polyfill_or_axios/
 		//R axios is high level, fetch is middle level - i want this because its less magic, i actually want the functionality of fetch to be able to distinguish between failed requests and bad requests, i'm making a wrapper function anyways so the extra detail doesn't matter
 */
@@ -66,9 +75,7 @@
 
 let sj = {};
 
-import fClone from './fclone.mjs'; //C https://github.com/soyuka/fclone
-
-
+import fClone from './fclone.mjs'; //L https://github.com/soyuka/fclone
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
 	//L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript

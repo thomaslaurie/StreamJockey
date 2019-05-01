@@ -6,10 +6,6 @@
 // ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
 
 /*
-	run me with:
-	nodemon --experimental-modules ./index.mjs 
-
-
 	//L process.env: https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
 	//L dotenv:  https://www.npmjs.com/package/dotenv
 */
@@ -26,6 +22,8 @@
 	Put api keys into .env after creating methods to access them
 	Some best practices: https://www.codementor.io/mattgoldspink/nodejs-best-practices-du1086jja
 	Middleware best practices https://github.com/koajs/koa/blob/master/docs/guide.md
+
+	errors thrown in some places (like routes) still aren't caught
 */
 
 
@@ -47,7 +45,7 @@ import bodyParser from 'koa-bodyparser'; //L https://github.com/koajs/bodyparser
 import session from 'koa-session'; //L https://github.com/koajs/session
 
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
-import SocketIO from 'socket.io'; 
+import SocketIO from 'socket.io'; //L socket io: https://socket.io/docs/emit-cheatsheet
 import http from 'http'; //TODO consider changing to the https module?
 
 
@@ -95,8 +93,6 @@ const socketIO = new SocketIO(server);
 sj.databaseSockets = socketIO.of('/database');
 
 
-
-
 //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
 //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
 //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗  
@@ -104,21 +100,21 @@ sj.databaseSockets = socketIO.of('/database');
 //  ██║ ╚═╝ ██║██║██████╔╝██████╔╝███████╗███████╗╚███╔███╔╝██║  ██║██║  ██║███████╗
 //  ╚═╝     ╚═╝╚═╝╚═════╝ ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 
-// response timer
-app.use(async (ctx, next) => {
-	const start = Date.now();
-	await next();
-	const ms = Date.now() - start;
-	ctx.response.set('response-time', `${ms}ms`);
-});
+/*
+	// response timer
+	app.use(async (ctx, next) => {
+		const start = Date.now();
+		await next();
+		const ms = Date.now() - start;
+		ctx.response.set('response-time', `${ms}ms`);
+	});
 
-// request logger
-app.use(async (ctx, next) => {
-	console.log(`${ctx.request.method} ${ctx.request.path}`);
-	sj.databaseSockets.to('room-3993').emit('test response', 'test response bad');
-	sj.databaseSockets.to('room-3').emit('test response', 'test response');
-	await next();
-});
+	// request logger
+	app.use(async (ctx, next) => {
+		console.log(`${ctx.request.method} ${ctx.request.path}`);
+		await next();
+	});
+*/
 
 // parse body
 app.use(bodyParser());
@@ -126,19 +122,21 @@ app.use(bodyParser());
 // session
 app.use(session(sessionConfig, app));
 
-// view counter
-app.use(async (ctx, next) => {
-	// ignore favicon
-	// TODO this doesn't work as it's processing two 'requests' per view - the page and it's resources
-	if (ctx.request.path !== '/favicon.ico') {
-		let n = ctx.session.views || 0;
-		ctx.session.views = ++n;
-	} 
-	//console.log(ctx.session.views + ' views');
-	await next();
-});
+/*
+	// view counter
+	app.use(async (ctx, next) => {
+		// ignore favicon
+		// TODO this doesn't work as it's processing two 'requests' per view - the page and it's resources
+		if (ctx.request.path !== '/favicon.ico') {
+			let n = ctx.session.views || 0;
+			ctx.session.views = ++n;
+		} 
+		//console.log(ctx.session.views + ' views');
+		await next();
+	});
+*/
 
-// router
+// routes
 app.use(router.routes());
 app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
 
@@ -154,10 +152,9 @@ sj.databaseSockets.use((socket, next) => {
 	socket.session = app.createContext(socket.request, new http.OutgoingMessage()).session;
 	next();
 });
-
-//L https://socket.io/docs/emit-cheatsheet/
 sj.databaseSockets.on('connect', (socket) => {
 	console.log('CONNECT', socket.id);
+	
 
 	//C give socket id to session.user //? I don't think the actual cookie.session receives this, but for now only the socket.session needs it
 	if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = socket.id;
@@ -173,8 +170,7 @@ sj.databaseSockets.on('connect', (socket) => {
 		if (sj.isType(socket.session.user, sj.User)) delete socket.session.user.socketId;
 	});
 
-
-	socket.on('SUBSCRIBE', async ({table, query}, callback) => {
+	socket.on('subscribe', async ({table, query}, callback) => {
 		console.log('SUBSCRIBE', table, query);
 
 		//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
@@ -183,8 +179,7 @@ sj.databaseSockets.on('connect', (socket) => {
 		const result = await sj.subscriptions.add(table, query, subscriber).catch(sj.andResolve);
 		callback(result);		
 	});
-
-	socket.on('UNSUBSCRIBE', async ({table, query}, callback) => {
+	socket.on('unsubscribe', async ({table, query}, callback) => {
 		console.log('UNSUBSCRIBE', query);
 
 		let subscriber = socket.session.user;
@@ -192,7 +187,6 @@ sj.databaseSockets.on('connect', (socket) => {
 		const result = await sj.subscriptions.remove(table, query, subscriber).catch(sj.andResolve);
 		callback(result);
 	});
-
 
 	socket.on('error', (reason) => {
 		console.error('ERROR', socket.id, reason);
@@ -218,7 +212,4 @@ process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at:', p, '\n Reason:', reason);
     //TODO handle
 });
-
-//TODO errors thrown in some places (like routes) still aren't caught
-
 
