@@ -1206,8 +1206,6 @@ sj.subscriptions = (function () {
 			const influencedTracks = [];
 			const inputIndex = Symbol();
 
-			console.log('INPUT TRACKS', inputTracks);
-
 			//C retrieve track's playlist, group each track by playlist & moveType
 			await sj.asyncForEach(inputTracks, async (track, index) => {
 				const storePlaylist = function (playlistId, existingTracks) {

@@ -48,7 +48,7 @@
             <track-display-list id='playlist' :p-query='{playlistId: data.id}' removeButton></track-display-list>
 
             <div id='search-div' v-if='edit'>
-                <input v-model='searchTerm'>
+                <input v-model='searchTerm' @keyup.enter='search'>
                 <button @click='search'>Search</button>
 				<track-display-list :p-data='searchResults' addButton @add='add'></track-display-list>
             </div>
