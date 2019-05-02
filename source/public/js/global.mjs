@@ -1268,13 +1268,15 @@ sj.Base = class Base {
 			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\n${sj.trace()}`);
 		}
 	}
-	onCreate() { if (!this.isParent) { //C onCreate() only executes if the called by a constructor that is not a parent, so that it only executes once
-		//G include 'log: true' in options if instance should be announced on creation, call instance.announce() to announce manually
-		//R inverting the behavior is wrong and requires more lines, its easier to log actively or change behavior here if everything needs to be logged
-		if (this.log) {
-			this.announce();
-		}
-	} }
+	onCreate() { 
+		if (!this.isParent) { //C onCreate() only executes if the called by a constructor that is not a parent, so that it only executes once
+			//G include 'log: true' in options if instance should be announced on creation, call instance.announce() to announce manually
+			//R inverting the behavior is wrong and requires more lines, its easier to log actively or change behavior here if everything needs to be logged
+			if (this.log) {
+				this.announce();
+			}
+		} 
+	}
 };
 (function () { // STATIC
 	this.init = function (that, options = {}, defaults = {}) {
