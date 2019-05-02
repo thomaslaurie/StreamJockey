@@ -1009,167 +1009,411 @@ sj.youtube.getTracks = async function (ids) {
 	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the actions is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, action, or playback level?
 */
 
-sj.desiredPlayback = new sj.Playback({
-	/* 
-		sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
-		The state of these properties are copied to sj.Actions which are then added to the queue
+
+// object related variables
+//TODO consider having constants for source types like const ERROR_TYPE
+//TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
+sj.sourceList = [];
+
+// null objects
+sj.noTrack = new sj.Track();
+sj.noSource = new sj.Source({realSource: false});
+sj.noTrack.source = sj.noSource; // cyclical reference
+// TODO move with actions sj.noAction = new sj.Action();
+
+(function () {
+	/*
+	sj.Base.init(this, options, {
+		playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
+
+		//C empty throw functions, used in standard playback functions
+		loadApi: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'loadApi()',
+				message: 'api could not be loaded',
+				reason: 'no source',
+			});
+		},
+		loadPlayer: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'loadPlayer()',
+				message: 'player could not be loaded',
+				reason: 'no source',
+			});
+		},
+
+		search: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'search()',
+				message: 'unable to search',
+				reason: 'no source',
+			});
+		},
+		getTracks: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'getTracks()',
+				message: 'unable to get tracks',
+				reason: 'no source',
+			});
+		},
+
+		checkPlayback: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'apiStart()',
+				message: 'could not check playback',
+				reason: 'no source',
+			});
+		},
+
+		apiStart: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'apiStart()',
+				message: 'track could not be started',
+				reason: 'no source',
+			});
+		},
+		apiResume: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'apiResume()',
+				message: 'track could not be resumed',
+				reason: 'no source',
+			});
+		},
+		apiPause: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'apiPause()',
+				message: 'track could not be paused',
+				reason: 'no source',
+			});
+		},
+		apiSeek: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'apiSeek()',
+				message: 'track could not be seeked',
+				reason: 'no source',
+			});
+		},
+		apiVolume: async function () {
+			throw new sj.Error({
+				log: true,
+				origin: 'apiVolume()',
+				message: 'volume could not be changed',
+				reason: 'no source',
+			});
+		},
+	});
 	*/
-});
-sj.desiredPlayback.start = async function (track) {
-	this.track = track;
-	this.playing = true;
-	this.progress = 0; // I didn't have this here before here before, why not???
 
-	// Set slider range to track duration
-	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
-	sj.playbackQueue.push(new sj.Start({}));
-};
-sj.desiredPlayback.toggle = async function () {
-	this.playing = !this.playing;
-	sj.playbackQueue.push(new sj.Toggle({}));
-};
-sj.desiredPlayback.seek = function (ms) {
-	this.progress = ms;
-	sj.playbackQueue.push(new sj.Seek({}));
-};
-sj.desiredPlayback.volume = function (volume) {
-	this.volume = volume;
-	sj.playbackQueue.push(new sj.Volume({}));
-};
-sj.desiredPlayback.current = function () {
-	// shorthand
-	return sj.desiredPlayback.track.source.playback;
-};
+	this.start = async function () {
+		return this.apiStart(track).then(resolved => {
+			this.playback.playing = true;
+			this.playback.track = track;
+			this.playback.progress = 0;
+			this.playback.timestamp = Date.now();
 
-//TODO rewrite me
-async function checkPlayback() {
-	return Promise.all(sj.sourceList.map(function (source) {
-		return source.checkPlayback().then(sj.andResolve);
-	})).then(function (resolved) {
-		return sj.filterList(resolved, sj.Success, new sj.Success({
-			origin: 'checkPlayback()',
-			message: 'checked playback state',
-		}), new sj.Error({
-			origin: 'checkPlayback()',
-			message: 'failed to check playback state',
-		}));
-	}).then(function (resolved) {
-		return resolved; //TODO what is this
-	}, function (rejected) {
-		throw rejected;
-	});
-};
-
-//! checkPlayback functions must save timestamp immediately after progress is available, however playing is one property type
-sj.spotify.checkPlayback = async function () {
-	// 1 api call (all)
-
-	return spotifyApi.getMyCurrentPlaybackState({}).catch(function (rejected) {
-		throw new sj.Error({
-			log: true,
-			code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.checkPlayback()',
-			message: 'failed to check spotify playback state',
-			reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
+			return resolved;
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
 		});
-	}).then(function (resolved) {
-		spotify.playback.track = {
-			source: spotify,
-			id: resolved.item.id,
-			artists: [],
-			title: resolved.item.name,
-			duration: resolved.item.duration_ms,
-			link: resolved.item.external_urls.spotify,
-		}
-
-		// fill artists
-		resolved.item.artists.forEach(function (artist, j) {
-			spotify.playback.track.artists[j] = artist.name;
-		});
-
-		spotify.playback.playing = resolved.is_playing; // TODO will cause an error if no track is playing, will break this entire function
-
-		spotify.playback.progress = resolved.progress_ms;
-		spotify.playback.timestamp = resolved.timestamp;
-
-		return new sj.Success({
-			log: true,
-			origin: 'spotify.checkPlayback()',
-			message: 'spotify playback state checked',
-		});
-	}).catch(function (rejected) {
-		throw sj.propagate(rejected);
-	});
-};
-sj.youtube.checkPlayback = async function () {
-	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
-	// 1 api call (track)
-
-	// id?
-	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-	try {
-		//https://developers.google.com/youtube/iframe_api_reference#Functions
-
-		// playing
-		if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
-			/*	Returns the state of the player. Possible values are:
-				-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
-			youtube.playback.playing = true;
+	};
+	this.resume = async function () {
+		if (!this.playback.playing) { 
+			return this.apiResume().then(resolved => {
+				this.playback.playing = true;
+				return resolved;
+			}).catch(rejected => {
+				throw rejected;
+			});
 		} else {
-			youtube.playback.playing = false;
+			return new sj.Success({
+				log: true,
+				origin: this.name + '.resume()',
+				message: 'track already playing',
+			});
 		}
-		
-		// progress
-		youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-		youtube.playback.timestamp = Date.now();
-
-
-		var url = youtubePlayer.getVideoUrl(); // !!! can sometimes return undefined
-		var id = sj.isType(url, String) ? url.split('v=')[1] : '';
-		if (id) {
-			// if not empty
-			var andPosition = id.indexOf('&'); 
-			if (andPosition != -1) { id = id.substring(0, andPosition); }
-
-			return youtube.getTracks([id]).then(function (resolved) {
-				if (resolved.content.length === 1) {
-					youtube.playback.track = resolved.content[0];
-
-					return new sj.Success({
-						log: true,
-						origin: 'youtube.checkPlayback()',
-						message: 'youtube playback state checked',
-					});
-				} else {
-					throw new sj.Error({
-						log: true,
-						code: '404',
-						origin: 'youtube.checkPlayback()',
-						message: 'track not found',
-						reason: 'id: ' + id +' was not found',
-					});
-				}
-			}).catch(function (rejected) {
+	};
+	this.pause = async function () {
+		if (this.playback.playing) {
+			return this.apiPause().then(resolved => {
+				this.playback.playing = false;
+				return resolved;
+			}).catch(rejected => {
 				throw sj.propagate(rejected);
 			});
 		} else {
-			// no track is playing
 			return new sj.Success({
 				log: true,
-				origin: 'youtube.checkPlayback()',
-				message: 'youtube playback state checked',
+				origin: this.name + '.pause()',
+				message: 'track already paused',
 			});
 		}
-	} catch (e) {
-		throw new sj.Error({
-			log: true,
-			origin: 'youtube.checkPlayback()',
-			message: 'could not check youtube playback',
-			reason: e,
+	};
+	this.seek = async function () {
+		return this.apiSeek(ms).then(resolved => {
+			this.playback.progress = ms;
+			this.playback.timestamp = Date.now();
+			return resolved;
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	};
+	this.volume = async function () {
+		return this.apiVolume(volume).then(resolved => {
+			this.playback.volume = volume;
+			return resolved;
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	};
+}).call(sj.Source.prototype);
+(function () {
+
+}).call(sj.Source);
+
+//console.log(sj.Source.constructor.toString());
+
+sj.Source = class Source extends sj.Base {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Source',
+
+		sj.Base.init(this, options, {
+			// new properties
+			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
+			idPrefix: '',
+			playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
+            realSource: true,
+            
+            credentials: new sj.Credentials(),
+
+			//TODO this should only be server-side
+			api: {},
+			scopes: [],
+			authRequestManually: true,
+			makeAuthRequestURL: function () {},
+
+		});
+
+		this.onCreate();
+	}
+
+
+	onCreate() {
+		super.onCreate();
+
+		// extend with: add to source list
+		if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
+			sj.sourceList.push(this);
+		}
+	}
+};
+sj.Playback = class Playback extends sj.Base {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Playback';
+
+		sj.Base.init(this, options, {
+			// new properties
+			track: sj.noTrack,
+			playing: false,
+			progress: 0,
+			timestamp: Date.now(),
+			volume: 0,
+		});
+
+		this.onCreate();
+	}
+};
+
+
+//TODO Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
+//TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
+
+sj.Action = class Action extends sj.Base {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Action';
+		this.source = sj.desiredPlayback.track.source;
+
+		sj.Base.init(this, options, {
+			// new properties
+			state: null,
+		});
+
+		this.onCreate();
+	}
+
+	// comparisons
+	isSimilarAction(item) {
+		return this.objectType === item.objectType;
+	}
+	isIdenticalAction(item) {
+		return this.isSimilarAction(item) && this.state === item.state;
+	}
+	isParentAction(item) {
+		return false; // TODO ??? can this be merged in some way with isParent?
+	}
+
+	removeOld(queue) {
+		// backwards deletion loop
+		for (var i = queue.length - 1; i > -1; i--) {
+			if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
+				queue.splice(i, 1);
+			}
+		}
+	}
+
+	async trigger() {
+		return new Promise(resolve => {
+			resolve(new sj.Success({
+				log: true,
+				origin: 'sj.Action.trigger',
+			}));
 		});
 	}
 };
+sj.Start = class Start extends sj.Action {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Start';
+		this.state = sj.desiredPlayback.track;
+
+		sj.Base.init(this, options, {});
+
+		this.onCreate();
+	}
+
+	isParentAction() {
+		return item.objectType === 'sj.Toggle' || item.objectType === 'sj.Seek';
+	}
+
+	async trigger() {
+		return Promise.all(sourceList.map(source => {
+			// pause all
+			return source.pause().then(sj.andResolve);
+		})).then(resolved => {
+			// filter errors
+			return filterList(resolved, sj.Success, new sj.Success({
+				origin: 'sj.Start.trigger()',
+				message: 'changed track',
+			}), new sj.Error({
+				origin: 'sj.Start.trigger()',
+				message: 'failed to change track',
+			}));
+		}).then(resolved => {
+			// start
+			return this.source.start(this.state);
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	}
+};
+sj.Toggle = class Toggle extends sj.Action {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Toggle';
+		this.state = desiredPlayback.playing;
+
+		sj.Base.init(this, options, {});
+
+		this.onCreate();
+	}
+
+	async trigger() {
+		if (this.state) { // if playing
+			return Promise.all(sourceList.map(source => {
+				if (source === this.source) {
+					// resume desired source
+					return source.resume().then(sj.andResolve);
+				} else {
+					// pause all other sources
+					return source.pause().then(sj.andResolve);
+				}
+			})).then(resolved => {
+				return filterList(resolved, sj.Success, new sj.Success({
+					origin: 'sj.Toggle.trigger()',
+					message: 'playing updated',
+				}), new sj.Error({
+					origin: 'sj.Toggle.trigger()',
+					message: 'playing failed to update',
+				}));
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		} else { // if not playing
+			return Promise.all(sourceList.map(source => {
+				// pause all sources
+				return source.pause().then(sj.andResolve);
+			})).then(resolved => {
+				return filterList(resolved, sj.Success, new sj.Success({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing updated',
+				}), new sj.Error({
+					origin: 'updatePlaybackPlaying()',
+					message: 'playing failed to update',
+				}));
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		}
+	}
+};
+sj.Seek = class Seek extends sj.Action {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Seek';
+		this.state = desiredPlayback.progress;
+
+		sj.Base.init(this, options, {});
+
+		this.onCreate();
+	}
+
+	async trigger() {
+		return this.source.seek(this.state).then(resolved => {
+			return new sj.Success({
+				log: true,
+				origin: 'sj.Seek.trigger()',
+				message: 'playback progress changed',
+			});
+		}).catch(rejected => {
+			throw sj.propagate(rejected);
+		});
+	}
+};
+sj.Volume = class Volume extends sj.Action {
+	constructor(options = {}) {
+		super(sj.Base.giveParent(options));
+
+		this.objectType = 'sj.Volume';
+		this.state = desiredPlayback.volume;
+
+		sj.Base.init(this, options, {});
+
+		this.onCreate();
+	}
+
+	async trigger() {
+		// TODO
+	}
+};
+
+
 
 /*
 sj.Action(obj) = function () {
@@ -1450,6 +1694,171 @@ sj.playbackQueue = {
 	},
 };
 */
+
+
+//----------
+
+sj.desiredPlayback = new sj.Playback({
+	/* 
+		sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
+		The state of these properties are copied to sj.Actions which are then added to the queue
+	*/
+});
+sj.desiredPlayback.start = async function (track) {
+	this.track = track;
+	this.playing = true;
+	this.progress = 0; // I didn't have this here before here before, why not???
+
+	// Set slider range to track duration
+	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
+	sj.playbackQueue.push(new sj.Start({}));
+};
+sj.desiredPlayback.toggle = async function () {
+	this.playing = !this.playing;
+	sj.playbackQueue.push(new sj.Toggle({}));
+};
+sj.desiredPlayback.seek = function (ms) {
+	this.progress = ms;
+	sj.playbackQueue.push(new sj.Seek({}));
+};
+sj.desiredPlayback.volume = function (volume) {
+	this.volume = volume;
+	sj.playbackQueue.push(new sj.Volume({}));
+};
+sj.desiredPlayback.current = function () {
+	// shorthand
+	return sj.desiredPlayback.track.source.playback;
+};
+
+//TODO rewrite me
+async function checkPlayback() {
+	return Promise.all(sj.sourceList.map(function (source) {
+		return source.checkPlayback().then(sj.andResolve);
+	})).then(function (resolved) {
+		return sj.filterList(resolved, sj.Success, new sj.Success({
+			origin: 'checkPlayback()',
+			message: 'checked playback state',
+		}), new sj.Error({
+			origin: 'checkPlayback()',
+			message: 'failed to check playback state',
+		}));
+	}).then(function (resolved) {
+		return resolved; //TODO what is this
+	}, function (rejected) {
+		throw rejected;
+	});
+};
+
+//! checkPlayback functions must save timestamp immediately after progress is available, however playing is one property type
+sj.spotify.checkPlayback = async function () {
+	// 1 api call (all)
+
+	return spotifyApi.getMyCurrentPlaybackState({}).catch(function (rejected) {
+		throw new sj.Error({
+			log: true,
+			code: JSON.parse(rejected.response).error.status,
+			origin: 'spotify.checkPlayback()',
+			message: 'failed to check spotify playback state',
+			reason: JSON.parse(rejected.response).error.message,
+			content: rejected,
+		});
+	}).then(function (resolved) {
+		spotify.playback.track = {
+			source: spotify,
+			id: resolved.item.id,
+			artists: [],
+			title: resolved.item.name,
+			duration: resolved.item.duration_ms,
+			link: resolved.item.external_urls.spotify,
+		}
+
+		// fill artists
+		resolved.item.artists.forEach(function (artist, j) {
+			spotify.playback.track.artists[j] = artist.name;
+		});
+
+		spotify.playback.playing = resolved.is_playing; // TODO will cause an error if no track is playing, will break this entire function
+
+		spotify.playback.progress = resolved.progress_ms;
+		spotify.playback.timestamp = resolved.timestamp;
+
+		return new sj.Success({
+			log: true,
+			origin: 'spotify.checkPlayback()',
+			message: 'spotify playback state checked',
+		});
+	}).catch(function (rejected) {
+		throw sj.propagate(rejected);
+	});
+};
+sj.youtube.checkPlayback = async function () {
+	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
+	// 1 api call (track)
+
+	// id?
+	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
+	try {
+		//https://developers.google.com/youtube/iframe_api_reference#Functions
+
+		// playing
+		if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
+			/*	Returns the state of the player. Possible values are:
+				-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
+			youtube.playback.playing = true;
+		} else {
+			youtube.playback.playing = false;
+		}
+		
+		// progress
+		youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+		youtube.playback.timestamp = Date.now();
+
+
+		var url = youtubePlayer.getVideoUrl(); // !!! can sometimes return undefined
+		var id = sj.isType(url, String) ? url.split('v=')[1] : '';
+		if (id) {
+			// if not empty
+			var andPosition = id.indexOf('&'); 
+			if (andPosition != -1) { id = id.substring(0, andPosition); }
+
+			return youtube.getTracks([id]).then(function (resolved) {
+				if (resolved.content.length === 1) {
+					youtube.playback.track = resolved.content[0];
+
+					return new sj.Success({
+						log: true,
+						origin: 'youtube.checkPlayback()',
+						message: 'youtube playback state checked',
+					});
+				} else {
+					throw new sj.Error({
+						log: true,
+						code: '404',
+						origin: 'youtube.checkPlayback()',
+						message: 'track not found',
+						reason: 'id: ' + id +' was not found',
+					});
+				}
+			}).catch(function (rejected) {
+				throw sj.propagate(rejected);
+			});
+		} else {
+			// no track is playing
+			return new sj.Success({
+				log: true,
+				origin: 'youtube.checkPlayback()',
+				message: 'youtube playback state checked',
+			});
+		}
+	} catch (e) {
+		throw new sj.Error({
+			log: true,
+			origin: 'youtube.checkPlayback()',
+			message: 'could not check youtube playback',
+			reason: e,
+		});
+	}
+};
 
 
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     

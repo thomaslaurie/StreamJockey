@@ -1159,7 +1159,7 @@ sj.subscriptions = (function () {
 	this.deleteAfter = async function (t, entities) {
 		let newEntities = entities.slice();
 		newEntities.forEach(entity => {
-			entity.source = sj.sourceList.find(source => source.name === entity.source);
+			entity.source = sj.Source.sources.find(source => source.name === entity.source);
 		});
 		return newEntities;
 	};
