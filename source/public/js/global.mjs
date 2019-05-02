@@ -1271,8 +1271,10 @@ sj.Base = class Base {
 	onCreate() {
 		//G include 'log: true' in options if instance should be announced on creation, call instance.announce() to announce manually
 		//R inverting the behavior is wrong and requires more lines, its easier to log actively or change behavior here if everything needs to be logged
-		if (this.log === true && this.isParent === false) {
-			this.announce();
+		if (!this.isParent) {
+			if (this.log) {
+				this.announce();
+			}
 		}
 	}
 };
