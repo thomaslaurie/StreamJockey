@@ -1185,8 +1185,6 @@ sj.Source = class Source extends sj.Base {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Source',
-
 		sj.Base.init(this, options, {
 			// new properties
 			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
@@ -1221,8 +1219,6 @@ sj.Playback = class Playback extends sj.Base {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Playback';
-
 		sj.Base.init(this, options, {
 			// new properties
 			track: sj.noTrack,
@@ -1244,8 +1240,7 @@ sj.Action = class Action extends sj.Base {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Action';
-		this.source = sj.desiredPlayback.track.source;
+		this.source = sj.desiredPlayback.track.source; //?
 
 		sj.Base.init(this, options, {
 			// new properties
@@ -1257,7 +1252,7 @@ sj.Action = class Action extends sj.Base {
 
 	// comparisons
 	isSimilarAction(item) {
-		return this.objectType === item.objectType;
+		return this.constructorName === item.constructorName;
 	}
 	isIdenticalAction(item) {
 		return this.isSimilarAction(item) && this.state === item.state;
@@ -1288,7 +1283,6 @@ sj.Start = class Start extends sj.Action {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Start';
 		this.state = sj.desiredPlayback.track;
 
 		sj.Base.init(this, options, {});
@@ -1297,7 +1291,7 @@ sj.Start = class Start extends sj.Action {
 	}
 
 	isParentAction() {
-		return item.objectType === 'sj.Toggle' || item.objectType === 'sj.Seek';
+		return item.constructorName === 'Toggle' || item.constructorName === 'Seek';
 	}
 
 	async trigger() {
@@ -1325,7 +1319,6 @@ sj.Toggle = class Toggle extends sj.Action {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Toggle';
 		this.state = desiredPlayback.playing;
 
 		sj.Base.init(this, options, {});
@@ -1376,7 +1369,6 @@ sj.Seek = class Seek extends sj.Action {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Seek';
 		this.state = desiredPlayback.progress;
 
 		sj.Base.init(this, options, {});
@@ -1400,7 +1392,6 @@ sj.Volume = class Volume extends sj.Action {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
 
-		this.objectType = 'sj.Volume';
 		this.state = desiredPlayback.volume;
 
 		sj.Base.init(this, options, {});
@@ -1421,12 +1412,11 @@ sj.Action(obj) = function () {
 	sj.Base.call(this, obj);
 
 	// overwritten properties
-	this.objectType = 'sj.Action';
 	this.state = typeof obj.state === 'undefined' ? undefined : obj.state;
 
 	// action comparisons
 	this.isSimilarAction = function (item) {
-		if (this.objectType === item.objectType) {
+		if (this.constructorName === item.constructorName) {
 			return true;
 		} else {
 			return false;
@@ -1471,12 +1461,11 @@ sj.Start(obj) = function () {
 	// super
 	sj.Action.call(this, obj);
 
-	this.objectType = 'sj.Start';
 	this.state = sj.desiredPlayback.track;
 	this.source = sj.desiredPlayback.track.source;
 
 	this.isParentAction = function (item) {
-		if (item.objectType === 'sj.Toggle' || item.objectType === 'sj.Seek') {
+		if (item.constructorName === 'Toggle' || item.constructorName === 'Seek') {
 			return true;
 		} else {
 			return false;
@@ -1514,7 +1503,6 @@ sj.Toggle(obj) = function () {
 	sj.Action.call(this, obj);
 
 	// overwritten properties
-	this.objectType = 'sj.Toggle';
 	this.state = sj.desiredPlayback.playing;
 	this.source = sj.desiredPlayback.track.source;
 	
@@ -1568,7 +1556,6 @@ sj.Seek(obj) = function () {
 	// super
 	sj.Action.call(this, obj);
 
-	this.objectType = 'sj.Seek';
 	this.state = sj.desiredPlayback.progress;
 	this.source = sj.desiredPlayback.track.source;
 
@@ -1591,7 +1578,6 @@ sj.Volume(obj) = function () {
 	// super
 	sj.Action.call(this, obj);
 
-	this.objectType = 'sj.Volume';
 	this.state = sj.desiredPlayback.volume;
 	this.source = sj.desiredPlayback.track.source;
 
@@ -1681,11 +1667,11 @@ sj.playbackQueue = {
 	},
 
 	hasObject: function (type) {
-		if (sent.objectType === type) {
+		if (sent.constructorName === type) {
 			return true;
 		} else {
 			this.queue.forEach(function (item) {
-				if (item.objectType === type) {
+				if (item.constructorName === type) {
 					return true;
 				}
 			});
