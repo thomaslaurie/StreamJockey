@@ -57,35 +57,35 @@ import sj from './global.mjs';
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
-// static CRUD
-Object.assign(sj.Entity, {
-	async add(query) {
-		return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.addIn));
-	},
-	async get(query) {
-		return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(sj.any(query), this.filters.getIn))}`);
-	},
-	async edit(query) {
-		return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.editIn));
-	},
-	async remove(query) {
-		return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.removeIn));
-	},
-});
-// instance CRUD
-Object.assign(sj.Entity.prototype, {
-	async add() {
-		return await this.constructor.add(this);
-	},
-	async get() {
-		return await this.constructor.get(this);
-	},
-	async edit() {
-		return await this.constructor.edit(this);
-	},
-	async remove() {
-		return await this.constructor.remove(this);
-	},
+sj.Entity.augmentClass({
+	prototypeProperties: parent => ({
+		async add() {
+			return await this.constructor.add(this);
+		},
+		async get() {
+			return await this.constructor.get(this);
+		},
+		async edit() {
+			return await this.constructor.edit(this);
+		},
+		async remove() {
+			return await this.constructor.remove(this);
+		},
+	}),
+	staticProperties: parent => ({
+		async add(query) {
+			return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.addIn));
+		},
+		async get(query) {
+			return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(sj.any(query), this.filters.getIn))}`);
+		},
+		async edit(query) {
+			return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.editIn));
+		},
+		async remove(query) {
+			return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.removeIn));
+		},
+	}),
 });
 
 
@@ -1181,6 +1181,7 @@ sj.noTrack.source = sj.noSource; // cyclical reference
 
 //console.log(sj.Source.constructor.toString());
 
+/* //-----------
 sj.Source = class Source extends sj.Base {
 	constructor(options = {}) {
 		super(sj.Base.giveParent(options));
@@ -1403,7 +1404,7 @@ sj.Volume = class Volume extends sj.Action {
 		// TODO
 	}
 };
-
+*/
 
 
 /*
@@ -1684,11 +1685,10 @@ sj.playbackQueue = {
 
 //----------
 
+/*
 sj.desiredPlayback = new sj.Playback({
-	/* 
-		sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
-		The state of these properties are copied to sj.Actions which are then added to the queue
-	*/
+	sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
+	The state of these properties are copied to sj.Actions which are then added to the queue
 });
 sj.desiredPlayback.start = async function (track) {
 	this.track = track;
@@ -1788,8 +1788,8 @@ sj.youtube.checkPlayback = async function () {
 
 		// playing
 		if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
-			/*	Returns the state of the player. Possible values are:
-				-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	*/
+			//	Returns the state of the player. Possible values are:
+			//	-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	
 			youtube.playback.playing = true;
 		} else {
 			youtube.playback.playing = false;
@@ -1845,6 +1845,7 @@ sj.youtube.checkPlayback = async function () {
 		});
 	}
 };
+*/
 
 
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     

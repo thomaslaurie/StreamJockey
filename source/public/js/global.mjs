@@ -2546,18 +2546,21 @@ sj.checkKey = async function (list, key) {
 	};
 */
 
-sj.Base = class Base {
-	/* //R Thought Process
-		//R Initially only static methods and variables I decided to define outside the class because static variables requires the use of a getter, which felt hacky.
-		//R But when I needed to augment the constructor of a class I ran into problems, so I decided to define classes like this - with an anonymous function being called on a minimal class. It makes the location of instance methods, instance variables, static methods, and static variables more clear. It also makes augmenting (not extending) a class easier (specifically the defaults), this is important for divergent client and server classes.
-		//R finally I found that I was repeating some parts of this anonymous function like const parent = Object.getPrototypeOf(this); and return this;, so I decided to make a factory function for all descendants of sj.Base, and a similar augmentation function, this was also done partly so that defaults, instanceMethods, and statics can be laid out with similar hierarchy.
-	*/
 
+/* //R Thought Process
+	//R Initially only static methods and variables I decided to define outside the class because static variables requires the use of a getter, which felt hacky.
+	//R But when I needed to augment the constructor of a class I ran into problems, so I decided to define classes like this - with an anonymous function being called on a minimal class. It makes the location of instance methods, instance variables, static methods, and static variables more clear. It also makes augmenting (not extending) a class easier (specifically the defaults), this is important for divergent client and server classes.
+	//R finally I found that I was repeating some parts of this anonymous function like const parent = Object.getPrototypeOf(this); and return this;, so I decided to make a factory function for all descendants of sj.Base, and a similar augmentation function, this was also done partly so that defaults, instanceMethods, and statics can be laid out with similar hierarchy.
+*/
+//C manually create sj.Base
+sj.Base = class Base {
 	constructor(options) {
 		this.constructor.construct.call(this, options, this.constructor.defaults);
 	}
-
-	static makeClass = function (name, parent, {
+};
+(function () {
+	//G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
+	this.makeClass = function (name, parent, {
 		//G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
 		//! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
 		constructorParts = parent => ({}),
@@ -2588,16 +2591,18 @@ sj.Base = class Base {
 		// ASSIGN
 		//C use .call to set 'this' as MadeClass, pass parent for ease of use and to avoid repeating Object.getPrototypeOf(this)
 		//C undefined properties won't be passed, and parent's will be used when looked up
+		//! ensure each part is only called once, as they may also have alternative assignment methods (such as on create functionality and getter/setter assignment)
 
 		//! staticProperties is assigned before constructorParts so that constructorParts will take priority if there are collisions
 		Object.assign(MadeClass, staticProperties.call(MadeClass, parent));
 
-		Object.assign(MadeClass, Object.assign({
+		const defaultedParts = Object.assign({
 			//C because of how sj.Base.construct() works, before/afterInitialize cannot inherit from parent or else the parent's method will be called twice, defaults should also default to an empty object just so the same object isn't redundantly spread
 			defaults: {},
 			beforeInitialize() {},
 			afterInitialize() {},
-		}, constructorParts.call(MadeClass, parent)));
+		}, constructorParts.call(MadeClass, parent))
+		Object.assign(MadeClass, defaultedParts);
 
 		//C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
 		Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent));
@@ -2605,135 +2610,135 @@ sj.Base = class Base {
 
 		return MadeClass;
 	};
-	static augmentClass = function ({
+	this.augmentClass = function ({
 		constructorParts = parent => ({}),
 		prototypeProperties = parent => ({}),
 		staticProperties = parent => ({}),
 	}) {
 		//C add or overwrite existing properties with new ones
 		//G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
+		//! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
+		//! make sure each part is ony called once (see makeClass)
 
 		const parent = Object.getPrototypeOf(this);
 		Object.assign(this, staticProperties.call(this, parent));
 
 		//C don't overwrite defaults, assign them too
-		const {defaults = {}, ...rest} = constructorParts.call(this, parent);
-		Object.assign(this, rest);
-		Object.assign(this.defaults, defaults);
+		const constructorPartsResult = constructorParts.call(this, parent);
+		if (sj.isType(constructorPartsResult, Object)) { 
+			//! Object.assign can handle undefined, but destructuring can't which is why constructorPartsResult needs to be checked
+			const {defaults = {}, ...rest} = constructorPartsResult;
+			Object.assign(this, rest);
+			Object.assign(this.defaults, defaults);
+		}
 
 		Object.assign(this.prototype, prototypeProperties.call(this.prototype, parent.prototype));
 	};
-};
-sj.Base.augmentClass({
+
+	this.defaults = {
+		// debug
+		log: false,
+
+		// info
+		code: 200,
+		type: 'Ok',
+		origin: '',
+		trace: sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
+
+		// content
+		message: '',
+		reason: '',
+		content: {},
+	};
+	this.allowUnknown = false;
+	this.beforeInitialize = function (accessory) {};
+	this.afterInitialize = function (accessory) {};
+
+	this.prototype.announce = function () {
+		//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
+		if (sj.isType(this, sj.Error)) {
+			console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
+		} else if (sj.isType(this, sj.Warn)) {
+			console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
+		} else {
+			console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${sj.trace()}`);
+		}
+	};
+
+	this.construct = function (options = {}, defaults) {
+		const parentConstructor = Object.getPrototypeOf(this.constructor);
+
+		const accessory = {options};
+		
+		//! sj.Base doesn't have a parent
+		if (this.constructor !== sj.Base) parentConstructor.beforeInitialize.call(this, accessory);
+		this.constructor.beforeInitialize.call(this, accessory);
+
+		//C store constructor.name on instances so this they can be stringified and rebuilt
+		this.constructorName = this.constructor.name; 
+
+		//C extend parent
+		const extendedDefaults = {...parentConstructor.defaults, ...defaults}; 
+		//C assign all properties from options if unknown properties are allowed
+		if (this.allowUnknown) Object.assign(this, options);
+		//C else overwrite only default properties with properties from options
+		else Object.keys(extendedDefaults).forEach(key => this[key] = typeof options[key] !== 'undefined' ? options[key] : extendedDefaults[key]);
+
+		if (this.constructor !== sj.Base) parentConstructor.afterInitialize.call(this, accessory);
+		this.constructor.afterInitialize.call(this, accessory);
+
+		if (this.log) {
+			this.announce();
+		}
+	};
+}).call(sj.Base);
+
+sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 	//G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
 	constructorParts: parent => ({
 		defaults: {
-			// debug
-			log: false,
-
-			// info
-			code: 200,
-			type: 'Ok',
-			origin: '',
-			trace: sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
-
-			// content
-			message: '',
-			reason: '',
-			content: {},
+			// NEW
+			valueName: 'input',
+			trim: false,
+			
+			dataTypes: ['string'],
+	
+			min: 0,
+			max: Infinity,
+	
+			
+			//! remember to set useAgainst: true, if passing a value2 to use
+			useAgainst: false,
+			//C this is a reference value and should not be able to be equal to anything,
+			//R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
+			againstValue: {},
+			get againstMessage() {
+				//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
+	
+				let againstValueName = this.againstValue;
+				//C join array of values if matching against multiple values
+				if (Array.isArray(this.againstValue)) {
+					againstValueName = this.againstValue.join(', ');
+				}
+				return `${this.valueName} did not match against these values: ${againstValueName}`;
+			},
+	
+			//! remember to set useFilter: true, if passing a value2 to use
+			useFilter: false,
+			//C match nothing //TODO verify this
+			//L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
+			filterExpression: '\\b\\B',
+			filterRequirements: 'none',
+			get filterMessage() {
+				return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
+			},
+	
+			custom: undefined,
 		},
-		allowUnknown: false,
-		beforeInitialize(accessory) {},
-		afterInitialize(accessory) {},
 	}),
 	prototypeProperties: parent => ({
-		announce() {
-			//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-			if (sj.isType(this, sj.Error)) {
-				console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-			} else if (sj.isType(this, sj.Warn)) {
-				console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
-			} else {
-				console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${sj.trace()}`);
-			}
-		},
-	}),
-	staticProperties: parent => ({
-		construct(options = {}, defaults) {
-			const parentConstructor = Object.getPrototypeOf(this.constructor);
-
-			const accessory = {options};
-			
-			parentConstructor.beforeInitialize.call(this, accessory);
-			this.constructor.beforeInitialize.call(this, accessory);
-
-			//C store constructor.name on instances so this they can be stringified and rebuilt
-			this.constructorName = this.constructor.name; 
-
-			//C extend parent
-			const extendedDefaults = {...parentConstructor.defaults, ...defaults}; 
-			//C assign all properties from options if unknown properties are allowed
-			if (this.allowUnknown) Object.assign(this, options);
-			//C else overwrite only default properties with properties from options
-			else Object.keys(extendedDefaults).forEach(key => this[key] = typeof options[key] !== 'undefined' ? options[key] : extendedDefaults[key]);
-	
-			parentConstructor.afterInitialize.call(this, accessory);
-			this.constructor.afterInitialize.call(this, accessory);
-	
-			if (this.log) {
-				this.announce();
-			}
-		},
-		
-	}),
-});
-
-//------------ //TODO again, go through and update with new syntax
-
-sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
-	defaults: {
-		// NEW
-		valueName: 'input',
-		trim: false,
-		
-		dataTypes: ['string'],
-
-		min: 0,
-		max: Infinity,
-
-		
-		//! remember to set useAgainst: true, if passing a value2 to use
-		useAgainst: false,
-		//C this is a reference value and should not be able to be equal to anything,
-		//R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
-		againstValue: {},
-		get againstMessage() {
-			//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
-
-			let againstValueName = this.againstValue;
-			//C join array of values if matching against multiple values
-			if (Array.isArray(this.againstValue)) {
-				againstValueName = this.againstValue.join(', ');
-			}
-			return `${this.valueName} did not match against these values: ${againstValueName}`;
-		},
-
-		//! remember to set useFilter: true, if passing a value2 to use
-		useFilter: false,
-		//C match nothing //TODO verify this
-		//L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
-		filterExpression: '\\b\\B',
-		filterRequirements: 'none',
-		get filterMessage() {
-			return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
-		},
-
-		custom: undefined,
-	},
-	instanceMethods() {
 		//TODO how to deal with returning the password field since its sensitive
-
-		this.checkType = async function (value) {
+		async checkType(value) {
 			//C check against each datatype
 			for (let i = 0; i < this.dataTypes.length; i++) {
 				if (sj.isType(value, this.dataTypes[i])) {
@@ -2767,8 +2772,8 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
 				content: value,
 			});
-		};
-		this.checkSize = async function (value) {
+		},
+		async checkSize(value) {
 			let m = `${this.valueName} must be between ${this.min} and ${this.max}`;
 
 			if (sj.isType(value, String)) {
@@ -2797,8 +2802,8 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				origin: `${this.origin}.checkSize()`,
 				content: value,
 			});
-		};
-		this.checkAgainst = async function (value, value2) {
+		},
+		async checkagainst (value, value2) {
 			//C custom againstValue
 			if (!sj.isType(value2, undefined)) {
 				this.againstValue = value2;
@@ -2832,8 +2837,8 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				origin: `${this.origin}.checkAgainst()`,
 				content: value,
 			});
-		};
-		this.checkFilter = async function (value, value2) {
+		},
+		async checkFilter(value, value2) {
 			//C custom againstValue
 			if (sj.isType(value2, undefined)) {
 				this.filterExpression = value2;
@@ -2845,9 +2850,9 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				origin: `${this.origin}.checkAgainst()`,
 				content: value,
 			});
-		};
+		},
 
-		this.checkCustom = async function (value) {
+		async checkCustom(value) {
 			if (typeof this.custom === 'function') {
 				return this.custom(value);
 			} else {
@@ -2856,7 +2861,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 					content: value,
 				});
 			}
-		};
+		},
 
 		/* //OLD
 			//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
@@ -2924,7 +2929,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 		//TODO should sj.Rule be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
 
 		//! to use the possibly modified value from check(), set the input value to equal the result.content
-		this.check = async function (value, value2) {
+		async check(value, value2) {
 			//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
 			//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
@@ -2996,7 +3001,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 			this.content = value;
 			//C transform object (this will strip any irrelevant properties away)
 			return new sj.Success(this); 		
-		};
+		},
 
 		/* //OLD decided this was redundant
 			//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
@@ -3137,48 +3142,48 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				});
 			}
 		*/
-	},
-	statics() {
+	}),
+	staticProperties: parent => ({
 		//! string to be hashed must not be greater than 72 characters (//? or bytes???),
-		this.stringMaxLength = 100;
-		this.bigStringMaxLength = 2000;
-		this.nameMinLength = 3;
-		this.nameMaxLength = 16;
-		this.defaultColor = '#ffffff';
-		this.visibilityStates = [
+		stringMaxLength: 100,
+		bigStringMaxLength: 2000,
+		nameMinLength: 3,
+		nameMaxLength: 16,
+		defaultColor: '#ffffff',
+		visibilityStates: [
 			'public',
 			'private',
 			'linkOnly',
-		];
-	},
+		],
+	}),
 });
 sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
-	statics() {
-		this.none = new sj.Rule({
+	staticProperties: parent => ({
+		none: new sj.Rule({
 			origin: 'noRules',
 			message: 'value validated',
 		
 			valueName: 'Value',
 		
 			dataTypes: ['string', 'number', 'boolean', 'array'], //TODO etc. or just make functionality for this
-		});
-		this.posInt = new sj.Rule({
+		}),
+		posInt: new sj.Rule({
 			origin: 'positiveIntegerRules',
 			message: 'number validated',
 		
 			valueName: 'Number',
 		
 			dataTypes: ['integer'],
-		});
-		this.id = new sj.Rule({
+		}),
+		id: new sj.Rule({
 			origin: 'idRules',
 			message: 'id validated',
 		
 			valueName: 'id',
 		
 			dataTypes: ['integer'],
-		});
-		this.image = new sj.Rule({
+		}),
+		image: new sj.Rule({
 			origin: 'imageRules',
 			message: 'image validated',
 			target: 'playlistImage',
@@ -3187,12 +3192,12 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 			valueName: 'image',
 			trim: true,
 		
-			max: this.bigStringMaxLength,
+			max: sj.Rule.bigStringMaxLength,
 		
 			// TODO filter: ___,
 			filterMessage: 'Image must be a valid url',
-		});
-		this.color = new sj.Rule({
+		}),
+		color: new sj.Rule({
 			origin: 'colorRules',
 			message: 'color validated',
 			target: 'playlistColor',
@@ -3203,8 +3208,8 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 			
 			filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
 			filterMessage: 'Color must be in hex format #XXXXXX',
-		});
-		this.visibility = new sj.Rule({
+		}),
+		visibility: new sj.Rule({
 			origin: 'visibilityRules',
 			message: 'visibility validated',
 			target: 'playlistVisibility',
@@ -3213,13 +3218,13 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 			valueName: 'Visibility',
 		
 			useAgainst: true,
-			againstValue: this.visibilityStates,
+			againstValue: sj.Rule.visibilityStates,
 			againstMessage: 'please select a valid visibility level',
-		});
+		}),
 
 		//TODO other / old
 		//? not sure what these were used for
-		this.self = new sj.Rule({
+		self: new sj.Rule({
 			origin: 'selfRules',
 			message: 'self validated',
 			target: 'notify',
@@ -3232,8 +3237,8 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 			useAgainst: true,
 			//! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
 			againstMessage: 'you are not the owner of this',
-		});
-		this.setPassword = new sj.Rule({
+		}),
+		setPassword: new sj.Rule({
 			origin: 'setPasswordRules',
 			message: 'password validated',
 			target: 'registerPassword',
@@ -3246,112 +3251,125 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 		
 			useAgainst: true,
 			get againstMessage() {return 'Passwords do not match'},
-		});
-	},
+		}),
+	}),
 });
 
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
 sj.Success = sj.Base.makeClass('Success', sj.Base, {
-	defaults: {
-		// NEW
-		timestamp: undefined,
-	},
+	constructorParts: parent => ({
+		defaults: {
+			// NEW
+			timestamp: undefined,
+		},
+	}),	
 });
 sj.SuccessList = sj.Base.makeClass('SuccessList', sj.Success, {
-	//C wrapper for an array of successful items
-	defaults: {
-		// OVERWRITE
-		reason: 'all items successful',
-		content: [],
-	},
+	constructorParts: parent => ({
+		//C wrapper for an array of successful items
+		defaults: {
+			// OVERWRITE
+			reason: 'all items successful',
+			content: [],
+		},
+	}),
 });
 sj.Warn = sj.Base.makeClass('Warn', sj.Success, {
-	defaults: {
-		// OVERWRITE
-		log: true,
-	},
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
+			log: true,
+		},
+	}),
 });
 
 sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
-	//TODO allowUnknown: true,
+	constructorParts: parent => ({
+		//TODO allowUnknown: true,
 
-	defaults: {
-		//TODO this part should only be server-side 
-		//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-		authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-		authRequestTimestamp: 0,
-		authRequestTimeout: 300000, //C default 5 minutes
-		authRequestURL: '',
-		authCode: Symbol(),
-		
-		accessToken: Symbol(),
-		expires: 0,
-		refreshToken: Symbol(),
-		refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-		
-		scopes: [],
-	},
+		defaults: {
+			//TODO this part should only be server-side 
+			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
+			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+			authRequestTimestamp: 0,
+			authRequestTimeout: 300000, //C default 5 minutes
+			authRequestURL: '',
+			authCode: Symbol(),
+			
+			accessToken: Symbol(),
+			expires: 0,
+			refreshToken: Symbol(),
+			refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
+			
+			scopes: [],
+		},
+	}),
 });
 
 // ENTITIES
 sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
-	afterInitialize(accessory) {
-		const that = this; //? is this necessary?
-		this.filters = {};
-		Object.keys(that.constructor.filters).forEach(key => {
-			Object.defineProperties(that.filters, {
-				[key]: {
-					get: function () { 
-						return sj.shake(that, that.constructor.filters[key]);
+	constructorParts: parent => ({
+		afterInitialize(accessory) {
+			const that = this; //? is this necessary?
+			this.filters = {};
+			Object.keys(that.constructor.filters).forEach(key => {
+				Object.defineProperties(that.filters, {
+					[key]: {
+						get: function () { 
+							return sj.shake(that, that.constructor.filters[key]);
+						}
 					}
-				}
+				});
 			});
-		});
-	},
-	defaults: {
-		// NEW
-		id: undefined,
-	},
-	statics() {
-		//TODO how to make these immutable?
-
+		},
+		defaults: {
+			// NEW
+			id: undefined,
+		},
+	}),
+	staticProperties(parent) {
+		// GETTER
 		Object.defineProperty(this, 'table', {
 			get: function () {
 				return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
 			},
 		}); 
 
-		//C list of references to child classes, these should be added in the child's static constructor
-		this.children = [];
+		return {
+			//TODO how to make these immutable?
 
-		this.filters = {
-			id: ['id'],
-		};
+			//C list of references to child classes, these should be added in the child's static constructor
+			children: [],
 
-		//C automatically create new filters based on schema
-		this.updateFilters = function () {
-			let methodNames = ['add', 'get', 'edit', 'remove'];
-			let types = ['in', 'out', 'check'];
-		
-			let schemaFilters = {};
-		
-			Object.keys(this.schema).forEach(key => { //C for each property
-				methodNames.forEach(methodName => { //C for each crud method
-					types.forEach(type => { //C for each filter type
-						if (this.schema[key][methodName][type]) { //C if property is optional or required
-							let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
-							if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-							schemaFilters[filterName].push(key);
-						}
+			filters: {
+				id: ['id'],
+			},
+
+			//C automatically create new filters based on schema
+			updateFilters() {
+				let methodNames = ['add', 'get', 'edit', 'remove'];
+				let types = ['in', 'out', 'check'];
+			
+				let schemaFilters = {};
+			
+				Object.keys(this.schema).forEach(key => { //C for each property
+					methodNames.forEach(methodName => { //C for each crud method
+						types.forEach(type => { //C for each filter type
+							if (this.schema[key][methodName][type]) { //C if property is optional or required
+								let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
+								if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+								schemaFilters[filterName].push(key);
+							}
+						});
 					});
 				});
-			});
-		
-			this.filters = {
-				...this.filters,
-				...schemaFilters,
-			};
-		};
+			
+				this.filters = {
+					...this.filters,
+					...schemaFilters,
+				};
+			},
+		}
 	},
 });
 // schema property states //TODO could these be static on sj.Entity and called via this.x ?
@@ -3376,16 +3394,18 @@ const auto = {
 	check: 0,
 };
 sj.User = sj.Base.makeClass('User', sj.Entity, {
-	defaults: {
-		// NEW
-		name: '',
-		email: '',
-		password: '',
-		password2: '',
-		spotifyRefreshToken: null,
-		socketId: undefined,
-	},
-	statics(parent) {
+	constructorParts: parent => ({
+		defaults: {
+			// NEW
+			name: '',
+			email: '',
+			password: '',
+			password2: '',
+			spotifyRefreshToken: null,
+			socketId: undefined,
+		},
+	}),
+	staticProperties(parent) {
 		parent.children.push(this);
 
 		this.schema = {
@@ -3489,19 +3509,21 @@ sj.User = sj.Base.makeClass('User', sj.Entity, {
 	},
 });
 sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
-	defaults: {
-		// OVERWRITE
-		content: [],
-
-		// NEW
-		userId: null,
-		name: '',
-		visibility: '',
-		description: '',
-		color: '',
-		image: '',
-	},
-	statics(parent) {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
+			content: [],
+	
+			// NEW
+			userId: null,
+			name: '',
+			visibility: '',
+			description: '',
+			color: '',
+			image: '',
+		},
+	}),
+	staticProperties(parent) {
 		parent.children.push(this);
 
 		this.schema = {
@@ -3594,18 +3616,20 @@ sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
 	},
 });
 sj.Track = sj.Base.makeClass('Track', sj.Entity, {
-	defaults: {
-		// NEW
-		playlistId: null,
-		position: null,
-		source: null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-		sourceId: null, // TODO assumes ids are unique, even across all sources
-		artists: [],
-		name: '',
-		duration: null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
-		link: '',
-	},
-	statics(parent) {
+	constructorParts: parent => ({
+		defaults: {
+			// NEW
+			playlistId: null,
+			position: null,
+			source: null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
+			sourceId: null, // TODO assumes ids are unique, even across all sources
+			artists: [],
+			name: '',
+			duration: null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
+			link: '',
+		},
+	}),
+	staticProperties(parent) {
 		parent.children.push(this);
 
 		this.schema = {
@@ -3723,84 +3747,98 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 
 // ERRORS
 sj.Error = sj.Base.makeClass('Error', sj.Base, {
-	defaults: {
-		// OVERWRITE
-		log: true, //TODO remove log: true from errors
-		code: 400,
-		type: 'Bad Request',
-	},
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
+			log: true, //TODO remove log: true from errors
+			code: 400,
+			type: 'Bad Request',
+		},
+	}),
 });
 sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
-	//C wrapper for an array with one or more errors
-	defaults: {
-		// OVERWRITE
-		reason: 'one or more errors occurred with items',
-		content: [],
-	}
+	constructorParts: parent => ({
+		//C wrapper for an array with one or more errors
+		defaults: {
+			// OVERWRITE
+			reason: 'one or more errors occurred with items',
+			content: [],
+		},
+	}),
 });
 // CUSTOM ERRORS
 sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
-	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
-	defaults: {
-		// OVERWRITE
-		message: 'authorization required',
-	},
+	constructorParts: parent => ({
+		//C used to communicate to client that the server does not have the required tokens and that the client must authorize
+		defaults: {
+			// OVERWRITE
+			message: 'authorization required',
+		},
+	}),
 });
 sj.Unreachable = sj.Base.makeClass('Unreachable', sj.Error, {
-	//C used to indicate an unreachable place in the code
-	defaults: {
-		message: 'code reached a place that should be unreachable',
-	},
+	constructorParts: parent => ({
+		//C used to indicate an unreachable place in the code
+		defaults: {
+			message: 'code reached a place that should be unreachable',
+		},	
+	}),
 });
 
 
 sj.Source = sj.Base.makeClass('Source', sj.Base, {
-	afterInitialize(accessory) {
-		// extend with: add to source list
-		if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
-			this.constructor.sources.push(this);
-			//sj.sourceList.push(this);
-		}
-	},
-	defaults: {
-		// NEW
-		name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
-		idPrefix: '',
-		realSource: true,
-		
-		credentials: new sj.Credentials(),
-
-		//TODO this should only be server-side
-		api: {},
-		scopes: [],
-		authRequestManually: true,
-		makeAuthRequestURL: function () {},
-	},
-	statics(parent) {
-		this.sources = [];
-	},
+	constructorParts: parent => ({
+		defaults: {
+			// NEW
+			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
+			idPrefix: '',
+			realSource: true,
+			
+			credentials: new sj.Credentials(),
+	
+			//TODO this should only be server-side
+			api: {},
+			scopes: [],
+			authRequestManually: true,
+			makeAuthRequestURL: function () {},
+		},
+		afterInitialize(accessory) {
+			// extend with: add to source list
+			if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
+				this.constructor.sources.push(this);
+				//sj.sourceList.push(this);
+			}
+		},
+	}),
+	
+	staticProperties: parent => ({
+		sources: [],
+	}),
 });
 
 sj.QuerySubscription = sj.Base.makeClass('QuerySubscription', sj.Base, {
-	//! don't nest QuerySubscriptions
-	defaults: {
-		query: undefined,
-		subscribers: [], 
-		timestamp: 0,
-		content: [],
-	},
+	constructorParts: parent => ({
+		//! don't nest QuerySubscriptions
+		defaults: {
+			query: undefined,
+			subscribers: [], 
+			timestamp: 0,
+			content: [],
+		},
+	}),
 });
 sj.EntitySubscription = sj.Base.makeClass('EntitySubscription', sj.QuerySubscription, {
-	//C subscribers can include both component subscribers and parent QuerySubscription subscribers
-	//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
-	//G query should only have one query object with one id property: [{id: 8}]
-	//G content is the root data object, not an array
-	defaults: {
-		content: undefined,
-	},
+	constructorParts: parent => ({
+		//C subscribers can include both component subscribers and parent QuerySubscription subscribers
+		//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
+		//G query should only have one query object with one id property: [{id: 8}]
+		//G content is the root data object, not an array
+		defaults: {
+			content: undefined,
+		},	
+	}),
 });
 
-//----------- update other classes with new format, consider putting beforeInitialize/afterInitialize into makeClass too, so that constructor is more easily extendible
 
 export default sj;
 

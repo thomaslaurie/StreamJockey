@@ -677,379 +677,380 @@ sj.subscriptions = (function () {
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
 
-// ENTITY
-(function () { // STATIC
-	// CRUD METHODS
-	this.add = async function (query, db = sj.db) {
-		return await this.frame(db, query, 'add');
-	};
-	this.get = async function (query, db = sj.db) {
-		return await this.frame(db, query, 'get');
-	};
-	this.edit = async function (query, db = sj.db) {
-		return await this.frame(db, query, 'edit');
-	};
-	this.remove = async function (query, db = sj.db) {
-		return await this.frame(db, query, 'remove');
-	};
-	this.getMimic = async function (query, db = sj.db) {
-		//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.subscriptions.notify()
-		return await this.frame(db, query, 'getMimic');
-	};
+sj.Entity.augmentClass({
+	prototypeProperties: parent => ({
+		async add(db) {
+			return await this.constructor.add(this, db);
+		},
+		async get(db) {
+			return await this.constructor.get(this, db);
+		},
+		async edit(db) {
+			return await this.constructor.edit(this, db);
+		},
+		async remove(db) {
+			return await this.constructor.remove(this, db);
+		},
+	}),
+	staticProperties(parent) {
+		// CRUD METHODS
+		this.add = async function (query, db = sj.db) {
+			return await this.frame(db, query, 'add');
+		};
+		this.get = async function (query, db = sj.db) {
+			return await this.frame(db, query, 'get');
+		};
+		this.edit = async function (query, db = sj.db) {
+			return await this.frame(db, query, 'edit');
+		};
+		this.remove = async function (query, db = sj.db) {
+			return await this.frame(db, query, 'remove');
+		};
+		this.getMimic = async function (query, db = sj.db) {
+			//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.subscriptions.notify()
+			return await this.frame(db, query, 'getMimic');
+		};
 
 
-	// FRAME
-	this.frame = async function (db, anyEntities, methodName) {
-		//C catch sj.Entity
-		if (this === sj.Entity) throw new sj.Error({
-			origin: 'sj.Entity.[CRUD]',
-			reason: `cannot call CRUD method directly on sj.Entity`,
-		});
+		// FRAME
+		this.frame = async function (db, anyEntities, methodName) {
+			//C catch sj.Entity
+			if (this === sj.Entity) throw new sj.Error({
+				origin: 'sj.Entity.[CRUD]',
+				reason: `cannot call CRUD method directly on sj.Entity`,
+			});
 
-		//C cast as array
-		const entities = sj.any(anyEntities);
+			//C cast as array
+			const entities = sj.any(anyEntities);
 
-		//C shorthand
-		const isGetMimic = methodName === 'getMimic'; //C store getMimic
-		if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
-		const isGet = methodName === 'get';
+			//C shorthand
+			const isGetMimic = methodName === 'getMimic'; //C store getMimic
+			if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
+			const isGet = methodName === 'get';
 
-		const accessory = {};
-		
+			const accessory = {};
+			
 
-		const after = await db.tx(async t => {
-			//C process
-			const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
+			const after = await db.tx(async t => {
+				//C process
+				const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
-			//C validate
-			const validatedEntities = await sj.asyncForEach(beforeEntities, async entity => await this.validate(entity, methodName).catch(sj.propagate));
+				//C validate
+				const validatedEntities = await sj.asyncForEach(beforeEntities, async entity => await this.validate(entity, methodName).catch(sj.propagate));
 
-			//C prepare
-			const preparedEntities = await sj.asyncForEach(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate));
+				//C prepare
+				const preparedEntities = await sj.asyncForEach(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate));
 
-			//C accommodate
-			const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate) : [];
+				//C accommodate
+				const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate) : [];
 
-			//C map
-			const inputMapped = this.mapColumns(preparedEntities);
-			const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : [];
+				//C map
+				const inputMapped = this.mapColumns(preparedEntities);
+				const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : [];
 
 
-			//C execute SQL for inputs
-			const inputBefore = [];
-			const inputAfter = isGetMimic ? inputMapped : [];
-			if (!isGetMimic) {
-				await sj.asyncForEach(inputMapped, async entity => {
-					//C before, ignore add
-					if (!isGet && methodName !== 'add') {
-						const before = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate)
-						inputBefore.push(...before);
+				//C execute SQL for inputs
+				const inputBefore = [];
+				const inputAfter = isGetMimic ? inputMapped : [];
+				if (!isGetMimic) {
+					await sj.asyncForEach(inputMapped, async entity => {
+						//C before, ignore add
+						if (!isGet && methodName !== 'add') {
+							const before = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate)
+							inputBefore.push(...before);
+						}
+
+						//C after, ignore remove (still needs to execute though)
+						const after = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
+						if (methodName !== 'remove') inputAfter.push(...after);
+					}).catch(rejected => {
+						throw sj.propagate(new sj.ErrorList({
+							...this[methodName+'Error'](),
+							content: rejected,
+						}));
+					});
+				}
+
+				//C execute SQL for influenced
+				const influencedBefore = [];
+				const influencedAfter = [];
+				if (!isGet) {
+					await sj.asyncForEach(influencedMapped, async influencedEntity => {
+						const before = await this.getQuery(t, sj.shake(influencedEntity, this.filters.id)).then(sj.any).catch(sj.propagate);
+						influencedBefore.push(...before);
+
+						const after = await this.editQuery(t, influencedEntity).then(sj.any).catch(sj.propagate);
+						influencedAfter.push(...after);
+					}).catch(rejected => {
+						throw sj.propagate(new sj.ErrorList({
+							...this[methodName+'Error'](),
+							content: rejected,
+						}));
+					});
+				}
+
+
+				//C group for iteration
+				const all = [inputBefore, inputAfter, influencedBefore, influencedAfter];
+
+				//C unmap
+				const unmapped = all.map(list => this.unmapColumns(list));
+
+				//C process
+				return await sj.asyncForEach(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
+			}).catch(sj.propagate); //! finish the transaction here so that notify won't be called before the database has updated
+
+			//C shake for subscriptions with getOut filter
+			const shookGet = after.map(list => sj.shake(list, this.filters.getOut));
+
+			//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+			const timestamp = Date.now();
+
+			//C if get, don't notify
+			if (!isGet) shookGet.forEach(list => sj.subscriptions.notify(this, list, timestamp, methodName));
+			//C if getMimic, return shookGet-after
+			else if (isGetMimic) return shookGet[1]; 
+
+
+			//C shake for return
+			const shook = after.map(list => sj.shake(list, this.filters[methodName+'Out']));
+
+			//C rebuild
+			const built = shook.map(list => list.map(entity => new this(entity)));
+
+			return new sj.SuccessList({
+				...this[methodName+'Success'](),
+				//R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
+				content: built[1], 
+				timestamp,
+			});
+		};
+
+
+		// FRAME PARTS
+		//G all of these parts are dependant on each other (eg. accessory), so it is ok to make assumptions between these functions
+
+		//C processes all before validation
+		this.addBefore = 
+		this.getBefore = 
+		this.editBefore = 
+		this.removeBefore = async function (t, entities, accessory) {
+			return entities.slice();
+		};
+
+		//C validates each using sj.Entity.schema
+		this.validate = async function (entity, methodName) {
+			let validated = {};
+			await sj.asyncForEach(Object.keys(this.schema), async key => {
+				let prop = this.schema[key];
+
+				//C catches
+				if (!(prop.rule instanceof sj.Rule)) { // sj.Rule
+					throw new sj.Error({
+						log: true,
+						origin: 'sj.Entity.validate()',
+						message: 'validation error',
+						reason: `${key}'s rule is not an sj.Rule`,
+						content: prop,
+					});
+				}
+
+				//C check if optional and not empty, or if required
+				if ((prop[methodName].check && !sj.isEmpty(entity[key])) || prop[methodName].check === 2) {
+					//G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
+					let checked = await prop.rule.check(entity[key], entity[prop.against]);
+					validated[key] = sj.content(checked);
+					return checked;
+				} else {
+					//C don't pack into validated
+					return new sj.Success({
+						origin: 'sj.Entity.validate()',
+						message: `optional ${key} is empty, skipped validation`,
+					});
+				}
+			}).catch(rejected => {
+				throw new sj.ErrorList({
+					origin: 'sj.Entity.validate()',
+					message: 'one or more issues with properties',
+					reason: 'validating properties returned one or more errors',
+					content: rejected,
+				});
+			});
+
+			return validated;
+		};
+
+		//C modifies each after validation
+		this.addPrepare =
+		this.getPrepare =
+		this.editPrepare = 
+		this.removePrepare = async function (t, entity, accessory) {
+			return Object.assign({}, entity);
+		}
+
+		//C modifies input entities, returns other influenced entities. checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
+		this.addAccommodate =
+		this.getAccommodate =
+		this.editAccommodate =
+		this.removeAccommodate = async function (t, entities, accessory) {
+			return [];
+		};
+
+		//C maps js property names to database column names
+		this.mapColumns = function (entities) {
+			//C switches entities' js named keys for column named keys based on schema
+			return entities.map(entity => { //C for each entity
+				let mappedEntity = {};
+				Object.keys(entity).forEach(key => { //C for each property
+					if (sj.isType(this.schema[key], Object) && sj.isType(this.schema[key].columnName, String)) { //C if schema has property 
+						mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
+					} else {
+						console.warn(`sj.Entity.mapColumns() - property ${key} in entity not found in schema`);
 					}
-
-					//C after, ignore remove (still needs to execute though)
-					const after = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
-					if (methodName !== 'remove') inputAfter.push(...after);
-				}).catch(rejected => {
-					throw sj.propagate(new sj.ErrorList({
-						...this[methodName+'Error'](),
-						content: rejected,
-					}));
 				});
-			}
-
-			//C execute SQL for influenced
-			const influencedBefore = [];
-			const influencedAfter = [];
-			if (!isGet) {
-				await sj.asyncForEach(influencedMapped, async influencedEntity => {
-					const before = await this.getQuery(t, sj.shake(influencedEntity, this.filters.id)).then(sj.any).catch(sj.propagate);
-					influencedBefore.push(...before);
-
-					const after = await this.editQuery(t, influencedEntity).then(sj.any).catch(sj.propagate);
-					influencedAfter.push(...after);
-				}).catch(rejected => {
-					throw sj.propagate(new sj.ErrorList({
-						...this[methodName+'Error'](),
-						content: rejected,
-					}));
-				});
-			}
-
-
-			//C group for iteration
-			const all = [inputBefore, inputAfter, influencedBefore, influencedAfter];
-
-			//C unmap
-			const unmapped = all.map(list => this.unmapColumns(list));
-
-			//C process
-			return await sj.asyncForEach(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
-		}).catch(sj.propagate); //! finish the transaction here so that notify won't be called before the database has updated
-
-		//C shake for subscriptions with getOut filter
-		const shookGet = after.map(list => sj.shake(list, this.filters.getOut));
-
-		//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
-		const timestamp = Date.now();
-
-		//C if get, don't notify
-		if (!isGet) shookGet.forEach(list => sj.subscriptions.notify(this, list, timestamp, methodName));
-		//C if getMimic, return shookGet-after
-		else if (isGetMimic) return shookGet[1]; 
-
-
-		//C shake for return
-		const shook = after.map(list => sj.shake(list, this.filters[methodName+'Out']));
-
-		//C rebuild
-		const built = shook.map(list => list.map(entity => new this(entity)));
-
-		return new sj.SuccessList({
-			...this[methodName+'Success'](),
-			//R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
-			content: built[1], 
-			timestamp,
-		});
-	};
-
-
-	// FRAME PARTS
-	//G all of these parts are dependant on each other (eg. accessory), so it is ok to make assumptions between these functions
-
-	//C processes all before validation
-	this.addBefore = 
-	this.getBefore = 
-	this.editBefore = 
-	this.removeBefore = async function (t, entities, accessory) {
-		return entities.slice();
-	};
-
-	//C validates each using sj.Entity.schema
-	this.validate = async function (entity, methodName) {
-		let validated = {};
-		await sj.asyncForEach(Object.keys(this.schema), async key => {
-			let prop = this.schema[key];
-
-			//C catches
-			if (!(prop.rule instanceof sj.Rule)) { // sj.Rule
-				throw new sj.Error({
-					log: true,
-					origin: 'sj.Entity.validate()',
-					message: 'validation error',
-					reason: `${key}'s rule is not an sj.Rule`,
-					content: prop,
-				});
-			}
-
-			//C check if optional and not empty, or if required
-			if ((prop[methodName].check && !sj.isEmpty(entity[key])) || prop[methodName].check === 2) {
-				//G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
-				let checked = await prop.rule.check(entity[key], entity[prop.against]);
-				validated[key] = sj.content(checked);
-				return checked;
-			} else {
-				//C don't pack into validated
-				return new sj.Success({
-					origin: 'sj.Entity.validate()',
-					message: `optional ${key} is empty, skipped validation`,
-				});
-			}
-		}).catch(rejected => {
-			throw new sj.ErrorList({
-				origin: 'sj.Entity.validate()',
-				message: 'one or more issues with properties',
-				reason: 'validating properties returned one or more errors',
-				content: rejected,
+				return mappedEntity;
 			});
-		});
-
-		return validated;
-	};
-
-	//C modifies each after validation
-	this.addPrepare =
-	this.getPrepare =
-	this.editPrepare = 
-	this.removePrepare = async function (t, entity, accessory) {
-		return Object.assign({}, entity);
-	}
-
-	//C modifies input entities, returns other influenced entities. checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
-	this.addAccommodate =
-	this.getAccommodate =
-	this.editAccommodate =
-	this.removeAccommodate = async function (t, entities, accessory) {
-		return [];
-	};
-
-	//C maps js property names to database column names
-	this.mapColumns = function (entities) {
-		//C switches entities' js named keys for column named keys based on schema
-		return entities.map(entity => { //C for each entity
-			let mappedEntity = {};
-			Object.keys(entity).forEach(key => { //C for each property
-				if (sj.isType(this.schema[key], Object) && sj.isType(this.schema[key].columnName, String)) { //C if schema has property 
-					mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
-				} else {
-					console.warn(`sj.Entity.mapColumns() - property ${key} in entity not found in schema`);
-				}
+		};
+		this.unmapColumns = function (mappedEntities) {
+			//C inverse of mapColumns()
+			return mappedEntities.map(mappedEntity => { //C for each entity
+				let entity = {};
+				Object.keys(mappedEntity).forEach(columnName => { //C for each columnName
+					let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
+					if (sj.isType(key, String)) {
+						//C set entity[key] as value of mappedEntity[columnName]
+						entity[key] = mappedEntity[columnName];
+					} else {
+						console.warn(`sj.Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
+					}
+				});
+				return entity;
 			});
-			return mappedEntity;
-		});
-	};
-	this.unmapColumns = function (mappedEntities) {
-		//C inverse of mapColumns()
-		return mappedEntities.map(mappedEntity => { //C for each entity
-			let entity = {};
-			Object.keys(mappedEntity).forEach(columnName => { //C for each columnName
-				let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
-				if (sj.isType(key, String)) {
-					//C set entity[key] as value of mappedEntity[columnName]
-					entity[key] = mappedEntity[columnName];
-				} else {
-					console.warn(`sj.Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
-				}
+		};
+
+		//! this should be overwritten with different ORDER BY columns
+		this.queryOrder = `ORDER BY "id" ASC`; 
+
+		//C executes SQL queries
+		this.addQuery = async function (t, mappedEntity) {
+			let values = sj.buildValues(mappedEntity);
+
+			//? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+			//L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
+			let row = await t.one(`
+				INSERT INTO "sj"."${this.table}" 
+				$1:raw 
+				RETURNING *
+			`, [values]).catch(rejected => { 
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: `sj.${this.name}.add()`,
+					message: `could not add ${this.name}s`,
+				}));
 			});
-			return entity;
-		});
-	};
 
-	//! this should be overwritten with different ORDER BY columns
-	this.queryOrder = `ORDER BY "id" ASC`; 
+			return row;
+		};
+		this.getQuery = async function (t, mappedEntity) {
+			let where = sj.buildWhere(mappedEntity);
 
-	//C executes SQL queries
-	this.addQuery = async function (t, mappedEntity) {
-		let values = sj.buildValues(mappedEntity);
+			let rows = await t.any(`
+				SELECT * 
+				FROM "sj"."${this.table}" 
+				WHERE $1:raw
+				${this.queryOrder}
+			`, [where]).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: `sj.${this.name}.get()`,
+					message: `could not get ${this.name}s`,
+				}));
+			});
 
-		//? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
-		//L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
-		let row = await t.one(`
-			INSERT INTO "sj"."${this.table}" 
-			$1:raw 
-			RETURNING *
-		`, [values]).catch(rejected => { 
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: `sj.${this.name}.add()`,
-				message: `could not add ${this.name}s`,
-			}));
-		});
+			return rows;
+		};
+		this.editQuery = async function (t, mappedEntity) {
+			let {id, ...mappedEntitySet} = mappedEntity;
+			let set = sj.buildSet(mappedEntitySet);
+			let where = sj.buildWhere({id});
 
-		return row;
-	};
-	this.getQuery = async function (t, mappedEntity) {
-		let where = sj.buildWhere(mappedEntity);
+			let row = await t.one(`
+				UPDATE "sj"."${this.table}" 
+				SET $1:raw 
+				WHERE $2:raw 
+				RETURNING *
+			`, [set, where]).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: `sj.${this.name}.edit()`,
+					message: `could not edit ${this.names}`,
+				}));
+			});
 
-		let rows = await t.any(`
-			SELECT * 
-			FROM "sj"."${this.table}" 
-			WHERE $1:raw
-			${this.queryOrder}
-		`, [where]).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: `sj.${this.name}.get()`,
-				message: `could not get ${this.name}s`,
-			}));
-		});
+			return row;
+		};
+		this.removeQuery = async function (t, mappedEntity) {
+			let where = sj.buildWhere(mappedEntity);
 
-		return rows;
-	};
-	this.editQuery = async function (t, mappedEntity) {
-		let {id, ...mappedEntitySet} = mappedEntity;
-		let set = sj.buildSet(mappedEntitySet);
-		let where = sj.buildWhere({id});
+			let row = await t.one(`
+				DELETE FROM "sj"."${this.table}" 
+				WHERE $1:raw 
+				RETURNING *
+			`, where).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: `sj.${this.name}.remove()`,
+					message: `could not remove ${this.names}s`,
+				}));
+			});
+			
+			return row;
+		};
 
-		let row = await t.one(`
-			UPDATE "sj"."${this.table}" 
-			SET $1:raw 
-			WHERE $2:raw 
-			RETURNING *
-		`, [set, where]).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: `sj.${this.name}.edit()`,
-				message: `could not edit ${this.names}`,
-			}));
-		});
+		//C processes all after execution
+		this.addAfter = 
+		this.getAfter = 
+		this.editAfter = 
+		this.removeAfter = async function (t, entities, accessory) {
+			return entities.slice();
+		};
 
-		return row;
-	};
-	this.removeQuery = async function (t, mappedEntity) {
-		let where = sj.buildWhere(mappedEntity);
+		//C custom SuccessList and ErrorList
+		this.addSuccess = function () { return {
+			origin: `sj.${this.name}.add()`,
+			message: `added ${this.name}s`,
+		}};
+		this.getSuccess = function () { return {
+			origin: `sj.${this.name}.get()`,
+			message: `retrieved ${this.name}s`,
+		}};
+		this.editSuccess = function () { return {
+			origin: `sj.${this.name}.edit()`,
+			message: `edited ${this.name}s`,
+		}};
+		this.removeSuccess = function () { return {
+			origin: `sj.${this.name}.get()`,
+			message: `removed ${this.name}s`,
+		}};
 
-		let row = await t.one(`
-			DELETE FROM "sj"."${this.table}" 
-			WHERE $1:raw 
-			RETURNING *
-		`, where).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: `sj.${this.name}.remove()`,
-				message: `could not remove ${this.names}s`,
-			}));
-		});
-		
-		return row;
-	};
-
-	//C processes all after execution
-	this.addAfter = 
-	this.getAfter = 
-	this.editAfter = 
-	this.removeAfter = async function (t, entities, accessory) {
-		return entities.slice();
-	};
-
-	//C custom SuccessList and ErrorList
-	this.addSuccess = function () { return {
-		origin: `sj.${this.name}.add()`,
-		message: `added ${this.name}s`,
-	}};
-	this.getSuccess = function () { return {
-		origin: `sj.${this.name}.get()`,
-		message: `retrieved ${this.name}s`,
-	}};
-	this.editSuccess = function () { return {
-		origin: `sj.${this.name}.edit()`,
-		message: `edited ${this.name}s`,
-	}};
-	this.removeSuccess = function () { return {
-		origin: `sj.${this.name}.get()`,
-		message: `removed ${this.name}s`,
-	}};
-
-	this.addError = function () { return {
-		origin: `sj.${this.name}.add()`,
-		message: `failed to add ${this.name}s`,
-	}};
-	this.getError = function () { return {
-		origin: `sj.${this.name}.get()`,
-		message: `failed to retrieve ${this.name}s`,
-	}};
-	this.editError = function () { return {
-		origin: `sj.${this.name}.edit()`,
-		message: `failed to edit ${this.name}s`,
-	}};
-	this.removeError = function () { return {
-		origin: `sj.${this.name}.remove()`,
-		message: `failed to remove ${this.name}s`,
-	}};
-}).call(sj.Entity);
-(function () { // INSTANCE
-	this.add = async function (db) {
-		return await this.constructor.add(this, db);
-	};
-	this.get = async function (db) {
-		return await this.constructor.get(this, db);
-	};
-	this.edit = async function (db) {
-		return await this.constructor.edit(this, db);
-	};
-	this.remove = async function (db) {
-		return await this.constructor.remove(this, db);
-	};
-}).call(sj.Entity.prototype);
+		this.addError = function () { return {
+			origin: `sj.${this.name}.add()`,
+			message: `failed to add ${this.name}s`,
+		}};
+		this.getError = function () { return {
+			origin: `sj.${this.name}.get()`,
+			message: `failed to retrieve ${this.name}s`,
+		}};
+		this.editError = function () { return {
+			origin: `sj.${this.name}.edit()`,
+			message: `failed to edit ${this.name}s`,
+		}};
+		this.removeError = function () { return {
+			origin: `sj.${this.name}.remove()`,
+			message: `failed to remove ${this.name}s`,
+		}};
+	},
+});
 
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
@@ -1059,29 +1060,31 @@ sj.subscriptions = (function () {
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
 
-// CRUD
-(function () {
-	this.addPrepare = 
-	this.editPrepare = async function (t, user) {
-		let newUser = Object.assign([], user);
-
-		//C hash password
-		//TODO might be a vulnerability here with this string check
-		if (sj.isType(newUser.password, String)) newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
-			throw new sj.Error({
-				log: true,
-				origin: 'sj.User.add()',
-				message: 'failed to add user',
-				reason: 'hash failed',
-				content: rejected,
+sj.User.augmentClass({
+	staticProperties(parent) {
+		// CRUD
+		this.addPrepare = 
+		this.editPrepare = async function (t, user) {
+			let newUser = Object.assign([], user);
+	
+			//C hash password
+			//TODO might be a vulnerability here with this string check
+			if (sj.isType(newUser.password, String)) newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
+				throw new sj.Error({
+					log: true,
+					origin: 'sj.User.add()',
+					message: 'failed to add user',
+					reason: 'hash failed',
+					content: rejected,
+				});
 			});
-		});
-
-		return newUser;
-	};
-
-	this.queryOrder = 'ORDER BY "id" ASC';
-}).call(sj.User);
+	
+			return newUser;
+		};
+	
+		this.queryOrder = 'ORDER BY "id" ASC';
+	},
+});
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
@@ -1091,10 +1094,12 @@ sj.subscriptions = (function () {
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
 
-// CRUD
-(function () {
-	this.queryOrder = 'ORDER BY "userId" ASC, "id" ASC';
-}).call(sj.Playlist);
+sj.Playlist.augmentClass({
+	staticProperties: parent => ({
+		// CRUD
+		queryOrder: 'ORDER BY "userId" ASC, "id" ASC',
+	}),
+});
 
 
 //  ████████╗██████╗  █████╗  ██████╗██╗  ██╗
@@ -1104,390 +1109,389 @@ sj.subscriptions = (function () {
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
 
-// CRUD
-(function () {
-	this.addBefore = 
-	this.getBefore = 
-	this.editBefore = 
-	this.removeBefore = async function (t, entities) {
-		let newEntities = entities.slice();
-		newEntities.forEach(entity => {
-			entity.source = sj.isType(entity.source, Object) && sj.isType(entity.source.name, String)
-			? entity.source.name
-			: undefined;
-		});
-		return newEntities;
-	};
-
-	this.addPrepare = async function (t, track) {
-		//C set id of tracks to be added as a temporary symbol, so that sj.Track.order() is able to identify tracks
-		let newTrack = {...track, id: Symbol()};
-		if (!sj.isType(newTrack.position, 'integer')) {
-			let existingTracks = await sj.Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
-			newTrack.position = existingTracks.length;
-		}
-		return newTrack;
-	};
-	this.removePrepare = async function (t, track) {
-		//C set position of tracks to be removed as null, so that sj.Track.order() recognizes them as tracks to remove
-		return {...track, position: null};
-	};
-
-	this.queryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
-
-	this.addAccommodate = 
-	this.editAccommodate =
-	this.removeAccommodate = async function (t, tracks) {
-		//L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
-		//L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
-		//L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-		await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-			throw sj.parsePostgresError(rejected, new sj.Error({
-				log: false,
-				origin: 'sj.Track.move()',
-				message: 'could not order tracks, database error',
-				target: 'notify',
-				cssClass: 'notifyError',
-			}));
-		});
-		return await this.order(t, tracks).then(sj.content).catch(sj.propagate);
-	};
-
-	this.addAfter =
-	this.getAfter =
-	this.editAfter = 
-	this.deleteAfter = async function (t, entities) {
-		let newEntities = entities.slice();
-		newEntities.forEach(entity => {
-			entity.source = sj.Source.sources.find(source => source.name === entity.source);
-		});
-		return newEntities;
-	};
-}).call(sj.Track);
-
-// UTIL
-(function () {
-	this.order = async function (db, tracks) {
-		//C takes a list of input tracks for an INSERT, UPDATE, or DELETE query
-		//! properties should be validated at this point
-		//! tracks to be added must have a Symbol() id, this will be removed
-		//! tracks to be deleted must have a null position, this will be removed
-
-		//C modifies the input track's positions, if needed
-		//C returns a list of influenced tracks with modified positions, if needed
-
-		//C out-of-bounds positions will be repositioned at the start or end of the playlist
-		//C duplicate positions will be repositioned in order of input order
-		//C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
-		
-
-		//C filter out tracks
-		let inputTracks = tracks.filter(track => 
-			//C without an id (including symbol)
-			(!sj.isEmpty(track.id) || typeof track.id === 'symbol') 
-			//C and without a position (including null) or playlistId
-			&& (!sj.isEmpty(track.position) || track.position === null || !sj.isEmpty(track.playlistId))); 
-		//C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
-		inputTracks = inputTracks.filter((track, index, self) => self.slice(index+1).every(trackAfter => track.id !== trackAfter.id));
-
-		//C return early if none are moving
-		if (inputTracks.length === 0) {
-			return new sj.SuccessList({
-				log: true,
-				origin: 'sj.Track.order()',
-				message: 'track positions did not need to be set',
+sj.Track.augmentClass({
+	prototypeProperties(parent) {
+		this.order = async function (db = sj.db) {
+			return await this.constructor.order(db, sj.any(this));
+		};
+	},
+	staticProperties(parent) {
+		// CRUD
+		this.addBefore = 
+		this.getBefore = 
+		this.editBefore = 
+		this.removeBefore = async function (t, entities) {
+			let newEntities = entities.slice();
+			newEntities.forEach(entity => {
+				entity.source = sj.isType(entity.source, Object) && sj.isType(entity.source.name, String)
+				? entity.source.name
+				: undefined;
 			});
-		}
-
-		//console.log('inputTracks.length:', inputTracks.length, '\n ---');
-
-		return await db.tx(async t => {
-			const playlists = [];
-			const influencedTracks = [];
-			const inputIndex = Symbol();
-
-			//C retrieve track's playlist, group each track by playlist & moveType
-			await sj.asyncForEach(inputTracks, async (track, index) => {
-				const storePlaylist = function (playlistId, existingTracks) {
-					if (!sj.isType(playlistId, 'integer')) throw new sj.Error({
-						origin: 'sj.Track.order()',
-						reason: `playlistId is not an integer: ${playlistId}`,
-					});
-					if (!Array.isArray(existingTracks)) throw new sj.Error({
-						origin: 'sj.Track.order()',
-						reason: `existingTracks is not an array: ${existingTracks}`,
-					});
-
-					//C stores playlist in playlists if not already stored
-					let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
-					if (!existingPlaylist) {
-						playlists.push({
-							id: playlistId,
+			return newEntities;
+		};
 	
-							original: existingTracks,
+		this.addPrepare = async function (t, track) {
+			//C set id of tracks to be added as a temporary symbol, so that sj.Track.order() is able to identify tracks
+			let newTrack = {...track, id: Symbol()};
+			if (!sj.isType(newTrack.position, 'integer')) {
+				let existingTracks = await sj.Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
+				newTrack.position = existingTracks.length;
+			}
+			return newTrack;
+		};
+		this.removePrepare = async function (t, track) {
+			//C set position of tracks to be removed as null, so that sj.Track.order() recognizes them as tracks to remove
+			return {...track, position: null};
+		};
 	
-							//C move actions, these have priority positioning
-							inputsToMove: [],
-							inputsToAdd: [], 
-							inputsToRemove: [],
+		this.queryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
+	
+		this.addAccommodate = 
+		this.editAccommodate =
+		this.removeAccommodate = async function (t, tracks) {
+			//L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
+			//L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
+			//L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
+			await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
+				throw sj.parsePostgresError(rejected, new sj.Error({
+					log: false,
+					origin: 'sj.Track.move()',
+					message: 'could not order tracks, database error',
+					target: 'notify',
+					cssClass: 'notifyError',
+				}));
+			});
+			return await this.order(t, tracks).then(sj.content).catch(sj.propagate);
+		};
+	
+		this.addAfter =
+		this.getAfter =
+		this.editAfter = 
+		this.deleteAfter = async function (t, entities) {
+			let newEntities = entities.slice();
+			newEntities.forEach(entity => {
+				entity.source = sj.Source.sources.find(source => source.name === entity.source);
+			});
+			return newEntities;
+		};
+
+		// UTIL
+		this.order = async function (db, tracks) {
+			//C takes a list of input tracks for an INSERT, UPDATE, or DELETE query
+			//! properties should be validated at this point
+			//! tracks to be added must have a Symbol() id, this will be removed
+			//! tracks to be deleted must have a null position, this will be removed
+	
+			//C modifies the input track's positions, if needed
+			//C returns a list of influenced tracks with modified positions, if needed
+	
+			//C out-of-bounds positions will be repositioned at the start or end of the playlist
+			//C duplicate positions will be repositioned in order of input order
+			//C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
+			
+	
+			//C filter out tracks
+			let inputTracks = tracks.filter(track => 
+				//C without an id (including symbol)
+				(!sj.isEmpty(track.id) || typeof track.id === 'symbol') 
+				//C and without a position (including null) or playlistId
+				&& (!sj.isEmpty(track.position) || track.position === null || !sj.isEmpty(track.playlistId))); 
+			//C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+			inputTracks = inputTracks.filter((track, index, self) => self.slice(index+1).every(trackAfter => track.id !== trackAfter.id));
+	
+			//C return early if none are moving
+			if (inputTracks.length === 0) {
+				return new sj.SuccessList({
+					log: true,
+					origin: 'sj.Track.order()',
+					message: 'track positions did not need to be set',
+				});
+			}
+	
+			//console.log('inputTracks.length:', inputTracks.length, '\n ---');
+	
+			return await db.tx(async t => {
+				const playlists = [];
+				const influencedTracks = [];
+				const inputIndex = Symbol();
+	
+				//C retrieve track's playlist, group each track by playlist & moveType
+				await sj.asyncForEach(inputTracks, async (track, index) => {
+					const storePlaylist = function (playlistId, existingTracks) {
+						if (!sj.isType(playlistId, 'integer')) throw new sj.Error({
+							origin: 'sj.Track.order()',
+							reason: `playlistId is not an integer: ${playlistId}`,
 						});
-
-						existingPlaylist = playlists[playlists.length-1];
-					}
-					return existingPlaylist;
-				};
-
-				//C temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
-				track[inputIndex] = index;
-
-				//C determine move action
-				const action =
-				typeof track.id === 'symbol' 	? 'Add' 	:
-				track.position === null 		? 'Remove' 	: 'Move';
-
-
-				//C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
-				//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
-				const currentQuery = action === 'Add' 
-				? pgp.as.format(`
-					SELECT "id", "position", "playlistId"
-					FROM "sj"."tracks" 
-					WHERE "playlistId" = $1
-				`, track.playlistId)
-				: pgp.as.format(`
-					SELECT "id", "position", "playlistId"
-					FROM "sj"."tracks" 
-					WHERE "playlistId" = (
-						SELECT "playlistId"
-						FROM "sj"."tracks"
-						WHERE "id" = $1
-					)
-				`, track.id);
-				const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-					throw sj.parsePostgresError(rejected, new sj.Error({
-						log: false,
-						origin: 'sj.Track.order()',
-						message: 'could not move tracks',
-					}));
-				});
-
-				console.log('action', action);
-
-				//C store
-				const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
-				//C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
-				currentPlaylistStored.original.forEach(t => {
-					delete t.playlistId;
-				});
-
-				
-				if (!sj.isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) { 
-					//C if not switching playlists
-					//C group by action
-					currentPlaylistStored['inputsTo'+action].push(track);
-				} else { 
-					//C if switching playlists
-					//C this should catch tracks with playlistIds but no position
-					const anotherPlaylist = await t.any(`
+						if (!Array.isArray(existingTracks)) throw new sj.Error({
+							origin: 'sj.Track.order()',
+							reason: `existingTracks is not an array: ${existingTracks}`,
+						});
+	
+						//C stores playlist in playlists if not already stored
+						let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
+						if (!existingPlaylist) {
+							playlists.push({
+								id: playlistId,
+		
+								original: existingTracks,
+		
+								//C move actions, these have priority positioning
+								inputsToMove: [],
+								inputsToAdd: [], 
+								inputsToRemove: [],
+							});
+	
+							existingPlaylist = playlists[playlists.length-1];
+						}
+						return existingPlaylist;
+					};
+	
+					//C temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
+					track[inputIndex] = index;
+	
+					//C determine move action
+					const action =
+					typeof track.id === 'symbol' 	? 'Add' 	:
+					track.position === null 		? 'Remove' 	: 'Move';
+	
+	
+					//C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
+					//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+					const currentQuery = action === 'Add' 
+					? pgp.as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId).catch(rejected => {
+					`, track.playlistId)
+					: pgp.as.format(`
+						SELECT "id", "position", "playlistId"
+						FROM "sj"."tracks" 
+						WHERE "playlistId" = (
+							SELECT "playlistId"
+							FROM "sj"."tracks"
+							WHERE "id" = $1
+						)
+					`, track.id);
+					const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
 						throw sj.parsePostgresError(rejected, new sj.Error({
 							log: false,
 							origin: 'sj.Track.order()',
 							message: 'could not move tracks',
 						}));
 					});
-
-					const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
-					anotherPlaylistStored.original.forEach(t => {
+	
+	
+					//C store
+					const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
+					//C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
+					currentPlaylistStored.original.forEach(t => {
 						delete t.playlistId;
 					});
-
-					//C track is removed from its current playlist, and added to another playlist
-					currentPlaylistStored.inputsToRemove.push(track);
-					anotherPlaylistStored.inputsToAdd.push(track);
-				}
-
-				return new sj.Success({
-					origin: 'sj.Track.order()',
-					message: "retrieved track's playlist",
-				});
-			}).catch(rejected => {
-				throw new sj.ErrorList({
-					origin: 'sj.Track.order() - movingTracks iterator',
-					message: `could not retrieve some track's playlist`,
-					content: rejected,
-				});
-			});
-
-			//console.log('playlists.length:', playlists.length, '\n ---');
-
-			//C calculate new track positions required to accommodate input tracks' positions
-			playlists.forEach(playlist => {
-				//C populate others with tracks in original that are not in inputsTo Add, Remove, or Move
-				//! inputsToRemove can be ignored from this point on, these tracks aren't included in others and wont be added to the final ordered list
-				playlist.others = playlist.original.filter(originalTrack => 
-					!playlist.inputsToAdd.some(addingTrack => addingTrack.id === originalTrack.id) &&
-					!playlist.inputsToRemove.some(trackToRemove => trackToRemove.id === originalTrack.id) &&
-					!playlist.inputsToMove.some(movingTrack => movingTrack.id === originalTrack.id)
-				);
-
-				//console.log('playlist.others.length:', playlist.others.length);
-
-				//C combine both adding and moving, 
-				playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove];
-				//C give tracks with no position an Infinite position so they get added to the bottom of the playlist
-				playlist.inputsToPosition.forEach(trackToPosition => {
-					if (!sj.isType(trackToPosition.position, Number)) {
-						trackToPosition.position === Infinity;
-					}
-				});
-
-
-				//C sort
-				sj.stableSort(playlist.others, (a, b) => a.position - b.position);
-				//C stable sort by inputIndex then position to resolve clashes by position then inputIndex
-				sj.stableSort(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-				sj.stableSort(playlist.inputsToPosition, (a, b) => a.position - b.position);
-
-				//console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
-				//console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
-				//console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
-				//console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
-				
-
-				//C inputIndex is no longer needed, remove it from anything it was added to
-				playlist.inputsToPosition.forEach(trackToPosition => {
-					delete trackToPosition[inputIndex];
-				});
-				playlist.inputsToRemove.forEach(trackToRemove => {
-					delete trackToRemove[inputIndex];
-				});
-
-
-				//C populate merged by filling others tracks around combined tracks
-				playlist.merged = [];
-				//! these are copies that will be emptied below
-				playlist.inputsToPositionCopy = [...playlist.inputsToPosition];
-				playlist.othersCopy = [...playlist.others];
-				let i = 0;
-				while (playlist.othersCopy.length > 0) {
-					if (playlist.inputsToPositionCopy.length > 0 && playlist.inputsToPositionCopy[0].position <= i) {
-						//C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
-						//C this will properly handle negative and duplicate positions
-						//G shift removes the first item of an array and returns that item
-						playlist.merged.push(playlist.inputsToPositionCopy.shift());
-					} else {
-						//C else - transfer the next others track
-						playlist.merged.push(playlist.othersCopy.shift());
-					}
-					i++;
-				}
-
-				//C push rest of combined tracks
-				//R this method was chosen over including combined.length > 0 in the while condition to prevent needless loops caused by ridiculously high positions, this was also chosen over original.length because adding + moving tracks could be greater the playlist length
-				//L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
-				playlist.merged.push(...playlist.inputsToPositionCopy);
-				playlist.inputsToPositionCopy.length = 0; //! remove combined tracks for consistent behavior
-
-
-				//C populate playlist.influenced with all non-input tracks that have moved
-				playlist.influenced = playlist.merged.filter((mergedTrack, index) => {
-					let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
-					let influenced = inOthers && index !== inOthers.position;
-
-					//C assign new positions (inputTracks too)
-					mergedTrack.position = index;
+	
 					
-					return influenced;
+					if (!sj.isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) { 
+						//C if not switching playlists
+						//C group by action
+						currentPlaylistStored['inputsTo'+action].push(track);
+					} else { 
+						//C if switching playlists
+						//C this should catch tracks with playlistIds but no position
+						const anotherPlaylist = await t.any(`
+							SELECT "id", "position", "playlistId"
+							FROM "sj"."tracks" 
+							WHERE "playlistId" = $1
+						`, track.playlistId).catch(rejected => {
+							throw sj.parsePostgresError(rejected, new sj.Error({
+								log: false,
+								origin: 'sj.Track.order()',
+								message: 'could not move tracks',
+							}));
+						});
+	
+						const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
+						anotherPlaylistStored.original.forEach(t => {
+							delete t.playlistId;
+						});
+	
+						//C track is removed from its current playlist, and added to another playlist
+						currentPlaylistStored.inputsToRemove.push(track);
+						anotherPlaylistStored.inputsToAdd.push(track);
+					}
+	
+					return new sj.Success({
+						origin: 'sj.Track.order()',
+						message: "retrieved track's playlist",
+					});
+				}).catch(rejected => {
+					throw new sj.ErrorList({
+						origin: 'sj.Track.order() - movingTracks iterator',
+						message: `could not retrieve some track's playlist`,
+						content: rejected,
+					});
 				});
-
-				//console.log('playlist.merged.length:', playlist.merged.length);
-				//console.log('playlist.merged:\n', playlist.merged, '\n ---');
-
-				//console.log('playlist.influenced.length:', playlist.influenced.length);
-				//console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
-
-				influencedTracks.push(...playlist.influenced);
+	
+				//console.log('playlists.length:', playlists.length, '\n ---');
+	
+				//C calculate new track positions required to accommodate input tracks' positions
+				playlists.forEach(playlist => {
+					//C populate others with tracks in original that are not in inputsTo Add, Remove, or Move
+					//! inputsToRemove can be ignored from this point on, these tracks aren't included in others and wont be added to the final ordered list
+					playlist.others = playlist.original.filter(originalTrack => 
+						!playlist.inputsToAdd.some(addingTrack => addingTrack.id === originalTrack.id) &&
+						!playlist.inputsToRemove.some(trackToRemove => trackToRemove.id === originalTrack.id) &&
+						!playlist.inputsToMove.some(movingTrack => movingTrack.id === originalTrack.id)
+					);
+	
+					//console.log('playlist.others.length:', playlist.others.length);
+	
+					//C combine both adding and moving, 
+					playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove];
+					//C give tracks with no position an Infinite position so they get added to the bottom of the playlist
+					playlist.inputsToPosition.forEach(trackToPosition => {
+						if (!sj.isType(trackToPosition.position, Number)) {
+							trackToPosition.position === Infinity;
+						}
+					});
+	
+	
+					//C sort
+					sj.stableSort(playlist.others, (a, b) => a.position - b.position);
+					//C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+					sj.stableSort(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+					sj.stableSort(playlist.inputsToPosition, (a, b) => a.position - b.position);
+	
+					//console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+					//console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
+					//console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
+					//console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
+					
+	
+					//C inputIndex is no longer needed, remove it from anything it was added to
+					playlist.inputsToPosition.forEach(trackToPosition => {
+						delete trackToPosition[inputIndex];
+					});
+					playlist.inputsToRemove.forEach(trackToRemove => {
+						delete trackToRemove[inputIndex];
+					});
+	
+	
+					//C populate merged by filling others tracks around combined tracks
+					playlist.merged = [];
+					//! these are copies that will be emptied below
+					playlist.inputsToPositionCopy = [...playlist.inputsToPosition];
+					playlist.othersCopy = [...playlist.others];
+					let i = 0;
+					while (playlist.othersCopy.length > 0) {
+						if (playlist.inputsToPositionCopy.length > 0 && playlist.inputsToPositionCopy[0].position <= i) {
+							//C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
+							//C this will properly handle negative and duplicate positions
+							//G shift removes the first item of an array and returns that item
+							playlist.merged.push(playlist.inputsToPositionCopy.shift());
+						} else {
+							//C else - transfer the next others track
+							playlist.merged.push(playlist.othersCopy.shift());
+						}
+						i++;
+					}
+	
+					//C push rest of combined tracks
+					//R this method was chosen over including combined.length > 0 in the while condition to prevent needless loops caused by ridiculously high positions, this was also chosen over original.length because adding + moving tracks could be greater the playlist length
+					//L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
+					playlist.merged.push(...playlist.inputsToPositionCopy);
+					playlist.inputsToPositionCopy.length = 0; //! remove combined tracks for consistent behavior
+	
+	
+					//C populate playlist.influenced with all non-input tracks that have moved
+					playlist.influenced = playlist.merged.filter((mergedTrack, index) => {
+						let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
+						let influenced = inOthers && index !== inOthers.position;
+	
+						//C assign new positions (inputTracks too)
+						mergedTrack.position = index;
+						
+						return influenced;
+					});
+	
+					//console.log('playlist.merged.length:', playlist.merged.length);
+					//console.log('playlist.merged:\n', playlist.merged, '\n ---');
+	
+					//console.log('playlist.influenced.length:', playlist.influenced.length);
+					//console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
+	
+					influencedTracks.push(...playlist.influenced);
+				});
+	
+				//C remove temporary symbol id from add tracks and null position from delete tracks
+				inputTracks.forEach(inputTrack => {
+					if (typeof inputTrack.id === 'symbol') {
+						delete inputTrack.id;
+					}
+					if (inputTrack.position === null) {
+						delete inputTrack.position;
+					}
+				});
+	
+				return new sj.SuccessList({
+					origin: 'sj.Track.order()',
+					message: 'influenced tracks calculated',
+					content: influencedTracks,
+				});
 			});
-
-			//C remove temporary symbol id from add tracks and null position from delete tracks
-			inputTracks.forEach(inputTrack => {
-				if (typeof inputTrack.id === 'symbol') {
-					delete inputTrack.id;
-				}
-				if (inputTrack.position === null) {
-					delete inputTrack.position;
-				}
-			});
-
-			return new sj.SuccessList({
-				origin: 'sj.Track.order()',
-				message: 'influenced tracks calculated',
-				content: influencedTracks,
-			});
-		});
-
-		/* Thought Process
-
-			if any tracks have position set,
-				do the move function
-				order
-			after deleting tracks
-				order
 	
-			idea: get the tracklist, then do the moving and ordering outside, at the same time - then update all at once
-			the fetched array won't have holes in it, just the position numbers (which is good?)
+			/* Thought Process
 	
-			//R initial idea wrong: 
-			tracks must be in order of their positions for the move to be applied properly (ie tracks with positions: 3, 4, 5 will all be inserted inbetween tracks 2 and 3) - updating in the order 5, 4, 3 would result in later tracks pushing the already placed tracks down (so their positions end up being 7, 5, 3)
-			it needs to go in decending order because of the nature of how the move function works - affecting only tracks below it
+				if any tracks have position set,
+					do the move function
+					order
+				after deleting tracks
+					order
+		
+				idea: get the tracklist, then do the moving and ordering outside, at the same time - then update all at once
+				the fetched array won't have holes in it, just the position numbers (which is good?)
+		
+				//R initial idea wrong: 
+				tracks must be in order of their positions for the move to be applied properly (ie tracks with positions: 3, 4, 5 will all be inserted inbetween tracks 2 and 3) - updating in the order 5, 4, 3 would result in later tracks pushing the already placed tracks down (so their positions end up being 7, 5, 3)
+				it needs to go in decending order because of the nature of how the move function works - affecting only tracks below it
+		
+		
+				//R wrong, because this done simultaneously (not in sequence) it will separate adjacent inserted positions (0i, 1i) will insert into a full list (o) as (0i, 0o, 1i, 1o), doing this in sequence would require reordering (updating of new positions) the tracks after each insert (might be resource intensive)
+				get input
+					stable sort by position
+				get tracks
+					stable sort by position
+					prepend item with position -Infinity
+					append item with position Infinity
+		
+				for each input (in reverse order, so that inputs with same positions do not get their order reversed)
+					find where position is greater than i.position and less than or equal to i+1.position
+					splice(i+1, 0, input)
+				
+		
+				final idea: 
+					get the existing list, remove tracks to be inserted
+					sort each list
+					for the length of the combined lists, for integers 0 to length
+						if there is a track in the input list at (or less than) the index - push the next one
+						else push the next track in the existing list
+					if there are any remaining tracks in the input list (for example a big hole that makes the last few tracks larger than the sum of both lists), push them in order to the end of the list
+					lastly do a order to remove duplicates and holes
+		
+					this essentially 'fills' the existing tracks around the set positions of the input tracks
 	
 	
-			//R wrong, because this done simultaneously (not in sequence) it will separate adjacent inserted positions (0i, 1i) will insert into a full list (o) as (0i, 0o, 1i, 1o), doing this in sequence would require reordering (updating of new positions) the tracks after each insert (might be resource intensive)
-			get input
-				stable sort by position
-			get tracks
-				stable sort by position
-				prepend item with position -Infinity
-				append item with position Infinity
+					for sj.Track.order()
+						there is a recursive loop hazard in here (basically if sj.Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
 	
-			for each input (in reverse order, so that inputs with same positions do not get their order reversed)
-				find where position is greater than i.position and less than or equal to i+1.position
-				splice(i+1, 0, input)
-			
 	
-			final idea: 
-				get the existing list, remove tracks to be inserted
-				sort each list
-				for the length of the combined lists, for integers 0 to length
-					if there is a track in the input list at (or less than) the index - push the next one
-					else push the next track in the existing list
-				if there are any remaining tracks in the input list (for example a big hole that makes the last few tracks larger than the sum of both lists), push them in order to the end of the list
-				lastly do a order to remove duplicates and holes
+					//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
 	
-				this essentially 'fills' the existing tracks around the set positions of the input tracks
-
-
-				for sj.Track.order()
-					there is a recursive loop hazard in here (basically if sj.Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
-
-
-				//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
-
-				//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
-				//! requires the INSERT command to be executed one at at a time for each input track
-				//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
-		*/
-	};
-}).call(sj.Track);
-(function () {
-	this.order = async function (db = sj.db) {
-		return await this.constructor.order(db, sj.any(this));
-	}
-}).call(sj.Track.prototype);
+					//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
+					//! requires the INSERT command to be executed one at at a time for each input track
+					//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
+			*/
+		};
+	},	
+});
 
 
 export default sj;
