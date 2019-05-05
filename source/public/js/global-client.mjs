@@ -89,6 +89,420 @@ sj.Entity.augmentClass({
 });
 
 
+//TODO Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
+//TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
+//? these sj.Action classes had their instance.state property being assigned outside before the old sj.Base.init() function, why? //TODO oh this was probably because these aren't supposed to be options, they are supposed to be sortof static, but dynamically calculated at the time of creation
+
+sj.Action = sj.Base.makeClass('Action', sj.Base, {
+	constructorParts: parent => ({
+		beforeInitialize() { 
+			//C these are properties that can not be changed via options, however they also cannot be static because they are calculated upon instantiation
+			this.source = sj.desiredPlayback.track.source;
+		},
+	}),
+	prototypeProperties: parent => ({
+		isSimilarAction(item) {
+			return this.constructorName === item.constructorName;
+		},
+		isIdenticalAction(item) {
+			return this.isSimilarAction(item) && this.state === item.state;
+		},
+		isParentAction(item) {
+			return false; // TODO ??? can this be merged in some way with isParent?
+		},
+	
+		removeOld(queue) {
+			// backwards deletion loop
+			for (var i = queue.length - 1; i > -1; i--) {
+				if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
+					queue.splice(i, 1);
+				}
+			}
+		},
+
+		async trigger() {
+			return new Promise(resolve => {
+				resolve(new sj.Success({
+					log: true,
+					origin: 'sj.Action.trigger',
+				}));
+			});
+		},
+	}),
+});
+
+sj.Start = sj.Base.makeClass('Start', sj.Action, {
+	constructorParts: parent => ({
+		beforeInitialize() {
+			this.state = sj.desiredPlayback.track;
+		},
+	}),
+	prototypeProperties: parent => ({
+		isParentAction() {
+			return item.constructorName === 'Toggle' || item.constructorName === 'Seek';
+		},
+	
+		async trigger() {
+			return Promise.all(sj.Source.sources.map(source => {
+				// pause all
+				return source.pause().then(sj.andResolve);
+			})).then(resolved => {
+				// filter errors
+				return filterList(resolved, sj.Success, new sj.Success({
+					origin: 'sj.Start.trigger()',
+					message: 'changed track',
+				}), new sj.Error({
+					origin: 'sj.Start.trigger()',
+					message: 'failed to change track',
+				}));
+			}).then(resolved => {
+				// start
+				return this.source.start(this.state);
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		},
+	}),
+});
+sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
+	constructorParts: parent => ({
+		beforeInitialize() {
+			this.state = desiredPlayback.playing;
+		},
+	}),
+	prototypeProperties: parent => ({
+		async trigger() {
+			if (this.state) { // if playing
+				return Promise.all(sj.Source.sources.map(source => {
+					if (source === this.source) {
+						// resume desired source
+						return source.resume().then(sj.andResolve);
+					} else {
+						// pause all other sources
+						return source.pause().then(sj.andResolve);
+					}
+				})).then(resolved => {
+					return filterList(resolved, sj.Success, new sj.Success({
+						origin: 'sj.Toggle.trigger()',
+						message: 'playing updated',
+					}), new sj.Error({
+						origin: 'sj.Toggle.trigger()',
+						message: 'playing failed to update',
+					}));
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
+				});
+			} else { // if not playing
+				return Promise.all(sj.Source.sources.map(source => {
+					// pause all sources
+					return source.pause().then(sj.andResolve);
+				})).then(resolved => {
+					return filterList(resolved, sj.Success, new sj.Success({
+						origin: 'updatePlaybackPlaying()',
+						message: 'playing updated',
+					}), new sj.Error({
+						origin: 'updatePlaybackPlaying()',
+						message: 'playing failed to update',
+					}));
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
+				});
+			}
+		},
+	}),
+});
+sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
+	constructorParts: parent => ({
+		beforeInitialize() {
+			this.state = desiredPlayback.progress;
+		},
+	}),
+	prototypeProperties: parent => ({
+		async trigger() {
+			return this.source.seek(this.state).then(resolved => {
+				return new sj.Success({
+					log: true,
+					origin: 'sj.Seek.trigger()',
+					message: 'playback progress changed',
+				});
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		},
+	}),
+});
+sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
+	constructorParts: parent => ({
+		beforeInitialize() {
+			this.state = desiredPlayback.volume;
+		},
+	}),
+	prototypeProperties: parent => ({
+		async trigger() {
+			// TODO
+		},
+	}),
+});
+
+
+sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
+	constructorParts: parent => ({
+		// NEW
+		track: undefined,
+		playing: false,
+		progress: 0,
+		timestamp: Date.now(),
+		volume: 0,
+	}),
+	staticProperties(parent) {
+		//TODO put playback queue in here?
+
+		this.queue = {
+			sent: undefined,
+			queue: [],
+			async push(action) {
+				// redundancy checks
+				action.removeOld(this.queue);
+				
+				// count parents in queue
+				var parents = 0;
+				this.queue.forEach(function (item) {
+					if (item.isParentAction(action)) {
+						parents++;
+					}
+				});
+
+				// push only if action has a parent in the way or if action is different from sentAction
+				if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
+					this.queue.push(action);
+					this.sendNext();
+				}
+			},
+
+			//  //R
+			// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
+			// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
+			// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
+			// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
+			// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
+			// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
+
+			async sendNext() {
+				// restart if finished sent action && queue not empty
+				if (this.sent === undefined && this.queue.length > 0) {
+					this.sent = this.queue[0];
+					this.queue.splice(0, 1);
+		
+					// TODO checkPlaybackState every action just like before, find a better way
+					// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
+					// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
+					checkPlayback().then(resolved => {
+						// !!! why arrow functions? because of lexical scoping, this is able to refer to sj.Playback.queue not just the function's body
+						return this.sent.trigger();
+					}).then(resolved => {
+						// TODO temporary delay - see reflection
+						return delay(500);
+					}).then(resolved => {
+						// TODO handle resolved, nothing needed to be handled before???
+						this.sent = undefined;
+						this.sendNext();
+					}, rejected => {
+						// TODO handle action rejected
+		
+						//  	Action Failure Handling 
+						// 	!!! old, meant for individual action types
+		
+						// send action, change pendingAction to true, wait
+						// 	if success: change pendingAction to false
+						// 		if queuedAction exists: change action to queuedAction, clear queued action, repeat...
+						// 		else: nothing
+						// 	if failure: 
+						// 		if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+						// 		else: trigger auto-retry process
+						// 			if success: repeat...
+						// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
+		
+						
+		
+						handleError(rejected);
+						this.sent = undefined;
+					});
+				}
+			},
+			hasObject(type) {
+				if (sent.constructorName === type) {
+					return true;
+				} else {
+					this.queue.forEach(function (item) {
+						if (item.constructorName === type) {
+							return true;
+						}
+					});
+					return false;
+				}
+			},
+		};	
+	},
+});
+
+
+sj.Source.augmentClass({
+	constructorParts: parent => ({
+		defaults: {
+			playback: new sj.Playback(), //! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
+
+			//C empty throw functions, used in standard playback functions
+			loadApi: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'loadApi()',
+					message: 'api could not be loaded',
+					reason: 'no source',
+				});
+			},
+			loadPlayer: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'loadPlayer()',
+					message: 'player could not be loaded',
+					reason: 'no source',
+				});
+			},
+	
+			search: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'search()',
+					message: 'unable to search',
+					reason: 'no source',
+				});
+			},
+			getTracks: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'getTracks()',
+					message: 'unable to get tracks',
+					reason: 'no source',
+				});
+			},
+	
+			checkPlayback: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiStart()',
+					message: 'could not check playback',
+					reason: 'no source',
+				});
+			},
+	
+			apiStart: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiStart()',
+					message: 'track could not be started',
+					reason: 'no source',
+				});
+			},
+			apiResume: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiResume()',
+					message: 'track could not be resumed',
+					reason: 'no source',
+				});
+			},
+			apiPause: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiPause()',
+					message: 'track could not be paused',
+					reason: 'no source',
+				});
+			},
+			apiSeek: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiSeek()',
+					message: 'track could not be seeked',
+					reason: 'no source',
+				});
+			},
+			apiVolume: async function () {
+				throw new sj.Error({
+					log: true,
+					origin: 'apiVolume()',
+					message: 'volume could not be changed',
+					reason: 'no source',
+				});
+			},
+		},
+	}),
+	prototypeProperties: parent => ({
+		async start() {
+			return this.apiStart(track).then(resolved => {
+				this.playback.playing = true;
+				this.playback.track = track;
+				this.playback.progress = 0;
+				this.playback.timestamp = Date.now();
+	
+				return resolved;
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		},
+		async resume() {
+			if (!this.playback.playing) { 
+				return this.apiResume().then(resolved => {
+					this.playback.playing = true;
+					return resolved;
+				}).catch(rejected => {
+					throw rejected;
+				});
+			} else {
+				return new sj.Success({
+					log: true,
+					origin: this.name + '.resume()',
+					message: 'track already playing',
+				});
+			}
+		},
+		async pause() {
+			if (this.playback.playing) {
+				return this.apiPause().then(resolved => {
+					this.playback.playing = false;
+					return resolved;
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
+				});
+			} else {
+				return new sj.Success({
+					log: true,
+					origin: this.name + '.pause()',
+					message: 'track already paused',
+				});
+			}
+		},
+		async seek() {
+			return this.apiSeek(ms).then(resolved => {
+				this.playback.progress = ms;
+				this.playback.timestamp = Date.now();
+				return resolved;
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		},
+		async volume() {
+			return this.apiVolume(volume).then(resolved => {
+				this.playback.volume = volume;
+				return resolved;
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		},
+	}),
+});
+
+
 //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
 //  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
 //  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
@@ -143,6 +557,7 @@ sj.session.logout = async function () {
 	Is there a significant discrepancy between potential synchronous/local sources (listeners) and asynchronous api calls for progress checks? Which information sources are synchronous/local? Should their information override the api information?
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
 */
+//TODO augment source with new properties for these methods, then simply pass them in on creation
 
 // global source objects
 sj.spotify = new sj.Source({
@@ -261,8 +676,6 @@ sj.spotify.getAccessToken = async function () {
 
     return this.credentials.accessToken;
 };
-
-// spotify api specific requests
 sj.spotify.request = async function (method, path, body) {
 	//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
 	let urlPrefix = 'https://api.spotify.com/v1';
@@ -275,7 +688,8 @@ sj.spotify.request = async function (method, path, body) {
 	return await sj.request(method, `${urlPrefix}/${path}`, body, header);
 };
 
-sj.youtube.loadApi = async function () {
+
+sj.youtube.loadApi = async function () { //TODO
 	// Get Script
 	// https://api.jquery.com/jquery.getscript/
 	return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
@@ -726,7 +1140,7 @@ sj.spotify.loadPlayer = async function () {
 		});
 	*/
 }
-sj.youtube.loadPlayer = function () {
+sj.youtube.loadPlayer = function () { //TODO
     //TODO make this async
 
 	$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
@@ -810,7 +1224,7 @@ sj.searchResults = {
 	'youtube': new sj.Playlist({origin: 'searchResults',}),
 
 	'all': new sj.Playlist({origin: 'searchResults',}),
-}
+};
 
 // search
 sj.spotify.search = async function (term) {
@@ -1010,715 +1424,42 @@ sj.youtube.getTracks = async function (ids) {
 */
 
 
-// object related variables
-//TODO consider having constants for source types like const ERROR_TYPE
-//TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
-sj.sourceList = [];
-
-// null objects
-sj.noTrack = new sj.Track();
-sj.noSource = new sj.Source({realSource: false});
-sj.noTrack.source = sj.noSource; // cyclical reference
-// TODO move with actions sj.noAction = new sj.Action();
-
-(function () {
-	/*
-	sj.Base.init(this, options, {
-		playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
-
-		//C empty throw functions, used in standard playback functions
-		loadApi: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'loadApi()',
-				message: 'api could not be loaded',
-				reason: 'no source',
-			});
-		},
-		loadPlayer: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'loadPlayer()',
-				message: 'player could not be loaded',
-				reason: 'no source',
-			});
-		},
-
-		search: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'search()',
-				message: 'unable to search',
-				reason: 'no source',
-			});
-		},
-		getTracks: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'getTracks()',
-				message: 'unable to get tracks',
-				reason: 'no source',
-			});
-		},
-
-		checkPlayback: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'apiStart()',
-				message: 'could not check playback',
-				reason: 'no source',
-			});
-		},
-
-		apiStart: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'apiStart()',
-				message: 'track could not be started',
-				reason: 'no source',
-			});
-		},
-		apiResume: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'apiResume()',
-				message: 'track could not be resumed',
-				reason: 'no source',
-			});
-		},
-		apiPause: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'apiPause()',
-				message: 'track could not be paused',
-				reason: 'no source',
-			});
-		},
-		apiSeek: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'apiSeek()',
-				message: 'track could not be seeked',
-				reason: 'no source',
-			});
-		},
-		apiVolume: async function () {
-			throw new sj.Error({
-				log: true,
-				origin: 'apiVolume()',
-				message: 'volume could not be changed',
-				reason: 'no source',
-			});
-		},
-	});
-	*/
-
-	this.start = async function () {
-		return this.apiStart(track).then(resolved => {
-			this.playback.playing = true;
-			this.playback.track = track;
-			this.playback.progress = 0;
-			this.playback.timestamp = Date.now();
-
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	};
-	this.resume = async function () {
-		if (!this.playback.playing) { 
-			return this.apiResume().then(resolved => {
-				this.playback.playing = true;
-				return resolved;
-			}).catch(rejected => {
-				throw rejected;
-			});
-		} else {
-			return new sj.Success({
-				log: true,
-				origin: this.name + '.resume()',
-				message: 'track already playing',
-			});
-		}
-	};
-	this.pause = async function () {
-		if (this.playback.playing) {
-			return this.apiPause().then(resolved => {
-				this.playback.playing = false;
-				return resolved;
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		} else {
-			return new sj.Success({
-				log: true,
-				origin: this.name + '.pause()',
-				message: 'track already paused',
-			});
-		}
-	};
-	this.seek = async function () {
-		return this.apiSeek(ms).then(resolved => {
-			this.playback.progress = ms;
-			this.playback.timestamp = Date.now();
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	};
-	this.volume = async function () {
-		return this.apiVolume(volume).then(resolved => {
-			this.playback.volume = volume;
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	};
-}).call(sj.Source.prototype);
-(function () {
-
-}).call(sj.Source);
-
-//console.log(sj.Source.constructor.toString());
-
-/* //-----------
-sj.Source = class Source extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		sj.Base.init(this, options, {
-			// new properties
-			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
-			idPrefix: '',
-			playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
-            realSource: true,
-            
-            credentials: new sj.Credentials(),
-
-			//TODO this should only be server-side
-			api: {},
-			scopes: [],
-			authRequestManually: true,
-			makeAuthRequestURL: function () {},
-
-		});
-
-		this.onCreate();
-	}
-
-
-	onCreate() {
-		super.onCreate();
-
-		// extend with: add to source list
-		if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
-			sj.sourceList.push(this);
-		}
-	}
-};
-sj.Playback = class Playback extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		sj.Base.init(this, options, {
-			// new properties
-			track: sj.noTrack,
-			playing: false,
-			progress: 0,
-			timestamp: Date.now(),
-			volume: 0,
-		});
-
-		this.onCreate();
-	}
-};
-
-
-//TODO Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
-//TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
-
-sj.Action = class Action extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.source = sj.desiredPlayback.track.source; //?
-
-		sj.Base.init(this, options, {
-			// new properties
-			state: null,
-		});
-
-		this.onCreate();
-	}
-
-	// comparisons
-	isSimilarAction(item) {
-		return this.constructorName === item.constructorName;
-	}
-	isIdenticalAction(item) {
-		return this.isSimilarAction(item) && this.state === item.state;
-	}
-	isParentAction(item) {
-		return false; // TODO ??? can this be merged in some way with isParent?
-	}
-
-	removeOld(queue) {
-		// backwards deletion loop
-		for (var i = queue.length - 1; i > -1; i--) {
-			if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
-				queue.splice(i, 1);
-			}
-		}
-	}
-
-	async trigger() {
-		return new Promise(resolve => {
-			resolve(new sj.Success({
-				log: true,
-				origin: 'sj.Action.trigger',
-			}));
-		});
-	}
-};
-sj.Start = class Start extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.state = sj.desiredPlayback.track;
-
-		sj.Base.init(this, options, {});
-
-		this.onCreate();
-	}
-
-	isParentAction() {
-		return item.constructorName === 'Toggle' || item.constructorName === 'Seek';
-	}
-
-	async trigger() {
-		return Promise.all(sourceList.map(source => {
-			// pause all
-			return source.pause().then(sj.andResolve);
-		})).then(resolved => {
-			// filter errors
-			return filterList(resolved, sj.Success, new sj.Success({
-				origin: 'sj.Start.trigger()',
-				message: 'changed track',
-			}), new sj.Error({
-				origin: 'sj.Start.trigger()',
-				message: 'failed to change track',
-			}));
-		}).then(resolved => {
-			// start
-			return this.source.start(this.state);
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-};
-sj.Toggle = class Toggle extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.state = desiredPlayback.playing;
-
-		sj.Base.init(this, options, {});
-
-		this.onCreate();
-	}
-
-	async trigger() {
-		if (this.state) { // if playing
-			return Promise.all(sourceList.map(source => {
-				if (source === this.source) {
-					// resume desired source
-					return source.resume().then(sj.andResolve);
-				} else {
-					// pause all other sources
-					return source.pause().then(sj.andResolve);
-				}
-			})).then(resolved => {
-				return filterList(resolved, sj.Success, new sj.Success({
-					origin: 'sj.Toggle.trigger()',
-					message: 'playing updated',
-				}), new sj.Error({
-					origin: 'sj.Toggle.trigger()',
-					message: 'playing failed to update',
-				}));
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		} else { // if not playing
-			return Promise.all(sourceList.map(source => {
-				// pause all sources
-				return source.pause().then(sj.andResolve);
-			})).then(resolved => {
-				return filterList(resolved, sj.Success, new sj.Success({
-					origin: 'updatePlaybackPlaying()',
-					message: 'playing updated',
-				}), new sj.Error({
-					origin: 'updatePlaybackPlaying()',
-					message: 'playing failed to update',
-				}));
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	}
-};
-sj.Seek = class Seek extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.state = desiredPlayback.progress;
-
-		sj.Base.init(this, options, {});
-
-		this.onCreate();
-	}
-
-	async trigger() {
-		return this.source.seek(this.state).then(resolved => {
-			return new sj.Success({
-				log: true,
-				origin: 'sj.Seek.trigger()',
-				message: 'playback progress changed',
-			});
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-};
-sj.Volume = class Volume extends sj.Action {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.state = desiredPlayback.volume;
-
-		sj.Base.init(this, options, {});
-
-		this.onCreate();
-	}
-
-	async trigger() {
-		// TODO
-	}
-};
-*/
-
-
-/*
-sj.Action(obj) = function () {
-	// super
-	sj.Base.call(this, obj);
-
-	// overwritten properties
-	this.state = typeof obj.state === 'undefined' ? undefined : obj.state;
-
-	// action comparisons
-	this.isSimilarAction = function (item) {
-		if (this.constructorName === item.constructorName) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	this.isIdenticalAction = function (item) {
-		// TODO image could be different but that shouldn't matter because in: toggle > track > toggle, track should remove the first toggle
-		if (this.isSimilarAction(item) && this.state === item.state) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	this.isParentAction = function (item) {
-		return false;
-	}
-
-	// queue management
-	this.removeOld = function (queue) {
-		// backwards deletion loop
-		for (var i = queue.length - 1; i > -1; i--) {
-			if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
-				queue.splice(i, 1);
-			}
-		}
-	}
-
-	// action
-	this.trigger = async function () {
-		return new Promise(resolve => {
-			resolve(new sj.Success({
-				log: true,
-				origin: 'sj.Action.trigger',
-			}));
-		});
-	}
-
-	this.onCreate();
-};
-
-sj.Start(obj) = function () {
-	// super
-	sj.Action.call(this, obj);
-
-	this.state = sj.desiredPlayback.track;
-	this.source = sj.desiredPlayback.track.source;
-
-	this.isParentAction = function (item) {
-		if (item.constructorName === 'Toggle' || item.constructorName === 'Seek') {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	this.trigger = async function () {
-		return Promise.all(sj.sourceList.map(source => {
-			// pause all
-			return source.pause().then(sj.andResolve);
-		})).then(resolved => {
-			// filter errors
-			return sj.filterList(resolved, sj.Success, new sj.Success({
-				origin: 'sj.Start.trigger()',
-				message: 'changed track',
-			}), new sj.Error({
-				origin: 'sj.Start.trigger()',
-				message: 'failed to change track',
-			}));
-		}).then(resolved => {
-			// start
-			return this.source.start(this.state);
-		}).then(resolved => {
-			return resolved;
-		}, rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-
-	this.onCreate();
-};
-
-sj.Toggle(obj) = function () {
-		// super
-	sj.Action.call(this, obj);
-
-	// overwritten properties
-	this.state = sj.desiredPlayback.playing;
-	this.source = sj.desiredPlayback.track.source;
-	
-	this.trigger = async function () {
-		if (this.state) {
-			return Promise.all(sj.sourceList.map(source => {
-				if (source === this.source) {
-					// resume desired source
-					return source.resume().then(sj.andResolve);
-				} else {
-					// pause all other sources
-					return source.pause().then(sj.andResolve);
-				}
-			})).then(resolved => {
-				return sj.filterList(resolved, sj.Success, new sj.Success({
-					origin: 'sj.Toggle.trigger()',
-					message: 'playing updated',
-				}), new sj.Error({
-					origin: 'sj.Toggle.trigger()',
-					message: 'playing failed to update',
-				}));
-			}).then(resolved => {
-				return resolved;
-			}, rejected => {
-				throw sj.propagate(rejected);
-			});
-		} else {
-			return Promise.all(sj.sourceList.map(source => {
-				// pause all sources
-				return source.pause().then(sj.andResolve);
-			})).then(resolved => {
-				return sj.filterList(resolved, sj.Success, new sj.Success({
-					origin: 'updatePlaybackPlaying()',
-					message: 'playing updated',
-				}), new sj.Error({
-					origin: 'updatePlaybackPlaying()',
-					message: 'playing failed to update',
-				}));
-			}).then(resolved => {
-				return resolved;
-			}, rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	}
-
-	this.onCreate();
-};
-
-sj.Seek(obj) = function () {
-	// super
-	sj.Action.call(this, obj);
-
-	this.state = sj.desiredPlayback.progress;
-	this.source = sj.desiredPlayback.track.source;
-
-	this.trigger = async function () {
-		return this.source.seek(this.state).then(resolved => {
-			return new sj.Success({
-				log: true,
-				origin: 'sj.Seek.trigger()',
-				message: 'playback progress changed',
-			});
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-
-	this.onCreate();
-};
-
-sj.Volume(obj) = function () {
-	// super
-	sj.Action.call(this, obj);
-
-	this.state = sj.desiredPlayback.volume;
-	this.source = sj.desiredPlayback.track.source;
-
-	this.trigger = async function () {
-		// TODO
-	}
-
-	this.onCreate();
-};
-*/
-
-
-/*
-sj.playbackQueue = {
-	sent: noAction,
-	queue: [],
-
-	push: async function (action) {
-		// redundancy checks
-		action.removeOld(this.queue);
-		
-		// count parents in queue
-		var parents = 0;
-		this.queue.forEach(function (item) {
-			if (item.isParentAction(action)) {
-				parents++;
-			}
-		});
-
-		// push only if action has a parent in the way or if action is different from sentAction
-		if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
-			this.queue.push(action);
-			this.sendNext();
-		}
-	},
-
-	//  //R
-	// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
-	// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
-	// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
-	// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
-	// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
-	// 				Putting a short delay between sj.playbackQueue calls gives enough time for the apis to sort themselves out.
-	// 
-
-	sendNext: async function () {
-		// restart if finished sent action && queue not empty
-		if (this.sent === noAction && this.queue.length > 0) {
-			this.sent = this.queue[0];
-			this.queue.splice(0, 1);
-
-			// TODO checkPlaybackState every action just like before, find a better way
-			// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
-			// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-			checkPlayback().then(resolved => {
-				// !!! why arrow functions? because of lexical scoping, this is able to refer to sj.playbackQueue not just the function's body
-				return this.sent.trigger();
-			}).then(resolved => {
-				// TODO temporary delay - see reflection
-				return delay(500);
-			}).then(resolved => {
-				// TODO handle resolved, nothing needed to be handled before???
-				this.sent = noAction;
-				this.sendNext();
-			}, rejected => {
-				// TODO handle action rejected
-
-				//  	Action Failure Handling 
-				// 	!!! old, meant for individual action types
-
-				// send action, change pendingAction to true, wait
-				// 	if success: change pendingAction to false
-				// 		if queuedAction exists: change action to queuedAction, clear queued action, repeat...
-				// 		else: nothing
-				// 	if failure: 
-				// 		if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
-				// 		else: trigger auto-retry process
-				// 			if success: repeat...
-				// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
-
-				
-
-				handleError(rejected);
-				this.sent = noAction;
-			});
-		}
-	},
-
-	hasObject: function (type) {
-		if (sent.constructorName === type) {
-			return true;
-		} else {
-			this.queue.forEach(function (item) {
-				if (item.constructorName === type) {
-					return true;
-				}
-			});
-			return false;
-		}
-	},
-};
-*/
-
-
-//----------
-
-/*
+// DESIRED PLAYBACK
 sj.desiredPlayback = new sj.Playback({
-	sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
-	The state of these properties are copied to sj.Actions which are then added to the queue
+	//C sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
+	//C The state of these properties are copied to sj.Actions which are then added to the queue
 });
-sj.desiredPlayback.start = async function (track) {
-	this.track = track;
-	this.playing = true;
-	this.progress = 0; // I didn't have this here before here before, why not???
-
-	// Set slider range to track duration
-	$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
-	sj.playbackQueue.push(new sj.Start({}));
-};
-sj.desiredPlayback.toggle = async function () {
-	this.playing = !this.playing;
-	sj.playbackQueue.push(new sj.Toggle({}));
-};
-sj.desiredPlayback.seek = function (ms) {
-	this.progress = ms;
-	sj.playbackQueue.push(new sj.Seek({}));
-};
-sj.desiredPlayback.volume = function (volume) {
-	this.volume = volume;
-	sj.playbackQueue.push(new sj.Volume({}));
-};
-sj.desiredPlayback.current = function () {
-	// shorthand
-	return sj.desiredPlayback.track.source.playback;
-};
+Object.assign(sj.desiredPlayback, {
+	start(track) {
+		this.track = track;
+		this.playing = true;
+		this.progress = 0; // I didn't have this here before here before, why not???
+	
+		// Set slider range to track duration
+		$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
+		sj.Playback.queue.push(new sj.Start({}));
+	},
+	toggle() {
+		this.playing = !this.playing;
+		sj.Playback.queue.push(new sj.Toggle({}));
+	},
+	seek(ms) {
+		this.progress = ms;
+		sj.Playback.queue.push(new sj.Seek({}));
+	},
+	volume(volume) {
+		this.volume = volume;
+		sj.Playback.queue.push(new sj.Volume({}));
+	},
+	current() {
+		// shorthand
+		return sj.desiredPlayback.track.source.playback;
+	},
+});
 
 //TODO rewrite me
 async function checkPlayback() {
-	return Promise.all(sj.sourceList.map(function (source) {
+	return Promise.all(sj.Source.sources.map(function (source) {
 		return source.checkPlayback().then(sj.andResolve);
 	})).then(function (resolved) {
 		return sj.filterList(resolved, sj.Success, new sj.Success({
@@ -1845,7 +1586,7 @@ sj.youtube.checkPlayback = async function () {
 		});
 	}
 };
-*/
+
 
 
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     

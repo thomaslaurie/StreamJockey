@@ -25,11 +25,13 @@ $(document).on("click", "#connectPlayer", function() {
 	youtube.loadPlayer();
 });
 
+//----------
+
 // list
 $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview clicked");
 
-	desiredPlayback.start($(this).parent().data('track'));
+	desiredPlayback.start($(this).parent().data('track')); //! <--
 });
 $(document).on("click", ".addTrack", function() {
 	console.log(".addTrack clicked");
@@ -47,8 +49,10 @@ $(document).on("click", "#search", function() {
 $(document).on("click", "#toggle", function() {
 	console.log("#toggle clicked");
 
-	desiredPlayback.toggle();
+	desiredPlayback.toggle(); //! <--
 });
+
+//! VVVVVVV
 
 var dragging = false;
 
