@@ -89,170 +89,283 @@ sj.Entity.augmentClass({
 });
 
 
-//TODO Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
-//TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
-//? these sj.Action classes had their instance.state property being assigned outside before the old sj.Base.init() function, why? //TODO oh this was probably because these aren't supposed to be options, they are supposed to be sortof static, but dynamically calculated at the time of creation
-
+//! all actions should be idempotent (though sj.Start, and sj.Seek will reset the progress) //TODO move this warning to source methods
 sj.Action = sj.Base.makeClass('Action', sj.Base, {
 	constructorParts: parent => ({
-		beforeInitialize() { 
-			//C these are properties that can not be changed via options, however they also cannot be static because they are calculated upon instantiation
-			this.source = sj.desiredPlayback.track.source;
+		defaults: {
+			source: undefined,
 		},
 	}),
 	prototypeProperties: parent => ({
-		isSimilarAction(item) {
-			return this.constructorName === item.constructorName;
+		identicalCondition(otherAction) {
+			return sj.isType(otherAction, Object) && otherAction.constructor === this.constructor && otherAction.source === this.source;
+		}, 
+		collapseCondition(otherAction) {
+			return sameAction(otherAction);
 		},
-		isIdenticalAction(item) {
-			return this.isSimilarAction(item) && this.state === item.state;
-		},
-		isParentAction(item) {
-			return false; // TODO ??? can this be merged in some way with isParent?
-		},
-	
-		removeOld(queue) {
-			// backwards deletion loop
-			for (var i = queue.length - 1; i > -1; i--) {
-				if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
-					queue.splice(i, 1);
-				}
-			}
-		},
-
-		async trigger() {
-			return new Promise(resolve => {
-				resolve(new sj.Success({
-					log: true,
-					origin: 'sj.Action.trigger',
-				}));
+		annihilateCondition: otherAction => false,
+		trigger: async () => {
+			throw new sj.Error({
+				origin: 'sj.Action.trigger()',
+				reason: 'no trigger function has been set for this action',
 			});
 		},
 	}),
 });
-
 sj.Start = sj.Base.makeClass('Start', sj.Action, {
 	constructorParts: parent => ({
-		beforeInitialize() {
-			this.state = sj.desiredPlayback.track;
+		defaults: {
+			track: undefined,
+			isPlaying: true,
+			progress: 0,
 		},
 	}),
 	prototypeProperties: parent => ({
-		isParentAction() {
-			return item.constructorName === 'Toggle' || item.constructorName === 'Seek';
+		identicalCondition(otherAction) {
+			//C extend by comparing track.sourceId (//! not track) too
+			return parent.identicalCondition.call(this, otherAction) && otherAction.track.sourceId === this.track.sourceId &&
+			otherAction.isPlaying === this.isPlaying && //! these are here so that current playback can be checked too
+			otherAction.progress === this.progress;
 		},
-	
+		collapseCondition(otherAction) {
+			//C extend by collapsing sj.Resume, sj.Pause, & sj.Seek too
+			const c = otherAction.constructor;
+			return parent.collapseCondition.call(this, otherAction) || c === sj.Resume || c === sj.Pause || c === sj.Seek;
+		},
 		async trigger() {
-			return Promise.all(sj.Source.sources.map(source => {
-				// pause all
-				return source.pause().then(sj.andResolve);
-			})).then(resolved => {
-				// filter errors
-				return filterList(resolved, sj.Success, new sj.Success({
-					origin: 'sj.Start.trigger()',
-					message: 'changed track',
-				}), new sj.Error({
-					origin: 'sj.Start.trigger()',
-					message: 'failed to change track',
-				}));
-			}).then(resolved => {
-				// start
-				return this.source.start(this.state);
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
+			//C pause all
+			await sj.Pause.prototype.trigger();
+
+			//C start target
+			await this.source.start(this.track);
 		},
 	}),
 });
 sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 	constructorParts: parent => ({
-		beforeInitialize() {
-			this.state = desiredPlayback.playing;
+		beforeInitialize({options}) {
+			//C validate
+			if (options.isPlaying !== true && options.isPlaying !== false) throw new sj.Error({
+				origin: 'sj.Toggle',
+				reason: `Toggle isPlaying must be true or false: ${options.isPlaying}`,
+				content: options.isPlaying,
+			});
+		},
+		defaults: {
+			isPlaying: undefined,
 		},
 	}),
 	prototypeProperties: parent => ({
+		identicalCondition(otherAction) {
+			return parent.identicalCondition.call(this, otherAction) && otherAction.isPlaying === this.isPlaying;
+		},
+		annihilateCondition(otherAction) {
+			return parent.identicalCondition(otherAction) && otherAction.isPlaying === !this.isPlaying;
+		},
 		async trigger() {
-			if (this.state) { // if playing
-				return Promise.all(sj.Source.sources.map(source => {
-					if (source === this.source) {
-						// resume desired source
-						return source.resume().then(sj.andResolve);
-					} else {
-						// pause all other sources
-						return source.pause().then(sj.andResolve);
-					}
-				})).then(resolved => {
-					return filterList(resolved, sj.Success, new sj.Success({
-						origin: 'sj.Toggle.trigger()',
-						message: 'playing updated',
-					}), new sj.Error({
-						origin: 'sj.Toggle.trigger()',
-						message: 'playing failed to update',
-					}));
-				}).catch(rejected => {
-					throw sj.propagate(rejected);
+			if (this.isPlaying) {
+				//C resume target source, pause other sources
+				await sj.asyncForEach(sj.Source.sources, async source => {
+					if (source === this.source) await source.resume();
+					else await source.pause();
 				});
-			} else { // if not playing
-				return Promise.all(sj.Source.sources.map(source => {
-					// pause all sources
-					return source.pause().then(sj.andResolve);
-				})).then(resolved => {
-					return filterList(resolved, sj.Success, new sj.Success({
-						origin: 'updatePlaybackPlaying()',
-						message: 'playing updated',
-					}), new sj.Error({
-						origin: 'updatePlaybackPlaying()',
-						message: 'playing failed to update',
-					}));
-				}).catch(rejected => {
-					throw sj.propagate(rejected);
+			} else {
+				//C pause all
+				await sj.asyncForEach(sj.Source.sources, async source => {
+					await source.pause();
 				});
 			}
+			
 		},
 	}),
 });
 sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 	constructorParts: parent => ({
-		beforeInitialize() {
-			this.state = desiredPlayback.progress;
+		beforeInitialize({options}) {
+			//C validate
+			if (0 <= options.progress && options.progress <= 1) throw new sj.Error({
+				origin: 'sj.Seek.trigger()',
+				reason: `seek progress is not a number between 0 and 1: ${options.progress}`,
+				content: options.progress,
+			});
+		},
+		defaults: {
+			progress: undefined,
 		},
 	}),
 	prototypeProperties: parent => ({
+		identicalCondition(otherAction) {
+			return parent.identicalCondition.call(this, otherAction) && otherAction.progress === this.progress;
+		},
 		async trigger() {
-			return this.source.seek(this.state).then(resolved => {
-				return new sj.Success({
-					log: true,
-					origin: 'sj.Seek.trigger()',
-					message: 'playback progress changed',
-				});
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
+			await this.source.seek(this.progress);
 		},
 	}),
 });
 sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 	constructorParts: parent => ({
-		beforeInitialize() {
-			this.state = desiredPlayback.volume;
+		beforeInitialize({options}) {
+			//C validate
+			if (0 <= options.volume && options.volume <= 1) throw new sj.Error({
+				origin: 'sj.Volume.trigger()',
+				reason: `volume is not a number between 0 and 1: ${options.volume}`,
+				content: options.volume,
+			});
+		},
+		defaults: {
+			volume: undefined,
 		},
 	}),
 	prototypeProperties: parent => ({
+		identicalCondition(otherAction) {
+			return parent.identicalCondition.call(this, otherAction) && otherAction.volume === this.volume;
+		},
 		async trigger() {
-			// TODO
+			await this.source.volume(this.volume);
 		},
 	}),
 });
 
 
+/* //OLD
+	sj.Action = sj.Base.makeClass('Action', sj.Base, {
+		constructorParts: parent => ({
+			beforeInitialize() { 
+				//C these are properties that can not be changed via options, however they also cannot be static because they are calculated upon instantiation
+				if (sj.isType(sj.desiredPlayback.track, sj.Track)) this.source = sj.desiredPlayback.track.source;
+				this.source = sj.spotify; //TODO temp
+			},
+		}),
+		prototypeProperties: parent => ({
+			isSimilarAction(action) {
+				return sj.isType(action, Object) && this.constructorName === action.constructorName;
+			},
+			isIdenticalAction(action) {
+				return sj.isType(action, Object) && this.isSimilarAction(action) && this.state === action.state;
+			},
+			isParentAction(action) {
+				return false; // TODO ??? can this be merged in some way with isParent?
+			},
+		
+			removeOld(queue) {
+				// backwards deletion loop
+				for (let i = queue.length-1; i > -1; i--) {
+					console.log('asdf');
+					if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
+						queue.splice(i, 1);
+					}
+				}
+			},
+
+			async trigger() {
+				return new Promise(resolve => {
+					resolve(new sj.Success({
+						log: true,
+						origin: 'sj.Action.trigger',
+					}));
+				});
+			},
+		}),
+	});
+
+	sj.Start = sj.Base.makeClass('Start', sj.Action, {
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.state = sj.desiredPlayback.track;
+			},
+		}),
+		prototypeProperties: parent => ({
+			isParentAction() {
+				return item.constructorName === 'Toggle' || item.constructorName === 'Seek';
+			},
+		
+			async trigger() {
+				console.log('B');
+				//C pause all
+				await sj.asyncForEach(sj.Source.sources, async source => {
+					console.log('source', source);
+					await source.pause();
+				});
+
+				console.log('C');
+
+				//C start target
+				await this.source.start(this.state);
+
+				console.log('D');
+			},
+		}),
+	});
+	sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.state = desiredPlayback.isPlaying;
+			},
+		}),
+		prototypeProperties: parent => ({
+			async trigger() { 
+				if (this.state) { //? shouldn't this be reversed?
+					//C resume target source, pause other sources
+					await sj.asyncForEach(sj.Source.sources, async source => {
+						if (source === this.source) await source.resume();
+						else await source.pause();
+					});
+				} else {
+					//C pause all sources
+					await sj.asyncForEach(sj.Source.sources, async source => {
+						await source.pause();
+					});
+				}
+			},
+		}),
+	});
+	sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.state = desiredPlayback.progress;
+			},
+		}),
+		prototypeProperties: parent => ({
+			async trigger() {
+				return this.source.seek(this.state).then(resolved => {
+					return new sj.Success({
+						log: true,
+						origin: 'sj.Seek.trigger()',
+						message: 'playback progress changed',
+					});
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
+				});
+			},
+		}),
+	});
+	sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.state = desiredPlayback.volume;
+			},
+		}),
+		prototypeProperties: parent => ({
+			async trigger() {
+				// TODO
+			},
+		}),
+	});
+*/
+
+
 sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 	constructorParts: parent => ({
-		// NEW
-		track: undefined,
-		playing: false,
-		progress: 0,
-		timestamp: Date.now(),
-		volume: 0,
+		defaults: {
+			// NEW
+			source: undefined,
+
+			track: undefined,
+			isPlaying: false,
+			progress: 0,
+			timestamp: Date.now(),
+			volume: 0,
+		},
 	}),
 	staticProperties(parent) {
 		//TODO put playback queue in here?
@@ -260,7 +373,14 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 		this.queue = {
 			sent: undefined,
 			queue: [],
+			async check() {
+				await sj.asyncForEach(sj.Source.sources, async source => {
+					await source.checkPlayback();
+				});
+			},
 			async push(action) {
+				console.log('ACTION', action);
+
 				// redundancy checks
 				action.removeOld(this.queue);
 				
@@ -275,13 +395,14 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 				// push only if action has a parent in the way or if action is different from sentAction
 				if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
 					this.queue.push(action);
+					console.log('QUEUE', this.queue, action);
 					this.sendNext();
 				}
 			},
 
 			//  //R
 			// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
-			// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.playing to false immediately after spotify.start() resolved
+			// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
 			// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
 			// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
 			// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
@@ -296,8 +417,9 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 					// TODO checkPlaybackState every action just like before, find a better way
 					// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
 					// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-					checkPlayback().then(resolved => {
+					this.check().then(resolved => {
 						// !!! why arrow functions? because of lexical scoping, this is able to refer to sj.Playback.queue not just the function's body
+						console.log('A', this.sent);
 						return this.sent.trigger();
 					}).then(resolved => {
 						// TODO temporary delay - see reflection
@@ -323,8 +445,7 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 						// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
 		
 						
-		
-						handleError(rejected);
+						console.log('SEND NEXT - ERROR:', rejected);
 						this.sent = undefined;
 					});
 				}
@@ -438,9 +559,9 @@ sj.Source.augmentClass({
 		},
 	}),
 	prototypeProperties: parent => ({
-		async start() {
+		async start(track) {
 			return this.apiStart(track).then(resolved => {
-				this.playback.playing = true;
+				this.playback.isPlaying = true;
 				this.playback.track = track;
 				this.playback.progress = 0;
 				this.playback.timestamp = Date.now();
@@ -451,9 +572,9 @@ sj.Source.augmentClass({
 			});
 		},
 		async resume() {
-			if (!this.playback.playing) { 
+			if (!this.playback.isPlaying) { 
 				return this.apiResume().then(resolved => {
-					this.playback.playing = true;
+					this.playback.isPlaying = true;
 					return resolved;
 				}).catch(rejected => {
 					throw rejected;
@@ -467,9 +588,9 @@ sj.Source.augmentClass({
 			}
 		},
 		async pause() {
-			if (this.playback.playing) {
+			if (this.playback.isPlaying) {
 				return this.apiPause().then(resolved => {
-					this.playback.playing = false;
+					this.playback.isPlaying = false;
 					return resolved;
 				}).catch(rejected => {
 					throw sj.propagate(rejected);
@@ -564,10 +685,12 @@ sj.spotify = new sj.Source({
 	name: 'spotify',
 	//api: new SpotifyWebApi(),
 });
-sj.youtube = new sj.Source({
-	name: 'youtube',
-	idPrefix: 'https://www.youtube.com/watch?v=',
-});
+/*
+	sj.youtube = new sj.Source({
+		name: 'youtube',
+		idPrefix: 'https://www.youtube.com/watch?v=',
+	});
+*/
 
 
 // auth
@@ -634,14 +757,16 @@ sj.spotify.auth = async function () {
         });
     */
 };
-sj.youtube.auth = async function () {
-    //TODO
-    return new sj.Error({
-        log: true,
-        origin: 'youtube.auth()',
-        message: 'this function is not yet implemented',
-    });
-};
+/*
+	sj.youtube.auth = async function () {
+		//TODO
+		return new sj.Error({
+			log: true,
+			origin: 'youtube.auth()',
+			message: 'this function is not yet implemented',
+		});
+	};
+*/
 
 sj.spotify.getAccessToken = async function () {
 	//C gets the api access token, handles all refreshing, initializing, errors, etc.
@@ -688,67 +813,68 @@ sj.spotify.request = async function (method, path, body) {
 	return await sj.request(method, `${urlPrefix}/${path}`, body, header);
 };
 
-
-sj.youtube.loadApi = async function () { //TODO
-	// Get Script
-	// https://api.jquery.com/jquery.getscript/
-	return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
-		// Load libraries
-		// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiloadlibraries-callbackorconfig
-		// original code: https://developers.google.com/youtube/v3/docs/search/list
-		return new Promise(function(resolve, reject) {
-			gapi.load('client:auth2', {
-				callback: function() {
-					// Initialize the gapi.client object, which app uses to make API requests.
-					// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
-					// Promises: https://developers.google.com/api-client-library/javascript/features/promises
-					gapi.client.init({
-						apiKey: 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
-						clientId: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
-						discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
-						// at least one scope is needed, this is the bare minimum scope
-						scope: 'https://www.googleapis.com/auth/youtube.readonly'
-					}).then(function (resolved) {
-						resolve(new sj.Success({
-							log: true,
-							origin: 'youtube.loadApi()',
-							message: 'youtube api ready',
-						}));
-					}, function (rejected) {
+/*
+	sj.youtube.loadApi = async function () { //TODO
+		// Get Script
+		// https://api.jquery.com/jquery.getscript/
+		return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
+			// Load libraries
+			// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiloadlibraries-callbackorconfig
+			// original code: https://developers.google.com/youtube/v3/docs/search/list
+			return new Promise(function(resolve, reject) {
+				gapi.load('client:auth2', {
+					callback: function() {
+						// Initialize the gapi.client object, which app uses to make API requests.
+						// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
+						// Promises: https://developers.google.com/api-client-library/javascript/features/promises
+						gapi.client.init({
+							apiKey: 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
+							clientId: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
+							discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
+							// at least one scope is needed, this is the bare minimum scope
+							scope: 'https://www.googleapis.com/auth/youtube.readonly'
+						}).then(function (resolved) {
+							resolve(new sj.Success({
+								log: true,
+								origin: 'youtube.loadApi()',
+								message: 'youtube api ready',
+							}));
+						}, function (rejected) {
+							reject(new sj.Error({
+								log: true,
+								origin: 'youtube.loadApi()',
+								message: 'failed to load youtube api',
+								reason: 'client initialization failed',
+								content: rejected,
+							}));
+						});
+					},
+					onerror: function() {
 						reject(new sj.Error({
 							log: true,
 							origin: 'youtube.loadApi()',
-							message: 'failed to load youtube api',
-							reason: 'client initialization failed',
-							content: rejected,
+							message: 'failed to load youtube libraries',
+							reason: 'gapi.load error',
+							content: reason,
 						}));
-					});
-				},
-				onerror: function() {
-					reject(new sj.Error({
-						log: true,
-						origin: 'youtube.loadApi()',
-						message: 'failed to load youtube libraries',
-						reason: 'gapi.load error',
-						content: reason,
-					}));
-				},
-				// TODO timeout
-				//timeout: 5000, // 5 seconds.
-				//ontimeout: function() {
-				// Handle timeout.
-				//alert('gapi.client could not load in a timely manner!');
+					},
+					// TODO timeout
+					//timeout: 5000, // 5 seconds.
+					//ontimeout: function() {
+					// Handle timeout.
+					//alert('gapi.client could not load in a timely manner!');
+				});
+			});
+		}, function (jqxhr, settings, exception) {
+			throw new sj.Error({
+				log: true,
+				origin: 'youtube.loadApi()',
+				message: 'failed to load youtube api',
+				reason: exception,
 			});
 		});
-	}, function (jqxhr, settings, exception) {
-		throw new sj.Error({
-			log: true,
-			origin: 'youtube.loadApi()',
-			message: 'failed to load youtube api',
-			reason: exception,
-		});
-	});
-};
+	};
+*/
 
 // player
 sj.spotify.loadPlayer = async function () {
@@ -787,8 +913,10 @@ sj.spotify.loadPlayer = async function () {
 				});
 
 				resolve(new sj.Success({
+					log: true,
 					origin: 'spotify.loadPlayer()',
 					message: 'spotify player loaded',
+					content: player,
 				}));
 
 				/* old
@@ -889,7 +1017,7 @@ sj.spotify.loadPlayer = async function () {
 				//console.log('STATE: ', state);
 	
 				that.playback.timestamp = state.timestamp;
-				that.playback.playing = !state.paused;
+				that.playback.isPlaying = !state.paused;
 				that.playback.progress = state.position;
 	
 				//TODO check these
@@ -1013,7 +1141,7 @@ sj.spotify.loadPlayer = async function () {
 					player.addListener('player_state_changed', function (state) {
 						// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
 						spotify.playback.timestamp = state.timestamp;
-						spotify.playback.playing = !state.paused;
+						spotify.playback.isPlaying = !state.paused;
 						spotify.playback.progress = state.position;
 						spotify.playback.track = {
 							source: spotify,
@@ -1139,71 +1267,73 @@ sj.spotify.loadPlayer = async function () {
 			});
 		});
 	*/
-}
-sj.youtube.loadPlayer = function () { //TODO
-    //TODO make this async
-
-	$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
-		callback(new sj.Error({
-			log: true,
-			origin: 'youtube.loadPlayer()',
-			message: 'failed to load youtube player',
-			reason: exception,
-			content: exception,
-		}));
-	});
-
-	// callback
-	window.onYouTubeIframeAPIReady = function () {
-		// https://developers.google.com/youtube/iframe_api_reference#Playback_status
-		// (DOM element, args)
-		window.youtubePlayer = new YT.Player('youtubePlayer', {
-			height: '100%',
-			width: '100%',
-			events: {
-				onReady: onPlayerReady,
-				onStateChange: onPlayerStateChange,
-				onError: onPlayerError,
-			}
-		});
-	}
-
-	// player callback
-	window.onPlayerReady = function (event) {
-		var result = new sj.Success({
-			log: true,
-			origin: 'youtube.loadPlayer()',
-			message: 'youtube player loaded',
-		});
-
-		// TODO updatePlayback();
-	}
-
-	window.onPlayerStateChange = function (event) {
-		// TODO 3 - buffering counts as 'playing' for play/pause but should count as paused for progression, need to figure out out to handle this as right now it always counts as playing
-
-		// playing
-		if (event.data === 1 || event.data === 3) {
-			youtube.playback.playing = true;
-		} else {
-			youtube.playback.playing = false;
-		}
-
-		// nothing other than playing is given information here, however because the api functions are synchronous (except for the track) could we not just call them here too? even though the actions of play/pause and seeking are infrequent enough to warrant checking every time - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
-
-		// progress
-		if (event.data === 1 || event.data === 2) {
-			youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-			youtube.playback.timestamp = Date.now();
-		}
-	}
-
-	window.onPlayerError = function (event) {
-		console.error(event);
-	}
-
-	// youtubePlayer.destroy() kills the iframe
 };
+/*
+	sj.youtube.loadPlayer = function () { //TODO
+		//TODO make this async
+
+		$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
+			callback(new sj.Error({
+				log: true,
+				origin: 'youtube.loadPlayer()',
+				message: 'failed to load youtube player',
+				reason: exception,
+				content: exception,
+			}));
+		});
+
+		// callback
+		window.onYouTubeIframeAPIReady = function () {
+			// https://developers.google.com/youtube/iframe_api_reference#Playback_status
+			// (DOM element, args)
+			window.youtubePlayer = new YT.Player('youtubePlayer', {
+				height: '100%',
+				width: '100%',
+				events: {
+					onReady: onPlayerReady,
+					onStateChange: onPlayerStateChange,
+					onError: onPlayerError,
+				}
+			});
+		}
+
+		// player callback
+		window.onPlayerReady = function (event) {
+			var result = new sj.Success({
+				log: true,
+				origin: 'youtube.loadPlayer()',
+				message: 'youtube player loaded',
+			});
+
+			// TODO updatePlayback();
+		}
+
+		window.onPlayerStateChange = function (event) {
+			// TODO 3 - buffering counts as 'playing' for play/pause but should count as paused for progression, need to figure out out to handle this as right now it always counts as playing
+
+			// playing
+			if (event.data === 1 || event.data === 3) {
+				youtube.playback.isPlaying = true;
+			} else {
+				youtube.playback.isPlaying = false;
+			}
+
+			// nothing other than playing is given information here, however because the api functions are synchronous (except for the track) could we not just call them here too? even though the actions of play/pause and seeking are infrequent enough to warrant checking every time - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
+
+			// progress
+			if (event.data === 1 || event.data === 2) {
+				youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+				youtube.playback.timestamp = Date.now();
+			}
+		}
+
+		window.onPlayerError = function (event) {
+			console.error(event);
+		}
+
+		// youtubePlayer.destroy() kills the iframe
+	};
+*/
 
 
 //  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
@@ -1286,127 +1416,129 @@ sj.spotify.getTracks = async function (items) {
 	return playlist;
 };
 
-sj.youtube.search = async function (term) {
-	var args = {
-		method: 'GET',
-		path: '/youtube/v3/search',
-		params: {
-			// https://developers.google.com/youtube/v3/docs/search/list#parameters
-			part: 'snippet',
-			type: 'video',
+/*
+	sj.youtube.search = async function (term) {
+		var args = {
+			method: 'GET',
+			path: '/youtube/v3/search',
+			params: {
+				// https://developers.google.com/youtube/v3/docs/search/list#parameters
+				part: 'snippet',
+				type: 'video',
 
-			// min 0, max 50, default 5
-			maxResults: sj.searchResults.tracksPerSource,
-			// nextPageToken (and prevPageToken) are returned with each search result, fill this in to get to other pages
-			//pageToken: token,
+				// min 0, max 50, default 5
+				maxResults: sj.searchResults.tracksPerSource,
+				// nextPageToken (and prevPageToken) are returned with each search result, fill this in to get to other pages
+				//pageToken: token,
 
-			q: term,
-		}
-	};
-
-	return new Promise(function (resolve, reject) {
-		// convert gapi.client.request() to promise
-		gapi.client.request(args).then(function (resolved) {
-			resolve(resolved);
-		}, function (rejected) {
-			reject(new sj.Error({
-				log: true, 
-				origin: 'youtube.search()',
-				message: 'tracks could not be retrieved',
-				reason: 'gapi request was rejected',
-				content: rejected,
-			}));
-		});
-	}).then(function (resolved) {
-		// save term
-		sj.searchResults.term = term;
-
-		// create list of ids
-		var ids = [];
-		resolved.result.items.forEach(function (track, i) {
-			ids[i] = track.id.videoId;
-		});
-
-		return youtube.getTracks(ids);
-	}).then(function (resolved) {
-		// save sj.Playlist
-		sj.searchResults.youtube = resolved;
-		return new sj.Success({
-			log: true,
-			origin: 'youtube.search()',
-			message: 'tracks retrieved',
-			content: resolved,
-		});
-	}).catch(function (rejected) {
-		throw sj.propagate(rejected);
-	});
-};
-sj.youtube.getTracks = async function (ids) {
-	// takes list of ids from youtube's resolved.result.items.id.videoId
-
-	// prepare args
-	var args = {
-		method: 'GET',
-		path: '/youtube/v3/videos',
-		params: {
-			id: ids.join(','),
-			part: 'snippet,contentDetails',
-		}
-	};
-
-	// https://developers.google.com/youtube/v3/docs/videos/list
-	return new Promise(function (resolve, reject) {
-		// convert gapi.client.request() to promise
-		gapi.client.request(args).then(function (resolved) {
-			resolve(resolved);
-		}, function (rejected) {
-			reject(new sj.Error({
-				log: true, 
-				origin: 'youtube.getTracks() gapi.client.request().then()',
-				message: 'tracks could not be retrieved',
-				reason: 'gapi request was rejected',
-				content: rejected,
-			}));
-		});
-	}).then(function(resolved) {
-		// array of track objects
-		var playlist = new sj.Playlist({
-			log: false,
-			origin: 'youtube.getTracks()',
-		});
-
-		resolved.result.items.forEach(function (track, i) {
-			playlist.content[i] = new sj.Track({});
-
-			playlist.content[i].source = youtube;
-			playlist.content[i].sourceId = track.id;
-
-			// convert artist - title format
-			// TODO make better regex
-			var stringSplit = track.snippet.title.split(/( +- +)/);
-			if (stringSplit.length === 2) {
-				var artistSplit = stringSplit[0].split(/( +[&x] +)/);
-				artistSplit.forEach(function(artist) {
-					// fill artists
-					playlist.content[i].artists.push(artist);
-				});
-				playlist.content[i].title = stringSplit[1];
-			} else {
-				playlist.content[i].artists = [track.snippet.channelTitle];
-				playlist.content[i].title = track.snippet.title;
+				q: term,
 			}
+		};
 
-			// convert ISO_8601 duration to milliseconds
-			playlist.content[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
-			playlist.content[i].link = youtube.idPrefix + playlist.content[i].id;	
+		return new Promise(function (resolve, reject) {
+			// convert gapi.client.request() to promise
+			gapi.client.request(args).then(function (resolved) {
+				resolve(resolved);
+			}, function (rejected) {
+				reject(new sj.Error({
+					log: true, 
+					origin: 'youtube.search()',
+					message: 'tracks could not be retrieved',
+					reason: 'gapi request was rejected',
+					content: rejected,
+				}));
+			});
+		}).then(function (resolved) {
+			// save term
+			sj.searchResults.term = term;
+
+			// create list of ids
+			var ids = [];
+			resolved.result.items.forEach(function (track, i) {
+				ids[i] = track.id.videoId;
+			});
+
+			return youtube.getTracks(ids);
+		}).then(function (resolved) {
+			// save sj.Playlist
+			sj.searchResults.youtube = resolved;
+			return new sj.Success({
+				log: true,
+				origin: 'youtube.search()',
+				message: 'tracks retrieved',
+				content: resolved,
+			});
+		}).catch(function (rejected) {
+			throw sj.propagate(rejected);
 		});
+	};
+	sj.youtube.getTracks = async function (ids) {
+		// takes list of ids from youtube's resolved.result.items.id.videoId
 
-		playlist.announce();
-		return playlist;
-	}).catch(function (rejected) {
-		throw sj.propagate(rejected);
-	});
-};
+		// prepare args
+		var args = {
+			method: 'GET',
+			path: '/youtube/v3/videos',
+			params: {
+				id: ids.join(','),
+				part: 'snippet,contentDetails',
+			}
+		};
+
+		// https://developers.google.com/youtube/v3/docs/videos/list
+		return new Promise(function (resolve, reject) {
+			// convert gapi.client.request() to promise
+			gapi.client.request(args).then(function (resolved) {
+				resolve(resolved);
+			}, function (rejected) {
+				reject(new sj.Error({
+					log: true, 
+					origin: 'youtube.getTracks() gapi.client.request().then()',
+					message: 'tracks could not be retrieved',
+					reason: 'gapi request was rejected',
+					content: rejected,
+				}));
+			});
+		}).then(function(resolved) {
+			// array of track objects
+			var playlist = new sj.Playlist({
+				log: false,
+				origin: 'youtube.getTracks()',
+			});
+
+			resolved.result.items.forEach(function (track, i) {
+				playlist.content[i] = new sj.Track({});
+
+				playlist.content[i].source = youtube;
+				playlist.content[i].sourceId = track.id;
+
+				// convert artist - title format
+				// TODO make better regex
+				var stringSplit = track.snippet.title.split(/( +- +)/);
+				if (stringSplit.length === 2) {
+					var artistSplit = stringSplit[0].split(/( +[&x] +)/);
+					artistSplit.forEach(function(artist) {
+						// fill artists
+						playlist.content[i].artists.push(artist);
+					});
+					playlist.content[i].title = stringSplit[1];
+				} else {
+					playlist.content[i].artists = [track.snippet.channelTitle];
+					playlist.content[i].title = track.snippet.title;
+				}
+
+				// convert ISO_8601 duration to milliseconds
+				playlist.content[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
+				playlist.content[i].link = youtube.idPrefix + playlist.content[i].id;	
+			});
+
+			playlist.announce();
+			return playlist;
+		}).catch(function (rejected) {
+			throw sj.propagate(rejected);
+		});
+	};
+*/
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
@@ -1428,164 +1560,120 @@ sj.youtube.getTracks = async function (ids) {
 sj.desiredPlayback = new sj.Playback({
 	//C sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
 	//C The state of these properties are copied to sj.Actions which are then added to the queue
-});
-Object.assign(sj.desiredPlayback, {
-	start(track) {
-		this.track = track;
-		this.playing = true;
-		this.progress = 0; // I didn't have this here before here before, why not???
-	
-		// Set slider range to track duration
-		$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
-		sj.Playback.queue.push(new sj.Start({}));
-	},
-	toggle() {
-		this.playing = !this.playing;
-		sj.Playback.queue.push(new sj.Toggle({}));
-	},
-	seek(ms) {
-		this.progress = ms;
-		sj.Playback.queue.push(new sj.Seek({}));
-	},
-	volume(volume) {
-		this.volume = volume;
-		sj.Playback.queue.push(new sj.Volume({}));
-	},
-	current() {
-		// shorthand
-		return sj.desiredPlayback.track.source.playback;
-	},
+
 });
 
-//TODO rewrite me
-async function checkPlayback() {
-	return Promise.all(sj.Source.sources.map(function (source) {
-		return source.checkPlayback().then(sj.andResolve);
-	})).then(function (resolved) {
-		return sj.filterList(resolved, sj.Success, new sj.Success({
-			origin: 'checkPlayback()',
-			message: 'checked playback state',
-		}), new sj.Error({
-			origin: 'checkPlayback()',
-			message: 'failed to check playback state',
-		}));
-	}).then(function (resolved) {
-		return resolved; //TODO what is this
-	}, function (rejected) {
-		throw rejected;
-	});
-};
 
 //! checkPlayback functions must save timestamp immediately after progress is available, however playing is one property type
 sj.spotify.checkPlayback = async function () {
-	// 1 api call (all)
+	console.log(this.player);
 
-	return spotifyApi.getMyCurrentPlaybackState({}).catch(function (rejected) {
+	const currentState = await this.player.getCurrentState().catch(rejected => {
 		throw new sj.Error({
 			log: true,
-			code: JSON.parse(rejected.response).error.status,
+			//code: JSON.parse(rejected.response).error.status,
 			origin: 'spotify.checkPlayback()',
 			message: 'failed to check spotify playback state',
-			reason: JSON.parse(rejected.response).error.message,
+			//reason: JSON.parse(rejected.response).error.message,
 			content: rejected,
 		});
-	}).then(function (resolved) {
-		spotify.playback.track = {
-			source: spotify,
-			id: resolved.item.id,
-			artists: [],
-			title: resolved.item.name,
-			duration: resolved.item.duration_ms,
-			link: resolved.item.external_urls.spotify,
-		}
+	});
 
-		// fill artists
-		resolved.item.artists.forEach(function (artist, j) {
-			spotify.playback.track.artists[j] = artist.name;
-		});
+	console.log('getCurrentState():', currentState);
 
-		spotify.playback.playing = resolved.is_playing; // TODO will cause an error if no track is playing, will break this entire function
+	const t = currentState.track_window.current_track;
 
-		spotify.playback.progress = resolved.progress_ms;
-		spotify.playback.timestamp = resolved.timestamp;
+	this.playback.track = new sj.Track({
+		source: this,
+		sourceId: t.id,
+		name: t.name,
+		duration: t.duration_ms,
+		artists: t.artists.map(artist => artist.name),
+		//TODO link: t.uri,
+	});
 
-		return new sj.Success({
-			log: true,
-			origin: 'spotify.checkPlayback()',
-			message: 'spotify playback state checked',
-		});
-	}).catch(function (rejected) {
-		throw sj.propagate(rejected);
+	//TODO change isPlaying to isPlaying
+	this.playback.isPlaying = !currentState.paused; //TODO might cause an error if no track is playing
+
+	this.playback.progress = currentState.position; //TODO is this supposed to be a ratio or the absolute ms progress?
+	this.playback.timestamp = currentState.timestamp;
+
+	return new sj.Success({
+		log: true,
+		origin: 'spotify.checkPlayback()',
+		message: 'spotify playback state checked',
 	});
 };
-sj.youtube.checkPlayback = async function () {
-	// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
-	// 1 api call (track)
+/*
+	sj.youtube.checkPlayback = async function () {
+		// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
+		// 1 api call (track)
 
-	// id?
-	// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
-	try {
-		//https://developers.google.com/youtube/iframe_api_reference#Functions
+		// id?
+		// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
+		try {
+			//https://developers.google.com/youtube/iframe_api_reference#Functions
 
-		// playing
-		if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
-			//	Returns the state of the player. Possible values are:
-			//	-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	
-			youtube.playback.playing = true;
-		} else {
-			youtube.playback.playing = false;
-		}
-		
-		// progress
-		youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-		youtube.playback.timestamp = Date.now();
+			// playing
+			if (youtubePlayer.getPlayerState() === 1 || youtubePlayer.getPlayerState() === 3) {
+				//	Returns the state of the player. Possible values are:
+				//	-1 – unstarted, 0 – ended, 1 – playing, 2 – paused, 3 – buffering, 5 – video cued	
+				youtube.playback.isPlaying = true;
+			} else {
+				youtube.playback.isPlaying = false;
+			}
+			
+			// progress
+			youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+			youtube.playback.timestamp = Date.now();
 
 
-		var url = youtubePlayer.getVideoUrl(); // !!! can sometimes return undefined
-		var id = sj.isType(url, String) ? url.split('v=')[1] : '';
-		if (id) {
-			// if not empty
-			var andPosition = id.indexOf('&'); 
-			if (andPosition != -1) { id = id.substring(0, andPosition); }
+			var url = youtubePlayer.getVideoUrl(); // !!! can sometimes return undefined
+			var id = sj.isType(url, String) ? url.split('v=')[1] : '';
+			if (id) {
+				// if not empty
+				var andPosition = id.indexOf('&'); 
+				if (andPosition != -1) { id = id.substring(0, andPosition); }
 
-			return youtube.getTracks([id]).then(function (resolved) {
-				if (resolved.content.length === 1) {
-					youtube.playback.track = resolved.content[0];
+				return youtube.getTracks([id]).then(function (resolved) {
+					if (resolved.content.length === 1) {
+						youtube.playback.track = resolved.content[0];
 
-					return new sj.Success({
-						log: true,
-						origin: 'youtube.checkPlayback()',
-						message: 'youtube playback state checked',
-					});
-				} else {
-					throw new sj.Error({
-						log: true,
-						code: '404',
-						origin: 'youtube.checkPlayback()',
-						message: 'track not found',
-						reason: 'id: ' + id +' was not found',
-					});
-				}
-			}).catch(function (rejected) {
-				throw sj.propagate(rejected);
-			});
-		} else {
-			// no track is playing
-			return new sj.Success({
+						return new sj.Success({
+							log: true,
+							origin: 'youtube.checkPlayback()',
+							message: 'youtube playback state checked',
+						});
+					} else {
+						throw new sj.Error({
+							log: true,
+							code: '404',
+							origin: 'youtube.checkPlayback()',
+							message: 'track not found',
+							reason: 'id: ' + id +' was not found',
+						});
+					}
+				}).catch(function (rejected) {
+					throw sj.propagate(rejected);
+				});
+			} else {
+				// no track is playing
+				return new sj.Success({
+					log: true,
+					origin: 'youtube.checkPlayback()',
+					message: 'youtube playback state checked',
+				});
+			}
+		} catch (e) {
+			throw new sj.Error({
 				log: true,
 				origin: 'youtube.checkPlayback()',
-				message: 'youtube playback state checked',
+				message: 'could not check youtube playback',
+				reason: e,
 			});
 		}
-	} catch (e) {
-		throw new sj.Error({
-			log: true,
-			origin: 'youtube.checkPlayback()',
-			message: 'could not check youtube playback',
-			reason: e,
-		});
-	}
-};
+	};
+*/
 
 
 
@@ -1610,179 +1698,415 @@ sj.youtube.checkPlayback = async function () {
 
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlayback() to get more accurate information.
 */
+
+
+sj.spotify.apiStart = async function (track) {
+	await this.request('PUT', 'me/player/play', {
+		uris: [`spotify:track:${track.sourceId}`],
+	}).catch(rejected => {
+		throw new sj.Error({
+			log: true,
+			//code: JSON.parse(rejected.response).error.status,
+			origin: 'spotify.start()',
+			message: 'spotify track could not be started',
+			//reason: JSON.parse(rejected.response).error.message,
+			content: rejected,
+		});
+	});
+};
 /*
-	// sj.spotify.apiStart = async function (track) {
-	// 	return spotifyApi.play({"uris":["spotify:track:" + track.sourceId]}).then(function (resolved) {
-	// 		return new sj.Success({
-	// 			log: true,
-	// 			origin: 'spotify.start()',
-	// 			message: 'track started',
-	// 			content: resolved,
-	// 		});
-	// 	}, function (rejected) {
-	// 		throw new sj.Error({
-	// 			log: true,
-	// 			code: JSON.parse(rejected.response).error.status,
-	// 			origin: 'spotify.start()',
-	// 			message: 'spotify track could not be started',
-	// 			reason: JSON.parse(rejected.response).error.message,
-	// 			content: rejected,
-	// 		});
-	// 	}).catch(function (rejected) {
-	// 		throw sj.propagate(rejected);
-	// 	});
-	// }
-	// sj.youtube.apiStart = async function (track) {
-	// 	return new Promise(function (resolve, reject) {
-	// 		try {
-	// 			youtubePlayer.loadVideoById(track.sourceId);
-	// 			youtubePlayer.playVideo();
-	// 			youtubePlayer.pauseVideo();
+	sj.youtube.apiStart = async function (track) {
+		return new Promise(function (resolve, reject) {
+			try {
+				youtubePlayer.loadVideoById(track.sourceId);
+				youtubePlayer.playVideo();
+				youtubePlayer.pauseVideo();
 
-	// 			resolve(new sj.Success({
-	// 				log: true,
-	// 				origin: 'youtube.start()',
-	// 				message: 'track started',
-	// 			}));
-	// 		} catch (e) {
-	// 			reject(new sj.Error({
-	// 				origin: 'youtube.start()',
-	// 				message: 'failed to start youtube track',
-	// 				content: e,
-	// 			}));
-	// 		}
-	// 	});
-	// }
-
-	// sj.spotify.apiResume = async function () {
-	// 	return spotifyApi.play({}).then(function (resolved) {
-	// 		return new sj.Success({
-	// 			log: true,
-	// 			origin: 'spotify.resume()',
-	// 			message: 'track resumed',
-	// 			content: resolved,
-	// 		});
-	// 	}, function (rejected) {
-	// 		throw new sj.Error({
-	// 			log: true,
-	// 			code: JSON.parse(rejected.response).error.status,
-	// 			origin: 'spotify.resume()',
-	// 			message: 'spotify track could not be resumed',
-	// 			reason: JSON.parse(rejected.response).error.message,
-	// 			content: rejected,
-	// 		});
-	// 	}).catch(function (rejected) {
-	// 		throw sj.propagate(rejected);
-	// 	});
-	// }
-	// sj.youtube.apiResume = async function () {
-	// 	return new Promise(function (resolve, reject) {
-	// 		try {
-	// 			youtubePlayer.playVideo();
-				
-	// 			resolve(new sj.Success({
-	// 				log: true,
-	// 				origin: 'youtube.resume()',
-	// 				message: 'track started',
-	// 			}));
-	// 		} catch (e) {
-	// 			reject(new sj.Error({
-	// 				origin: 'youtube.resume()',
-	// 				message: 'failed to resume youtube track',
-	// 				content: e,
-	// 			}));
-	// 		}
-	// 	});
-	// }
-
-	// sj.spotify.apiPause = async function () {
-	// 	return spotifyApi.pause({}).then(function (resolved) {
-	// 		return new sj.Success({
-	// 			log: true,
-	// 			origin: 'spotify.pause()',
-	// 			message: 'track paused',
-	// 			content: resolved,
-	// 		});
-	// 	}, function (rejected) {
-	// 		throw new sj.Error({
-	// 			log: true,
-	// 			code: JSON.parse(rejected.response).error.status,
-	// 			origin: 'spotify.pause()',
-	// 			message: 'spotify track could not be paused',
-	// 			reason: JSON.parse(rejected.response).error.message,
-	// 			content: rejected,
-	// 		});
-	// 	}).catch(function (rejected) {
-	// 		throw sj.propagate(rejected);
-	// 	});
-	// }
-	// sj.youtube.apiPause = async function () {
-	// 	return new Promise(function (resolve, reject) {
-	// 		try {
-	// 			youtubePlayer.pauseVideo();
-	// 			resolve(new sj.Success({
-	// 				log: true,
-	// 				origin: 'youtube.pause()',
-	// 				message: 'track paused',
-	// 			}));
-	// 		} catch (e) {
-	// 			reject(new sj.Error({
-	// 				log: true,
-	// 				origin: 'youtube.pause()',
-	// 				message: 'failed to pause',
-	// 				content: e,
-	// 			}));
-	// 		}
-	// 	});
-	// }
-
-	// sj.spotify.apiSeek = async function (ms) {
-	// 	return spotifyApi.seek(ms, {}).then(function (resolved) {
-	// 		return new sj.Success({
-	// 			log: true,
-	// 			origin: 'spotify.seek()',
-	// 			message: 'track seeked',
-	// 			content: resolved,
-	// 		});
-	// 	}, function (rejected) {
-	// 		throw new sj.Error({
-	// 			log: true,
-	// 			code: JSON.parse(rejected.response).error.status,
-	// 			origin: 'spotify.seek()',
-	// 			message: 'spotify track could not be seeked',
-	// 			reason: JSON.parse(rejected.response).error.message,
-	// 			content: rejected,
-	// 		});
-	// 	}).catch(function (rejected) {
-	// 		throw sj.propagate(rejected);
-	// 	});
-	// }
-	// sj.youtube.apiSeek = async function (ms) {
-	// 	return new Promise(function (resolve, reject) {
-	// 		try {
-	// 			// (seconds - number, allowSeekAhead of loading - boolean)
-	// 			youtubePlayer.seekTo(Math.round(ms / 1000), true);
-
-	// 			resolve(new sj.Success({
-	// 				log: true,
-	// 				origin: 'youtube.seek()',
-	// 				message: 'track seeked',
-	// 			}));
-	// 		} catch (e) {
-	// 			reject(new sj.Error({
-	// 				log: true,
-	// 				origin: 'youtube.seek()',
-	// 				message: 'failed to seek',
-	// 				content: e,
-	// 			}));
-	// 		}
-	// 	});
-	// }
-
-	// sj.spotify.apiVolume = async function (volume) {
-	// }
-	// sj.youtube.apiVolume = async function (volume) {
-	// }
+				resolve(new sj.Success({
+					log: true,
+					origin: 'youtube.start()',
+					message: 'track started',
+				}));
+			} catch (e) {
+				reject(new sj.Error({
+					origin: 'youtube.start()',
+					message: 'failed to start youtube track',
+					content: e,
+				}));
+			}
+		});
+	};
 */
 
+sj.spotify.apiResume = async function () {
+	await this.player.pause().catch(rejected => {
+		throw new sj.Error({
+			log: true,
+			//code: JSON.parse(rejected.response).error.status,
+			origin: 'spotify.resume()',
+			message: 'spotify track could not be resumed',
+			//reason: JSON.parse(rejected.response).error.message,
+			content: rejected,
+		});
+	});
+};
+/*
+	sj.youtube.apiResume = async function () {
+		return new Promise(function (resolve, reject) {
+			try {
+				youtubePlayer.playVideo();
+				
+				resolve(new sj.Success({
+					log: true,
+					origin: 'youtube.resume()',
+					message: 'track started',
+				}));
+			} catch (e) {
+				reject(new sj.Error({
+					origin: 'youtube.resume()',
+					message: 'failed to resume youtube track',
+					content: e,
+				}));
+			}
+		});
+	};
+*/
+
+sj.spotify.apiPause = async function () {
+	await this.player.resume().catch(rejected => {
+		throw new sj.Error({
+			log: true,
+			//code: JSON.parse(rejected.response).error.status,
+			origin: 'spotify.pause()',
+			message: 'spotify track could not be paused',
+			//reason: JSON.parse(rejected.response).error.message,
+			content: rejected,
+		});
+	});
+};
+/*
+	sj.youtube.apiPause = async function () {
+		return new Promise(function (resolve, reject) {
+			try {
+				youtubePlayer.pauseVideo();
+				resolve(new sj.Success({
+					log: true,
+					origin: 'youtube.pause()',
+					message: 'track paused',
+				}));
+			} catch (e) {
+				reject(new sj.Error({
+					log: true,
+					origin: 'youtube.pause()',
+					message: 'failed to pause',
+					content: e,
+				}));
+			}
+		});
+	};
+*/
+
+sj.spotify.apiSeek = async function (ms) {
+	await this.player.seek(ms).catch(rejected => {
+		throw new sj.Error({
+			log: true,
+			//code: JSON.parse(rejected.response).error.status,
+			origin: 'spotify.seek()',
+			message: 'spotify track could not be seeked',
+			//reason: JSON.parse(rejected.response).error.message,
+			content: rejected,
+		});
+	});
+};
+/*
+	sj.youtube.apiSeek = async function (ms) {
+		return new Promise(function (resolve, reject) {
+			try {
+				// (seconds - number, allowSeekAhead of loading - boolean)
+				youtubePlayer.seekTo(Math.round(ms / 1000), true);
+
+				resolve(new sj.Success({
+					log: true,
+					origin: 'youtube.seek()',
+					message: 'track seeked',
+				}));
+			} catch (e) {
+				reject(new sj.Error({
+					log: true,
+					origin: 'youtube.seek()',
+					message: 'failed to seek',
+					content: e,
+				}));
+			}
+		});
+	};
+*/
+
+sj.spotify.apiVolume = async function (volume) {
+	await this.player.setVolume(volume);
+};
+/*
+	sj.youtube.apiVolume = async function (volume) {
+	};
+*/
+
+
 export default sj;
+
+
+
+
+//-------------
+
+sj.spotify.makeVueXModule = function () {
+	const that = this;
+
+	return {
+		namespaced: true,
+		
+		state: new sj.Playback(),
+			actions: {
+				async checkPlayback({state, commit}) {
+					const currentState = await that.player.getCurrentState().catch(rejected => {
+						throw new sj.Error({
+							log: true,
+							//code: JSON.parse(rejected.response).error.status,
+							origin: 'spotify.checkPlayback()',
+							message: 'failed to check spotify playback state',
+							//reason: JSON.parse(rejected.response).error.message,
+							content: rejected,
+						});
+					});
+					const t = currentState.track_window.current_track; //C shorthand
+					const formattedState = {
+						track: new sj.Track({
+							source: that,
+							sourceId: t.id,
+							name: t.name,
+							duration: t.duration_ms,
+							artists: t.artists.map(artist => artist.name),
+							//TODO link: t.uri,
+						}),
+						isPlaying: !currentState.paused, //TODO change isPlaying to isPlaying //TODO might cause an error if no track is playing
+						progress: currentState.position, //TODO is this supposed to be a ratio or the absolute ms progress?
+						timestamp: currentState.timestamp,
+					};
+
+					commit('setPlayback', formattedState);
+
+					return new sj.Success({
+						log: true,
+						origin: 'spotify module action - checkPlayback()',
+						message: 'spotify playback checked',
+						content: state,
+					});
+				},
+
+				//TODO probably put state updates in here too
+				async start(context, track) {
+					await that.request('PUT', 'me/player/play', {
+						uris: [`spotify:track:${track.sourceId}`],
+					}).catch(rejected => {
+						throw new sj.Error({
+							log: true,
+							//code: JSON.parse(rejected.response).error.status,
+							origin: 'spotify.start()',
+							message: 'spotify track could not be started',
+							//reason: JSON.parse(rejected.response).error.message,
+							content: rejected,
+						});
+					});
+				},
+				async pause() {
+					await that.player.resume().catch(rejected => {
+						throw new sj.Error({
+							log: true,
+							//code: JSON.parse(rejected.response).error.status,
+							origin: 'spotify.pause()',
+							message: 'spotify track could not be paused',
+							//reason: JSON.parse(rejected.response).error.message,
+							content: rejected,
+						});
+					});
+				},
+				async resume() {
+					await that.player.pause().catch(rejected => {
+						throw new sj.Error({
+							log: true,
+							//code: JSON.parse(rejected.response).error.status,
+							origin: 'spotify.resume()',
+							message: 'spotify track could not be resumed',
+							//reason: JSON.parse(rejected.response).error.message,
+							content: rejected,
+						});
+					});
+				},
+				async seek(context, ms) {
+					await this.player.seek(ms).catch(rejected => {
+						throw new sj.Error({
+							log: true,
+							//code: JSON.parse(rejected.response).error.status,
+							origin: 'spotify.seek()',
+							message: 'spotify track could not be seeked',
+							//reason: JSON.parse(rejected.response).error.message,
+							content: rejected,
+						});
+					});
+				},
+				async volume(context, volume) {
+					await this.player.setVolume(volume);
+				},
+			},
+			mutations: {
+				setPlayback(state, playbackValues) {
+					Object.assign(state, playbackValues);
+				},
+			},
+	};
+};
+
+//TODO use modules
+
+const playerStore = {
+	modules: { //TODO maybe add to modules upon source create, that way iteration is easier?
+		spotify: sj.spotify.makeVueXModule,
+	},
+
+	state: {
+		actionQueue: [],
+		sentAction: undefined,
+
+		//TODO make desiredPlayback a getter based on the stacked assignment of actualPlaybac + the action queue
+		actualPlayback: new sj.Playback(),
+	},
+	actions: {
+		async start({commit}, track) {
+			commit('setDesiredPlayback', {
+				track,
+				isPlaying: true,
+				progress: 0,
+			});
+		
+			// Set slider range to track duration
+			//$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
+			sj.Playback.queue.push(new sj.Start());
+		},
+		async pause() {
+			commit('setDesiredPlayback', {
+				isPlaying: pause,
+			});
+			
+
+		},
+		async resume() {
+
+		},
+
+
+		async toggle() {
+			this.isPlaying = !this.isPlaying;
+			sj.Playback.queue.push(new sj.Toggle({}));
+		},
+		async seek(ms) {
+			this.progress = ms;
+			sj.Playback.queue.push(new sj.Seek({}));
+		},
+		async volume(volume) {
+			this.volume = volume;
+			sj.Playback.queue.push(new sj.Volume({}));
+		},
+		async current() {
+			// shorthand
+			return sj.desiredPlayback.track.source.playback;
+		},
+
+
+		//-----------
+		async checkPlayback(context) {
+			await sj.asyncForEach(context.state.sourcePlaybacks, playback => {
+				await playback.source.checkPlayback();
+			});
+
+			await sj.asyncForEach(sj.Source.sources, async source => {
+				await source.checkPlayback();
+			});
+		},
+
+
+		async pushAction(context, action) {
+			const {actionQueue, sentAction, actualPlayback} = context.state;
+
+			let push = true;
+
+			//C remove redundant actions if necessary
+			const compact = function (i) {
+				if (i >= 0) {
+					//R collapse is required to keep the new action rather than just leaving the existing because sj.Start collapses different actions than itself
+					if (action.collapseCondition(actionQueue[i])) {
+						push = true;
+						context.commit('removeQueuedAction', i);
+						compact(i-1);
+					} else if (action.annihilateCondition(actionQueue[i])) {
+						push = false;
+						context.commit('removeQueuedAction', i);
+						compact(i-1);
+					} else {
+						return;
+					}
+				}
+			};
+			compact(actionQueue.length-1);
+
+			//C don't push new action if is identical to a sent action
+			if (sentAction !== undefined && action.identicalCondition(sentAction)) push === false;
+			//C don't push new action if no sent action exists and is identical to the actual playback 
+			if (sentAction === undefined && action.identicalCondition(actualPlayback)) push === false;
+
+			//C push action the queue and restart the queue if not already processing
+			if (push) context.commit('addQueuedAction', action);
+			context.dispatch('nextAction');
+		},
+
+		async nextAction(context) {
+			const {actionQueue, sentAction} = context.state;
+
+			//C return if action is still processing or if no queued actions exist
+			if (sentAction !== undefined || actionQueue.length <= 0) return;
+
+			//C move the action from the queue to sent
+			context.commit('setSentAction', actionQueue[0]);
+			context.commit('removeQueuedAction', 0);
+			
+			//C trigger the action
+			await sentAction.trigger(); //TODO what happens on failure?
+			context.commit('setActualPlayback', sentAction); //TODO//? will this cause any problems here?
+
+			//C mark the sent action as finished, start next action
+			context.commit('removeSentAction');
+			context.dispatch('nextAction');
+		},
+	},
+	mutations: {
+		setDesiredPlayback(state, playbackValues) {
+			Object.assign(state.desiredPlayback, playbackValues);
+		},
+		setActualPlayback(state, playbackValues) {
+			Object.assign(state.actualPlayback, playbackValues);
+		},
+		addQueuedAction({actionQueue}, action) {
+			actionQueue.push(action);
+		},
+		removeQueuedAction({actionQueue}, index) {
+			actionQueue.splice(index, 1);
+		},
+		setSentAction({sentAction}, action) {
+			sentAction = action;
+		},
+		removeSentAction({sentAction}) {
+			sentAction = undefined;
+		},
+	},
+	getters: {
+		desiredPlayback: ({actualPlayback, sentAction, actionQueue}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
+	},
+};
