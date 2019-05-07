@@ -57,6 +57,7 @@ import sj from './global.mjs';
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
+// ENTITY CRUD METHODS
 sj.Entity.augmentClass({
 	prototypeProperties: parent => ({
 		async add() {
@@ -88,8 +89,7 @@ sj.Entity.augmentClass({
 	}),
 });
 
-
-//! all actions should be idempotent (though sj.Start, and sj.Seek will reset the progress) //TODO move this warning to source methods
+// PLAYBACK
 sj.Action = sj.Base.makeClass('Action', sj.Base, {
 	constructorParts: parent => ({
 		defaults: {
@@ -132,12 +132,14 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 			const c = otherAction.constructor;
 			return parent.collapseCondition.call(this, otherAction) || c === sj.Resume || c === sj.Pause || c === sj.Seek;
 		},
-		async trigger() {
+		async trigger({dispatch}) {
 			//C pause all
-			await sj.Pause.prototype.trigger();
+			await sj.asyncForEach(sj.Source.sources, async source => {
+				await dispatch(`${source.name}/pause`);
+			});
 
 			//C start target
-			await this.source.start(this.track);
+			await dispatch(`${source.name}/start`, this.track);
 		},
 	}),
 });
@@ -162,20 +164,19 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 		annihilateCondition(otherAction) {
 			return parent.identicalCondition(otherAction) && otherAction.isPlaying === !this.isPlaying;
 		},
-		async trigger() {
+		async trigger({dispatch}) {
 			if (this.isPlaying) {
 				//C resume target source, pause other sources
 				await sj.asyncForEach(sj.Source.sources, async source => {
-					if (source === this.source) await source.resume();
-					else await source.pause();
+					if (source === this.source) await dispatch(`${source.name}/resume`);
+					else await dispatch(`${source.name}/pause`);
 				});
 			} else {
 				//C pause all
 				await sj.asyncForEach(sj.Source.sources, async source => {
-					await source.pause();
+					await dispatch(`${source.name}/pause`);
 				});
 			}
-			
 		},
 	}),
 });
@@ -197,8 +198,8 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 		identicalCondition(otherAction) {
 			return parent.identicalCondition.call(this, otherAction) && otherAction.progress === this.progress;
 		},
-		async trigger() {
-			await this.source.seek(this.progress);
+		async trigger({dispatch}) {
+			await dispatch(`${source.name}/seek`, this.progress);
 		},
 	}),
 });
@@ -220,187 +221,47 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 		identicalCondition(otherAction) {
 			return parent.identicalCondition.call(this, otherAction) && otherAction.volume === this.volume;
 		},
-		async trigger() {
-			await this.source.volume(this.volume);
+		async trigger({dispatch}) {
+			await dispatch(`${source.name}/volume`, this.volume);
 		},
 	}),
 });
 
 
-/* //OLD
-	sj.Action = sj.Base.makeClass('Action', sj.Base, {
-		constructorParts: parent => ({
-			beforeInitialize() { 
-				//C these are properties that can not be changed via options, however they also cannot be static because they are calculated upon instantiation
-				if (sj.isType(sj.desiredPlayback.track, sj.Track)) this.source = sj.desiredPlayback.track.source;
-				this.source = sj.spotify; //TODO temp
-			},
-		}),
-		prototypeProperties: parent => ({
-			isSimilarAction(action) {
-				return sj.isType(action, Object) && this.constructorName === action.constructorName;
-			},
-			isIdenticalAction(action) {
-				return sj.isType(action, Object) && this.isSimilarAction(action) && this.state === action.state;
-			},
-			isParentAction(action) {
-				return false; // TODO ??? can this be merged in some way with isParent?
-			},
-		
-			removeOld(queue) {
-				// backwards deletion loop
-				for (let i = queue.length-1; i > -1; i--) {
-					console.log('asdf');
-					if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
-						queue.splice(i, 1);
-					}
-				}
-			},
-
-			async trigger() {
-				return new Promise(resolve => {
-					resolve(new sj.Success({
-						log: true,
-						origin: 'sj.Action.trigger',
-					}));
-				});
-			},
-		}),
-	});
-
-	sj.Start = sj.Base.makeClass('Start', sj.Action, {
-		constructorParts: parent => ({
-			beforeInitialize() {
-				this.state = sj.desiredPlayback.track;
-			},
-		}),
-		prototypeProperties: parent => ({
-			isParentAction() {
-				return item.constructorName === 'Toggle' || item.constructorName === 'Seek';
-			},
-		
-			async trigger() {
-				console.log('B');
-				//C pause all
-				await sj.asyncForEach(sj.Source.sources, async source => {
-					console.log('source', source);
-					await source.pause();
-				});
-
-				console.log('C');
-
-				//C start target
-				await this.source.start(this.state);
-
-				console.log('D');
-			},
-		}),
-	});
-	sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
-		constructorParts: parent => ({
-			beforeInitialize() {
-				this.state = desiredPlayback.isPlaying;
-			},
-		}),
-		prototypeProperties: parent => ({
-			async trigger() { 
-				if (this.state) { //? shouldn't this be reversed?
-					//C resume target source, pause other sources
-					await sj.asyncForEach(sj.Source.sources, async source => {
-						if (source === this.source) await source.resume();
-						else await source.pause();
-					});
-				} else {
-					//C pause all sources
-					await sj.asyncForEach(sj.Source.sources, async source => {
-						await source.pause();
-					});
-				}
-			},
-		}),
-	});
-	sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
-		constructorParts: parent => ({
-			beforeInitialize() {
-				this.state = desiredPlayback.progress;
-			},
-		}),
-		prototypeProperties: parent => ({
-			async trigger() {
-				return this.source.seek(this.state).then(resolved => {
-					return new sj.Success({
-						log: true,
-						origin: 'sj.Seek.trigger()',
-						message: 'playback progress changed',
-					});
-				}).catch(rejected => {
-					throw sj.propagate(rejected);
-				});
-			},
-		}),
-	});
-	sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
-		constructorParts: parent => ({
-			beforeInitialize() {
-				this.state = desiredPlayback.volume;
-			},
-		}),
-		prototypeProperties: parent => ({
-			async trigger() {
-				// TODO
-			},
-		}),
-	});
-*/
-
-
+//G these should only be used with VueX
+//TODO //! if anything is undefined it wont be registered at the start in VueX, fix this
 sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 	constructorParts: parent => ({
 		defaults: {
 			// NEW
+			state: Object.create(sj.Playback.state),
+			actions: {},
+			mutations: {},
+			getters: {},
+			modules: {},
+		},
+	}),
+	staticProperties: parent => ({
+		state: {
 			source: undefined,
-
 			track: undefined,
 			isPlaying: false,
 			progress: 0,
-			timestamp: Date.now(),
 			volume: 0,
+			timestamp: Date.now(),
 		},
+		module: {
+
+		}
 	}),
-	staticProperties(parent) {
-		//TODO put playback queue in here?
+});
+sj.Playback.module = new sj.Playback({
+	//G main playback module for app
+	modules: {},
 
-		this.queue = {
-			sent: undefined,
-			queue: [],
-			async check() {
-				await sj.asyncForEach(sj.Source.sources, async source => {
-					await source.checkPlayback();
-				});
-			},
-			async push(action) {
-				console.log('ACTION', action);
-
-				// redundancy checks
-				action.removeOld(this.queue);
-				
-				// count parents in queue
-				var parents = 0;
-				this.queue.forEach(function (item) {
-					if (item.isParentAction(action)) {
-						parents++;
-					}
-				});
-
-				// push only if action has a parent in the way or if action is different from sentAction
-				if (parents !== 0 || !action.isIdenticalAction(this.sent)) {
-					this.queue.push(action);
-					console.log('QUEUE', this.queue, action);
-					this.sendNext();
-				}
-			},
-
-			//  //R
+	state: {
+		/* Old Queue Thought Process
+				//  //R
 			// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
 			// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
 			// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
@@ -408,217 +269,179 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 			// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
 			// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
 
-			async sendNext() {
-				// restart if finished sent action && queue not empty
-				if (this.sent === undefined && this.queue.length > 0) {
-					this.sent = this.queue[0];
-					this.queue.splice(0, 1);
-		
-					// TODO checkPlaybackState every action just like before, find a better way
-					// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
-					// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-					this.check().then(resolved => {
-						// !!! why arrow functions? because of lexical scoping, this is able to refer to sj.Playback.queue not just the function's body
-						console.log('A', this.sent);
-						return this.sent.trigger();
-					}).then(resolved => {
-						// TODO temporary delay - see reflection
-						return delay(500);
-					}).then(resolved => {
-						// TODO handle resolved, nothing needed to be handled before???
-						this.sent = undefined;
-						this.sendNext();
-					}, rejected => {
-						// TODO handle action rejected
-		
-						//  	Action Failure Handling 
-						// 	!!! old, meant for individual action types
-		
-						// send action, change pendingAction to true, wait
-						// 	if success: change pendingAction to false
-						// 		if queuedAction exists: change action to queuedAction, clear queued action, repeat...
-						// 		else: nothing
-						// 	if failure: 
-						// 		if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
-						// 		else: trigger auto-retry process
-						// 			if success: repeat...
-						// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
-		
-						
-						console.log('SEND NEXT - ERROR:', rejected);
-						this.sent = undefined;
-					});
-				}
-			},
-			hasObject(type) {
-				if (sent.constructorName === type) {
-					return true;
-				} else {
-					this.queue.forEach(function (item) {
-						if (item.constructorName === type) {
-							return true;
-						}
-					});
-					return false;
-				}
-			},
-		};	
+			TODO checkPlaybackState every action just like before, find a better way
+				// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
+				// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
+
+			Action Failure Handling 
+				// 	!!! old, meant for individual action types
+
+				// send action, change pendingAction to true, wait
+				// 	if success: change pendingAction to false
+				// 		if queuedAction exists: change action to queuedAction, clear queued action, repeat...
+				// 		else: nothing
+				// 	if failure: 
+				// 		if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+				// 		else: trigger auto-retry process
+				// 			if success: repeat...
+				// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
+		*/
+		actionQueue: [],
+		sentAction: undefined,
+
+		actualPlayback: Object.create(sj.Playback.state),
 	},
-});
+	actions: {
+		async start({dispatch}, track) {
+			//? should this be awaited?
+			await dispatch('pushAction', new sj.Start({
+				track,
+			}));
+		
+			// Set slider range to track duration
+			//$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
+		},
+		async pause({dispatch}) {
+			await dispatch('pushAction', new sj.Toggle({
+				isPlaying: false,
+			}));
+		},
+		async resume({dispatch}) {
+			await dispatch('pushAction', new sj.Toggle({
+				isPlaying: true,
+			}));
+		},
+
+		async toggle({dispatch, getters: {desiredPlayback: {isPlaying}}}) {
+			await dispatch('pushAction', new sj.Toggle({
+				isPlaying: !isPlaying,
+			}));
+		},
+		async seek({dispatch}, ms) {
+			await dispatch('pushAction', new sj.Seek({
+				progress: 0//TODO,
+			}));
+		},
+		async volume({dispatch}, volume) {
+			await dispatch('pushAction', new sj.Volume({
+				volume,
+			}));
+		},
 
 
+		//-----------
+		async checkPlayback(context) {
+
+
+			await sj.asyncForEach(context.state.sourcePlaybacks, playback => {
+				await playback.source.checkPlayback();
+			});
+
+			await sj.asyncForEach(sj.Source.sources, async source => {
+				await context.dispatch(`${source.name}/checkPlayback`);
+			});
+		},
+
+
+		async pushAction(context, action) {
+			const {actionQueue, sentAction, actualPlayback} = context.state;
+
+			let push = true;
+
+			//C remove redundant actions if necessary
+			const compact = function (i) {
+				if (i >= 0) {
+					//R collapse is required to keep the new action rather than just leaving the existing because sj.Start collapses different actions than itself
+					if (action.collapseCondition(actionQueue[i])) {
+						push = true;
+						context.commit('removeQueuedAction', i);
+						compact(i-1);
+					} else if (action.annihilateCondition(actionQueue[i])) {
+						push = false;
+						context.commit('removeQueuedAction', i);
+						compact(i-1);
+					} else {
+						return;
+					}
+				}
+			};
+			compact(actionQueue.length-1);
+
+			//C don't push new action if is identical to a sent action
+			if (sentAction !== undefined && action.identicalCondition(sentAction)) push === false;
+			//C don't push new action if no sent action exists and is identical to the actual playback 
+			if (sentAction === undefined && action.identicalCondition(actualPlayback)) push === false;
+
+			//C push action the queue and restart the queue if not already processing
+			if (push) context.commit('addQueuedAction', action);
+			context.dispatch('nextAction');
+		},
+
+		async nextAction(context) {
+			const {actionQueue, sentAction} = context.state;
+
+			//C return if action is still processing or if no queued actions exist
+			if (sentAction !== undefined || actionQueue.length <= 0) return;
+
+			//C move the action from the queue to sent
+			context.commit('setSentAction', actionQueue[0]);
+			context.commit('removeQueuedAction', 0);
+			
+			//C trigger the action
+			await sentAction.trigger(context); //TODO what happens on failure?
+			context.commit('setActualPlayback', {...sentAction, timestamp: Date.now()}); //TODO//? will this cause any problems here?
+
+			//C mark the sent action as finished, start next action
+			context.commit('removeSentAction');
+			context.dispatch('nextAction');
+		},
+	},
+	mutations: {
+		setDesiredPlayback(state, playbackValues) {
+			Object.assign(state.desiredPlayback, playbackValues);
+		},
+		setActualPlayback(state, playbackValues) {
+			Object.assign(state.actualPlayback, playbackValues);
+		},
+		addQueuedAction({actionQueue}, action) {
+			actionQueue.push(action);
+		},
+		removeQueuedAction({actionQueue}, index) {
+			actionQueue.splice(index, 1);
+		},
+		setSentAction({sentAction}, action) {
+			sentAction = action;
+		},
+		removeSentAction({sentAction}) {
+			sentAction = undefined;
+		},
+	},
+	getters: {
+		desiredPlayback: ({actualPlayback, sentAction, actionQueue}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
+	},
+})
+
+// SOURCE
 sj.Source.augmentClass({
 	constructorParts: parent => ({
 		defaults: {
-			playback: new sj.Playback(), //! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
+			auth: undefined,
+			getAccessToken: undefined,
+			request: undefined,
 
-			//C empty throw functions, used in standard playback functions
-			loadApi: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'loadApi()',
-					message: 'api could not be loaded',
-					reason: 'no source',
-				});
-			},
-			loadPlayer: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'loadPlayer()',
-					message: 'player could not be loaded',
-					reason: 'no source',
-				});
-			},
-	
-			search: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'search()',
-					message: 'unable to search',
-					reason: 'no source',
-				});
-			},
-			getTracks: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'getTracks()',
-					message: 'unable to get tracks',
-					reason: 'no source',
-				});
-			},
-	
-			checkPlayback: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiStart()',
-					message: 'could not check playback',
-					reason: 'no source',
-				});
-			},
-	
-			apiStart: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiStart()',
-					message: 'track could not be started',
-					reason: 'no source',
-				});
-			},
-			apiResume: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiResume()',
-					message: 'track could not be resumed',
-					reason: 'no source',
-				});
-			},
-			apiPause: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiPause()',
-					message: 'track could not be paused',
-					reason: 'no source',
-				});
-			},
-			apiSeek: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiSeek()',
-					message: 'track could not be seeked',
-					reason: 'no source',
-				});
-			},
-			apiVolume: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiVolume()',
-					message: 'volume could not be changed',
-					reason: 'no source',
-				});
-			},
+
+			player: undefined,
+			loadPlayer: undefined,
+			playback: new Playback(),
 		},
-	}),
-	prototypeProperties: parent => ({
-		async start(track) {
-			return this.apiStart(track).then(resolved => {
-				this.playback.isPlaying = true;
-				this.playback.track = track;
-				this.playback.progress = 0;
-				this.playback.timestamp = Date.now();
-	
-				return resolved;
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		},
-		async resume() {
-			if (!this.playback.isPlaying) { 
-				return this.apiResume().then(resolved => {
-					this.playback.isPlaying = true;
-					return resolved;
-				}).catch(rejected => {
-					throw rejected;
-				});
-			} else {
-				return new sj.Success({
-					log: true,
-					origin: this.name + '.resume()',
-					message: 'track already playing',
-				});
-			}
-		},
-		async pause() {
-			if (this.playback.isPlaying) {
-				return this.apiPause().then(resolved => {
-					this.playback.isPlaying = false;
-					return resolved;
-				}).catch(rejected => {
-					throw sj.propagate(rejected);
-				});
-			} else {
-				return new sj.Success({
-					log: true,
-					origin: this.name + '.pause()',
-					message: 'track already paused',
-				});
-			}
-		},
-		async seek() {
-			return this.apiSeek(ms).then(resolved => {
-				this.playback.progress = ms;
-				this.playback.timestamp = Date.now();
-				return resolved;
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		},
-		async volume() {
-			return this.apiVolume(volume).then(resolved => {
-				this.playback.volume = volume;
-				return resolved;
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
+		afterInit() {
+			this.playback.state.source = this;
+
+			//C push own playback module to main playback modules
+			sj.Playback.module.modules[this.name] = {
+				...this.playback,
+				namespaced: true,
+			};
 		},
 	}),
 });
@@ -644,27 +467,6 @@ sj.session.logout = async function () {
 };
 
 
-//  ██╗   ██╗███████╗███████╗██████╗ 
-//  ██║   ██║██╔════╝██╔════╝██╔══██╗
-//  ██║   ██║███████╗█████╗  ██████╔╝
-//  ██║   ██║╚════██║██╔══╝  ██╔══██╗
-//  ╚██████╔╝███████║███████╗██║  ██║
-//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
-
-/* TODO 
-	maxLength attribute can be used for input elements, use this to get real-time validation checks for max length
-*/
-
-
-//  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
-//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██║     ██║██╔════╝╚══██╔══╝
-//  ██████╔╝██║     ███████║ ╚████╔╝ ██║     ██║███████╗   ██║   
-//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██║     ██║╚════██║   ██║   
-//  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
-//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝   
-
-
-
 //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
@@ -678,85 +480,624 @@ sj.session.logout = async function () {
 	Is there a significant discrepancy between potential synchronous/local sources (listeners) and asynchronous api calls for progress checks? Which information sources are synchronous/local? Should their information override the api information?
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
 */
-//TODO augment source with new properties for these methods, then simply pass them in on creation
 
 // global source objects
 sj.spotify = new sj.Source({
 	name: 'spotify',
 	//api: new SpotifyWebApi(),
+
+	async auth() {
+		//C prompts the user to accept permissions in a new window, then receives an auth code from spotify
+		/* //R
+			this was split in to multiple parts on the client side to have an automatically closing window
+			//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+			//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
+	
+		*/
+	
+		//C request url
+		let requestCredentials = await sj.request('GET', `${sj.API_URL}/spotify/authRequestStart`);
+	
+		//C open spotify auth request window
+		//L https://www.w3schools.com/jsref/met_win_open.asp
+		let authWindow = window.open(requestCredentials.authRequestURL);
+	
+		//C listen for response from spotify
+		//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
+		let authCredentials = await sj.request('POST', `${sj.API_URL}/spotify/authRequestEnd`, requestCredentials);
+	
+		//C automatically close window when data is received
+		authWindow.close();
+	
+		//C exchange auth code for tokens
+		let tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
+		this.credentials.accessToken = tokens.accessToken;
+		this.credentials.expires = tokens.accessToken;
+		this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
+	
+		return new sj.Success({
+			origin: 'sj.spotify.auth()',
+			message: 'authorized spotify',
+		});
+		
+		//TODO there needs to be a scopes (permissions) check in here somewhere
+	
+		/* old
+			//C request authURL & authKey
+			return fetch(`${sj.API_URL}/spotify/startAuthRequest`).then(resolved => {
+				//C open spotify auth request window
+				//L https://www.w3schools.com/jsref/met_win_open.asp
+				authRequestWindow = window.open(resolved.authRequestURL);
+				return resolved;
+			}).then(resolved => {
+				//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
+				return fetch(`${sj.API_URL}/spotify/endAuthRequest`,  {
+					method: 'post',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(resolved),
+				});
+			}).then(resolved => {
+				return resolved.json();
+			}).then(resolved => {
+				authRequestWindow.close();
+				return resolved;
+			}).catch(rejected => {
+				throw sj.propagate(rejected);
+			});
+		*/
+	},
+	async getAccessToken() {
+		//C gets the api access token, handles all refreshing, initializing, errors, etc.
+		//C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
+	
+		//TODO must respond to denials by spotify too
+	
+		//C refresh
+		let that = this;
+		let refresh = async function (that) {
+			let result = await sj.request('GET', `${sj.API_URL}/spotify/refreshToken`).catch(sj.andResolve);
+			if (sj.isType(result, sj.AuthRequired)) {
+				//C call auth() if server doesn't have a refresh token
+				await that.auth();
+			} else if (sj.isType(result, sj.Error)) {
+				throw sj.propagate(result);
+			} else {
+				//C assign sj.spotify.credentials
+				that.credentials.accessToken = result.accessToken;
+				that.credentials.expires = result.accessToken;
+			}	
+		};
+	
+		//C if client doesn't have token or if it has expired, refresh it immediately
+		if (sj.isEmpty(this.credentials.accessToken) || this.credentials.expires <= Date.now()) {
+			await refresh(that);
+		}
+		//C if token is soon to expire, refresh in the background, return the existing token
+		if (this.credentials.expires <= Date.now() + this.refreshBuffer) {
+			refresh(that);
+		}
+	
+		return this.credentials.accessToken;
+	},
+	async request(method, path, body) {
+		//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
+		let urlPrefix = 'https://api.spotify.com/v1';
+		let token = await this.getAccessToken();
+		let header = {
+			...sj.JSON_HEADER,
+			Authorization: `Bearer ${token}`,
+		};
+	
+		return await sj.request(method, `${urlPrefix}/${path}`, body, header);
+	},
+
+	async loadPlayer() {
+		let that = this;
+		return await new Promise((resolve, reject) => {
+			window.onSpotifyWebPlaybackSDKReady = function () { // this can be async if needed
+				const player = new window.Spotify.Player({
+					name: 'StreamJockey', //TODO make global //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
+					getOAuthToken: async callback => {
+						let token = await that.getAccessToken();
+						callback(token);
+					},
+					//volume: 1, //C initialize with a custom volume (default is 1)
+				});
+				
+	
+				//C events
+				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+				player.on('ready', async ({device_id}) => {
+					//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
+					//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+	
+					//L transfer playback: https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
+					await that.request('PUT', 'me/player', {
+						device_ids: [device_id],
+						play: true, //? check desired behavior ('ensure playback happens on new device' or 'keep the current playback state')
+					}).catch(rejected => {
+						reject(new sj.Error({
+							log: true,
+							//code: JSON.parse(error.response).error.status,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player could not be loaded',
+							//reason: JSON.parse(error.response).error.message,
+							content: rejected,
+						}));
+					});
+	
+					resolve(new sj.Success({
+						log: true,
+						origin: 'spotify.loadPlayer()',
+						message: 'spotify player loaded',
+						content: player,
+					}));
+	
+					/* old
+						spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
+							triggerResolve(new sj.Success({
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player loaded',
+							}));
+	
+							// TODO updatePlayback(); ?
+						}, function (rejected) {
+							triggerReject(new sj.Error({
+								log: true,
+								code: JSON.parse(error.response).error.status,
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player could not be loaded',
+								reason: JSON.parse(error.response).error.message,
+								content: error,
+							}));
+						}).catch(function (rejected) {
+							triggerReject(new sj.Error({
+								log: true,
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player could not be loaded',
+								content: rejected,
+							}));
+						});
+					*/
+				});
+				player.on('not_ready', ({device_id}) => {
+					//? don't know what to do here
+				});
+	
+				//C errors
+				//TODO make better handlers
+				//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
+				player.on('initialization_error', ({message}) => {
+					//C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+					reject(new sj.Error({
+						log: true,
+						origin: 'spotify.loadPlayer()',
+						message: 'spotify player encountered an initialization error',
+						reason: message,
+					}));
+				});
+				player.on('authentication_error', ({message}) => {
+					//C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+					reject(new sj.Error({
+						log: true,
+						origin: 'spotify.loadPlayer()',
+						message: 'spotify player encountered an authentication error',
+						reason: message,
+					}));
+				});
+				player.on('account_error', ({message}) => {
+					//C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+					reject(new sj.Error({
+						log: true,
+						origin: 'spotify.loadPlayer()',
+						message: 'this account does not have a valid Spotify Premium subscription',
+						reason: message,
+					}));
+				});
+	
+				//C ongoing listeners
+				player.on('player_state_changed', state => {
+					/* 
+						//C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
+						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
+						{
+							context: {
+								uri: 'spotify:album:xxx', // The URI of the context (can be null)
+								metadata: {},             // Additional metadata for the context (can be null)
+							},
+							disallows: {                // A simplified set of restriction controls for
+								pausing: false,           // The current track. By default, these fields
+								peeking_next: false,      // will either be set to false or undefined, which
+								peeking_prev: false,      // indicates that the particular operation is
+								resuming: false,          // allowed. When the field is set to `true`, this
+								seeking: false,           // means that the operation is not permitted. For
+								skipping_next: false,     // example, `skipping_next`, `skipping_prev` and
+								skipping_prev: false      // `seeking` will be set to `true` when playing an
+														// ad track.
+							},
+							paused: false,  // Whether the current track is paused.
+							position: 0,    // The position_ms of the current track.
+							repeat_mode: 0, // The repeat mode. No repeat mode is 0,
+											// once-repeat is 1 and full repeat is 2.
+							shuffle: false, // True if shuffled, false otherwise.
+							track_window: {
+								current_track: <WebPlaybackTrack>,                              // The track currently on local playback
+								previous_tracks: [<WebPlaybackTrack>, <WebPlaybackTrack>, ...], // Previously played tracks. Number can vary.
+								next_tracks: [<WebPlaybackTrack>, <WebPlaybackTrack>, ...]      // Tracks queued next. Number can vary.
+							}
+						}
+					*/
+		
+					//console.log('STATE: ', state);
+		
+					that.playback.timestamp = state.timestamp;
+					that.playback.isPlaying = !state.paused;
+					that.playback.progress = state.position;
+		
+					//TODO check these
+					that.playback.track = {
+						source: that,
+						sourceId: state.track_window.current_track.id,
+						artists: [],
+						title: state.track_window.current_track.name,
+						duration: state.track_window.current_track.duration_ms,
+					}
+					// fill artists
+					state.track_window.current_track.artists.forEach(function (artist, i) {
+						that.playback.track.artists[i] = artist.name;
+					});
+				});
+				player.on('playback_error', ({message}) => {
+					//TODO this should be a listener, and not resolve or reject
+				});
+	
+	
+				//C connect player
+				player.connect().then(resolved => {
+					//C 'returns a promise with a boolean for whether or not the connection was successful'
+					//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+					//! do not resolve here, the player will trigger the 'ready' event when its truly ready
+					if (!resolved) {
+						reject(new sj.Error({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player failed to connect',
+							reason: 'spotify.connect() failed',
+						}));
+					}
+				}, rejected => {
+					//! a rejection shouldn't be possible here
+					reject(new sj.Error({
+						log: true,
+						origin: 'spotify.loadPlayer()',
+						message: 'spotify player failed to connect',
+						reason: 'spotify.connect() failed, this should not be reachable',
+						content: rejected,
+					}));
+				});
+	
+				/* //R
+					//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
+					//L events: https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
+					let eventName = 'spotifyLoadPlayer';
+					// listener
+					window.addEventListener(eventName, function (customEvent) {
+						if (customEvent.detail.resolved) {
+							resolve(customEvent.detail.data);
+						} else {
+							reject(customEvent.detail.data);
+						}
+					}, {once: true});
+					// triggers
+					function triggerResolve(data) {
+						window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: true, data}}));
+					}
+					function triggerReject(data) {
+						window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: false, data}}));
+					}
+				*/
+			}
+	
+			//C dynamic import spotify's sdk
+			//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
+			import(/* webpackChunkName: 'spotify-player' */ `./spotify-player.js`);
+		});
+	
+		/* old
+			// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
+			// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
+			// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+	
+			// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
+	
+			return new Promise(function (resolve, reject) {
+				// setup resolve/reject listeners
+				window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
+					resolve(e.detail);
+					e.currentTarget.removeEventListener(e.type, function () {});
+				});
+	
+				window.addEventListener('spotifyLoadPlayerFailure', function (e) {
+					reject(e.detail);
+					e.currentTarget.removeEventListener(e.type, function () {});
+				});
+	
+				// simplify event triggers
+				function triggerResolve(data) {
+					window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {detail: data}));
+				}
+	
+				function triggerReject(data) {
+					window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {detail: data}));
+				}
+				
+				
+				window.onSpotifyWebPlaybackSDKReady = function () {
+					// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
+					try {
+						// initialize
+						var player = new Spotify.Player({
+							name: WEB_PLAYER_NAME,
+							getOAuthToken: cb => { cb(spotifyAccessToken); }
+						});
+	
+						// configure listeners
+						// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+						
+						// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
+	
+						player.addListener('playback_error', function ({message}) { 
+							console.error(message); 
+							// TODO handle me
+						});
+	
+						// playback status updates
+						player.addListener('player_state_changed', function (state) {
+							// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+							spotify.playback.timestamp = state.timestamp;
+							spotify.playback.isPlaying = !state.paused;
+							spotify.playback.progress = state.position;
+							spotify.playback.track = {
+								source: spotify,
+								sourceId: state.track_window.current_track.id,
+								artists: [],
+								title: state.track_window.current_track.name,
+								duration: state.track_window.current_track.duration_ms,
+							}
+	
+							// fill artists
+							state.track_window.current_track.artists.forEach(function (artist, i) {
+								spotify.playback.track.artists[i] = artist.name;
+							});
+						});
+	
+						// error handling
+						player.addListener('initialization_error', function ({message}) { 
+							//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+							triggerReject(new sj.Error({
+									log: true,
+									origin: 'spotify.loadPlayer()',
+									message: 'spotify player encountered an initialization error',
+									reason: message,
+								})
+							);
+						});
+	
+						player.addListener('authentication_error', function ({message}) { 
+							// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+							triggerReject(new sj.Error({
+									log: true,
+									origin: 'spotify.loadPlayer()',
+									message: 'spotify player encountered an authentication error',
+									reason: message,
+								})
+							);
+						});
+	
+						player.addListener('account_error', function ({message}) {
+							// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+							triggerReject(new sj.Error({
+									log: true,
+									origin: 'spotify.loadPlayer()',
+									message: 'this account does not have a valid Spotify Premium subscription',
+									reason: message,
+								})
+							);
+						});
+	
+						// ready
+						player.addListener('ready', function ({device_id}) {
+							// returns a WebPlaybackPlayer object which just contains the created device_id
+							// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+	
+							spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
+								triggerResolve(new sj.Success({
+									origin: 'spotify.loadPlayer()',
+									message: 'spotify player loaded',
+								}));
+	
+								// TODO updatePlayback(); ?
+							}, function (rejected) {
+								triggerReject(new sj.Error({
+									log: true,
+									code: JSON.parse(error.response).error.status,
+									origin: 'spotify.loadPlayer()',
+									message: 'spotify player could not be loaded',
+									reason: JSON.parse(error.response).error.message,
+									content: error,
+								}));
+							}).catch(function (rejected) {
+								triggerReject(new sj.Error({
+									log: true,
+									origin: 'spotify.loadPlayer()',
+									message: 'spotify player could not be loaded',
+									content: rejected,
+								}));
+							});
+						});
+	
+						// connect to player
+						player.connect().then(function (resolved) {
+							// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+							// returns a promise with a boolean for whether or not the connection was successful
+							// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
+							if (!resolved) {
+								triggerReject(new sj.Error({
+									log: true,
+									origin: 'spotify.loadPlayer()',
+									message: 'spotify player failed to connect',
+									reason: 'spotify.connect() failed',
+								}));
+							}
+						}, function (rejected) {
+							// should not be possible to get here, but handle it either way
+							triggerReject(new sj.Error({
+								log: true,
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player failed to connect',
+								reason: 'spotify.connect() failed',
+								content: rejected,
+							}));
+						});
+					} catch (e) {
+						triggerReject(new sj.Error({
+							log: true,
+							origin: 'spotify.loadPlayer()',
+							message: 'spotify player failed to connect',
+							reason: e,
+							content: e,
+						}));
+					}
+				}
+				
+	
+				$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
+					triggerReject(new sj.Error({
+						log: true,
+						origin: 'spotify.loadPlayer()',
+						message: 'failed to load spotify player',
+						reason: exception,
+					}));
+				});
+			});
+		*/
+	},
+
+	playback: new sj.Playback({
+		actions: {
+			async checkPlayback({state: {source}, commit}) {
+				const currentState = await source.player.getCurrentState().catch(rejected => {
+					throw new sj.Error({
+						log: true,
+						//code: JSON.parse(rejected.response).error.status,
+						origin: 'spotify.checkPlayback()',
+						message: 'failed to check spotify playback state',
+						//reason: JSON.parse(rejected.response).error.message,
+						content: rejected,
+					});
+				});
+				const t = currentState.track_window.current_track; //C shorthand
+				const formattedState = {
+					track: new sj.Track({
+						source: source,
+						sourceId: t.id,
+						name: t.name,
+						duration: t.duration_ms,
+						artists: t.artists.map(artist => artist.name),
+						//TODO link: t.uri,
+					}),
+					isPlaying: !currentState.paused, //TODO change isPlaying to isPlaying //TODO might cause an error if no track is playing
+					progress: currentState.position, //TODO is this supposed to be a ratio or the absolute ms progress?
+					timestamp: currentState.timestamp,
+				};
+	
+				commit('setPlayback', formattedState);
+	
+				return new sj.Success({
+					log: true,
+					origin: 'spotify module action - checkPlayback()',
+					message: 'spotify playback checked',
+					content: state,
+				});
+			},
+			
+			//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
+			//TODO probably put state updates in here too
+			async start({state: {source}}, track) {
+				await source.request('PUT', 'me/player/play', {
+					uris: [`spotify:track:${track.sourceId}`],
+				}).catch(rejected => {
+					throw new sj.Error({
+						log: true,
+						//code: JSON.parse(rejected.response).error.status,
+						origin: 'spotify.start()',
+						message: 'spotify track could not be started',
+						//reason: JSON.parse(rejected.response).error.message,
+						content: rejected,
+					});
+				});
+			},
+			async pause({state: {source}}) {
+				await source.player.resume().catch(rejected => {
+					throw new sj.Error({
+						log: true,
+						//code: JSON.parse(rejected.response).error.status,
+						origin: 'spotify.pause()',
+						message: 'spotify track could not be paused',
+						//reason: JSON.parse(rejected.response).error.message,
+						content: rejected,
+					});
+				});
+			},
+			async resume({state: {source}}) {
+				await source.player.pause().catch(rejected => {
+					throw new sj.Error({
+						log: true,
+						//code: JSON.parse(rejected.response).error.status,
+						origin: 'spotify.resume()',
+						message: 'spotify track could not be resumed',
+						//reason: JSON.parse(rejected.response).error.message,
+						content: rejected,
+					});
+				});
+			},
+			async seek({state: {source}}, ms) {
+				await source.player.seek(ms).catch(rejected => {
+					throw new sj.Error({
+						log: true,
+						//code: JSON.parse(rejected.response).error.status,
+						origin: 'spotify.seek()',
+						message: 'spotify track could not be seeked',
+						//reason: JSON.parse(rejected.response).error.message,
+						content: rejected,
+					});
+				});
+			},
+			async volume({state: {source}}, volume) {
+				await source.player.setVolume(volume);
+			},
+		},
+		mutations: {
+			setPlayback(state, playbackValues) {
+				Object.assign(state, playbackValues);
+			},
+		},
+	}),
 });
+
+
+
+//TODO youtube
 /*
 	sj.youtube = new sj.Source({
 		name: 'youtube',
 		idPrefix: 'https://www.youtube.com/watch?v=',
 	});
 */
-
-
 // auth
-sj.spotify.auth = async function () {
-    //C prompts the user to accept permissions in a new window, then receives an auth code from spotify
-    /* //R
-        this was split in to multiple parts on the client side to have an automatically closing window
-        //L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
-	    //! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
-
-    */
-
-    //C request url
-    let requestCredentials = await sj.request('GET', `${sj.API_URL}/spotify/authRequestStart`);
-
-    //C open spotify auth request window
-    //L https://www.w3schools.com/jsref/met_win_open.asp
-    let authWindow = window.open(requestCredentials.authRequestURL);
-
-    //C listen for response from spotify
-    //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-    let authCredentials = await sj.request('POST', `${sj.API_URL}/spotify/authRequestEnd`, requestCredentials);
-
-    //C automatically close window when data is received
-    authWindow.close();
-
-    //C exchange auth code for tokens
-	let tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
-	this.credentials.accessToken = tokens.accessToken;
-	this.credentials.expires = tokens.accessToken;
-	this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
-
-    return new sj.Success({
-        origin: 'sj.spotify.auth()',
-        message: 'authorized spotify',
-	});
-	
-	//TODO there needs to be a scopes (permissions) check in here somewhere
-
-    /* old
-        //C request authURL & authKey
-        return fetch(`${sj.API_URL}/spotify/startAuthRequest`).then(resolved => {
-            //C open spotify auth request window
-            //L https://www.w3schools.com/jsref/met_win_open.asp
-            authRequestWindow = window.open(resolved.authRequestURL);
-            return resolved;
-        }).then(resolved => {
-            //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-            return fetch(`${sj.API_URL}/spotify/endAuthRequest`,  {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(resolved),
-            });
-        }).then(resolved => {
-            return resolved.json();
-        }).then(resolved => {
-            authRequestWindow.close();
-            return resolved;
-        }).catch(rejected => {
-            throw sj.propagate(rejected);
-        });
-    */
-};
 /*
 	sj.youtube.auth = async function () {
 		//TODO
@@ -767,52 +1108,6 @@ sj.spotify.auth = async function () {
 		});
 	};
 */
-
-sj.spotify.getAccessToken = async function () {
-	//C gets the api access token, handles all refreshing, initializing, errors, etc.
-	//C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
-
-    //TODO must respond to denials by spotify too
-
-	//C refresh
-    let that = this;
-    let refresh = async function (that) {
-		let result = await sj.request('GET', `${sj.API_URL}/spotify/refreshToken`).catch(sj.andResolve);
-		if (sj.isType(result, sj.AuthRequired)) {
-			//C call auth() if server doesn't have a refresh token
-			await that.auth();
-		} else if (sj.isType(result, sj.Error)) {
-			throw sj.propagate(result);
-		} else {
-			//C assign sj.spotify.credentials
-			that.credentials.accessToken = result.accessToken;
-			that.credentials.expires = result.accessToken;
-		}	
-	};
-
-	//C if client doesn't have token or if it has expired, refresh it immediately
-    if (sj.isEmpty(this.credentials.accessToken) || this.credentials.expires <= Date.now()) {
-        await refresh(that);
-	}
-	//C if token is soon to expire, refresh in the background, return the existing token
-    if (this.credentials.expires <= Date.now() + this.refreshBuffer) {
-        refresh(that);
-	}
-
-    return this.credentials.accessToken;
-};
-sj.spotify.request = async function (method, path, body) {
-	//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
-	let urlPrefix = 'https://api.spotify.com/v1';
-	let token = await this.getAccessToken();
-	let header = {
-		...sj.JSON_HEADER,
-		Authorization: `Bearer ${token}`,
-	};
-
-	return await sj.request(method, `${urlPrefix}/${path}`, body, header);
-};
-
 /*
 	sj.youtube.loadApi = async function () { //TODO
 		// Get Script
@@ -875,399 +1170,7 @@ sj.spotify.request = async function (method, path, body) {
 		});
 	};
 */
-
 // player
-sj.spotify.loadPlayer = async function () {
-	let that = this;
-	return await new Promise((resolve, reject) => {
-		window.onSpotifyWebPlaybackSDKReady = function () { // this can be async if needed
-			const player = new window.Spotify.Player({
-				name: 'StreamJockey', //TODO make global //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-				getOAuthToken: async callback => {
-					let token = await that.getAccessToken();
-					callback(token);
-				},
-				//volume: 1, //C initialize with a custom volume (default is 1)
-			});
-			
-
-			//C events
-			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-			player.on('ready', async ({device_id}) => {
-				//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
-				//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-
-				//L transfer playback: https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
-				await that.request('PUT', 'me/player', {
-					device_ids: [device_id],
-					play: true, //? check desired behavior ('ensure playback happens on new device' or 'keep the current playback state')
-				}).catch(rejected => {
-					reject(new sj.Error({
-						log: true,
-						//code: JSON.parse(error.response).error.status,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player could not be loaded',
-						//reason: JSON.parse(error.response).error.message,
-						content: rejected,
-					}));
-				});
-
-				resolve(new sj.Success({
-					log: true,
-					origin: 'spotify.loadPlayer()',
-					message: 'spotify player loaded',
-					content: player,
-				}));
-
-				/* old
-					spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-						triggerResolve(new sj.Success({
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player loaded',
-						}));
-
-						// TODO updatePlayback(); ?
-					}, function (rejected) {
-						triggerReject(new sj.Error({
-							log: true,
-							code: JSON.parse(error.response).error.status,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player could not be loaded',
-							reason: JSON.parse(error.response).error.message,
-							content: error,
-						}));
-					}).catch(function (rejected) {
-						triggerReject(new sj.Error({
-							log: true,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player could not be loaded',
-							content: rejected,
-						}));
-					});
-				*/
-			});
-			player.on('not_ready', ({device_id}) => {
-				//? don't know what to do here
-			});
-
-			//C errors
-			//TODO make better handlers
-			//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
-			player.on('initialization_error', ({message}) => {
-				//C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-				reject(new sj.Error({
-					log: true,
-					origin: 'spotify.loadPlayer()',
-					message: 'spotify player encountered an initialization error',
-					reason: message,
-				}));
-			});
-			player.on('authentication_error', ({message}) => {
-				//C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-				reject(new sj.Error({
-					log: true,
-					origin: 'spotify.loadPlayer()',
-					message: 'spotify player encountered an authentication error',
-					reason: message,
-				}));
-			});
-			player.on('account_error', ({message}) => {
-				//C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-				reject(new sj.Error({
-					log: true,
-					origin: 'spotify.loadPlayer()',
-					message: 'this account does not have a valid Spotify Premium subscription',
-					reason: message,
-				}));
-			});
-
-			//C ongoing listeners
-			player.on('player_state_changed', state => {
-				/* 
-					//C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
-					//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
-					{
-						context: {
-							uri: 'spotify:album:xxx', // The URI of the context (can be null)
-							metadata: {},             // Additional metadata for the context (can be null)
-						},
-						disallows: {                // A simplified set of restriction controls for
-							pausing: false,           // The current track. By default, these fields
-							peeking_next: false,      // will either be set to false or undefined, which
-							peeking_prev: false,      // indicates that the particular operation is
-							resuming: false,          // allowed. When the field is set to `true`, this
-							seeking: false,           // means that the operation is not permitted. For
-							skipping_next: false,     // example, `skipping_next`, `skipping_prev` and
-							skipping_prev: false      // `seeking` will be set to `true` when playing an
-													// ad track.
-						},
-						paused: false,  // Whether the current track is paused.
-						position: 0,    // The position_ms of the current track.
-						repeat_mode: 0, // The repeat mode. No repeat mode is 0,
-										// once-repeat is 1 and full repeat is 2.
-						shuffle: false, // True if shuffled, false otherwise.
-						track_window: {
-							current_track: <WebPlaybackTrack>,                              // The track currently on local playback
-							previous_tracks: [<WebPlaybackTrack>, <WebPlaybackTrack>, ...], // Previously played tracks. Number can vary.
-							next_tracks: [<WebPlaybackTrack>, <WebPlaybackTrack>, ...]      // Tracks queued next. Number can vary.
-						}
-					}
-				*/
-	
-				//console.log('STATE: ', state);
-	
-				that.playback.timestamp = state.timestamp;
-				that.playback.isPlaying = !state.paused;
-				that.playback.progress = state.position;
-	
-				//TODO check these
-				that.playback.track = {
-					source: that,
-					sourceId: state.track_window.current_track.id,
-					artists: [],
-					title: state.track_window.current_track.name,
-					duration: state.track_window.current_track.duration_ms,
-				}
-				// fill artists
-				state.track_window.current_track.artists.forEach(function (artist, i) {
-					that.playback.track.artists[i] = artist.name;
-				});
-			});
-			player.on('playback_error', ({message}) => {
-				//TODO this should be a listener, and not resolve or reject
-			});
-
-
-			//C connect player
-			player.connect().then(resolved => {
-				//C 'returns a promise with a boolean for whether or not the connection was successful'
-				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-				//! do not resolve here, the player will trigger the 'ready' event when its truly ready
-				if (!resolved) {
-					reject(new sj.Error({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player failed to connect',
-						reason: 'spotify.connect() failed',
-					}));
-				}
-			}, rejected => {
-				//! a rejection shouldn't be possible here
-				reject(new sj.Error({
-					log: true,
-					origin: 'spotify.loadPlayer()',
-					message: 'spotify player failed to connect',
-					reason: 'spotify.connect() failed, this should not be reachable',
-					content: rejected,
-				}));
-			});
-
-			/* //R
-				//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
-				//L events: https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
-				let eventName = 'spotifyLoadPlayer';
-				// listener
-				window.addEventListener(eventName, function (customEvent) {
-					if (customEvent.detail.resolved) {
-						resolve(customEvent.detail.data);
-					} else {
-						reject(customEvent.detail.data);
-					}
-				}, {once: true});
-				// triggers
-				function triggerResolve(data) {
-					window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: true, data}}));
-				}
-				function triggerReject(data) {
-					window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: false, data}}));
-				}
-			*/
-		}
-
-		//C dynamic import spotify's sdk
-		//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
-		import(/* webpackChunkName: 'spotify-player' */ `./spotify-player.js`);
-	});
-
-	/* old
-		// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
-		// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
-		// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-
-		// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
-
-		return new Promise(function (resolve, reject) {
-			// setup resolve/reject listeners
-			window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
-				resolve(e.detail);
-				e.currentTarget.removeEventListener(e.type, function () {});
-			});
-
-			window.addEventListener('spotifyLoadPlayerFailure', function (e) {
-				reject(e.detail);
-				e.currentTarget.removeEventListener(e.type, function () {});
-			});
-
-			// simplify event triggers
-			function triggerResolve(data) {
-				window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {detail: data}));
-			}
-
-			function triggerReject(data) {
-				window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {detail: data}));
-			}
-			
-			
-			window.onSpotifyWebPlaybackSDKReady = function () {
-				// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
-				try {
-					// initialize
-					var player = new Spotify.Player({
-						name: WEB_PLAYER_NAME,
-						getOAuthToken: cb => { cb(spotifyAccessToken); }
-					});
-
-					// configure listeners
-					// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-					
-					// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
-
-					player.addListener('playback_error', function ({message}) { 
-						console.error(message); 
-						// TODO handle me
-					});
-
-					// playback status updates
-					player.addListener('player_state_changed', function (state) {
-						// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-						spotify.playback.timestamp = state.timestamp;
-						spotify.playback.isPlaying = !state.paused;
-						spotify.playback.progress = state.position;
-						spotify.playback.track = {
-							source: spotify,
-							sourceId: state.track_window.current_track.id,
-							artists: [],
-							title: state.track_window.current_track.name,
-							duration: state.track_window.current_track.duration_ms,
-						}
-
-						// fill artists
-						state.track_window.current_track.artists.forEach(function (artist, i) {
-							spotify.playback.track.artists[i] = artist.name;
-						});
-					});
-
-					// error handling
-					player.addListener('initialization_error', function ({message}) { 
-						//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-						triggerReject(new sj.Error({
-								log: true,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player encountered an initialization error',
-								reason: message,
-							})
-						);
-					});
-
-					player.addListener('authentication_error', function ({message}) { 
-						// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-						triggerReject(new sj.Error({
-								log: true,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player encountered an authentication error',
-								reason: message,
-							})
-						);
-					});
-
-					player.addListener('account_error', function ({message}) {
-						// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-						triggerReject(new sj.Error({
-								log: true,
-								origin: 'spotify.loadPlayer()',
-								message: 'this account does not have a valid Spotify Premium subscription',
-								reason: message,
-							})
-						);
-					});
-
-					// ready
-					player.addListener('ready', function ({device_id}) {
-						// returns a WebPlaybackPlayer object which just contains the created device_id
-						// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-
-						spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-							triggerResolve(new sj.Success({
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player loaded',
-							}));
-
-							// TODO updatePlayback(); ?
-						}, function (rejected) {
-							triggerReject(new sj.Error({
-								log: true,
-								code: JSON.parse(error.response).error.status,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player could not be loaded',
-								reason: JSON.parse(error.response).error.message,
-								content: error,
-							}));
-						}).catch(function (rejected) {
-							triggerReject(new sj.Error({
-								log: true,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player could not be loaded',
-								content: rejected,
-							}));
-						});
-					});
-
-					// connect to player
-					player.connect().then(function (resolved) {
-						// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-						// returns a promise with a boolean for whether or not the connection was successful
-						// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
-						if (!resolved) {
-							triggerReject(new sj.Error({
-								log: true,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player failed to connect',
-								reason: 'spotify.connect() failed',
-							}));
-						}
-					}, function (rejected) {
-						// should not be possible to get here, but handle it either way
-						triggerReject(new sj.Error({
-							log: true,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player failed to connect',
-							reason: 'spotify.connect() failed',
-							content: rejected,
-						}));
-					});
-				} catch (e) {
-					triggerReject(new sj.Error({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player failed to connect',
-						reason: e,
-						content: e,
-					}));
-				}
-			}
-			
-
-			$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
-				triggerReject(new sj.Error({
-					log: true,
-					origin: 'spotify.loadPlayer()',
-					message: 'failed to load spotify player',
-					reason: exception,
-				}));
-			});
-		});
-	*/
-};
 /*
 	sj.youtube.loadPlayer = function () { //TODO
 		//TODO make this async
@@ -1342,6 +1245,8 @@ sj.spotify.loadPlayer = async function () {
 //  ╚════██║██╔══╝  ██╔══██║██╔══██╗██║     ██╔══██║
 //  ███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║
 //  ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+
+//TODO move these into source / vuex
 
 sj.searchResults = {
 	// details
@@ -1555,55 +1460,6 @@ sj.spotify.getTracks = async function (items) {
 	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the actions is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, action, or playback level?
 */
 
-
-// DESIRED PLAYBACK
-sj.desiredPlayback = new sj.Playback({
-	//C sj.desiredPlayback properties reflect CURRENT user desires and the interface state.
-	//C The state of these properties are copied to sj.Actions which are then added to the queue
-
-});
-
-
-//! checkPlayback functions must save timestamp immediately after progress is available, however playing is one property type
-sj.spotify.checkPlayback = async function () {
-	console.log(this.player);
-
-	const currentState = await this.player.getCurrentState().catch(rejected => {
-		throw new sj.Error({
-			log: true,
-			//code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.checkPlayback()',
-			message: 'failed to check spotify playback state',
-			//reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	});
-
-	console.log('getCurrentState():', currentState);
-
-	const t = currentState.track_window.current_track;
-
-	this.playback.track = new sj.Track({
-		source: this,
-		sourceId: t.id,
-		name: t.name,
-		duration: t.duration_ms,
-		artists: t.artists.map(artist => artist.name),
-		//TODO link: t.uri,
-	});
-
-	//TODO change isPlaying to isPlaying
-	this.playback.isPlaying = !currentState.paused; //TODO might cause an error if no track is playing
-
-	this.playback.progress = currentState.position; //TODO is this supposed to be a ratio or the absolute ms progress?
-	this.playback.timestamp = currentState.timestamp;
-
-	return new sj.Success({
-		log: true,
-		origin: 'spotify.checkPlayback()',
-		message: 'spotify playback state checked',
-	});
-};
 /*
 	sj.youtube.checkPlayback = async function () {
 		// 3 player calls - these are all synchronous - should not return errors, but still check their possible return types
@@ -1676,7 +1532,6 @@ sj.spotify.checkPlayback = async function () {
 */
 
 
-
 //   ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     
 //  ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔══██╗██╔═══██╗██║     
 //  ██║     ██║   ██║██╔██╗ ██║   ██║   ██████╔╝██║   ██║██║     
@@ -1699,21 +1554,6 @@ sj.spotify.checkPlayback = async function () {
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlayback() to get more accurate information.
 */
 
-
-sj.spotify.apiStart = async function (track) {
-	await this.request('PUT', 'me/player/play', {
-		uris: [`spotify:track:${track.sourceId}`],
-	}).catch(rejected => {
-		throw new sj.Error({
-			log: true,
-			//code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.start()',
-			message: 'spotify track could not be started',
-			//reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	});
-};
 /*
 	sj.youtube.apiStart = async function (track) {
 		return new Promise(function (resolve, reject) {
@@ -1737,19 +1577,6 @@ sj.spotify.apiStart = async function (track) {
 		});
 	};
 */
-
-sj.spotify.apiResume = async function () {
-	await this.player.pause().catch(rejected => {
-		throw new sj.Error({
-			log: true,
-			//code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.resume()',
-			message: 'spotify track could not be resumed',
-			//reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	});
-};
 /*
 	sj.youtube.apiResume = async function () {
 		return new Promise(function (resolve, reject) {
@@ -1771,19 +1598,6 @@ sj.spotify.apiResume = async function () {
 		});
 	};
 */
-
-sj.spotify.apiPause = async function () {
-	await this.player.resume().catch(rejected => {
-		throw new sj.Error({
-			log: true,
-			//code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.pause()',
-			message: 'spotify track could not be paused',
-			//reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	});
-};
 /*
 	sj.youtube.apiPause = async function () {
 		return new Promise(function (resolve, reject) {
@@ -1805,19 +1619,6 @@ sj.spotify.apiPause = async function () {
 		});
 	};
 */
-
-sj.spotify.apiSeek = async function (ms) {
-	await this.player.seek(ms).catch(rejected => {
-		throw new sj.Error({
-			log: true,
-			//code: JSON.parse(rejected.response).error.status,
-			origin: 'spotify.seek()',
-			message: 'spotify track could not be seeked',
-			//reason: JSON.parse(rejected.response).error.message,
-			content: rejected,
-		});
-	});
-};
 /*
 	sj.youtube.apiSeek = async function (ms) {
 		return new Promise(function (resolve, reject) {
@@ -1841,10 +1642,6 @@ sj.spotify.apiSeek = async function (ms) {
 		});
 	};
 */
-
-sj.spotify.apiVolume = async function (volume) {
-	await this.player.setVolume(volume);
-};
 /*
 	sj.youtube.apiVolume = async function (volume) {
 	};
@@ -1855,258 +1652,3 @@ export default sj;
 
 
 
-
-//-------------
-
-sj.spotify.makeVueXModule = function () {
-	const that = this;
-
-	return {
-		namespaced: true,
-		
-		state: new sj.Playback(),
-			actions: {
-				async checkPlayback({state, commit}) {
-					const currentState = await that.player.getCurrentState().catch(rejected => {
-						throw new sj.Error({
-							log: true,
-							//code: JSON.parse(rejected.response).error.status,
-							origin: 'spotify.checkPlayback()',
-							message: 'failed to check spotify playback state',
-							//reason: JSON.parse(rejected.response).error.message,
-							content: rejected,
-						});
-					});
-					const t = currentState.track_window.current_track; //C shorthand
-					const formattedState = {
-						track: new sj.Track({
-							source: that,
-							sourceId: t.id,
-							name: t.name,
-							duration: t.duration_ms,
-							artists: t.artists.map(artist => artist.name),
-							//TODO link: t.uri,
-						}),
-						isPlaying: !currentState.paused, //TODO change isPlaying to isPlaying //TODO might cause an error if no track is playing
-						progress: currentState.position, //TODO is this supposed to be a ratio or the absolute ms progress?
-						timestamp: currentState.timestamp,
-					};
-
-					commit('setPlayback', formattedState);
-
-					return new sj.Success({
-						log: true,
-						origin: 'spotify module action - checkPlayback()',
-						message: 'spotify playback checked',
-						content: state,
-					});
-				},
-
-				//TODO probably put state updates in here too
-				async start(context, track) {
-					await that.request('PUT', 'me/player/play', {
-						uris: [`spotify:track:${track.sourceId}`],
-					}).catch(rejected => {
-						throw new sj.Error({
-							log: true,
-							//code: JSON.parse(rejected.response).error.status,
-							origin: 'spotify.start()',
-							message: 'spotify track could not be started',
-							//reason: JSON.parse(rejected.response).error.message,
-							content: rejected,
-						});
-					});
-				},
-				async pause() {
-					await that.player.resume().catch(rejected => {
-						throw new sj.Error({
-							log: true,
-							//code: JSON.parse(rejected.response).error.status,
-							origin: 'spotify.pause()',
-							message: 'spotify track could not be paused',
-							//reason: JSON.parse(rejected.response).error.message,
-							content: rejected,
-						});
-					});
-				},
-				async resume() {
-					await that.player.pause().catch(rejected => {
-						throw new sj.Error({
-							log: true,
-							//code: JSON.parse(rejected.response).error.status,
-							origin: 'spotify.resume()',
-							message: 'spotify track could not be resumed',
-							//reason: JSON.parse(rejected.response).error.message,
-							content: rejected,
-						});
-					});
-				},
-				async seek(context, ms) {
-					await this.player.seek(ms).catch(rejected => {
-						throw new sj.Error({
-							log: true,
-							//code: JSON.parse(rejected.response).error.status,
-							origin: 'spotify.seek()',
-							message: 'spotify track could not be seeked',
-							//reason: JSON.parse(rejected.response).error.message,
-							content: rejected,
-						});
-					});
-				},
-				async volume(context, volume) {
-					await this.player.setVolume(volume);
-				},
-			},
-			mutations: {
-				setPlayback(state, playbackValues) {
-					Object.assign(state, playbackValues);
-				},
-			},
-	};
-};
-
-//TODO use modules
-
-const playerStore = {
-	modules: { //TODO maybe add to modules upon source create, that way iteration is easier?
-		spotify: sj.spotify.makeVueXModule,
-	},
-
-	state: {
-		actionQueue: [],
-		sentAction: undefined,
-
-		//TODO make desiredPlayback a getter based on the stacked assignment of actualPlaybac + the action queue
-		actualPlayback: new sj.Playback(),
-	},
-	actions: {
-		async start({commit}, track) {
-			commit('setDesiredPlayback', {
-				track,
-				isPlaying: true,
-				progress: 0,
-			});
-		
-			// Set slider range to track duration
-			//$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
-			sj.Playback.queue.push(new sj.Start());
-		},
-		async pause() {
-			commit('setDesiredPlayback', {
-				isPlaying: pause,
-			});
-			
-
-		},
-		async resume() {
-
-		},
-
-
-		async toggle() {
-			this.isPlaying = !this.isPlaying;
-			sj.Playback.queue.push(new sj.Toggle({}));
-		},
-		async seek(ms) {
-			this.progress = ms;
-			sj.Playback.queue.push(new sj.Seek({}));
-		},
-		async volume(volume) {
-			this.volume = volume;
-			sj.Playback.queue.push(new sj.Volume({}));
-		},
-		async current() {
-			// shorthand
-			return sj.desiredPlayback.track.source.playback;
-		},
-
-
-		//-----------
-		async checkPlayback(context) {
-			await sj.asyncForEach(context.state.sourcePlaybacks, playback => {
-				await playback.source.checkPlayback();
-			});
-
-			await sj.asyncForEach(sj.Source.sources, async source => {
-				await source.checkPlayback();
-			});
-		},
-
-
-		async pushAction(context, action) {
-			const {actionQueue, sentAction, actualPlayback} = context.state;
-
-			let push = true;
-
-			//C remove redundant actions if necessary
-			const compact = function (i) {
-				if (i >= 0) {
-					//R collapse is required to keep the new action rather than just leaving the existing because sj.Start collapses different actions than itself
-					if (action.collapseCondition(actionQueue[i])) {
-						push = true;
-						context.commit('removeQueuedAction', i);
-						compact(i-1);
-					} else if (action.annihilateCondition(actionQueue[i])) {
-						push = false;
-						context.commit('removeQueuedAction', i);
-						compact(i-1);
-					} else {
-						return;
-					}
-				}
-			};
-			compact(actionQueue.length-1);
-
-			//C don't push new action if is identical to a sent action
-			if (sentAction !== undefined && action.identicalCondition(sentAction)) push === false;
-			//C don't push new action if no sent action exists and is identical to the actual playback 
-			if (sentAction === undefined && action.identicalCondition(actualPlayback)) push === false;
-
-			//C push action the queue and restart the queue if not already processing
-			if (push) context.commit('addQueuedAction', action);
-			context.dispatch('nextAction');
-		},
-
-		async nextAction(context) {
-			const {actionQueue, sentAction} = context.state;
-
-			//C return if action is still processing or if no queued actions exist
-			if (sentAction !== undefined || actionQueue.length <= 0) return;
-
-			//C move the action from the queue to sent
-			context.commit('setSentAction', actionQueue[0]);
-			context.commit('removeQueuedAction', 0);
-			
-			//C trigger the action
-			await sentAction.trigger(); //TODO what happens on failure?
-			context.commit('setActualPlayback', sentAction); //TODO//? will this cause any problems here?
-
-			//C mark the sent action as finished, start next action
-			context.commit('removeSentAction');
-			context.dispatch('nextAction');
-		},
-	},
-	mutations: {
-		setDesiredPlayback(state, playbackValues) {
-			Object.assign(state.desiredPlayback, playbackValues);
-		},
-		setActualPlayback(state, playbackValues) {
-			Object.assign(state.actualPlayback, playbackValues);
-		},
-		addQueuedAction({actionQueue}, action) {
-			actionQueue.push(action);
-		},
-		removeQueuedAction({actionQueue}, index) {
-			actionQueue.splice(index, 1);
-		},
-		setSentAction({sentAction}, action) {
-			sentAction = action;
-		},
-		removeSentAction({sentAction}) {
-			sentAction = undefined;
-		},
-	},
-	getters: {
-		desiredPlayback: ({actualPlayback, sentAction, actionQueue}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
-	},
-};
