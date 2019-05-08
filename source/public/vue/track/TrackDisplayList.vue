@@ -13,7 +13,9 @@
 		}; },
 		methods: {
 			log() {
-				console.log(this.data);
+				console.log(this.sj.isType(this.data[0], this.sj.Track));
+				console.log(this.sj.isType(this.data[0].source, this.sj.spotify));
+				console.log(this.data[0].source);
 			},
 		},
     }

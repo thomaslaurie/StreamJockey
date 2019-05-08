@@ -134,7 +134,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 		},
 		async trigger({dispatch}) {
 			//C pause all
-			await sj.asyncForEach(sj.Source.sources, async source => {
+			await sj.asyncForEach(sj.Source.instances, async source => {
 				await dispatch(`${source.name}/pause`);
 			});
 			//C start target
@@ -166,13 +166,17 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 		async trigger({dispatch}) {
 			if (this.isPlaying) {
 				//C resume target source, pause other sources
-				await sj.asyncForEach(sj.Source.sources, async source => {
+				console.log('resume toggle');
+				console.log(this.source === sj.spotify);
+				await sj.asyncForEach(sj.Source.instances, async source => {
 					if (source === this.source) await dispatch(`${source.name}/resume`);
 					else await dispatch(`${source.name}/pause`);
 				});
 			} else {
 				//C pause all
-				await sj.asyncForEach(sj.Source.sources, async source => {
+				console.log('pause toggle');
+				console.log(this.source === sj.spotify);
+				await sj.asyncForEach(sj.Source.instances, async source => {
 					await dispatch(`${source.name}/pause`);
 				});
 			}
@@ -222,7 +226,7 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 		},
 		async trigger({dispatch}) {
 			//C adjust volume on all sources
-			await sj.asyncForEach(sj.Source.sources, async source => {
+			await sj.asyncForEach(sj.Source.instances, async source => {
 				await dispatch(`${source.name}/volume`, this.volume);
 			})
 		},
@@ -340,7 +344,7 @@ sj.Playback.module = new sj.Playback({
 		},
 
 		async checkPlayback({dispatch}) {
-			await sj.asyncForEach(sj.Source.sources, async source => {
+			await sj.asyncForEach(sj.Source.instances, async source => {
 				await dispatch(`${source.name}/checkPlayback`);
 			});
 		},
@@ -388,13 +392,16 @@ sj.Playback.module = new sj.Playback({
 			//C trigger the action
 			await context.state.sentAction.trigger(context); //TODO what happens on failure?
 
-			let n = {...context.state.sentAction, timestamp: Date.now()}
-			console.log('setActualPlayback before :', sj.image(context.state.actualPlayback), sj.image(n));
+			const newActualPlayback = {...context.state.sentAction, timestamp: Date.now()};
+			console.log('new actualPlayback:', sj.image(newActualPlayback));
+			console.log('actualPlayback before:', sj.image(context.state.actualPlayback));
 
-			context.commit('setActualPlayback', n); //TODO//? will this cause any problems here?
+			context.commit('setActualPlayback', newActualPlayback); //TODO//? will this cause any problems here?
 			//! actions constructorName property is copied to actualPlayback, ensure that this doesn't cause any issues
 
-			console.log('setActualPlayback after :', sj.image(context.state.actualPlayback));
+			console.log('actualPlayback after:', sj.image(context.state.actualPlayback));
+
+			console.log('queue', sj.image(context.state.actionQueue));
 
 			//C mark the sent action as finished, start next action
 			context.commit('removeSentAction');
@@ -406,12 +413,7 @@ sj.Playback.module = new sj.Playback({
 			Object.assign(state.desiredPlayback, playbackValues);
 		},
 		setActualPlayback(state, playbackValues) {
-			console.log('pv', playbackValues);
-			let temp = Object.assign(state.actualPlayback, playbackValues);
-			console.log('temp', temp);
-			Object.assign(state.actualPlayback, {blah: 'blah'});
-			//---------- reactivity issue?
-			console.log(sj.image(state.actualPlayback));
+			Object.assign(state.actualPlayback, playbackValues);
 		},
 		addQueuedAction(state, action) {
 			state.actionQueue.push(action);
@@ -433,27 +435,33 @@ sj.Playback.module = new sj.Playback({
 
 // SOURCE
 sj.Source.augmentClass({
-	constructorParts: parent => ({
-		defaults: {
-			auth: undefined,
-			getAccessToken: undefined,
-			request: undefined,
+	constructorParts(parent) {
+		const oldAfterInitialize = sj.Source.afterInitialize;
 
+		return {
+			defaults: {
+				auth: undefined,
+				getAccessToken: undefined,
+				request: undefined,
+	
+	
+				player: undefined,
+				loadPlayer: undefined,
+				playback: new sj.Playback(),
+			},
+			afterInitialize() {
+				oldAfterInitialize.call(this);
 
-			player: undefined,
-			loadPlayer: undefined,
-			playback: new sj.Playback(),
-		},
-		afterInitialize() {
-			this.playback.state.source = this;
-
-			//C push own playback module to main playback modules
-			sj.Playback.module.modules[this.name] = {
-				...this.playback,
-				namespaced: true,
-			};
-		},
-	}),
+				this.playback.state.source = this;
+	
+				//C push own playback module to main playback modules
+				sj.Playback.module.modules[this.name] = {
+					...this.playback,
+					namespaced: true,
+				};
+			},
+		};
+	},
 });
 
 //----------
@@ -496,7 +504,8 @@ sj.session.logout = async function () {
 // global source objects
 sj.spotify = new sj.Source({
 	name: 'spotify',
-	//api: new SpotifyWebApi(),
+	
+	//TODO make apiReady and playerReady checks
 
 	async auth() {
 		//C prompts the user to accept permissions in a new window, then receives an auth code from spotify
@@ -606,9 +615,10 @@ sj.spotify = new sj.Source({
 		return await sj.request(method, `${urlPrefix}/${path}`, body, header);
 	},
 
+
 	async loadPlayer() {
 		let that = this;
-		return await new Promise((resolve, reject) => {
+		let result = await new Promise((resolve, reject) => {
 			window.onSpotifyWebPlaybackSDKReady = function () { // this can be async if needed
 				const player = new window.Spotify.Player({
 					name: 'StreamJockey', //TODO make global //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
@@ -817,6 +827,8 @@ sj.spotify = new sj.Source({
 			//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
 			import(/* webpackChunkName: 'spotify-player' */ `./spotify-player.js`);
 		});
+
+		return result;
 	
 		/* old
 			// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
@@ -1053,6 +1065,7 @@ sj.spotify = new sj.Source({
 				});
 			},
 			async pause({state: {source}}) {
+				console.log('spotify pause');
 				await source.player.resume().catch(rejected => {
 					throw new sj.Error({
 						log: true,
@@ -1065,6 +1078,7 @@ sj.spotify = new sj.Source({
 				});
 			},
 			async resume({state: {source}}) {
+				console.log('spotify resume');
 				await source.player.pause().catch(rejected => {
 					throw new sj.Error({
 						log: true,

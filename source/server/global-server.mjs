@@ -1051,6 +1051,13 @@ sj.Entity.augmentClass({
 	},
 });
 
+sj.Source.augmentClass({
+	constructorProperties: parent => ({
+		defaults: {
+			serverTestProp: null,
+		},
+	}),
+});
 
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
@@ -1170,7 +1177,7 @@ sj.Track.augmentClass({
 			let newEntities = entities.slice();
 
 			newEntities.forEach(entity => {
-				entity.source = sj.Source.sources.find(source => source.name === entity.source);
+				entity.source = sj.Source.instances.find(source => source.name === entity.source);
 			});
 			
 			return newEntities;

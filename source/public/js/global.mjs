@@ -1017,7 +1017,7 @@ sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 sj.rebuild = function (input, strict) {
 	//C turns a bare object back into its custom class if it has a valid constructorName property
 
-	if (sj.isType(input, 'string')) { //C parse if string
+	if (sj.isType(input, String)) { //C parse if string
 		try {
 			input = JSON.parse(input);
 		} catch (e) {
@@ -1030,7 +1030,7 @@ sj.rebuild = function (input, strict) {
 			});
 		}
 	}
-	if (!sj.isType(input, 'object')) { //C throw if not object
+	if (!sj.isType(input, Object)) { //C throw if not object
 		return new sj.Error({
 			log: true,
 			origin: 'sj.rebuild()',
@@ -1126,20 +1126,17 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	//C rebuild and throw if error
 	let build = function (item) {
 		item = sj.rebuild(item);
+		console.log('built', item);
 		if (sj.isType(item, sj.Error)) {
 			throw item;
 		}
 		return item;
 	}
 	if (sj.isType(parsedResult, Array)) {
-		parsedResult = await sj.asyncForEach(parsedResult, item => {
-			return build(item);
-		});
+		return await sj.asyncForEach(parsedResult, item => build(item));
 	} else {
 		return build(parsedResult);
 	}
-
-
 };
 
 // LIVE DATA
@@ -1344,8 +1341,22 @@ sj.Base = class Base {
 		content: {},
 	};
 	this.allowUnknown = false;
-	this.beforeInitialize = function (accessory) {};
-	this.afterInitialize = function (accessory) {};
+	this.beforeInitialize = function (accessory) {
+		console.log(this.constructor.name, accessory.options);
+		//C rebuild content if is of type sj.Base
+		//!//G all classes are responsible for rebuilding their other properties if they are also sj.Base class instances
+		if (sj.isType(accessory.options.content, sj.Base)) {
+			accessory.options.content = sj.rebuild(accessory.options.content);
+			console.log('rebuilt content');
+		} else if (sj.isType(accessory.options.content, Array)) {
+			accessory.options.content.forEach((item, i, list) => {
+				if (sj.isType(item, sj.Base)) list[i] = sj.rebuild(item);
+				console.log('rebuilt content list item');
+			});
+		}
+	};
+	this.afterInitialize = function (accessory) {
+	};
 
 	this.prototype.announce = function () {
 		//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
@@ -1359,26 +1370,35 @@ sj.Base = class Base {
 	};
 
 	this.construct = function (options = {}, defaults) {
-		const parentConstructor = Object.getPrototypeOf(this.constructor);
-
 		const accessory = {options};
+
+		//C get prototype chain
+		let chain = [this.constructor];
+		while(chain[chain.length-1] !== sj.Base) {
+			chain.push(Object.getPrototypeOf(chain[chain.length-1]));
+		}
 		
-		//! sj.Base doesn't have a parent
-		if (this.constructor !== sj.Base) parentConstructor.beforeInitialize.call(this, accessory);
-		this.constructor.beforeInitialize.call(this, accessory);
+		//C call ancestor's and own beforeInitialize in order
+		for(let i = chain.length-1; i >= 0; i--) {
+			chain[i].beforeInitialize.call(this, accessory);
+		}
 
 		//C store constructor.name on instances so this they can be stringified and rebuilt
 		this.constructorName = this.constructor.name; 
 
-		//C extend parent
-		const extendedDefaults = {...parentConstructor.defaults, ...defaults}; 
+		let extendedDefaults = {};
+		for(let i = chain.length-1; i >= 0; i--) {
+			extendedDefaults = {...extendedDefaults, ...chain[i].defaults};
+		}
 		//C assign all properties from options if unknown properties are allowed
 		if (this.allowUnknown) Object.assign(this, {...defaults, ...options});
 		//C else overwrite only default properties with properties from options
 		else Object.keys(extendedDefaults).forEach(key => this[key] = typeof options[key] !== 'undefined' ? options[key] : extendedDefaults[key]);
 
-		if (this.constructor !== sj.Base) parentConstructor.afterInitialize.call(this, accessory);
-		this.constructor.afterInitialize.call(this, accessory);
+		//C call ancestor's and own afterInitialize in order
+		for(let i = chain.length-1; i >= 0; i--) {
+			chain[i].afterInitialize.call(this, accessory);
+		}
 
 		if (this.log) {
 			this.announce();
@@ -2310,6 +2330,28 @@ sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
 });
 sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 	constructorParts: parent => ({
+		beforeInitialize(accessory) {
+			console.log('beforeInitialize called');
+			//C rebuild source 
+			if (sj.isType(accessory.options.source, Object)) {
+				//C set track.source as existing source if found
+				const found = sj.Source.instances.find(source => source.name === accessory.options.source.name);
+				if (found) {
+					accessory.options.source = found;
+					console.log('found source');
+				}
+				//C else if a new source, rebuild it
+				else if (sj.isType(accessory.options.source, sj.Source)) {
+					accessory.options.source = sj.rebuild(accessory.options.source, true);
+					console.log('creating new source');
+				}
+				//C else leave it as is
+				else new sj.Warn({
+					origin: 'sj.Track.beforeInitialize()',
+					reason: 'source was passed but it is not an existing source or an sj.Source',
+				});
+			};
+		},
 		defaults: {
 			// NEW
 			playlistId: undefined,
@@ -2391,7 +2433,7 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 					useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
 	
 					custom: function (value) {
-						return sj.Source.sources.some(source => value === source.name);
+						return sj.Source.instances.some(source => value === source.name);
 					}
 				}),
 	
@@ -2483,9 +2525,8 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 	constructorParts: parent => ({
 		defaults: {
 			// NEW
-			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
+			name: undefined, //! source.name is a unique identifier
 			idPrefix: '',
-			realSource: true,
 			
 			credentials: new sj.Credentials(),
 	
@@ -2496,16 +2537,13 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 			makeAuthRequestURL: function () {},
 		},
 		afterInitialize(accessory) {
-			// extend with: add to source list
-			if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
-				this.constructor.sources.push(this);
-				//sj.sourceList.push(this);
-			}
+			//C add source to static source list: sj.Source.instances
+			this.constructor.instances.push(this);
 		},
 	}),
 	
 	staticProperties: parent => ({
-		sources: [],
+		instances: [],
 	}),
 });
 
