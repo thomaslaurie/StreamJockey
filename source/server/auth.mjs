@@ -55,7 +55,8 @@ let auth = {};
 
 //TODO consider moving this over to the globals-server stuff
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
-sj.spotify = new sj.Source({ 
+sj.spotify = new sj.Source({
+	name: 'spotify',
     api: new SpotifyWebApi({
         //C create api object and set credentials in constructor
         clientId: process.env.SPOTIFY_CLIENT_ID,

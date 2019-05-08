@@ -259,6 +259,13 @@ const router = new VueRouter({
 	],
 });
 const store = new VueX.Store({
+	modules: {
+		player: {
+			...sj.Playback.module,
+			namespaced: true,
+		},
+	},
+
 	/* //R	Live Data - Thought Process
 		PROBLEM
 

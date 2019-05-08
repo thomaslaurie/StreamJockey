@@ -811,7 +811,6 @@ sj.Entity.augmentClass({
 			//C if getMimic, return shookGet-after
 			else if (isGetMimic) return shookGet[1]; 
 
-
 			//C shake for return
 			const shook = after.map(list => sj.shake(list, this.filters[methodName+'Out']));
 
@@ -1169,9 +1168,11 @@ sj.Track.augmentClass({
 		this.editAfter = 
 		this.deleteAfter = async function (t, entities) {
 			let newEntities = entities.slice();
+
 			newEntities.forEach(entity => {
 				entity.source = sj.Source.sources.find(source => source.name === entity.source);
 			});
+			
 			return newEntities;
 		};
 

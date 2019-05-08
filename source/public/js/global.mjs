@@ -212,6 +212,9 @@ sj.trace = function () {
 		return stackTrace3;
 	}
 };
+sj.image = function (obj) {
+	return JSON.parse(JSON.stringify(obj));
+};
 
 // FORMAT
 sj.msFormat = function (ms) {
@@ -1290,8 +1293,9 @@ sj.Base = class Base {
 			defaults: {},
 			beforeInitialize() {},
 			afterInitialize() {},
-		}, constructorParts.call(MadeClass, parent))
-		Object.assign(MadeClass, defaultedParts);
+		}, constructorParts.call(MadeClass, parent));
+		Object.assign(MadeClass, defaultedParts); //! be careful that constructorParts properties are spelled properly, or else they wont execute
+		//? referencing 'this' inside constructorParts() references the static MadeClass, which means that inside defaults 'this' refers to the static, but inside before/afterInitialize() 'this' refers to the instance. a good reason for this way is that constructorParts still assigns to static properties
 
 		//C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
 		Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent));

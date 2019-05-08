@@ -89,7 +89,7 @@ sj.Entity.augmentClass({
 	}),
 });
 
-// PLAYBACK
+// PLAYBACK //G tightly integrated with VueX
 sj.Action = sj.Base.makeClass('Action', sj.Base, {
 	constructorParts: parent => ({
 		defaults: {
@@ -123,7 +123,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
 			//C extend by comparing track.sourceId (//! not track) too
-			return parent.identicalCondition.call(this, otherAction) && otherAction.track.sourceId === this.track.sourceId &&
+			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.track.sourceId === this.track.sourceId &&
 			otherAction.isPlaying === this.isPlaying && //! these are here so that current playback can be checked too
 			otherAction.progress === this.progress;
 		},
@@ -137,9 +137,8 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 			await sj.asyncForEach(sj.Source.sources, async source => {
 				await dispatch(`${source.name}/pause`);
 			});
-
 			//C start target
-			await dispatch(`${source.name}/start`, this.track);
+			await dispatch(`${this.source.name}/start`, this.track);
 		},
 	}),
 });
@@ -159,7 +158,7 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return parent.identicalCondition.call(this, otherAction) && otherAction.isPlaying === this.isPlaying;
+			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.isPlaying === this.isPlaying;
 		},
 		annihilateCondition(otherAction) {
 			return parent.identicalCondition(otherAction) && otherAction.isPlaying === !this.isPlaying;
@@ -196,10 +195,10 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return parent.identicalCondition.call(this, otherAction) && otherAction.progress === this.progress;
+			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.progress === this.progress;
 		},
 		async trigger({dispatch}) {
-			await dispatch(`${source.name}/seek`, this.progress);
+			await dispatch(`${this.source.name}/seek`, this.progress);
 		},
 	}),
 });
@@ -219,40 +218,41 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return parent.identicalCondition.call(this, otherAction) && otherAction.volume === this.volume;
+			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.volume === this.volume;
 		},
 		async trigger({dispatch}) {
-			await dispatch(`${source.name}/volume`, this.volume);
+			//C adjust volume on all sources
+			await sj.asyncForEach(sj.Source.sources, async source => {
+				await dispatch(`${source.name}/volume`, this.volume);
+			})
 		},
 	}),
 });
 
-
-//G these should only be used with VueX
-//TODO //! if anything is undefined it wont be registered at the start in VueX, fix this
 sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
-	constructorParts: parent => ({
+	constructorParts(parent) { return {
+		beforeInitialize() {
+			//C must be initialized here because the property requires a reference to 'this'
+			this.state = this.constructor.state;
+		},
 		defaults: {
 			// NEW
-			state: Object.create(sj.Playback.state),
+			state: this.state,
 			actions: {},
 			mutations: {},
 			getters: {},
 			modules: {},
 		},
-	}),
+	}; },
 	staticProperties: parent => ({
 		state: {
-			source: undefined,
-			track: undefined,
+			source: null,
+			track: null,
 			isPlaying: false,
 			progress: 0,
-			volume: 0,
+			volume: 1,
 			timestamp: Date.now(),
 		},
-		module: {
-
-		}
 	}),
 });
 sj.Playback.module = new sj.Playback({
@@ -287,39 +287,50 @@ sj.Playback.module = new sj.Playback({
 				// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
 		*/
 		actionQueue: [],
-		sentAction: undefined,
+		sentAction: null,
 
-		actualPlayback: Object.create(sj.Playback.state),
+		actualPlayback: {
+			source: null,
+			isPlaying: false,
+			progress: 0,
+			track: null,
+			volume: 1,
+		}, //Object.create(sj.Playback.state),
 	},
 	actions: {
 		async start({dispatch}, track) {
 			//? should this be awaited?
 			await dispatch('pushAction', new sj.Start({
+				source: track.source,
 				track,
 			}));
 		
 			// Set slider range to track duration
 			//$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
 		},
-		async pause({dispatch}) {
+		async pause({dispatch, getters: {desiredPlayback: {source}}}) {
 			await dispatch('pushAction', new sj.Toggle({
+				source,
 				isPlaying: false,
 			}));
 		},
-		async resume({dispatch}) {
+		async resume({dispatch, getters: {desiredPlayback: {source}}}) {
 			await dispatch('pushAction', new sj.Toggle({
+				source,
 				isPlaying: true,
 			}));
 		},
 
-		async toggle({dispatch, getters: {desiredPlayback: {isPlaying}}}) {
+		async toggle({dispatch, getters: {desiredPlayback: {source, isPlaying}}}) {
 			await dispatch('pushAction', new sj.Toggle({
+				source,
 				isPlaying: !isPlaying,
 			}));
 		},
-		async seek({dispatch}, ms) {
+		async seek({dispatch, getters: {desiredPlayback: {source}}}, progress) {
 			await dispatch('pushAction', new sj.Seek({
-				progress: 0//TODO,
+				source,
+				progress,
 			}));
 		},
 		async volume({dispatch}, volume) {
@@ -328,35 +339,24 @@ sj.Playback.module = new sj.Playback({
 			}));
 		},
 
-
-		//-----------
-		async checkPlayback(context) {
-
-
-			await sj.asyncForEach(context.state.sourcePlaybacks, playback => {
-				await playback.source.checkPlayback();
-			});
-
+		async checkPlayback({dispatch}) {
 			await sj.asyncForEach(sj.Source.sources, async source => {
-				await context.dispatch(`${source.name}/checkPlayback`);
+				await dispatch(`${source.name}/checkPlayback`);
 			});
 		},
 
-
 		async pushAction(context, action) {
-			const {actionQueue, sentAction, actualPlayback} = context.state;
-
 			let push = true;
 
 			//C remove redundant actions if necessary
 			const compact = function (i) {
 				if (i >= 0) {
 					//R collapse is required to keep the new action rather than just leaving the existing because sj.Start collapses different actions than itself
-					if (action.collapseCondition(actionQueue[i])) {
+					if (action.collapseCondition(context.state.actionQueue[i])) {
 						push = true;
 						context.commit('removeQueuedAction', i);
 						compact(i-1);
-					} else if (action.annihilateCondition(actionQueue[i])) {
+					} else if (action.annihilateCondition(context.state.actionQueue[i])) {
 						push = false;
 						context.commit('removeQueuedAction', i);
 						compact(i-1);
@@ -365,31 +365,36 @@ sj.Playback.module = new sj.Playback({
 					}
 				}
 			};
-			compact(actionQueue.length-1);
+			compact(context.state.actionQueue.length-1);
 
 			//C don't push new action if is identical to a sent action
-			if (sentAction !== undefined && action.identicalCondition(sentAction)) push === false;
+			if (context.state.sentAction !== null && action.identicalCondition(context.state.sentAction)) push === false;
 			//C don't push new action if no sent action exists and is identical to the actual playback 
-			if (sentAction === undefined && action.identicalCondition(actualPlayback)) push === false;
+			if (context.state.sentAction === null && action.identicalCondition(context.state.actualPlayback)) push === false;
 
 			//C push action the queue and restart the queue if not already processing
 			if (push) context.commit('addQueuedAction', action);
 			context.dispatch('nextAction');
 		},
-
 		async nextAction(context) {
-			const {actionQueue, sentAction} = context.state;
-
 			//C return if action is still processing or if no queued actions exist
-			if (sentAction !== undefined || actionQueue.length <= 0) return;
+			if (context.state.sentAction !== null || context.state.actionQueue.length <= 0) return;
+
 
 			//C move the action from the queue to sent
-			context.commit('setSentAction', actionQueue[0]);
+			context.commit('setSentAction', context.state.actionQueue[0]);
 			context.commit('removeQueuedAction', 0);
 			
 			//C trigger the action
-			await sentAction.trigger(context); //TODO what happens on failure?
-			context.commit('setActualPlayback', {...sentAction, timestamp: Date.now()}); //TODO//? will this cause any problems here?
+			await context.state.sentAction.trigger(context); //TODO what happens on failure?
+
+			let n = {...context.state.sentAction, timestamp: Date.now()}
+			console.log('setActualPlayback before :', sj.image(context.state.actualPlayback), sj.image(n));
+
+			context.commit('setActualPlayback', n); //TODO//? will this cause any problems here?
+			//! actions constructorName property is copied to actualPlayback, ensure that this doesn't cause any issues
+
+			console.log('setActualPlayback after :', sj.image(context.state.actualPlayback));
 
 			//C mark the sent action as finished, start next action
 			context.commit('removeSentAction');
@@ -401,25 +406,30 @@ sj.Playback.module = new sj.Playback({
 			Object.assign(state.desiredPlayback, playbackValues);
 		},
 		setActualPlayback(state, playbackValues) {
-			Object.assign(state.actualPlayback, playbackValues);
+			console.log('pv', playbackValues);
+			let temp = Object.assign(state.actualPlayback, playbackValues);
+			console.log('temp', temp);
+			Object.assign(state.actualPlayback, {blah: 'blah'});
+			//---------- reactivity issue?
+			console.log(sj.image(state.actualPlayback));
 		},
-		addQueuedAction({actionQueue}, action) {
-			actionQueue.push(action);
+		addQueuedAction(state, action) {
+			state.actionQueue.push(action);
 		},
-		removeQueuedAction({actionQueue}, index) {
-			actionQueue.splice(index, 1);
+		removeQueuedAction(state, index) {
+			state.actionQueue.splice(index, 1);
 		},
-		setSentAction({sentAction}, action) {
-			sentAction = action;
+		setSentAction(state, action) {
+			state.sentAction = action;
 		},
-		removeSentAction({sentAction}) {
-			sentAction = undefined;
+		removeSentAction(state) {
+			state.sentAction = null;
 		},
 	},
 	getters: {
 		desiredPlayback: ({actualPlayback, sentAction, actionQueue}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
 	},
-})
+});
 
 // SOURCE
 sj.Source.augmentClass({
@@ -432,9 +442,9 @@ sj.Source.augmentClass({
 
 			player: undefined,
 			loadPlayer: undefined,
-			playback: new Playback(),
+			playback: new sj.Playback(),
 		},
-		afterInit() {
+		afterInitialize() {
 			this.playback.state.source = this;
 
 			//C push own playback module to main playback modules
@@ -446,6 +456,8 @@ sj.Source.augmentClass({
 	}),
 });
 
+//----------
+//TODO right now, source retrieved from the server is just a plain object from the server's sj.Source, it is not the same as client sj.Source and it wont be the same reference as specific sources like sj.spotify
 
 //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
 //  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
@@ -1089,7 +1101,6 @@ sj.spotify = new sj.Source({
 });
 
 
-
 //TODO youtube
 /*
 	sj.youtube = new sj.Source({
@@ -1288,37 +1299,8 @@ sj.spotify.search = async function (term) {
 				link: track.external_urls.spotify,
 				artists: track.artists.map(artist => artist.name),
 			});
-		})
+		}),
 	});
-};
-sj.spotify.getTracks = async function (items) {
-	// TODO add a case that can be used to getTracks for a list of ids as well
-	// takes spotify's resolved.tracks.items array
-	// !!! doesn't actually get tracks, just converts tracks from spotify.search
-
-	// array of track objects
-	var playlist = new sj.Playlist({
-		log: false,
-		origin: 'spotify.getTracks()',
-	});
-
-	items.forEach(function (track, i) {
-		playlist.content[i] = new sj.Track({
-			source: spotify,
-			sourceId: track.id,
-			title: track.name,
-			duration: track.duration_ms,
-			link: track.external_urls.spotify,
-		});
-
-		// fill artists
-		track.artists.forEach(function (artist, j) {
-			playlist.content[i].artists[j] = artist.name;
-		});
-	});
-
-	playlist.announce();
-	return playlist;
 };
 
 /*

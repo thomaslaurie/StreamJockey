@@ -1,7 +1,13 @@
 <script>
     export default {
-        name: 'player-bar',
-    }
+		name: 'player-bar',
+		
+		methods: {
+			async toggle() {
+				await this.$store.dispatch('player/toggle');
+			},
+		},
+	}
 </script>
 
 
@@ -9,7 +15,7 @@
     <div>
 		<button>Prev</button>
 		<button>Next</button>
-		<button>Toggle</button>
+		<button @click='toggle'>Toggle</button>
 		<input type='range' min='0' max='1' step='0.0001' value='0' id='slider'>
 	</div>
 </template>

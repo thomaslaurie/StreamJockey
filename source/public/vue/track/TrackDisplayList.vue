@@ -11,6 +11,11 @@
 		data() { return {
 			Entity: this.$root.sj.Track,
 		}; },
+		methods: {
+			log() {
+				console.log(this.data);
+			},
+		},
     }
 </script>
 
@@ -19,6 +24,7 @@
     <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
 	class='track-display-list'>
         <ul>
+			<button @click='log'>log</button>
             <li
                 v-for='track in data' 
                 :key='track.id' 
