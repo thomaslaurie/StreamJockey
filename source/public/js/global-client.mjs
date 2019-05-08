@@ -92,16 +92,25 @@ sj.Entity.augmentClass({
 // PLAYBACK //G tightly integrated with VueX
 sj.Action = sj.Base.makeClass('Action', sj.Base, {
 	constructorParts: parent => ({
+		beforeInitialize(accessory) {
+			if (!sj.isType(accessory.options.source, sj.Source)) throw new sj.Error({
+				origin: 'sj.Action.beforeInitialize()',
+				reason: 'sj.Action instance.source must be an sj.Source',
+				content: accessory.options.source,
+			});
+		},
 		defaults: {
 			source: undefined,
 		},
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return sj.isType(otherAction, Object) && otherAction.constructor === this.constructor && otherAction.source === this.source;
+			return sj.isType(otherAction, Object) 
+			//C these should essentially be the action-specific state defaults
+			&& otherAction.source === this.source;
 		}, 
 		collapseCondition(otherAction) {
-			return sameAction(otherAction);
+			return this.identicalCondition(otherAction);
 		},
 		annihilateCondition: otherAction => false,
 		trigger: async () => {
@@ -114,6 +123,13 @@ sj.Action = sj.Base.makeClass('Action', sj.Base, {
 });
 sj.Start = sj.Base.makeClass('Start', sj.Action, {
 	constructorParts: parent => ({
+		beforeInitialize(accessory) {
+			if (!sj.isType(accessory.options.track, sj.Track)) throw new sj.Error({
+				origin: 'sj.Start.beforeInitialize()',
+				reason: 'sj.Start instance.track must be an sj.Track',
+				content: accessory.options.track,
+			});
+		},
 		defaults: {
 			track: undefined,
 			isPlaying: true,
@@ -122,23 +138,32 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			//C extend by comparing track.sourceId (//! not track) too
-			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.track.sourceId === this.track.sourceId &&
-			otherAction.isPlaying === this.isPlaying && //! these are here so that current playback can be checked too
-			otherAction.progress === this.progress;
+			return parent.prototype.identicalCondition.call(this, otherAction) 
+			&& sj.isType(otherAction.track, sj.Track)
+			&& otherAction.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
+			&& otherAction.isPlaying === this.isPlaying
+			&& otherAction.progress === this.progress;
 		},
 		collapseCondition(otherAction) {
 			//C extend by collapsing sj.Resume, sj.Pause, & sj.Seek too
 			const c = otherAction.constructor;
 			return parent.collapseCondition.call(this, otherAction) || c === sj.Resume || c === sj.Pause || c === sj.Seek;
 		},
-		async trigger({dispatch}) {
+		async trigger({dispatch, commit}) {
 			//C pause all
 			await sj.asyncForEach(sj.Source.instances, async source => {
 				await dispatch(`${source.name}/pause`);
 			});
 			//C start target
 			await dispatch(`${this.source.name}/start`, this.track);
+
+			//C change source
+			commit('setSource', this.source);
+			commit(`${this.source.name}/setPlayback`, {
+				track: this.track,
+				isPlaying: true,
+				progress: 0,
+			});
 		},
 	}),
 });
@@ -158,26 +183,39 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.isPlaying === this.isPlaying;
+			return parent.prototype.identicalCondition.call(this, otherAction)
+			&& otherAction.isPlaying === this.isPlaying;
 		},
 		annihilateCondition(otherAction) {
-			return parent.identicalCondition(otherAction) && otherAction.isPlaying === !this.isPlaying;
+			return parent.prototype.identicalCondition.call(this, otherAction)
+			&& otherAction.isPlaying === !this.isPlaying
+			&& otherAction.constructor === this.constructor; //! both must be sj.Toggle	
 		},
-		async trigger({dispatch}) {
+		async trigger({dispatch, commit}) {
 			if (this.isPlaying) {
 				//C resume target source, pause other sources
 				console.log('resume toggle');
-				console.log(this.source === sj.spotify);
 				await sj.asyncForEach(sj.Source.instances, async source => {
-					if (source === this.source) await dispatch(`${source.name}/resume`);
-					else await dispatch(`${source.name}/pause`);
+					if (source === this.source) {
+						await dispatch(`${source.name}/resume`);
+						commit(`${source.name}/setPlayback`, {
+							isPlaying: true,
+						});
+					} else {
+						await dispatch(`${source.name}/pause`);
+						commit(`${source.name}/setPlayback`, {
+							isPlaying: false,
+						});
+					}
 				});
 			} else {
 				//C pause all
 				console.log('pause toggle');
-				console.log(this.source === sj.spotify);
 				await sj.asyncForEach(sj.Source.instances, async source => {
 					await dispatch(`${source.name}/pause`);
+					commit(`${source.name}/setPlayback`, {
+						isPlaying: false,
+					});
 				});
 			}
 		},
@@ -199,10 +237,14 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.progress === this.progress;
+			return parent.prototype.identicalCondition.call(this, otherAction)
+			&& otherAction.progress === this.progress;
 		},
 		async trigger({dispatch}) {
 			await dispatch(`${this.source.name}/seek`, this.progress);
+			commit(`${this.source.name}/setPlayback`, {
+				progress: this.progress,
+			});
 		},
 	}),
 });
@@ -222,13 +264,17 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction) && otherAction.volume === this.volume;
+			return parent.prototype.identicalCondition.call(this, otherAction)
+			&& otherAction.volume === this.volume;
 		},
 		async trigger({dispatch}) {
 			//C adjust volume on all sources
 			await sj.asyncForEach(sj.Source.instances, async source => {
 				await dispatch(`${source.name}/volume`, this.volume);
-			})
+				commit(`${source.name}/setPlayback`, {
+					volume: this.volume,
+				});
+			});
 		},
 	}),
 });
@@ -293,24 +339,26 @@ sj.Playback.module = new sj.Playback({
 		actionQueue: [],
 		sentAction: null,
 
-		actualPlayback: {
-			source: null,
-			isPlaying: false,
-			progress: 0,
-			track: null,
-			volume: 1,
-		}, //Object.create(sj.Playback.state),
+		source: null,
+		
+		//TODO figure out how volume should work since it is consistent across sources
+
+		// actualPlayback: {
+		// 	source: null,
+		// 	track: null,
+		// 	isPlaying: false,
+		// 	progress: 0,
+		// 	volume: 1,
+		// 	timestamp: Date.now(),
+		// }, //Object.create(sj.Playback.state), //? why does this cause issues? (pause then play again)
 	},
 	actions: {
-		async start({dispatch}, track) {
-			//? should this be awaited?
+		//C dispatched playback actions should record for what desired source they were created for
+		async start({dispatch, commit}, track) {
 			await dispatch('pushAction', new sj.Start({
 				source: track.source,
 				track,
 			}));
-		
-			// Set slider range to track duration
-			//$('#progressBar').slider('option', 'max', this.track.duration); // TODO should this be put somewhere else?
 		},
 		async pause({dispatch, getters: {desiredPlayback: {source}}}) {
 			await dispatch('pushAction', new sj.Toggle({
@@ -337,8 +385,10 @@ sj.Playback.module = new sj.Playback({
 				progress,
 			}));
 		},
-		async volume({dispatch}, volume) {
+		async volume({dispatch, getters: {desiredPlayback: {source}}}, volume) {
 			await dispatch('pushAction', new sj.Volume({
+				//TODO
+				source,
 				volume,
 			}));
 		},
@@ -374,7 +424,7 @@ sj.Playback.module = new sj.Playback({
 			//C don't push new action if is identical to a sent action
 			if (context.state.sentAction !== null && action.identicalCondition(context.state.sentAction)) push === false;
 			//C don't push new action if no sent action exists and is identical to the actual playback 
-			if (context.state.sentAction === null && action.identicalCondition(context.state.actualPlayback)) push === false;
+			if (context.state.sentAction === null && action.identicalCondition(context.getters.actualPlayback)) push === false;
 
 			//C push action the queue and restart the queue if not already processing
 			if (push) context.commit('addQueuedAction', action);
@@ -391,17 +441,9 @@ sj.Playback.module = new sj.Playback({
 			
 			//C trigger the action
 			await context.state.sentAction.trigger(context); //TODO what happens on failure?
+			//TODO set timestamp on update of source playback state
 
-			const newActualPlayback = {...context.state.sentAction, timestamp: Date.now()};
-			console.log('new actualPlayback:', sj.image(newActualPlayback));
-			console.log('actualPlayback before:', sj.image(context.state.actualPlayback));
-
-			context.commit('setActualPlayback', newActualPlayback); //TODO//? will this cause any problems here?
-			//! actions constructorName property is copied to actualPlayback, ensure that this doesn't cause any issues
-
-			console.log('actualPlayback after:', sj.image(context.state.actualPlayback));
-
-			console.log('queue', sj.image(context.state.actionQueue));
+			console.log('actualPlayback after:', sj.image(context.getters.actualPlayback));
 
 			//C mark the sent action as finished, start next action
 			context.commit('removeSentAction');
@@ -409,12 +451,15 @@ sj.Playback.module = new sj.Playback({
 		},
 	},
 	mutations: {
+		setSource(state, source) {
+			state.source = source;
+		},
 		setDesiredPlayback(state, playbackValues) {
 			Object.assign(state.desiredPlayback, playbackValues);
 		},
-		setActualPlayback(state, playbackValues) {
-			Object.assign(state.actualPlayback, playbackValues);
-		},
+		// setActualPlayback(state, playbackValues) {
+		// 	Object.assign(state.actualPlayback, playbackValues);
+		// },
 		addQueuedAction(state, action) {
 			state.actionQueue.push(action);
 		},
@@ -429,7 +474,11 @@ sj.Playback.module = new sj.Playback({
 		},
 	},
 	getters: {
-		desiredPlayback: ({actualPlayback, sentAction, actionQueue}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
+		actualPlayback(state) {
+			if (state.source !== null) return state[state.source.name];
+			else return Object.create(sj.Playback.state);
+		},
+		desiredPlayback: ({sentAction, actionQueue}, {actualPlayback}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
 	},
 });
 
@@ -464,8 +513,6 @@ sj.Source.augmentClass({
 	},
 });
 
-//----------
-//TODO right now, source retrieved from the server is just a plain object from the server's sj.Source, it is not the same as client sj.Source and it wont be the same reference as specific sources like sj.spotify
 
 //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
 //  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
@@ -1012,7 +1059,7 @@ sj.spotify = new sj.Source({
 
 	playback: new sj.Playback({
 		actions: {
-			async checkPlayback({state: {source}, commit}) {
+			async checkPlayback({state, state: {source}, commit}) {
 				const currentState = await source.player.getCurrentState().catch(rejected => {
 					throw new sj.Error({
 						log: true,
@@ -1063,10 +1110,11 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
+				
 			},
 			async pause({state: {source}}) {
-				console.log('spotify pause');
-				await source.player.resume().catch(rejected => {
+				console.log('pause called');
+				await source.player.pause().catch(rejected => {
 					throw new sj.Error({
 						log: true,
 						//code: JSON.parse(rejected.response).error.status,
@@ -1078,8 +1126,8 @@ sj.spotify = new sj.Source({
 				});
 			},
 			async resume({state: {source}}) {
-				console.log('spotify resume');
-				await source.player.pause().catch(rejected => {
+				console.log('resume called');
+				await source.player.resume().catch(rejected => {
 					throw new sj.Error({
 						log: true,
 						//code: JSON.parse(rejected.response).error.status,
@@ -1090,7 +1138,8 @@ sj.spotify = new sj.Source({
 					});
 				});
 			},
-			async seek({state: {source}}, ms) {
+			async seek({state: {source, duration}}, progress) {
+				const ms = progress * duration;
 				await source.player.seek(ms).catch(rejected => {
 					throw new sj.Error({
 						log: true,

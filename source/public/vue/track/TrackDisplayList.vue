@@ -11,13 +11,6 @@
 		data() { return {
 			Entity: this.$root.sj.Track,
 		}; },
-		methods: {
-			log() {
-				console.log(this.sj.isType(this.data[0], this.sj.Track));
-				console.log(this.sj.isType(this.data[0].source, this.sj.spotify));
-				console.log(this.data[0].source);
-			},
-		},
     }
 </script>
 
@@ -26,7 +19,6 @@
     <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
 	class='track-display-list'>
         <ul>
-			<button @click='log'>log</button>
             <li
                 v-for='track in data' 
                 :key='track.id' 

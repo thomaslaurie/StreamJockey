@@ -3,8 +3,16 @@
 		name: 'player-bar',
 		
 		methods: {
+			async test() {
+				await this.$store.dispatch('player/checkPlayback');
+			},
 			async toggle() {
 				await this.$store.dispatch('player/toggle');
+			},
+			async rapid() {
+				for (let i = 0; i < 11; i++) {
+					this.$store.dispatch('player/toggle');
+				}
 			},
 		},
 	}
@@ -13,10 +21,12 @@
 
 <template>
     <div>
+		<button @click='test'>Test</button>
+		<button @click='rapid'>Rapid</button>
 		<button>Prev</button>
 		<button>Next</button>
 		<button @click='toggle'>Toggle</button>
-		<input type='range' min='0' max='1' step='0.0001' value='0' id='slider'>
+		<input type='range' min='0' max='1' step='0.0001' value='$store.state.player.spotify.progress' id='slider'>
 	</div>
 </template>
 
