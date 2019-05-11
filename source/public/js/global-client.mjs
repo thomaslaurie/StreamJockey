@@ -297,11 +297,23 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 	staticProperties: parent => ({
 		state: {
 			source: null,
-			track: null,
-			isPlaying: false,
-			progress: 0,
-			volume: 1,
-			timestamp: Date.now(),
+
+			definite: { //C for the literal state received from the source API
+				track: null,
+				isPlaying: false,
+				progress: 0,
+				volume: 1,
+
+				timestamp: Date.now(),
+			},
+			inferred: { //C for all inferred values made by the app for a smoother/more-efficient experience
+				track: null,
+				isPlaying: false,
+				progress: 0,
+				volume: 1,
+
+				intervalId: null,
+			},
 		},
 	}),
 });
@@ -475,8 +487,14 @@ sj.Playback.module = new sj.Playback({
 	},
 	getters: {
 		actualPlayback(state) {
-			if (state.source !== null) return state[state.source.name];
-			else return Object.create(sj.Playback.state);
+			//C get current source state or null state
+			let s;
+			if (state.source !== null) s = state[state.source.name];
+			else s = Object.create(sj.Playback.state);
+
+			//C remove unneeded state properties
+			const {intervalId, ...inferredState} = s.inferred;
+			return inferredState;
 		},
 		desiredPlayback: ({sentAction, actionQueue}, {actualPlayback}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
 	},
@@ -1059,7 +1077,29 @@ sj.spotify = new sj.Source({
 
 	playback: new sj.Playback({
 		actions: {
-			async checkPlayback({state, state: {source}, commit}) {
+			async startInfer(context) {
+				await context.dispatch('stopInfer');
+
+				const intervalId = setInterval(() => {
+					const elapsedTime = Date.now() - context.state.definite.timestamp;
+					const elapsedProgress = elapsedTime / context.state.definite.track.duration;
+					const inferredProgress = sj.clamp(context.state.definite.progress + elapsedProgress, 0, 1);
+					context.commit('setInferredState', {progress: inferredProgress});
+				}, 100); //TODO progress update rate
+				
+				context.commit('setInferredState', {intervalId});
+			},
+			async stopInfer(context) {
+				clearInterval(context.state.inferred.intervalId);
+				context.commit('setPlayback', {intervalId: null});
+			},
+
+			async checkPlayback({commit, state, state: {source}}) {
+				//TODO test that this works if no track is loaded
+
+				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
+				const currentVolume = await source.player.getVolume(); 
+				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
 				const currentState = await source.player.getCurrentState().catch(rejected => {
 					throw new sj.Error({
 						log: true,
@@ -1070,7 +1110,8 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-				const t = currentState.track_window.current_track; //C shorthand
+				//C shorthand
+				const t = currentState.track_window.current_track; 
 				const formattedState = {
 					track: new sj.Track({
 						source: source,
@@ -1080,24 +1121,25 @@ sj.spotify = new sj.Source({
 						artists: t.artists.map(artist => artist.name),
 						//TODO link: t.uri,
 					}),
-					isPlaying: !currentState.paused, //TODO change isPlaying to isPlaying //TODO might cause an error if no track is playing
-					progress: currentState.position, //TODO is this supposed to be a ratio or the absolute ms progress?
-					timestamp: currentState.timestamp,
+					isPlaying: !currentState.paused,
+					progress: currentState.position / t.duration_ms,
+					volume: currentVolume,
 				};
 	
-				commit('setPlayback', formattedState);
+				commit('setDefiniteState', {...formattedState, timestamp: currentState.timestamp});
+				commit('setInferredState', formattedState);
 	
 				return new sj.Success({
 					log: true,
 					origin: 'spotify module action - checkPlayback()',
 					message: 'spotify playback checked',
-					content: state,
+					content: state.definite,
 				});
 			},
 			
 			//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
 			//TODO probably put state updates in here too
-			async start({state: {source}}, track) {
+			async start({dispatch, state: {source}}, track) {
 				await source.request('PUT', 'me/player/play', {
 					uris: [`spotify:track:${track.sourceId}`],
 				}).catch(rejected => {
@@ -1110,10 +1152,10 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-				
+				await dispatch('checkPlayback'); //TODO or should listeners be relied on instead?, also, these are in almost every function, how to DRY ?
+				await dispatch('startInfer');
 			},
 			async pause({state: {source}}) {
-				console.log('pause called');
 				await source.player.pause().catch(rejected => {
 					throw new sj.Error({
 						log: true,
@@ -1124,6 +1166,8 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
+				await dispatch('checkPlayback');
+				await dispatch('stopInfer');
 			},
 			async resume({state: {source}}) {
 				console.log('resume called');
@@ -1137,6 +1181,8 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
+				await dispatch('checkPlayback');
+				await dispatch('startInfer');
 			},
 			async seek({state: {source, duration}}, progress) {
 				const ms = progress * duration;
@@ -1150,13 +1196,18 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
+				await dispatch('checkPlayback');
 			},
 			async volume({state: {source}}, volume) {
 				await source.player.setVolume(volume);
+				await dispatch('checkPlayback');
 			},
 		},
 		mutations: {
-			setPlayback(state, playbackValues) {
+			setDefiniteState(state, playbackValues) {
+				Object.assign(state, playbackValues);
+			},
+			setInferredState(state, playbackValues) {
 				Object.assign(state, playbackValues);
 			},
 		},

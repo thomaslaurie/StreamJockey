@@ -404,10 +404,24 @@ const store = new VueX.Store({
 		//L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
 		//R Don't store the user here. Server-side authorization uses session.user, client-side should fetch one's own user.
 
+		clock: Date.now(),
+		clockIntervalId: null,
+
 		subscriptions: new sj.Subscriptions(),
 	},
 	actions: { //G all actions are async via dispatch('functionName', payload)
 		//TODO errors should be handled in these actions
+
+		startClock(context) {
+			await context.dispatch('stopClock');
+			const id = setInterval(() => context.commit('updateNow'), 100); //C clock refresh rate
+			context.commit('setNowIntervalId', id);
+		},
+		stopClock(context) {
+			clearInterval(state.clockIntervalId);
+			context.commit('setNowIntervalId', null);
+		},
+
 
 		//TODO update should not fire if the current data's timestamp is newer than the notify's timestamp - overall just keep thinking about timestamps with scalability in mind
 
@@ -622,6 +636,13 @@ const store = new VueX.Store({
 		},
 	},
 	mutations: { //G these are bare-bones setters, data should already be checked and formatted
+		updateNow(state) {
+			state.clock = Date.now();
+		},
+		setNowIntervalId(state, id) {
+			state.clockIntervalId = id;
+		},
+
 		addSubscription(state, {table, subscription}) {
 			table.push(subscription);
 		},

@@ -234,6 +234,12 @@ sj.stringReplaceAll = function(input, search, replace) {
 sj.capFirst = function(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
 };
+sj.clamp = function (input, min, max) {
+	if (min > max) throw 'sj.clamp() min argument cannot be greater than max argument';
+	if (input < min) return min;
+	else if (max < input) return max;
+	else return input;
+};
 
 // HTTP
 sj.encodeProps = function (obj) {

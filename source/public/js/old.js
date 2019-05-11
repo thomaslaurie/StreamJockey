@@ -25,8 +25,6 @@ $(document).on("click", "#connectPlayer", function() {
 	youtube.loadPlayer();
 });
 
-//----------
-
 // list
 $(document).on("click", ".searchResultPreview", function() {
 	console.log(".searchResultPreview clicked");
@@ -52,7 +50,8 @@ $(document).on("click", "#toggle", function() {
 	desiredPlayback.toggle(); //! <--
 });
 
-//! VVVVVVV
+
+//----------
 
 var dragging = false;
 
