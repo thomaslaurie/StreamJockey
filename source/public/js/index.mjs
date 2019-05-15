@@ -667,6 +667,10 @@ const vm = new Vue({
 	el: '#app',
 	router,
 	store,
+
+	created() {
+		this.$store.dispatch('player/startClock');
+	},
 });
 
 store.test = async function (store) {

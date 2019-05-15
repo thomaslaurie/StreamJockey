@@ -26,7 +26,7 @@
 		<button>Prev</button>
 		<button>Next</button>
 		<button @click='toggle'>Toggle</button>
-		<input type='range' min='0' max='1' step='0.0001' value='$store.state.player.spotify.progress' id='slider'>
+		<input type='range' min='0' max='1' step='0.0001' :value='$store.getters["player/inferredProgress"]' id='slider'>
 	</div>
 </template>
 

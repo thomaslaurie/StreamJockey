@@ -80,6 +80,8 @@
 
 let sj = {};
 
+sj.appName = 'StreamJockey';
+
 import fClone from './fclone.mjs'; //L https://github.com/soyuka/fclone
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized

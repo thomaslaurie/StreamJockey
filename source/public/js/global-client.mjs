@@ -209,25 +209,17 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 				await sj.asyncForEach(sj.Source.instances, async source => {
 					if (source === this.source) {
 						await dispatch(`${source.name}/resume`);
-						console.log('resume resolved');
-
-						await sj.wait(500);
 						await dispatch(`${source.name}/checkPlayback`);
-						console.log('should be true', state[source.name].isPlaying);
 					} else {
 						await dispatch(`${source.name}/pause`);
 						await dispatch(`${source.name}/checkPlayback`);
-						console.log('should be false', state[source.name].isPlaying);
 					}
 				});
 			} else {
 				//C pause all
 				await sj.asyncForEach(sj.Source.instances, async source => {
 					await dispatch(`${source.name}/pause`);
-					console.log('pause resolved');
-					await sj.wait(500);
 					await dispatch(`${source.name}/checkPlayback`);
-					console.log('should be false', state[source.name].isPlaying);
 				});
 			}
 		},
@@ -311,6 +303,7 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 	staticProperties: parent => ({
 		nullState: {
 			source: null,
+			player: null,
 
 			track: null,
 			isPlaying: false,
@@ -375,7 +368,7 @@ sj.Playback.module = new sj.Playback({
 			context.commit('setClockIntervalId', id);
 		},
 		async stopClock(context) {
-			clearInterval(state.clockIntervalId);
+			clearInterval(context.state.clockIntervalId);
 			context.commit('setClockIntervalId', null);
 		},
 
@@ -521,11 +514,14 @@ sj.Playback.module = new sj.Playback({
 			else return sourceState;
 		},
 		inferredProgress(state) {
+			if (state.source === null) return -1;
 			//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
 			const sourceState = state[state.source.name];
 			const elapsedTime = state.clock - sourceState.timestamp;
 			const elapsedProgress = elapsedTime / sourceState.track.duration;
-			return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
+			const clampedProgress = sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
+			console.log(state.clock, Date.now(), elapsedTime, elapsedProgress, clampedProgress);
+			return clampedProgress;
 		},
 		desiredPlayback: ({source, sentAction, actionQueue}, {actualPlayback}) => {
 			return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
@@ -713,453 +709,400 @@ sj.spotify = new sj.Source({
 		return await sj.request(method, `${urlPrefix}/${path}`, body, header);
 	},
 
-
-	async loadPlayer() {
-		let that = this;
-		let result = await new Promise((resolve, reject) => {
-			window.onSpotifyWebPlaybackSDKReady = function () { // this can be async if needed
-				const player = new window.Spotify.Player({
-					name: 'StreamJockey', //TODO make global //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-					getOAuthToken: async callback => {
-						let token = await that.getAccessToken();
-						callback(token);
-					},
-					//volume: 1, //C initialize with a custom volume (default is 1)
-				});
-				player.awaitState = async function ({command = ()=>{}, stateCondition = ()=>false, success = {}, error = {}, timeoutError = {}}) {
-					return new Promise((resolve, reject) => {
-						let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
-
-						const callback = state => {
-							if (!resolved && stateCondition(state)) {
-								this.removeListener('player_state_changed', callback);
-								resolve(new sj.Success(success)); //TODO success?
-								resolved = true;
-							}
-						};
-						//C add the listener before the request is made, so that the event cannot be missed 
-						//! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
-						this.addListener('player_state_changed', callback);
-	
-						//C don't do anything when main() resolves, it only indicates that the command has been received
-						command().catch(rejected => {
-							if (!resolved) {
-								this.removeListener('player_state_changed', callback); //C should remove listener on error
-								reject(new sj.Error({...error, content: rejected}));
-								resolved = true;
-							}
-						});
-						
-						sj.wait(sj.Playback.requestTimeout).then(resolved => {
-							if (!resolved) {
-								this.removeListener('player_state_changed', callback);
-								reject(new sj.Timeout(timeoutError));
-								resolved = true;
-							}
-						});
-					});
-				},
-	
-				//C events
-				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-				player.on('ready', async ({device_id}) => {
-					//L chrome's iframe policy changed? https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
-					const iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
-					if (iframe) {
-						iframe.style.display = 'block';
-						iframe.style.position = 'absolute';
-						iframe.style.top = '-1000px';
-						iframe.style.left = '-1000px';
-					}
-
-
-					//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
-					//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-	
-					//L transfer playback: https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
-					await that.request('PUT', 'me/player', {
-						device_ids: [device_id],
-						play: true, //? check desired behavior ('ensure playback happens on new device' or 'keep the current playback state')
-					}).catch(rejected => {
-						reject(new sj.Error({
-							log: true,
-							//code: JSON.parse(error.response).error.status,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player could not be loaded',
-							//reason: JSON.parse(error.response).error.message,
-							content: rejected,
-						}));
-					});
-	
-					resolve(new sj.Success({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player loaded',
-						content: player,
-					}));
-	
-					/* old
-						spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-							triggerResolve(new sj.Success({
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player loaded',
-							}));
-	
-							// TODO updatePlayback(); ?
-						}, function (rejected) {
-							triggerReject(new sj.Error({
-								log: true,
-								code: JSON.parse(error.response).error.status,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player could not be loaded',
-								reason: JSON.parse(error.response).error.message,
-								content: error,
-							}));
-						}).catch(function (rejected) {
-							triggerReject(new sj.Error({
-								log: true,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player could not be loaded',
-								content: rejected,
-							}));
-						});
-					*/
-				});
-				player.on('not_ready', ({device_id}) => {
-					//? don't know what to do here
-				});
-	
-				//C errors
-				//TODO make better handlers
-				//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
-				player.on('initialization_error', ({message}) => {
-					//C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-					reject(new sj.Error({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player encountered an initialization error',
-						reason: message,
-					}));
-				});
-				player.on('authentication_error', ({message}) => {
-					//C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-					reject(new sj.Error({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player encountered an authentication error',
-						reason: message,
-					}));
-				});
-				player.on('account_error', ({message}) => {
-					//C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-					reject(new sj.Error({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'this account does not have a valid Spotify Premium subscription',
-						reason: message,
-					}));
-				});
-	
-				//C ongoing listeners
-				player.on('player_state_changed', state => {
-					/* 
-						//C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
-						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
-						{
-							context: {
-								uri: 'spotify:album:xxx', // The URI of the context (can be null)
-								metadata: {},             // Additional metadata for the context (can be null)
+	playback: new sj.Playback({
+		//G source-specific playback should be the basic playback functions that connects this app to the source's api
+		actions: {
+			async loadPlayer(context) {
+				return await new Promise((resolve, reject) => {
+					//C this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
+					window.onSpotifyWebPlaybackSDKReady = function () {
+						const player = new window.Spotify.Player({ 
+							//C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
+							name: sj.appName,
+							getOAuthToken: async callback => {
+								let token = await sj.spotify.getAccessToken();
+								callback(token);
 							},
-							disallows: {                // A simplified set of restriction controls for
-								pausing: false,           // The current track. By default, these fields
-								peeking_next: false,      // will either be set to false or undefined, which
-								peeking_prev: false,      // indicates that the particular operation is
-								resuming: false,          // allowed. When the field is set to `true`, this
-								seeking: false,           // means that the operation is not permitted. For
-								skipping_next: false,     // example, `skipping_next`, `skipping_prev` and
-								skipping_prev: false      // `seeking` will be set to `true` when playing an
-														// ad track.
-							},
-							paused: false,  // Whether the current track is paused.
-							position: 0,    // The position_ms of the current track.
-							repeat_mode: 0, // The repeat mode. No repeat mode is 0,
-											// once-repeat is 1 and full repeat is 2.
-							shuffle: false, // True if shuffled, false otherwise.
-							track_window: {
-								current_track: <WebPlaybackTrack>,                              // The track currently on local playback
-								previous_tracks: [<WebPlaybackTrack>, <WebPlaybackTrack>, ...], // Previously played tracks. Number can vary.
-								next_tracks: [<WebPlaybackTrack>, <WebPlaybackTrack>, ...]      // Tracks queued next. Number can vary.
-							}
-						}
-					*/
-		
-					//console.log('STATE: ', state);
-		
-					that.playback.timestamp = state.timestamp;
-					that.playback.isPlaying = !state.paused;
-					that.playback.progress = state.position;
-		
-					//TODO check these
-					that.playback.track = {
-						source: that,
-						sourceId: state.track_window.current_track.id,
-						artists: [],
-						title: state.track_window.current_track.name,
-						duration: state.track_window.current_track.duration_ms,
-					}
-					// fill artists
-					state.track_window.current_track.artists.forEach(function (artist, i) {
-						that.playback.track.artists[i] = artist.name;
-					});
-				});
-				player.on('playback_error', ({message}) => {
-					//TODO this should be a listener, and not resolve or reject
-				});
-	
-	
-				//C connect player
-				player.connect().then(resolved => {
-					//C 'returns a promise with a boolean for whether or not the connection was successful'
-					//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-					//! do not resolve here, the player will trigger the 'ready' event when its truly ready
-					if (!resolved) {
-						reject(new sj.Error({
-							log: true,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player failed to connect',
-							reason: 'spotify.connect() failed',
-						}));
-					}
-				}, rejected => {
-					//! a rejection shouldn't be possible here
-					reject(new sj.Error({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'spotify player failed to connect',
-						reason: 'spotify.connect() failed, this should not be reachable',
-						content: rejected,
-					}));
-				});
-	
-				/* //R
-					//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
-					//L events: https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
-					let eventName = 'spotifyLoadPlayer';
-					// listener
-					window.addEventListener(eventName, function (customEvent) {
-						if (customEvent.detail.resolved) {
-							resolve(customEvent.detail.data);
-						} else {
-							reject(customEvent.detail.data);
-						}
-					}, {once: true});
-					// triggers
-					function triggerResolve(data) {
-						window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: true, data}}));
-					}
-					function triggerReject(data) {
-						window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: false, data}}));
-					}
-				*/
-			}
-	
-			//C dynamic import spotify's sdk
-			//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
-			import(/* webpackChunkName: 'spotify-player' */ `./spotify-player.js`);
-		});
+							//volume: 1, //TODO initialize with a custom volume (default is 1)
+						});
+						player.awaitState = async function ({command = ()=>{}, stateCondition = ()=>false, success = {}, error = {}, timeoutError = {}}) {
+							return new Promise((resolve, reject) => {
+								let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
 
-		return result;
-	
-		/* old
-			// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
-			// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
-			// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-	
-			// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
-	
-			return new Promise(function (resolve, reject) {
-				// setup resolve/reject listeners
-				window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
-					resolve(e.detail);
-					e.currentTarget.removeEventListener(e.type, function () {});
-				});
-	
-				window.addEventListener('spotifyLoadPlayerFailure', function (e) {
-					reject(e.detail);
-					e.currentTarget.removeEventListener(e.type, function () {});
-				});
-	
-				// simplify event triggers
-				function triggerResolve(data) {
-					window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {detail: data}));
-				}
-	
-				function triggerReject(data) {
-					window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {detail: data}));
-				}
-				
-				
-				window.onSpotifyWebPlaybackSDKReady = function () {
-					// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
-					try {
-						// initialize
-						var player = new Spotify.Player({
-							name: WEB_PLAYER_NAME,
-							getOAuthToken: cb => { cb(spotifyAccessToken); }
-						});
-	
-						// configure listeners
-						// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-						
-						// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
-	
-						player.addListener('playback_error', function ({message}) { 
-							console.error(message); 
-							// TODO handle me
-						});
-	
-						// playback status updates
-						player.addListener('player_state_changed', function (state) {
-							// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-							spotify.playback.timestamp = state.timestamp;
-							spotify.playback.isPlaying = !state.paused;
-							spotify.playback.progress = state.position;
-							spotify.playback.track = {
-								source: spotify,
-								sourceId: state.track_window.current_track.id,
-								artists: [],
-								title: state.track_window.current_track.name,
-								duration: state.track_window.current_track.duration_ms,
-							}
-	
-							// fill artists
-							state.track_window.current_track.artists.forEach(function (artist, i) {
-								spotify.playback.track.artists[i] = artist.name;
+								const callback = state => {
+									if (!resolved && stateCondition(state)) {
+										this.removeListener('player_state_changed', callback);
+										resolve(new sj.Success(success)); //TODO success?
+										resolved = true;
+									}
+								};
+								//C add the listener before the request is made, so that the event cannot be missed 
+								//! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
+								this.addListener('player_state_changed', callback);
+			
+								//C don't do anything when main() resolves, it only indicates that the command has been received
+								command().catch(rejected => {
+									if (!resolved) {
+										this.removeListener('player_state_changed', callback); //C should remove listener on error
+										reject(new sj.Error({...error, content: rejected}));
+										resolved = true;
+									}
+								});
+								
+								sj.wait(sj.Playback.requestTimeout).then(resolved => {
+									if (!resolved) {
+										this.removeListener('player_state_changed', callback);
+										reject(new sj.Timeout(timeoutError));
+										resolved = true;
+									}
+								});
 							});
-						});
-	
-						// error handling
-						player.addListener('initialization_error', function ({message}) { 
-							//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-							triggerReject(new sj.Error({
+						},
+
+						//C events
+						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+						player.on('ready', async ({device_id}) => {
+							//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
+							//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+
+							//C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
+							const iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
+							if (iframe) {
+								iframe.style.display = 'block';
+								iframe.style.position = 'absolute';
+								iframe.style.top = '-1000px';
+								iframe.style.left = '-1000px';
+							}
+
+							//C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
+							await sj.spotify.request('PUT', 'me/player', {
+								device_ids: [device_id],
+								play: true, //? check desired behavior ('ensure playback happens on new device' or 'keep the current playback state')
+							}).catch(rejected => {
+								reject(new sj.Error({
 									log: true,
-									origin: 'spotify.loadPlayer()',
-									message: 'spotify player encountered an initialization error',
-									reason: message,
-								})
-							);
-						});
-	
-						player.addListener('authentication_error', function ({message}) { 
-							// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-							triggerReject(new sj.Error({
-									log: true,
-									origin: 'spotify.loadPlayer()',
-									message: 'spotify player encountered an authentication error',
-									reason: message,
-								})
-							);
-						});
-	
-						player.addListener('account_error', function ({message}) {
-							// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-							triggerReject(new sj.Error({
-									log: true,
-									origin: 'spotify.loadPlayer()',
-									message: 'this account does not have a valid Spotify Premium subscription',
-									reason: message,
-								})
-							);
-						});
-	
-						// ready
-						player.addListener('ready', function ({device_id}) {
-							// returns a WebPlaybackPlayer object which just contains the created device_id
-							// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-	
-							spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-								triggerResolve(new sj.Success({
-									origin: 'spotify.loadPlayer()',
-									message: 'spotify player loaded',
-								}));
-	
-								// TODO updatePlayback(); ?
-							}, function (rejected) {
-								triggerReject(new sj.Error({
-									log: true,
-									code: JSON.parse(error.response).error.status,
+									//code: JSON.parse(error.response).error.status,
 									origin: 'spotify.loadPlayer()',
 									message: 'spotify player could not be loaded',
-									reason: JSON.parse(error.response).error.message,
-									content: error,
-								}));
-							}).catch(function (rejected) {
-								triggerReject(new sj.Error({
-									log: true,
-									origin: 'spotify.loadPlayer()',
-									message: 'spotify player could not be loaded',
+									//reason: JSON.parse(error.response).error.message,
 									content: rejected,
 								}));
 							});
+
+							context.commit('setPlayer', player);
+							resolve(new sj.Success({
+								log: true,
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player loaded',
+								content: player,
+							}));
+			
+							/* //OLD
+								spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
+									triggerResolve(new sj.Success({
+										origin: 'spotify.loadPlayer()',
+										message: 'spotify player loaded',
+									}));
+			
+									// TODO updatePlayback(); ?
+								}, function (rejected) {
+									triggerReject(new sj.Error({
+										log: true,
+										code: JSON.parse(error.response).error.status,
+										origin: 'spotify.loadPlayer()',
+										message: 'spotify player could not be loaded',
+										reason: JSON.parse(error.response).error.message,
+										content: error,
+									}));
+								}).catch(function (rejected) {
+									triggerReject(new sj.Error({
+										log: true,
+										origin: 'spotify.loadPlayer()',
+										message: 'spotify player could not be loaded',
+										content: rejected,
+									}));
+								});
+							*/
 						});
-	
-						// connect to player
-						player.connect().then(function (resolved) {
-							// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-							// returns a promise with a boolean for whether or not the connection was successful
-							// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
-							if (!resolved) {
+						player.on('not_ready', ({device_id}) => {
+							//? don't know what to do here
+						});
+			
+						//C errors
+						//TODO make better handlers
+						//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
+						player.on('initialization_error', ({message}) => {
+							//C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+							reject(new sj.Error({
+								log: true,
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player encountered an initialization error',
+								reason: message,
+							}));
+						});
+						player.on('authentication_error', ({message}) => {
+							//C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+							reject(new sj.Error({
+								log: true,
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player encountered an authentication error',
+								reason: message,
+							}));
+						});
+						player.on('account_error', ({message}) => {
+							//C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+							reject(new sj.Error({
+								log: true,
+								origin: 'spotify.loadPlayer()',
+								message: 'this account does not have a valid Spotify Premium subscription',
+								reason: message,
+							}));
+						});
+			
+						//C ongoing listeners
+						//----------
+						player.on('player_state_changed', state => {
+							//C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
+							//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
+							context.dispatch('checkPlayback');
+						});
+						player.on('playback_error', ({message}) => {
+							//TODO this should be a listener, and not resolve or reject
+						});
+			
+			
+						//C connect player
+						player.connect().then(resolved => {
+							//C 'returns a promise with a boolean for whether or not the connection was successful'
+							//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+							//! do not resolve here, the player will trigger the 'ready' event when its truly ready
+							if (!resolved) reject(new sj.Error({
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player failed to connect',
+								reason: 'spotify.connect() failed',
+							}));
+						}, rejected => {
+							reject(new sj.Unreachable({ //C a rejection shouldn't be possible here
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player failed to connect',
+								reason: 'spotify.connect() failed, this should not be reachable',
+								content: rejected,
+							}));
+						});
+			
+						/* //R
+							//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
+							//L events: https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
+							let eventName = 'spotifyLoadPlayer';
+							// listener
+							window.addEventListener(eventName, function (customEvent) {
+								if (customEvent.detail.resolved) {
+									resolve(customEvent.detail.data);
+								} else {
+									reject(customEvent.detail.data);
+								}
+							}, {once: true});
+							// triggers
+							function triggerResolve(data) {
+								window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: true, data}}));
+							}
+							function triggerReject(data) {
+								window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: false, data}}));
+							}
+						*/
+					};
+
+					//C dynamic import Spotify's SDK
+					//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
+					import(/* webpackChunkName: 'spotify-player' */ `./spotify-player.js`);
+				});
+
+				/* //OLD
+					// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
+					// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
+					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+			
+					// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
+			
+					return new Promise(function (resolve, reject) {
+						// setup resolve/reject listeners
+						window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
+							resolve(e.detail);
+							e.currentTarget.removeEventListener(e.type, function () {});
+						});
+			
+						window.addEventListener('spotifyLoadPlayerFailure', function (e) {
+							reject(e.detail);
+							e.currentTarget.removeEventListener(e.type, function () {});
+						});
+			
+						// simplify event triggers
+						function triggerResolve(data) {
+							window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {detail: data}));
+						}
+			
+						function triggerReject(data) {
+							window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {detail: data}));
+						}
+						
+						
+						window.onSpotifyWebPlaybackSDKReady = function () {
+							// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
+							try {
+								// initialize
+								var player = new Spotify.Player({
+									name: WEB_PLAYER_NAME,
+									getOAuthToken: cb => { cb(spotifyAccessToken); }
+								});
+			
+								// configure listeners
+								// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+								
+								// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
+			
+								player.addListener('playback_error', function ({message}) { 
+									console.error(message); 
+									// TODO handle me
+								});
+			
+								// playback status updates
+								player.addListener('player_state_changed', function (state) {
+									// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+									spotify.playback.timestamp = state.timestamp;
+									spotify.playback.isPlaying = !state.paused;
+									spotify.playback.progress = state.position;
+									spotify.playback.track = {
+										source: spotify,
+										sourceId: state.track_window.current_track.id,
+										artists: [],
+										title: state.track_window.current_track.name,
+										duration: state.track_window.current_track.duration_ms,
+									}
+			
+									// fill artists
+									state.track_window.current_track.artists.forEach(function (artist, i) {
+										spotify.playback.track.artists[i] = artist.name;
+									});
+								});
+			
+								// error handling
+								player.addListener('initialization_error', function ({message}) { 
+									//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+									triggerReject(new sj.Error({
+											log: true,
+											origin: 'spotify.loadPlayer()',
+											message: 'spotify player encountered an initialization error',
+											reason: message,
+										})
+									);
+								});
+			
+								player.addListener('authentication_error', function ({message}) { 
+									// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+									triggerReject(new sj.Error({
+											log: true,
+											origin: 'spotify.loadPlayer()',
+											message: 'spotify player encountered an authentication error',
+											reason: message,
+										})
+									);
+								});
+			
+								player.addListener('account_error', function ({message}) {
+									// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+									triggerReject(new sj.Error({
+											log: true,
+											origin: 'spotify.loadPlayer()',
+											message: 'this account does not have a valid Spotify Premium subscription',
+											reason: message,
+										})
+									);
+								});
+			
+								// ready
+								player.addListener('ready', function ({device_id}) {
+									// returns a WebPlaybackPlayer object which just contains the created device_id
+									// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+			
+									spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
+										triggerResolve(new sj.Success({
+											origin: 'spotify.loadPlayer()',
+											message: 'spotify player loaded',
+										}));
+			
+										// TODO updatePlayback(); ?
+									}, function (rejected) {
+										triggerReject(new sj.Error({
+											log: true,
+											code: JSON.parse(error.response).error.status,
+											origin: 'spotify.loadPlayer()',
+											message: 'spotify player could not be loaded',
+											reason: JSON.parse(error.response).error.message,
+											content: error,
+										}));
+									}).catch(function (rejected) {
+										triggerReject(new sj.Error({
+											log: true,
+											origin: 'spotify.loadPlayer()',
+											message: 'spotify player could not be loaded',
+											content: rejected,
+										}));
+									});
+								});
+			
+								// connect to player
+								player.connect().then(function (resolved) {
+									// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+									// returns a promise with a boolean for whether or not the connection was successful
+									// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
+									if (!resolved) {
+										triggerReject(new sj.Error({
+											log: true,
+											origin: 'spotify.loadPlayer()',
+											message: 'spotify player failed to connect',
+											reason: 'spotify.connect() failed',
+										}));
+									}
+								}, function (rejected) {
+									// should not be possible to get here, but handle it either way
+									triggerReject(new sj.Error({
+										log: true,
+										origin: 'spotify.loadPlayer()',
+										message: 'spotify player failed to connect',
+										reason: 'spotify.connect() failed',
+										content: rejected,
+									}));
+								});
+							} catch (e) {
 								triggerReject(new sj.Error({
 									log: true,
 									origin: 'spotify.loadPlayer()',
 									message: 'spotify player failed to connect',
-									reason: 'spotify.connect() failed',
+									reason: e,
+									content: e,
 								}));
 							}
-						}, function (rejected) {
-							// should not be possible to get here, but handle it either way
+						}
+						
+			
+						$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
 							triggerReject(new sj.Error({
 								log: true,
 								origin: 'spotify.loadPlayer()',
-								message: 'spotify player failed to connect',
-								reason: 'spotify.connect() failed',
-								content: rejected,
+								message: 'failed to load spotify player',
+								reason: exception,
 							}));
 						});
-					} catch (e) {
-						triggerReject(new sj.Error({
-							log: true,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player failed to connect',
-							reason: e,
-							content: e,
-						}));
-					}
-				}
-				
-	
-				$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
-					triggerReject(new sj.Error({
-						log: true,
-						origin: 'spotify.loadPlayer()',
-						message: 'failed to load spotify player',
-						reason: exception,
-					}));
-				});
-			});
-		*/
-	},
-
-	playback: new sj.Playback({
-		//G source-specific playback should be the basic playback functions that connects this app to the source's api
-		actions: {
-			async checkPlayback({commit, state, state: {source}}) {
+					});
+				*/
+			},
+			async checkPlayback({commit, state, state: {player, source}}) {
 				//TODO test that this works if no track is loaded
 
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
-				const currentVolume = await source.player.getVolume(); 
+				const currentVolume = await player.getVolume(); 
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
-				const currentState = await source.player.getCurrentState().catch(rejected => {
+				const currentState = await player.getCurrentState().catch(rejected => {
 					throw new sj.Error({
 						log: true,
 						//code: JSON.parse(rejected.response).error.status,
@@ -1188,7 +1131,6 @@ sj.spotify = new sj.Source({
 				};
 	
 				commit('setState', formattedState);
-				console.log('state after checkPlayback() commit', sj.image(state));
 
 				return new sj.Success({
 					origin: 'spotify module action - checkPlayback()',
@@ -1199,10 +1141,10 @@ sj.spotify = new sj.Source({
 			
 			//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
 			//TODO consider more DRY
-			async start({state: {source}}, track) {
+			async start({state: {player, source}}, track) {
 				const timeBeforeCall = Date.now();
 
-				return await source.player.awaitState({
+				return await player.awaitState({
 					command: async () => await source.request('PUT', 'me/player/play', {
 						uris: [`spotify:track:${track.sourceId}`],
 					}),
@@ -1225,9 +1167,9 @@ sj.spotify = new sj.Source({
 					},
 				});
 			},
-			async pause({state: {source}}) {
-				return await source.player.awaitState({
-					command: async () => await source.player.pause(),
+			async pause({state: {player}}) {
+				return await player.awaitState({
+					command: async () => await player.pause(),
 					stateCondition: state => state.paused === true,
 					success: {
 
@@ -1243,9 +1185,9 @@ sj.spotify = new sj.Source({
 					},
 				});
 			},
-			async resume({state: {source}}) {
-				return await source.player.awaitState({
-					command: async () => await source.player.resume(),
+			async resume({state: {player}}) {
+				return await player.awaitState({
+					command: async () => await player.resume(),
 					stateCondition: state => state.paused === false,
 					success: {
 
@@ -1261,12 +1203,12 @@ sj.spotify = new sj.Source({
 					},
 				});
 			},
-			async seek({state: {source, track}}, progress) {
+			async seek({state: {player, track}}, progress) {
 				const ms = progress * track.duration;
 				const timeBeforeCall = Date.now();
 
-				return await source.player.awaitState({
-					command: async () => await source.player.seek(ms),
+				return await player.awaitState({
+					command: async () => await player.seek(ms),
 					//C state.position must be greater than the set position but less than the difference in time it took to call and resolve
 					stateCondition: state => state.position >= ms && state.position-ms <= Date.now()-timeBeforeCall,
 					success: {
@@ -1283,9 +1225,9 @@ sj.spotify = new sj.Source({
 					},
 				});
 			},
-			async volume({state: {source}}, volume) {
-				return await source.player.awaitState({
-					command: async () => await source.player.setVolume(volume),
+			async volume({state: player}, volume) {
+				return await player.awaitState({
+					command: async () => await player.setVolume(volume),
 					stateCondition: state => state.volume === volume,
 					success: {
 
@@ -1302,6 +1244,12 @@ sj.spotify = new sj.Source({
 				});
 			},
 		},
+		mutations: {
+			...sj.Playback.defaults.mutations,
+			setPlayer(state, value) {
+				state.player = value;
+			},
+		}
 	}),
 });
 

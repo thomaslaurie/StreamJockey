@@ -23,7 +23,7 @@
                 let temp = await this.sj.spotify.auth();
             },
             async loadPlayer() {
-                this.sj.spotify.player = await this.sj.spotify.loadPlayer().then(this.sj.content);
+				await this.$store.dispatch('player/spotify/loadPlayer');
 			},
         },
     }
