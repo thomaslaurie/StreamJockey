@@ -320,6 +320,7 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 			//G all state properties should be updated at the same time
 			timestamp: Date.now(),
 		},
+		requestTimeout: 5000,
 	}),
 });
 sj.Playback.module = new sj.Playback({
@@ -725,11 +726,53 @@ sj.spotify = new sj.Source({
 					},
 					//volume: 1, //C initialize with a custom volume (default is 1)
 				});
-				
+				player.awaitState = async function ({command = ()=>{}, stateCondition = ()=>false, success = {}, error = {}, timeoutError = {}}) {
+					return new Promise((resolve, reject) => {
+						let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
+
+						const callback = state => {
+							if (!resolved && stateCondition(state)) {
+								this.removeListener('player_state_changed', callback);
+								resolve(new sj.Success(success)); //TODO success?
+								resolved = true;
+							}
+						};
+						//C add the listener before the request is made, so that the event cannot be missed 
+						//! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
+						this.addListener('player_state_changed', callback);
+	
+						//C don't do anything when main() resolves, it only indicates that the command has been received
+						command().catch(rejected => {
+							if (!resolved) {
+								this.removeListener('player_state_changed', callback); //C should remove listener on error
+								reject(new sj.Error({...error, content: rejected}));
+								resolved = true;
+							}
+						});
+						
+						sj.wait(sj.Playback.requestTimeout).then(resolved => {
+							if (!resolved) {
+								this.removeListener('player_state_changed', callback);
+								reject(new sj.Timeout(timeoutError));
+								resolved = true;
+							}
+						});
+					});
+				},
 	
 				//C events
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
 				player.on('ready', async ({device_id}) => {
+					//L chrome's iframe policy changed? https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
+					const iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
+					if (iframe) {
+						iframe.style.display = 'block';
+						iframe.style.position = 'absolute';
+						iframe.style.top = '-1000px';
+						iframe.style.left = '-1000px';
+					}
+
+
 					//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
 					//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
 	
@@ -849,8 +892,6 @@ sj.spotify = new sj.Source({
 							}
 						}
 					*/
-
-					console.log('state changed', state);
 		
 					//console.log('STATE: ', state);
 		
@@ -1157,62 +1198,108 @@ sj.spotify = new sj.Source({
 			},
 			
 			//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
-			//TODO ensure that when the function resolves that the action has been taken, not just received (ie. the track IS playing if resumed, not just about to play)
-
-			//---------- spotify playback sdk doesn't wait for state to update, must manually create an event that listens to onStateChanged, and then resolves
+			//TODO consider more DRY
 			async start({state: {source}}, track) {
-				await source.request('PUT', 'me/player/play', {
-					uris: [`spotify:track:${track.sourceId}`],
-				}).catch(rejected => {
-					throw new sj.Error({
-						log: true,
+				const timeBeforeCall = Date.now();
+
+				return await source.player.awaitState({
+					command: async () => await source.request('PUT', 'me/player/play', {
+						uris: [`spotify:track:${track.sourceId}`],
+					}),
+					stateCondition: state => ( //C track must be playing, near the start (within the time from when the call was made to now), and the same track
+						state.paused === false && 
+						state.position <= Date.now()-timeBeforeCall && 
+						state.track_window.current_track.uri === `spotify:track:${track.sourceId}`
+					),
+					success: {
+
+					},
+					error: {
 						//code: JSON.parse(rejected.response).error.status,
 						origin: 'spotify.start()',
 						message: 'spotify track could not be started',
 						//reason: JSON.parse(rejected.response).error.message,
-						content: rejected,
-					});
+					},
+					timeoutError: {
+						origin: 'sj.spotify.playback.actions.start()',
+					},
 				});
 			},
 			async pause({state: {source}}) {
-				await source.player.pause().catch(rejected => {
-					throw new sj.Error({
-						log: true,
+				return await source.player.awaitState({
+					command: async () => await source.player.pause(),
+					stateCondition: state => state.paused === true,
+					success: {
+
+					},
+					error: {
 						//code: JSON.parse(rejected.response).error.status,
 						origin: 'spotify.pause()',
 						message: 'spotify track could not be paused',
 						//reason: JSON.parse(rejected.response).error.message,
-						content: rejected,
-					});
+					},
+					timeoutError: {
+						origin: 'sj.spotify.playback.actions.pause()',
+					},
 				});
 			},
 			async resume({state: {source}}) {
-				await source.player.resume().catch(rejected => {
-					throw new sj.Error({
-						log: true,
+				return await source.player.awaitState({
+					command: async () => await source.player.resume(),
+					stateCondition: state => state.paused === false,
+					success: {
+
+					},
+					error: {
 						//code: JSON.parse(rejected.response).error.status,
 						origin: 'spotify.resume()',
 						message: 'spotify track could not be resumed',
 						//reason: JSON.parse(rejected.response).error.message,
-						content: rejected,
-					});
+					},
+					timeoutError: {
+						origin: 'sj.spotify.playback.actions.resume()',
+					},
 				});
 			},
 			async seek({state: {source, track}}, progress) {
 				const ms = progress * track.duration;
-				await source.player.seek(ms).catch(rejected => {
-					throw new sj.Error({
-						log: true,
+				const timeBeforeCall = Date.now();
+
+				return await source.player.awaitState({
+					command: async () => await source.player.seek(ms),
+					//C state.position must be greater than the set position but less than the difference in time it took to call and resolve
+					stateCondition: state => state.position >= ms && state.position-ms <= Date.now()-timeBeforeCall,
+					success: {
+
+					},
+					error: {
 						//code: JSON.parse(rejected.response).error.status,
 						origin: 'spotify.seek()',
 						message: 'spotify track could not be seeked',
 						//reason: JSON.parse(rejected.response).error.message,
-						content: rejected,
-					});
+					},
+					timeoutError: {
+						origin: 'sj.spotify.playback.actions.seek()',
+					},
 				});
 			},
 			async volume({state: {source}}, volume) {
-				await source.player.setVolume(volume);
+				return await source.player.awaitState({
+					command: async () => await source.player.setVolume(volume),
+					stateCondition: state => state.volume === volume,
+					success: {
+
+					},
+					error: {
+						//code: JSON.parse(rejected.response).error.status,
+						origin: 'spotify.seek()',
+						message: 'spotify volume could not be set',
+						//reason: JSON.parse(rejected.response).error.message,
+					},
+					timeoutError: {
+						origin: 'sj.spotify.playback.actions.volume()',
+					},
+				});
 			},
 		},
 	}),

@@ -2501,8 +2501,8 @@ sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
 });
 // CUSTOM ERRORS
 sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
+	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
 	constructorParts: parent => ({
-		//C used to communicate to client that the server does not have the required tokens and that the client must authorize
 		defaults: {
 			// OVERWRITE
 			message: 'authorization required',
@@ -2510,11 +2510,19 @@ sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
 	}),
 });
 sj.Unreachable = sj.Base.makeClass('Unreachable', sj.Error, {
+	//C used to indicate an unreachable place in the code
 	constructorParts: parent => ({
-		//C used to indicate an unreachable place in the code
 		defaults: {
 			message: 'code reached a place that should be unreachable',
 		},	
+	}),
+});
+sj.Timeout = sj.Base.makeClass('Timeout', sj.Error, {
+	//C used to indicate a timed-out function
+	constructorParts: parent => ({
+		defaults: {
+			message: 'request timed out',
+		},
 	}),
 });
 
