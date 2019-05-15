@@ -346,6 +346,14 @@ sj.shake.test = function () {
 		['simple', true === sj.deepMatch(sj.shake([{a: 'a', b: 'b'}, {a: 'a', c: 'c'}], ['a']), [{a: 'a'}, {a: 'a'}])],
 	], 'sj.shake.test()');
 };
+sj.assignDefined = function (target, ...args) { // unused
+	args.forEach(arg => {
+		Object.keys(arg).forEach(key => {
+			if (arg[key] !== undefined) target[key] = arg[key];
+		});
+	});
+	return target;
+};
 
 // SORT
 sj.stableSort = function(list, compare) {
@@ -1251,6 +1259,7 @@ sj.Base = class Base {
 };
 (function () {
 	//G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
+	//TODO consider deep defaults
 	this.makeClass = function (name, parent, {
 		//G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
 		//! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -1390,7 +1399,7 @@ sj.Base = class Base {
 			extendedDefaults = {...extendedDefaults, ...chain[i].defaults};
 		}
 		//C assign all properties from options if unknown properties are allowed
-		if (this.allowUnknown) Object.assign(this, {...defaults, ...options});
+		if (this.allowUnknown) Object.assign(this, defaults, options);
 		//C else overwrite only default properties with properties from options
 		else Object.keys(extendedDefaults).forEach(key => this[key] = typeof options[key] !== 'undefined' ? options[key] : extendedDefaults[key]);
 

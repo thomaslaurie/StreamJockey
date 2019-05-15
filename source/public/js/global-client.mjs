@@ -89,13 +89,20 @@ sj.Entity.augmentClass({
 	}),
 });
 
-// PLAYBACK //G tightly integrated with VueX
+
+
+// ACTION
+//G sj.Actions have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
+//G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
+//G tightly integrated with VueX
+//TODO consider a stop action? it would stop all sources and set the current source back to null
 sj.Action = sj.Base.makeClass('Action', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
+			//G must be given a source
 			if (!sj.isType(accessory.options.source, sj.Source)) throw new sj.Error({
 				origin: 'sj.Action.beforeInitialize()',
-				reason: 'sj.Action instance.source must be an sj.Source',
+				reason: `sj.Action instance.source must be an sj.Source: ${accessory.options.source}`,
 				content: accessory.options.source,
 			});
 		},
@@ -105,15 +112,16 @@ sj.Action = sj.Base.makeClass('Action', sj.Base, {
 	}),
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
-			return sj.isType(otherAction, Object) 
-			//C these should essentially be the action-specific state defaults
+			//C otherAction must be an sj.Action, and have the same playback-state properties
+			return sj.isType(otherAction, sj.Action)
 			&& otherAction.source === this.source;
 		}, 
 		collapseCondition(otherAction) {
+			//C collapse if identical
 			return this.identicalCondition(otherAction);
 		},
 		annihilateCondition: otherAction => false,
-		trigger: async () => {
+		async trigger() {
 			throw new sj.Error({
 				origin: 'sj.Action.trigger()',
 				reason: 'no trigger function has been set for this action',
@@ -124,6 +132,7 @@ sj.Action = sj.Base.makeClass('Action', sj.Base, {
 sj.Start = sj.Base.makeClass('Start', sj.Action, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
+			//G must be given a track
 			if (!sj.isType(accessory.options.track, sj.Track)) throw new sj.Error({
 				origin: 'sj.Start.beforeInitialize()',
 				reason: 'sj.Start instance.track must be an sj.Track',
@@ -139,38 +148,37 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 	prototypeProperties: parent => ({
 		identicalCondition(otherAction) {
 			return parent.prototype.identicalCondition.call(this, otherAction) 
-			&& sj.isType(otherAction.track, sj.Track)
+			&& sj.isType(otherAction.track, sj.Track) //C catch non-sj.Tracks
 			&& otherAction.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
 			&& otherAction.isPlaying === this.isPlaying
 			&& otherAction.progress === this.progress;
 		},
 		collapseCondition(otherAction) {
-			//C extend by collapsing sj.Resume, sj.Pause, & sj.Seek too
-			const c = otherAction.constructor;
-			return parent.collapseCondition.call(this, otherAction) || c === sj.Resume || c === sj.Pause || c === sj.Seek;
+			//C collapses identical sj.Starts, and any sj.Resumes, sj.Pauses, and sj.Seeks
+			return parent.collapseCondition.call(this, otherAction)
+			|| otherAction.constructor === sj.Resume 
+			|| otherAction.constructor === sj.Pause 
+			|| otherAction.constructor === sj.Seek;
 		},
 		async trigger({dispatch, commit}) {
 			//C pause all
 			await sj.asyncForEach(sj.Source.instances, async source => {
 				await dispatch(`${source.name}/pause`);
+				await dispatch(`${this.source.name}/checkPlayback`); //TODO this doesn't feel DRY enough
 			});
 			//C start target
 			await dispatch(`${this.source.name}/start`, this.track);
+			await dispatch(`${this.source.name}/checkPlayback`);
 
 			//C change source
 			commit('setSource', this.source);
-			commit(`${this.source.name}/setPlayback`, {
-				track: this.track,
-				isPlaying: true,
-				progress: 0,
-			});
 		},
 	}),
 });
 sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
-			//C validate
+			//G isPlaying must be manually set to true or false
 			if (options.isPlaying !== true && options.isPlaying !== false) throw new sj.Error({
 				origin: 'sj.Toggle',
 				reason: `Toggle isPlaying must be true or false: ${options.isPlaying}`,
@@ -187,35 +195,39 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 			&& otherAction.isPlaying === this.isPlaying;
 		},
 		annihilateCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction)
-			&& otherAction.isPlaying === !this.isPlaying
-			&& otherAction.constructor === this.constructor; //! both must be sj.Toggle	
+			return parent.prototype.annihilateCondition.call(this, otherAction)
+			|| ( 
+				//C same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts)
+				parent.prototype.identicalCondition.call(this, otherAction)
+				&& otherAction.isPlaying === !this.isPlaying
+				&& otherAction.constructor === this.constructor
+			);
 		},
-		async trigger({dispatch, commit}) {
+		async trigger({dispatch, commit, state}) {
 			if (this.isPlaying) {
 				//C resume target source, pause other sources
-				console.log('resume toggle');
 				await sj.asyncForEach(sj.Source.instances, async source => {
 					if (source === this.source) {
 						await dispatch(`${source.name}/resume`);
-						commit(`${source.name}/setPlayback`, {
-							isPlaying: true,
-						});
+						console.log('resume resolved');
+
+						await sj.wait(500);
+						await dispatch(`${source.name}/checkPlayback`);
+						console.log('should be true', state[source.name].isPlaying);
 					} else {
 						await dispatch(`${source.name}/pause`);
-						commit(`${source.name}/setPlayback`, {
-							isPlaying: false,
-						});
+						await dispatch(`${source.name}/checkPlayback`);
+						console.log('should be false', state[source.name].isPlaying);
 					}
 				});
 			} else {
 				//C pause all
-				console.log('pause toggle');
 				await sj.asyncForEach(sj.Source.instances, async source => {
 					await dispatch(`${source.name}/pause`);
-					commit(`${source.name}/setPlayback`, {
-						isPlaying: false,
-					});
+					console.log('pause resolved');
+					await sj.wait(500);
+					await dispatch(`${source.name}/checkPlayback`);
+					console.log('should be false', state[source.name].isPlaying);
 				});
 			}
 		},
@@ -224,8 +236,8 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
-			//C validate
-			if (0 <= options.progress && options.progress <= 1) throw new sj.Error({
+			//G progress must be manually set between 0 and 1\
+			if (options.progress < 0 || 1 < options.progress) throw new sj.Error({
 				origin: 'sj.Seek.trigger()',
 				reason: `seek progress is not a number between 0 and 1: ${options.progress}`,
 				content: options.progress,
@@ -242,17 +254,15 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 		},
 		async trigger({dispatch}) {
 			await dispatch(`${this.source.name}/seek`, this.progress);
-			commit(`${this.source.name}/setPlayback`, {
-				progress: this.progress,
-			});
+			await dispatch(`${this.source.name}/checkPlayback`);
 		},
 	}),
 });
 sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
-			//C validate
-			if (0 <= options.volume && options.volume <= 1) throw new sj.Error({
+			//G volume must be manually set between 0 and 1
+			if (options.volume < 0 || 1 < options.volume) throw new sj.Error({
 				origin: 'sj.Volume.trigger()',
 				reason: `volume is not a number between 0 and 1: ${options.volume}`,
 				content: options.volume,
@@ -271,49 +281,44 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 			//C adjust volume on all sources
 			await sj.asyncForEach(sj.Source.instances, async source => {
 				await dispatch(`${source.name}/volume`, this.volume);
-				commit(`${source.name}/setPlayback`, {
-					volume: this.volume,
-				});
+				await dispatch(`${source.name}/checkPlayback`);
 			});
 		},
 	}),
 });
 
+// PLAYBACK
 sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 	constructorParts(parent) { return {
-		beforeInitialize() {
-			//C must be initialized here because the property requires a reference to 'this'
-			this.state = this.constructor.state;
-		},
 		defaults: {
 			// NEW
-			state: this.state,
-			actions: {},
-			mutations: {},
-			getters: {},
-			modules: {},
+			state: undefined,
+			actions: undefined,
+			mutations: {
+				setState(state, values) {
+					Object.assign(state, values);
+				},
+			},
+			getters: undefined,
+			modules: undefined,
+		},
+		afterInitialize() {
+			//C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
+			//C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
+			if (this.state === this.constructor.defaults.state) this.state = Object.assign({}, this.constructor.nullState);
 		},
 	}; },
 	staticProperties: parent => ({
-		state: {
+		nullState: {
 			source: null,
 
-			definite: { //C for the literal state received from the source API
-				track: null,
-				isPlaying: false,
-				progress: 0,
-				volume: 1,
+			track: null,
+			isPlaying: false,
+			progress: 0,
+			volume: 1,
 
-				timestamp: Date.now(),
-			},
-			inferred: { //C for all inferred values made by the app for a smoother/more-efficient experience
-				track: null,
-				isPlaying: false,
-				progress: 0,
-				volume: 1,
-
-				intervalId: null,
-			},
+			//G all state properties should be updated at the same time
+			timestamp: Date.now(),
 		},
 	}),
 });
@@ -322,7 +327,13 @@ sj.Playback.module = new sj.Playback({
 	modules: {},
 
 	state: {
-		/* Old Queue Thought Process
+		// CLOCK 
+		//C basically a reactive Date.now(), so far just used for updating playback progress
+		clock: Date.now(),
+		clockIntervalId: null,
+
+		// QUEUE
+		/* //R Old Queue Thought Process
 				//  //R
 			// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
 			// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
@@ -351,73 +362,32 @@ sj.Playback.module = new sj.Playback({
 		actionQueue: [],
 		sentAction: null,
 
+		// PLAYBACK STATE
+		//C source is used to select the proper playback state for actualPlayback
 		source: null,
-		
-		//TODO figure out how volume should work since it is consistent across sources
-
-		// actualPlayback: {
-		// 	source: null,
-		// 	track: null,
-		// 	isPlaying: false,
-		// 	progress: 0,
-		// 	volume: 1,
-		// 	timestamp: Date.now(),
-		// }, //Object.create(sj.Playback.state), //? why does this cause issues? (pause then play again)
 	},
 	actions: {
-		//C dispatched playback actions should record for what desired source they were created for
-		async start({dispatch, commit}, track) {
-			await dispatch('pushAction', new sj.Start({
-				source: track.source,
-				track,
-			}));
+		// CLOCK
+		async startClock(context) {
+			await context.dispatch('stopClock');
+			const id = setInterval(() => context.commit('updateClock'), 100); //C clock refresh rate
+			context.commit('setClockIntervalId', id);
 		},
-		async pause({dispatch, getters: {desiredPlayback: {source}}}) {
-			await dispatch('pushAction', new sj.Toggle({
-				source,
-				isPlaying: false,
-			}));
-		},
-		async resume({dispatch, getters: {desiredPlayback: {source}}}) {
-			await dispatch('pushAction', new sj.Toggle({
-				source,
-				isPlaying: true,
-			}));
+		async stopClock(context) {
+			clearInterval(state.clockIntervalId);
+			context.commit('setClockIntervalId', null);
 		},
 
-		async toggle({dispatch, getters: {desiredPlayback: {source, isPlaying}}}) {
-			await dispatch('pushAction', new sj.Toggle({
-				source,
-				isPlaying: !isPlaying,
-			}));
-		},
-		async seek({dispatch, getters: {desiredPlayback: {source}}}, progress) {
-			await dispatch('pushAction', new sj.Seek({
-				source,
-				progress,
-			}));
-		},
-		async volume({dispatch, getters: {desiredPlayback: {source}}}, volume) {
-			await dispatch('pushAction', new sj.Volume({
-				//TODO
-				source,
-				volume,
-			}));
-		},
-
-		async checkPlayback({dispatch}) {
-			await sj.asyncForEach(sj.Source.instances, async source => {
-				await dispatch(`${source.name}/checkPlayback`);
-			});
-		},
-
+		// QUEUE
 		async pushAction(context, action) {
+			//C Attempts to push a new action the current action queue. Will collapse and/or annihilate actions ahead of it in the queue if conditions are met. Action will not be pushed if it annihilates or if it is identical to the sent action or if there is no sent action and it is identical to the current playback state.
+
 			let push = true;
 
 			//C remove redundant actions if necessary
 			const compact = function (i) {
 				if (i >= 0) {
-					//R collapse is required to keep the new action rather than just leaving the existing because sj.Start collapses different actions than itself
+					//R collapse is required to use the new action rather than just using the existing action because sj.Start collapses different actions than itself
 					if (action.collapseCondition(context.state.actionQueue[i])) {
 						push = true;
 						context.commit('removeQueuedAction', i);
@@ -433,19 +403,22 @@ sj.Playback.module = new sj.Playback({
 			};
 			compact(context.state.actionQueue.length-1);
 
-			//C don't push new action if is identical to a sent action
-			if (context.state.sentAction !== null && action.identicalCondition(context.state.sentAction)) push === false;
-			//C don't push new action if no sent action exists and is identical to the actual playback 
-			if (context.state.sentAction === null && action.identicalCondition(context.getters.actualPlayback)) push === false;
+			if (context.state.sentAction !== null) { //C if there is a sent action
+				//C don't push if identical to the sent action
+				if (action.identicalCondition(context.state.sentAction)) push === false;
+			} else { //C else if there isn't a sent action
+				//C don't push if identical to the actual playback 
+				if (action.identicalCondition(context.getters.actualPlayback)) push === false;
+			}
 
-			//C push action the queue and restart the queue if not already processing
-			if (push) context.commit('addQueuedAction', action);
+			//C possibly push action the queue
+			if (push) context.commit('pushQueuedAction', action);
+			//C send next action //! do not await
 			context.dispatch('nextAction');
 		},
 		async nextAction(context) {
-			//C return if action is still processing or if no queued actions exist
+			//C don't do anything if another action is still processing or if no queued actions exist
 			if (context.state.sentAction !== null || context.state.actionQueue.length <= 0) return;
-
 
 			//C move the action from the queue to sent
 			context.commit('setSentAction', context.state.actionQueue[0]);
@@ -453,26 +426,68 @@ sj.Playback.module = new sj.Playback({
 			
 			//C trigger the action
 			await context.state.sentAction.trigger(context); //TODO what happens on failure?
-			//TODO set timestamp on update of source playback state
 
-			console.log('actualPlayback after:', sj.image(context.getters.actualPlayback));
+			//console.log('actualPlayback after:', sj.image(context.getters.actualPlayback));
 
-			//C mark the sent action as finished, start next action
+			//C mark the sent action as finished
 			context.commit('removeSentAction');
+			//C send next action //! do not await
 			context.dispatch('nextAction');
+		},
+
+		// PLAYBACK FUNCTIONS
+		//G the main playback module's actions, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
+		// BASIC
+		async start({dispatch, commit}, track) {
+			await dispatch('pushAction', new sj.Start({
+				source: track.source, //! uses track's source
+				track,
+			}));
+		},
+		async pause({dispatch, getters: {desiredPlayback: {source}}}) { 
+			await dispatch('pushAction', new sj.Toggle({
+				source, //! other non-start basic playback functions just use the current desiredPlayback source
+				isPlaying: false,
+			}));
+		},
+		async resume({dispatch, getters: {desiredPlayback: {source}}}) {
+			await dispatch('pushAction', new sj.Toggle({
+				source,
+				isPlaying: true,
+			}));
+		},
+		async seek({dispatch, getters: {desiredPlayback: {source}}}, progress) {
+			await dispatch('pushAction', new sj.Seek({
+				source,
+				progress,
+			}));
+		},
+		async volume({dispatch, getters: {desiredPlayback: {source}}}, volume) {
+			//TODO volume should change volume on all sources
+			await dispatch('pushAction', new sj.Volume({
+				source,
+				volume,
+			}));
+		},
+		// HIGHER LEVEL
+		async toggle({dispatch, getters: {desiredPlayback: {source, isPlaying}}}) {
+			await dispatch('pushAction', new sj.Toggle({
+				source,
+				isPlaying: !isPlaying,
+			}));
 		},
 	},
 	mutations: {
-		setSource(state, source) {
-			state.source = source;
+		// CLOCK
+		updateClock(state) {
+			state.clock = Date.now();
 		},
-		setDesiredPlayback(state, playbackValues) {
-			Object.assign(state.desiredPlayback, playbackValues);
+		setClockIntervalId(state, id) {
+			state.clockIntervalId = id;
 		},
-		// setActualPlayback(state, playbackValues) {
-		// 	Object.assign(state.actualPlayback, playbackValues);
-		// },
-		addQueuedAction(state, action) {
+
+		// QUEUE
+		pushQueuedAction(state, action) {
 			state.actionQueue.push(action);
 		},
 		removeQueuedAction(state, index) {
@@ -484,19 +499,36 @@ sj.Playback.module = new sj.Playback({
 		removeSentAction(state) {
 			state.sentAction = null;
 		},
+
+		// PLAYBACK STATE
+		setSource(state, source) {
+			state.source = source;
+		},
 	},
 	getters: {
-		actualPlayback(state) {
-			//C get current source state or null state
-			let s;
-			if (state.source !== null) s = state[state.source.name];
-			else s = Object.create(sj.Playback.state);
+		// PLAYBACK STATE
+		actualPlayback(state, getters) {
+			//C return null playback state if no source
+			if (state.source === null) return Object.assign({}, sj.Playback.nullState);
 
-			//C remove unneeded state properties
-			const {intervalId, ...inferredState} = s.inferred;
-			return inferredState;
+			//C get the source state
+			const sourceState = state[state.source.name];
+
+			//C use inferredProgress or regular progress depending on isPlaying
+			//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
+			if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
+			else return sourceState;
 		},
-		desiredPlayback: ({sentAction, actionQueue}, {actualPlayback}) => Object.assign({}, actualPlayback, sentAction, ...actionQueue),
+		inferredProgress(state) {
+			//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
+			const sourceState = state[state.source.name];
+			const elapsedTime = state.clock - sourceState.timestamp;
+			const elapsedProgress = elapsedTime / sourceState.track.duration;
+			return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
+		},
+		desiredPlayback: ({source, sentAction, actionQueue}, {actualPlayback}) => {
+			return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
+		},
 	},
 });
 
@@ -514,7 +546,7 @@ sj.Source.augmentClass({
 	
 				player: undefined,
 				loadPlayer: undefined,
-				playback: new sj.Playback(),
+				playback: undefined,
 			},
 			afterInitialize() {
 				oldAfterInitialize.call(this);
@@ -817,6 +849,8 @@ sj.spotify = new sj.Source({
 							}
 						}
 					*/
+
+					console.log('state changed', state);
 		
 					//console.log('STATE: ', state);
 		
@@ -1076,24 +1110,8 @@ sj.spotify = new sj.Source({
 	},
 
 	playback: new sj.Playback({
+		//G source-specific playback should be the basic playback functions that connects this app to the source's api
 		actions: {
-			async startInfer(context) {
-				await context.dispatch('stopInfer');
-
-				const intervalId = setInterval(() => {
-					const elapsedTime = Date.now() - context.state.definite.timestamp;
-					const elapsedProgress = elapsedTime / context.state.definite.track.duration;
-					const inferredProgress = sj.clamp(context.state.definite.progress + elapsedProgress, 0, 1);
-					context.commit('setInferredState', {progress: inferredProgress});
-				}, 100); //TODO progress update rate
-				
-				context.commit('setInferredState', {intervalId});
-			},
-			async stopInfer(context) {
-				clearInterval(context.state.inferred.intervalId);
-				context.commit('setPlayback', {intervalId: null});
-			},
-
 			async checkPlayback({commit, state, state: {source}}) {
 				//TODO test that this works if no track is loaded
 
@@ -1124,22 +1142,25 @@ sj.spotify = new sj.Source({
 					isPlaying: !currentState.paused,
 					progress: currentState.position / t.duration_ms,
 					volume: currentVolume,
+
+					timestamp: currentState.timestamp,
 				};
 	
-				commit('setDefiniteState', {...formattedState, timestamp: currentState.timestamp});
-				commit('setInferredState', formattedState);
-	
+				commit('setState', formattedState);
+				console.log('state after checkPlayback() commit', sj.image(state));
+
 				return new sj.Success({
-					log: true,
 					origin: 'spotify module action - checkPlayback()',
 					message: 'spotify playback checked',
-					content: state.definite,
+					content: state,
 				});
 			},
 			
 			//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
-			//TODO probably put state updates in here too
-			async start({dispatch, state: {source}}, track) {
+			//TODO ensure that when the function resolves that the action has been taken, not just received (ie. the track IS playing if resumed, not just about to play)
+
+			//---------- spotify playback sdk doesn't wait for state to update, must manually create an event that listens to onStateChanged, and then resolves
+			async start({state: {source}}, track) {
 				await source.request('PUT', 'me/player/play', {
 					uris: [`spotify:track:${track.sourceId}`],
 				}).catch(rejected => {
@@ -1152,8 +1173,6 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-				await dispatch('checkPlayback'); //TODO or should listeners be relied on instead?, also, these are in almost every function, how to DRY ?
-				await dispatch('startInfer');
 			},
 			async pause({state: {source}}) {
 				await source.player.pause().catch(rejected => {
@@ -1166,11 +1185,8 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-				await dispatch('checkPlayback');
-				await dispatch('stopInfer');
 			},
 			async resume({state: {source}}) {
-				console.log('resume called');
 				await source.player.resume().catch(rejected => {
 					throw new sj.Error({
 						log: true,
@@ -1181,11 +1197,9 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-				await dispatch('checkPlayback');
-				await dispatch('startInfer');
 			},
-			async seek({state: {source, duration}}, progress) {
-				const ms = progress * duration;
+			async seek({state: {source, track}}, progress) {
+				const ms = progress * track.duration;
 				await source.player.seek(ms).catch(rejected => {
 					throw new sj.Error({
 						log: true,
@@ -1196,19 +1210,9 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-				await dispatch('checkPlayback');
 			},
 			async volume({state: {source}}, volume) {
 				await source.player.setVolume(volume);
-				await dispatch('checkPlayback');
-			},
-		},
-		mutations: {
-			setDefiniteState(state, playbackValues) {
-				Object.assign(state, playbackValues);
-			},
-			setInferredState(state, playbackValues) {
-				Object.assign(state, playbackValues);
 			},
 		},
 	}),
