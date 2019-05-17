@@ -102,12 +102,51 @@ sj.Action = sj.Base.makeClass('Action', sj.Base, {
 			//G must be given a source
 			if (!sj.isType(accessory.options.source, sj.Source)) throw new sj.Error({
 				origin: 'sj.Action.beforeInitialize()',
+				message: 'no source is active to receive this action',
 				reason: `sj.Action instance.source must be an sj.Source: ${accessory.options.source}`,
 				content: accessory.options.source,
 			});
 		},
 		defaults: {
 			source: undefined,
+		},
+		afterInitialize(accessory) {
+			this.collapsedActions = []; //C an array used to store any collapsed or annihilated actions so that they may be resolved when this action either resolves or is annihilated
+			this.fullResolve = function (success) {
+				//C resolve collapsed actions
+				this.collapsedActions.forEach(collapsedAction => {
+					collapsedAction.resolve(new sj.Success({
+						origin: 'resolvePlus()',
+						reason: 'action was collapsed',
+					}));
+				});
+				//C resolve self
+				this.resolve(success);
+			};
+			this.fullReject = function (error) {
+				//C//! RESOLVE collapsed actions
+				this.collapsedActions.forEach(a => {
+					a.resolve(new sj.Success({
+						origin: 'resolvePlus()',
+						reason: 'action was collapsed',
+					}));
+				});
+				//C reject self
+				this.reject(error);
+			};
+
+			this.resolve = function () {
+				throw new sj.Error({
+					origin: 'sj.Action.resolve()',
+					reason: 'action.resolve called but it has not been given a resolve function',
+				});
+			};
+			this.resolve = function () {
+				throw new sj.Error({
+					origin: 'sj.Action.reject()',
+					reason: 'action.reject called but it has not been given a reject function',
+				});
+			};
 		},
 	}),
 	prototypeProperties: parent => ({
@@ -121,11 +160,9 @@ sj.Action = sj.Base.makeClass('Action', sj.Base, {
 			return this.identicalCondition(otherAction);
 		},
 		annihilateCondition: otherAction => false,
-		async trigger() {
-			throw new sj.Error({
-				origin: 'sj.Action.trigger()',
-				reason: 'no trigger function has been set for this action',
-			});
+		async trigger(context) {
+			//C load the player if not loaded
+			if (context.state[this.source.name].player === null) await context.dispatch(`${this.source.name}/loadPlayer`);
 		},
 	}),
 });
@@ -155,23 +192,23 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 		},
 		collapseCondition(otherAction) {
 			//C collapses identical sj.Starts, and any sj.Resumes, sj.Pauses, and sj.Seeks
-			return parent.collapseCondition.call(this, otherAction)
+			return parent.prototype.collapseCondition.call(this, otherAction)
 			|| otherAction.constructor === sj.Resume 
 			|| otherAction.constructor === sj.Pause 
 			|| otherAction.constructor === sj.Seek;
 		},
-		async trigger({dispatch, commit}) {
+		async trigger(context) {
+			await parent.prototype.trigger.call(this, context);
+
 			//C pause all
 			await sj.asyncForEach(sj.Source.instances, async source => {
-				await dispatch(`${source.name}/pause`);
-				await dispatch(`${this.source.name}/checkPlayback`); //TODO this doesn't feel DRY enough
+				await context.dispatch(`${source.name}/pause`);
 			});
 			//C start target
-			await dispatch(`${this.source.name}/start`, this.track);
-			await dispatch(`${this.source.name}/checkPlayback`);
+			await context.dispatch(`${this.source.name}/start`, this.track);
 
 			//C change source
-			commit('setSource', this.source);
+			context.commit('setSource', this.source);
 		},
 	}),
 });
@@ -203,23 +240,22 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 				&& otherAction.constructor === this.constructor
 			);
 		},
-		async trigger({dispatch, commit, state}) {
+		async trigger(context) {
+			await parent.prototype.trigger.call(this, context);
+
 			if (this.isPlaying) {
 				//C resume target source, pause other sources
 				await sj.asyncForEach(sj.Source.instances, async source => {
 					if (source === this.source) {
-						await dispatch(`${source.name}/resume`);
-						await dispatch(`${source.name}/checkPlayback`);
+						await context.dispatch(`${source.name}/resume`);
 					} else {
-						await dispatch(`${source.name}/pause`);
-						await dispatch(`${source.name}/checkPlayback`);
+						await context.dispatch(`${source.name}/pause`);
 					}
 				});
 			} else {
 				//C pause all
 				await sj.asyncForEach(sj.Source.instances, async source => {
-					await dispatch(`${source.name}/pause`);
-					await dispatch(`${source.name}/checkPlayback`);
+					await context.dispatch(`${source.name}/pause`);
 				});
 			}
 		},
@@ -244,9 +280,10 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 			return parent.prototype.identicalCondition.call(this, otherAction)
 			&& otherAction.progress === this.progress;
 		},
-		async trigger({dispatch}) {
-			await dispatch(`${this.source.name}/seek`, this.progress);
-			await dispatch(`${this.source.name}/checkPlayback`);
+		async trigger(context) {			
+			await parent.prototype.trigger.call(this, context);
+
+			await context.dispatch(`${this.source.name}/seek`, this.progress);
 		},
 	}),
 });
@@ -269,11 +306,12 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 			return parent.prototype.identicalCondition.call(this, otherAction)
 			&& otherAction.volume === this.volume;
 		},
-		async trigger({dispatch}) {
+		async trigger(context) {
+			await parent.prototype.trigger.call(this, context);
+
 			//C adjust volume on all sources
 			await sj.asyncForEach(sj.Source.instances, async source => {
-				await dispatch(`${source.name}/volume`, this.volume);
-				await dispatch(`${source.name}/checkPlayback`);
+				await context.dispatch(`${source.name}/volume`, this.volume);
 			});
 		},
 	}),
@@ -383,32 +421,55 @@ sj.Playback.module = new sj.Playback({
 				if (i >= 0) {
 					//R collapse is required to use the new action rather than just using the existing action because sj.Start collapses different actions than itself
 					if (action.collapseCondition(context.state.actionQueue[i])) {
+						//C if last otherAction collapses, this action gets pushed
 						push = true;
+						//C store otherAction on this action
+						action.collapsedActions.unshift(context.state.actionQueue[i]);
+						//C remove otherAction
 						context.commit('removeQueuedAction', i);
+						//C analyze next otherAction
 						compact(i-1);
 					} else if (action.annihilateCondition(context.state.actionQueue[i])) {
+						//C if last otherAction annihilates, this action doesn't get pushed
 						push = false;
+						action.collapsedActions.unshift(context.state.actionQueue[i]);
 						context.commit('removeQueuedAction', i);
 						compact(i-1);
 					} else {
+						//C if otherAction does not collapse or annihilate, escape
 						return;
 					}
 				}
 			};
 			compact(context.state.actionQueue.length-1);
 
-			if (context.state.sentAction !== null) { //C if there is a sent action
-				//C don't push if identical to the sent action
-				if (action.identicalCondition(context.state.sentAction)) push === false;
-			} else { //C else if there isn't a sent action
-				//C don't push if identical to the actual playback 
-				if (action.identicalCondition(context.getters.actualPlayback)) push === false;
-			}
+			if (( //C if there is a sent action and identical to the sent action,
+				context.state.sentAction !== null && 
+				action.identicalCondition(context.state.sentAction)
+			) || ( //C or if there isn't a sent action and identical to the actual playback
+				context.state.sentAction === null && 
+				action.identicalCondition(context.getters.actualPlayback)
+			)) push === false; //C don't push
 
 			//C possibly push action the queue
-			if (push) context.commit('pushQueuedAction', action);
-			//C send next action //! do not await
-			context.dispatch('nextAction');
+			if (push) {
+				context.commit('pushQueuedAction', action);
+			} else {
+				action.fullResolve(new sj.Success({
+					origin: 'pushAction()',
+					reason: 'action was annihilated',
+				}));
+			}
+
+			//C wait for action to resolve
+			return await new Promise((resolve, reject) => {
+				//C creates a closure resolve/reject functions, this promise can now be resolved externally by calling these functions
+				action.resolve = resolve;
+				action.reject = reject;
+
+				//C send next action //! do not await
+				context.dispatch('nextAction');
+			});
 		},
 		async nextAction(context) {
 			//C don't do anything if another action is still processing or if no queued actions exist
@@ -417,11 +478,12 @@ sj.Playback.module = new sj.Playback({
 			//C move the action from the queue to sent
 			context.commit('setSentAction', context.state.actionQueue[0]);
 			context.commit('removeQueuedAction', 0);
-			
-			//C trigger the action
-			await context.state.sentAction.trigger(context); //TODO what happens on failure?
 
-			//console.log('actualPlayback after:', sj.image(context.getters.actualPlayback));
+			//C trigger and resolve the action
+			await context.state.sentAction.trigger(context).then(
+				resolved => context.state.sentAction.fullResolve(resolved),
+				rejected => context.state.sentAction.fullReject(rejected),
+			);
 
 			//C mark the sent action as finished
 			context.commit('removeSentAction');
@@ -432,40 +494,40 @@ sj.Playback.module = new sj.Playback({
 		// PLAYBACK FUNCTIONS
 		//G the main playback module's actions, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
 		// BASIC
-		async start({dispatch, commit}, track) {
-			await dispatch('pushAction', new sj.Start({
+		async start({dispatch, state}, track) {
+			return await dispatch('pushAction', new sj.Start({
 				source: track.source, //! uses track's source
 				track,
 			}));
 		},
 		async pause({dispatch, getters: {desiredPlayback: {source}}}) { 
-			await dispatch('pushAction', new sj.Toggle({
+			return await dispatch('pushAction', new sj.Toggle({
 				source, //! other non-start basic playback functions just use the current desiredPlayback source
 				isPlaying: false,
 			}));
 		},
 		async resume({dispatch, getters: {desiredPlayback: {source}}}) {
-			await dispatch('pushAction', new sj.Toggle({
+			return await dispatch('pushAction', new sj.Toggle({
 				source,
 				isPlaying: true,
 			}));
 		},
 		async seek({dispatch, getters: {desiredPlayback: {source}}}, progress) {
-			await dispatch('pushAction', new sj.Seek({
+			return await dispatch('pushAction', new sj.Seek({
 				source,
 				progress,
 			}));
 		},
 		async volume({dispatch, getters: {desiredPlayback: {source}}}, volume) {
 			//TODO volume should change volume on all sources
-			await dispatch('pushAction', new sj.Volume({
+			return await dispatch('pushAction', new sj.Volume({
 				source,
 				volume,
 			}));
 		},
 		// HIGHER LEVEL
 		async toggle({dispatch, getters: {desiredPlayback: {source, isPlaying}}}) {
-			await dispatch('pushAction', new sj.Toggle({
+			return await dispatch('pushAction', new sj.Toggle({
 				source,
 				isPlaying: !isPlaying,
 			}));
@@ -519,9 +581,7 @@ sj.Playback.module = new sj.Playback({
 			const sourceState = state[state.source.name];
 			const elapsedTime = state.clock - sourceState.timestamp;
 			const elapsedProgress = elapsedTime / sourceState.track.duration;
-			const clampedProgress = sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
-			console.log(state.clock, Date.now(), elapsedTime, elapsedProgress, clampedProgress);
-			return clampedProgress;
+			return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
 		},
 		desiredPlayback: ({source, sentAction, actionQueue}, {actualPlayback}) => {
 			return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
@@ -725,37 +785,72 @@ sj.spotify = new sj.Source({
 							},
 							//volume: 1, //TODO initialize with a custom volume (default is 1)
 						});
+						player.formatState = function (state) {
+							//TODO state could be anything from the callback, better validate it somehow
+							if (!sj.isType(state, Object)) return {};
+							const t = state.track_window.current_track; 
+							return {
+								track: new sj.Track({
+									source: sj.spotify,
+									sourceId: t.id,
+									name: t.name,
+									duration: t.duration_ms,
+									artists: t.artists.map(artist => artist.name),
+									//TODO link: t.uri,
+								}),
+								isPlaying: !state.paused,
+								progress: state.position / t.duration_ms,
+			
+								timestamp: state.timestamp, //! this isn't in the documentation, but the property exists
+							};
+						},
 						player.awaitState = async function ({command = ()=>{}, stateCondition = ()=>false, success = {}, error = {}, timeoutError = {}}) {
-							return new Promise((resolve, reject) => {
+							return new Promise(async (resolve, reject) => {
 								let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
 
-								const callback = state => {
-									if (!resolved && stateCondition(state)) {
+								const callback = async state => {
+									if (!resolved && stateCondition(player.formatState(state))) {
+										//C remove listener
 										this.removeListener('player_state_changed', callback);
-										resolve(new sj.Success(success)); //TODO success?
+										//C update playback state
+										await context.dispatch('updatePlayback', state);
+										//C resolve
+										resolve(new sj.Success(success));
+										//C prevent other exit points from executing their code
 										resolved = true;
 									}
 								};
+
 								//C add the listener before the request is made, so that the event cannot be missed 
 								//! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
 								this.addListener('player_state_changed', callback);
 			
-								//C don't do anything when main() resolves, it only indicates that the command has been received
-								command().catch(rejected => {
+								//C if command failed, reject
+								//! don't do anything when main() resolves, it only indicates that the command has been received
+								await command().catch(rejected => {
 									if (!resolved) {
-										this.removeListener('player_state_changed', callback); //C should remove listener on error
+										this.removeListener('player_state_changed', callback);
 										reject(new sj.Error({...error, content: rejected}));
 										resolved = true;
 									}
 								});
+
+								//C if playback is already in the proper state, resolve but don't update
+								//! this check is required because in this case spotify wont trigger a 'player_state_changed' event
+								await context.dispatch('checkPlayback');
+								if (!resolved && stateCondition(context.state)) {
+									this.removeListener('player_state_changed', callback);
+									resolve(new sj.Success(success));
+									resolved = true;
+								}
 								
-								sj.wait(sj.Playback.requestTimeout).then(resolved => {
-									if (!resolved) {
-										this.removeListener('player_state_changed', callback);
-										reject(new sj.Timeout(timeoutError));
-										resolved = true;
-									}
-								});
+								//C if timed out, reject
+								await sj.wait(sj.Playback.requestTimeout);
+								if (!resolved) {
+									this.removeListener('player_state_changed', callback);
+									reject(new sj.Timeout(timeoutError));
+									resolved = true;
+								}
 							});
 						},
 
@@ -774,13 +869,16 @@ sj.spotify = new sj.Source({
 								iframe.style.left = '-1000px';
 							}
 
+							//C set the player as ready 
+							//! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
+							context.commit('setPlayer', player);
+
 							//C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 							await sj.spotify.request('PUT', 'me/player', {
 								device_ids: [device_id],
-								play: true, //? check desired behavior ('ensure playback happens on new device' or 'keep the current playback state')
+								play: false, // keeps current playback state
 							}).catch(rejected => {
 								reject(new sj.Error({
-									log: true,
 									//code: JSON.parse(error.response).error.status,
 									origin: 'spotify.loadPlayer()',
 									message: 'spotify player could not be loaded',
@@ -789,9 +887,38 @@ sj.spotify = new sj.Source({
 								}));
 							});
 
-							context.commit('setPlayer', player);
+							//C wait for device to transfer
+							await sj.recursiveAsyncTime(sj.Playback.requestTimeout*2, result => {
+								//L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
+								//C this is fine, it just means that it's not ready, so just catch anything.
+								return !sj.isType(result, Object) || 
+								!sj.isType(result.device, Object) || 
+								result.device.id !== device_id;
+							}, async o => { 
+								//C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
+								//L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
+								//C timeout is doubled here to work better with the doubling delay time.
+								//C using an object wrapper for the delay argument so that it can be modified between iterations
+								await sj.wait(o.delay);
+								o.delay = o.delay*2; //C double the delay each time
+								return await sj.spotify.request('Get', 'me/player').catch(rejected => {
+									reject(new sj.Error({
+										//code: JSON.parse(error.response).error.status,
+										origin: 'spotify.loadPlayer()',
+										message: 'spotify player could not be loaded',
+										//reason: JSON.parse(error.response).error.message,
+										content: rejected,
+									}));
+
+									return {device: {id: device_id}}; //C break the loop after rejecting
+								});
+								//C starting delay
+							}, {delay: 100});
+
+							//C ensure that playback is not playing
+							await context.dispatch('pause');
+
 							resolve(new sj.Success({
-								log: true,
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player loaded',
 								content: player,
@@ -860,11 +987,10 @@ sj.spotify = new sj.Source({
 						});
 			
 						//C ongoing listeners
-						//----------
 						player.on('player_state_changed', state => {
 							//C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
 							//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
-							context.dispatch('checkPlayback');
+							context.dispatch('updatePlayback', state);
 						});
 						player.on('playback_error', ({message}) => {
 							//TODO this should be a listener, and not resolve or reject
@@ -1096,13 +1222,24 @@ sj.spotify = new sj.Source({
 					});
 				*/
 			},
-			async checkPlayback({commit, state, state: {player, source}}) {
-				//TODO test that this works if no track is loaded
-
+			async updatePlayback(context, state) {
+				//C formats given state and adds volume from getVolume() to it, commits to state
+				const formattedState = context.state.player.formatState(state);
+				//C these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
-				const currentVolume = await player.getVolume(); 
+				const volume = await context.state.player.getVolume(); 
+				const newState = {...formattedState, volume};
+				context.commit('setState', newState);
+				return new sj.Success({
+					origin: 'spotify module action - updatePlayback()',
+					message: 'spotify playback updated',
+					content: newState,
+				});
+			},
+			async checkPlayback(context) {
+				//TODO test that this works if no track is loaded
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
-				const currentState = await player.getCurrentState().catch(rejected => {
+				const state = await context.state.player.getCurrentState().catch(rejected => {
 					throw new sj.Error({
 						log: true,
 						//code: JSON.parse(rejected.response).error.status,
@@ -1112,30 +1249,11 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-				//C shorthand
-				const t = currentState.track_window.current_track; 
-				const formattedState = {
-					track: new sj.Track({
-						source: source,
-						sourceId: t.id,
-						name: t.name,
-						duration: t.duration_ms,
-						artists: t.artists.map(artist => artist.name),
-						//TODO link: t.uri,
-					}),
-					isPlaying: !currentState.paused,
-					progress: currentState.position / t.duration_ms,
-					volume: currentVolume,
-
-					timestamp: currentState.timestamp,
-				};
-	
-				commit('setState', formattedState);
-
+				await context.dispatch('updatePlayback', state);
 				return new sj.Success({
 					origin: 'spotify module action - checkPlayback()',
 					message: 'spotify playback checked',
-					content: state,
+					content: context.state,
 				});
 			},
 			
@@ -1149,9 +1267,9 @@ sj.spotify = new sj.Source({
 						uris: [`spotify:track:${track.sourceId}`],
 					}),
 					stateCondition: state => ( //C track must be playing, near the start (within the time from when the call was made to now), and the same track
-						state.paused === false && 
-						state.position <= Date.now()-timeBeforeCall && 
-						state.track_window.current_track.uri === `spotify:track:${track.sourceId}`
+						state.isPlaying === true && 
+						state.progress <= (Date.now() - timeBeforeCall) / track.duration && 
+						state.track.sourceId === track.sourceId
 					),
 					success: {
 
@@ -1170,9 +1288,8 @@ sj.spotify = new sj.Source({
 			async pause({state: {player}}) {
 				return await player.awaitState({
 					command: async () => await player.pause(),
-					stateCondition: state => state.paused === true,
+					stateCondition: state => state.isPlaying === false,
 					success: {
-
 					},
 					error: {
 						//code: JSON.parse(rejected.response).error.status,
@@ -1188,7 +1305,7 @@ sj.spotify = new sj.Source({
 			async resume({state: {player}}) {
 				return await player.awaitState({
 					command: async () => await player.resume(),
-					stateCondition: state => state.paused === false,
+					stateCondition: state => state.isPlaying === true,
 					success: {
 
 					},
@@ -1203,14 +1320,14 @@ sj.spotify = new sj.Source({
 					},
 				});
 			},
-			async seek({state: {player, track}}, progress) {
+			async seek({state, state: {player, track}}, progress) {
 				const ms = progress * track.duration;
 				const timeBeforeCall = Date.now();
 
-				return await player.awaitState({
+				let temp2 =  await player.awaitState({
 					command: async () => await player.seek(ms),
 					//C state.position must be greater than the set position but less than the difference in time it took to call and resolve
-					stateCondition: state => state.position >= ms && state.position-ms <= Date.now()-timeBeforeCall,
+					stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
 					success: {
 
 					},
@@ -1224,6 +1341,7 @@ sj.spotify = new sj.Source({
 						origin: 'sj.spotify.playback.actions.seek()',
 					},
 				});
+				return temp2;
 			},
 			async volume({state: player}, volume) {
 				return await player.awaitState({
