@@ -10,10 +10,21 @@
 		computed: {
 			sliderProgress() {
 				if (!this.drag) {
-					return this.$store.getters["player/actualPlayback"].progress;
+					return this.$store.getters["player/actualPlayback"].progress; //? should this be desired progress?
 				} else {
 					return this.manualProgress; //C this makes the slider use its own value
 				}
+			},
+			//---------- add functionality to start prev/next track
+			currentTrackPosition() {
+				const currentTrack = this.$store.getters['player/desiredPlayback'].track;
+				if (sj.isType(currentTrack, Object)) return currentTrack.position;
+				else return null;
+			},
+		},
+		watch: {
+			currentTrackPosition() {
+				//TODO subscribe/unsubscribe, and set prev/next track
 			},
 		},
 		

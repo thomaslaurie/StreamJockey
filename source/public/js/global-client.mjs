@@ -577,16 +577,6 @@ sj.Playback.module = new sj.Playback({
 				isPlaying: !isPlaying,
 			}));
 		},
-		//TODO prev and next buttons should be greyed out if no prev or next track exists
-		async prev({dispatch, getters: {desiredPlayback: {track, source, isPlaying}}}) {
-
-			return await dispatch('pushAction', new sj.Start({
-				
-			}));
-		},
-		async next() {
-
-		},
 	},
 	mutations: {
 		// CLOCK
@@ -640,12 +630,6 @@ sj.Playback.module = new sj.Playback({
 		},
 		desiredPlayback({sentAction, actionQueue}, {actualPlayback}) {
 			return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
-		},
-		prevTrack(state, getters) {
-
-		},
-		nextTrack(state, getters) {
-
 		},
 	},
 });
