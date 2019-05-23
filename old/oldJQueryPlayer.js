@@ -1,6 +1,3 @@
-//----------- DISTRIBUTE ALL OF THIS INTO GLOBAL / GLOBAL-CLIENT / GLOBAL-SERVER
-
-
 //  ██████╗  █████╗  ██████╗ ███████╗
 //  ██╔══██╗██╔══██╗██╔════╝ ██╔════╝
 //  ██████╔╝███████║██║  ███╗█████╗  
@@ -49,9 +46,6 @@ $(document).on("click", "#toggle", function() {
 
 	desiredPlayback.toggle(); //! <--
 });
-
-
-//----------
 
 var dragging = false;
 

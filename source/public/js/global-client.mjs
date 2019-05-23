@@ -324,22 +324,26 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 			// NEW
 			state: undefined,
 			actions: undefined,
-			mutations: {
-				setState(state, values) {
-					Object.assign(state, values);
-				},
-			},
+			mutations: undefined,
 			getters: undefined,
 			modules: undefined,
 		},
 		afterInitialize() {
 			//C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
 			//C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
-			if (this.state === this.constructor.defaults.state) this.state = Object.assign({}, this.constructor.nullState);
+
+
+			this.state			= {...this.constructor.baseState, ...this.state};
+			this.actions		= {...this.constructor.baseActions, ...this.actions};
+			this.mutations		= {...this.constructor.baseMutations, ...this.mutations};
+			this.baseGetters	= {...this.constructor.baseGetters, ...this.getters};
+			this.baseModules	= {...this.constructor.baseModules, ...this.getters};
 		},
 	}; },
 	staticProperties: parent => ({
-		nullState: {
+		requestTimeout: 5000,
+
+		baseState: {
 			source: null,
 			player: null,
 
@@ -350,8 +354,49 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 
 			//G all state properties should be updated at the same time
 			timestamp: Date.now(),
+
+
+			//R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
+			startingTrack: null,
 		},
-		requestTimeout: 5000,
+		baseActions: {
+			async preserveLocalMetadata(context, track) {
+				if (!sj.isType(track, sj.Track)) throw new sj.Error({
+					origin: 'preserveLocalMetadata()',
+					reason: 'track is not an sj.Track',
+				});
+
+				//C default local metadata as foreign track
+				let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
+					obj[key] = null;
+					return obj;
+				}, {});
+
+				//C set local as current or starting track if matching
+				if (sj.isType(context.state.track, Object) && 
+				track.sourceId === context.state.track.sourceId)			local = context.state.track;
+				else if (sj.isType(context.state.startingTrack, Object) && 
+				track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
+
+				//C return new track with localMetadata properties replaced
+				return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
+			},
+		},
+		baseMutations: {
+			setState(state, values) {
+				Object.assign(state, values);
+			},
+			setStartingTrack(state, track) {
+				state.startingTrack = track;
+			},
+			removeStartingTrack(state, track) {
+				state.startingTrack = null;
+			},
+		},
+		baseGetters: {
+		},
+		baseModules: {
+		},
 	}),
 });
 sj.Playback.module = new sj.Playback({
@@ -494,7 +539,7 @@ sj.Playback.module = new sj.Playback({
 		// PLAYBACK FUNCTIONS
 		//G the main playback module's actions, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
 		// BASIC
-		async start({dispatch, state}, track) {
+		async start({dispatch}, track) {
 			return await dispatch('pushAction', new sj.Start({
 				source: track.source, //! uses track's source
 				track,
@@ -532,6 +577,16 @@ sj.Playback.module = new sj.Playback({
 				isPlaying: !isPlaying,
 			}));
 		},
+		//TODO prev and next buttons should be greyed out if no prev or next track exists
+		async prev({dispatch, getters: {desiredPlayback: {track, source, isPlaying}}}) {
+
+			return await dispatch('pushAction', new sj.Start({
+				
+			}));
+		},
+		async next() {
+
+		},
 	},
 	mutations: {
 		// CLOCK
@@ -565,7 +620,7 @@ sj.Playback.module = new sj.Playback({
 		// PLAYBACK STATE
 		actualPlayback(state, getters) {
 			//C return null playback state if no source
-			if (state.source === null) return Object.assign({}, sj.Playback.nullState);
+			if (state.source === null) return {...sj.Playback.baseState};
 
 			//C get the source state
 			const sourceState = state[state.source.name];
@@ -583,8 +638,14 @@ sj.Playback.module = new sj.Playback({
 			const elapsedProgress = elapsedTime / sourceState.track.duration;
 			return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
 		},
-		desiredPlayback: ({source, sentAction, actionQueue}, {actualPlayback}) => {
+		desiredPlayback({sentAction, actionQueue}, {actualPlayback}) {
 			return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
+		},
+		prevTrack(state, getters) {
+
+		},
+		nextTrack(state, getters) {
+
 		},
 	},
 });
@@ -653,6 +714,8 @@ sj.session.logout = async function () {
 
 	Is there a significant discrepancy between potential synchronous/local sources (listeners) and asynchronous api calls for progress checks? Which information sources are synchronous/local? Should their information override the api information?
 		Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
+
+	still some issues with playback, try rapid clicking seek, etc.
 */
 
 // global source objects
@@ -767,7 +830,7 @@ sj.spotify = new sj.Source({
 		};
 	
 		return await sj.request(method, `${urlPrefix}/${path}`, body, header);
-	},
+	},	
 
 	playback: new sj.Playback({
 		//G source-specific playback should be the basic playback functions that connects this app to the source's api
@@ -871,7 +934,7 @@ sj.spotify = new sj.Source({
 
 							//C set the player as ready 
 							//! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
-							context.commit('setPlayer', player);
+							context.commit('setState', {player});
 
 							//C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 							await sj.spotify.request('PUT', 'me/player', {
@@ -915,8 +978,15 @@ sj.spotify = new sj.Source({
 								//C starting delay
 							}, {delay: 100});
 
+							console.log(sj.image(context.state));
+
 							//C ensure that playback is not playing
 							await context.dispatch('pause');
+
+							//C check playback state
+							
+							//await context.dispatch('checkPlayback');
+							console.log('--------');
 
 							resolve(new sj.Success({
 								origin: 'spotify.loadPlayer()',
@@ -1222,13 +1292,32 @@ sj.spotify = new sj.Source({
 					});
 				*/
 			},
+
 			async updatePlayback(context, state) {
+				//C formats and commits playback state
+
+				/* //R
+					when formattingState and checkState are executed, the track only gets metadata from the api and therefore looses it's playlistId, position, and other custom metadata, how to preserve this data so it can be used to know the currently playing track, playlist, and next/prev tracks
+
+					my issue right now is where to store the app-generated metadata
+
+					because, I want the individual source playbacks to also be able to react to external changes
+
+					maybe just a simple if statement - if the track changes when not commanded to do so by the app, then a foreign track is being played, play history should still be recorded fine, but no playlist in the app would show a track as 'playing', unless the same foreign track is being displayed (like in search results, though this would mean that search results shouldn't be played sequentially in a playlist, which isn't really a necessary behavior) (a foreign track could simply be indicated by a null playlist id)
+
+					so the playlistId/position should hang out on the track until it is either replaced by a new track with its own playlistId/position or wiped out by a track with no playlistId/position
+						//? are playlistId and position mutually required? is there a situation where playlistId or position would exist on their own? I don't think so
+				*/
+
 				//C formats given state and adds volume from getVolume() to it, commits to state
 				const formattedState = context.state.player.formatState(state);
 				//C these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
 				const volume = await context.state.player.getVolume(); 
 				const newState = {...formattedState, volume};
+
+				newState.track = await context.dispatch('preserveLocalMetadata', newState.track);
+
 				context.commit('setState', newState);
 				return new sj.Success({
 					origin: 'spotify module action - updatePlayback()',
@@ -1237,7 +1326,8 @@ sj.spotify = new sj.Source({
 				});
 			},
 			async checkPlayback(context) {
-				//TODO test that this works if no track is loaded
+				//C retrieves playback from api and updates it
+
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
 				const state = await context.state.player.getCurrentState().catch(rejected => {
 					throw new sj.Error({
@@ -1249,6 +1339,7 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
+
 				await context.dispatch('updatePlayback', state);
 				return new sj.Success({
 					origin: 'spotify module action - checkPlayback()',
@@ -1258,22 +1349,28 @@ sj.spotify = new sj.Source({
 			},
 			
 			//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
-			//TODO consider more DRY
-			async start({state: {player, source}}, track) {
+			//G should resolve only when the playback command is applied
+
+			// PLAYBACK COMMANDS
+			//G must handle redundant requests (eg. pause when already paused)
+			//G must only resolve when the playback state is actually applied (not just on command acknowledgement)
+			async start(context, track) {
+				//G start must preserve local metadata (id, playlistId, position, ...)
+
 				const timeBeforeCall = Date.now();
 
-				return await player.awaitState({
-					command: async () => await source.request('PUT', 'me/player/play', {
+				context.commit('setStartingTrack', track);
+
+				const result = await context.state.player.awaitState({
+					command: async () => await context.state.source.request('PUT', 'me/player/play', {
 						uris: [`spotify:track:${track.sourceId}`],
 					}),
 					stateCondition: state => ( //C track must be playing, near the start (within the time from when the call was made to now), and the same track
 						state.isPlaying === true && 
-						state.progress <= (Date.now() - timeBeforeCall) / track.duration && 
-						state.track.sourceId === track.sourceId
+						state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration && 
+						state.track.sourceId === context.state.track.sourceId
 					),
-					success: {
-
-					},
+					success: {},
 					error: {
 						//code: JSON.parse(rejected.response).error.status,
 						origin: 'spotify.start()',
@@ -1284,6 +1381,20 @@ sj.spotify = new sj.Source({
 						origin: 'sj.spotify.playback.actions.start()',
 					},
 				});
+
+				//C preserve local metadata
+				context.commit('setState', {
+					track: new sj.Track({
+						...context.state.track, 
+						id: track.id,
+						playlistId: track.playlistId,
+						position: track.position,
+					}),
+				});
+
+				context.commit('removeStartingTrack');
+
+				return result;
 			},
 			async pause({state: {player}}) {
 				return await player.awaitState({
@@ -1324,7 +1435,7 @@ sj.spotify = new sj.Source({
 				const ms = progress * track.duration;
 				const timeBeforeCall = Date.now();
 
-				let temp2 =  await player.awaitState({
+				return await player.awaitState({
 					command: async () => await player.seek(ms),
 					//C state.position must be greater than the set position but less than the difference in time it took to call and resolve
 					stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
@@ -1341,7 +1452,6 @@ sj.spotify = new sj.Source({
 						origin: 'sj.spotify.playback.actions.seek()',
 					},
 				});
-				return temp2;
 			},
 			async volume({state: player}, volume) {
 				return await player.awaitState({
@@ -1362,12 +1472,6 @@ sj.spotify = new sj.Source({
 				});
 			},
 		},
-		mutations: {
-			...sj.Playback.defaults.mutations,
-			setPlayer(state, value) {
-				state.player = value;
-			},
-		}
 	}),
 });
 

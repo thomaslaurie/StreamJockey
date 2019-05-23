@@ -22,9 +22,6 @@
 			async auth() {
                 let temp = await this.sj.spotify.auth();
             },
-            async loadPlayer() {
-				await this.$store.dispatch('player/spotify/loadPlayer');
-			},
         },
     }
 </script>
@@ -37,7 +34,6 @@
         <button @click='add'>Add</button>
         <button @click='profile'>Profile</button>
 		<button @click='auth()'>Auth</button>
-        <button @click='loadPlayer()'>Load Player</button>
     </div>
 </template>
 

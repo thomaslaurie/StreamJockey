@@ -348,7 +348,7 @@ sj.shake.test = function () {
 		['simple', true === sj.deepMatch(sj.shake([{a: 'a', b: 'b'}, {a: 'a', c: 'c'}], ['a']), [{a: 'a'}, {a: 'a'}])],
 	], 'sj.shake.test()');
 };
-sj.assignDefined = function (target, ...args) { // unused
+sj.assignDefined = function (target, ...args) {
 	args.forEach(arg => {
 		Object.keys(arg).forEach(key => {
 			if (arg[key] !== undefined) target[key] = arg[key];
@@ -1256,7 +1256,8 @@ sj.checkKey = async function (list, key) {
 //C manually create sj.Base
 sj.Base = class Base {
 	constructor(options) {
-		this.constructor.construct.call(this, options, this.constructor.defaults);
+		//! defaults are retrieved in the function via the static this.constructor.defaults property
+		this.constructor.construct.call(this, options); 
 	}
 };
 (function () {
@@ -1288,7 +1289,6 @@ sj.Base = class Base {
 				super(options);
 			}
 		}}[name];
-	
 
 		// ASSIGN
 		//C use .call to set 'this' as MadeClass, pass parent for ease of use and to avoid repeating Object.getPrototypeOf(this)
@@ -1298,14 +1298,21 @@ sj.Base = class Base {
 		//! staticProperties is assigned before constructorParts so that constructorParts will take priority if there are collisions
 		Object.assign(MadeClass, staticProperties.call(MadeClass, parent));
 
-		const defaultedParts = Object.assign({
-			//C because of how sj.Base.construct() works, before/afterInitialize cannot inherit from parent or else the parent's method will be called twice, defaults should also default to an empty object just so the same object isn't redundantly spread
-			defaults: {},
+		/* //R thoughts on defaults
+			//R my first thought was to have default values that are undefined to be undeclared as well, so that properties the properties won't show up and will be more useful when overwriting another
+			//R I wanted to mimic this behavior with instance options - however, this would be inconsistent when using the spread operator, as it functions like Object.assign
+			//R however I'm now realizing that this would be more consistent and clear
+			//R I thought about doing three different 'defaults' objects, invisible (wont be declared if undefined, ie default undefined), normal, and 'fixed'(?), ones that cannot be changed by options
+			//R but this doesn't seem right, for invisible: when making a new object I should really stay away from using the literal undefined value, and any spread operators used will still function as expected, for fixed, these can just be defaults as they are, because I really shouldn't be overwriting them with options anyways, and they can always be changed later anyways
+		*/
+		Object.assign(MadeClass, {
+			//C constructorParts defaults
+			//! these require empty defaults because of how construct() works - they are composed together rather than inheriting from the parent
 			beforeInitialize() {},
 			afterInitialize() {},
+			defaults: {},
+			//! allowUnknown DOES inherit from the parent and should not have a default to avoid overwriting the parent's true value with an undefined value defaulted to false
 		}, constructorParts.call(MadeClass, parent));
-		Object.assign(MadeClass, defaultedParts); //! be careful that constructorParts properties are spelled properly, or else they wont execute
-		//? referencing 'this' inside constructorParts() references the static MadeClass, which means that inside defaults 'this' refers to the static, but inside before/afterInitialize() 'this' refers to the instance. a good reason for this way is that constructorParts still assigns to static properties
 
 		//C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
 		Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent));
@@ -1379,46 +1386,276 @@ sj.Base = class Base {
 		}
 	};
 
-	this.construct = function (options = {}, defaults) {
+	this.construct = function (options = {}) {
 		const accessory = {options};
 
 		//C get prototype chain
-		let chain = [this.constructor];
-		while(chain[chain.length-1] !== sj.Base) {
-			chain.push(Object.getPrototypeOf(chain[chain.length-1]));
-		}
+		const chain = [this.constructor];
+		//C push the prototype of the last item in the chain until sj.Base is reached
+		while(chain[chain.length-1] !== sj.Base) chain.push(Object.getPrototypeOf(chain[chain.length-1]));
 		
-		//C call ancestor's and own beforeInitialize in order
-		for(let i = chain.length-1; i >= 0; i--) {
-			chain[i].beforeInitialize.call(this, accessory);
-		}
+		//C call ancestor's and own beforeInitialize() in descending order
+		for (let i = chain.length-1; i >= 0; i--) chain[i].beforeInitialize.call(this, accessory);
 
-		//C store constructor.name on instances so this they can be stringified and rebuilt
+		//C store constructor.name on this instance as constructorName so that it can be stringified and rebuilt
 		this.constructorName = this.constructor.name; 
 
-		let extendedDefaults = {};
-		for(let i = chain.length-1; i >= 0; i--) {
-			extendedDefaults = {...extendedDefaults, ...chain[i].defaults};
-		}
-		//C assign all properties from options if unknown properties are allowed
-		if (this.allowUnknown) Object.assign(this, defaults, options);
-		//C else overwrite only default properties with properties from options
-		else Object.keys(extendedDefaults).forEach(key => this[key] = typeof options[key] !== 'undefined' ? options[key] : extendedDefaults[key]);
+		//C assign the ancestor's and own defaults in descending order
+		const extendedDefaults = {};
+		for (let i = chain.length-1; i >= 0; i--) Object.assign(extendedDefaults, chain[i].defaults);
+
+		const composed = {};
+		//C assign all properties from options
+		if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); 
+		//C or only assign properties declared in defaults
+		else Object.assign(composed, extendedDefaults, sj.shake(options, Object.keys(extendedDefaults))); 
+		//C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
+		sj.assignDefined(this, composed); //? is this preferable to simply using sj.assignDefined in places where it's needed?
 
 		//C call ancestor's and own afterInitialize in order
-		for(let i = chain.length-1; i >= 0; i--) {
-			chain[i].afterInitialize.call(this, accessory);
-		}
+		for (let i = chain.length-1; i >= 0; i--) chain[i].afterInitialize.call(this, accessory);
 
-		if (this.log) {
-			this.announce();
-		}
+		if (this.log) this.announce();
 	};
 }).call(sj.Base);
+
+sj.Base.test = async function () {
+	let calledConstructorParts 		= false;
+	let calledBeforeInitialize 		= false;
+	let calledAfterInitialize 		= false;
+	let calledPrototypeProperties 	= false;
+	let calledStaticProperties 		= false;
+	let calledExtraFunction			= false;
+
+
+	const A = sj.Base.makeClass('A', sj.Base, {
+		//C testing options functions and properties
+		constructorParts(parent) {
+			calledConstructorParts = true;
+			return {
+				beforeInitialize() {
+					calledBeforeInitialize = true;
+					this.beforeFoo = Symbol();
+				},
+				defaults: {
+					defaultFoo: Symbol(),
+					passedFoo: 'passed as not default',
+
+					undefinedFoo: undefined,
+					undefinedOptionFoo: 'passed as undefined',
+					// undeclaredFoo is not declared
+				},
+				afterInitialize() {
+					calledAfterInitialize = true;
+					this.afterFoo = Symbol();
+				},
+			};
+		},
+		prototypeProperties(parent) {
+			calledPrototypeProperties = true;
+			return {
+				prototypeFoo: Symbol(),
+			}
+		},
+		staticProperties(parent) {
+			calledStaticProperties = true;
+			return {
+				staticFoo: Symbol(),
+			};
+		},
+
+		extraFunction() {
+			calledExtraFunction = true;
+		},
+	}); 
+	const a = new A({passedFoo: Symbol(), undefinedOptionFoo: undefined});
+	const a2 = new A({passedFoo: Symbol()});
+
+	const AA = sj.Base.makeClass('AA', A, {
+		//C testing property inheritance and extension
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeFoo2 = Symbol();
+			},
+			defaults: {
+				defaultFoo2: Symbol(),
+			},
+			afterInitialize() {
+				this.afterFoo2 = Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeFoo2: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticFoo2: Symbol(),
+		}),
+	}); 
+	const aa = new AA();
+	
+	const AAA = sj.Base.makeClass('AAA', AA, {}); 
+	const aaa = new AAA();
+
+	const AAB = sj.Base.makeClass('AAB', AA, {}); 
+	const aab = new AAB();
+
+	const AB = sj.Base.makeClass('AB', A, {
+		//C testing child overwrites
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeFoo = Symbol();
+			},
+			defaults: {
+				defaultFoo: Symbol(),
+			},
+			afterInitialize() {
+				this.afterFoo = Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeFoo: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticFoo: Symbol(),
+		}),
+	}); 
+	const ab = new AB();
+		
+	const B = sj.Base.makeClass('B', sj.Base, {}); 
+	const b = new B();
+
+	const BA = sj.Base.makeClass('BA', B, {}); 
+	const ba = new BA();
+
+	const BB = sj.Base.makeClass('BB', B, {}); 
+	const bb = new BB();
+
+	const C = sj.Base.makeClass('C', sj.Base, {
+		//C testing augmented properties
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeBar =  Symbol();
+			},
+			defaults: {
+				defaultBar: Symbol(),
+			},
+			afterInitialize() {
+				this.afterBar =  Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeBar: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticBar: Symbol(),
+		}),
+	});
+	const c = new C();
+
+	C.augmentClass({
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeBar =  Symbol();
+			},
+			defaults: {
+				defaultBar: Symbol(),
+			},
+			afterInitialize() {
+				this.afterBar =  Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeBar: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticBar: Symbol(),
+		}),
+	});
+	const c2 = new C();
+
+
+	await sj.test([
+		// INHERITANCE
+		['A prototype is sj.Base', 	Object.getPrototypeOf(A) === sj.Base],
+		['AA prototype is A', 		Object.getPrototypeOf(AA) === A],
+		['AAAA prototype is AA', 	Object.getPrototypeOf(AAA) === AA],
+
+		['a isType sj.Base', 		sj.isType(a, sj.Base)],
+		['aa isType sj.Base', 		sj.isType(aa, sj.Base)],
+		['aaa isType sj.Base', 		sj.isType(aaa, sj.Base)],
+
+		// SIBLINGS
+		['a !isType B', !sj.isType(a, B)],
+		['aa !isType AB', !sj.isType(aa, AB)],
+		['aaa !isType AAB', !sj.isType(aaa, AAB)],
+
+		// COUSINS
+		['aa !isType BA', !sj.isType(aa, BA)],
+
+		// INSTANCES
+		['a.constructor === A',		a.constructor === A],
+		['aa.constructor === AA',	aa.constructor === AA],
+		['aaa.constructor === AAA',	aaa.constructor === AAA],
+
+
+		// MAKE CLASS FUNCTIONS
+		['called constructorParts',		calledConstructorParts],
+		['called beforeInitialize',		calledBeforeInitialize],
+		['called afterInitialize',		calledAfterInitialize],
+		['called prototypeProperties',	calledPrototypeProperties],
+		['called staticProperties',		calledStaticProperties],
+		['did not call extraFunction',	!calledExtraFunction],
+
+		// PROPERTIES EXIST
+		['a before property',		a.hasOwnProperty('beforeFoo')],
+		['a default property',		a.hasOwnProperty('defaultFoo')],
+		['a after property',		a.hasOwnProperty('afterFoo')],
+		['A.prototype property',	Object.getPrototypeOf(a).hasOwnProperty('prototypeFoo')],
+		['A static property',		A.hasOwnProperty('staticFoo')],
+
+		// PROPERTY INHERITANCE
+		//! before and after will generate new instances, even if function is inherited
+		['aa.beforeFoo === a.beforeFoo',			aa.beforeFoo !== undefined && aa.beforeFoo !== a.beforeFoo], 
+		['aa.defaultFoo === a.defaultFoo',			aa.defaultFoo === a.defaultFoo],
+		['aa.afterFoo === a.afterFoo',				aa.defaultFoo !== undefined && aa.afterFoo !== a.afterFoo],
+		['AA.prototype foo === A.prototype foo',	AA.prototype.prototypeFoo === A.prototype.prototypeFoo],
+		['AA static foo === A static foo',			AA.staticFoo === A.staticFoo],
+
+		// PROPERTY EXTENSION
+		['aa.beforeFoo2 exists',		aa.afterFoo2 !== undefined && aa.afterFoo2 !== aa.afterFoo],
+		['aa.defaultFoo2 exists',		aa.defaultFoo2 !== undefined && aa.defaultFoo2 !== aa.defaultFoo],
+		['aa.afterFoo2 exists',			aa.afterFoo2 !== undefined && aa.beforeFoo2 !== aa.beforeFoo],
+		['AA.prototype foo2 exists',	AA.prototype.prototypeFoo2 !== undefined && AA.prototype.prototypeFoo2 !== AA.prototype.prototypeFoo],
+		['AA static foo2 exists',		AA.staticFoo2 !== undefined && AA.staticFoo2 !== AA.staticFoo],
+
+		// PROPERTY OVERWRITE
+		['ab.beforeFoo exists and !== a.beforeFoo',		ab.beforeFoo !== undefined && ab.beforeFoo !== a.beforeFoo],
+		['ab.defaultFoo exists and !== a.defaultFoo',	ab.defaultFoo !== undefined && ab.defaultFoo !== a.defaultFoo],
+		['ab.afterFoo exists and !== a.afterFoo',		ab.afterFoo !== undefined && ab.afterFoo !== a.afterFoo],
+		['AB.prototype foo exists !== B.prototype foo',	AB.prototype.prototypeFoo !== undefined && AB.prototype.prototypeFoo !== A.prototype.prototypeFoo],
+		['AB static foo exists !== A static foo',		AB.staticFoo !== undefined && AB.staticFoo !== A.staticFoo],
+
+		// AUGMENT CLASS
+		['c2.beforeBar exists and !== c.beforeBar',					c2.beforeBar !== undefined && c2.beforeBar !== c.beforeBar],
+		['c2.defaultBar exists and !== c.defaultBar',				c2.defaultBar !== undefined && c2.defaultBar !== c.defaultBar],
+		['c2.afterBar exists and !== c.afterBar',					c2.afterBar !== undefined && c2.afterBar !== c.afterBar],
+		['c.constructor.prototype === c2.constructor.prototype',	Object.getPrototypeOf(c) === Object.getPrototypeOf(c2)],
+		['c.constructor === c2.constructor',						c.constructor === c2.constructor],
+
+
+		// PASSED OPTIONS
+		['a.passedFoo !== a2.passedFoo', a.passedFoo !== a2.passedFoo],
+		['undefined default',			!a.hasOwnProperty('undefinedFoo')],
+		['undeclared default',			!a.hasOwnProperty('undeclaredFoo')],
+		['undefined option',			!a.hasOwnProperty('undefinedFoo')],
+	], 'sj.Base Classes');
+};
+
 
 sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 	//G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
 	constructorParts: parent => ({
+		//G//! 'this' refers to the static class inside constructorParts(), however 'this' refers to the instance inside before/afterInitialize()
 		defaults: {
 			// NEW
 			valueName: 'input',
@@ -2338,6 +2575,7 @@ sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
 		this.updateFilters();
 	},
 });
+
 sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
@@ -2354,14 +2592,14 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 		},
 		defaults: {
 			// NEW
-			playlistId: undefined,
-			position: undefined,
-			source: undefined, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-			sourceId: undefined, // TODO assumes ids are unique, even across all sources
-			artists: [],
-			name: '',
-			duration: undefined, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
-			link: '',
+			playlistId:	null,
+			position:	'test',
+			source:		null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
+			sourceId:	null, // TODO assumes ids are unique, even across all sources
+			artists:	[],
+			name:		null,
+			duration:	null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
+			link:		null,
 		},
 	}),
 	staticProperties(parent) {
@@ -2476,6 +2714,9 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 			}
 		};
 		this.updateFilters();
+
+		//G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
+		this.filters.localMetadata = ['id', 'playlistId', 'position'];
 	},
 });
 
@@ -2584,3 +2825,4 @@ export default sj;
 
 //sj.deepMatch.test();
 //sj.shake.test();
+sj.Base.test();

@@ -19,7 +19,7 @@
 		
 		methods: {
 			async test() {
-				console.log(this.$store.state.player.spotify.isPlaying);
+				console.log(this.sj.image(this.$store.getters['player/desiredPlayback'].track));
 			},
 			async toggle() {
 				await this.$store.dispatch('player/toggle');
@@ -62,7 +62,7 @@
 			id='slider'
 
 			@mousedown='mousedown($event)'
-			@mouseup='mouseup($event)''
+			@mouseup='mouseup($event)'
 			@input='input($event)'
 			@change='change($event)'
 		>
