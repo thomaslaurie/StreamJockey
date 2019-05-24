@@ -5,6 +5,10 @@
 		data() { return {
 			drag: false,
 			manualProgress: 0,
+
+			prevTrack: null,
+			nextTrack: null,
+
 		}; },
 
 		computed: {
@@ -16,21 +20,73 @@
 				}
 			},
 			//---------- add functionality to start prev/next track
-			currentTrackPosition() {
-				const currentTrack = this.$store.getters['player/desiredPlayback'].track;
-				if (sj.isType(currentTrack, Object)) return currentTrack.position;
-				else return null;
+			currentTrack() {
+				return this.$store.getters['player/desiredPlayback'].track;
 			},
+
+			currentTrackLocalMetadata() {
+				console.log('CALLED');
+				const currentTrack = this.$store.getters['player/desiredPlaybackNoProgress'].track;
+				if (!this.sj.isType(currentTrack, Object)) return null;
+				else return this.sj.shake(currentTrack, this.sj.Track.filters.localMetadata);
+			},
+
+			prevAvailable() {
+				return this.prevTrack !== null;
+			},
+			nextAvailable() {
+				return this.nextTrack !== null;
+			},
+
+
+			//TODO temporary prev/next functionality
+			/*
+				I want to have the current and prev/next tracks be reactive/subscriptions inside the player module
+				furthermore, I think the subscription vuex part can be simplified (subscriptions moved onto sj.Entities) and itself moved into a module (with onCreate() stuff for the socketIO)
+			*/
 		},
 		watch: {
-			currentTrackPosition() {
-				//TODO subscribe/unsubscribe, and set prev/next track
+			currentTrackLocalMetadata: { //C localMetadata is used over the entire track object because the track object it contains a reference to its source which contains a reference to the player which has a clock that updates very fast, causing this function update very fast too
+				async handler(track, pTrack) {
+					console.log(track === pTrack);
+					if (!this.sj.isType(track, Object))  {
+						this.prevTrack = null;
+						this.nextTrack = null;
+						return;
+					}
+
+					console.log('called');
+					console.log(this.sj.image(track));
+
+					//TODO these are bad catches, they group end-track errors (0 & last index) with actual errors
+
+					this.prevTrack = await this.sj.Track.get({
+						playlistId: track.playlistId,
+						position: track.position-1,
+					}).then(this.sj.content).then(this.sj.one).catch(rejected => {
+						console.log('caught prev');
+						return null;
+					});
+
+					this.nextTrack = await this.sj.Track.get({
+						playlistId: track.playlistId,
+						position: track.position+1,
+					}).then(this.sj.content).then(this.sj.one).catch(rejected => {
+						console.log('caught next');
+						return null;
+					});
+				},
+				deep: true,
+				immediate: true,
 			},
 		},
 		
 		methods: {
 			async test() {
-				console.log(this.sj.image(this.$store.getters['player/desiredPlayback'].track));
+				//console.log(this.sj.image(this.$store.getters['player/desiredPlayback'].track));
+
+				console.log(this.sj.image(this.prevTrack));
+				console.log(this.sj.image(this.nextTrack));
 			},
 			async toggle() {
 				await this.$store.dispatch('player/toggle');
@@ -52,6 +108,13 @@
 			async change(event) {
 			},
 			
+
+			async prev(track) {
+				await this.$store.dispatch('player/start', this.prevTrack);
+			},
+			async next(track) {
+				await this.$store.dispatch('player/start', this.nextTrack);
+			},
 		},
 	}
 </script>
@@ -60,8 +123,8 @@
 <template>
     <div>
 		<button @click='test'>Test</button>
-		<button>Prev</button>
-		<button>Next</button>
+		<button @click='prev' :class='{notAvailable: !prevAvailable}'>Prev</button>
+		<button @click='next' :class='{notAvailable: !nextAvailable}'>Next</button>
 		<button @click='toggle'>Toggle</button>
 		<!-- //L https://css-tricks.com/sliding-nightmare-understanding-range-input -->
 		<input 
@@ -82,6 +145,10 @@
 
 
 <style lang='scss'>
+	.notAvailable {
+		background-color: red;
+	}
+
 	#slider {
 		width: 100%;
 	}

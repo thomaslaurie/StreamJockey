@@ -317,6 +317,8 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 	}),
 });
 
+//TODO what if the currently playing track's data is changed? like position?
+
 // PLAYBACK
 sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 	constructorParts(parent) { return {
@@ -442,6 +444,9 @@ sj.Playback.module = new sj.Playback({
 		// PLAYBACK STATE
 		//C source is used to select the proper playback state for actualPlayback
 		source: null,
+
+		currentKnownTrack: null,
+		startingKnownTrack: null,
 	},
 	actions: {
 		// CLOCK
@@ -619,7 +624,7 @@ sj.Playback.module = new sj.Playback({
 			//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
 			if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
 			else return sourceState;
-		},
+		},		
 		inferredProgress(state) {
 			if (state.source === null) return -1;
 			//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
@@ -629,7 +634,26 @@ sj.Playback.module = new sj.Playback({
 			return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
 		},
 		desiredPlayback({sentAction, actionQueue}, {actualPlayback}) {
+			//! this will update x-times per second when playing as the track progress is constantly updating
 			return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
+		},
+
+		//TODO rethink these getters - maybe create an individual actual/desired getter for each playback property, in addition to the full one
+		actualPlaybackNoProgress(state, getters) {
+			const playback = state.source === null ? sj.Playback.baseState : state[state.source.name];
+			const {progress, ...playbackNoProgress} = playback;
+			return playbackNoProgress;
+		},
+		desiredPlaybackNoProgress({sentAction, actionQueue}, {actualPlaybackNoProgress}) {
+
+			if (sj.isType(sentAction, Object)) var {progress, ...sentActionNoProgress} = sentAction;
+			else var sentActionNoProgress = null;
+			const actionQueueNoProgress = actionQueue.map(action => {
+				const {progress, ...actionNoProgress} = action;
+				return actionNoProgress;
+			});
+
+			return Object.assign({}, actualPlaybackNoProgress, sentActionNoProgress, ...actionQueueNoProgress);
 		},
 	},
 });

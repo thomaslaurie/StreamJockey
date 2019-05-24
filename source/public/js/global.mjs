@@ -905,7 +905,7 @@ sj.one = function (a) {
 		return a[0];
 	} else if (a.length === 0) {
 		//! this does not return undefined because we are 'expecting' one value (//TODO though this may be changed later to return undefined)
-		return new sj.Error({
+		throw new sj.Error({
 			log: true,
 			origin: 'sj.one()',
 			code: 404,

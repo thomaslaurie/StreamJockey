@@ -415,8 +415,8 @@ const store = new VueX.Store({
 
 		async subscribe(context, {Entity, query, subscriber, timeout = 10000}) {
 			//C subscribe on server 
-			let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
-			let processedQuery = await new Promise((resolve, reject) => {
+			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			const processedQuery = await new Promise((resolve, reject) => {
 				const timeoutId = sj.setTimeout(() => {
 					reject(new sj.Error({
 						log: true,
@@ -432,7 +432,7 @@ const store = new VueX.Store({
 			}).then(sj.content).catch(sj.propagate);
 
 			//C find table, based on Entity
-			let table = context.state.subscriptions[Entity.table];
+			const table = context.state.subscriptions[Entity.table];
 
 			//C add subscriber, from this point data will live-update
 			await context.dispatch('addSubscriber', {table, query: processedQuery, subscriber});
@@ -441,10 +441,10 @@ const store = new VueX.Store({
 			await context.dispatch('update', {Entity, table, query: processedQuery, timestamp: Date.now()});
 
 			//C return the subscription's data, from this point component data will update (no need to worry about flickering from above)
-			let subscription = context.getters.findSubscription(table, processedQuery);
+			const subscription = context.getters.findSubscription(table, processedQuery);
 			return subscription;
 		},
-		async unsubscribe(context, {Entity, query, subscriber, timeout = 10000}) {
+		async unsubscribe(context, {Entity, query, subscriber, timeout = 10000}) { //? could this be simplified to just take the object returned from subscribe?
 			//C subscribe on server
 			let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
 			let processedQuery = await new Promise((resolve, reject) => {
