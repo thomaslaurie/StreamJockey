@@ -96,6 +96,7 @@ sj.Entity.augmentClass({
 //G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
 //G tightly integrated with VueX
 //TODO consider a stop action? it would stop all sources and set the current source back to null
+//TODO consider changing 'Action' to 'Command'
 sj.Action = sj.Base.makeClass('Action', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
@@ -461,6 +462,7 @@ sj.Playback.module = new sj.Playback({
 		},
 
 		// QUEUE
+		//TODO there seems to be a bug in the action queue where eventually an action will stall until (either it or something ahead of it, im not sure which) times out, upon which the action in question will be fulfilled
 		async pushAction(context, action) {
 			//C Attempts to push a new action the current action queue. Will collapse and/or annihilate actions ahead of it in the queue if conditions are met. Action will not be pushed if it annihilates or if it is identical to the sent action or if there is no sent action and it is identical to the current playback state.
 

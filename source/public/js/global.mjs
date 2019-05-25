@@ -2593,7 +2593,7 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 		defaults: {
 			// NEW
 			playlistId:	null,
-			position:	'test',
+			position:	null,
 			source:		null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
 			sourceId:	null, // TODO assumes ids are unique, even across all sources
 			artists:	[],
