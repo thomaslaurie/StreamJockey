@@ -281,47 +281,9 @@ const vm = new Vue({
 	router,
 	store,
 
-	created() {
-		this.$store.dispatch('start', new SocketIO('/database'));
-		this.$store.dispatch('player/startClock');
+	async created() {
+		await this.$store.dispatch('start', new SocketIO('/database'));
+		await this.$store.dispatch('player/startClock');
 	},
 });
 
-store.test = async function (store) {
-	let Entity = sj.Track;
-	let query = [{playlistId: 2}];
-	let changedName = sj.makeKey(10);
-
-	let change = [{id: 65, name: changedName}]; //TODO I deleted track 65
-	let subscriber = 'test subscriber';
-
-	let pass = true;
-
-	if (store.state.subscriptions[Entity.table].length !== 0) {
-		console.error("subscriptions didn't start out empty")
-		pass = false;
-	}
-	console.log('initial query:', query);
-
-	let result = await store.dispatch('subscribe', {Entity, query, subscriber});
-	if (!sj.deepMatch(store.state.subscriptions[Entity.table][0].query, query)) {
-		console.error('stored query is not the same as input query');
-		pass = false;
-	}
-	console.log('subscribed to query:', store.state.subscriptions[Entity.table][0].query);
-	console.log('before content:', store.state.subscriptions[Entity.table][0].content);
-
-	await Entity.edit(change);
-	await sj.wait(1000);
-	console.log('after content:', store.state.subscriptions[Entity.table][0].content);
-
-	await store.dispatch('unsubscribe', {Entity, query, subscriber});
-	if (store.state.subscriptions[Entity.table].length !== 0) {
-		console.error("subscriptions didn't end empty");
-		pass = false;
-	}
-	console.log(store.state.subscriptions[Entity.table]);
-	console.log('none remaining:', store.state.subscriptions[Entity.table].length === 0);
-	console.log('pass:', pass);
-	console.log('result', result);
-};

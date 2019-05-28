@@ -1418,6 +1418,7 @@ sj.Base = class Base {
 		if (this.log) this.announce();
 	};
 }).call(sj.Base);
+//TODO - consider changing all the constructorParts into functions (like static/prototypeProperties) that return an object to be assigned, (I think this may help with the defaults reference issue), but that also still can execute code. Maybe when this is done, then these parts can be brought up to the top level because they will now have their own closure context to process in
 
 sj.Base.test = async function () {
 	let calledConstructorParts 		= false;

@@ -135,6 +135,418 @@ import sj from './global-client.mjs';
 		I initially thought that encoding a query object as a string and using it as the subscription key would increase performance by decreasing lookup time, however, I'm thinking now that it won't as on the client-side, there won't be very many subscriptions. on the server side, this can't be done because in order to notify a change, these queries need to be subset matched which would require a loop of all subscriptions & subsequent decoding of query stings anyways. just having a list of objects with a query property makes the structure consistent across client and server and shouldn't have too big of a performance cost
 */
 
+/* TODO
+	what do I want?
+	
+	I want the subscription system to be simpler and more clear to understand
+		that involves either joining EntitySubscription and QuerySubscription classes, or separating them more
+			maybe have all subscriptions have a main QuerySubscription that then must refer to any number of 'EntityCache's
+	I want to be able to attach subscribe and unsubscribe methods to sj.Entities
+		this involves being able to reference the vue store from these entities
+			these can simply be augmented in this module
+	I want to be able to have events/callbacks on subscriptions for when a query has: something added to it, one of its items edited, or something removed from it (ie CRUD without retrieve)
+		this involves having each subscriber have its own set of callbacks, which means each subscriber has its own subscriber/subscription object
+
+	right now as it works
+		a query can be a QuerySubscription or an EntitySubscription depending on if it is targeting a single entity
+		both trigger a get command to refresh their data when notified
+		EntitySubscriptions (via normal subscriber) update themselves, QuerySubscriptions update their EntitySubscriptions (via QuerySubscription subscriber)
+		all can have multiple subscribers so that events/lookup/etc. isn't repeated when the same query is subscribed to
+
+	maybe:
+		have a query list
+			which contains queries that have a list of subscribers
+			and a list of references to entities in the entity cache list
+				this list can contain any amount of references 
+					//! remember to not just do a direct reference, because if the entity is deleted from the cache, but still referenced in this list - it wont be removed, instead use a reactive getter
+				this object also has a reactive getter that determines if it is for a single entity or not - though why would this be needed if the entire system is made the same? - it seemed like there was only a separation to served as an inferred property
+		and an entity cache list
+			which contains single entities
+			which also have a list of queries that include this
+				when it no longer matches any queries (ie the old, no subscribers situation) it gets removed
+			entities are required to have a list of their subscribers/subscriptions so that when one is removed, it knows whether or not to delete the whole thing
+
+	would end up looking like:
+
+	queries: { (map)
+		query: {
+			subscriptions: [
+				{
+					onSubscribe: f
+					onUnsubscribe: f
+
+					onAdd: f
+					onEdit: f
+					onRemove: f
+				}
+			],
+			results: [
+				cachedEntityReference,
+				cachedEntityReference,
+				cachedEntityReference,
+				...
+			],
+		}
+	},
+	entityCache: [
+		{ (entity)
+			entity: {},
+			subscribers: #,
+			subscribers: [
+
+			],
+		},
+	]
+
+	remember, the query list must be where the subscriptions are listened to on the server, not each individual entity
+
+	queries: { (map)
+		{query}: {
+			subscriptions: [
+				references,
+				...
+			],
+			entities: [
+
+			],
+		},
+		...
+	},
+	subscriptions: [
+		{
+			onSubscribe: f //? these could just be the promises returned from the .subscribe() and .unsubscribe() methods
+			onUnsubscribe: f
+
+			onAdd: f
+			onEdit: f
+			onRemove: f
+
+			getData: f, -> goes to parent query and gets the proper data from entities
+		},
+		...
+	],
+	entities: [
+		{
+			data: {},
+			watchedBy: #,
+		}
+		...
+	],
+
+	my problem right now is that while the query object can call events for all of its subscribers because it contains them, how do subscribers call the getData function? 
+	what if the parent query is just baked in as a closure property of their own getData function?
+*/
+
+sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			Entity: undefined,
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				liveQueries: [],
+				cachedEntities: [],
+			});
+		},
+	}),
+	staticProperties: parent => ({
+		makeTables(tableKeys) {
+			return new Map(tableKeys.map(key => [key, new this({Entity: key})]));
+		},
+	}),
+});
+
+sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			table: undefined,
+
+			query: undefined,
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				cachedEntityRefs: [],
+				subscriptions: [],
+
+				timestamp: 0,
+			});
+		},
+	}),
+});
+sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			table: undefined,
+			data: undefined,
+			//C queryCount keeps track of how many liveQueries are using the cachedEntity so that it doesn't go missing when one of multiple liveQueries is removed
+			liveQueryRefs: [],
+		},
+	}),
+});
+sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, { //? should this inherit from sj.Success since it will be returned from a function>
+	constructorParts: parent => ({
+		defaults: {
+			liveQuery: undefined,
+
+			onAdd() {},
+			onEdit() {},
+			onRemove() {},
+		},
+	}),
+});
+
+export default {
+	modules: {},
+
+	state: {
+		//C tables have their key set as the entity class
+		tables: sj.LiveTable.makeTables(sj.Entity.children),
+		socket: null,
+	},
+	getters: {
+		findLiveQuery: state => (table, query) => table.liveQueries.find(existingLiveQuery => sj.deepMatch(existingLiveQuery.query, query, {matchOrder: false})),
+		findCachedEntity: state => (table, id) => table.cachedEntities.find(cachedEntity => cachedEntity.data.id === id),
+
+
+		isSingle: state => liveQuery => undefined, //TODO
+	},
+	mutations: {
+		// CACHED ENTITY
+		addCachedEntity(state, cachedEntity) {
+			cachedEntity.table.cachedEntities.push(cachedEntity);
+		},
+		removeCachedEntity(state, cachedEntity) {
+			const table = cachedEntity.table;
+			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+				origin: 'removeCachedEntity()',
+				reason: 'cachedEntity.table is not an sj.LiveTable'
+			});
+			const index = table.cachedEntities.indexOf(ce => ce === cachedEntity);
+			if (index < 0) throw new sj.Error({
+				origin: 'removeCachedEntity',
+				reason: 'could not find cachedEntity',
+			});
+
+			table.cachedEntities.slice(index, 1);
+		},
+		addLiveQueryRef(state, {cachedEntity, liveQuery}) {
+			if (!cachedEntity.liveQueryRefs.includes(liveQuery)) cachedEntity.liveQueryRefs.push(liveQuery);
+		},
+
+
+		// LIVE QUERY
+		addLiveQuery(state, liveQuery) {
+			liveQuery.table.liveQueries.push(liveQuery);
+		},
+		removeLiveQuery(state, liveQuery) {
+			const table = liveQuery.table;
+			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+				origin: 'removeLiveQuery()',
+				reason: `liveQuery's table is not an sj.LiveTable`,
+			});
+			const index = table.liveQueries.indexOf(lq => lq === liveQuery);
+			if (index < 0) throw new sj.Error({
+				origin: 'removeLiveQuery()',
+				reason: `could not find liveQuery in it's table`,
+			});
+
+			table.liveQueries.slice(index, 1);
+		},
+		addCachedEntityRef(state, {liveQuery, cachedEntity}) {
+			if (!liveQuery.cachedEntityRefs.includes(cachedEntity)) liveQuery.cachedEntityRefs.push(cachedEntity);
+		},
+
+		// SUBSCRIPTION
+		addSubscription(state, subscription) {
+			subscription.liveQuery.subscriptions.push(subscription);
+		},
+		removeSubscription(state, subscription) {
+			const liveQuery = subscription.liveQuery;
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
+				origin: 'removeSubscription()',
+				reason: `subscription's liveQuery is not an sj.LiveQuery`,
+			});
+			const index = liveQuery.subscriptions.find(s => s === subscription);
+			if (!sj.isType(index, 'integer')) throw new sj.Error({
+				origin: 'removeSubscription()',
+				reason: `could not find subscription in it's liveQuery`,
+			});
+
+			liveQuery.subscriptions.slice(index, 1);
+		},
+	},
+	actions: {
+		async subscribe(context, {Entity, query, options = {}, timeout = 10000}) {
+			const table = context.state.tables[Entity];
+			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+				origin: 'liveQuery - subscribe',
+				reason: 'Entity did not map to a live table',
+			});
+
+			//C subscribe on server 
+			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			const processedQuery = await new Promise((resolve, reject) => {
+				const timeoutId = sj.setTimeout(() => {
+					reject(new sj.Error({
+						log: true,
+						reason: 'socket subscription timed out',
+					}));
+				}, timeout);
+
+				context.state.socket.emit('subscribe', {table, query: preparedQuery}, result => {
+					clearTimeout(timeoutId);
+					if (sj.isType(result, sj.Error)) reject(result);
+					else resolve(result);
+				});
+			}).then(sj.content).catch(sj.propagate);
+
+			//C add subscriber, from this point data will live-update
+			const subscription = await context.dispatch('addSubscription', {table, query: processedQuery, options});
+
+			//----------
+
+			//C trigger the initial update, no need to worry about flickering because the function resolves only after this
+			await context.dispatch('update', {table, query: processedQuery, timestamp: Date.now()});
+
+			//C return the subscription
+			return subscription;
+		},
+		async unsubscribe(context, {subscription, timeout = 10000}) {
+			const table = subscription.table;
+			const Entity = table.Entity;
+
+			//C unsubscribe on server
+			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			const processedQuery = await new Promise((resolve, reject) => {
+				const timeoutId = sj.setTimeout(() => {
+					reject(new sj.Error({
+						log: true,
+						reason: 'socket unsubscription timed out',
+					}));
+				}, timeout);
+
+				context.state.socket.emit('unsubscribe', {table: Entity.table, query: preparedQuery}, result => {
+					clearTimeout(timeoutId);
+					if (sj.isType(result, sj.Error)) reject(result);
+					else resolve(result);
+				});
+			}).then(sj.content).catch(sj.propagate);
+
+			await context.dispatch('removeSubscription', subscription);
+		},
+		async update(context, {Entity, query, timestamp}) {
+			const liveQuery = context.getters.findLiveQuery();//TODO
+
+			//C check timestamp to avoid sending redundant get requests
+			if (timestamp <= liveQuery.timestamp) return sj.Warn({
+				origin: 'update()',
+				message: 'did not update subscription because newer data has already been received',
+				reason: `existing timestamp: ${liveQuery.timestamp}, call timestamp: ${timestamp}`
+			});
+
+			//C send get request
+			const result = await Entity.get(query);
+			const entities = result.content;
+			const dataTimestamp = result.timestamp;
+
+			const newCachedEntityRefs = [];
+
+			//C for each entity in the result
+			await sj.asyncForEach(entities, async entity => {
+				if (!sj.isType(context.getters.findCachedEntity(table, entity.id), sj.CachedEntity)) {
+					context.dispatch('addCachedEntity', {table, entity});
+				}
+
+				const cachedEntity = context.getters.findCachedEntity(table, entity.id);
+				if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Unreachable({origin: 'update()'});
+
+
+				if (dataTimestamp > cachedEntity.timestamp) {
+					context.commit('editCachedEntity', {data: entity, timestamp: dataTimestamp});
+				}
+
+				newCachedEntityRefs.push(cachedEntity);
+
+				//C get cachedEntity, create new one if doesn't already exist
+				//C update data, but only if timestamp is newer
+				//C push all refs to a temporary list (new)
+
+				//C check if any existing refs are no longer in the new refs, if so, remove them
+				//C replace the existing refs with the new refs
+			});
+
+			await sj.asyncForEach(liveQuery.cachedEntityRefs, async ce => {
+				if (!newCachedEntityRefs.some(nce => nce.data.id === ce.data.id)) {
+					await context.dispatch('removedCachedEntity', {});
+				}
+			});
+
+			context.commit('editLiveQuery', ) //TODO swap in new refs
+		},
+
+
+		async addLiveQuery(context, {table, query}) {
+			context.commit('addLiveQuery', new sj.LiveQuery({table, query}));
+		},
+		async removeLiveQuery(context, liveQuery) {
+			
+			await sj.asyncForEach(liveQuery.cachedEntityRefs, async cachedEntity => {
+				await c
+			});
+
+			context.commit('removeLiveQuery', {table, liveQueryIndex});
+		},
+
+		async addSubscription(context, {table, query, options}) {
+			//C create a new liveQuery if one doesn't exist for the desired query
+			if (!sj.isType(context.getters.findLiveQuery(table, query), sj.LiveQuery)) {
+				await context.dispatch('addLiveQuery', {table, query});
+			}
+
+			//C find the liveQuery
+			const liveQuery = context.getters.findLiveQuery(table, query); //! this should never fail
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Unreachable({origin: 'addSubscriber()'});
+
+			//C create a new subscription
+			const subscription = new sj.Subscription({
+				...options,
+				liveQuery,
+			});
+			
+			//C add and return
+			context.commit('addSubscription', subscription);
+			return subscription;
+		},
+		async removeSubscription(context, subscription) {
+			context.commit('removeSubscription', subscription);
+			if (subscription.liveQuery.subscriptions.length <= 0) await context.dispatch('removeLiveQuery', );
+		},
+
+		async addCachedEntity(context, {entity, liveQuery}) {
+			//C add it if it doesn't exist
+			if (!sj.isType(context.getters.findCachedEntity(liveQuery.table, entity.id), sj.CachedEntity)) {
+				context.commit('pushCachedEntity', new sj.CachedEntity({
+					table,
+					data: entity,
+				}));
+			}
+
+			const cachedEntity = context.getters.findCachedEntity(table, entity.id);
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Unreachable({origin: 'update()'});
+
+			//C ensure the cachedEntity has the liveQuery and the liveQuery has the cachedEntity
+			if (cachedEntity.liveQueryRefs.every(lq => lq !== liveQuery)) context.commit('pushLiveQueryToCachedEntity', {liveQuery, cachedEntity});
+			if (liveQuery.cachedEntityRefs.every(ce => ce !== cachedEntity)) context.commit('pushCachedEntityToLiveQuery', {cachedEntity, liveQuery});
+		},
+		async removeCachedEntity(context, {cachedEntity, liveQuery}) {
+			context.commit('removeLiveQueryFromCachedEntity', {liveQuery, cachedEntity});
+			context.commit('removeCachedEntityFromLiveQuery', {cachedEntity, liveQuery});
+		},
+	},
+}
+
+
+
 export default {
 	modules: {},
 
@@ -516,6 +928,67 @@ export default {
 				delete sj.Playlist.placeholder;
 				delete sj.User.placeholder;
 			};
+
+			await context.dispatch('test');
+		},
+
+		async test(context) {
+			/*
+			const Entity = sj.Track;
+			const query = [{playlistId: 2}];
+			const changedName = sj.makeKey(10);
+		
+			const change = [{id: 65, name: changedName}]; //TODO I deleted track 65
+			const subscriber = 'test subscriber';
+		
+			let pass = true;
+		
+			if (context.state.subscriptions[Entity.table].length !== 0) {
+				console.error("subscriptions didn't start out empty")
+				pass = false;
+			}
+			console.log('initial query:', query);
+		
+			let result = await context.dispatch('subscribe', {Entity, query, subscriber});
+			if (!sj.deepMatch(context.state.subscriptions[Entity.table][0].query, query)) {
+				console.error('stored query is not the same as input query');
+				pass = false;
+			}
+			console.log('subscribed to query:', context.state.subscriptions[Entity.table][0].query);
+			console.log('before content:', context.state.subscriptions[Entity.table][0].content);
+		
+			await Entity.edit(change);
+			await sj.wait(1000);
+			console.log('after content:', context.state.subscriptions[Entity.table][0].content);
+		
+			await context.dispatch('unsubscribe', {Entity, query, subscriber});
+			if (context.state.subscriptions[Entity.table].length !== 0) {
+				console.error("subscriptions didn't end empty");
+				pass = false;
+			}
+			console.log(context.state.subscriptions[Entity.table]);
+			console.log('none remaining:', context.state.subscriptions[Entity.table].length === 0);
+			console.log('pass:', pass);
+			console.log('result', result);
+			
+			const testFunction = function ({
+				Entity,
+				query,
+				query2,
+				subscriber,
+			}) {
+				//C subscriptions must start out empty
+				if (context.state.subscriptions[Entity.table].length !== 0) return false;
+
+				const subscription = await context.dispatch('subscribe', {Entity, query, subscriber});
+
+				//TODO
+			};
+			*/
+
+			//TODO
+			await sj.test([
+			], 'liveQuery')
 		},
 	},
 	mutations: {
