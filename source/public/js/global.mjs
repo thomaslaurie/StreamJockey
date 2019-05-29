@@ -923,20 +923,6 @@ sj.content = function (resolved) {
 	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
 	return resolved.content;
 };
-sj.tableToEntity = function (table) { 
-	//TODO things should instead just be sent by their sj.Entity class (http methods don't send table), actually no, because we dont want to send the classes between client and server because they're different, maybe just send the type (user, playlist, track), separately (rather than table name)
-	//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-	//R any metadata (table) should be sent separately (or implicitly) from the query
-	//TODO might be a better way to do this
-	if (table === 'users') return sj.User;
-	else if (table === 'playlists') return sj.Playlist;
-	else if (table === 'tracks') return sj.Track;
-	else throw new sj.Error({
-		origin: 'sj.tableToEntity()',
-		reason: `table is not recognized: ${table}`,
-		content: table,
-	});
-};
 
 // RECURSION
 //TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
@@ -2329,6 +2315,19 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
 					...this.filters,
 					...schemaFilters,
 				};
+			},
+
+			tableToEntity(tableName) {
+				const Entity = this.children.find(child => child.table === tableName);
+				if (!sj.isType(Entity, sj.Entity)) throw new sj.Error({
+					origin: 'sj.Entity.tableToEntity()',
+					reason: `table is not recognized: ${table}`,
+					content: table,
+				});
+				return Entity;
+
+				//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+				//R any metadata (table) should be sent separately (or implicitly) from the query
 			},
 		}
 	},

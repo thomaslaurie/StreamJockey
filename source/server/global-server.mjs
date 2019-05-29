@@ -534,8 +534,8 @@ sj.subscriptions = (function () {
 
 
 	this.add = async function (table, query, user) {
-		//! this[Entity.table] is used over this[table] because sj.tableToEntity() is the validator for table, which up to this point is client-side input
-		let Entity = sj.tableToEntity(table); 
+		//! this[Entity.table] is used over this[table] because sj.Entity.tableToEntity() is the validator for table, which up to this point is client-side input
+		let Entity = sj.Entity.tableToEntity(table); 
 		let processedQuery = await Entity.getMimic(query);
 
 		//C find query //! not a super-set
@@ -566,7 +566,7 @@ sj.subscriptions = (function () {
 		//? socket query should be correct here as it has already been validated and shouldnt be changed on the client - would it hurt to have a validation here anyways though?
 		//? what happens if the client unsubscribes on its side but isn't able to unsubscribe on the server side?
 
-		let Entity = sj.tableToEntity(table);
+		let Entity = sj.Entity.tableToEntity(table);
 		let processedQuery = await Entity.getMimic(query);
 	
 		let subscriptionIndex = -1;

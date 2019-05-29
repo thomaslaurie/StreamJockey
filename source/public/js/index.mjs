@@ -16,7 +16,15 @@
 		//L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
 		//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
 		
-    	//L https://vuejs.org/v2/cookbook/form-validation.html
+		//L https://vuejs.org/v2/cookbook/form-validation.html
+		
+		//L Object Reactivity: https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+		//G no property creation - use Vue.set(obj, key, val)
+		//G no property deletion - use Vue.delete(obj, key)
+
+		//L Array Reactivity: https://vuejs.org/v2/guide/list.html#Caveats
+		//G no setting item by index (arr[i] = val) - use Vue.set(arr, index, val) or arr.splice(index, 1, val)
+		//G no setting array length (arr.length = length) - use arr.splice(length)
     	
 
 	ASYNC COMPONENTS
@@ -150,6 +158,7 @@ import SocketIO from 'socket.io-client';
 // internal
 import sj from './global-client.mjs';
 import liveQuery from './liveQuery.mjs';
+
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
