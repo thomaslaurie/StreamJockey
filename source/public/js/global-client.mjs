@@ -66,7 +66,7 @@ sj.Entity.augmentClass({
 		async get() {
 			return await this.constructor.get(this);
 		},
-		async edit() {
+		async edit() { //! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited
 			return await this.constructor.edit(this);
 		},
 		async remove() {

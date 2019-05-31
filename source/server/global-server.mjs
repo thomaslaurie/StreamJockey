@@ -527,6 +527,8 @@ sj.isLoggedIn = async function (ctx) {
 //  ███████╗██║ ╚████╔╝ ███████╗
 //  ╚══════╝╚═╝  ╚═══╝  ╚══════╝ 
 
+
+
 sj.subscriptions = (function () {
 	Object.assign(this, new sj.Subscriptions());
 
@@ -543,7 +545,7 @@ sj.subscriptions = (function () {
 		if (!subscription) {
 			//C if not found, add a new one
 			//! EntitySubscriptions aren't needed on server-side
-			subscription = new sj.QuerySubscription({query: processedQuery});
+			subscription = new sj.QuerySubscription({query: processedQuery}); //TODO no longer used
 			this[Entity.table].push(subscription);
 		};
 		

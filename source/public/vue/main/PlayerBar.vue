@@ -25,7 +25,7 @@
 			},
 
 			currentTrackLocalMetadata() {
-				console.log('CALLED');
+				//console.log('CALLED');
 				const currentTrack = this.$store.getters['player/desiredPlaybackNoProgress'].track;
 				if (!this.sj.isType(currentTrack, Object)) return null;
 				else return this.sj.shake(currentTrack, this.sj.Track.filters.localMetadata);
@@ -48,15 +48,15 @@
 		watch: {
 			currentTrackLocalMetadata: { //C localMetadata is used over the entire track object because the track object it contains a reference to its source which contains a reference to the player which has a clock that updates very fast, causing this function update very fast too
 				async handler(track, pTrack) {
-					console.log(track === pTrack);
+					//console.log(track === pTrack);
 					if (!this.sj.isType(track, Object))  {
 						this.prevTrack = null;
 						this.nextTrack = null;
 						return;
 					}
 
-					console.log('called');
-					console.log(this.sj.image(track));
+					//console.log('called');
+					//console.log(this.sj.image(track));
 
 					//TODO these are bad catches, they group end-track errors (0 & last index) with actual errors
 
@@ -64,7 +64,7 @@
 						playlistId: track.playlistId,
 						position: track.position-1,
 					}).then(this.sj.content).then(this.sj.one).catch(rejected => {
-						console.log('caught prev');
+						//console.log('caught prev');
 						return null;
 					});
 
@@ -72,7 +72,7 @@
 						playlistId: track.playlistId,
 						position: track.position+1,
 					}).then(this.sj.content).then(this.sj.one).catch(rejected => {
-						console.log('caught next');
+						//console.log('caught next');
 						return null;
 					});
 				},
@@ -85,8 +85,8 @@
 			async test() {
 				//console.log(this.sj.image(this.$store.getters['player/desiredPlayback'].track));
 
-				console.log(this.sj.image(this.prevTrack));
-				console.log(this.sj.image(this.nextTrack));
+				//console.log(this.sj.image(this.prevTrack));
+				//console.log(this.sj.image(this.nextTrack));
 			},
 			async toggle() {
 				await this.$store.dispatch('player/toggle');

@@ -34,6 +34,8 @@
 		//L prototypes explained: https://hackernoon.com/understand-nodejs-javascript-object-inheritance-proto-prototype-class-9bd951700b29
 		'The prototype is a property on a constructor function that sets what will become the __proto__ property on the constructed object.'
 
+		//L beware the comma operator in if-statements: https://stackoverflow.com/questions/5347995/why-does-javascript-accept-commas-in-if-statements
+
 	//G STYLE GUIDES
 		//R use null in places where there should be an manually placed empty value - distinguishes between unintentional empty values: undefined, and intentional empty values: null
 		//L "To distinguish between the two, you may want to think of undefined as representing an unexpected absence of value and null as representing an expected absence of value."
@@ -162,9 +164,17 @@ sj.resolveActions = {
 
 // TESTING
 sj.test = async function(tests, origin) {
+	let failCount = 0;
 	tests.forEach((test, i) => {
-		if (!test[1]) console.error(`${origin} - test failed: ${test[0]}`);
+		if (!test[1]) {
+			console.error(`${origin} - test failed: ${test[0]}`);
+			failCount++;
+		}
 	});
+
+	if (failCount === 0) {
+		console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
+	}
 };
 sj.performance = function (iterations, fs) {
 	fs.forEach((f, index) => {
@@ -633,16 +643,16 @@ sj.deepMatch = function (a, b, {
 	depth = 10, 
 	matchIfTooDeep = false, 
 	matchIfSubset = false, //C matches objects and arrays if a is a subset of b
-	matchOrder = true
+	matchOrder = true,
+	logDifference = false, //C logs first difference found if not matching
 } = {
 	deep: true, 
 	depth: 10, 
 	matchIfTooDeep: false, 
 	matchIfSubset: false, 
-	matchOrder: true
+	matchOrder: true,
+	logDifference: false,
 }) {
-	//C comparison function for 
-
 	if (depth <= 0) return matchIfTooDeep;
 
 	if (a === b) return true; // primitives & references
@@ -656,11 +666,17 @@ sj.deepMatch = function (a, b, {
 		if (sj.isType(a, Object) && sj.isType(b, Object)) { // objects
 			let matches = true;
 			Object.keys(a).forEach(key => { //C match all keys of a to the same keys in b
-				if (!matchDeeper(a[key], b[key])) matches = false;
+				if (!matchDeeper(a[key], b[key])) {
+					matches = false;
+					if (logDifference) console.log(`deepMatch property difference - ${key}: ${a[key]}, ${b[key]}`);
+				}
 			});
 			if (!matchIfSubset) {
 				Object.keys(b).forEach(key => { //C match all keys of b to the same keys in a //TODO optimize here
-					if (!matchDeeper(a[key], b[key])) matches = false;
+					if (!matchDeeper(a[key], b[key])) {
+						matches = false;
+						if (logDifference) console.log(`deepMatch property difference - ${key}: ${a[key]}, ${b[key]}`);
+					}
 				});
 			}
 			return matches;
@@ -669,17 +685,29 @@ sj.deepMatch = function (a, b, {
 			let matches = true;
 			a.forEach((inA, i) => {
 				if (matchOrder) {
-					if (!matchDeeper(a[i], b[i])) matches = false;
+					if (!matchDeeper(a[i], b[i])) {
+						matches = false;
+						if (logDifference) console.log(`deepMatch index difference - ${i}: ${a[i]}, ${b[i]}`);
+					}
 				} else { //C match any inB to current inA
-					if (!b.some(inB => matchDeeper(inA, inB))) matches = false;
+					if (!b.some(inB => matchDeeper(inA, inB))) {
+						matches = false;
+						if (logDifference) console.log(`deepMatch extra item in b - ${inB}`);
+					}
 				}
 			});
 			if (!matchIfSubset) {
 				b.forEach((inB, i) => {
 					if (matchOrder) {
-						if (!matchDeeper(a[i], b[i])) matches = false;
+						if (!matchDeeper(a[i], b[i])) {
+							matches = false;
+							if (logDifference) console.log(`deepMatch index difference - ${i}: ${a[i]}, ${b[i]}`);
+						}
 					} else {
-						if (!a.some(inA => matchDeeper(inA, inB))) matches = false;
+						if (!a.some(inA => matchDeeper(inA, inB))) {
+							matches = false;
+							if (logDifference) console.log(`deepMatch extra item in a - ${inA}`);
+						}
 					}
 				});
 			}
@@ -1750,7 +1778,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				content: value,
 			});
 		},
-		async checkagainst (value, value2) {
+		async checkAgainst (value, value2) {
 			//C custom againstValue
 			if (!sj.isType(value2, undefined)) {
 				this.againstValue = value2;
@@ -2319,10 +2347,10 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
 
 			tableToEntity(tableName) {
 				const Entity = this.children.find(child => child.table === tableName);
-				if (!sj.isType(Entity, sj.Entity)) throw new sj.Error({
+				if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
 					origin: 'sj.Entity.tableToEntity()',
-					reason: `table is not recognized: ${table}`,
-					content: table,
+					reason: `table is not recognized: ${tableName}`,
+					content: tableName,
 				});
 				return Entity;
 
@@ -2575,7 +2603,6 @@ sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
 		this.updateFilters();
 	},
 });
-
 sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
@@ -2823,6 +2850,13 @@ sj.EntitySubscription = sj.Base.makeClass('EntitySubscription', sj.QuerySubscrip
 export default sj;
 
 
+//  ████████╗███████╗███████╗████████╗
+//  ╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝
+//     ██║   █████╗  ███████╗   ██║   
+//     ██║   ██╔══╝  ╚════██║   ██║   
+//     ██║   ███████╗███████║   ██║   
+//     ╚═╝   ╚══════╝╚══════╝   ╚═╝   
+
 //sj.deepMatch.test();
 //sj.shake.test();
-sj.Base.test();
+//sj.Base.test();

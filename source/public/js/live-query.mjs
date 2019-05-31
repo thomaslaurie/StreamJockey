@@ -283,8 +283,13 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 		defaults: {
 			table: undefined,
 			entity: undefined,
-			//C queryCount keeps track of how many liveQueries are using the cachedEntity so that it doesn't go missing when one of multiple liveQueries is removed
-			liveQueryRefs: [],
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				liveQueryRefs: [],
+
+				timestamp: 0,
+			});
 		},
 	}),
 });
@@ -292,7 +297,6 @@ sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
 	constructorParts: parent => ({
 		defaults: {
 			table: undefined,
-
 			query: undefined,
 		},
 		afterInitialize() {
@@ -311,9 +315,10 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
 		defaults: {
 			liveQuery: undefined,
 
-			onAdd() {},
-			onEdit() {},
-			onRemove() {},
+			onUpdate() {}, //C any update
+			onAdd() {}, //C entities added
+			onEdit() {}, //C entities data changed
+			onRemove() {}, //C entities removed
 		},
 	}),
 });
@@ -335,7 +340,7 @@ export default {
 	getters: {
 		// FINDERS //! return undefined when not found
 		findTable: state => (Entity) => {
-			return state.tables[Entity];
+			return state.tables.get(Entity);
 		},
 		findCachedEntity: state => ({table, entity}) => {
 			return table.cachedEntities.find(cachedEntity => cachedEntity.entity.id === entity.id);
@@ -344,6 +349,32 @@ export default {
 			return table.liveQueries.find(liveQuery => sj.deepMatch(liveQuery.query, query, {matchOrder: false}));
 		},
 		
+		getEntities: state => subscription => {
+			//C validate
+			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+				origin: 'getEntities()', 
+				reason: 'subscription is not an sj.Subscription',
+				content: subscription,
+			});
+
+			//C shorten
+			const liveQuery = subscription.liveQuery;
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
+				origin: 'getEntities()',
+				reason: `liveQuery is not an sj.LiveQuery`,
+				content: liveQuery,
+			});
+
+			//C get all liveQuery.cachedEntityRefs.entity
+			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
+				if (!sj.isType(cachedEntityRef, sj.CachedEntity)) throw new sj.Error({
+					origin: 'getEntities()',
+					reason: 'cachedEntityRef is not a cachedEntity',
+					content: sj.image(cachedEntityRef),
+				});
+				return cachedEntityRef.entity;
+			});
+		},
 		isSingle: state => subscription => {
 			//TODO not used, yet
 			const query = subscription.liveQuery.query;
@@ -351,24 +382,19 @@ export default {
 		},
 	},
 	mutations: {
-		setSocket(state, socket) {
-			state.socket = socket;
-		},
-
 		// CACHED ENTITY
 		pushCachedEntity(		state, {cachedEntities, cachedEntity}) {
 			cachedEntities.push(cachedEntity);
 		},
 		spliceCachedEntity(		state, {cachedEntities, index}) {
-			cachedEntities.slice(index, 1);
+			cachedEntities.splice(index, 1);
 		},
 		pushLiveQueryRef(		state, {liveQueryRefs, liveQuery}) {
 			liveQueryRefs.push(liveQuery);
 		},
 		spliceLiveQueryRef(		state, {liveQueryRefs, index}) {
-			liveQueryRefs.slice(index, 1);
+			liveQueryRefs.splice(index, 1);
 		},
-
 		setCachedEntity(		state, {cachedEntity, entity, timestamp}) {
 			cachedEntity.entity = entity;
 			cachedEntity.timestamp = timestamp;
@@ -379,13 +405,13 @@ export default {
 			liveQueries.push(liveQuery);
 		},
 		spliceLiveQuery(		state, {liveQueries, index}) {
-			liveQueries.slice(index, 1);
+			liveQueries.splice(index, 1);
 		},
 		pushCachedEntityRef(	state, {cachedEntityRefs, cachedEntity}) {
 			cachedEntityRefs.push(cachedEntity);
 		},
 		spliceCachedEntityRef(	state, {cachedEntityRefs, index}) {
-			cachedEntityRefs.slice(index, 1);
+			cachedEntityRefs.splice(index, 1);
 		},
 
 		// SUBSCRIPTION
@@ -393,212 +419,32 @@ export default {
 			subscriptions.push(subscription);
 		},
 		spliceSubscription(		state, {subscriptions, index}) {
-			subscriptions.slice(index, 1);
+			subscriptions.splice(index, 1);
+		},
+
+
+		setSocket(state, socket) {
+			state.socket = socket;
 		},
 	},
 	actions: {
-		// ENDPOINTS
-		async subscribe(context, {Entity, query, options = {}}) {
-			//C validate
-			if (!sj.isType(Entity, sj.Entity)) throw new sj.Error({
-				origin: 'subscribe()', 
-				reason: 'Entity is not an sj.Entity',
-				content: Entity,
-			});
-			if (!sj.isType(query, Object)) throw new sj.Error({
-				origin: 'subscribe()', 
-				reason: 'query is not an Object',
-				content: query,
-			});
-			if (!sj.isType(options, Object)) throw new sj.Error({
-				origin: 'subscribe()', 
-				reason: 'options is not an Object',
-				content: options,
-			});
-
-			const table = context.getters.findTable(Entity);
-			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
-				origin: 'subscribe()', 
-				reason: 'table is not an sj.LiveTable',
-				content: table,
-			});
-			
-
-			//C subscribe on server 
-			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
-			const processedQuery = await context.dispatch('serverSubscribe', preparedQuery);
-
-			//C add subscriber, from this point data will live-update
-			const subscription = await context.dispatch('addSubscription', {table, query: processedQuery, options});
-
-			//C trigger the initial update, no need to worry about flickering because the function resolves only after this
-			await context.dispatch('update', {table, query: processedQuery, callTimestamp: Date.now()});
-
-			//C return the subscription
-			return subscription;
-		},
-		async unsubscribe(context, {subscription}) {
-			//C validate
-			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
-				origin: 'unsubscribe()', 
-				reason: 'subscription is not an sj.Subscription',
-				content: subscription,
-			});
-
-			const table = subscription.table;
-			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
-				origin: 'unsubscribe()', 
-				reason: 'table is not an sj.LiveTable',
-				content: table,
-			});
-			const Entity = table.Entity;
-			if (!sj.isType(Entity, sj.Entity)) throw new sj.Error({
-				origin: 'unsubscribe()', 
-				reason: 'Entity is not an sj.LiveTable',
-				content: Entity,
-			});
-			
-
-			//C unsubscribe on server
-			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
-			const processedQuery = await context.dispatch('serverUnsubscribe', preparedQuery);
-
-			//C remove subscription from it's liveQuery
-			await context.dispatch('removeSubscription', subscription);
-		},
-		async update(context, {Entity, query, callTimestamp}) {
-			//C validate
-			if (!sj.isType(Entity, sj.Entity)) throw new sj.Error({
-				origin: 'update()', 
-				reason: 'Entity is not an sj.Entity',
-				content: Entity,
-			});
-			if (!sj.isType(query, Object)) throw new sj.Error({
-				origin: 'update()', 
-				reason: 'query is not an Object',
-				content: query,
-			});
-			if (!sj.isType(callTimestamp, 'integer')) callTimestamp = Date.now();
-
-			const table = context.getters.findTable(Entity);
-			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
-				origin: 'update()', 
-				reason: 'table is not an sj.LiveTable',
-				content: table,
-			});
-			const liveQuery = context.getters.findLiveQuery({table, query});
-			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
-				origin: 'update()',
-				reason: `liveQuery is not an sj.LiveQuery`,
-				content: liveQuery,
-			});
-
-
-			//C don't trigger update if the call to update is already older than the last received data
-			if (callTimestamp <= liveQuery.timestamp) return sj.Warn({
-				origin: 'update()',
-				message: 'cachedEntities not updated because newer data has already been received',
-				reason: `data timestamp: ${liveQuery.timestamp}, update timestamp: ${callTimestamp}`
-			});
-
-			//C send get request //TODO maybe put a timeout here? or just on the global Entity crud functions
-			const {content: entities, timestamp} = await Entity.get(query);
-
-			
-			//C for each existing cachedEntity
-			//C toggle used so that callbacks only get called once per update
-			let entitiesRemoved = false; 
-			await sj.asyncForEach(liveQuery.cachedEntityRefs, async cachedEntity => {
-				//C if it is no longer included in the result entities
-				if (entities.every(entity => entity.id !== cachedEntity.entity.id)) {
-					//C remove it from the liveQuery
-					await context.dispatch('removeCachedEntity', {cachedEntity, liveQuery});
-					entitiesRemoved = true;
-				}
-			});
-			if (entitiesRemoved) await context.dispatch('executeCallback', {liveQuery, callbackName: 'onRemove'});
-
-			//C for each entity
-			let entitiesAdded = false;
-			let entitiesEdited = false;
-			await sj.asyncForEach(entities, async entity => {
-				//C if it isn't cached, add a cachedEntity for it
-				if (!sj.isType(context.getters.findCachedEntity({table, entity})), sj.CachedEntity) {
-					await context.dispatch('addCachedEntity', {entity, liveQuery});
-					entitiesAdded = true;
-				}
-
-				//C find it's cachedEntity
-				const cachedEntity = await context.getters.findCachedEntity({table, entity});
-				if (!sj.isType(cachedEntity, sj.CachedEntity)) throw new sj.Unreachable({origin: 'update()'});
-
-				//C if the entity data is new
-				if (timestamp > cachedEntity.timestamp) {
-					//C update it
-					await context.dispatch('updateCachedEntity', {cachedEntity, entity, timestamp});
-					if (!sj.deepMatch(entity, cachedEntity.entity)) entitiesEdited = true;
-				}
-			});
-			if (entitiesAdded) await context.dispatch('executeCallback', {liveQuery, callbackName: 'onAdd'});
-			if (entitiesEdited) await context.dispatch('executeCallback', {liveQuery, callbackName: 'onEdit'});
-		},
-
-		// SERVER
-		async serverSubscribe(context, query) {
-			return await new Promise((resolve, reject) => {
-				const timeoutId = sj.setTimeout(() => {
-					reject(new sj.Error({
-						log: true,
-						reason: 'socket subscription timed out',
-					}));
-				}, context.state.timeout);
-
-				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
-					clearTimeout(timeoutId);
-					if (sj.isType(result, sj.Error)) reject(result);
-					else resolve(result);
-				});
-			}).then(sj.content).catch(sj.propagate);
-		},
-		async serverUnsubscribe(context, query) {
-			await new Promise((resolve, reject) => {
-				const timeoutId = sj.setTimeout(() => {
-					reject(new sj.Error({
-						log: true,
-						reason: 'socket unsubscription timed out',
-					}));
-				}, context.state.timeout);
-
-				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
-					clearTimeout(timeoutId);
-					if (sj.isType(result, sj.Error)) reject(result);
-					else resolve(result);
-				});
-			}).then(sj.content).catch(sj.propagate);
-		},
-		async reconnect(context) {
-			for (const table in context.state.tables) {
-				for (const liveQuery of table.liveQueries) {
-					await context.dispatch('serverSubscribe', liveQuery.query);
-				}
-			}
-		},
-		async disconnect(context) {
-			for (const table in context.state.tables) {
-				for (const liveQuery of table.liveQueries) {
-					await context.dispatch('serverUnsubscribe', liveQuery.query);
-				}
-			}
-		},
-		
 		// CACHED ENTITY
+		//C these return a boolean indicating whether the action happened or if nothing changed
 		async addCachedEntity(context, {entity, liveQuery}) {
+			let added = false;
+
+
+			//C shorthand
 			const table = liveQuery.table;
 
 
 			//C add cachedEntity to table if it doesn't exist
 			if (!sj.isType(context.getters.findCachedEntity({table, entity}), sj.CachedEntity)) {
-				context.commit('pushCachedEntity', new sj.CachedEntity({table, entity}));
+				context.commit('pushCachedEntity', {
+					cachedEntities: table.cachedEntities, 
+					cachedEntity: new sj.CachedEntity({table, entity})
+				});
+				//! don't set added here, because the cachedEntity could already exist and is just being added to a new liveQuery
 			}
 
 			//C find cachedEntity by entity
@@ -609,60 +455,209 @@ export default {
 			const liveQueryRefs = cachedEntity.liveQueryRefs;
 			const cachedEntityRefs = liveQuery.cachedEntityRefs;
 
+			//C find references
+			const foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
+			const foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
+			if (foundLiveQueryRef !== foundCachedEntityRef) throw new sj.Unreachable({
+				origin: 'addCachedEntity()',
+				reason: 'either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen',
+				content: {
+					foundLiveQueryRef,
+					foundCachedEntityRef,
+					cachedEntity,
+					liveQuery,
+				},
+			});
+
 			//C add refs to both liveQuery and cachedEntity if they don't exist
-			if (liveQueryRefs.find(liveQuery) === undefined) context.commit('pushLiveQueryRef', {liveQueryRefs, liveQuery});
-			if (cachedEntityRefs.find(cachedEntity) === undefined) context.commit('pushCachedEntityRef', {cachedEntityRefs, cachedEntity});
+			if (!foundLiveQueryRef) {
+				context.commit('pushLiveQueryRef', {liveQueryRefs, liveQuery});
+				context.commit('pushCachedEntityRef', {cachedEntityRefs, cachedEntity});
+				added = true;
+			}
+
+			//C the entity is considered 'added' if it's cachedEntity and the passed liveQuery are getting new references to each other
+			return added;
 		},
 		async removeCachedEntity(context, {cachedEntity, liveQuery}) {
-			//C remove cachedEntityRef from liveQuery
+			//C find both reference indexes
 			const cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
-			if (cachedEntityRefIndex >= 0) context.commit('spliceCachedEntityRef', {
+			if (cachedEntityRefIndex < 0) throw new sj.Error({
+				origin: 'removeCachedEntity()',
+				reason: 'cachedEntityRef not found in liveQuery',
+			});
+			const liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
+			if (liveQueryRefIndex < 0) throw new sj.Error({
+				origin: 'removeCachedEntity()',
+				reason: 'liveQueryRef not found in cachedEntity',
+			});
+
+			//C remove references from each other
+			context.commit('spliceCachedEntityRef', {
 				cachedEntityRefs: liveQuery.cachedEntityRefs, 
 				index: cachedEntityRefIndex
 			});
-			else console.warn('cachedEntityRef not found in liveQuery');
-			
-
-			//C remove liveQueryRef from cachedEntity
-			const liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
-			if (liveQueryRefIndex >= 0) context.commit('spliceLiveQueryRef', {
+			context.commit('spliceLiveQueryRef', {
 				liveQueryRefs: cachedEntity.liveQueryRefs, 
 				index: liveQueryRefIndex
 			});
-			else console.warn('liveQueryRef not found in cachedEntity');
-
 
 			//C if cachedEntity no longer has any liveQueryRefs
 			if (cachedEntity.liveQueryRefs.length <= 0) {
 				//C remove the cachedEntity
 				const cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
-				if (cachedEntityIndex >= 0) context.commit('spliceCachedEntity', {
+				if (cachedEntityIndex < 0) throw new sj.Error({
+					origin: 'removeCachedEntity()',
+					reason: 'cachedEntity not found in table',
+				});
+
+				context.commit('spliceCachedEntity', {
 					cachedEntities: cachedEntity.table.cachedEntities, 
 					index: cachedEntityIndex
 				});
-				else console.warn('cachedEntity not found in table');
 			}
+
+			
+
+			//C the cachedEntity is considered 'removed' if it and the passed liveQuery losing their references to each other //! this shouldn't fail if proper arguments are passed
+			return true;
 		},
 		async updateCachedEntity(context, {cachedEntity, entity, timestamp}) {
-			context.commit('setCachedEntity', {cachedEntity, entity, timestamp});
+			let edited = false;
+
+			//C if new data
+			if (timestamp > cachedEntity.timestamp) {
+				//C if different data
+				if (!sj.deepMatch(cachedEntity.entity, entity)) {
+					//C update data and timestamp
+					context.commit('setCachedEntity', {
+						cachedEntity, 
+						entity, 
+						timestamp
+					});
+					edited = true;
+				} else {
+					//C only update timestamp
+					context.commit('setCachedEntity', {
+						cachedEntity, 
+						entity: cachedEntity.entity,
+						timestamp,
+					});
+				}
+			}
+
+			//C the cachedEntity is considered edited if it's entity data has been changed
+			return edited;
 		},
 
 		// LIVE QUERY
 		async addLiveQuery(context, {table, query}) {
-			context.commit('pushLiveQuery', {liveQueries: table.liveQueries, liveQuery: new sj.LiveQuery({table, query})});
+			//C if the liveQuery cannot be found
+			if (!sj.isType(context.getters.findLiveQuery({table, query}), sj.LiveQuery)) {
+				//C add it
+				context.commit('pushLiveQuery', {liveQueries: table.liveQueries, liveQuery: new sj.LiveQuery({table, query})});
+				
+				//C find liveQuery
+				const liveQuery = context.getters.findLiveQuery({table, query});
+				if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Unreachable({origin: 'addLiveQuery()'});
+
+				//C trigger the initial update
+				await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: Date.now()});
+			};
+
+			//! do not update if it already exists, as this will cause cachedEntities to update without triggering callbacks
 		},
 		async removeLiveQuery(context, liveQuery) {
+			//C shorten
 			const table = liveQuery.table;
 
-			//C remove the liveQuery
-			const liveQueryIndex = table.liveQueries.indexOf(liveQuery);
-			if (liveQueryIndex >= 0) context.dispatch('removeLiveQuery', {
-				liveQueries: table.liveQueries,
-				index: liveQueryIndex,
-			});
-			else console.warn('liveQuery not found in table');
 
-			context.commit('spliceLiveQuery', {liveQueries: table.liveQueries, index: liveQueryIndex});
+			//C find the liveQuery index
+			const liveQueryIndex = table.liveQueries.indexOf(liveQuery);
+			//C if it exists
+			if (liveQueryIndex >= 0) {
+				//C remove it
+				context.commit('spliceLiveQuery', {
+					liveQueries: table.liveQueries, 
+					index: liveQueryIndex,
+				});
+			} else throw new sj.Error({
+				origin: 'removeLiveQuery',
+				reason: 'liveQuery not found in table',
+			});
+		},
+		async updateLiveQuery(context, {liveQuery, callTimestamp = Date.now()}) {
+			const pack = {
+				updated: false,
+				added: false,
+				edited: false,
+				removed: false,
+			};
+
+			//C shorten
+			const {table, table: {Entity}, query} = liveQuery;
+
+			//C don't trigger update for calls older than the existing data
+			if (callTimestamp <= liveQuery.timestamp) {
+				new sj.Warn({
+					origin: 'update()',
+					message: 'cachedEntities not updated because newer data has already been received',
+					reason: `data timestamp: ${liveQuery.timestamp}, update timestamp: ${callTimestamp}`,
+				});
+
+				return pack;
+			}
+
+			//C fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
+			const {content: entities, timestamp} = await Entity.get(query);
+
+			//C updated is triggered only after entities are successfully retrieved from the server
+			pack.updated = true;
+
+			//! do not use asyncForEach loops here, these must be sequential because they use indexes which ended up getting messed up by parallel splices
+
+			//C for each existing cachedEntity
+			for (const cachedEntity of liveQuery.cachedEntityRefs) {
+				//C if it is no longer included in the fetched entities
+				if (entities.every(entity => entity.id !== cachedEntity.entity.id)) {
+					//C remove it from the liveQuery
+					const removed = await context.dispatch('removeCachedEntity', {cachedEntity, liveQuery});
+					if (removed) {
+						pack.removed = true;
+					}
+				}
+			}
+			
+			//C for each retrieved entity
+			for (const entity of entities) { //! not async for each, these need to be synchronous
+				//C add it's cachedEntity (won't add if it already exists)
+				const added = await context.dispatch('addCachedEntity', {entity, liveQuery});
+				if (added) {
+					pack.added = true;
+				}
+
+				//C find it's cachedEntity
+				const cachedEntity = await context.getters.findCachedEntity({table, entity});
+				if (!sj.isType(cachedEntity, sj.CachedEntity)) throw new sj.Unreachable({origin: 'update()'});
+
+				//C edit the cachedEntity (won't edit if data is old, or unchanged)
+				const edited = await context.dispatch('updateCachedEntity', {cachedEntity, entity, timestamp});
+				if (edited) {
+					pack.edited = true;
+				}
+			}
+
+
+			// await sj.asyncForEach(entities, async entity => {
+				
+			// });
+
+			return pack;
+		},
+		async triggerCallback(context, {liveQuery, callbackName}) {
+			for (const subscription of liveQuery.subscriptions) {
+				subscription[callbackName]();
+			}
 		},
 
 		// SUBSCRIPTION 
@@ -676,6 +671,7 @@ export default {
 			const liveQuery = context.getters.findLiveQuery({table, query}); //! this should never fail
 			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Unreachable({
 				origin: 'addSubscription()',
+				reason: 'liveQuery not found in table',
 				content: liveQuery,
 			});
 
@@ -690,25 +686,202 @@ export default {
 			return subscription;
 		},
 		async removeSubscription(context, subscription) {
+			//C shorten
 			const liveQuery = subscription.liveQuery;
 
 			//C remove subscription
 			const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-			if (subscriptionIndex >= 0) context.commit('spliceSubscription', {
-				subscriptions: liveQuery.subscriptions,
-				index: subscriptionIndex,
+			if (subscriptionIndex >= 0) {
+				context.commit('spliceSubscription', {
+					subscriptions: liveQuery.subscriptions,
+					index: subscriptionIndex,
+				});
+			} else throw new sj.Error({
+				origin: 'removeSubscription',
+				reason: 'subscription not found in liveQuery',
 			});
-			else console.warn('subscription not found in liveQuery');
 
 			//C if liveQuery no longer has any subscriptions
 			if (liveQuery.subscriptions.length <= 0) await context.dispatch('removeLiveQuery', liveQuery);
 		},
-		
-		async executeCallback(context, {liveQuery, callbackName}) {
-			for (const subscription of liveQuery.Subscriptions) {
-				subscription[callbackName]();
+
+		// ENDPOINTS
+		//C these require argument validation
+		async subscribe(context, {
+			Entity, 
+			query, 
+			options = {}
+		}) {
+			//C validate
+			//TODO how to check if class is subclass, because this is getting ridiculous
+			//L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
+			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
+				origin: 'subscribe()', 
+				reason: 'Entity is not an sj.Entity',
+				content: Entity,
+			});
+			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
+				origin: 'subscribe()', 
+				reason: 'query is not an Object',
+				content: query,
+			});
+			if (!sj.isType(options, Object)) throw new sj.Error({
+				origin: 'subscribe()', 
+				reason: 'options is not an Object',
+				content: options,
+			});
+
+			//C shorten
+			const table = context.getters.findTable(Entity);
+			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+				origin: 'subscribe()', 
+				reason: 'table is not an sj.LiveTable',
+				content: table,
+			});
+			
+
+			//C subscribe on server 
+			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			const processedQuery = await context.dispatch('serverSubscribe', {table, query: preparedQuery});
+
+			//C add subscriber, from this point data will live-update
+			const subscription = await context.dispatch('addSubscription', {table, query: processedQuery, options});
+
+			//C return the subscription
+			return subscription;
+		},
+		async unsubscribe(context, {subscription}) {
+			//C validate
+			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+				origin: 'unsubscribe()', 
+				reason: 'subscription is not an sj.Subscription',
+				content: subscription,
+			});
+			
+			//C shorten
+			const liveQuery = subscription.liveQuery;
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
+				origin: 'unsubscribe()',
+				reason: `liveQuery is not an sj.LiveQuery`,
+				content: liveQuery,
+			});
+			const query = liveQuery.query;
+			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
+				origin: 'unsubscribe()', 
+				reason: 'query is not an Object',
+				content: query,
+			});
+			const table = liveQuery.table;
+			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+				origin: 'unsubscribe()', 
+				reason: 'table is not an sj.LiveTable',
+				content: table,
+			});
+			const Entity = table.Entity;
+			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
+				origin: 'unsubscribe()', 
+				reason: 'Entity is not an sj.LiveTable',
+				content: Entity,
+			});
+			
+
+			//C unsubscribe on server
+			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
+
+			//C remove subscription from it's liveQuery
+			await context.dispatch('removeSubscription', subscription);
+		},
+		async update(context, {
+			Entity, 
+			query, 
+			callTimestamp,
+		}) {
+			//C validate
+			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
+				origin: 'update()', 
+				reason: 'Entity is not an sj.Entity',
+				content: Entity,
+			});
+			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
+				origin: 'update()', 
+				reason: 'query is not an Object',
+				content: query,
+			});
+			if (!sj.isType(callTimestamp, 'integer')) callTimestamp = Date.now();
+
+			//C shorten
+			const table = context.getters.findTable(Entity);
+			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+				origin: 'update()', 
+				reason: 'table is not an sj.LiveTable',
+				content: table,
+			});
+			const liveQuery = context.getters.findLiveQuery({table, query});
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
+				origin: 'update()',
+				reason: `liveQuery is not an sj.LiveQuery`,
+				content: liveQuery,
+			});
+
+			//C update
+			const pack = await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp});
+
+			//C trigger callbacks
+			if (pack.updated)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onUpdate'});
+			if (pack.added)		await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onAdd'});
+			if (pack.edited)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onEdit'});
+			if (pack.removed)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onRemove'});
+		},
+
+		// SERVER
+		async serverSubscribe(context, {table, query}) {
+			return await new Promise((resolve, reject) => {
+				const timeoutId = sj.setTimeout(() => {
+					reject(new sj.Error({
+						log: true,
+						reason: 'socket - subscribe timed out',
+					}));
+				}, context.state.timeout);
+
+				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
+					clearTimeout(timeoutId);
+					if (sj.isType(result, sj.Error)) reject(result);
+					else resolve(result);
+				});
+			}).then(sj.content).catch(sj.propagate);
+		},
+		async serverUnsubscribe(context, {table, query}) {
+			await new Promise((resolve, reject) => {
+				const timeoutId = sj.setTimeout(() => {
+					reject(new sj.Error({
+						log: true,
+						reason: 'socket - unsubscribe timed out',
+					}));
+				}, context.state.timeout);
+
+				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
+					clearTimeout(timeoutId);
+					if (sj.isType(result, sj.Error)) reject(result);
+					else resolve(result);
+				});
+			}).then(sj.content).catch(sj.propagate);
+		},
+		async reconnect(context) {
+			for (const table in context.state.tables) {
+				for (const liveQuery of table.liveQueries) {
+					await context.dispatch('serverSubscribe', {table, query: liveQuery.query});
+				}
 			}
 		},
+		async disconnect(context) {
+			for (const table in context.state.tables) {
+				for (const liveQuery of table.liveQueries) {
+					await context.dispatch('serverUnsubscribe', {table, query: liveQuery.query});
+				}
+			}
+		},
+
 
 		async start(context, socket) { 
 			//G this should be called in the main vue created()
@@ -726,7 +899,7 @@ export default {
 
 			context.state.socket.on('notify', async ({table, query, timestamp}) => {
 				const Entity = sj.Entity.tableToEntity(table);
-				context.dispatch('update', {Entity, table: context.state.subscriptions[Entity.table], query, timestamp});
+				context.dispatch('update', {Entity, query, callTimestamp: timestamp});
 			});
 
 			//C test
@@ -876,72 +1049,174 @@ export default {
 				delete sj.User.placeholder;
 			};
 
-			// await context.state.socket.test();
-			//TODO await context.dispatch('test');
+			//await context.state.socket.test();
+			//await context.dispatch('test');
 		},
 
 		async test(context) {
-			/*
-				const Entity = sj.Track;
-				const query = [{playlistId: 2}];
-				const changedName = sj.makeKey(10);
-			
-				const change = [{id: 65, name: changedName}]; //TODO I deleted track 65
-				const subscriber = 'test subscriber';
-			
-				let pass = true;
-			
-				if (context.state.subscriptions[Entity.table].length !== 0) {
-					console.error("subscriptions didn't start out empty")
-					pass = false;
-				}
-				console.log('initial query:', query);
-			
-				let result = await context.dispatch('subscribe', {Entity, query, subscriber});
-				if (!sj.deepMatch(context.state.subscriptions[Entity.table][0].query, query)) {
-					console.error('stored query is not the same as input query');
-					pass = false;
-				}
-				console.log('subscribed to query:', context.state.subscriptions[Entity.table][0].query);
-				console.log('before content:', context.state.subscriptions[Entity.table][0].content);
-			
-				await Entity.edit(change);
-				await sj.wait(1000);
-				console.log('after content:', context.state.subscriptions[Entity.table][0].content);
-			
-				await context.dispatch('unsubscribe', {Entity, query, subscriber});
-				if (context.state.subscriptions[Entity.table].length !== 0) {
-					console.error("subscriptions didn't end empty");
-					pass = false;
-				}
-				console.log(context.state.subscriptions[Entity.table]);
-				console.log('none remaining:', context.state.subscriptions[Entity.table].length === 0);
-				console.log('pass:', pass);
-				console.log('result', result);
-				
-				const testFunction = function ({
-					Entity,
-					query,
-					query2,
-					subscriber,
-				}) {
-					//C subscriptions must start out empty
-					if (context.state.subscriptions[Entity.table].length !== 0) return false;
+			const tests = [];
 
-					const subscription = await context.dispatch('subscribe', {Entity, query, subscriber});
+			const uniqueName = () => `liveQuery${sj.makeKey(7)}`;
+			const uniqueDuration = () => Math.round(Math.random()*100000);
 
-					//TODO
-				};
-			*/
+			let updated = false;
+			//C rapidly checks updated until it is true, then resets it
+			const waitForUpdate = async function () {
+				await sj.recursiveAsyncTime(2000, result => {
+					if (updated) {
+						updated = false;
+						return true;
+					} else {
+						return false;
+					}
+				}, async o => {
+					await sj.wait(o.delay);
+					o.delay = o.delay * 1.25;
+					return;
+				}, {delay: 50});
+			};
 
-			//TODO
+			// CREATE
+			const user = await new sj.User({
+				name: uniqueName(),
+				email: uniqueName(),
+				password: 'placeholder',
+				password2: 'placeholder',
+			}).add().then(sj.content).then(sj.one);
+			const playlist = await new sj.Playlist({
+				userId: user.id,
+				name: uniqueName(),
+				description: 'placeholder',
+			}).add().then(sj.content).then(sj.one);
+			const track = await new sj.Track({
+				playlistId: playlist.id,
+				source: sj.spotify,
+				sourceId: 'placeholder',
+				name: uniqueName(),
+				duration: uniqueDuration(),
+			}).add().then(sj.content).then(sj.one);
+
+			// MAKE SUBSCRIPTION
+			let onAddCount = 0;
+			let onEditCount = 0;
+			let onRemoveCount = 0;
+
+			const trackSubscription = await context.dispatch('subscribe', {
+				Entity: sj.Track,
+				query: {name: track.name},
+				options: {
+					onUpdate() {
+						updated = true;
+					},
+					onAdd() {
+						onAddCount++;
+					},
+					onEdit() {
+						onEditCount++;
+					},
+					onRemove() {
+						onRemoveCount++;
+					},
+				},
+			});
+			tests.push(
+				['isSubscription', sj.isType(trackSubscription, sj.Subscription)]
+			);
+
+
+			// ITERATE
+			const iterations = Math.round(Math.random() * 10) + 5;
+			const xTracks = [];
+
+			// BEFORE
+			const lengthBefore = 1;
+			const addedBefore = 0;
+			const editedBefore = 0;
+			const removedBefore = 0;
+			tests.push(
+				['cachedEntityRefs length before',
+				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore],
+				['cachedEntities length before',
+				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore],
+				['lengthBefore',	context.getters.getEntities(trackSubscription).length === lengthBefore],
+
+				['noneAdded',		onAddCount === addedBefore],
+				['noneEdited',		onEditCount === editedBefore],
+				['noneRemoved',		onRemoveCount === removedBefore],
+			);		
+			
+			// ADD
+			await waitForUpdate();
+			for (let i = 0; i < iterations; i++) {
+				xTracks[i] = await new sj.Track({
+					...track, 
+					position: undefined,
+				}).add().then(sj.content).then(sj.one);
+			}
+			await waitForUpdate();
+			tests.push(
+				['cachedEntityRefs length afterAdd',
+				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore + iterations],
+				['cachedEntities length afterAdd',
+				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore + iterations],
+				['lengthAfterAdd',		context.getters.getEntities(trackSubscription).length === lengthBefore + iterations],
+
+				['xAddedAfterAdd',		onAddCount === iterations],
+				['xEditedAfterAdd',		onEditCount === editedBefore],
+				['xRemovedAfterAdd',	onRemoveCount === removedBefore],
+			);
+
+			// EDIT
+			for (let i = 0; i < iterations; i++) {
+				xTracks[i].duration = uniqueDuration();
+				await xTracks[i].edit();
+			}
+			await waitForUpdate();
+			tests.push(
+				['cachedEntityRefs length afterEdit',
+				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore + iterations],
+				['cachedEntities length afterEdit',
+				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore + iterations],
+				['lengthAfterEdit', context.getters.getEntities(trackSubscription).length === lengthBefore + iterations],
+
+				['xAddedAfterEdit', onAddCount === iterations],
+				['xEditedAfterEdit', onEditCount === iterations],
+				['xRemovedAfterEdit', onRemoveCount === removedBefore],
+			);
+
+			// REMOVE
+			for (let i = iterations-1; i > -1; i--) { 
+				//! remove in reverse order, as original order caused the re-ordering of track positions, causing an onEdit callback for all tracks
+				await xTracks[i].remove();
+			}
+			await waitForUpdate();
+			tests.push(
+				['cachedEntityRefs length afterRemove',
+				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore],
+				['cachedEntities length afterRemove',
+				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore],
+				['lengthAfterRemove', context.getters.getEntities(trackSubscription).length === lengthBefore],
+
+				['xAddedAfterRemove', onAddCount === iterations],
+				['xEditedAfterRemove', onEditCount === iterations],
+				['xRemovedAfterRemove', onRemoveCount === iterations],
+			);
+
+			await context.dispatch('unsubscribe', {subscription: trackSubscription});
+
+			// DELETE
+			await track.remove();
+			await playlist.remove();
+			await user.remove();
+
+
+			//TODO add tests for convergent liveQueries
 			await sj.test([
+				...tests,
 			], 'liveQuery')
 		},
 	},
 };
-
-//---------- write tests, refactor implementation of actions
 
 /*
 	export default {

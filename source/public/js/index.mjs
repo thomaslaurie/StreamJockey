@@ -157,7 +157,7 @@ import SocketIO from 'socket.io-client';
 
 // internal
 import sj from './global-client.mjs';
-import liveQuery from './liveQuery.mjs';
+import liveQuery from './live-query.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
