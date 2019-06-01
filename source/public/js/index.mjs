@@ -157,7 +157,7 @@ import SocketIO from 'socket.io-client';
 
 // internal
 import sj from './global-client.mjs';
-import liveQuery from './live-query.mjs';
+import liveQuery from './live-data-client.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -291,7 +291,7 @@ const vm = new Vue({
 	store,
 
 	async created() {
-		await this.$store.dispatch('start', new SocketIO('/database'));
+		await this.$store.dispatch('start', new SocketIO('/live-data'));
 		await this.$store.dispatch('player/startClock');
 	},
 });

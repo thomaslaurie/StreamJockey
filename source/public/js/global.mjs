@@ -2823,28 +2823,92 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 	}),
 });
 
-sj.QuerySubscription = sj.Base.makeClass('QuerySubscription', sj.Base, {
+// LIVE DATA
+sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
 	constructorParts: parent => ({
-		//! don't nest QuerySubscriptions
 		defaults: {
-			query: undefined,
-			subscribers: [], 
-			timestamp: 0,
-			content: [],
+			Entity: undefined,
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				liveQueries: [],
+				cachedEntities: [],
+			});
+		},
+	}),
+	staticProperties: parent => ({
+		makeTables(tableKeys) {
+			return new Map(sj.Entity.children.map(Entity => [Entity, new this({Entity})]));
 		},
 	}),
 });
-sj.EntitySubscription = sj.Base.makeClass('EntitySubscription', sj.QuerySubscription, {
+sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 	constructorParts: parent => ({
-		//C subscribers can include both component subscribers and parent QuerySubscription subscribers
-		//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
-		//G query should only have one query object with one id property: [{id: 8}]
-		//G content is the root data object, not an array
 		defaults: {
-			content: undefined,
-		},	
+			table: undefined,
+			entity: undefined,
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				liveQueryRefs: [],
+
+				timestamp: 0,
+			});
+		},
 	}),
 });
+sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			table: undefined,
+			query: undefined,
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				cachedEntityRefs: [],
+				subscriptions: [],
+
+				timestamp: 0,
+			});
+		},
+	}),
+});
+sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
+	//? should this inherit from sj.Success since it will be returned from a function>
+	constructorParts: parent => ({
+		defaults: {
+			liveQuery: undefined,
+
+			onUpdate() {}, //C any update
+			onAdd() {}, //C entities added
+			onEdit() {}, //C entities data changed
+			onRemove() {}, //C entities removed
+		},
+	}),
+});
+
+// sj.QuerySubscription = sj.Base.makeClass('QuerySubscription', sj.Base, {
+// 	constructorParts: parent => ({
+// 		//! don't nest QuerySubscriptions
+// 		defaults: {
+// 			query: undefined,
+// 			subscribers: [], 
+// 			timestamp: 0,
+// 			content: [],
+// 		},
+// 	}),
+// });
+// sj.EntitySubscription = sj.Base.makeClass('EntitySubscription', sj.QuerySubscription, {
+// 	constructorParts: parent => ({
+// 		//C subscribers can include both component subscribers and parent QuerySubscription subscribers
+// 		//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
+// 		//G query should only have one query object with one id property: [{id: 8}]
+// 		//G content is the root data object, not an array
+// 		defaults: {
+// 			content: undefined,
+// 		},	
+// 	}),
+// });
 
 
 export default sj;

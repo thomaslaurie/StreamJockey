@@ -103,6 +103,7 @@ import bcrypt from 'bcrypt';
 // internal
 import sj from '../public/js/global.mjs';
 import database, {pgp} from './db.mjs';
+import liveData from './live-data-server.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -114,11 +115,14 @@ import database, {pgp} from './db.mjs';
 
 sj.fetch = fetch;
 
-// bcrypt
+// BCRYPT
 const saltRounds = 10; 
 
-// database
+// DATABASE
 sj.db = database; //C for use of db with globals so that db doesn't have to be imported twice
+
+// LIVE DATA
+sj.liveData = liveData;
 
 
 //  ██╗   ██╗████████╗██╗██╗     
@@ -529,6 +533,8 @@ sj.isLoggedIn = async function (ctx) {
 
 
 
+
+/*
 sj.subscriptions = (function () {
 	Object.assign(this, new sj.Subscriptions());
 
@@ -670,6 +676,7 @@ sj.subscriptions = (function () {
 
 	return this;
 }).call({});
+*/
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -709,7 +716,7 @@ sj.Entity.augmentClass({
 			return await this.frame(db, query, 'remove');
 		};
 		this.getMimic = async function (query, db = sj.db) {
-			//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.subscriptions.notify()
+			//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.liveData.notify()
 			return await this.frame(db, query, 'getMimic');
 		};
 
@@ -809,7 +816,7 @@ sj.Entity.augmentClass({
 			const timestamp = Date.now();
 
 			//C if get, don't notify
-			if (!isGet) shookGet.forEach(list => sj.subscriptions.notify(this, list, timestamp, methodName));
+			if (!isGet) shookGet.forEach(list => sj.liveData.notify(this, list, timestamp, methodName));
 			//C if getMimic, return shookGet-after
 			else if (isGetMimic) return shookGet[1]; 
 

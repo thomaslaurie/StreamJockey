@@ -249,79 +249,8 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
+//! depends on global-client.mjs because it is used in index.mjs alongside global-client.mjs
 import sj from './global-client.mjs';
-
-
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
-
-sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
-	constructorParts: parent => ({
-		defaults: {
-			Entity: undefined,
-		},
-		afterInitialize() {
-			Object.assign(this, {
-				liveQueries: [],
-				cachedEntities: [],
-			});
-		},
-	}),
-	staticProperties: parent => ({
-		makeTables(tableKeys) {
-			return new Map(sj.Entity.children.map(Entity => [Entity, new this({Entity})]));
-		},
-	}),
-});
-
-sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
-	constructorParts: parent => ({
-		defaults: {
-			table: undefined,
-			entity: undefined,
-		},
-		afterInitialize() {
-			Object.assign(this, {
-				liveQueryRefs: [],
-
-				timestamp: 0,
-			});
-		},
-	}),
-});
-sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
-	constructorParts: parent => ({
-		defaults: {
-			table: undefined,
-			query: undefined,
-		},
-		afterInitialize() {
-			Object.assign(this, {
-				cachedEntityRefs: [],
-				subscriptions: [],
-
-				timestamp: 0,
-			});
-		},
-	}),
-});
-sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
-	//? should this inherit from sj.Success since it will be returned from a function>
-	constructorParts: parent => ({
-		defaults: {
-			liveQuery: undefined,
-
-			onUpdate() {}, //C any update
-			onAdd() {}, //C entities added
-			onEdit() {}, //C entities data changed
-			onRemove() {}, //C entities removed
-		},
-	}),
-});
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -412,6 +341,9 @@ export default {
 		},
 		spliceCachedEntityRef(	state, {cachedEntityRefs, index}) {
 			cachedEntityRefs.splice(index, 1);
+		},
+		setLiveQuery(			state, {liveQuery, timestamp}) {
+			liveQuery.timestamp = timestamp;
 		},
 
 		// SUBSCRIPTION
@@ -610,7 +542,8 @@ export default {
 
 			//C fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
 			const {content: entities, timestamp} = await Entity.get(query);
-
+			//C give the liveQuery the timestamp of the new data
+			context.commit('setLiveQuery', {liveQuery, timestamp});
 			//C updated is triggered only after entities are successfully retrieved from the server
 			pack.updated = true;
 
@@ -646,11 +579,6 @@ export default {
 					pack.edited = true;
 				}
 			}
-
-
-			// await sj.asyncForEach(entities, async entity => {
-				
-			// });
 
 			return pack;
 		},
@@ -882,6 +810,7 @@ export default {
 			}
 		},
 
+		//TODO refactor add if not exists to be simpler like the server side (but remember the redundancy check)
 
 		async start(context, socket) { 
 			//G this should be called in the main vue created()
@@ -1050,7 +979,7 @@ export default {
 			};
 
 			//await context.state.socket.test();
-			//await context.dispatch('test');
+			await context.dispatch('test');
 		},
 
 		async test(context) {
@@ -1096,6 +1025,7 @@ export default {
 				duration: uniqueDuration(),
 			}).add().then(sj.content).then(sj.one);
 
+			
 			// MAKE SUBSCRIPTION
 			let onAddCount = 0;
 			let onEditCount = 0;
@@ -1123,9 +1053,10 @@ export default {
 				['isSubscription', sj.isType(trackSubscription, sj.Subscription)]
 			);
 
-
+			
 			// ITERATE
-			const iterations = Math.round(Math.random() * 10) + 5;
+			const iterations = 1;
+			//const iterations = Math.round(Math.random() * 10) + 5;
 			const xTracks = [];
 
 			// BEFORE
@@ -1201,8 +1132,10 @@ export default {
 				['xEditedAfterRemove', onEditCount === iterations],
 				['xRemovedAfterRemove', onRemoveCount === iterations],
 			);
+			
 
 			await context.dispatch('unsubscribe', {subscription: trackSubscription});
+			
 
 			// DELETE
 			await track.remove();
