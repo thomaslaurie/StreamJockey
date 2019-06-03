@@ -64,8 +64,8 @@
 			},
 
 			subscriptionData: function () {
-				if (this.subscription) return this.sj.any(this.$store.getters.getSubscriptionData(this.subscription));
-				else return [];
+				//TODO I think this is old, transition to the new AsyncDisplay
+				if (sj.isType(this.subscription, sj.Subscription)) return this.sj.any(this.$store.getters.getLiveData(this.subscription));
 			},
 		},
 		watch: {

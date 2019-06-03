@@ -92,6 +92,8 @@ sj.Entity.augmentClass({
 
 
 // ACTION
+//R actions are separate from the playback module actions because they are supposed to be instanced, queued packets of trigger functionality and frozen state
+
 //G sj.Actions have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
 //G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
 //G tightly integrated with VueX
@@ -205,8 +207,22 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 			await sj.asyncForEach(sj.Source.instances, async source => {
 				await context.dispatch(`${source.name}/pause`);
 			});
+
+			//C change startingTrackSubscription to subscription of the new track
+			context.commit('setStartingTrackSubscription', await context.dispatch('change', {
+				subscription: context.state.startingTrackSubscription,
+				query: {id: this.track.id},
+				options: {}, //TODO //?
+			}, {root: true})); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
+
 			//C start target
 			await context.dispatch(`${this.source.name}/start`, this.track);
+
+			//C transfer subscription from starting to current
+			context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
+			context.commit('setStartingTrackSubscription', null);
+
+			console.log('reached');
 
 			//C change source
 			context.commit('setSource', this.source);
@@ -214,6 +230,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 	}),
 });
 sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
+	//? pause command might not have a desired progress?
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G isPlaying must be manually set to true or false
@@ -363,27 +380,29 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 			startingTrack: null,
 		},
 		baseActions: {
-			async preserveLocalMetadata(context, track) {
-				if (!sj.isType(track, sj.Track)) throw new sj.Error({
-					origin: 'preserveLocalMetadata()',
-					reason: 'track is not an sj.Track',
-				});
+			/* //OLD
+				async preserveLocalMetadata(context, track) {
+					if (!sj.isType(track, sj.Track)) throw new sj.Error({
+						origin: 'preserveLocalMetadata()',
+						reason: 'track is not an sj.Track',
+					});
 
-				//C default local metadata as foreign track
-				let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
-					obj[key] = null;
-					return obj;
-				}, {});
+					//C default local metadata as foreign track
+					let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
+						obj[key] = null;
+						return obj;
+					}, {});
 
-				//C set local as current or starting track if matching
-				if (sj.isType(context.state.track, Object) && 
-				track.sourceId === context.state.track.sourceId)			local = context.state.track;
-				else if (sj.isType(context.state.startingTrack, Object) && 
-				track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
+					//C set local as current or starting track if matching
+					if (sj.isType(context.state.track, Object) && 
+					track.sourceId === context.state.track.sourceId)			local = context.state.track;
+					else if (sj.isType(context.state.startingTrack, Object) && 
+					track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
 
-				//C return new track with localMetadata properties replaced
-				return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
-			},
+					//C return new track with localMetadata properties replaced
+					return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
+				},
+			*/
 		},
 		baseMutations: {
 			setState(state, values) {
@@ -446,8 +465,9 @@ sj.Playback.module = new sj.Playback({
 		//C source is used to select the proper playback state for actualPlayback
 		source: null,
 
-		currentKnownTrack: null,
-		startingKnownTrack: null,
+		// LOCAL TRACKS
+		currentTrackSubscription: null,
+		startingTrackSubscription: null,
 	},
 	actions: {
 		// CLOCK
@@ -612,50 +632,125 @@ sj.Playback.module = new sj.Playback({
 		setSource(state, source) {
 			state.source = source;
 		},
+
+		// LOCAL TRACKS
+		setCurrentTrackSubscription(state, subscription) {
+			state.currentTrackSubscription = subscription;
+		},
+		setStartingTrackSubscription(state, subscription) {
+			state.startingTrackSubscription = subscription;
+		},
 	},
 	getters: {
-		// PLAYBACK STATE
-		actualPlayback(state, getters) {
-			//C return null playback state if no source
-			if (state.source === null) return {...sj.Playback.baseState};
+		/*
+			// PLAYBACK STATE
+			actualPlayback(state, getters) {
+				//C return null playback state if no source
+				if (state.source === null) return {...sj.Playback.baseState};
 
-			//C get the source state
-			const sourceState = state[state.source.name];
+				//C get the source state
+				const sourceState = state[state.source.name];
 
-			//C use inferredProgress or regular progress depending on isPlaying
-			//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
-			if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
-			else return sourceState;
-		},		
-		inferredProgress(state) {
-			if (state.source === null) return -1;
-			//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
-			const sourceState = state[state.source.name];
-			const elapsedTime = state.clock - sourceState.timestamp;
-			const elapsedProgress = elapsedTime / sourceState.track.duration;
-			return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
+				//C use inferredProgress or regular progress depending on isPlaying
+				//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
+				if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
+				else return sourceState;
+			},		
+			inferredProgress(state) {
+				if (state.source === null) return -1;
+				//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
+				const sourceState = state[state.source.name];
+				const elapsedTime = state.clock - sourceState.timestamp;
+				const elapsedProgress = elapsedTime / sourceState.track.duration;
+				return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
+			},
+			desiredPlayback({sentAction, actionQueue}, {actualPlayback}) {
+				//! this will update x-times per second when playing as the track progress is constantly updating
+				return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
+			},
+		*/
+
+		// ACTUAL
+		sourceOrBase:		(state, getters) => key => {
+			if (state.source === null) return sj.Playback.baseState[key];
+			else return state[state.source.name][key];
 		},
-		desiredPlayback({sentAction, actionQueue}, {actualPlayback}) {
-			//! this will update x-times per second when playing as the track progress is constantly updating
-			return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
+		
+		actualTrack:		(state, getters) => {
+			const sourceOrBaseTrack = getters.sourceOrBase('track');			
+			if (sj.isType(sourceOrBaseTrack, sj.Track)) {
+				//C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
+				if (sj.isType(state.currentTrack, sj.Track) && sourceOrBaseTrack.sourceId === state.currentTrack.sourceId) return state.currentTrack;
+				if (sj.isType(state.startingTrack, sj.Track) && sourceOrBaseTrack.sourceId === state.staringTrack.sourceId) return state.startingTrack;
+			}
+			else return sourceOrBaseTrack;
+		},
+		actualIsPlaying:	(state, getters) => getters.sourceOrBase('isPlaying'),
+		actualProgress:		(state, getters) => {
+			let progress = getters.sourceOrBase('progress');
+
+			if (
+				sj.isType(state.source, Object) && 
+				sj.isType(state[state.source.name], Object) &&
+				sj.isType(state[state.source.name].track, Object) && 
+				state[state.source.name].isPlaying
+			) {
+				//C if playing, return inferred progress
+				const elapsedTime = state.clock - state[state.source.name].timestamp;
+				const elapsedProgress = elapsedTime / state[state.source.name].track.duration;
+				progress = sj.clamp(state[state.source.name].progress + elapsedProgress, 0, 1);
+			}
+
+			return progress;
+		},
+		actualVolume:		(state, getters) => getters.sourceOrBase('volume'),
+
+		actualPlayback:		(state, getters) => ({
+			//! this will update as fast as progress does
+			track:		getters.actualTrack,
+			isPlaying:	getters.actualIsPlaying,
+			progress:	getters.actualProgress,
+			volume:		getters.actualVolume,
+		}),
+
+
+		// DESIRED
+		flattenPlayback: (state, getters) => key => {
+			//C value starts as the actualValue
+			let value = getters[`actual${sj.capFirst(key)}`];
+
+			//C then if defined, sentAction
+			if (sj.isType(state.sentAction, Object) && state.sentAction[key] !== undefined) value = state.sentAction[key];
+
+			//C then if defined, each queuedAction
+			for (queuedAction of state.actionQueue) {
+				if (queuedAction[key] !== undefined) value = queuedAction[key];
+			}
+
+			return value;
 		},
 
-		//TODO rethink these getters - maybe create an individual actual/desired getter for each playback property, in addition to the full one
-		actualPlaybackNoProgress(state, getters) {
-			const playback = state.source === null ? sj.Playback.baseState : state[state.source.name];
-			const {progress, ...playbackNoProgress} = playback;
-			return playbackNoProgress;
+		desiredTrack:		(state, getters) => getters.flattenPlayback('track'),
+		desiredIsPlaying:	(state, getters) => getters.flattenPlayback('isPlaying'),
+		desiredProgress:	(state, getters) => getters.flattenPlayback('progress'),
+		desiredVolume:		(state, getters) => getters.flattenPlayback('volume'),
+		
+		desiredPlayback: (state, getters) => ({
+			track:		getters.desiredTrack,
+			isPlaying:	getters.desiredIsPlaying,
+			progress:	getters.desiredProgress,
+			volume:		getters.desiredVolume,
+		}),
+
+
+		// LOCAL TRACKS
+		currentTrack:		(state, getters, rootState, rootGetters) => {
+			if (sj.isType(state.currentTrackSubscription, sj.Subscription)) return rootGetters.getLiveData(state.currentTrackSubscription);
+			else return null;
 		},
-		desiredPlaybackNoProgress({sentAction, actionQueue}, {actualPlaybackNoProgress}) {
-
-			if (sj.isType(sentAction, Object)) var {progress, ...sentActionNoProgress} = sentAction;
-			else var sentActionNoProgress = null;
-			const actionQueueNoProgress = actionQueue.map(action => {
-				const {progress, ...actionNoProgress} = action;
-				return actionNoProgress;
-			});
-
-			return Object.assign({}, actualPlaybackNoProgress, sentActionNoProgress, ...actionQueueNoProgress);
+		startingTrack:		(state, getters) => {
+			if (sj.isType(state.startingTrackSubscription, sj.Subscription)) return rootGetters.getLiveData(state.startingTrackSubscription);
+			else return null;
 		},
 	},
 });
@@ -1326,7 +1421,7 @@ sj.spotify = new sj.Source({
 				const volume = await context.state.player.getVolume(); 
 				const newState = {...formattedState, volume};
 
-				newState.track = await context.dispatch('preserveLocalMetadata', newState.track);
+				//OLD newState.track = await context.dispatch('preserveLocalMetadata', newState.track);
 
 				context.commit('setState', newState);
 				return new sj.Success({
@@ -1369,7 +1464,7 @@ sj.spotify = new sj.Source({
 
 				const timeBeforeCall = Date.now();
 
-				context.commit('setStartingTrack', track);
+				//OLD context.commit('setStartingTrack', track);
 
 				const result = await context.state.player.awaitState({
 					command: async () => await context.state.source.request('PUT', 'me/player/play', {
@@ -1392,17 +1487,20 @@ sj.spotify = new sj.Source({
 					},
 				});
 
-				//C preserve local metadata
-				context.commit('setState', {
-					track: new sj.Track({
-						...context.state.track, 
-						id: track.id,
-						playlistId: track.playlistId,
-						position: track.position,
-					}),
-				});
+				
+				/* //OLD
+					//C preserve local metadata
+					context.commit('setState', {
+						track: new sj.Track({
+							...context.state.track, 
+							id: track.id,
+							playlistId: track.playlistId,
+							position: track.position,
+						}),
+					});
+				*/
 
-				context.commit('removeStartingTrack');
+				//OLD context.commit('removeStartingTrack');
 
 				return result;
 			},

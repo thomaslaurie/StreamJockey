@@ -157,7 +157,7 @@ import SocketIO from 'socket.io-client';
 
 // internal
 import sj from './global-client.mjs';
-import liveQuery from './live-data-client.mjs';
+import liveData from './live-data-client.mjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -265,7 +265,7 @@ const router = new VueRouter({
 });
 const store = new VueX.Store({
 	modules: {
-		liveQuery: liveQuery, //TODO consider name-spacing liveQuery module, just remember to add the namespace where its functions are used
+		liveData, //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
 		player: {
 			...sj.Playback.module,
 			namespaced: true,

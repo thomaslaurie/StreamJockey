@@ -69,7 +69,7 @@
 
 			queryData() {
 				//! AsyncDisplay uses sj.one(subscription data)
-				if (this.subscription) return this.sj.one(this.$store.getters.getSubscriptionData(this.subscription));
+				if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.one(this.$store.getters.getLiveData(this.subscription));
 				else return {}; 
 				//TODO this is a hack right now to suppress undefined property errors, it should really just return undefined. because of slotted markup, even though the elements aren't rendering, they still require their references to the data - but while that data is being retrieved they throw undefined property errors
 				//L custom directive as a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
@@ -168,8 +168,14 @@
             },
 
 			// REFRESH
-			async refreshSubscription() {;
-				return await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.query, subscriber: this});
+			async refreshSubscription() {
+				if (this.sj.isType(this.subscription, this.sj.Subscription)) await this.$store.dispatch('unsubscribe', this.subscription);	
+
+				return await this.$store.dispatch('subscribe', {
+					Entity: this.Entity, 
+					query: this.query,
+					options: {}, //TODO
+				});
 			},
 			async refreshData() {
 				if (!this.Entity) return undefined;

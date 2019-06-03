@@ -278,10 +278,10 @@ export default {
 			return table.liveQueries.find(liveQuery => sj.deepMatch(liveQuery.query, query, {matchOrder: false}));
 		},
 		
-		getEntities: state => subscription => {
+		getLiveData: state => subscription => {
 			//C validate
 			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
-				origin: 'getEntities()', 
+				origin: 'getLiveData()', 
 				reason: 'subscription is not an sj.Subscription',
 				content: subscription,
 			});
@@ -289,7 +289,7 @@ export default {
 			//C shorten
 			const liveQuery = subscription.liveQuery;
 			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
-				origin: 'getEntities()',
+				origin: 'getLiveData()',
 				reason: `liveQuery is not an sj.LiveQuery`,
 				content: liveQuery,
 			});
@@ -297,7 +297,7 @@ export default {
 			//C get all liveQuery.cachedEntityRefs.entity
 			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
 				if (!sj.isType(cachedEntityRef, sj.CachedEntity)) throw new sj.Error({
-					origin: 'getEntities()',
+					origin: 'getLiveData()',
 					reason: 'cachedEntityRef is not a cachedEntity',
 					content: sj.image(cachedEntityRef),
 				});
@@ -678,9 +678,9 @@ export default {
 			//C return the subscription
 			return subscription;
 		},
-		async unsubscribe(context, {subscription}) {
-			//C validate
-			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+		async unsubscribe(context, subscription) {
+			//C validate //! return early if not a subscription
+			if (!sj.isType(subscription, sj.Subscription)) return new sj.Warn({
 				origin: 'unsubscribe()', 
 				reason: 'subscription is not an sj.Subscription',
 				content: subscription,
@@ -723,7 +723,7 @@ export default {
 		async update(context, {
 			Entity, 
 			query, 
-			callTimestamp,
+			timestamp,
 		}) {
 			//C validate
 			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
@@ -736,7 +736,7 @@ export default {
 				reason: 'query is not an Object',
 				content: query,
 			});
-			if (!sj.isType(callTimestamp, 'integer')) callTimestamp = Date.now();
+			if (!sj.isType(timestamp, 'integer')) timestamp = Date.now();
 
 			//C shorten
 			const table = context.getters.findTable(Entity);
@@ -753,13 +753,31 @@ export default {
 			});
 
 			//C update
-			const pack = await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp});
+			const pack = await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: timestamp});
 
 			//C trigger callbacks
 			if (pack.updated)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onUpdate'});
 			if (pack.added)		await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onAdd'});
 			if (pack.edited)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onEdit'});
 			if (pack.removed)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onRemove'});
+		},
+		async change(context, {
+			subscription,
+			query,
+			options = {},
+		}) {
+			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+				origin: 'change()', 
+				reason: 'subscription is not an sj.Subscription',
+				content: subscription,
+			});
+			const newSubscription = await context.dispatch('subscribe', {
+				Entity: subscription.liveQuery.table.Entity,
+				query,
+				options,
+			});
+			context.dispatch('unsubscribe', subscription); //! don't await here, we want the swap to happen as quick as possible 
+			return newSubscription;
 		},
 
 		// SERVER
@@ -815,6 +833,43 @@ export default {
 		async start(context, socket) { 
 			//G this should be called in the main vue created()
 
+			/* this feels wrong, because the context referenced here might not be the same context referenced by a component using these functions, thus there might be two different sets of liveData
+				//C sj.Entity classes have a subscribe() method that auto-fills the Entity type
+				sj.Entity.augmentClass({
+					staticProperties: parent => ({
+						async subscribe(query, options) {
+							return await context.dispatch('subscribe', {
+								Entity: this,
+								query,
+								options,
+							});
+						},
+						async update(query, timestamp) {
+							return await context.dispatch('update', {
+								Entity: this,
+								query,
+								timestamp,
+							});
+						},	
+					}),
+				});
+				//C sj.Subscription class has an unsubscribe() method that auto-fills the subscription itself
+				sj.Subscription.augmentClass({
+					prototypeProperties: parent => ({
+						async unsubscribe() {
+							return await context.dispatch('unsubscribe', {
+								subscription: this,
+							});
+						},
+						getLiveData() {
+							//TODO this might not be reactive
+							return context.getters.getLiveData(this);
+						},
+					}),
+				});
+			*/
+
+
 			//C set socket
 			context.commit('setSocket', socket);
 
@@ -828,10 +883,11 @@ export default {
 
 			context.state.socket.on('notify', async ({table, query, timestamp}) => {
 				const Entity = sj.Entity.tableToEntity(table);
-				context.dispatch('update', {Entity, query, callTimestamp: timestamp});
+				context.dispatch('update', {Entity, query, timestamp});
 			});
 
-			//C test
+			//C socket test
+			//TODO rewrite this
 			context.state.socket.test = async function () {
 				sj.Track.placeholder = {
 					playlistId: 2, 
@@ -977,8 +1033,10 @@ export default {
 				delete sj.Playlist.placeholder;
 				delete sj.User.placeholder;
 			};
-
 			//await context.state.socket.test();
+
+			
+			//C module test
 			await context.dispatch('test');
 		},
 
@@ -1031,6 +1089,7 @@ export default {
 			let onEditCount = 0;
 			let onRemoveCount = 0;
 
+			
 			const trackSubscription = await context.dispatch('subscribe', {
 				Entity: sj.Track,
 				query: {name: track.name},
@@ -1055,21 +1114,21 @@ export default {
 
 			
 			// ITERATE
-			const iterations = 1;
-			//const iterations = Math.round(Math.random() * 10) + 5;
+			const iterations = Math.round(Math.random() * 10) + 5;
 			const xTracks = [];
 
 			// BEFORE
-			const lengthBefore = 1;
+			const entityRefsLengthBefore = trackSubscription.liveQuery.cachedEntityRefs.length;
+			const entitiesLengthBefore = trackSubscription.liveQuery.table.cachedEntities.length;
 			const addedBefore = 0;
 			const editedBefore = 0;
 			const removedBefore = 0;
 			tests.push(
 				['cachedEntityRefs length before',
-				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore],
+				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
 				['cachedEntities length before',
-				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore],
-				['lengthBefore',	context.getters.getEntities(trackSubscription).length === lengthBefore],
+				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
+				['lengthBefore',	context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
 
 				['noneAdded',		onAddCount === addedBefore],
 				['noneEdited',		onEditCount === editedBefore],
@@ -1087,10 +1146,10 @@ export default {
 			await waitForUpdate();
 			tests.push(
 				['cachedEntityRefs length afterAdd',
-				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore + iterations],
+				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
 				['cachedEntities length afterAdd',
-				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore + iterations],
-				['lengthAfterAdd',		context.getters.getEntities(trackSubscription).length === lengthBefore + iterations],
+				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
+				['lengthAfterAdd',		context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
 
 				['xAddedAfterAdd',		onAddCount === iterations],
 				['xEditedAfterAdd',		onEditCount === editedBefore],
@@ -1105,10 +1164,10 @@ export default {
 			await waitForUpdate();
 			tests.push(
 				['cachedEntityRefs length afterEdit',
-				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore + iterations],
+				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
 				['cachedEntities length afterEdit',
-				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore + iterations],
-				['lengthAfterEdit', context.getters.getEntities(trackSubscription).length === lengthBefore + iterations],
+				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
+				['lengthAfterEdit', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
 
 				['xAddedAfterEdit', onAddCount === iterations],
 				['xEditedAfterEdit', onEditCount === iterations],
@@ -1123,19 +1182,18 @@ export default {
 			await waitForUpdate();
 			tests.push(
 				['cachedEntityRefs length afterRemove',
-				trackSubscription.liveQuery.cachedEntityRefs.length === lengthBefore],
+				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
 				['cachedEntities length afterRemove',
-				trackSubscription.liveQuery.table.cachedEntities.length === lengthBefore],
-				['lengthAfterRemove', context.getters.getEntities(trackSubscription).length === lengthBefore],
+				trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
+				['lengthAfterRemove', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
 
 				['xAddedAfterRemove', onAddCount === iterations],
 				['xEditedAfterRemove', onEditCount === iterations],
 				['xRemovedAfterRemove', onRemoveCount === iterations],
 			);
 			
+			await context.dispatch('unsubscribe', trackSubscription);
 
-			await context.dispatch('unsubscribe', {subscription: trackSubscription});
-			
 
 			// DELETE
 			await track.remove();
@@ -1150,495 +1208,3 @@ export default {
 		},
 	},
 };
-
-/*
-	export default {
-		modules: {},
-
-		
-		state: {
-			socket: null,
-			subscriptions: new sj.Subscriptions(),
-		},
-		actions: {
-			//TODO update should not fire if the current data's timestamp is newer than the notify's timestamp - overall just keep thinking about timestamps with scalability in mind
-
-			//TODO consider using Map() for lookup
-
-			async subscribe(context, {Entity, query, subscriber, timeout = 10000}) {
-				//C subscribe on server 
-				const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
-				const processedQuery = await new Promise((resolve, reject) => {
-					const timeoutId = sj.setTimeout(() => {
-						reject(new sj.Error({
-							log: true,
-							reason: 'socket subscription timed out',
-						}));
-					}, timeout);
-
-					context.state.socket.emit('subscribe', {table: Entity.table, query: preparedQuery}, result => {
-						clearTimeout(timeoutId);
-						if (sj.isType(result, sj.Error)) reject(result);
-						else resolve(result);
-					});
-				}).then(sj.content).catch(sj.propagate);
-
-				//C find table, based on Entity
-				const table = context.state.subscriptions[Entity.table];
-
-				//C add subscriber, from this point data will live-update
-				await context.dispatch('addSubscriber', {table, query: processedQuery, subscriber});
-
-				//C trigger the initial update
-				await context.dispatch('update', {Entity, table, query: processedQuery, timestamp: Date.now()});
-
-				//C return the subscription's data, from this point component data will update (no need to worry about flickering from above)
-				const subscription = context.getters.findSubscription(table, processedQuery);
-				return subscription;
-			},
-			async unsubscribe(context, {Entity, query, subscriber, timeout = 10000}) { //? could this be simplified to just take the object returned from subscribe?
-				//C subscribe on server
-				let preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
-				let processedQuery = await new Promise((resolve, reject) => {
-					const timeoutId = sj.setTimeout(() => {
-						reject(new sj.Error({
-							log: true,
-							reason: 'socket unsubscription timed out',
-						}));
-					}, timeout);
-
-					context.state.socket.emit('unsubscribe', {table: Entity.table, query: preparedQuery}, result => {
-						clearTimeout(timeoutId);
-						if (sj.isType(result, sj.Error)) reject(result);
-						else resolve(result);
-					});
-				}).then(sj.content).catch(sj.propagate);
-
-				//C find table, based on Entity
-				let table = context.state.subscriptions[Entity.table];
-
-				//C remove subscriber
-				//? can this be converted to a subscription parameter?
-				await context.dispatch('removeSubscriber', {table, query: processedQuery, subscriber});
-			},
-
-			async update(context, {Entity, table, query, timestamp}) {
-				//C find subscription
-				let existingSubscription = context.getters.findSubscription(table, query);
-				if (!existingSubscription) throw new sj.Error({
-					origin: 'removeSubscriber()',
-					reason: 'could not find subscription to update',
-				});
-
-				//C check timestamp to avoid sending redundant get requests
-				if (timestamp <= existingSubscription.timestamp) return sj.Warn({
-					origin: 'update()',
-					message: 'did not update subscription because newer data has already been received',
-					reason: `existing timestamp: ${existingSubscription.timestamp}, call timestamp: ${timestamp}`
-				});
-
-				//C send get request
-				let result = await Entity.get(query);
-				let entities = result.content;
-				let dataTimestamp = result.timestamp;
-
-				//C if EntitySubscription
-				if (sj.isType(existingSubscription, sj.EntitySubscription)) { 
-					if (dataTimestamp > existingSubscription.timestamp) {
-						//C update EntitySubscription's data directly
-						context.commit('editSubscription', {subscription: existingSubscription, properties: {
-							content: sj.one(entities),
-							timestamp: dataTimestamp,
-						}});
-					}
-				} else { //C if QuerySubscription
-					//C QuerySubscriptions are are responsible for updating the EntitySubscriptions they are subscribed to and their content references to these EntitySubscriptions
-					
-					let updatedEntitySubscriptions = [];
-
-					//C for each entity in the get result
-					await sj.asyncForEach(entities, async entity => {
-						//C format entity.id as a query for a EntitySubscription
-						let entityQuery = sj.any(sj.shake(entity, Entity.filters.id));
-
-						//C add existingSubscription as a subscriber to EntitySubscription
-						//! this is one place where the query isn't processed server-side, this shouldn't cause any issue as it only uses the id property
-						await context.dispatch('addSubscriber', {table, query: entityQuery, subscriber: existingSubscription});
-						let entitySubscription = context.getters.findSubscription(table, entityQuery);
-						if (!entitySubscription) throw new sj.Error({
-							origin: 'update()',
-							reason: 'could not find entity subscription that was just added',
-						});
-
-						//C check dataTimestamp to avoid overwriting new data with older data
-						if (dataTimestamp > entitySubscription.timestamp) {
-							//C update the data
-							context.commit('editSubscription', {subscription: entitySubscription, properties: {
-								content: entity,
-								timestamp: dataTimestamp,
-							}});
-						}
-
-						//C push reference to a temporary list
-						updatedEntitySubscriptions.push(entitySubscription);
-					});
-
-					//C if an existing QuerySubscription's EntitySubscription is no longer part of the query results, remove this QuerySubscription as a subscriber
-					await sj.asyncForEach(existingSubscription.content, async existingEntitySubscription => {
-						if (!updatedEntitySubscriptions.some(updatedEntitySubscription => sj.deepMatch(updatedEntitySubscription.query, existingEntitySubscription.query))) {
-							await context.dispatch('removeSubscriber', {table, query: existingEntitySubscription.query, subscriber: existingSubscription});
-						}
-					});
-
-					//C swap in the new references
-					context.commit('editSubscription', {subscription: existingSubscription, properties: {
-						content: updatedEntitySubscriptions,
-					}});
-				}
-			},
-
-			async addSubscriber(context, {table, query, subscriber}) { 
-				//C find subscription
-				let existingSubscription = context.getters.findSubscription(table, query);
-				if (!existingSubscription) {
-					//C determine if Query or Entity Subscription
-					const Type = (query.length === 1 && Object.keys(query).length === 1 && sj.isType(query[0].id, Number)) ? sj.EntitySubscription : sj.QuerySubscription;
-
-					//C create new subscription
-					context.commit('addSubscription', {table, subscription: new Type({
-						query, //TODO make immutable
-						subscribers: [subscriber],
-					})});
-				} else {
-					//C find subscriber
-					let existingSubscriber = existingSubscription.subscribers.find(existingSubscriber => existingSubscriber === subscriber);
-
-					if (!existingSubscriber) {
-						//C add subscriber //! can't just push here as only mutations should modify state
-						context.commit('editSubscription', {subscription: existingSubscription, properties: {
-							subscribers: [...existingSubscription.subscribers, subscriber],
-						}});
-					}
-				}
-			},
-			async removeSubscriber(context, {table, query, subscriber}) {
-				//C find subscription
-				let existingSubscription = context.getters.findSubscription(table, query);
-				if (!existingSubscription) return new sj.Warn({
-					origin: 'removeSubscriber()',
-					reason: 'could not find subscription to remove',
-				});
-
-				//C find subscriber
-				existingSubscription.subscribers.forEach((existingSubscriber, index, subscribers) => {
-					if (existingSubscriber === subscriber) { 
-						//C remove subscriber
-						context.commit('editSubscription', {subscription: existingSubscription, properties: {
-							subscribers: subscribers.filter(existingSubscriber => existingSubscriber !== subscriber), 
-						}});
-					}
-				});
-
-				//C if no subscribers remain
-				if (existingSubscription.subscribers.length <= 0) { 
-					//C if QuerySubscription
-					if (!sj.isType(existingSubscription, sj.EntitySubscription)) {
-						//C unsubscribe self from all EntitySubscriptions
-						await sj.asyncForEach(existingSubscription.content, async entitySubscription => {
-							await context.dispatch('removeSubscriber', {table, query: entitySubscription.query, subscriber: existingSubscription});
-						});
-					}
-
-					//C remove self
-					context.commit('removeSubscription', {table, subscription: existingSubscription});
-				}
-			},
-
-
-			async reconnect(context) {
-				//G disconnect all is called server-side
-				//C for each table
-				await sj.asyncForEach(sj.Entity.children, async child => {
-					//C for each subscription
-					await sj.asyncForEach(context.state.subscriptions[child.table], async subscription => {
-						//C for each subscriber
-						await sj.asyncForEach(subscription.subscribers, async subscriber => {
-							//C if subscriber is not a QuerySubscription
-							if (!sj.isType(subscriber, sj.QuerySubscription)) {
-								//C re-subscribe
-								await context.dispatch('subscribe', {Entity: child, query: subscription.query, subscriber: subscriber});
-							}
-						});
-					});
-				});
-			},
-
-			//G this should be called in the main vue created()
-			async start(context, socket) {
-				context.commit('setSocket', socket);
-
-				context.state.socket.on('connect', async () => {
-					await context.dispatch('reconnect');
-				});
-				context.state.socket.on('disconnect', async (reason) => {
-				});
-
-				context.state.socket.on('notify', async ({table, query, timestamp}) => {
-					const Entity = sj.Entity.tableToEntity(table);
-					context.dispatch('update', {Entity, table: context.state.subscriptions[Entity.table], query, timestamp});
-				});
-
-				context.state.socket.test = async function () {
-					sj.Track.placeholder = {
-						playlistId: 2, 
-						name: 'placeholder name', 
-						duration: 1234, 
-						source: sj.spotify, 
-						sourceId: 'placeholderSourceId', 
-						artists: ['foo', 'bar'],
-					};
-					sj.Playlist.placeholder = {
-						userId: 3,
-						name: 'placeholder name',
-						description: 'placeholder description',
-					};
-					sj.User.placeholder = {
-						name: 'placeholder name',
-						email: 'placeholder email',
-						password: 'placeholder password',
-					};
-				
-					let wrap = async function (Entity, queryPack, data, predoF, doF, undoF, data2) {
-						//C subscribe
-						let subscribeResult = await new Promise((resolve, reject) => {
-							context.state.socket.emit('subscribe', queryPack, result => {
-								if (sj.isType(result, sj.Success)) {
-									resolve(result);
-								} else {
-									reject(result);
-								}
-							});
-						});
-				
-						let accessory = {};
-						let predoResult = await predoF(Entity, data, accessory, data2);
-				
-						//C make listener
-						let notified = false;
-						let notifiedResult = {};
-						context.state.socket.on('notify', notifyResult => { //? when is this listener removed?
-							console.log('CALLED');
-							notifiedResult = notifyResult;
-							if (sj.deepMatch(queryPack.query, notifyResult.changed, {matchIfSubset: true})) notified = true;
-						});
-				
-						//C do
-						let mainResult = await doF(Entity, data, accessory, data2);
-				
-						//C wait some time for notification to come back
-						await sj.wait(1000);
-				
-						//C undo
-						let undoResult = await undoF(Entity, data, accessory, data2);
-				
-						//C unsubscribe
-						let unsubscribeResult = await new Promise((resolve, reject) => {
-							context.state.socket.emit('unsubscribe', queryPack, result => {
-								if (sj.isType(result, sj.Success)) {
-									resolve(result);
-								} else {
-									reject(result);
-								}
-							});
-						});
-				
-						if (!notified) console.log('query:', queryPack.query, 'changed:', notifiedResult.changed)
-						return notified;
-					};
-				
-					let add = async function (Entity, queryPack, data) {
-						return await wrap(Entity, queryPack, data,
-							async () => undefined, 
-							async (Entity, data, accessory) => {
-								let addResult = await Entity.add({
-									...Entity.placeholder, //C fill in missing data
-									...data,
-								});
-								accessory.id = sj.one(addResult.content).id;
-								return addResult;
-							}, 
-							async (Entity, data, accessory) => {
-								return await Entity.remove({id: accessory.id}); //C delete generated id
-							}
-						);
-					};
-					let edit = async function (Entity, queryPack, dataBefore, dataAfter) {
-						dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
-				
-						return await wrap(Entity, queryPack, dataBefore,
-							async (Entity, dataBefore, accessory, dataAfter) => {
-								let addResult = await Entity.add({
-									...Entity.placeholder,
-									...dataBefore,
-								});
-								accessory.id = sj.one(addResult.content).id;
-								return addResult;
-							},
-							async (Entity, dataBefore, accessory, dataAfter) => {
-								return await Entity.edit({
-									...dataAfter,
-									id: accessory.id,
-								});
-							}, async (Entity, dataBefore, accessory, dataAfter) => {
-								return await Entity.remove({id: accessory.id});
-							},
-							dataAfter,
-						);
-					};
-					let remove = async function (Entity, queryPack, data) {
-						return await wrap(Entity, queryPack, data,
-							async (Entity, data, accessory) => {
-								let addResult = await Entity.add({
-									...Entity.placeholder,
-									...data,
-								});
-								accessory.id = sj.one(addResult.content).id;
-								return addResult;
-							},
-							async (Entity, data, accessory) => {
-								return await Entity.remove({id: accessory.id});
-							},
-							async() => undefined,
-						);
-					};
-				
-				
-					sj.test([
-						//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
-						//['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
-						//['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
-				
-						//['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
-						//['edit to new name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
-				
-				
-						['remove track name', 		true === await remove(sj.Track, {table: 'tracks', query: {name: 'some name'}}, {name: 'some name'})],
-						['remove playlist name', 	true === await remove(sj.Playlist, {table: 'playlists', query: {name: 'some name'}}, {name: 'some name'})],
-						['remove user name', 		true === await remove(sj.User, {table: 'users', query: {name: 'some name'}}, {name: 'some name'})],
-						
-					], 'context.state.socket.test()');
-				
-				
-					delete sj.Track.placeholder;
-					delete sj.Playlist.placeholder;
-					delete sj.User.placeholder;
-				};
-
-				await context.dispatch('test');
-			},
-
-			async test(context) {
-				
-				const Entity = sj.Track;
-				const query = [{playlistId: 2}];
-				const changedName = sj.makeKey(10);
-			
-				const change = [{id: 65, name: changedName}]; //TODO I deleted track 65
-				const subscriber = 'test subscriber';
-			
-				let pass = true;
-			
-				if (context.state.subscriptions[Entity.table].length !== 0) {
-					console.error("subscriptions didn't start out empty")
-					pass = false;
-				}
-				console.log('initial query:', query);
-			
-				let result = await context.dispatch('subscribe', {Entity, query, subscriber});
-				if (!sj.deepMatch(context.state.subscriptions[Entity.table][0].query, query)) {
-					console.error('stored query is not the same as input query');
-					pass = false;
-				}
-				console.log('subscribed to query:', context.state.subscriptions[Entity.table][0].query);
-				console.log('before content:', context.state.subscriptions[Entity.table][0].content);
-			
-				await Entity.edit(change);
-				await sj.wait(1000);
-				console.log('after content:', context.state.subscriptions[Entity.table][0].content);
-			
-				await context.dispatch('unsubscribe', {Entity, query, subscriber});
-				if (context.state.subscriptions[Entity.table].length !== 0) {
-					console.error("subscriptions didn't end empty");
-					pass = false;
-				}
-				console.log(context.state.subscriptions[Entity.table]);
-				console.log('none remaining:', context.state.subscriptions[Entity.table].length === 0);
-				console.log('pass:', pass);
-				console.log('result', result);
-				
-				const testFunction = function ({
-					Entity,
-					query,
-					query2,
-					subscriber,
-				}) {
-					//C subscriptions must start out empty
-					if (context.state.subscriptions[Entity.table].length !== 0) return false;
-
-					const subscription = await context.dispatch('subscribe', {Entity, query, subscriber});
-
-					//TODO
-				};
-				
-
-				//TODO
-				await sj.test([
-				], 'liveQuery')
-			},
-		},
-		mutations: {
-			addSubscription(state, {table, subscription}) {
-				table.push(subscription);
-			},
-			editSubscription(state, {subscription, properties}) {
-				Object.assign(subscription, properties);
-			},
-			removeSubscription(state, {table, subscription}) {
-				let index = table.indexOf(subscription);
-				if (index < 0) throw new sj.Error({
-					origin: 'removeSubscription()',
-					reason: 'could not find subscription to remove',
-				});
-
-				table.splice(index, 1);
-			},
-
-			setSocket(state, socket) {
-				state.socket = socket;
-			},
-		},
-		getters: {
-			findSubscription: state => (table, query) => {
-				if (!Array.isArray(table)) throw new sj.Error({
-					origin: 'findSubscription()',
-					reason: `table is not an array: ${typeof table}`,
-					content: table,
-				});
-				return table.find(existingSubscription => sj.deepMatch(existingSubscription.query, query, {matchOrder: false}));
-			},
-			getSubscriptionData: state => subscription => {
-				if (sj.isType(subscription, sj.EntitySubscription)) {
-					return subscription.content;
-				} else if (sj.isType(subscription, sj.QuerySubscription)) {
-					return subscription.content.map(entitySubscription => entitySubscription.content);
-				} else {
-					throw new sj.Error({
-						origin: 'getSubscriptionData()',
-						reason: 'subscription is not an EntitySubscription or QuerySubscription',
-						content: subscription,
-					});
-				}
-			},
-		},
-	};
-*/
