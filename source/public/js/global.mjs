@@ -224,8 +224,9 @@ sj.trace = function () {
 		return stackTrace3;
 	}
 };
-sj.image = function (obj) {
-	return JSON.parse(JSON.stringify(fClone(obj)));
+sj.image = function (value) {
+	if (typeof value === null || typeof value !== 'object') return value;
+	return JSON.parse(JSON.stringify(fClone(value)));
 };
 
 // FORMAT

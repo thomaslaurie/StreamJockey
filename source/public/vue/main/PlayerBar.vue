@@ -6,27 +6,42 @@
 			drag: false,
 			manualProgress: 0,
 
-			prevTrackSubscription: null,
-			nextTrackSubscription: null,
+			playlistTracksSubscription: null,
 		}; },
-
 		computed: {
 			currentTrack() {
 				return this.$store.getters['player/desiredTrack'];
 			},
+			playlistId() {
+				//TODO replace with playlistId rule
+				return (this.sj.isType(this.currentTrack, Object) && this.sj.isType(this.currentTrack.playlistId, 'integer'))
+					? this.currentTrack.playlistId
+					: null;
+			},
+			playlistTracks() {
+				return this.sj.isType(this.playlistTracksSubscription, this.sj.Subscription) 
+					? this.$store.getters.getLiveData(this.playlistTracksSubscription)
+					: null;
+			},
 			prevTrack() {
-				if (this.sj.isType(this.prevTrackSubscription, this.sj.Subscription)) {
-					const tracks = this.$store.getters.getLiveData(this.prevTrackSubscription);
-					if (tracks.length === 1) return this.sj.one(tracks);
-				}
-				return null;
+				return (
+					this.sj.isType(this.currentTrack, this.sj.Track) &&			//C currentTrack exists
+					this.sj.isType(this.playlistTracks, Array) &&				//C playlistTrack exists
+					0 < this.currentTrack.position && 							//C//! currentTrack is after first track
+					this.currentTrack.position < this.playlistTracks.length		//C currentTrack is not above bounds
+						? this.playlistTracks[this.currentTrack.position-1] //!
+						: null
+				);
 			},
 			nextTrack() {
-				if (this.sj.isType(this.nextTrackSubscription, this.sj.Subscription)) {
-					const tracks = this.$store.getters.getLiveData(this.nextTrackSubscription);
-					if (tracks.length === 1) return this.sj.one(tracks);
-				}
-				return null;
+				return (
+					this.sj.isType(this.currentTrack, this.sj.Track) &&			//C currentTrack exists
+					this.sj.isType(this.playlistTracks, Array) &&				//C playlistTrack exists
+					0 <= this.currentTrack.position && 							//C currentTrack is not below bounds
+					this.currentTrack.position < this.playlistTracks.length-1	//C//! currentTrack is before last track
+						? this.playlistTracks[this.currentTrack.position+1] //!
+						: null
+				);
 			},
 
 			sliderProgress() {
@@ -38,83 +53,37 @@
 			},
 		},
 		watch: {
-			currentTrack: {
-				//C updates subscriptions for prev/next track when currentTrack changes
-				async handler(currentTrack) {
-					await this.updateOffsetTrack({
-						currentTrack,
-						offset: -1,
-						trackKey: 'prevTrack',
-						subscriptionKey: 'prevTrackSubscription',
-					});
-					await this.updateOffsetTrack({
-						currentTrack,
-						offset: 1,
-						trackKey: 'nextTrack',
-						subscriptionKey: 'nextTrackSubscription',
-					});
+			playlistId: {
+				//C ensure the playlistTracksSubscription is always the same as the currentTrack
+				async handler(id, oldId) {
+					//C if playlistId doesn't exist
+					if (id === null) {
+						//C wipe playlistTracksSubscription
+						this.playlistTracksSubscription = await this.$store.dispatch('unsubscribe', {subscription: this.playlistTracksSubscription});
+
+					//C if the playlistId has changed or the playlistTracksSubscription doesn't exist
+					} else if (id !== oldId || !this.sj.isType(this.playlistTracksSubscription, this.sj.Subscription)) {
+						//C update the playlistTracksSubscription to the proper playlistId
+						this.playlistTracksSubscription = await this.$store.dispatch('change', {
+							subscription: this.playlistTracksSubscription,
+							Entity: this.sj.Track,
+							query: {playlistId: id},
+						});
+					}
 				},
-				
 				deep: true,
 				immediate: true,
 			},
 		},
-		
 		methods: {
 			async test() {
-				//console.log(this.sj.image(this.$store.getters['player/desiredPlayback'].track));
-
+				console.log('%c---------', 'background-color: orange');
+				
 				console.log('prevTrack', this.sj.image(this.prevTrack));
 				console.log('nextTrack', this.sj.image(this.nextTrack));
 			},
 
-
-			async updateOffsetTrack({
-				currentTrack,
-				offset, 
-				trackKey,
-				subscriptionKey,
-			}) {
-				//TODO subscribe/unsubscribe are being called many times for the prev/next track, when changning from a playing track to another
-
-				//C if currentTrack doesn't exist
-				if (!this.sj.isType(currentTrack, this.sj.Track)) {
-					//C wipe subscription
-					this[subscriptionKey] = await this.$store.dispatch('unsubscribe', {subscription: this[subscriptionKey]});
-					return;
-				}
-
-				//C calculate offsetPosition
-				const offsetPosition = currentTrack.position + offset;
-
-				//C if the subscription needs to be updated
-				if ( 
-					!this.sj.isType(this[trackKey], this.sj.Track) ||
-					this[trackKey].playlistId !== currentTrack.playlistId ||
-					this[trackKey].position !== offsetPosition
-				) {
-					//C if the offsetPosition (and possibly other values) pass validation
-					//! these just have to not throw validation errors on the server-side, they can still be bad queries that don't return anything, that case is checked by the track getters
-					//TODO replace with the same validation as this.sj.Track.position, after the new rule class is implemented, this should be the same rule that the query gets validated with on the server, because we don't want the subscription query to error
-					if (offsetPosition >= 0) {
-						//C add/change to a new subscription
-						this[subscriptionKey] = await this.$store.dispatch('change', {
-							subscription: this[subscriptionKey],
-
-							Entity: this.sj.Track,
-							query: {
-								playlistId: currentTrack.playlistId,
-								position: offsetPosition,
-							},
-						});
-					} else {
-						//C wipe the subscription (as something is out of bounds)
-						this[subscriptionKey] = await this.$store.dispatch('unsubscribe', {subscription: this[subscriptionKey]});
-					}
-				}
-			},
-
-
+			// BUTTONS
 			async toggle() {
 				await this.$store.dispatch('player/toggle');
 			},
@@ -141,9 +110,6 @@
 			},
 			async change(event) {
 			},
-			
-
-
 		},
 	}
 </script>
@@ -152,8 +118,8 @@
 <template>
     <div>
 		<button @click='test'>Test</button>
-		<button @click='prev' :class='{notAvailable: prevTrack === null}'>Prev</button>
-		<button @click='next' :class='{notAvailable: nextTrack === null}'>Next</button>
+		<button @click='prev' :disabled='prevTrack === null' :class='{notAvailable: prevTrack === null}'>Prev</button>
+		<button @click='next' :disabled='nextTrack === null' :class='{notAvailable: nextTrack === null}'>Next</button>
 		<button @click='toggle'>Toggle</button>
 		<!-- //L https://css-tricks.com/sliding-nightmare-understanding-range-input -->
 		<input 

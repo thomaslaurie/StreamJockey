@@ -737,12 +737,12 @@ export default {
 			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
 				origin: 'update()', 
 				reason: 'Entity is not an sj.Entity',
-				content: Entity,
+				content: sj.image(Entity),
 			});
 			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
 				origin: 'update()', 
 				reason: 'query is not an Object',
-				content: query,
+				content: sj.image(query),
 			});
 			if (!sj.isType(timestamp, 'integer')) timestamp = Date.now();
 
@@ -751,13 +751,20 @@ export default {
 			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
 				origin: 'update()', 
 				reason: 'table is not an sj.LiveTable',
-				content: table,
+				content: {
+					Entity: sj.image(Entity),
+					table: sj.image(table),
+				},
 			});
 			const liveQuery = context.getters.findLiveQuery({table, query});
 			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
 				origin: 'update()',
 				reason: `liveQuery is not an sj.LiveQuery`,
-				content: liveQuery,
+				content: {
+					query: sj.image(query),
+					table: sj.image(table),
+					liveQuery: sj.image(liveQuery),
+				},
 			});
 
 			//C update
@@ -903,6 +910,8 @@ export default {
 
 			context.state.socket.on('notify', async ({table, query, timestamp}) => {
 				const Entity = sj.Entity.tableToEntity(table);
+				console.warn('u');
+				//---------- subscription isn't being removed on server side
 				context.dispatch('update', {Entity, query, timestamp});
 			});
 
@@ -1057,12 +1066,12 @@ export default {
 
 			
 			//C module test
-			//await context.dispatch('test');
+			await context.dispatch('test');
 		},
 
 		async test(context) {
 			//C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
-			await sj.wait(1000);
+			await sj.wait(2000);
 
 			const tests = [];
 
@@ -1214,20 +1223,18 @@ export default {
 				['xEditedAfterRemove', onEditCount === iterations],
 				['xRemovedAfterRemove', onRemoveCount === iterations],
 			);
-			
+
 			await context.dispatch('unsubscribe', {subscription: trackSubscription, strict: true});
-
-
+			
 			// DELETE
 			await track.remove();
 			await playlist.remove();
 			await user.remove();
 
-
 			//TODO add tests for convergent liveQueries
 			await sj.test([
 				...tests,
-			], 'liveQuery')
+			], 'liveQuery');
 		},
 	},
 };

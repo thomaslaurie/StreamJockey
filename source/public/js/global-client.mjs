@@ -92,21 +92,20 @@ sj.Entity.augmentClass({
 
 
 // ACTION
-//R actions are separate from the playback module actions because they are supposed to be instanced, queued packets of trigger functionality and frozen state
+//R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
 
-//G sj.Actions have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
+//G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
 //G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
 //G tightly integrated with VueX
-//TODO consider a stop action? it would stop all sources and set the current source back to null
-//TODO consider changing 'Action' to 'Command'
-sj.Action = sj.Base.makeClass('Action', sj.Base, {
+//TODO consider a stop command? it would stop all sources and set the current source back to null
+sj.Command = sj.Base.makeClass('Command', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a source
 			if (!sj.isType(accessory.options.source, sj.Source)) throw new sj.Error({
-				origin: 'sj.Action.beforeInitialize()',
-				message: 'no source is active to receive this action',
-				reason: `sj.Action instance.source must be an sj.Source: ${accessory.options.source}`,
+				origin: 'sj.Command.beforeInitialize()',
+				message: 'no source is active to receive this command',
+				reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
 				content: accessory.options.source,
 			});
 		},
@@ -114,24 +113,24 @@ sj.Action = sj.Base.makeClass('Action', sj.Base, {
 			source: undefined,
 		},
 		afterInitialize(accessory) {
-			this.collapsedActions = []; //C an array used to store any collapsed or annihilated actions so that they may be resolved when this action either resolves or is annihilated
+			this.collapsedCommands = []; //C an array used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated
 			this.fullResolve = function (success) {
-				//C resolve collapsed actions
-				this.collapsedActions.forEach(collapsedAction => {
-					collapsedAction.resolve(new sj.Success({
+				//C resolve collapsed commands
+				this.collapsedCommands.forEach(collapsedCommand => {
+					collapsedCommand.resolve(new sj.Success({
 						origin: 'resolvePlus()',
-						reason: 'action was collapsed',
+						reason: 'command was collapsed',
 					}));
 				});
 				//C resolve self
 				this.resolve(success);
 			};
 			this.fullReject = function (error) {
-				//C//! RESOLVE collapsed actions
-				this.collapsedActions.forEach(a => {
+				//C//! RESOLVE collapsed commands
+				this.collapsedCommands.forEach(a => {
 					a.resolve(new sj.Success({
 						origin: 'resolvePlus()',
-						reason: 'action was collapsed',
+						reason: 'command was collapsed',
 					}));
 				});
 				//C reject self
@@ -140,36 +139,36 @@ sj.Action = sj.Base.makeClass('Action', sj.Base, {
 
 			this.resolve = function () {
 				throw new sj.Error({
-					origin: 'sj.Action.resolve()',
-					reason: 'action.resolve called but it has not been given a resolve function',
+					origin: 'sj.Command.resolve()',
+					reason: 'command.resolve called but it has not been given a resolve function',
 				});
 			};
 			this.resolve = function () {
 				throw new sj.Error({
-					origin: 'sj.Action.reject()',
-					reason: 'action.reject called but it has not been given a reject function',
+					origin: 'sj.Command.reject()',
+					reason: 'command.reject called but it has not been given a reject function',
 				});
 			};
 		},
 	}),
 	prototypeProperties: parent => ({
-		identicalCondition(otherAction) {
-			//C otherAction must be an sj.Action, and have the same playback-state properties
-			return sj.isType(otherAction, sj.Action)
-			&& otherAction.source === this.source;
+		identicalCondition(otherCommand) {
+			//C otherCommand must be an sj.Command, and have the same playback-state properties
+			return sj.isType(otherCommand, sj.Command)
+			&& otherCommand.source === this.source;
 		}, 
-		collapseCondition(otherAction) {
+		collapseCondition(otherCommand) {
 			//C collapse if identical
-			return this.identicalCondition(otherAction);
+			return this.identicalCondition(otherCommand);
 		},
-		annihilateCondition: otherAction => false,
+		annihilateCondition: otherCommand => false,
 		async trigger(context) {
 			//C load the player if not loaded
 			if (context.state[this.source.name].player === null) await context.dispatch(`${this.source.name}/loadPlayer`);
 		},
 	}),
 });
-sj.Start = sj.Base.makeClass('Start', sj.Action, {
+sj.Start = sj.Base.makeClass('Start', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a track
@@ -186,19 +185,20 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 		},
 	}),
 	prototypeProperties: parent => ({
-		identicalCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction) 
-			&& sj.isType(otherAction.track, sj.Track) //C catch non-sj.Tracks
-			&& otherAction.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
-			&& otherAction.isPlaying === this.isPlaying
-			&& otherAction.progress === this.progress;
+		identicalCondition(otherCommand) {
+			return parent.prototype.identicalCondition.call(this, otherCommand) 
+			&& sj.isType(otherCommand.track, sj.Track) //C catch non-sj.Tracks
+			&& otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
+			&& otherCommand.isPlaying === this.isPlaying
+			&& otherCommand.progress === this.progress;
 		},
-		collapseCondition(otherAction) {
-			//C collapses identical sj.Starts, and any sj.Resumes, sj.Pauses, and sj.Seeks
-			return parent.prototype.collapseCondition.call(this, otherAction)
-			|| otherAction.constructor === sj.Resume 
-			|| otherAction.constructor === sj.Pause 
-			|| otherAction.constructor === sj.Seek;
+		collapseCondition(otherCommand) {
+			//C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
+			return parent.prototype.collapseCondition.call(this, otherCommand)
+			|| otherCommand.constructor === sj.Start
+			|| otherCommand.constructor === sj.Resume 
+			|| otherCommand.constructor === sj.Pause 
+			|| otherCommand.constructor === sj.Seek;
 		},
 		async trigger(context) {
 			await parent.prototype.trigger.call(this, context);
@@ -229,7 +229,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 		},
 	}),
 });
-sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
+sj.Toggle = sj.Base.makeClass('Toggle', sj.Command, {
 	//? pause command might not have a desired progress?
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
@@ -245,17 +245,18 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 		},
 	}),
 	prototypeProperties: parent => ({
-		identicalCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction)
-			&& otherAction.isPlaying === this.isPlaying;
+		identicalCondition(otherCommand) {
+			return parent.prototype.identicalCondition.call(this, otherCommand)
+			&& otherCommand.isPlaying === this.isPlaying;
 		},
-		annihilateCondition(otherAction) {
-			return parent.prototype.annihilateCondition.call(this, otherAction)
+		//! sj.Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates
+		annihilateCondition(otherCommand) {
+			return parent.prototype.annihilateCondition.call(this, otherCommand)
 			|| ( 
 				//C same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts)
-				parent.prototype.identicalCondition.call(this, otherAction)
-				&& otherAction.isPlaying === !this.isPlaying
-				&& otherAction.constructor === this.constructor
+				parent.prototype.identicalCondition.call(this, otherCommand)
+				&& otherCommand.isPlaying === !this.isPlaying
+				&& otherCommand.constructor === this.constructor
 			);
 		},
 		async trigger(context) {
@@ -279,7 +280,7 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Action, {
 		},
 	}),
 });
-sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
+sj.Seek = sj.Base.makeClass('Seek', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G progress must be manually set between 0 and 1\
@@ -294,9 +295,13 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 		},
 	}),
 	prototypeProperties: parent => ({
-		identicalCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction)
-			&& otherAction.progress === this.progress;
+		identicalCondition(otherCommand) {
+			return parent.prototype.identicalCondition.call(this, otherCommand)
+			&& otherCommand.progress === this.progress;
+		},
+		collapseCondition(otherCommand) {
+			return parent.prototype.collapseCondition.call(this, otherCommand)
+			|| otherCommand.constructor === sj.Seek;
 		},
 		async trigger(context) {			
 			await parent.prototype.trigger.call(this, context);
@@ -305,7 +310,7 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Action, {
 		},
 	}),
 });
-sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
+sj.Volume = sj.Base.makeClass('Volume', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G volume must be manually set between 0 and 1
@@ -320,9 +325,13 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 		},
 	}),
 	prototypeProperties: parent => ({
-		identicalCondition(otherAction) {
-			return parent.prototype.identicalCondition.call(this, otherAction)
-			&& otherAction.volume === this.volume;
+		identicalCondition(otherCommand) {
+			return parent.prototype.identicalCondition.call(this, otherCommand)
+			&& otherCommand.volume === this.volume;
+		},
+		collapseCondition(otherCommand) {
+			return parent.prototype.collapseCondition.call(this, otherCommand)
+			|| otherCommand.constructor === sj.Volume;
 		},
 		async trigger(context) {
 			await parent.prototype.trigger.call(this, context);
@@ -334,8 +343,6 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Action, {
 		},
 	}),
 });
-
-//TODO what if the currently playing track's data is changed? like position?
 
 // PLAYBACK
 sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
@@ -441,25 +448,25 @@ sj.Playback.module = new sj.Playback({
 			// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
 			// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
 
-			TODO checkPlaybackState every action just like before, find a better way
+			TODO checkPlaybackState every command just like before, find a better way
 				// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
 				// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
 
-			Action Failure Handling 
-				// 	!!! old, meant for individual action types
+			Command Failure Handling 
+				// 	!!! old, meant for individual command types
 
-				// send action, change pendingAction to true, wait
-				// 	if success: change pendingAction to false
-				// 		if queuedAction exists: change action to queuedAction, clear queued action, repeat...
+				// send command, change pendingCommand to true, wait
+				// 	if success: change pendingCommand to false
+				// 		if queuedCommand exists: change command to queuedCommand, clear queued command, repeat...
 				// 		else: nothing
 				// 	if failure: 
-				// 		if queuedAction exists: change pendingAction to false, change action to queuedAction, clear queued action, repeat... // pendingActions aren't desired if queuedActions exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+				// 		if queuedCommand exists: change pendingCommand to false, change command to queuedCommand, clear queued command, repeat... // pendingCommands aren't desired if queuedCommands exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
 				// 		else: trigger auto-retry process
 				// 			if success: repeat...
-				// 			if failure: change pendingAction to false, trigger manual-retry process which basically sends a completely new request...
+				// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
 		*/
-		actionQueue: [],
-		sentAction: null,
+		commandQueue: [],
+		sentCommand: null,
 
 		// PLAYBACK STATE
 		//C source is used to select the proper playback state for actualPlayback
@@ -482,124 +489,123 @@ sj.Playback.module = new sj.Playback({
 		},
 
 		// QUEUE
-		//TODO there seems to be a bug in the action queue where eventually an action will stall until (either it or something ahead of it, im not sure which) times out, upon which the action in question will be fulfilled
-		async pushAction(context, action) {
-			//C Attempts to push a new action the current action queue. Will collapse and/or annihilate actions ahead of it in the queue if conditions are met. Action will not be pushed if it annihilates or if it is identical to the sent action or if there is no sent action and it is identical to the current playback state.
+		//TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
+		async pushCommand(context, command) {
+			//C Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
 
 			let push = true;
 
-			//C remove redundant actions if necessary
+			//C remove redundant commands if necessary
 			const compact = function (i) {
 				if (i >= 0) {
-					//R collapse is required to use the new action rather than just using the existing action because sj.Start collapses different actions than itself
-					if (action.collapseCondition(context.state.actionQueue[i])) {
-						//C if last otherAction collapses, this action gets pushed
+					//R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
+					if (command.collapseCondition(context.state.commandQueue[i])) {
+						//C if last otherCommand collapses, this command gets pushed
 						push = true;
-						//C store otherAction on this action
-						action.collapsedActions.unshift(context.state.actionQueue[i]);
-						//C remove otherAction
-						context.commit('removeQueuedAction', i);
-						//C analyze next otherAction
+						//C store otherCommand on this command
+						command.collapsedCommands.unshift(context.state.commandQueue[i]);
+						//C remove otherCommand
+						context.commit('removeQueuedCommand', i);
+						//C analyze next otherCommand
 						compact(i-1);
-					} else if (action.annihilateCondition(context.state.actionQueue[i])) {
-						//C if last otherAction annihilates, this action doesn't get pushed
+					} else if (command.annihilateCondition(context.state.commandQueue[i])) {
+						//C if last otherCommand annihilates, this command doesn't get pushed
 						push = false;
-						action.collapsedActions.unshift(context.state.actionQueue[i]);
-						context.commit('removeQueuedAction', i);
+						command.collapsedCommands.unshift(context.state.commandQueue[i]);
+						context.commit('removeQueuedCommand', i);
 						compact(i-1);
 					} else {
-						//C if otherAction does not collapse or annihilate, escape
+						//C if otherCommand does not collapse or annihilate, escape
 						return;
 					}
 				}
 			};
-			compact(context.state.actionQueue.length-1);
+			compact(context.state.commandQueue.length-1);
 
-			if (( //C if there is a sent action and identical to the sent action,
-				context.state.sentAction !== null && 
-				action.identicalCondition(context.state.sentAction)
-			) || ( //C or if there isn't a sent action and identical to the actual playback
-				context.state.sentAction === null && 
-				action.identicalCondition(context.getters.actualPlayback)
+			if (( //C if there is a sent command and identical to the sent command,
+				context.state.sentCommand !== null && 
+				command.identicalCondition(context.state.sentCommand)
+			) || ( //C or if there isn't a sent command and identical to the actual playback
+				context.state.sentCommand === null && 
+				command.identicalCondition(context.getters.actualPlayback)
 			)) push === false; //C don't push
-
-			//C possibly push action the queue
-			if (push) {
-				context.commit('pushQueuedAction', action);
-			} else {
-				action.fullResolve(new sj.Success({
-					origin: 'pushAction()',
-					reason: 'action was annihilated',
-				}));
-			}
-
-			//C wait for action to resolve
-			return await new Promise((resolve, reject) => {
-				//C creates a closure resolve/reject functions, this promise can now be resolved externally by calling these functions
-				action.resolve = resolve;
-				action.reject = reject;
-
-				//C send next action //! do not await
-				context.dispatch('nextAction');
+			
+			//C route command resolve/reject to this result promise
+			const resultPromise = new Promise((resolve, reject) => {
+				command.resolve = resolve;
+				command.reject = reject;
 			});
+
+			//C push command to the queue or resolve it (because it has been collapsed)
+			if (push) context.commit('pushQueuedCommand', command);
+			else command.fullResolve(new sj.Success({
+				origin: 'pushCommand()',
+				reason: 'command was annihilated',
+			}));
+			
+			//C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
+			context.dispatch('nextCommand');
+
+			//C await for the command to resolve
+			return await resultPromise;
 		},
-		async nextAction(context) {
-			//C don't do anything if another action is still processing or if no queued actions exist
-			if (context.state.sentAction !== null || context.state.actionQueue.length <= 0) return;
+		async nextCommand(context) {
+			//C don't do anything if another command is still processing or if no queued commands exist
+			if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return;
 
-			//C move the action from the queue to sent
-			context.commit('setSentAction', context.state.actionQueue[0]);
-			context.commit('removeQueuedAction', 0);
+			//C move the command from the queue to sent
+			context.commit('setSentCommand', context.state.commandQueue[0]);
+			context.commit('removeQueuedCommand', 0);
 
-			//C trigger and resolve the action
-			await context.state.sentAction.trigger(context).then(
-				resolved => context.state.sentAction.fullResolve(resolved),
-				rejected => context.state.sentAction.fullReject(rejected),
+			//C trigger and resolve the command
+			await context.state.sentCommand.trigger(context).then(
+				resolved => context.state.sentCommand.fullResolve(resolved),
+				rejected => context.state.sentCommand.fullReject(rejected),
 			);
 
-			//C mark the sent action as finished
-			context.commit('removeSentAction');
-			//C send next action //! do not await
-			context.dispatch('nextAction');
+			//C mark the sent command as finished
+			context.commit('removeSentCommand');
+			//C send next command //! do not await, this just restarts the nextCommand cycle
+			context.dispatch('nextCommand');
 		},
 
 		// PLAYBACK FUNCTIONS
-		//G the main playback module's actions, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
+		//G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
 		// BASIC
 		async start({dispatch}, track) {
-			return await dispatch('pushAction', new sj.Start({
+			return await dispatch('pushCommand', new sj.Start({
 				source: track.source, //! uses track's source
 				track,
 			}));
 		},
 		async pause({dispatch, getters: {desiredSource: source}}) {
-			return await dispatch('pushAction', new sj.Toggle({
+			return await dispatch('pushCommand', new sj.Toggle({
 				source, //! other non-start basic playback functions just use the current desiredPlayback source
 				isPlaying: false,
 			}));
 		},
 		async resume({dispatch, getters: {desiredSource: source}}) {
-			return await dispatch('pushAction', new sj.Toggle({
+			return await dispatch('pushCommand', new sj.Toggle({
 				source,
 				isPlaying: true,
 			}));
 		},
 		async seek({dispatch, getters: {desiredSource: source}}, progress) {
-			return await dispatch('pushAction', new sj.Seek({
+			return await dispatch('pushCommand', new sj.Seek({
 				source,
 				progress,
 			}));
 		},
 		async volume({dispatch, getters: {desiredSource: source}}, volume) {
 			//TODO volume should change volume on all sources
-			return await dispatch('pushAction', new sj.Volume({
+			return await dispatch('pushCommand', new sj.Volume({
 				source,
 				volume,
 			}));
 		},
 		// HIGHER LEVEL
 		async toggle({dispatch, getters: {desiredSource: source, desiredIsPlaying: isPlaying}}) {
-			return await dispatch('pushAction', new sj.Toggle({
+			return await dispatch('pushCommand', new sj.Toggle({
 				source,
 				isPlaying: !isPlaying,
 			}));
@@ -615,17 +621,17 @@ sj.Playback.module = new sj.Playback({
 		},
 
 		// QUEUE
-		pushQueuedAction(state, action) {
-			state.actionQueue.push(action);
+		pushQueuedCommand(state, command) {
+			state.commandQueue.push(command);
 		},
-		removeQueuedAction(state, index) {
-			state.actionQueue.splice(index, 1);
+		removeQueuedCommand(state, index) {
+			state.commandQueue.splice(index, 1);
 		},
-		setSentAction(state, action) {
-			state.sentAction = action;
+		setSentCommand(state, command) {
+			state.sentCommand = command;
 		},
-		removeSentAction(state) {
-			state.sentAction = null;
+		removeSentCommand(state) {
+			state.sentCommand = null;
 		},
 
 		// PLAYBACK STATE
@@ -664,9 +670,9 @@ sj.Playback.module = new sj.Playback({
 				const elapsedProgress = elapsedTime / sourceState.track.duration;
 				return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
 			},
-			desiredPlayback({sentAction, actionQueue}, {actualPlayback}) {
+			desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
 				//! this will update x-times per second when playing as the track progress is constantly updating
-				return Object.assign({}, actualPlayback, sentAction, ...actionQueue);
+				return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
 			},
 		*/
 
@@ -723,11 +729,11 @@ sj.Playback.module = new sj.Playback({
 		flattenPlayback: (state, getters) => key => {
 			//C value starts as the actualValue
 			let value = getters[`actual${sj.capFirst(key)}`];
-			//C then if defined, sentAction
-			if (sj.isType(state.sentAction, Object) && state.sentAction[key] !== undefined) value = state.sentAction[key];
-			//C then if defined, each queuedAction
-			for (const queuedAction of state.actionQueue) {
-				if (queuedAction[key] !== undefined) value = queuedAction[key];
+			//C then if defined, sentCommand
+			if (sj.isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key];
+			//C then if defined, each queuedCommand
+			for (const queuedCommand of state.commandQueue) {
+				if (queuedCommand[key] !== undefined) value = queuedCommand[key];
 			}
 
 			return value;
@@ -1136,6 +1142,7 @@ sj.spotify = new sj.Source({
 						});
 						player.on('not_ready', ({device_id}) => {
 							//? don't know what to do here
+							console.error('not_ready', 'device_id:', device_id);
 						});
 			
 						//C errors
@@ -1177,6 +1184,7 @@ sj.spotify = new sj.Source({
 						});
 						player.on('playback_error', ({message}) => {
 							//TODO this should be a listener, and not resolve or reject
+							console.error('playback_error', message);
 						});
 			
 			
@@ -1428,12 +1436,18 @@ sj.spotify = new sj.Source({
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
 				const volume = await context.state.player.getVolume(); 
 				const newState = {...formattedState, volume};
-
-				console.log(formattedState.isPlaying);
-
+				/*
+					console.log(
+						'track.name', formattedState.track.name, '\n',
+						'track.sourceId', formattedState.track.sourceId, '\n',
+						'isPlaying', formattedState.isPlaying, '\n',
+						'progress', formattedState.progress,  '\n',
+						'timestamp', formattedState.timestamp, '\n',
+					);
+				*/
 				context.commit('setState', newState);
 				return new sj.Success({
-					origin: 'spotify module action - updatePlayback()',
+					origin: 'spotify module command - updatePlayback()',
 					message: 'spotify playback updated',
 					content: newState,
 				});
@@ -1455,7 +1469,7 @@ sj.spotify = new sj.Source({
 
 				await context.dispatch('updatePlayback', state);
 				return new sj.Success({
-					origin: 'spotify module action - checkPlayback()',
+					origin: 'spotify module command - checkPlayback()',
 					message: 'spotify playback checked',
 					content: context.state,
 				});
@@ -1468,15 +1482,17 @@ sj.spotify = new sj.Source({
 			//G must handle redundant requests (eg. pause when already paused)
 			//G must only resolve when the playback state is actually applied (not just on command acknowledgement)
 			async start(context, track) {
-				console.log('start');
 				const timeBeforeCall = Date.now();
 				const result = await context.state.player.awaitState({
 					command: async () => await context.state.source.request('PUT', 'me/player/play', {
 						uris: [`spotify:track:${track.sourceId}`],
 					}),
-					stateCondition: state => ( //C track must be playing, near the start (within the time from when the call was made to now), and the same track
-						state.isPlaying === true && 
-						state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration && 
+					stateCondition: state => ( 
+						//C track must be playing, near the start (within the time from when the call was made to now), and the same track
+						state.isPlaying === true &&
+						//state.progress !== context.state.progress && //!
+						//state.progress !== 0 && //C track must be actually started
+						state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration &&
 						state.track.sourceId === context.state.track.sourceId
 					),
 					success: {},
@@ -1490,11 +1506,11 @@ sj.spotify = new sj.Source({
 						origin: 'sj.spotify.playback.actions.start()',
 					},
 				});
+				//TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
+				await sj.wait(1000);
 				return result;
 			},
 			async pause({state: {player}}) {
-				//TODO when the start command is called rapidly, this causes a pause call to butt up against the events resulting from the last start call, for some reason, spotify is resolving the pause command, but not actually pausing, same happens when starting then quickly pressing toggle/pause
-				console.log('pause');
 				return await player.awaitState({
 					command: async () => await player.pause(),
 					stateCondition: state => state.isPlaying === false,
@@ -1512,7 +1528,6 @@ sj.spotify = new sj.Source({
 				});
 			},
 			async resume({state: {player}}) {
-				console.log('resume');
 				return await player.awaitState({
 					command: async () => await player.resume(),
 					stateCondition: state => state.isPlaying === true,
@@ -1706,7 +1721,7 @@ sj.spotify = new sj.Source({
 				youtube.playback.isPlaying = false;
 			}
 
-			// nothing other than playing is given information here, however because the api functions are synchronous (except for the track) could we not just call them here too? even though the actions of play/pause and seeking are infrequent enough to warrant checking every time - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
+			// nothing other than playing is given information here, however because the api functions are synchronous (except for the track) could we not just call them here too? even though the commands of play/pause and seeking are infrequent enough to warrant checking every time - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
 
 			// progress
 			if (event.data === 1 || event.data === 2) {
@@ -1913,7 +1928,7 @@ sj.spotify.search = async function (term) {
 /* TODO
 	behavior: playing in spotify manually, then start up app, previewing a song updates the playback to the current already playing song not the clicked preview song
 
-	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the actions is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, action, or playback level?
+	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the commands is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, command, or playback level?
 */
 
 /*
