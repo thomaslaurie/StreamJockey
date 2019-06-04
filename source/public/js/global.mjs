@@ -2230,6 +2230,54 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 	}),
 });
 
+sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			async: false,
+
+			check(value, options) {
+				//G should return true or false for a strict match
+				return false;
+			},
+
+			castPart(value) {
+				//G should return the casted value or throw the castError
+				throw new sj.Error(this.castError);
+			},
+			castError: {
+				origin: 'sj.Rule2.castPart()',
+				reason: `cannot cast value, cast function hasn't been defined`,
+			},
+		},
+		afterInit() {
+			const castFailedError = {
+				origin: 'sj.Rule2.cast()',
+				reason: 'value was successfully cast, but it still did not pass the rule, this is likely a mistake within the rule',
+			};
+
+			if (async) {
+				this.cast = async function (value, options) {
+					//C cast value
+					const castedValue = await this.castPart(value);
+					//C ensure that castedValue passes
+					if (!await this.check(castedValue, options)) throw new sj.Error(castFailedError);
+					//C return it
+					return castedValue;
+				};
+			} else {
+				this.cast = function (value, options) {
+					//C cast value
+					const castedValue = this.castPart(value);
+					//C ensure that castedValue passes
+					if (!this.check(castedValue, options)) throw new sj.Error(castFailedError);
+					//C return it
+					return castedValue;
+				};
+			}
+		},
+	}),
+});
+
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
 sj.Success = sj.Base.makeClass('Success', sj.Base, {
 	constructorParts: parent => ({
@@ -2859,6 +2907,9 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 });
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
 	constructorParts: parent => ({
+		beforeInitialize(options) {
+			if (sj.isType(options.query, Array)) options.query = sj.any(query);
+		},
 		defaults: {
 			table: undefined,
 			query: undefined,

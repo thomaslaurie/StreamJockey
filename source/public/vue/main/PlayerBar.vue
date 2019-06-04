@@ -16,17 +16,17 @@
 			},
 			prevTrack() {
 				if (this.sj.isType(this.prevTrackSubscription, this.sj.Subscription)) {
-					return this.sj.one(this.$store.getters.getLiveData(this.prevTrackSubscription));
-				} else {
-					return null;
+					const tracks = this.$store.getters.getLiveData(this.prevTrackSubscription);
+					if (tracks.length === 1) return this.sj.one(tracks);
 				}
+				return null;
 			},
 			nextTrack() {
 				if (this.sj.isType(this.nextTrackSubscription, this.sj.Subscription)) {
-					return this.sj.one(this.$store.getters.getLiveData(this.nextTrackSubscription));
-				} else {
-					return null;
+					const tracks = this.$store.getters.getLiveData(this.nextTrackSubscription);
+					if (tracks.length === 1) return this.sj.one(tracks);
 				}
+				return null;
 			},
 
 			sliderProgress() {
@@ -36,135 +36,96 @@
 					return this.manualProgress; //C this makes the slider use its own value
 				}
 			},
-
-			//TODO temporary prev/next functionality
-			/*
-				I want to have the current and prev/next tracks be reactive/subscriptions inside the player module
-				furthermore, I think the subscription vuex part can be simplified (subscriptions moved onto this.sj.Entities) and itself moved into a module (with onCreate() stuff for the socketIO)
-			*/
 		},
 		watch: {
 			currentTrack: {
-				async handler(track) {
-					if (!this.sj.isType(track, this.sj.Track)) {
-						await this.$store.dispatch('unsubscribe', this.prevTrack);
-						await this.$store.dispatch('unsubscribe', this.nextTrack);
-
-						this.prevTrackSubscription = null;
-						this.nextTrackSubscription = null;
-
-						return;
-					}
-
-					//TODO these are bad catches, they group end-track errors (0 & last index) with actual errors
-
-					//---------- here
-
-					const prevTarget = {
-						query: {
-							playlistId: track.playlistId,
-							position: track.position-1, //TODO this can throw an error when the subscription is querying
-						},
-						options: {}, //TODO
-					};
-					//C add new, or change existing
-					if (!this.sj.isType(this.prevTrackSubscription, this.sj.Subscription)) {
-						this.prevTrackSubscription = await this.$store.dispatch('subscribe', {
-							Entity: this.sj.Track, 
-							...prevTarget
-						}).catch(rejected => {
-							console.warn('caught prev');
-							return null;
-						});
-					} else {
-						this.pevTrackSubscription = this.$store.dispatch('change', {
-							subscription: this.prevTrackSubscription, 
-							...prevTarget
-						}).catch(rejected => {
-							console.warn('caught prev');
-							return null;
-						});
-					}
-
-					const nextTarget = {
-						query: {
-							playlistId: track.playlistId,
-							position: track.position+1, //TODO this can throw an error when the subscription is querying
-						},
-						options: {}, //TODO
-					};
-					//C add new, or change existing
-					if (!this.sj.isType(this.nextTrackSubscription, this.sj.Subscription)) {
-						this.nextTrackSubscription = await this.$store.dispatch('subscribe', {
-							Entity: this.sj.Track, 
-							...nextTarget
-						}).catch(rejected => {
-							console.warn('caught next');
-							return null;
-						});
-					} else {
-						this.pevTrackSubscription = this.$store.dispatch('change', {
-							subscription: this.nextTrackSubscription, 
-							...nextTarget
-						}).catch(rejected => {
-							console.warn('caught next');
-							return null;
-						});
-					}
+				//C updates subscriptions for prev/next track when currentTrack changes
+				async handler(currentTrack) {
+					await this.updateOffsetTrack({
+						currentTrack,
+						offset: -1,
+						trackKey: 'prevTrack',
+						subscriptionKey: 'prevTrackSubscription',
+					});
+					await this.updateOffsetTrack({
+						currentTrack,
+						offset: 1,
+						trackKey: 'nextTrack',
+						subscriptionKey: 'nextTrackSubscription',
+					});
 				},
 				
 				deep: true,
 				immediate: true,
 			},
-
-			/* //OLD
-				currentTrackLocalMetadata: { //C localMetadata is used over the entire track object because the track object it contains a reference to its source which contains a reference to the player which has a clock that updates very fast, causing this function update very fast too
-					async handler(track, pTrack) {
-						//console.log(track === pTrack);
-						if (!this.sj.isType(track, Object))  {
-							this.prevTrack = null;
-							this.nextTrack = null;
-							return;
-						}
-
-						//console.log('called');
-						//console.log(this.sj.image(track));
-
-						
-
-						this.prevTrack = await this.sj.Track.get({
-							playlistId: track.playlistId,
-							position: track.position-1,
-						}).then(this.sj.content).then(this.sj.one).catch(rejected => {
-							//console.log('caught prev');
-							return null;
-						});
-
-						this.nextTrack = await this.sj.Track.get({
-							playlistId: track.playlistId,
-							position: track.position+1,
-						}).then(this.sj.content).then(this.sj.one).catch(rejected => {
-							//console.log('caught next');
-							return null;
-						});
-					},
-					deep: true,
-					immediate: true,
-				},
-			*/
 		},
 		
 		methods: {
 			async test() {
 				//console.log(this.sj.image(this.$store.getters['player/desiredPlayback'].track));
 
-				//console.log(this.sj.image(this.prevTrack));
-				//console.log(this.sj.image(this.nextTrack));
+				console.log('prevTrack', this.sj.image(this.prevTrack));
+				console.log('nextTrack', this.sj.image(this.nextTrack));
 			},
+
+
+			async updateOffsetTrack({
+				currentTrack,
+				offset, 
+				trackKey,
+				subscriptionKey,
+			}) {
+				//TODO subscribe/unsubscribe are being called many times for the prev/next track, when changning from a playing track to another
+
+				//C if currentTrack doesn't exist
+				if (!this.sj.isType(currentTrack, this.sj.Track)) {
+					//C wipe subscription
+					this[subscriptionKey] = await this.$store.dispatch('unsubscribe', {subscription: this[subscriptionKey]});
+					return;
+				}
+
+				//C calculate offsetPosition
+				const offsetPosition = currentTrack.position + offset;
+
+				//C if the subscription needs to be updated
+				if ( 
+					!this.sj.isType(this[trackKey], this.sj.Track) ||
+					this[trackKey].playlistId !== currentTrack.playlistId ||
+					this[trackKey].position !== offsetPosition
+				) {
+					//C if the offsetPosition (and possibly other values) pass validation
+					//! these just have to not throw validation errors on the server-side, they can still be bad queries that don't return anything, that case is checked by the track getters
+					//TODO replace with the same validation as this.sj.Track.position, after the new rule class is implemented, this should be the same rule that the query gets validated with on the server, because we don't want the subscription query to error
+					if (offsetPosition >= 0) {
+						//C add/change to a new subscription
+						this[subscriptionKey] = await this.$store.dispatch('change', {
+							subscription: this[subscriptionKey],
+
+							Entity: this.sj.Track,
+							query: {
+								playlistId: currentTrack.playlistId,
+								position: offsetPosition,
+							},
+						});
+					} else {
+						//C wipe the subscription (as something is out of bounds)
+						this[subscriptionKey] = await this.$store.dispatch('unsubscribe', {subscription: this[subscriptionKey]});
+					}
+				}
+			},
+
+
 			async toggle() {
 				await this.$store.dispatch('player/toggle');
 			},
+			async prev(track) {
+				await this.$store.dispatch('player/start', this.prevTrack);
+			},
+			async next(track) {
+				await this.$store.dispatch('player/start', this.nextTrack);
+			},
 
+			// SLIDER
 			async input(event) {
 				this.manualProgress = event.target.value;
 			},
@@ -182,12 +143,7 @@
 			},
 			
 
-			async prev(track) {
-				await this.$store.dispatch('player/start', this.prevTrack);
-			},
-			async next(track) {
-				await this.$store.dispatch('player/start', this.nextTrack);
-			},
+
 		},
 	}
 </script>
@@ -196,8 +152,8 @@
 <template>
     <div>
 		<button @click='test'>Test</button>
-		<button @click='prev' :class='{notAvailable: prevTrackSubscription === null}'>Prev</button>
-		<button @click='next' :class='{notAvailable: nextTrackSubscription === null}'>Next</button>
+		<button @click='prev' :class='{notAvailable: prevTrack === null}'>Prev</button>
+		<button @click='next' :class='{notAvailable: nextTrack === null}'>Next</button>
 		<button @click='toggle'>Toggle</button>
 		<!-- //L https://css-tricks.com/sliding-nightmare-understanding-range-input -->
 		<input 

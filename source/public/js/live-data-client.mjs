@@ -305,7 +305,6 @@ export default {
 			});
 		},
 		isSingle: state => subscription => {
-			//TODO not used, yet
 			const query = subscription.liveQuery.query;
 			return query.length === 1 && Object.keys(query[0]) === 1 && sj.isType(query[0].id, 'integer');
 		},
@@ -678,13 +677,19 @@ export default {
 			//C return the subscription
 			return subscription;
 		},
-		async unsubscribe(context, subscription) {
+		async unsubscribe(context, {
+			subscription,
+			strict = false, //C subscription must be an sj.Subscription and must be included in it's liveQuery.subscriptions
+		}) {
 			//C validate //! return early if not a subscription
-			if (!sj.isType(subscription, sj.Subscription)) return new sj.Warn({
-				origin: 'unsubscribe()', 
-				reason: 'subscription is not an sj.Subscription',
-				content: subscription,
-			});
+			if (!sj.isType(subscription, sj.Subscription)) {
+				if (strict) throw new sj.Error({
+					origin: 'unsubscribe()', 
+					reason: 'subscription is not an sj.Subscription',
+					content: subscription,
+				});
+				else return null;
+			}
 			
 			//C shorten
 			const liveQuery = subscription.liveQuery;
@@ -718,7 +723,10 @@ export default {
 			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
 
 			//C remove subscription from it's liveQuery
-			await context.dispatch('removeSubscription', subscription);
+			if (strict || liveQuery.subscriptions.includes(subscription)) await context.dispatch('removeSubscription', subscription);
+
+			//C return null for null subscription
+			return null;
 		},
 		async update(context, {
 			Entity, 
@@ -762,21 +770,33 @@ export default {
 			if (pack.removed)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onRemove'});
 		},
 		async change(context, {
+			// OLD
 			subscription,
+			strict = false,
+				
+			// NEW
+			Entity,
 			query,
 			options = {},
 		}) {
-			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+			//G subscribes to a new subscription, unsubscribes from an old one
+
+			//C strict check here throws or lets function execute //! doesn't early return
+			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
+			if (strict && !sj.isType(subscription, sj.Subscription)) throw new sj.Error({
 				origin: 'change()', 
 				reason: 'subscription is not an sj.Subscription',
 				content: subscription,
 			});
+			//C subscribe to new
 			const newSubscription = await context.dispatch('subscribe', {
-				Entity: subscription.liveQuery.table.Entity,
+				Entity, //! Entity cannot be derived from the old subscription as it may not be an sj.Subscription if the function call is not strict
 				query,
 				options,
 			});
-			context.dispatch('unsubscribe', subscription); //! don't await here, we want the swap to happen as quick as possible 
+			//C unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
+			context.dispatch('unsubscribe', {subscription, strict}); 
+			//C return new subscription
 			return newSubscription;
 		},
 
@@ -1037,10 +1057,13 @@ export default {
 
 			
 			//C module test
-			await context.dispatch('test');
+			//await context.dispatch('test');
 		},
 
 		async test(context) {
+			//C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
+			await sj.wait(1000);
+
 			const tests = [];
 
 			const uniqueName = () => `liveQuery${sj.makeKey(7)}`;
@@ -1192,7 +1215,7 @@ export default {
 				['xRemovedAfterRemove', onRemoveCount === iterations],
 			);
 			
-			await context.dispatch('unsubscribe', trackSubscription);
+			await context.dispatch('unsubscribe', {subscription: trackSubscription, strict: true});
 
 
 			// DELETE

@@ -169,7 +169,7 @@
 
 			// REFRESH
 			async refreshSubscription() {
-				if (this.sj.isType(this.subscription, this.sj.Subscription)) await this.$store.dispatch('unsubscribe', this.subscription);	
+				await this.$store.dispatch('unsubscribe', {subscription: this.subscription});	
 
 				return await this.$store.dispatch('subscribe', {
 					Entity: this.Entity, 

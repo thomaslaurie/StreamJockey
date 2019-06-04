@@ -84,7 +84,8 @@ export default {
 
 				let subscriber = socket.session.user;
 				if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
-				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, subscriber).catch(sj.andResolve);
+				//const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, subscriber).catch(sj.andResolve);
+				const result = true;
 				callback(result);
 			});
 

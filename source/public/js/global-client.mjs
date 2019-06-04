@@ -211,6 +211,8 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 			//C change startingTrackSubscription to subscription of the new track
 			context.commit('setStartingTrackSubscription', await context.dispatch('change', {
 				subscription: context.state.startingTrackSubscription,
+
+				Entity: sj.Track,
 				query: {id: this.track.id},
 				options: {}, //TODO //?
 			}, {root: true})); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
@@ -221,8 +223,6 @@ sj.Start = sj.Base.makeClass('Start', sj.Action, {
 			//C transfer subscription from starting to current
 			context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
 			context.commit('setStartingTrackSubscription', null);
-
-			console.log('reached');
 
 			//C change source
 			context.commit('setSource', this.source);
@@ -572,25 +572,25 @@ sj.Playback.module = new sj.Playback({
 				track,
 			}));
 		},
-		async pause({dispatch, getters: {desiredPlayback: {source}}}) { 
+		async pause({dispatch, getters: {desiredSource: source}}) {
 			return await dispatch('pushAction', new sj.Toggle({
 				source, //! other non-start basic playback functions just use the current desiredPlayback source
 				isPlaying: false,
 			}));
 		},
-		async resume({dispatch, getters: {desiredPlayback: {source}}}) {
+		async resume({dispatch, getters: {desiredSource: source}}) {
 			return await dispatch('pushAction', new sj.Toggle({
 				source,
 				isPlaying: true,
 			}));
 		},
-		async seek({dispatch, getters: {desiredPlayback: {source}}}, progress) {
+		async seek({dispatch, getters: {desiredSource: source}}, progress) {
 			return await dispatch('pushAction', new sj.Seek({
 				source,
 				progress,
 			}));
 		},
-		async volume({dispatch, getters: {desiredPlayback: {source}}}, volume) {
+		async volume({dispatch, getters: {desiredSource: source}}, volume) {
 			//TODO volume should change volume on all sources
 			return await dispatch('pushAction', new sj.Volume({
 				source,
@@ -598,7 +598,7 @@ sj.Playback.module = new sj.Playback({
 			}));
 		},
 		// HIGHER LEVEL
-		async toggle({dispatch, getters: {desiredPlayback: {source, isPlaying}}}) {
+		async toggle({dispatch, getters: {desiredSource: source, desiredIsPlaying: isPlaying}}) {
 			return await dispatch('pushAction', new sj.Toggle({
 				source,
 				isPlaying: !isPlaying,
@@ -676,14 +676,18 @@ sj.Playback.module = new sj.Playback({
 			else return state[state.source.name][key];
 		},
 		
-		actualTrack:		(state, getters) => {
-			const sourceOrBaseTrack = getters.sourceOrBase('track');			
+		actualSource:		(state, getters) => {
+			return state.source;
+		},
+		actualTrack:		(state, getters, rootState, rootGetters) => {
+			const sourceOrBaseTrack = getters.sourceOrBase('track');
 			if (sj.isType(sourceOrBaseTrack, sj.Track)) {
 				//C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-				if (sj.isType(state.currentTrack, sj.Track) && sourceOrBaseTrack.sourceId === state.currentTrack.sourceId) return state.currentTrack;
-				if (sj.isType(state.startingTrack, sj.Track) && sourceOrBaseTrack.sourceId === state.staringTrack.sourceId) return state.startingTrack;
+				if (sj.isType(getters.currentTrack, sj.Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+				if (sj.isType(getters.startingTrack, sj.Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
 			}
-			else return sourceOrBaseTrack;
+			
+			return sourceOrBaseTrack;
 		},
 		actualIsPlaying:	(state, getters) => getters.sourceOrBase('isPlaying'),
 		actualProgress:		(state, getters) => {
@@ -707,6 +711,7 @@ sj.Playback.module = new sj.Playback({
 
 		actualPlayback:		(state, getters) => ({
 			//! this will update as fast as progress does
+			source:		getters.actualSource,
 			track:		getters.actualTrack,
 			isPlaying:	getters.actualIsPlaying,
 			progress:	getters.actualProgress,
@@ -718,24 +723,24 @@ sj.Playback.module = new sj.Playback({
 		flattenPlayback: (state, getters) => key => {
 			//C value starts as the actualValue
 			let value = getters[`actual${sj.capFirst(key)}`];
-
 			//C then if defined, sentAction
 			if (sj.isType(state.sentAction, Object) && state.sentAction[key] !== undefined) value = state.sentAction[key];
-
 			//C then if defined, each queuedAction
-			for (queuedAction of state.actionQueue) {
+			for (const queuedAction of state.actionQueue) {
 				if (queuedAction[key] !== undefined) value = queuedAction[key];
 			}
 
 			return value;
 		},
 
+		desiredSource: 		(state, getters) => getters.flattenPlayback('source'),
 		desiredTrack:		(state, getters) => getters.flattenPlayback('track'),
 		desiredIsPlaying:	(state, getters) => getters.flattenPlayback('isPlaying'),
 		desiredProgress:	(state, getters) => getters.flattenPlayback('progress'),
 		desiredVolume:		(state, getters) => getters.flattenPlayback('volume'),
 		
 		desiredPlayback: (state, getters) => ({
+			source:		getters.actualSource,
 			track:		getters.desiredTrack,
 			isPlaying:	getters.desiredIsPlaying,
 			progress:	getters.desiredProgress,
@@ -745,11 +750,11 @@ sj.Playback.module = new sj.Playback({
 
 		// LOCAL TRACKS
 		currentTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.currentTrackSubscription, sj.Subscription)) return rootGetters.getLiveData(state.currentTrackSubscription);
+			if (sj.isType(state.currentTrackSubscription, sj.Subscription)) return sj.one(rootGetters.getLiveData(state.currentTrackSubscription));
 			else return null;
 		},
-		startingTrack:		(state, getters) => {
-			if (sj.isType(state.startingTrackSubscription, sj.Subscription)) return rootGetters.getLiveData(state.startingTrackSubscription);
+		startingTrack:		(state, getters, rootState, rootGetters) => {
+			if (sj.isType(state.startingTrackSubscription, sj.Subscription)) return sj.one(rootGetters.getLiveData(state.startingTrackSubscription));
 			else return null;
 		},
 	},
@@ -972,7 +977,13 @@ sj.spotify = new sj.Source({
 								timestamp: state.timestamp, //! this isn't in the documentation, but the property exists
 							};
 						},
-						player.awaitState = async function ({command = ()=>{}, stateCondition = ()=>false, success = {}, error = {}, timeoutError = {}}) {
+						player.awaitState = async function ({
+							command = () => {}, 
+							stateCondition = () => false, 
+							success = {}, 
+							error = {}, 
+							timeoutError = {}
+						}) {
 							return new Promise(async (resolve, reject) => {
 								let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
 
@@ -1056,6 +1067,7 @@ sj.spotify = new sj.Source({
 							});
 
 							//C wait for device to transfer
+							//TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
 							await sj.recursiveAsyncTime(sj.Playback.requestTimeout*2, result => {
 								//L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
 								//C this is fine, it just means that it's not ready, so just catch anything.
@@ -1083,15 +1095,11 @@ sj.spotify = new sj.Source({
 								//C starting delay
 							}, {delay: 100});
 
-							console.log(sj.image(context.state));
+							//C check playback state //? this was commented out earlier and after pause, was this causing issues?
+							await context.dispatch('checkPlayback');
 
 							//C ensure that playback is not playing
 							await context.dispatch('pause');
-
-							//C check playback state
-							
-							//await context.dispatch('checkPlayback');
-							console.log('--------');
 
 							resolve(new sj.Success({
 								origin: 'spotify.loadPlayer()',
@@ -1421,7 +1429,7 @@ sj.spotify = new sj.Source({
 				const volume = await context.state.player.getVolume(); 
 				const newState = {...formattedState, volume};
 
-				//OLD newState.track = await context.dispatch('preserveLocalMetadata', newState.track);
+				console.log(formattedState.isPlaying);
 
 				context.commit('setState', newState);
 				return new sj.Success({
@@ -1460,12 +1468,8 @@ sj.spotify = new sj.Source({
 			//G must handle redundant requests (eg. pause when already paused)
 			//G must only resolve when the playback state is actually applied (not just on command acknowledgement)
 			async start(context, track) {
-				//G start must preserve local metadata (id, playlistId, position, ...)
-
+				console.log('start');
 				const timeBeforeCall = Date.now();
-
-				//OLD context.commit('setStartingTrack', track);
-
 				const result = await context.state.player.awaitState({
 					command: async () => await context.state.source.request('PUT', 'me/player/play', {
 						uris: [`spotify:track:${track.sourceId}`],
@@ -1486,25 +1490,11 @@ sj.spotify = new sj.Source({
 						origin: 'sj.spotify.playback.actions.start()',
 					},
 				});
-
-				
-				/* //OLD
-					//C preserve local metadata
-					context.commit('setState', {
-						track: new sj.Track({
-							...context.state.track, 
-							id: track.id,
-							playlistId: track.playlistId,
-							position: track.position,
-						}),
-					});
-				*/
-
-				//OLD context.commit('removeStartingTrack');
-
 				return result;
 			},
 			async pause({state: {player}}) {
+				//TODO when the start command is called rapidly, this causes a pause call to butt up against the events resulting from the last start call, for some reason, spotify is resolving the pause command, but not actually pausing, same happens when starting then quickly pressing toggle/pause
+				console.log('pause');
 				return await player.awaitState({
 					command: async () => await player.pause(),
 					stateCondition: state => state.isPlaying === false,
@@ -1522,6 +1512,7 @@ sj.spotify = new sj.Source({
 				});
 			},
 			async resume({state: {player}}) {
+				console.log('resume');
 				return await player.awaitState({
 					command: async () => await player.resume(),
 					stateCondition: state => state.isPlaying === true,
