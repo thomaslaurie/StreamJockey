@@ -29,6 +29,13 @@
 		//C arrow functions can have an implicit return, but for object literals, they need to be wrapped in parenthesis to be distinguished from the function block 
 		//L https://www.sitepoint.com/es6-arrow-functions-new-fat-concise-syntax-javascript/
 
+		//L classes: https://medium.com/@robertgrosse/how-es6-classes-really-work-and-how-to-build-your-own-fd6085eb326a
+
+		//L prototypes explained: https://hackernoon.com/understand-nodejs-javascript-object-inheritance-proto-prototype-class-9bd951700b29
+		'The prototype is a property on a constructor function that sets what will become the __proto__ property on the constructed object.'
+
+		//L beware the comma operator in if-statements: https://stackoverflow.com/questions/5347995/why-does-javascript-accept-commas-in-if-statements
+
 	//G STYLE GUIDES
 		//R use null in places where there should be an manually placed empty value - distinguishes between unintentional empty values: undefined, and intentional empty values: null
 		//L "To distinguish between the two, you may want to think of undefined as representing an unexpected absence of value and null as representing an expected absence of value."
@@ -74,6 +81,8 @@
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 let sj = {};
+
+sj.appName = 'StreamJockey';
 
 import fClone from './fclone.mjs'; //L https://github.com/soyuka/fclone
 if (typeof fetch !== 'undefined') {
@@ -155,9 +164,18 @@ sj.resolveActions = {
 
 // TESTING
 sj.test = async function(tests, origin) {
+	let failCount = 0;
 	tests.forEach((test, i) => {
-		if (!test[1]) console.error(`${origin} - test failed: ${test[0]}`);
+		if (!test[1]) {
+			console.error(`${origin} - test failed: ${test[0]}`);
+			failCount++;
+		}
 	});
+
+	if (failCount === 0) {
+		console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
+		return true;
+	} else return false;
 };
 sj.performance = function (iterations, fs) {
 	fs.forEach((f, index) => {
@@ -207,6 +225,10 @@ sj.trace = function () {
 		return stackTrace3;
 	}
 };
+sj.image = function (value) {
+	if (typeof value === null || typeof value !== 'object') return value;
+	return JSON.parse(JSON.stringify(fClone(value)));
+};
 
 // FORMAT
 sj.msFormat = function (ms) {
@@ -225,6 +247,12 @@ sj.stringReplaceAll = function(input, search, replace) {
 };
 sj.capFirst = function(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
+};
+sj.clamp = function (input, min, max) {
+	if (min > max) throw 'sj.clamp() min argument cannot be greater than max argument';
+	if (input < min) return min;
+	else if (max < input) return max;
+	else return input;
 };
 
 // HTTP
@@ -331,6 +359,14 @@ sj.shake.test = function () {
 	sj.test([
 		['simple', true === sj.deepMatch(sj.shake([{a: 'a', b: 'b'}, {a: 'a', c: 'c'}], ['a']), [{a: 'a'}, {a: 'a'}])],
 	], 'sj.shake.test()');
+};
+sj.assignDefined = function (target, ...args) {
+	args.forEach(arg => {
+		Object.keys(arg).forEach(key => {
+			if (arg[key] !== undefined) target[key] = arg[key];
+		});
+	});
+	return target;
 };
 
 // SORT
@@ -543,9 +579,9 @@ sj.isType = function (input, type) {
 		let tempInput = input;
 		let tempType = type;
 	
-		if ((input instanceof sj.Base || (typeof input.objectType === 'string' && (() => { 
-			//C input or input.objectType is an instance of a constructible
-			let Target = sj[input.objectType.replace('sj.', '')];
+		if ((input instanceof sj.Base || (typeof input.constructorName === 'string' && (() => { 
+			//C input or input.constructorName is an instance of a constructible
+			let Target = sj[input.constructorName];
 			if (typeof Target === 'function') {
 				tempInput = new Target({log: false});
 				return true;
@@ -553,7 +589,7 @@ sj.isType = function (input, type) {
 			return false;
 		})())) && (typeof type === 'function' || (typeof type === 'string' && (() => {
 			//C and type is constructible
-			let Target = sj[type.replace('sj.', '')];
+			let Target = sj[type];
 			if (typeof Target === 'function') {
 				tempType = Target;
 				return true;
@@ -603,21 +639,22 @@ sj.isEmpty = function (input) {
         (sj.isType(input, 'array') && input.length > 0)
 	);
 };
+//TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
 sj.deepMatch = function (a, b, {
 	deep = true, 
 	depth = 10, 
 	matchIfTooDeep = false, 
 	matchIfSubset = false, //C matches objects and arrays if a is a subset of b
-	matchOrder = true
+	matchOrder = true,
+	logDifference = false, //C logs first difference found if not matching
 } = {
 	deep: true, 
 	depth: 10, 
 	matchIfTooDeep: false, 
 	matchIfSubset: false, 
-	matchOrder: true
+	matchOrder: true,
+	logDifference: false,
 }) {
-	//C comparison function for 
-
 	if (depth <= 0) return matchIfTooDeep;
 
 	if (a === b) return true; // primitives & references
@@ -631,11 +668,17 @@ sj.deepMatch = function (a, b, {
 		if (sj.isType(a, Object) && sj.isType(b, Object)) { // objects
 			let matches = true;
 			Object.keys(a).forEach(key => { //C match all keys of a to the same keys in b
-				if (!matchDeeper(a[key], b[key])) matches = false;
+				if (!matchDeeper(a[key], b[key])) {
+					matches = false;
+					if (logDifference) console.log(`deepMatch property difference - ${key}: ${a[key]}, ${b[key]}`);
+				}
 			});
 			if (!matchIfSubset) {
 				Object.keys(b).forEach(key => { //C match all keys of b to the same keys in a //TODO optimize here
-					if (!matchDeeper(a[key], b[key])) matches = false;
+					if (!matchDeeper(a[key], b[key])) {
+						matches = false;
+						if (logDifference) console.log(`deepMatch property difference - ${key}: ${a[key]}, ${b[key]}`);
+					}
 				});
 			}
 			return matches;
@@ -644,17 +687,29 @@ sj.deepMatch = function (a, b, {
 			let matches = true;
 			a.forEach((inA, i) => {
 				if (matchOrder) {
-					if (!matchDeeper(a[i], b[i])) matches = false;
+					if (!matchDeeper(a[i], b[i])) {
+						matches = false;
+						if (logDifference) console.log(`deepMatch index difference - ${i}: ${a[i]}, ${b[i]}`);
+					}
 				} else { //C match any inB to current inA
-					if (!b.some(inB => matchDeeper(inA, inB))) matches = false;
+					if (!b.some(inB => matchDeeper(inA, inB))) {
+						matches = false;
+						if (logDifference) console.log(`deepMatch extra item in b - ${inB}`);
+					}
 				}
 			});
 			if (!matchIfSubset) {
 				b.forEach((inB, i) => {
 					if (matchOrder) {
-						if (!matchDeeper(a[i], b[i])) matches = false;
+						if (!matchDeeper(a[i], b[i])) {
+							matches = false;
+							if (logDifference) console.log(`deepMatch index difference - ${i}: ${a[i]}, ${b[i]}`);
+						}
 					} else {
-						if (!a.some(inA => matchDeeper(inA, inB))) matches = false;
+						if (!a.some(inA => matchDeeper(inA, inB))) {
+							matches = false;
+							if (logDifference) console.log(`deepMatch extra item in a - ${inA}`);
+						}
 					}
 				});
 			}
@@ -792,7 +847,7 @@ sj.catchUnexpected = function (input) {
 			//C replace trace with actual trace (which has clickable URIs)
 			error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
 		} else if (sj.isType(input, sj.Base)) {
-			error.reason = `unexpected ${input.objectType}`;
+			error.reason = `unexpected ${input.constructorName}`;
 		} else {
 			error.reason = 'unexpected object';
 		}
@@ -837,9 +892,6 @@ sj.asyncForEach = async function (list, callback) {
 	//C list is shallow copied because list could also be an array-like object
 	//L https://stackoverflow.com/questions/31084619/map-a-javascript-es6-map
 	let tempList = [...list];
-	if (!Array.isArray(list)) {
-		console.log('EHRE', list, tempList);
-	}
 	let results = await Promise.all(tempList.map(async (item, index, self) => callback(item, index, self).then(resolved => {
 		return {
 			resolved: true,
@@ -883,7 +935,7 @@ sj.one = function (a) {
 		return a[0];
 	} else if (a.length === 0) {
 		//! this does not return undefined because we are 'expecting' one value (//TODO though this may be changed later to return undefined)
-		return new sj.Error({
+		throw new sj.Error({
 			log: true,
 			origin: 'sj.one()',
 			code: 404,
@@ -900,20 +952,6 @@ sj.any = function (o) {
 sj.content = function (resolved) {
 	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
 	return resolved.content;
-};
-sj.tableToEntity = function (table) { 
-	//TODO things should instead just be sent by their sj.Entity class (http methods don't send table), actually no, because we dont want to send the classes between client and server because they're different, maybe just send the type (user, playlist, track), separately (rather than table name)
-	//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-	//R any metadata (table) should be sent separately (or implicitly) from the query
-	//TODO might be a better way to do this
-	if (table === 'users') return sj.User;
-	else if (table === 'playlists') return sj.Playlist;
-	else if (table === 'tracks') return sj.Track;
-	else throw new sj.Error({
-		origin: 'sj.tableToEntity()',
-		reason: `table is not recognized: ${table}`,
-		content: table,
-	});
 };
 
 // RECURSION
@@ -1006,9 +1044,9 @@ sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 
 // HTTP
 sj.rebuild = function (input, strict) {
-	//C turns a bare object back into its custom class if it has a valid objectType property
+	//C turns a bare object back into its custom class if it has a valid constructorName property
 
-	if (sj.isType(input, 'string')) { //C parse if string
+	if (sj.isType(input, String)) { //C parse if string
 		try {
 			input = JSON.parse(input);
 		} catch (e) {
@@ -1021,7 +1059,7 @@ sj.rebuild = function (input, strict) {
 			});
 		}
 	}
-	if (!sj.isType(input, 'object')) { //C throw if not object
+	if (!sj.isType(input, Object)) { //C throw if not object
 		return new sj.Error({
 			log: true,
 			origin: 'sj.rebuild()',
@@ -1034,7 +1072,7 @@ sj.rebuild = function (input, strict) {
 
 	let rebuilt = input;
 	if (sj.isType(input, sj.Base)) { //C rebuild if possible
-		rebuilt = new sj[input.objectType.replace('sj.', '')](input);
+		rebuilt = new sj[input.constructorName](input);
 	} else if (strict) { //C throw if not possible and strict
 		return new sj.Error({
 			log: true,
@@ -1123,14 +1161,10 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 		return item;
 	}
 	if (sj.isType(parsedResult, Array)) {
-		parsedResult = await sj.asyncForEach(parsedResult, item => {
-			return build(item);
-		});
+		return await sj.asyncForEach(parsedResult, item => build(item));
 	} else {
 		return build(parsedResult);
 	}
-
-
 };
 
 // LIVE DATA
@@ -1230,117 +1264,425 @@ sj.checkKey = async function (list, key) {
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
 
 
+/* //R Thought Process
+	//R Initially only static methods and variables I decided to define outside the class because static variables requires the use of a getter, which felt hacky.
+	//R But when I needed to augment the constructor of a class I ran into problems, so I decided to define classes like this - with an anonymous function being called on a minimal class. It makes the location of instance methods, instance variables, static methods, and static variables more clear. It also makes augmenting (not extending) a class easier (specifically the defaults), this is important for divergent client and server classes.
+	//R finally I found that I was repeating some parts of this anonymous function like const parent = Object.getPrototypeOf(this); and return this;, so I decided to make a factory function for all descendants of sj.Base, and a similar augmentation function, this was also done partly so that defaults, instanceMethods, and statics can be laid out with similar hierarchy.
+*/
+//C manually create sj.Base
 sj.Base = class Base {
-	constructor(options = {}) {
-		this.objectType = 'sj.Base'; //! wanted to use this.constructor.name here to dynamically get the class name, however it cannot be inferred specifically when declared like: object.property = class, it would work if the class had its own name, but this is an issue because i'm using reserved names and it breaks functions inside the class, defining the classes in a separate object wont work either because they then can't extend each other
-
-		sj.Base.init(this, options, {
-			// debug
-			log: false,
-
-			// info
-			code: 200,
-			type: 'Ok',
-			origin: '',
-			trace: sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
-
-			// content
-			message: '',
-			reason: '',
-			content: {},
-		});
-
-		this.onCreate();
-	}
-
-	//G instance methods go outside the constructor, this is so that new functions aren't created for each instance, this is equivalent to assigning methods on the Class.prototype
-	//G static methods can be also defined here, but static variables must be defined as getters, so its probably best to assign all statics outside the class using call(Class)
-
-	announce() {
-		//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-		if (sj.isType(this, sj.Error)) {
-			console.error(`✗ ▮ ${this.objectType} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-		} else if (sj.isType(this, sj.Warn)) {
-			console.warn(`W ▮ ${this.objectType} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
-		} else {
-			console.log(`✓ ▮ ${this.objectType} ${this.origin} ${this.message}\n${sj.trace()}`);
-		}
-	}
-	onCreate() {
-		//G include 'log: true' in options if instance should be announced on creation, call instance.announce() to announce manually
-		//R inverting the behavior is wrong and requires more lines, its easier to log actively or change behavior here if everything needs to be logged
-		if (this.log === true && this.isParent === false) {
-			this.announce();
-		}
+	constructor(options) {
+		//! defaults are retrieved in the function via the static this.constructor.defaults property
+		this.constructor.construct.call(this, options); 
 	}
 };
-(function () { // STATIC
-	this.init = function (that, options = {}, defaults = {}) {
-		//C give that a boolean cast of options.isParent, then delete from options
-		that.isParent = (options.isParent == true);
-		delete options.isParent;
+(function () {
+	//G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
+	//TODO consider deep defaults
+	this.makeClass = function (name, parent, {
+		//G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
+		//! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
+		constructorParts = parent => ({}),
+		//G instance methods
+		prototypeProperties = parent => ({}),
+		//G static properties & methods
+		staticProperties = parent => ({}),
+	}) {
+		//C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
+	
 
-		Object.keys(defaults).forEach(key => {
-			//C if default is overwritten, give that the option, otherwise the default
-			//! ignores existing props with the value undefined
-			that[key] = typeof options[key] === 'undefined' ? defaults[key] : options[key];
-		});
+		// VALIDATE
+		if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string';
+		//! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
+		if (!(parent === sj.Base || parent.prototype instanceof sj.Base)) throw 'sj.Base.makeClass() - cannot make class, parent is not of type sj.Base';
+	
+		//C dynamically create class using inferred function names
+		//L https://stackoverflow.com/questions/33605775/es6-dynamic-class-names/33611096\
+		//G sj.Base descendants pass new static constructorParts to extend from their parent's constructorParts rather than having an extended constructor
+		//C the allows sj.Base.construct() to only be called once, which simplifies their 'on create' functionality
+		const MadeClass = {[name]: class extends parent {
+			constructor(options) {
+				super(options);
+			}
+		}}[name];
 
-		//G if a class wants to allow any option, call init to assign defaults, then Object.assign(this, options) outside of init
+		// ASSIGN
+		//C use .call to set 'this' as MadeClass, pass parent for ease of use and to avoid repeating Object.getPrototypeOf(this)
+		//C undefined properties won't be passed, and parent's will be used when looked up
+		//! ensure each part is only called once, as they may also have alternative assignment methods (such as on create functionality and getter/setter assignment)
 
-		/* //OLD
-			//TODO figure out how I made this work
-			//? not quite sure what this does, doesn't this just set this to be false all the time?
-			//! all classes should overwrite a truthful isParent property and should only have one when directly assigned through options through super(sj.Base.giveParent(options));
-			//C set this.isParent to the passed isParent (if true) or false
-			//obj.isParent = typeof options.isParent !== 'undefined' ? options.isParent : false;
-			//C isParent usually isn't listed in defaults so this doesn't get trasfered?
-			//options.isParent = false; //? why is this part needed if it isn't initialized?
+		//! staticProperties is assigned before constructorParts so that constructorParts will take priority if there are collisions
+		Object.assign(MadeClass, staticProperties.call(MadeClass, parent));
 
-			//? deep assign (this seems like a regular assign), //! breaks circular references (though these should never need to be passed)
-			// Object.keys(defaults).forEach(key => { 
-			// 	//L enumerable properties (from Object.keys https://hashnode.com/post/what-are-enumerable-properties-in-javascript-ciljnbtqa000exx53n5nbkykx
-				
-			// 	//C if options property is not undefined (short circuit evaluation incase options itself is undefined)
-			// 	if (typeof options !== 'undefined' && typeof options[key] !== 'undefined') {
-			// 		//C this property = options property
-			// 		obj[key] = options[key];
-			// 	} else {
-			// 		//C this property = default property
-			// 		obj[key] = defaults[key];
-			// 	}
-
-			// 	//TODO create a warning for when options contains extra properties not passed to the object
-
-			// 	//OLD obj[key] = typeof options !== 'undefined' && typeof options[key] !== 'undefined' ? options[key] : defaults[key];
-			// });
+		/* //R thoughts on defaults
+			//R my first thought was to have default values that are undefined to be undeclared as well, so that properties the properties won't show up and will be more useful when overwriting another
+			//R I wanted to mimic this behavior with instance options - however, this would be inconsistent when using the spread operator, as it functions like Object.assign
+			//R however I'm now realizing that this would be more consistent and clear
+			//R I thought about doing three different 'defaults' objects, invisible (wont be declared if undefined, ie default undefined), normal, and 'fixed'(?), ones that cannot be changed by options
+			//R but this doesn't seem right, for invisible: when making a new object I should really stay away from using the literal undefined value, and any spread operators used will still function as expected, for fixed, these can just be defaults as they are, because I really shouldn't be overwriting them with options anyways, and they can always be changed later anyways
 		*/
+		Object.assign(MadeClass, {
+			//C constructorParts defaults
+			//! these require empty defaults because of how construct() works - they are composed together rather than inheriting from the parent
+			beforeInitialize() {},
+			afterInitialize() {},
+			defaults: {},
+			//! allowUnknown DOES inherit from the parent and should not have a default to avoid overwriting the parent's true value with an undefined value defaulted to false
+		}, constructorParts.call(MadeClass, parent));
+
+		//C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
+		Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent));
+	
+
+		return MadeClass;
 	};
-	this.giveParent = function (options) {
-		return {
-			...options,
-			isParent: true,
+	this.augmentClass = function ({
+		constructorParts = parent => ({}),
+		prototypeProperties = parent => ({}),
+		staticProperties = parent => ({}),
+	}) {
+		//C add or overwrite existing properties with new ones
+		//G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
+		//! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
+		//! make sure each part is ony called once (see makeClass)
+
+		const parent = Object.getPrototypeOf(this);
+		Object.assign(this, staticProperties.call(this, parent));
+
+		//C don't overwrite defaults, assign them too
+		const constructorPartsResult = constructorParts.call(this, parent);
+		if (sj.isType(constructorPartsResult, Object)) { 
+			//! Object.assign can handle undefined, but destructuring can't which is why constructorPartsResult needs to be checked
+			const {defaults = {}, ...rest} = constructorPartsResult;
+			Object.assign(this, rest);
+			Object.assign(this.defaults, defaults);
+		}
+
+		Object.assign(this.prototype, prototypeProperties.call(this.prototype, parent.prototype));
+	};
+
+	this.defaults = {
+		// debug
+		log: false,
+
+		// info
+		code: 200,
+		type: 'Ok',
+		origin: '',
+		trace: sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
+
+		// content
+		message: '',
+		reason: '',
+		content: {},
+	};
+	this.allowUnknown = false;
+	this.beforeInitialize = function (accessory) {
+		//C rebuild content if is of type sj.Base
+		//!//G all classes are responsible for rebuilding their other properties if they are also sj.Base class instances
+		if (sj.isType(accessory.options.content, sj.Base)) {
+			accessory.options.content = sj.rebuild(accessory.options.content);
+		} else if (sj.isType(accessory.options.content, Array)) {
+			accessory.options.content.forEach((item, i, list) => {
+				if (sj.isType(item, sj.Base)) list[i] = sj.rebuild(item);
+			});
 		}
 	};
+	this.afterInitialize = function (accessory) {
+	};
+
+	this.prototype.announce = function () {
+		//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
+		if (sj.isType(this, sj.Error)) {
+			console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
+		} else if (sj.isType(this, sj.Warn)) {
+			console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
+		} else {
+			console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${sj.trace()}`);
+		}
+	};
+
+	this.construct = function (options = {}) {
+		const accessory = {options};
+
+		//C get prototype chain
+		const chain = [this.constructor];
+		//C push the prototype of the last item in the chain until sj.Base is reached
+		while(chain[chain.length-1] !== sj.Base) chain.push(Object.getPrototypeOf(chain[chain.length-1]));
+		
+		//C call ancestor's and own beforeInitialize() in descending order
+		for (let i = chain.length-1; i >= 0; i--) chain[i].beforeInitialize.call(this, accessory);
+
+		//C store constructor.name on this instance as constructorName so that it can be stringified and rebuilt
+		this.constructorName = this.constructor.name; 
+
+		//C assign the ancestor's and own defaults in descending order
+		const extendedDefaults = {};
+		for (let i = chain.length-1; i >= 0; i--) Object.assign(extendedDefaults, chain[i].defaults);
+
+		const composed = {};
+		//C assign all properties from options
+		if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); 
+		//C or only assign properties declared in defaults
+		else Object.assign(composed, extendedDefaults, sj.shake(options, Object.keys(extendedDefaults))); 
+		//C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
+		sj.assignDefined(this, composed); //? is this preferable to simply using sj.assignDefined in places where it's needed?
+
+		//C call ancestor's and own afterInitialize in order
+		for (let i = chain.length-1; i >= 0; i--) chain[i].afterInitialize.call(this, accessory);
+
+		if (this.log) this.announce();
+	};
 }).call(sj.Base);
+//TODO - consider changing all the constructorParts into functions (like static/prototypeProperties) that return an object to be assigned, (I think this may help with the defaults reference issue), but that also still can execute code. Maybe when this is done, then these parts can be brought up to the top level because they will now have their own closure context to process in
 
-// rule
-sj.Rule = class Rule extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
+sj.Base.test = async function () {
+	let calledConstructorParts 		= false;
+	let calledBeforeInitialize 		= false;
+	let calledAfterInitialize 		= false;
+	let calledPrototypeProperties 	= false;
+	let calledStaticProperties 		= false;
+	let calledExtraFunction			= false;
 
-		this.objectType = 'sj.Rule';
 
-		sj.Base.init(this, options, {
-			// new properties
+	const A = sj.Base.makeClass('A', sj.Base, {
+		//C testing options functions and properties
+		constructorParts(parent) {
+			calledConstructorParts = true;
+			return {
+				beforeInitialize() {
+					calledBeforeInitialize = true;
+					this.beforeFoo = Symbol();
+				},
+				defaults: {
+					defaultFoo: Symbol(),
+					passedFoo: 'passed as not default',
+
+					undefinedFoo: undefined,
+					undefinedOptionFoo: 'passed as undefined',
+					// undeclaredFoo is not declared
+				},
+				afterInitialize() {
+					calledAfterInitialize = true;
+					this.afterFoo = Symbol();
+				},
+			};
+		},
+		prototypeProperties(parent) {
+			calledPrototypeProperties = true;
+			return {
+				prototypeFoo: Symbol(),
+			}
+		},
+		staticProperties(parent) {
+			calledStaticProperties = true;
+			return {
+				staticFoo: Symbol(),
+			};
+		},
+
+		extraFunction() {
+			calledExtraFunction = true;
+		},
+	}); 
+	const a = new A({passedFoo: Symbol(), undefinedOptionFoo: undefined});
+	const a2 = new A({passedFoo: Symbol()});
+
+	const AA = sj.Base.makeClass('AA', A, {
+		//C testing property inheritance and extension
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeFoo2 = Symbol();
+			},
+			defaults: {
+				defaultFoo2: Symbol(),
+			},
+			afterInitialize() {
+				this.afterFoo2 = Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeFoo2: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticFoo2: Symbol(),
+		}),
+	}); 
+	const aa = new AA();
+	
+	const AAA = sj.Base.makeClass('AAA', AA, {}); 
+	const aaa = new AAA();
+
+	const AAB = sj.Base.makeClass('AAB', AA, {}); 
+	const aab = new AAB();
+
+	const AB = sj.Base.makeClass('AB', A, {
+		//C testing child overwrites
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeFoo = Symbol();
+			},
+			defaults: {
+				defaultFoo: Symbol(),
+			},
+			afterInitialize() {
+				this.afterFoo = Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeFoo: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticFoo: Symbol(),
+		}),
+	}); 
+	const ab = new AB();
+		
+	const B = sj.Base.makeClass('B', sj.Base, {}); 
+	const b = new B();
+
+	const BA = sj.Base.makeClass('BA', B, {}); 
+	const ba = new BA();
+
+	const BB = sj.Base.makeClass('BB', B, {}); 
+	const bb = new BB();
+
+	const C = sj.Base.makeClass('C', sj.Base, {
+		//C testing augmented properties
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeBar =  Symbol();
+			},
+			defaults: {
+				defaultBar: Symbol(),
+			},
+			afterInitialize() {
+				this.afterBar =  Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeBar: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticBar: Symbol(),
+		}),
+	});
+	const c = new C();
+
+	C.augmentClass({
+		constructorParts: parent => ({
+			beforeInitialize() {
+				this.beforeBar =  Symbol();
+			},
+			defaults: {
+				defaultBar: Symbol(),
+			},
+			afterInitialize() {
+				this.afterBar =  Symbol();
+			},
+		}),
+		prototypeProperties: parent => ({
+			prototypeBar: Symbol(),
+		}),
+		staticProperties: parent => ({
+			staticBar: Symbol(),
+		}),
+	});
+	const c2 = new C();
+
+
+	await sj.test([
+		// INHERITANCE
+		['A prototype is sj.Base', 	Object.getPrototypeOf(A) === sj.Base],
+		['AA prototype is A', 		Object.getPrototypeOf(AA) === A],
+		['AAAA prototype is AA', 	Object.getPrototypeOf(AAA) === AA],
+
+		['a isType sj.Base', 		sj.isType(a, sj.Base)],
+		['aa isType sj.Base', 		sj.isType(aa, sj.Base)],
+		['aaa isType sj.Base', 		sj.isType(aaa, sj.Base)],
+
+		// SIBLINGS
+		['a !isType B', !sj.isType(a, B)],
+		['aa !isType AB', !sj.isType(aa, AB)],
+		['aaa !isType AAB', !sj.isType(aaa, AAB)],
+
+		// COUSINS
+		['aa !isType BA', !sj.isType(aa, BA)],
+
+		// INSTANCES
+		['a.constructor === A',		a.constructor === A],
+		['aa.constructor === AA',	aa.constructor === AA],
+		['aaa.constructor === AAA',	aaa.constructor === AAA],
+
+
+		// MAKE CLASS FUNCTIONS
+		['called constructorParts',		calledConstructorParts],
+		['called beforeInitialize',		calledBeforeInitialize],
+		['called afterInitialize',		calledAfterInitialize],
+		['called prototypeProperties',	calledPrototypeProperties],
+		['called staticProperties',		calledStaticProperties],
+		['did not call extraFunction',	!calledExtraFunction],
+
+		// PROPERTIES EXIST
+		['a before property',		a.hasOwnProperty('beforeFoo')],
+		['a default property',		a.hasOwnProperty('defaultFoo')],
+		['a after property',		a.hasOwnProperty('afterFoo')],
+		['A.prototype property',	Object.getPrototypeOf(a).hasOwnProperty('prototypeFoo')],
+		['A static property',		A.hasOwnProperty('staticFoo')],
+
+		// PROPERTY INHERITANCE
+		//! before and after will generate new instances, even if function is inherited
+		['aa.beforeFoo === a.beforeFoo',			aa.beforeFoo !== undefined && aa.beforeFoo !== a.beforeFoo], 
+		['aa.defaultFoo === a.defaultFoo',			aa.defaultFoo === a.defaultFoo],
+		['aa.afterFoo === a.afterFoo',				aa.defaultFoo !== undefined && aa.afterFoo !== a.afterFoo],
+		['AA.prototype foo === A.prototype foo',	AA.prototype.prototypeFoo === A.prototype.prototypeFoo],
+		['AA static foo === A static foo',			AA.staticFoo === A.staticFoo],
+
+		// PROPERTY EXTENSION
+		['aa.beforeFoo2 exists',		aa.afterFoo2 !== undefined && aa.afterFoo2 !== aa.afterFoo],
+		['aa.defaultFoo2 exists',		aa.defaultFoo2 !== undefined && aa.defaultFoo2 !== aa.defaultFoo],
+		['aa.afterFoo2 exists',			aa.afterFoo2 !== undefined && aa.beforeFoo2 !== aa.beforeFoo],
+		['AA.prototype foo2 exists',	AA.prototype.prototypeFoo2 !== undefined && AA.prototype.prototypeFoo2 !== AA.prototype.prototypeFoo],
+		['AA static foo2 exists',		AA.staticFoo2 !== undefined && AA.staticFoo2 !== AA.staticFoo],
+
+		// PROPERTY OVERWRITE
+		['ab.beforeFoo exists and !== a.beforeFoo',		ab.beforeFoo !== undefined && ab.beforeFoo !== a.beforeFoo],
+		['ab.defaultFoo exists and !== a.defaultFoo',	ab.defaultFoo !== undefined && ab.defaultFoo !== a.defaultFoo],
+		['ab.afterFoo exists and !== a.afterFoo',		ab.afterFoo !== undefined && ab.afterFoo !== a.afterFoo],
+		['AB.prototype foo exists !== B.prototype foo',	AB.prototype.prototypeFoo !== undefined && AB.prototype.prototypeFoo !== A.prototype.prototypeFoo],
+		['AB static foo exists !== A static foo',		AB.staticFoo !== undefined && AB.staticFoo !== A.staticFoo],
+
+		// AUGMENT CLASS
+		['c2.beforeBar exists and !== c.beforeBar',					c2.beforeBar !== undefined && c2.beforeBar !== c.beforeBar],
+		['c2.defaultBar exists and !== c.defaultBar',				c2.defaultBar !== undefined && c2.defaultBar !== c.defaultBar],
+		['c2.afterBar exists and !== c.afterBar',					c2.afterBar !== undefined && c2.afterBar !== c.afterBar],
+		['c.constructor.prototype === c2.constructor.prototype',	Object.getPrototypeOf(c) === Object.getPrototypeOf(c2)],
+		['c.constructor === c2.constructor',						c.constructor === c2.constructor],
+
+
+		// PASSED OPTIONS
+		['a.passedFoo !== a2.passedFoo', a.passedFoo !== a2.passedFoo],
+		['undefined default',			!a.hasOwnProperty('undefinedFoo')],
+		['undeclared default',			!a.hasOwnProperty('undeclaredFoo')],
+		['undefined option',			!a.hasOwnProperty('undefinedFoo')],
+	], 'sj.Base Classes');
+};
+
+
+sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
+	//G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
+	constructorParts: parent => ({
+		//G//! 'this' refers to the static class inside constructorParts(), however 'this' refers to the instance inside before/afterInitialize()
+		defaults: {
+			// NEW
 			valueName: 'input',
 			trim: false,
 			
 			dataTypes: ['string'],
-
+	
 			min: 0,
 			max: Infinity,
-
+	
 			
 			//! remember to set useAgainst: true, if passing a value2 to use
 			useAgainst: false,
@@ -1349,7 +1691,7 @@ sj.Rule = class Rule extends sj.Base {
 			againstValue: {},
 			get againstMessage() {
 				//! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
-
+	
 				let againstValueName = this.againstValue;
 				//C join array of values if matching against multiple values
 				if (Array.isArray(this.againstValue)) {
@@ -1357,7 +1699,7 @@ sj.Rule = class Rule extends sj.Base {
 				}
 				return `${this.valueName} did not match against these values: ${againstValueName}`;
 			},
-
+	
 			//! remember to set useFilter: true, if passing a value2 to use
 			useFilter: false,
 			//C match nothing //TODO verify this
@@ -1367,674 +1709,708 @@ sj.Rule = class Rule extends sj.Base {
 			get filterMessage() {
 				return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
 			},
-
+	
 			custom: undefined,
-        });
-        
-        this.onCreate();
-	}
-
-	//TODO how to deal with returning the password field since its sensitive
-
-	async checkType(value) {
-		//C check against each datatype
-		for (let i = 0; i < this.dataTypes.length; i++) {
-			if (sj.isType(value, this.dataTypes[i])) {
-				return new sj.Success({
-					origin: `${this.origin}.checkType()`,
-					message: 'validated data type',
-					content: value,
-				});
-			}
-
-			//C parse strings for numbers
-			if (sj.isType(value, String)) {
-				let parsed = Number.parseFloat(value);
-				if (this.dataTypes[i] === 'number' && !Number.isNaN(parsed) 
-				|| this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
+		},
+	}),
+	prototypeProperties: parent => ({
+		//TODO how to deal with returning the password field since its sensitive
+		async checkType(value) {
+			//C check against each datatype
+			for (let i = 0; i < this.dataTypes.length; i++) {
+				if (sj.isType(value, this.dataTypes[i])) {
 					return new sj.Success({
 						origin: `${this.origin}.checkType()`,
 						message: 'validated data type',
-						content: parsed,
+						content: value,
 					});
 				}
 
-				//TODO parse strings for boolean & symbols & other?
+				//C parse strings for numbers
+				if (sj.isType(value, String)) {
+					let parsed = Number.parseFloat(value);
+					if (this.dataTypes[i] === 'number' && !Number.isNaN(parsed) 
+					|| this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
+						return new sj.Success({
+							origin: `${this.origin}.checkType()`,
+							message: 'validated data type',
+							content: parsed,
+						});
+					}
+
+					//TODO parse strings for boolean & symbols & other?
+				}
 			}
-		}
 
-		//C throw if no matches
-		throw new sj.Error({
-			log: true,
-			origin: `${this.origin}.checkType()`,
-			message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
-			content: value,
-		});
-	}
-	async checkSize(value) {
-		let m = `${this.valueName} must be between ${this.min} and ${this.max}`;
-
-		if (sj.isType(value, String)) {
-			//C string length
-			if (!(value.length >= this.min && value.length <= this.max)) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkSize()`,
-					message: `${m} characters long`,
-					content: value,
-				});
-			}
-		} else if (sj.isType(value, Number)) {
-			//C number size
-			if (!(value >= this.min && value <= this.max)) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkSize()`,
-					message: `${m} items long`,
-					content: value,
-				});
-			}
-		}
-
-		return new sj.Success({
-			origin: `${this.origin}.checkSize()`,
-			content: value,
-		});
-	}
-	async checkAgainst(value, value2) {
-		//C custom againstValue
-		if (!sj.isType(value2, undefined)) {
-			this.againstValue = value2;
-		}
-
-		if (Array.isArray(this.againstValue)) {
-			//C arrays
-			//R indexOf apparently uses === so this should be fine
-			//L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
-			if (this.againstValue.indexOf(value) === -1) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkAgainst() array`,
-					message: this.againstMessage,
-					content: value,
-				});
-			}
-		} else {
-			//C base value
-			if (!(value === this.againstValue)) {
-				throw new sj.Error({
-					log: true,
-					origin: `${this.origin}.checkAgainst() non-array`,
-					message: this.againstMessage,
-					content: value,
-				});
-			}
-		}
-
-		return new sj.Success({
-			origin: `${this.origin}.checkAgainst()`,
-			content: value,
-		});
-	}
-	async checkFilter(value, value2) {
-		//C custom againstValue
-		if (sj.isType(value2, undefined)) {
-			this.filterExpression = value2;
-		}
-
-		//TODO
-
-		return new sj.Success({
-			origin: `${this.origin}.checkAgainst()`,
-			content: value,
-		});
-	}
-
-	async checkCustom(value) {
-		if (typeof this.custom === 'function') {
-			return this.custom(value);
-		} else {
-			return new sj.Success({
-				origin: `${this.origin}.checkCustom()`,
+			//C throw if no matches
+			throw new sj.Error({
+				log: true,
+				origin: `${this.origin}.checkType()`,
+				message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
 				content: value,
 			});
-		}
-	}
+		},
+		async checkSize(value) {
+			let m = `${this.valueName} must be between ${this.min} and ${this.max}`;
 
-	/* //OLD
-		//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
-		checkType(value) {
-			let t = sj.typeOf(value);
-
-			//C if value is a string and dataType is a number or integer
-
-			if (this.dataType === 'number' && t === 'string') {
-				//C	try to parse the string and check if it is a number
-				//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
-				let p = parseFloat(value);
-				if (!Number.isNaN(p)) {
-					//C if so, convert it to the parsed number and return
-					value = p;
-					return true;
+			if (sj.isType(value, String)) {
+				//C string length
+				if (!(value.length >= this.min && value.length <= this.max)) {
+					throw new sj.Error({
+						log: true,
+						origin: `${this.origin}.checkSize()`,
+						message: `${m} characters long`,
+						content: value,
+					});
 				}
-				return false;
+			} else if (sj.isType(value, Number)) {
+				//C number size
+				if (!(value >= this.min && value <= this.max)) {
+					throw new sj.Error({
+						log: true,
+						origin: `${this.origin}.checkSize()`,
+						message: `${m} items long`,
+						content: value,
+					});
+				}
 			}
-			if (this.dataType === 'integer') {
-				if (t === 'string') {
-					let p = parseInt(value);
-					if (Number.isInteger(p)) {
+
+			return new sj.Success({
+				origin: `${this.origin}.checkSize()`,
+				content: value,
+			});
+		},
+		async checkAgainst (value, value2) {
+			//C custom againstValue
+			if (!sj.isType(value2, undefined)) {
+				this.againstValue = value2;
+			}
+
+			if (Array.isArray(this.againstValue)) {
+				//C arrays
+				//R indexOf apparently uses === so this should be fine
+				//L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
+				if (this.againstValue.indexOf(value) === -1) {
+					throw new sj.Error({
+						log: true,
+						origin: `${this.origin}.checkAgainst() array`,
+						message: this.againstMessage,
+						content: value,
+					});
+				}
+			} else {
+				//C base value
+				if (!(value === this.againstValue)) {
+					throw new sj.Error({
+						log: true,
+						origin: `${this.origin}.checkAgainst() non-array`,
+						message: this.againstMessage,
+						content: value,
+					});
+				}
+			}
+
+			return new sj.Success({
+				origin: `${this.origin}.checkAgainst()`,
+				content: value,
+			});
+		},
+		async checkFilter(value, value2) {
+			//C custom againstValue
+			if (sj.isType(value2, undefined)) {
+				this.filterExpression = value2;
+			}
+
+			//TODO
+
+			return new sj.Success({
+				origin: `${this.origin}.checkAgainst()`,
+				content: value,
+			});
+		},
+
+		async checkCustom(value) {
+			if (typeof this.custom === 'function') {
+				return this.custom(value);
+			} else {
+				return new sj.Success({
+					origin: `${this.origin}.checkCustom()`,
+					content: value,
+				});
+			}
+		},
+
+		/* //OLD
+			//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
+			checkType(value) {
+				let t = sj.typeOf(value);
+
+				//C if value is a string and dataType is a number or integer
+
+				if (this.dataType === 'number' && t === 'string') {
+					//C	try to parse the string and check if it is a number
+					//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
+					let p = parseFloat(value);
+					if (!Number.isNaN(p)) {
+						//C if so, convert it to the parsed number and return
 						value = p;
 						return true;
 					}
 					return false;
 				}
+				if (this.dataType === 'integer') {
+					if (t === 'string') {
+						let p = parseInt(value);
+						if (Number.isInteger(p)) {
+							value = p;
+							return true;
+						}
+						return false;
+					}
 
-				// if not a string, just see if its an integer
-				return Number.isInteger(value);
+					// if not a string, just see if its an integer
+					return Number.isInteger(value);
+				}
+
+				return t === this.dataType;
 			}
+			checkSize(value) {
+				if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
+					return value.length >= this.min && value.length <= this.max;
+				} else if (sj.typeOf(value) === 'number') {
+					return value >= this.min && value <= this.max;
+				} else {
+					return true;
+				}
+			}	
+			checkAgainst(value, value2) {
+				// allow custom check against value
+				if (sj.typeOf(value2) !== 'undefined') {
+					this.againstValue = value2;
+				}
 
-			return t === this.dataType;
-		}
-		checkSize(value) {
-			if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
-				return value.length >= this.min && value.length <= this.max;
-			} else if (sj.typeOf(value) === 'number') {
-				return value >= this.min && value <= this.max;
-			} else {
+				if (Array.isArray(this.againstValue)) {
+					return this.againstValue.indexOf(value) !== -1;
+				} else {
+					//! no type coercion
+					return value === this.againstValue;
+				}
+			}	
+			checkFilter(value, value2) {
+				//TODO regex, similar to checkAgainst
 				return true;
 			}
-		}	
-		checkAgainst(value, value2) {
-			// allow custom check against value
-			if (sj.typeOf(value2) !== 'undefined') {
-				this.againstValue = value2;
-			}
+		*/
 
-			if (Array.isArray(this.againstValue)) {
-				return this.againstValue.indexOf(value) !== -1;
-			} else {
-				//! no type coercion
-				return value === this.againstValue;
-			}
-		}	
-		checkFilter(value, value2) {
-			//TODO regex, similar to checkAgainst
-			return true;
-		}
-	*/
+		//! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
+		//TODO should sj.Rule be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
 
-	//! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
-	//TODO should sj.Rule be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
+		//! to use the possibly modified value from check(), set the input value to equal the result.content
+		async check(value, value2) {
+			//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+			//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
 
-	//! to use the possibly modified value from check(), set the input value to equal the result.content
-	async check(value, value2) {
-		//L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-		//C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
-
-		//C trim
-		if (this.trim && sj.isType(value, String)) {
-			value = value.trim();
-		}
-
-		//C checks & possibly modifies
-		value = await this.checkType(value).then(sj.content); //R no need to catch and return the content as it will be in the thrown error anyways
-		await this.checkSize(value);
-		if (this.useAgainst) {
-			await this.checkAgainst(value, value2);
-		}
-		if (this.useFilter) {
-			await this.checkFilter(value, value2);
-		}
-		if (typeof this.custom === 'function') {
-			await this.checkCustom(value);
-		}
-		
-		/*
-			if (!this.checkType(value)) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: `${this.valueName} must be a ${this.dataType}`,
-				})
-			}
-			if (this.trim && sj.typeOf(value) === 'string') {
+			//C trim
+			if (this.trim && sj.isType(value, String)) {
 				value = value.trim();
 			}
 
-
-			if (!this.checkSize(value)) {
-				let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
-				if (sj.typeOf(value) === 'string') {
-					message = `${message} characters long`;
-				} else if (sj.typeOf(value) === 'array') {
-					message = `${message} items long`;
+			//C checks & possibly modifies
+			value = await this.checkType(value).then(sj.content); //R no need to catch and return the content as it will be in the thrown error anyways
+			await this.checkSize(value);
+			if (this.useAgainst) {
+				await this.checkAgainst(value, value2);
+			}
+			if (this.useFilter) {
+				await this.checkFilter(value, value2);
+			}
+			if (typeof this.custom === 'function') {
+				await this.checkCustom(value);
+			}
+			
+			/*
+				if (!this.checkType(value)) {
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: `${this.valueName} must be a ${this.dataType}`,
+					})
+				}
+				if (this.trim && sj.typeOf(value) === 'string') {
+					value = value.trim();
 				}
 
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: message,
+
+				if (!this.checkSize(value)) {
+					let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
+					if (sj.typeOf(value) === 'string') {
+						message = `${message} characters long`;
+					} else if (sj.typeOf(value) === 'array') {
+						message = `${message} items long`;
+					}
+
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: message,
+					});
+				}
+				if (this.useAgainst && !this.checkAgainst(value, value2)) {
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: this.againstMessage,
+					});
+				}
+				if (this.useFilter && !this.checkFilter(value, value2)) {
+					throw new sj.Error({
+						log: this.log,
+						origin: this.origin,
+						message: this.filterMessage,
+					});
+				}
+			*/
+			
+			//C remove error-related properties
+			this.target = undefined;
+			//TODO consider inputCorrect styling
+			this.cssClass = undefined; 
+			this.content = value;
+			//C transform object (this will strip any irrelevant properties away)
+			return new sj.Success(this); 		
+		},
+
+		/* //OLD decided this was redundant
+			//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
+			//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
+			async checkProperty(obj, prop, value2) {
+				//C validate arguments
+				if (!sj.isType(obj, 'object')) {
+					throw new sj.Error({
+						log: true,
+						origin: 'sj.Rule.checkProperty()',
+						message: 'validation error',
+						reason: `sj.Rule.checkProperty()'s first argument is not an object`,
+						content: obj,
+					});
+				}
+				if (!prop in obj) {
+					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+					throw new sj.Error({
+						log: true,
+						origin: 'sj.Rule.checkProperty()',
+						message: 'validation error',
+						reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
+						content: obj,
+					});
+				}
+
+				//C check rules
+				let result = this.check(obj[prop], value2).catch(rejected => {
+					//C throw error if failed 
+					//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
+					throw sj.propagate(rejected);
 				});
+
+				//C modify and return if successful
+				obj[prop] = result.content;
+				return result;
 			}
-			if (this.useAgainst && !this.checkAgainst(value, value2)) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.againstMessage,
-				});
-			}
-			if (this.useFilter && !this.checkFilter(value, value2)) {
-				throw new sj.Error({
-					log: this.log,
-					origin: this.origin,
-					message: this.filterMessage,
+		*/
+		/* //OLD, new check ruleset was created in global-server.mjs
+			static async checkRuleSet(ruleSet) {
+				//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
+				return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
+					//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
+					//C validate arguments
+					if (!rules instanceof this) {
+						return new sj.Error({
+							log: true,
+							origin: 'checkRuleSet()',
+							message: 'validation error',
+							reason: `checkRuleSet() is missing a sj.Rule object`,
+							content: rules,
+						});
+					}
+
+					//C check, return errors too
+					return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
+				})).then(resolved => {
+					//C filter for sj.Success objects
+					return sj.filterList(resolved, sj.Success, new sj.Success({
+						origin: 'sj.Rule.checkRuleSet()',
+						message: 'all rules validated',
+					}), new sj.Error({
+						origin: 'sj.Rule.checkRuleSet()',
+						message: 'one or more issues with rules',
+						reason: 'validation functions returned one or more errors',
+					}));
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
 				});
 			}
 		*/
-		
-		//C remove error-related properties
-		this.target = undefined;
-		//TODO consider inputCorrect styling
-		this.cssClass = undefined; 
-		this.content = value;
-		//C transform object (this will strip any irrelevant properties away)
-		return new sj.Success(this); 		
-	}
+		/* //OLD
+			//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
+			static async checkRuleSet(ruleSet) {
+				//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
 
-	/* //OLD decided this was redundant
-		//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
-		//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
-		async checkProperty(obj, prop, value2) {
-			//C validate arguments
-			if (!sj.isType(obj, 'object')) {
-				throw new sj.Error({
-					log: true,
-					origin: 'sj.Rule.checkProperty()',
-					message: 'validation error',
-					reason: `sj.Rule.checkProperty()'s first argument is not an object`,
-					content: obj,
+				return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
+					//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
+					//C validate arguments
+					if (!(rules instanceof sj.Rule)) {
+						//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+						//? is it possible to dynamically get this class
+						return new sj.Error({
+							log: true,
+							origin: 'checkRuleSet()',
+							message: 'validation error',
+							reason: `checkRuleSet() is missing a sj.Rule object`,
+							content: rules,
+						});
+					}
+					if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
+						//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
+						return new sj.Error({
+							log: true,
+							origin: 'checkRuleSet()',
+							message: 'validation error',
+							reason: `checkRuleSet() is missing an object argument`,
+							content: obj,
+						});
+					}
+					if (!(prop in obj)) {
+						//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+						return new sj.Error({
+							log: true,
+							origin: 'checkRuleSet()',
+							message: 'validation error',
+							reason: `checkRuleSet() obj is missing a '${prop}' property`,
+							content: obj,
+						});
+					}
+
+					let result = new sj.Error(); //? why is this here
+
+					//C call check() with 1 or 2 values
+					if (sj.typeOf(value2) === 'undefined') {
+						result = await rules.check(obj[prop]).then(sj.sj.andResolve());
+					} else {
+						result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
+					}
+
+					//C pass the possibly modified value back to the original object
+					obj[prop] = result.content;
+
+					return result;
+				})).then(resolved => {
+					return sj.filterList(resolved, sj.Success, new sj.Success({
+						origin: 'checkRuleSet()',
+						message: 'all rules validated',
+					}), new sj.Error({
+						origin: 'checkRuleSet()',
+						message: 'one or more issues with fields',
+						reason: 'validation functions returned one or more errors',
+					}));
+				}).catch(rejected => {
+					throw sj.propagate(rejected);
 				});
 			}
-			if (!prop in obj) {
-				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-				throw new sj.Error({
-					log: true,
-					origin: 'sj.Rule.checkProperty()',
-					message: 'validation error',
-					reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
-					content: obj,
-				});
-			}
-
-			//C check rules
-			let result = this.check(obj[prop], value2).catch(rejected => {
-				//C throw error if failed 
-				//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
-				throw sj.propagate(rejected);
-			});
-
-			//C modify and return if successful
-			obj[prop] = result.content;
-			return result;
-		}
-	*/
-	/* //OLD, new check ruleset was created in global-server.mjs
-		static async checkRuleSet(ruleSet) {
-			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
-			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
-				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-
-				//C validate arguments
-				if (!rules instanceof this) {
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() is missing a sj.Rule object`,
-						content: rules,
-					});
-				}
-
-				//C check, return errors too
-				return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
-			})).then(resolved => {
-				//C filter for sj.Success objects
-				return sj.filterList(resolved, sj.Success, new sj.Success({
-					origin: 'sj.Rule.checkRuleSet()',
-					message: 'all rules validated',
-				}), new sj.Error({
-					origin: 'sj.Rule.checkRuleSet()',
-					message: 'one or more issues with rules',
-					reason: 'validation functions returned one or more errors',
-				}));
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	*/
-	/* //OLD
-		//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
-		static async checkRuleSet(ruleSet) {
-			//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
-
-			return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
-				//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-
-				//C validate arguments
-				if (!(rules instanceof sj.Rule)) {
-					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
-					//? is it possible to dynamically get this class
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() is missing a sj.Rule object`,
-						content: rules,
-					});
-				}
-				if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
-					//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() is missing an object argument`,
-						content: obj,
-					});
-				}
-				if (!(prop in obj)) {
-					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-					return new sj.Error({
-						log: true,
-						origin: 'checkRuleSet()',
-						message: 'validation error',
-						reason: `checkRuleSet() obj is missing a '${prop}' property`,
-						content: obj,
-					});
-				}
-
-				let result = new sj.Error(); //? why is this here
-
-				//C call check() with 1 or 2 values
-				if (sj.typeOf(value2) === 'undefined') {
-					result = await rules.check(obj[prop]).then(sj.sj.andResolve());
-				} else {
-					result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
-				}
-
-				//C pass the possibly modified value back to the original object
-				obj[prop] = result.content;
-
-				return result;
-			})).then(resolved => {
-				return sj.filterList(resolved, sj.Success, new sj.Success({
-					origin: 'checkRuleSet()',
-					message: 'all rules validated',
-				}), new sj.Error({
-					origin: 'checkRuleSet()',
-					message: 'one or more issues with fields',
-					reason: 'validation functions returned one or more errors',
-				}));
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	*/
-};
-(function () { // STATIC
-	//! string to be hashed must not be greater than 72 characters (//? or bytes???),
-	this.stringMaxLength = 100;
-	this.bigStringMaxLength = 2000;
-	this.nameMinLength = 3;
-	this.nameMaxLength = 16;
-	this.defaultColor = '#ffffff';
-	this.visibilityStates = [
-		'public',
-		'private',
-		'linkOnly',
-	];
-
-	
-	this.none = new sj.Rule({
-		origin: 'noRules',
-		message: 'value validated',
-	
-		valueName: 'Value',
-	
-		dataTypes: ['string', 'number', 'boolean', 'array'], //TODO etc. or just make functionality for this
-	});
-	this.posInt = new sj.Rule({
-		origin: 'positiveIntegerRules',
-		message: 'number validated',
-	
-		valueName: 'Number',
-	
-		dataTypes: ['integer'],
-	});
-	this.id = new sj.Rule({
-		origin: 'idRules',
-		message: 'id validated',
-	
-		valueName: 'id',
-	
-		dataTypes: ['integer'],
-	});
-	this.image = new sj.Rule({
-		origin: 'imageRules',
-		message: 'image validated',
-		target: 'playlistImage',
-		cssClass: 'inputError',
-	
-		valueName: 'image',
-		trim: true,
-	
-		max: this.bigStringMaxLength,
-	
-		// TODO filter: ___,
-		filterMessage: 'Image must be a valid url',
-	});
-	this.color = new sj.Rule({
-		origin: 'colorRules',
-		message: 'color validated',
-		target: 'playlistColor',
-		cssClass: 'inputError',
-	
-		valueName: 'color',
-		trim: true,
+		*/
+	}),
+	staticProperties: parent => ({
+		//! string to be hashed must not be greater than 72 characters (//? or bytes???),
+		stringMaxLength: 100,
+		bigStringMaxLength: 2000,
+		nameMinLength: 3,
+		nameMaxLength: 16,
+		defaultColor: '#ffffff',
+		visibilityStates: [
+			'public',
+			'private',
+			'linkOnly',
+		],
+	}),
+});
+sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
+	staticProperties: parent => ({
+		none: new sj.Rule({
+			origin: 'noRules',
+			message: 'value validated',
 		
-		filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
-		filterMessage: 'Color must be in hex format #XXXXXX',
-	});
-	this.visibility = new sj.Rule({
-		origin: 'visibilityRules',
-		message: 'visibility validated',
-		target: 'playlistVisibility',
-		cssClass: 'inputError',
-	
-		valueName: 'Visibility',
-	
-		useAgainst: true,
-		againstValue: this.visibilityStates,
-		againstMessage: 'please select a valid visibility level',
-	});
+			valueName: 'Value',
+		
+			dataTypes: ['string', 'number', 'boolean', 'array'], //TODO etc. or just make functionality for this
+		}),
+		posInt: new sj.Rule({
+			origin: 'positiveIntegerRules',
+			message: 'number validated',
+		
+			valueName: 'Number',
+		
+			dataTypes: ['integer'],
+		}),
+		id: new sj.Rule({
+			origin: 'idRules',
+			message: 'id validated',
+		
+			valueName: 'id',
+		
+			dataTypes: ['integer'],
+		}),
+		image: new sj.Rule({
+			origin: 'imageRules',
+			message: 'image validated',
+			target: 'playlistImage',
+			cssClass: 'inputError',
+		
+			valueName: 'image',
+			trim: true,
+		
+			max: sj.Rule.bigStringMaxLength,
+		
+			// TODO filter: ___,
+			filterMessage: 'Image must be a valid url',
+		}),
+		color: new sj.Rule({
+			origin: 'colorRules',
+			message: 'color validated',
+			target: 'playlistColor',
+			cssClass: 'inputError',
+		
+			valueName: 'color',
+			trim: true,
+			
+			filter: '/#([a-f0-9]{3}){1,2}\b/', //TODO is this correct?
+			filterMessage: 'Color must be in hex format #XXXXXX',
+		}),
+		visibility: new sj.Rule({
+			origin: 'visibilityRules',
+			message: 'visibility validated',
+			target: 'playlistVisibility',
+			cssClass: 'inputError',
+		
+			valueName: 'Visibility',
+		
+			useAgainst: true,
+			againstValue: sj.Rule.visibilityStates,
+			againstMessage: 'please select a valid visibility level',
+		}),
 
-	//TODO other / old
-	//? not sure what these were used for
-	this.self = new sj.Rule({
-		origin: 'selfRules',
-		message: 'self validated',
-		target: 'notify',
-		cssClass: 'notifyError',
-	
-		valueName: 'Id',
-	
-		dataTypes: ['integer'],
-	
-		useAgainst: true,
-		//! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
-		againstMessage: 'you are not the owner of this',
-	});
-	this.setPassword = new sj.Rule({
-		origin: 'setPasswordRules',
-		message: 'password validated',
-		target: 'registerPassword',
-		cssClass: 'inputError',
-	
-		valueName: 'Password',
-	
-		min: 6,
-		max: 72, //! as per bcrypt
-	
-		useAgainst: true,
-		get againstMessage() {return 'Passwords do not match'},
-	});
+		//TODO other / old
+		//? not sure what these were used for
+		self: new sj.Rule({
+			origin: 'selfRules',
+			message: 'self validated',
+			target: 'notify',
+			cssClass: 'notifyError',
+		
+			valueName: 'Id',
+		
+			dataTypes: ['integer'],
+		
+			useAgainst: true,
+			//! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
+			againstMessage: 'you are not the owner of this',
+		}),
+		setPassword: new sj.Rule({
+			origin: 'setPasswordRules',
+			message: 'password validated',
+			target: 'registerPassword',
+			cssClass: 'inputError',
+		
+			valueName: 'Password',
+		
+			min: 6,
+			max: 72, //! as per bcrypt
+		
+			useAgainst: true,
+			get againstMessage() {return 'Passwords do not match'},
+		}),
+	}),
+});
 
-}).call(sj.Rule);
+sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			async: false,
 
+			check(value, options) {
+				//G should return true or false for a strict match
+				return false;
+			},
 
+			castPart(value) {
+				//G should return the casted value or throw the castError
+				throw new sj.Error(this.castError);
+			},
+			castError: {
+				origin: 'sj.Rule2.castPart()',
+				reason: `cannot cast value, cast function hasn't been defined`,
+			},
+		},
+		afterInit() {
+			const castFailedError = {
+				origin: 'sj.Rule2.cast()',
+				reason: 'value was successfully cast, but it still did not pass the rule, this is likely a mistake within the rule',
+			};
 
-// success //C success and error objects are returned from functions (mostly async ones)
-sj.Success = class Success extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
+			if (async) {
+				this.cast = async function (value, options) {
+					//C cast value
+					const castedValue = await this.castPart(value);
+					//C ensure that castedValue passes
+					if (!await this.check(castedValue, options)) throw new sj.Error(castFailedError);
+					//C return it
+					return castedValue;
+				};
+			} else {
+				this.cast = function (value, options) {
+					//C cast value
+					const castedValue = this.castPart(value);
+					//C ensure that castedValue passes
+					if (!this.check(castedValue, options)) throw new sj.Error(castFailedError);
+					//C return it
+					return castedValue;
+				};
+			}
+		},
+	}),
+});
 
-		this.objectType = 'sj.Success';
-
-		sj.Base.init(this, options, {
+// SUCCESS //C success and error objects are returned from functions (mostly async ones)
+sj.Success = sj.Base.makeClass('Success', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			// NEW
 			timestamp: undefined,
-		});
-
-		this.onCreate();
-	}
-};
-sj.SuccessList = class SuccessList extends sj.Success {
-	//C wrapper for an array of successful items
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.SuccessList';
-
-		sj.Base.init(this, options, {
+		},
+	}),	
+});
+sj.SuccessList = sj.Base.makeClass('SuccessList', sj.Success, {
+	constructorParts: parent => ({
+		//C wrapper for an array of successful items
+		defaults: {
+			// OVERWRITE
 			reason: 'all items successful',
 			content: [],
-		});
-
-		this.onCreate();
-	}
-};
-sj.Warn = class Warn extends sj.Success {
-	//C wrapper for an array of successful items
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.SuccessList';
-
-		sj.Base.init(this, options, {
+		},
+	}),
+});
+sj.Warn = sj.Base.makeClass('Warn', sj.Success, {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
 			log: true,
-		});
+		},
+	}),
+});
 
-		this.onCreate();
-	}
-};
+sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
+	constructorParts: parent => ({
+		//TODO allowUnknown: true,
 
-// items (these can be returned from functions)
-sj.Credentials = class Credentials extends sj.Success {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Credentials',
-
-		sj.Base.init(this, options, {
+		defaults: {
 			//TODO this part should only be server-side 
 			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
 			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-            authRequestTimestamp: 0,
-            authRequestTimeout: 300000, //C default 5 minutes
+			authRequestTimestamp: 0,
+			authRequestTimeout: 300000, //C default 5 minutes
 			authRequestURL: '',
-            authCode: Symbol(),
-            
-            accessToken: Symbol(),
-            expires: 0,
-            refreshToken: Symbol(),
+			authCode: Symbol(),
+			
+			accessToken: Symbol(),
+			expires: 0,
+			refreshToken: Symbol(),
 			refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
 			
 			scopes: [],
-		});
-
-		this.onCreate();
-	}
-};
-
-// entities (these represent database entities)
-sj.Entity = class Entity extends sj.Success {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Entity';
-
-		sj.Base.init(this, options, {
-			id: undefined,
-		});
-
-		//C make instance getter for every static filter
-		let that = this;
-		this.filters = {};
-		Object.keys(that.constructor.filters).forEach(key => {
-			Object.defineProperties(that.filters, {
-				[key]: {
-					get: function () { 
-						return sj.shake(that, that.constructor.filters[key]);
-					}
-				}
-			});
-		});
-
-		this.onCreate();
-	};
-};
-(function () { // STATIC
-	//TODO how to make these immutable?
-
-	Object.defineProperty(this, 'table', {
-		get: function () {
-			return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
 		},
-	}); 
+	}),
+});
 
-	//C list of references to child classes, these should be added in the child's static constructor
-	this.children = [];
-
-	this.filters = {
-		id: ['id'],
-	};
-
-	//C automatically create new filters based on schema
-	this.updateFilters = function () {
-		let methodNames = ['add', 'get', 'edit', 'remove'];
-		let types = ['in', 'out', 'check'];
-	
-		let schemaFilters = {};
-	
-		Object.keys(this.schema).forEach(key => { //C for each property
-			methodNames.forEach(methodName => { //C for each crud method
-				types.forEach(type => { //C for each filter type
-					if (this.schema[key][methodName][type]) { //C if property is optional or required
-						let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
-						if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-						schemaFilters[filterName].push(key);
+// ENTITIES
+sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
+	constructorParts: parent => ({
+		afterInitialize(accessory) {
+			const that = this; //? is this necessary?
+			this.filters = {};
+			Object.keys(that.constructor.filters).forEach(key => {
+				Object.defineProperties(that.filters, {
+					[key]: {
+						get: function () { 
+							return sj.shake(that, that.constructor.filters[key]);
+						}
 					}
 				});
 			});
-		});
-	
-		this.filters = {
-			...this.filters,
-			...schemaFilters,
-		};
-	};
-}).call(sj.Entity);
+		},
+		defaults: {
+			// NEW
+			id: undefined,
+		},
+	}),
+	staticProperties(parent) {
+		// GETTER
+		Object.defineProperty(this, 'table', {
+			get: function () {
+				return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
+			},
+		}); 
 
-// schema property states
+		return {
+			//TODO how to make these immutable?
+
+			//C list of references to child classes, these should be added in the child's static constructor
+			children: [],
+
+			filters: {
+				id: ['id'],
+			},
+
+			//C automatically create new filters based on schema
+			updateFilters() {
+				let methodNames = ['add', 'get', 'edit', 'remove'];
+				let types = ['in', 'out', 'check'];
+			
+				let schemaFilters = {};
+			
+				Object.keys(this.schema).forEach(key => { //C for each property
+					methodNames.forEach(methodName => { //C for each crud method
+						types.forEach(type => { //C for each filter type
+							if (this.schema[key][methodName][type]) { //C if property is optional or required
+								let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
+								if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+								schemaFilters[filterName].push(key);
+							}
+						});
+					});
+				});
+			
+				this.filters = {
+					...this.filters,
+					...schemaFilters,
+				};
+			},
+
+			tableToEntity(tableName) {
+				const Entity = this.children.find(child => child.table === tableName);
+				if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
+					origin: 'sj.Entity.tableToEntity()',
+					reason: `table is not recognized: ${tableName}`,
+					content: tableName,
+				});
+				return Entity;
+
+				//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+				//R any metadata (table) should be sent separately (or implicitly) from the query
+			},
+		}
+	},
+});
+// schema property states //TODO could these be static on sj.Entity and called via this.x ?
 const unused = {
 	in: false,
 	out: false,
@@ -2055,873 +2431,549 @@ const auto = {
 	out: true,
 	check: 0,
 };
-
-sj.User = class User extends sj.Entity {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.User';
-
-		sj.Base.init(this, options, {
-			// new properties
+sj.User = sj.Base.makeClass('User', sj.Entity, {
+	constructorParts: parent => ({
+		defaults: {
+			// NEW
 			name: '',
 			email: '',
 			password: '',
 			password2: '',
-			spotifyRefreshToken: null,
+			spotifyRefreshToken: undefined,
 			socketId: undefined,
-		});
-
-		this.onCreate();
-	}
-};
-(function () { // STATIC
-	sj.Entity.children.push(this);
-
-	this.schema = {
-		//G 0 = unused, 1 = optional, 2 = required
-		id: {
-			columnName: 'id',
-			rule: sj.Rule.id,
-
-			add: auto,
-			get: optional,
-			edit: required,
-			remove: required,
 		},
-		name: {
-			columnName: 'name',
-			rule: new sj.Rule({
-				origin: 'userNameRules',
-				message: 'username validated',
-				target: 'registerUserName',
-				cssClass: 'inputError',
-			
-				valueName: 'Username',
-				trim: true,
-			
-				min: sj.Rule.nameMinLength,
-				max: sj.Rule.nameMaxLength,
-			}),
+	}),
+	staticProperties(parent) {
+		parent.children.push(this);
 
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		email: {
-			columnName: 'email',
-			rule: new sj.Rule({
-				origin: 'emailRules',
-				message: 'email validated',
-				target: 'registerEmail',
-				cssClass: 'inputError',
-			
-				valueName: 'E-mail',
-				trim: true,
-			
-				min: 3,
-				max: sj.Rule.stringMaxLength,
-			
-				//TODO useFilter: ___, filterMessage: ___, 
-				//L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-			}),
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		password: {
-			columnName: 'password',
-			rule: new sj.Rule({
-				origin: 'passwordRules',
-				message: 'password validated',
-				target: 'registerPassword',
-				cssClass: 'inputError',
-			
-				valueName: 'Password',
-			
-				min: 6,
-				max: 72, //! as per bcrypt
-			}),
-
-			add: required,
-			get: unused,
-			edit: {
-				in: true,
-				out: false,
-				check: 1,
+		this.schema = {
+			//G 0 = unused, 1 = optional, 2 = required
+			id: {
+				columnName: 'id',
+				rule: sj.Rule.id,
+	
+				add: auto,
+				get: optional,
+				edit: required,
+				remove: required,
 			},
-			remove: unused,
-		},
-		spotifyRefreshToken: {
-			columnName: 'spotifyRefreshToken',
-			rule: new sj.Rule({
-				origin: 'spotifyRefreshTokenRules',
-				message: 'token validated',
-			
-				valueName: 'Token',
-				//TODO empty for now
-			}),
-
-			add: unused,
-			get: {
-				in: false,
-				out: true,
-				check: 0,
+			name: {
+				columnName: 'name',
+				rule: new sj.Rule({
+					origin: 'userNameRules',
+					message: 'username validated',
+					target: 'registerUserName',
+					cssClass: 'inputError',
+				
+					valueName: 'Username',
+					trim: true,
+				
+					min: sj.Rule.nameMinLength,
+					max: sj.Rule.nameMaxLength,
+				}),
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
 			},
-			edit: optional,
-			remove: unused,
-		},
-	};
-	this.updateFilters();
-}).call(sj.User);
-
-sj.Playlist = class Playlist extends sj.Entity {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Playlist';
-
-		sj.Base.init(this, options, {
+			email: {
+				columnName: 'email',
+				rule: new sj.Rule({
+					origin: 'emailRules',
+					message: 'email validated',
+					target: 'registerEmail',
+					cssClass: 'inputError',
+				
+					valueName: 'E-mail',
+					trim: true,
+				
+					min: 3,
+					max: sj.Rule.stringMaxLength,
+				
+					//TODO useFilter: ___, filterMessage: ___, 
+					//L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+				}),
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			password: {
+				columnName: 'password',
+				rule: new sj.Rule({
+					origin: 'passwordRules',
+					message: 'password validated',
+					target: 'registerPassword',
+					cssClass: 'inputError',
+				
+					valueName: 'Password',
+				
+					min: 6,
+					max: 72, //! as per bcrypt
+				}),
+	
+				add: required,
+				get: unused,
+				edit: {
+					in: true,
+					out: false,
+					check: 1,
+				},
+				remove: unused,
+			},
+			spotifyRefreshToken: {
+				columnName: 'spotifyRefreshToken',
+				rule: new sj.Rule({
+					origin: 'spotifyRefreshTokenRules',
+					message: 'token validated',
+				
+					valueName: 'Token',
+					//TODO empty for now
+				}),
+	
+				add: unused,
+				get: {
+					in: false,
+					out: true,
+					check: 0,
+				},
+				edit: optional,
+				remove: unused,
+			},
+		};
+		this.updateFilters();
+	},
+});
+sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
 			content: [],
-
-			// new properties
-			userId: null,
+	
+			// NEW
+			userId: undefined,
 			name: '',
 			visibility: '',
 			description: '',
 			color: '',
 			image: '',
+		},
+	}),
+	staticProperties(parent) {
+		parent.children.push(this);
+
+		this.schema = {
+			id: {
+				columnName: 'id',
+				rule: sj.Rule.id,
+	
+				add: auto,
+				get: optional,
+				edit: required,
+				remove: required,
+			},
+			userId: {
+				columnName: 'userId',
+				rule: sj.Rule.id,
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			name: {
+				columnName: 'name',
+				rule: new sj.Rule({
+					origin: 'playlistNameRules()',
+					message: 'name validated',
+					target: 'playlistName',
+					cssClass: 'inputError',
+				
+					valueName: 'Name',
+					trim: true,
+				
+					min: sj.Rule.nameMinLength,
+					max: sj.Rule.stringMaxLength,  
+				}),
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			description: {
+				columnName: 'description',
+				rule: new sj.Rule({
+					origin: 'descriptionRules()',
+					message: 'description validated',
+					target: 'playlistDescription',
+					cssClass: 'inputError',
+				
+					valueName: 'Description',
+				
+					max: sj.Rule.bigStringMaxLength,
+					trim: true,
+				}),
+	
+				add: optional,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			visibility: {
+				columnName: 'visibility',
+				rule: sj.Rule.visibility,
+	
+				add: optional,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			image: {
+				columnName: 'image',
+				rule: sj.Rule.image,
+	
+				add: optional,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			color: {
+				columnName: 'color',
+				rule: sj.Rule.color,
+	
+				add: optional,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+		};
+		this.updateFilters();
+	},
+});
+sj.Track = sj.Base.makeClass('Track', sj.Entity, {
+	constructorParts: parent => ({
+		beforeInitialize(accessory) {
+			//C find existing source by track.source.name and set it as the reference
+			if (sj.isType(accessory.options.source, Object)) {
+				const found = sj.Source.instances.find(source => source.name === accessory.options.source.name);
+				if (found) accessory.options.source = found;
+				else new sj.Warn({
+					origin: 'sj.Track.beforeInitialize()',
+					reason: 'source was passed but it is not an existing source',
+					content: accessory.options.source,
+				});
+			};
+		},
+		defaults: {
+			// NEW
+			playlistId:	null,
+			position:	null,
+			source:		null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
+			sourceId:	null, // TODO assumes ids are unique, even across all sources
+			artists:	[],
+			name:		null,
+			duration:	null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
+			link:		null,
+		},
+	}),
+	staticProperties(parent) {
+		parent.children.push(this);
+
+		this.schema = {
+			id: {
+				columnName: 'id',
+				rule: sj.Rule.id,
+	
+				add: auto,
+				get: optional,
+				edit: required,
+				remove: required,
+			},
+			playlistId: {
+				columnName: 'playlistId',
+				rule: sj.Rule.id,
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			position: {
+				columnName: 'position',
+				rule: sj.Rule.posInt,
+	
+				add: optional,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			name: {
+				columnName: 'name',
+				rule: new sj.Rule({
+					origin: 'trackNameRules()',
+					message: 'name validated',
+				
+					valueName: 'Name',
+					trim: true,
+				
+					min: sj.Rule.nameMinLength,
+					max: sj.Rule.stringMaxLength,  
+				}),
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			duration: {
+				columnName: 'duration',
+				rule: sj.Rule.posInt,
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			source: {
+				columnName: 'source',
+				rule: new sj.Rule({
+					origin: 'sourceRules',
+					message: 'source validated',
+				
+					valueName: 'Source',
+				
+					useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
+	
+					custom: function (value) {
+						return sj.Source.instances.some(source => value === source.name);
+					}
+				}),
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			sourceId: {
+				columnName: 'sourceId',
+				rule: new sj.Rule({
+					origin: 'sourceIdRules',
+					message: 'source id validated',
+				
+					valueName: 'Source ID',
+				
+					//? any source id rules (other than being a string)? length? trim?
+				}),
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			},
+			artists: {
+				columnName: 'artists',
+				rule: new sj.Rule({
+					origin: 'sj.Rules.artists',
+					message: 'artists validated',
 			
-		});
-
-		this.onCreate();
-	}
-};
-(function () { // STATIC
-	sj.Entity.children.push(this);
-
-	this.schema = {
-		id: {
-			columnName: 'id',
-			rule: sj.Rule.id,
-
-			add: auto,
-			get: optional,
-			edit: required,
-			remove: required,
-		},
-		userId: {
-			columnName: 'userId',
-			rule: sj.Rule.id,
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		name: {
-			columnName: 'name',
-			rule: new sj.Rule({
-				origin: 'playlistNameRules()',
-				message: 'name validated',
-				target: 'playlistName',
-				cssClass: 'inputError',
+					valueName: 'Artists',
 			
-				valueName: 'Name',
-				trim: true,
-			
-				min: sj.Rule.nameMinLength,
-				max: sj.Rule.stringMaxLength,  
-			}),
+					dataTypes: ['array'],
+				}),
+	
+				add: required,
+				get: optional,
+				edit: optional,
+				remove: unused,
+			}
+		};
+		this.updateFilters();
 
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		description: {
-			columnName: 'description',
-			rule: new sj.Rule({
-				origin: 'descriptionRules()',
-				message: 'description validated',
-				target: 'playlistDescription',
-				cssClass: 'inputError',
-			
-				valueName: 'Description',
-			
-				max: sj.Rule.bigStringMaxLength,
-				trim: true,
-			}),
-
-			add: optional,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		visibility: {
-			columnName: 'visibility',
-			rule: sj.Rule.visibility,
-
-			add: optional,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		image: {
-			columnName: 'image',
-			rule: sj.Rule.image,
-
-			add: optional,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		color: {
-			columnName: 'color',
-			rule: sj.Rule.color,
-
-			add: optional,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-	};
-	this.updateFilters();
-}).call(sj.Playlist);
-
-sj.Track = class Track extends sj.Entity {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Track';
-
-		sj.Base.init(this, options, {
-			// new properties
-			playlistId: null,
-			position: null,
-			source: null, //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-			sourceId: null, // TODO assumes ids are unique, even across all sources
-			artists: [],
-			name: '',
-			duration: null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
-			link: '',
-		});
-
-		this.onCreate();
-	}
-};
-(function () {
-	sj.Entity.children.push(this);
-
-	this.schema = {
-		id: {
-			columnName: 'id',
-			rule: sj.Rule.id,
-
-			add: auto,
-			get: optional,
-			edit: required,
-			remove: required,
-		},
-		playlistId: {
-			columnName: 'playlistId',
-			rule: sj.Rule.id,
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		position: {
-			columnName: 'position',
-			rule: sj.Rule.posInt,
-
-			add: optional,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		name: {
-			columnName: 'name',
-			rule: new sj.Rule({
-				origin: 'trackNameRules()',
-				message: 'name validated',
-			
-				valueName: 'Name',
-				trim: true,
-			
-				min: sj.Rule.nameMinLength,
-				max: sj.Rule.stringMaxLength,  
-			}),
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		duration: {
-			columnName: 'duration',
-			rule: sj.Rule.posInt,
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		source: {
-			columnName: 'source',
-			rule: new sj.Rule({
-				origin: 'sourceRules',
-				message: 'source validated',
-			
-				valueName: 'Source',
-			
-				useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
-
-				custom: function (value) {
-					return sj.sourceList.some(source => value === source.name);
-				}
-			}),
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		sourceId: {
-			columnName: 'sourceId',
-			rule: new sj.Rule({
-				origin: 'sourceIdRules',
-				message: 'source id validated',
-			
-				valueName: 'Source ID',
-			
-				//? any source id rules (other than being a string)? length? trim?
-			}),
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		},
-		artists: {
-			columnName: 'artists',
-			rule: new sj.Rule({
-				origin: 'sj.Rules.artists',
-				message: 'artists validated',
-		
-				valueName: 'Artists',
-		
-				dataTypes: ['array'],
-			}),
-
-			add: required,
-			get: optional,
-			edit: optional,
-			remove: unused,
-		}
-	};
-	this.updateFilters();
-}).call(sj.Track);
+		//G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
+		this.filters.localMetadata = ['id', 'playlistId', 'position'];
+	},
+});
 
 
-// error
-sj.Error = class Error extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Error';
-
-		sj.Base.init(this, options, {
+// ERRORS
+sj.Error = sj.Base.makeClass('Error', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
 			log: true, //TODO remove log: true from errors
-
 			code: 400,
 			type: 'Bad Request',
-		});
-
-		this.onCreate();
-	}
-};
-sj.ErrorList = class ErrorList extends sj.Error {
-	//C wrapper for an array with one or more errors
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.ErrorList'; //TODO //? in chrome dev tools this still shows up as 'sj.Error' but only on the preview line, is announce being called too early?
-
-		sj.Base.init(this, options, {
+		},
+	}),
+});
+sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
+	constructorParts: parent => ({
+		//C wrapper for an array with one or more errors
+		defaults: {
+			// OVERWRITE
 			reason: 'one or more errors occurred with items',
 			content: [],
-		});
-
-		this.onCreate();
-	}
-};
-// custom errors
-sj.AuthRequired = class AuthRequired extends sj.Error { 
+		},
+	}),
+});
+// CUSTOM ERRORS
+sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
 	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.AuthRequired';
-
-		sj.Base.init(this, options, {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
 			message: 'authorization required',
-		});
-
-		this.onCreate();
-	}
-};
-sj.Unreachable = class Unreachable extends sj.Error {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Unreachable';
-
-		sj.Base.init(this, options, {
+		},
+	}),
+});
+sj.Unreachable = sj.Base.makeClass('Unreachable', sj.Error, {
+	//C used to indicate an unreachable place in the code
+	constructorParts: parent => ({
+		defaults: {
 			message: 'code reached a place that should be unreachable',
-		});
+		},	
+	}),
+});
+sj.Timeout = sj.Base.makeClass('Timeout', sj.Error, {
+	//C used to indicate a timed-out function
+	constructorParts: parent => ({
+		defaults: {
+			message: 'request timed out',
+		},
+	}),
+});
 
-		this.onCreate();
-	}
-}
 
-
-// other
-sj.Source = class Source extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Source',
-
-		sj.Base.init(this, options, {
-			// new properties
-			name: '', // !!! don't use this unless the source string is needed, always use the sj.Source object reference
+sj.Source = sj.Base.makeClass('Source', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			// NEW
+			name: undefined, //! source.name is a unique identifier
 			idPrefix: '',
-			playback: new sj.Playback(), // !!! cyclical reference - has sj.Playback object which has sj.Track object which has this sj.Source object
-            realSource: true,
-            
-            credentials: new sj.Credentials(),
-
+			
+			credentials: new sj.Credentials(),
+	
 			//TODO this should only be server-side
 			api: {},
 			scopes: [],
 			authRequestManually: true,
 			makeAuthRequestURL: function () {},
+		},
+		afterInitialize(accessory) {
+			//C add source to static source list: sj.Source.instances
+			this.constructor.instances.push(this);
+		},
+	}),
+	
+	staticProperties: parent => ({
+		instances: [],
+	}),
+});
 
-			//C empty throw functions, used in standard playback functions
-			loadApi: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'loadApi()',
-					message: 'api could not be loaded',
-					reason: 'no source',
-				});
-			},
-			loadPlayer: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'loadPlayer()',
-					message: 'player could not be loaded',
-					reason: 'no source',
-				});
-			},
-
-			search: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'search()',
-					message: 'unable to search',
-					reason: 'no source',
-				});
-			},
-			getTracks: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'getTracks()',
-					message: 'unable to get tracks',
-					reason: 'no source',
-				});
-			},
-
-			checkPlayback: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiStart()',
-					message: 'could not check playback',
-					reason: 'no source',
-				});
-			},
-
-			apiStart: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiStart()',
-					message: 'track could not be started',
-					reason: 'no source',
-				});
-			},
-			apiResume: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiResume()',
-					message: 'track could not be resumed',
-					reason: 'no source',
-				});
-			},
-			apiPause: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiPause()',
-					message: 'track could not be paused',
-					reason: 'no source',
-				});
-			},
-			apiSeek: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiSeek()',
-					message: 'track could not be seeked',
-					reason: 'no source',
-				});
-			},
-			apiVolume: async function () {
-				throw new sj.Error({
-					log: true,
-					origin: 'apiVolume()',
-					message: 'volume could not be changed',
-					reason: 'no source',
-				});
-			},
-		});
-
-		this.onCreate();
-	}
-
-	async start() {
-		return this.apiStart(track).then(resolved => {
-			this.playback.playing = true;
-			this.playback.track = track;
-			this.playback.progress = 0;
-			this.playback.timestamp = Date.now();
-
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-	async resume() {
-		if (!this.playback.playing) { 
-			return this.apiResume().then(resolved => {
-				this.playback.playing = true;
-				return resolved;
-			}).catch(rejected => {
-				throw rejected;
+// LIVE DATA
+sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			Entity: undefined,
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				liveQueries: [],
+				cachedEntities: [],
 			});
-		} else {
-			return new sj.Success({
-				log: true,
-				origin: this.name + '.resume()',
-				message: 'track already playing',
+		},
+	}),
+	staticProperties: parent => ({
+		makeTables(tableKeys) {
+			return new Map(sj.Entity.children.map(Entity => [Entity, new this({Entity})]));
+		},
+	}),
+});
+sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			table: undefined,
+			entity: undefined,
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				liveQueryRefs: [],
+
+				timestamp: 0,
 			});
-		}
-	}
-	async pause() {
-		if (this.playback.playing) {
-			return this.apiPause().then(resolved => {
-				this.playback.playing = false;
-				return resolved;
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		} else {
-			return new sj.Success({
-				log: true,
-				origin: this.name + '.pause()',
-				message: 'track already paused',
-			});
-		}	
-	}
-	async seek() {
-		return this.apiSeek(ms).then(resolved => {
-			this.playback.progress = ms;
-			this.playback.timestamp = Date.now();
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-	async volume() {
-		return this.apiVolume(volume).then(resolved => {
-			this.playback.volume = volume;
-			return resolved;
-		}).catch(rejected => {
-			throw sj.propagate(rejected);
-		});
-	}
-
-	onCreate() {
-		super.onCreate();
-
-		// extend with: add to source list
-		if (this.realSource) { //TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
-			sj.sourceList.push(this);
-		}
-	}
-};
-sj.Playback = class Playback extends sj.Base {
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.Playback';
-
-		sj.Base.init(this, options, {
-			// new properties
-			track: sj.noTrack,
-			playing: false,
-			progress: 0,
-			timestamp: Date.now(),
-			volume: 0,
-		});
-
-		this.onCreate();
-	}
-};
-
-sj.QuerySubscription = class QuerySubscription extends sj.Base {
-	//! don't nest QuerySubscriptions
-
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.QuerySubscription';
-
-		sj.Base.init(this, options, {
+		},
+	}),
+});
+sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
+	constructorParts: parent => ({
+		beforeInitialize(options) {
+			if (sj.isType(options.query, Array)) options.query = sj.any(query);
+		},
+		defaults: {
+			table: undefined,
 			query: undefined,
-			subscribers: [], 
-			timestamp: 0,
-			content: [],
-		});
+		},
+		afterInitialize() {
+			Object.assign(this, {
+				cachedEntityRefs: [],
+				subscriptions: [],
 
-		this.onCreate();
-	}
-};
-sj.EntitySubscription = class EntitySubscription extends sj.QuerySubscription {
-	//C subscribers can include both component subscribers and parent QuerySubscription subscribers
-	//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
-	//G query should only have one query object with one id property: [{id: 8}]
-	//G content is the root data object, not an array
-
-	constructor(options = {}) {
-		super(sj.Base.giveParent(options));
-
-		this.objectType = 'sj.EntitySubscription';
-
-		sj.Base.init(this, options, {
-			content: undefined,
-		});
-
-		this.onCreate();
-	}
-};
-
-
-//TODO consider if all actions should actually be in main.js instead
-//TODO Playback queue is a non-flawless system, though it should cover mostly all use cases, make this flawless in the future.
-//TODO desiredPlayback object is needed here for these to work - but does that even belong in globals?
-/* 
-	sj.Action = class extends sj.Base {
-		constructor(options = {}) {
-			super(sj.Base.giveParent(options));
-
-			this.objectType = 'sj.Action';
-			source = sj.desiredPlayback.track.source;
-
-			sj.Base.init(this, options, {
-				// new properties
-				state: null,
+				timestamp: 0,
 			});
+		},
+	}),
+});
+sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
+	//? should this inherit from sj.Success since it will be returned from a function>
+	constructorParts: parent => ({
+		defaults: {
+			liveQuery: undefined,
 
-			this.onCreate();
-		}
+			onUpdate() {}, //C any update
+			onAdd() {}, //C entities added
+			onEdit() {}, //C entities data changed
+			onRemove() {}, //C entities removed
+		},
+	}),
+});
 
-		// comparisons
-		isSimilarAction(item) {
-			return this.objectType === item.objectType;
-		}
-		isIdenticalAction(item) {
-			return this.isSimilarAction(item) && this.state === item.state;
-		}
-		isParentAction(item) {
-			return false; // TODO ??? can this be merged in some way with isParent?
-		}
-
-		removeOld(queue) {
-			// backwards deletion loop
-			for (var i = queue.length - 1; i > -1; i--) {
-				if (this.isSimilarAction(queue[i]) || this.isParentAction(queue[i])) {
-					queue.splice(i, 1);
-				}
-			}
-		}
-
-		async trigger() {
-			return new Promise(resolve => {
-				resolve(new sj.Success({
-					log: true,
-					origin: 'sj.Action.trigger',
-				}));
-			});
-		}
-	};
-	sj.Start = class extends sj.Action {
-		constructor(options = {}) {
-			super(sj.Base.giveParent(options));
-
-			this.objectType = 'sj.Start';
-			state = sj.desiredPlayback.track;
-
-			sj.Base.init(this, options, {});
-
-			this.onCreate();
-		}
-
-		isParentAction() {
-			return item.objectType === 'sj.Toggle' || item.objectType === 'sj.Seek';
-		}
-
-		async trigger() {
-			return Promise.all(sourceList.map(source => {
-				// pause all
-				return source.pause().then(sj.andResolve);
-			})).then(resolved => {
-				// filter errors
-				return filterList(resolved, sj.Success, new sj.Success({
-					origin: 'sj.Start.trigger()',
-					message: 'changed track',
-				}), new sj.Error({
-					origin: 'sj.Start.trigger()',
-					message: 'failed to change track',
-				}));
-			}).then(resolved => {
-				// start
-				return this.source.start(this.state);
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	};
-	sj.Toggle = class extends sj.Action {
-		constructor(options = {}) {
-			super(sj.Base.giveParent(options));
-
-			this.objectType = 'sj.Toggle';
-			this.state = desiredPlayback.playing;
-
-			sj.Base.init(this, options, {});
-
-			this.onCreate();
-		}
-
-		async trigger() {
-			if (this.state) { // if playing
-				return Promise.all(sourceList.map(source => {
-					if (source === this.source) {
-						// resume desired source
-						return source.resume().then(sj.andResolve);
-					} else {
-						// pause all other sources
-						return source.pause().then(sj.andResolve);
-					}
-				})).then(resolved => {
-					return filterList(resolved, sj.Success, new sj.Success({
-						origin: 'sj.Toggle.trigger()',
-						message: 'playing updated',
-					}), new sj.Error({
-						origin: 'sj.Toggle.trigger()',
-						message: 'playing failed to update',
-					}));
-				}).catch(rejected => {
-					throw sj.propagate(rejected);
-				});
-			} else { // if not playing
-				return Promise.all(sourceList.map(source => {
-					// pause all sources
-					return source.pause().then(sj.andResolve);
-				})).then(resolved => {
-					return filterList(resolved, sj.Success, new sj.Success({
-						origin: 'updatePlaybackPlaying()',
-						message: 'playing updated',
-					}), new sj.Error({
-						origin: 'updatePlaybackPlaying()',
-						message: 'playing failed to update',
-					}));
-				}).catch(rejected => {
-					throw sj.propagate(rejected);
-				});
-			}
-		}
-	};
-	sj.Seek = class extends sj.Action {
-		constructor(options = {}) {
-			super(sj.Base.giveParent(options));
-
-			this.objectType = 'sj.Seek';
-			this.state = desiredPlayback.progress;
-
-			sj.Base.init(this, options, {});
-
-			this.onCreate();
-		}
-
-		async trigger() {
-			return this.source.seek(this.state).then(resolved => {
-				return new sj.Success({
-					log: true,
-					origin: 'sj.Seek.trigger()',
-					message: 'playback progress changed',
-				});
-			}).catch(rejected => {
-				throw sj.propagate(rejected);
-			});
-		}
-	};
-	sj.Volume = class extends sj.Action {
-		constructor(options = {}) {
-			super(sj.Base.giveParent(options));
-
-			this.objectType = 'sj.Volume';
-			this.state = desiredPlayback.volume;
-
-			sj.Base.init(this, options, {});
-
-			this.onCreate();
-		}
-
-		async trigger() {
-			// TODO
-		}
-	};
-*/
-
-
-// object related variables
-//TODO consider having constants for source types like const ERROR_TYPE
-//TODO source list isn't populated in global.js, its done in main.js therefore cannot be used outside of that, see if source definitions are possible to move to global.js
-sj.sourceList = [];
-
-// null objects
-sj.noTrack = new sj.Track();
-sj.noSource = new sj.Source({realSource: false});
-sj.noTrack.source = sj.noSource; // cyclical reference
-// TODO move with actions sj.noAction = new sj.Action();
+// sj.QuerySubscription = sj.Base.makeClass('QuerySubscription', sj.Base, {
+// 	constructorParts: parent => ({
+// 		//! don't nest QuerySubscriptions
+// 		defaults: {
+// 			query: undefined,
+// 			subscribers: [], 
+// 			timestamp: 0,
+// 			content: [],
+// 		},
+// 	}),
+// });
+// sj.EntitySubscription = sj.Base.makeClass('EntitySubscription', sj.QuerySubscription, {
+// 	constructorParts: parent => ({
+// 		//C subscribers can include both component subscribers and parent QuerySubscription subscribers
+// 		//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
+// 		//G query should only have one query object with one id property: [{id: 8}]
+// 		//G content is the root data object, not an array
+// 		defaults: {
+// 			content: undefined,
+// 		},	
+// 	}),
+// });
 
 
 export default sj;
 
 
-sj.deepMatch.test();
-sj.shake.test();
+//  ████████╗███████╗███████╗████████╗
+//  ╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝
+//     ██║   █████╗  ███████╗   ██║   
+//     ██║   ██╔══╝  ╚════██║   ██║   
+//     ██║   ███████╗███████║   ██║   
+//     ╚═╝   ╚══════╝╚══════╝   ╚═╝   
+
+//sj.deepMatch.test();
+//sj.shake.test();
+//sj.Base.test();

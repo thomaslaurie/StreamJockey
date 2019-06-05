@@ -18,6 +18,7 @@
                 this.$router.push(`/track/${id}`);
             },
             async play() {
+				await this.$store.dispatch('player/start', this.data);
 			},
 			async remove() { //! shortened to del to avoid delete reserved word
 				await this.sj.Track.remove(this.data);

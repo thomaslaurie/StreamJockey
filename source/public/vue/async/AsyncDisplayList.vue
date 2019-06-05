@@ -1,5 +1,4 @@
 <script>
-    import sj from '../../js/global-client.mjs';
     import AsyncDisplay from './AsyncDisplay.vue';
 
     export default {
@@ -25,12 +24,12 @@
 			// OVERWRITES
 			queryData() {
 				//! AsyncDisplayList uses sj.any(subscription data)
-				if (this.subscription) return this.sj.any(this.$store.getters.getSubscriptionData(this.subscription));
+				if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.any(this.$store.getters.getLiveData(this.subscription));
 			},
 
 			// NEW
             orderedData() {
-                return this.sj.dynamicSort(sj.any(this.data), this.ascending, this.orderBy);
+                return this.sj.dynamicSort(this.sj.any(this.data), this.ascending, this.orderBy);
 			},
 
 			/* //G transparent components

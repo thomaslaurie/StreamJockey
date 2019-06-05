@@ -63,7 +63,7 @@ import router from './routes.mjs';
 
 const PORT = process.env.PORT || 3000;
 
-// koa
+// KOA
 const app = new Koa();
 app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
 const sessionConfig = {
@@ -88,9 +88,9 @@ const sessionConfig = {
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 const server = http.createServer(app.callback());
 
-// socket io
-const socketIO = new SocketIO(server); 
-sj.databaseSockets = socketIO.of('/database');
+// SOCKET IO
+const socketIO = new SocketIO(server);
+sj.liveData.socket = socketIO.of('/live-data');
 
 
 //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
@@ -116,10 +116,10 @@ sj.databaseSockets = socketIO.of('/database');
 	});
 */
 
-// parse body
+// BODY PARSER
 app.use(bodyParser());
 
-// session
+// SESSION
 app.use(session(sessionConfig, app));
 
 /*
@@ -136,61 +136,14 @@ app.use(session(sessionConfig, app));
 	});
 */
 
-// routes
+// ROUTES
 app.use(router.routes());
 app.use(router.allowedMethods()); //L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
 
-
-// socket session
-sj.databaseSockets.use((socket, next) => {
-	//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
-	//L https://github.com/koajs/session/issues/53#issuecomment-311601304
-	//! socket.session is static, whereas koa ctx.session is dynamic //?
-	//L https://socket.io/docs/server-api/#namespace-use-fn
-
-	//C uses a temporary koa context to decrypt the session
-	socket.session = app.createContext(socket.request, new http.OutgoingMessage()).session;
-	next();
-});
-sj.databaseSockets.on('connect', (socket) => {
-	console.log('CONNECT', socket.id);
-	
-
-	//C give socket id to session.user //? I don't think the actual cookie.session receives this, but for now only the socket.session needs it
-	if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = socket.id;
-
-
-	socket.on('disconnect', async (reason) => {
-		console.log('DISCONNECT', socket.id);
-
-		await sj.subscriptions.disconnect(socket.id).catch(rejected => { //TODO better way
-			if (sj.isType(rejected, sj.Base)) rejected.announce();
-			else console.error('subscription disconnect error:', rejected);
-		});
-		if (sj.isType(socket.session.user, sj.User)) delete socket.session.user.socketId;
-	});
-
-	socket.on('subscribe', async ({table, query}, callback) => {
-		console.log('SUBSCRIBE', table, query);
-
-		//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
-		let subscriber = socket.session.user;
-		if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
-		const result = await sj.subscriptions.add(table, query, subscriber).catch(sj.andResolve);
-		callback(result);		
-	});
-	socket.on('unsubscribe', async ({table, query}, callback) => {
-		console.log('UNSUBSCRIBE', query);
-
-		let subscriber = socket.session.user;
-		if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
-		const result = await sj.subscriptions.remove(table, query, subscriber).catch(sj.andResolve);
-		callback(result);
-	});
-
-	socket.on('error', (reason) => {
-		console.error('ERROR', socket.id, reason);
-	});
+// LIVE DATA
+sj.liveData.start({
+	app,
+	socket: socketIO.of('/live-data'),
 });
 
 
@@ -201,7 +154,7 @@ sj.databaseSockets.on('connect', (socket) => {
 //  ███████╗██║███████║   ██║   ███████╗██║ ╚████║
 //  ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝
 
-// listen to requests
+// START SERVER
 server.listen(PORT, () => {
 	console.log('███████████████████████████████████████');
 	console.log(`SERVER LISTENING ON PORT ${PORT}`);
@@ -212,4 +165,3 @@ process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at:', p, '\n Reason:', reason);
     //TODO handle
 });
-
