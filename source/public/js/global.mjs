@@ -174,7 +174,8 @@ sj.test = async function(tests, origin) {
 
 	if (failCount === 0) {
 		console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
-	}
+		return true;
+	} else return false;
 };
 sj.performance = function (iterations, fs) {
 	fs.forEach((f, index) => {

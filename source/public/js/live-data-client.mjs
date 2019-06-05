@@ -910,8 +910,6 @@ export default {
 
 			context.state.socket.on('notify', async ({table, query, timestamp}) => {
 				const Entity = sj.Entity.tableToEntity(table);
-				console.warn('u');
-				//---------- subscription isn't being removed on server side
 				context.dispatch('update', {Entity, query, timestamp});
 			});
 
@@ -1066,10 +1064,12 @@ export default {
 
 			
 			//C module test
-			await context.dispatch('test');
+			//await context.dispatch('test');
 		},
 
 		async test(context) {
+			//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
+
 			//C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
 			await sj.wait(2000);
 
@@ -1149,6 +1149,8 @@ export default {
 			const iterations = Math.round(Math.random() * 10) + 5;
 			const xTracks = [];
 
+			console.log('iterations:', iterations);
+
 			// BEFORE
 			const entityRefsLengthBefore = trackSubscription.liveQuery.cachedEntityRefs.length;
 			const entitiesLengthBefore = trackSubscription.liveQuery.table.cachedEntities.length;
@@ -1176,6 +1178,7 @@ export default {
 				}).add().then(sj.content).then(sj.one);
 			}
 			await waitForUpdate();
+			//console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
 			tests.push(
 				['cachedEntityRefs length afterAdd',
 				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
@@ -1194,6 +1197,7 @@ export default {
 				await xTracks[i].edit();
 			}
 			await waitForUpdate();
+			//console.log('xAfterEdit', onAddCount, onEditCount, onRemoveCount);
 			tests.push(
 				['cachedEntityRefs length afterEdit',
 				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
@@ -1212,6 +1216,7 @@ export default {
 				await xTracks[i].remove();
 			}
 			await waitForUpdate();
+			//console.log('xAfterRemove', onAddCount, onEditCount, onRemoveCount);
 			tests.push(
 				['cachedEntityRefs length afterRemove',
 				trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
@@ -1232,9 +1237,12 @@ export default {
 			await user.remove();
 
 			//TODO add tests for convergent liveQueries
-			await sj.test([
+			const passed = await sj.test([
 				...tests,
 			], 'liveQuery');
+
+			//C this refreshes the page until the test fails
+			//if (passed) document.location.reload();
 		},
 	},
 };

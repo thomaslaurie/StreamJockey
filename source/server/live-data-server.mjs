@@ -84,8 +84,7 @@ export default {
 
 				let subscriber = socket.session.user;
 				if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
-				//const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, subscriber).catch(sj.andResolve);
-				const result = true;
+				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, subscriber).catch(sj.andResolve);
 				callback(result);
 			});
 
@@ -230,7 +229,6 @@ export default {
 							table: Entity.table,
 							query: liveQuery.query,
 							timestamp,
-							changed: entity, //TODO remove this eventually
 						});
 					}
 				}
