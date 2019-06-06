@@ -2234,48 +2234,215 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 
 sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 	constructorParts: parent => ({
+		beforeInit(options) {
+			if (
+				typeof options.validate !== 'function' ||
+				typeof options.cast !== 'function'
+			) throw new sj.Error({
+				origin: 'sj.Rule2.beforeInit()',
+				reason: 'validate or cast is not a function',
+				content: options,
+			});
+		},
 		defaults: {
-			async: false,
+			//G check() and cast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
 
-			check(value, options) {
-				//G should return true or false for a strict match
-				return false;
+			//G validate should have one or many, sequential and/or parallel conditions that do nothing if passed or if failed - throw a specific error (with placeholders) 
+			validate(value, accessory) {
+				throw sj.Error({
+					origin: 'sj.Rule2.validate()',
+					reason: `an instanced validate function hasn't been created for this rule`,
+				});
 			},
 
-			castPart(value) {
-				//G should return the casted value or throw the castError
-				throw new sj.Error(this.castError);
+			//G cast should have one or many casting functions (which may error freely), that update the accessory.castValue property.
+			//G don't modify the original value
+			//! never directly call cast - it won't return anything, may throw an error, and the accessory.castValue is not guaranteed to pass validation
+			//C when validateCast() or checkCast() are called, through callCast(), the last updated accessory.castValue is returned if cast() errors
+			/* //R why not just throw the error and ignore the last castValue?
+				//R casting errors aren't very user friendly (because the user won't know what cast means), so instead just return the last successfully cast value and let the validator handle the error message. 
+				//R Example: while '2.35' can be cast to the number, it cannot (in this example) be cast to an integer. the validator will throw 'number is not an integer' for this STRING, rather than having cast throw 'cannot cast number to integer'.
+				//R Also, managing to throw an error while returning the last casted value is a bit difficult, so just avoid it.
+			*/
+			cast(value, accessory) {
+				new sj.Warn({
+					origin: 'sj.Rule2.cast()',
+					reason: `an instanced cast function hasn't been created for this rule`,
+					log: true,
+				});
 			},
-			castError: {
-				origin: 'sj.Rule2.castPart()',
-				reason: `cannot cast value, cast function hasn't been defined`,
-			},
+
+			//C string or array of strings used to replace $0, $1, $2... of specific properties (reason and message sofar) of an error and it's content errors if error is an ErrorList
+			fill: 'Value',
 		},
 		afterInit() {
-			const castFailedError = {
-				origin: 'sj.Rule2.cast()',
-				reason: 'value was successfully cast, but it still did not pass the rule, this is likely a mistake within the rule',
-			};
+			const isAsync = this.validate.constructor.name === 'AsyncFunction'
 
-			if (async) {
-				this.cast = async function (value, options) {
-					//C cast value
-					const castedValue = await this.castPart(value);
-					//C ensure that castedValue passes
-					if (!await this.check(castedValue, options)) throw new sj.Error(castFailedError);
-					//C return it
-					return castedValue;
+			//C try-catch blocks are used for both async and sync to increase clarity
+			if (isAsync) {
+				//G validateCast works the same as validate, it just uses the cast value instead
+				this.validateCast = async function (value, accessory) {
+					const cast = await this.callAsyncCast(value, accessory);
+					try {
+						await this.validate(cast, accessory);
+					} catch (e) {
+						throw this.editError(e);
+					}
+					return cast;
+				};
+
+				//G check/checkCast will return true or false for a strict/cast match
+				//G won't throw errors
+				this.check = async function (value, accessory) {
+					try {
+						await this.validate(value, accessory);
+						return true;
+					} catch (e) {
+						return false;
+					}
+				};
+				this.checkCast = async function (value, accessory) {
+					const cast = await this.callAsyncCast(value, accessory);
+					try {
+						return await this.check(cast, accessory);
+					} catch (e) {
+						return false;
+					}
 				};
 			} else {
-				this.cast = function (value, options) {
-					//C cast value
-					const castedValue = this.castPart(value);
-					//C ensure that castedValue passes
-					if (!this.check(castedValue, options)) throw new sj.Error(castFailedError);
-					//C return it
-					return castedValue;
+				this.validateCast = function (value, accessory) {
+					const cast = this.callCast(value, accessory);
+					try {
+						this.validate(cast, accessory);
+					} catch (e) {
+						throw this.editError(e);
+					}
+					return cast;
+				};
+
+				this.check = function (value, accessory) {
+					try {
+						this.validate(value, accessory);
+						return true;
+					} catch (e) {
+						return false;
+					}
+				};
+				this.checkCast = function (value, accessory) {
+					const cast = this.callCast(value, accessory);
+					try {
+						return this.check(cast, accessory);
+					} catch (e) {
+						return false;
+					}
 				};
 			}
+		},
+	}),
+	prototypeProperties: parent => ({
+		//R decided to create wrapper functions for cast so that I don't have to write a bunch of try/catch blocks to prevent cast from erroring, the accessory.castValue is updated every time the value is cast, if it errors, the last castValue is just returned
+		async callAsyncCast(value, accessory) {
+			accessory.castValue = value;
+			try {
+				await this.cast(value, accessory);
+			} catch (e) {}
+			return accessory.castValue;
+		},
+		callCast(value, accessory) {
+			accessory.castValue = value;
+			try {
+				this.cast(value, accessory);
+			} catch (e) {}
+			return accessory.castValue;
+		},
+
+		fillError(error, fill) {
+			//C don't modify default properties
+			const filledReason = error.reason;
+			const filledMessage = error.message;
+
+			//C replace placeholders
+			sj.any(fill).forEach((item, index) => {
+				const string = String(item);
+				filledReason.replace(`$${index}`, string);
+				filledMessage.replace(`$${index}`, string);
+			});
+
+			error.reason = filledReason;
+			error.message = filledMessage;
+		},
+		editError(targetError, {fill = this.fill, error, origin}) {
+			//C ensure that error is an sj.Error
+			const properError = sj.propagate(targetError);
+
+			//C fill error
+			fillError(properError, fill);
+
+			//C if ErrorList
+			if (sj.isType(properError, sj.ErrorList)) {
+				//C fill each item
+				for (const listError of properError.content) {
+					fillError(listError, fill);
+				}
+			}
+
+			throw new sj.Error({
+				...this.properError,
+				//C custom properties //! will overwrite any filled properties
+				...error,
+				//C fixed properties
+				origin,
+			});
+		},
+	}),
+});
+sj.Rule2.augmentClass({
+	string: new sj.Rule2({
+		validate(value) {
+			if (!sj.isType(value, String)) throw new sj.Error({
+				origin: 'sj.Rule2.string.validate()',
+				reason: '$0 is not a string',
+				message: '$0 must be text.',
+				content: sj.image(value),
+			});
+		},
+		cast(value, accessory) {
+			//C a failed stringify can still be turned in to a string
+			if (typeof accessory.castValue === 'object') try { accessory.castValue = JSON.stringify(accessory.castValue); } catch (e) {} 
+			accessory.castValue = String(accessory.castValue);
+		},
+	}),
+	trimmed: new sj.Rule2({
+		validate(value) {
+			sj.Rule2.string.validate(value);
+			//TODO ensure that this regExp checks for all possible white space
+			//L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
+			if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.Error({
+				origin: 'sj.Rule2.trimmed.validate()',
+				reason: '$0 is not trimmed',
+				message: '$0 must not have any leading or trailing whitespace.',
+				content: sj.image(value),
+			});
+		},
+		cast(value, accessory) {
+			accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
+			accessory.castValue = accessory.castValue.trim();
+		},
+	}),
+	nonEmptyString: new sj.Rule2({
+		//C string has any non-whitespace characters
+		validate(value) {
+			sj.Rule2.string.validate(value);
+			if (value.trim() === '') throw new sj.Error({
+				origin: 'sj.Rule2.nonEmptyString.validate()',
+				reason: '$0 is empty or only has whitespace',
+				message: '$0 must not be empty.',
+				content: sj.image(value),
+			});
+		},
+		cast(value, accessory) {
+			accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
+			//! cannot cast any further than a string
 		},
 	}),
 });
@@ -2820,6 +2987,14 @@ sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
 	}),
 });
 // CUSTOM ERRORS
+sj.SilentError = sj.Base.makeClass('SilentError', sj.Error, {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
+			log: false,
+		},
+	}),
+});
 sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
 	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
 	constructorParts: parent => ({

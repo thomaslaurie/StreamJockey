@@ -1589,27 +1589,19 @@ sj.spotify = new sj.Source({
 	}),
 });
 
+sj.youtube = new sj.Source({
+	name: 'youtube',
+	idPrefix: 'https://www.youtube.com/watch?v=',
 
-//TODO youtube
-/*
-	sj.youtube = new sj.Source({
-		name: 'youtube',
-		idPrefix: 'https://www.youtube.com/watch?v=',
-	});
-*/
-// auth
-/*
-	sj.youtube.auth = async function () {
+	async auth() {
 		//TODO
 		return new sj.Error({
 			log: true,
 			origin: 'youtube.auth()',
 			message: 'this function is not yet implemented',
 		});
-	};
-*/
-/*
-	sj.youtube.loadApi = async function () { //TODO
+	},
+	async loadApi() { //? how to fit this into existing framework? this might be closer to auth()
 		// Get Script
 		// https://api.jquery.com/jquery.getscript/
 		return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
@@ -1668,75 +1660,77 @@ sj.spotify = new sj.Source({
 				reason: exception,
 			});
 		});
-	};
-*/
-// player
-/*
-	sj.youtube.loadPlayer = function () { //TODO
-		//TODO make this async
+	},
 
-		$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
-			callback(new sj.Error({
-				log: true,
-				origin: 'youtube.loadPlayer()',
-				message: 'failed to load youtube player',
-				reason: exception,
-				content: exception,
-			}));
-		});
+	playback: new sj.Playback({
+		actions: {
+			async loadPlayer(context) {
+				//TODO make this async
 
-		// callback
-		window.onYouTubeIframeAPIReady = function () {
-			// https://developers.google.com/youtube/iframe_api_reference#Playback_status
-			// (DOM element, args)
-			window.youtubePlayer = new YT.Player('youtubePlayer', {
-				height: '100%',
-				width: '100%',
-				events: {
-					onReady: onPlayerReady,
-					onStateChange: onPlayerStateChange,
-					onError: onPlayerError,
+				$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
+					callback(new sj.Error({
+						log: true,
+						origin: 'youtube.loadPlayer()',
+						message: 'failed to load youtube player',
+						reason: exception,
+						content: exception,
+					}));
+				});
+
+				// callback
+				window.onYouTubeIframeAPIReady = function () {
+					// https://developers.google.com/youtube/iframe_api_reference#Playback_status
+					// (DOM element, args)
+					window.youtubePlayer = new YT.Player('youtubePlayer', {
+						height: '100%',
+						width: '100%',
+						events: {
+							onReady: onPlayerReady,
+							onStateChange: onPlayerStateChange,
+							onError: onPlayerError,
+						}
+					});
 				}
-			});
-		}
 
-		// player callback
-		window.onPlayerReady = function (event) {
-			var result = new sj.Success({
-				log: true,
-				origin: 'youtube.loadPlayer()',
-				message: 'youtube player loaded',
-			});
+				// player callback
+				window.onPlayerReady = function (event) {
+					var result = new sj.Success({
+						log: true,
+						origin: 'youtube.loadPlayer()',
+						message: 'youtube player loaded',
+					});
 
-			// TODO updatePlayback();
-		}
+					// TODO updatePlayback();
+				}
 
-		window.onPlayerStateChange = function (event) {
-			// TODO 3 - buffering counts as 'playing' for play/pause but should count as paused for progression, need to figure out out to handle this as right now it always counts as playing
+				window.onPlayerStateChange = function (event) {
+					// TODO 3 - buffering counts as 'playing' for play/pause but should count as paused for progression, need to figure out out to handle this as right now it always counts as playing
 
-			// playing
-			if (event.data === 1 || event.data === 3) {
-				youtube.playback.isPlaying = true;
-			} else {
-				youtube.playback.isPlaying = false;
-			}
+					// playing
+					if (event.data === 1 || event.data === 3) {
+						youtube.playback.isPlaying = true;
+					} else {
+						youtube.playback.isPlaying = false;
+					}
 
-			// nothing other than playing is given information here, however because the api functions are synchronous (except for the track) could we not just call them here too? even though the commands of play/pause and seeking are infrequent enough to warrant checking every time - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
+					// nothing other than playing is given information here, however because the api functions are synchronous (except for the track) could we not just call them here too? even though the commands of play/pause and seeking are infrequent enough to warrant checking every time - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
 
-			// progress
-			if (event.data === 1 || event.data === 2) {
-				youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-				youtube.playback.timestamp = Date.now();
-			}
-		}
+					// progress
+					if (event.data === 1 || event.data === 2) {
+						youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
+						youtube.playback.timestamp = Date.now();
+					}
+				}
 
-		window.onPlayerError = function (event) {
-			console.error(event);
-		}
+				window.onPlayerError = function (event) {
+					console.error(event);
+				}
 
-		// youtubePlayer.destroy() kills the iframe
-	};
-*/
+				// youtubePlayer.destroy() kills the iframe
+			},
+		},
+	}),
+});
 
 
 //  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
@@ -1761,20 +1755,34 @@ sj.searchResults = {
 	'all': new sj.Playlist({origin: 'searchResults',}),
 };
 
-// search
-sj.spotify.search = async function (term) {
-	let result = await sj.spotify.request('GET', 'search', {
+sj.spotify.search = async function ({
+	term = '',
+	startIndex = 0,
+	number = 1,
+}) {
+	//TODO validate
+	
+
+	const result = await sj.spotify.request('GET', 'search', {
 		q: term,
-		//C 'A comma-separated list of item types to search across. Valid types are: album , artist, playlist, and track.'
-		type: ['track'].join(','), 
-		//C ' An ISO 3166-1 alpha-2 country code or the string from_token. If a country code is specified, only artists, albums, and tracks with content that is playable in that market is returned. Note: Playlist results are not affected by the market parameter. If market is set to from_token, and a valid access token is specified in the request header, only content playable in the country associated with the user account, is returned. Users can view the country that is associated with their account in the account settings. A user must grant access to the user-read-private scope prior to when the access token is issued.
+		type: 'track',
 		market: 'from_token',
-		//C Maximum number of results to return. Default: 20, Minimum: 1, Maximum: 50, //! Note: The limit is applied within each type, not on the total response. For example, if the limit value is 3 and the type is artist,album, the response contains 3 artists and 3 albums.
-		limit: sj.searchResults.tracksPerSource,
-		//C The index of the first result to return. Default: 0 (the first result). Maximum offset (including limit): 10,000. Use with limit to get the next page of search results.
-		offset: sj.searchResults.tracksPerSource * sj.searchResults.page,
-		//C Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses.
-		// include_external: 'audio', 
+		limit: number,
+		offset: startIndex,
+		// include_external: 'audio',
+
+		/* //G
+			type: 
+				'A comma-separated list of item types to search across. Valid types are: album , artist, playlist, and track.'
+			market:
+				'An ISO 3166-1 alpha-2 country code or the string from_token. If a country code is specified, only artists, albums, and tracks with content that is playable in that market is returned. Note: Playlist results are not affected by the market parameter. If market is set to from_token, and a valid access token is specified in the request header, only content playable in the country associated with the user account, is returned. Users can view the country that is associated with their account in the account settings. A user must grant access to the user-read-private scope prior to when the access token is issued.'
+			limit:
+				'Maximum number of results to return. Default: 20, Minimum: 1, Maximum: 50, //! Note: The limit is applied within each type, not on the total response. For example, if the limit value is 3 and the type is artist,album, the response contains 3 artists and 3 albums.'
+			offset:
+				'The index of the first result to return. Default: 0 (the first result). Maximum offset (including limit): 10,000. Use with limit to get the next page of search results.'
+			include_external:
+				'Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses.'
+		*/
 	});
 
 	return new sj.Playlist({
