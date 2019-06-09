@@ -203,11 +203,11 @@ sj.trace = function () {
 		//TODO figure out how to properly display newlines as strings inside objects
 
 		//C get stack
-		let stackTrace0 = e.stack;
+		const stackTrace0 = e.stack;
 		//C 'file:///' is removed (so that the URIs are clickable in node)
-		let stackTrace1 = sj.stringReplaceAll(stackTrace0, 'file:///', '');
+		const stackTrace1 = sj.stringReplaceAll(stackTrace0, 'file:///', '');
 		//C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-		let stackTrace2 = sj.stringReplaceAll(stackTrace1, 'Error\n', '');
+		const stackTrace2 = sj.stringReplaceAll(stackTrace1, 'Error\n', '');
 		//C removes any line with Object.sj.trace
 
 		let ignore = [
@@ -219,10 +219,10 @@ sj.trace = function () {
 			'sj.Error.announce',
 		];
 		ignore = sj.stringReplaceAll(ignore.join('|'), '.', '\.');
-		let exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-		let stackTrace3 = sj.stringReplaceAll(stackTrace2, exp, '');
+		const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
+		const stackTrace3 = sj.stringReplaceAll(stackTrace2, exp, '');
 
-		return stackTrace3;
+		return stackTrace0;
 	}
 };
 sj.image = function (value) {
@@ -1270,6 +1270,7 @@ sj.checkKey = async function (list, key) {
 	//R finally I found that I was repeating some parts of this anonymous function like const parent = Object.getPrototypeOf(this); and return this;, so I decided to make a factory function for all descendants of sj.Base, and a similar augmentation function, this was also done partly so that defaults, instanceMethods, and statics can be laid out with similar hierarchy.
 */
 //C manually create sj.Base
+//TODO - consider changing all the constructorParts into functions (like static/prototypeProperties) that return an object to be assigned, (I think this may help with the defaults reference issue), but that also still can execute code. Maybe when this is done, then these parts can be brought up to the top level because they will now have their own closure context to process in
 sj.Base = class Base {
 	constructor(options) {
 		//! defaults are retrieved in the function via the static this.constructor.defaults property
@@ -1434,8 +1435,6 @@ sj.Base = class Base {
 		if (this.log) this.announce();
 	};
 }).call(sj.Base);
-//TODO - consider changing all the constructorParts into functions (like static/prototypeProperties) that return an object to be assigned, (I think this may help with the defaults reference issue), but that also still can execute code. Maybe when this is done, then these parts can be brought up to the top level because they will now have their own closure context to process in
-
 sj.Base.test = async function () {
 	let calledConstructorParts 		= false;
 	let calledBeforeInitialize 		= false;
@@ -1669,6 +1668,64 @@ sj.Base.test = async function () {
 };
 
 
+// ERROR
+sj.Error = sj.Base.makeClass('Error', sj.Base, {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
+			log: true, //TODO remove log: true from errors
+			code: 400,
+			type: 'Bad Request',
+		},
+	}),
+});
+sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
+	constructorParts: parent => ({
+		//C wrapper for an array with one or more errors
+		defaults: {
+			// OVERWRITE
+			reason: 'one or more errors occurred with items',
+			content: [],
+		},
+	}),
+});
+// CUSTOM ERROR
+sj.SilentError = sj.Base.makeClass('SilentError', sj.Error, {
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
+			log: false,
+		},
+	}),
+});
+sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
+	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
+	constructorParts: parent => ({
+		defaults: {
+			// OVERWRITE
+			message: 'authorization required',
+		},
+	}),
+});
+sj.Unreachable = sj.Base.makeClass('Unreachable', sj.Error, {
+	//C used to indicate an unreachable place in the code
+	constructorParts: parent => ({
+		defaults: {
+			message: 'code reached a place that should be unreachable',
+		},	
+	}),
+});
+sj.Timeout = sj.Base.makeClass('Timeout', sj.Error, {
+	//C used to indicate a timed-out function
+	constructorParts: parent => ({
+		defaults: {
+			message: 'request timed out',
+		},
+	}),
+});
+
+
+// RULE
 sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 	//G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
 	constructorParts: parent => ({
@@ -2234,14 +2291,14 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 
 sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 	constructorParts: parent => ({
-		beforeInit(options) {
+		beforeInitialize(accessory) {
 			if (
-				typeof options.baseValidate !== 'function' ||
-				typeof options.baseCast !== 'function'
+				typeof accessory.options.baseValidate !== 'function' ||
+				typeof accessory.options.baseCast !== 'function'
 			) throw new sj.Error({
 				origin: 'sj.Rule2.beforeInit()',
 				reason: 'baseValidate or baseCast is not a function',
-				content: options,
+				content: sj.image(accessory.options),
 			});
 		},
 		defaults: {
@@ -2278,7 +2335,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 			//C string or array of strings used to replace $0, $1, $2... of specific properties (reason and message sofar) of an error and it's content errors if error is an ErrorList
 			fill: 'Value',
 		},
-		afterInit() {
+		afterInitialize() {
 			//C try-catch blocks are used for both async and sync to increase clarity
 
 			const isValidateAsync = this.baseValidate.constructor.name === 'AsyncFunction';
@@ -2628,6 +2685,7 @@ sj.Rule2.augmentClass({
 	}),
 });
 
+
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
 sj.Success = sj.Base.makeClass('Success', sj.Base, {
 	constructorParts: parent => ({
@@ -2678,6 +2736,7 @@ sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
 		},
 	}),
 });
+
 
 // ENTITIES
 sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
@@ -3145,64 +3204,6 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 	},
 });
 
-
-// ERRORS
-sj.Error = sj.Base.makeClass('Error', sj.Base, {
-	constructorParts: parent => ({
-		defaults: {
-			// OVERWRITE
-			log: true, //TODO remove log: true from errors
-			code: 400,
-			type: 'Bad Request',
-		},
-	}),
-});
-sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
-	constructorParts: parent => ({
-		//C wrapper for an array with one or more errors
-		defaults: {
-			// OVERWRITE
-			reason: 'one or more errors occurred with items',
-			content: [],
-		},
-	}),
-});
-// CUSTOM ERRORS
-sj.SilentError = sj.Base.makeClass('SilentError', sj.Error, {
-	constructorParts: parent => ({
-		defaults: {
-			// OVERWRITE
-			log: false,
-		},
-	}),
-});
-sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
-	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
-	constructorParts: parent => ({
-		defaults: {
-			// OVERWRITE
-			message: 'authorization required',
-		},
-	}),
-});
-sj.Unreachable = sj.Base.makeClass('Unreachable', sj.Error, {
-	//C used to indicate an unreachable place in the code
-	constructorParts: parent => ({
-		defaults: {
-			message: 'code reached a place that should be unreachable',
-		},	
-	}),
-});
-sj.Timeout = sj.Base.makeClass('Timeout', sj.Error, {
-	//C used to indicate a timed-out function
-	constructorParts: parent => ({
-		defaults: {
-			message: 'request timed out',
-		},
-	}),
-});
-
-
 sj.Source = sj.Base.makeClass('Source', sj.Base, {
 	constructorParts: parent => ({
 		defaults: {
@@ -3265,8 +3266,8 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 });
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
 	constructorParts: parent => ({
-		beforeInitialize(options) {
-			if (sj.isType(options.query, Array)) options.query = sj.any(query);
+		beforeInitialize(accessory) {
+			if (sj.isType(accessory.options.query, Array)) accessory.options.query = sj.any(query);
 		},
 		defaults: {
 			table: undefined,
@@ -3295,29 +3296,6 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
 		},
 	}),
 });
-
-// sj.QuerySubscription = sj.Base.makeClass('QuerySubscription', sj.Base, {
-// 	constructorParts: parent => ({
-// 		//! don't nest QuerySubscriptions
-// 		defaults: {
-// 			query: undefined,
-// 			subscribers: [], 
-// 			timestamp: 0,
-// 			content: [],
-// 		},
-// 	}),
-// });
-// sj.EntitySubscription = sj.Base.makeClass('EntitySubscription', sj.QuerySubscription, {
-// 	constructorParts: parent => ({
-// 		//C subscribers can include both component subscribers and parent QuerySubscription subscribers
-// 		//C EntitySubscriptions with only QuerySubscription subscribers won't have a server-side subscription, they will instead be updated by their parent QuerySubscription(s)
-// 		//G query should only have one query object with one id property: [{id: 8}]
-// 		//G content is the root data object, not an array
-// 		defaults: {
-// 			content: undefined,
-// 		},	
-// 	}),
-// });
 
 
 export default sj;

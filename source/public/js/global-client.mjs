@@ -1761,6 +1761,8 @@ sj.spotify.search = async function ({
 	number = 1,
 }) {
 	// VALIDATE
+	console.log(sj.Rule2.nonEmptyString);
+
 	sj.Rule2.nonEmptyString.validate(term);
 	sj.Rule2.nonNegativeInteger.validate(startIndex);
 	sj.Rule2.positiveInteger.validate(number);
