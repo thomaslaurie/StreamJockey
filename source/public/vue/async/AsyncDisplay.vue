@@ -128,6 +128,9 @@
 				},
 			},
 		},
+		
+		//TODO create a watcher for query (and maybe data) properties, that refresh the subscription and/or data when changed
+
         methods: {
 			async refresh() {
 				let method;

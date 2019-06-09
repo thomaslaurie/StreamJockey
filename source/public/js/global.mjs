@@ -2236,19 +2236,19 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 	constructorParts: parent => ({
 		beforeInit(options) {
 			if (
-				typeof options.validate !== 'function' ||
-				typeof options.cast !== 'function'
+				typeof options.baseValidate !== 'function' ||
+				typeof options.baseCast !== 'function'
 			) throw new sj.Error({
 				origin: 'sj.Rule2.beforeInit()',
-				reason: 'validate or cast is not a function',
+				reason: 'baseValidate or baseCast is not a function',
 				content: options,
 			});
 		},
 		defaults: {
-			//G check() and cast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
+			//G baseValidate() and baseCast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
 
-			//G validate should have one or many, sequential and/or parallel conditions that do nothing if passed or if failed - throw a specific error (with placeholders) 
-			validate(value, accessory) {
+			//G validate should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders) if failed
+			baseValidate(value, accessory) {
 				throw sj.Error({
 					origin: 'sj.Rule2.validate()',
 					reason: `an instanced validate function hasn't been created for this rule`,
@@ -2256,19 +2256,22 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 			},
 
 			//G cast should have one or many casting functions (which may error freely), that update the accessory.castValue property.
-			//G don't modify the original value
-			//! never directly call cast - it won't return anything, may throw an error, and the accessory.castValue is not guaranteed to pass validation
-			//C when validateCast() or checkCast() are called, through callCast(), the last updated accessory.castValue is returned if cast() errors
-			/* //R why not just throw the error and ignore the last castValue?
-				//R casting errors aren't very user friendly (because the user won't know what cast means), so instead just return the last successfully cast value and let the validator handle the error message. 
-				//R Example: while '2.35' can be cast to the number, it cannot (in this example) be cast to an integer. the validator will throw 'number is not an integer' for this STRING, rather than having cast throw 'cannot cast number to integer'.
-				//R Also, managing to throw an error while returning the last casted value is a bit difficult, so just avoid it.
+			//G avoid modifying the original value
+			//! don't directly call cast, as the casted value is not guaranteed to pass validation, be of the correct type, or have even changed
+			/* //R 
+				why not just throw the error and forget about the last successfully cast value?
+				
+				casting errors aren't very user friendly (because the user won't know what cast means), so just delegate the error handling to whats already written in the validate function
+				
+				Example: while '2.35' can be cast to the number, it cannot (in this example) be cast to an integer. the validator will throw 'number is not an integer' for this STRING, rather than having cast throw 'cannot cast number to integer'.
+
+				Also, managing to throw an error while returning the last casted value is a bit difficult, so just avoid it.
 			*/
-			cast(value, accessory) {
+			baseCast(value, accessory) {
 				new sj.Warn({
+					log: true,
 					origin: 'sj.Rule2.cast()',
 					reason: `an instanced cast function hasn't been created for this rule`,
-					log: true,
 				});
 			},
 
@@ -2276,23 +2279,21 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 			fill: 'Value',
 		},
 		afterInit() {
-			const isAsync = this.validate.constructor.name === 'AsyncFunction'
-
 			//C try-catch blocks are used for both async and sync to increase clarity
-			if (isAsync) {
-				//G validateCast works the same as validate, it just uses the cast value instead
-				this.validateCast = async function (value, accessory) {
-					const cast = await this.callAsyncCast(value, accessory);
+
+			const isValidateAsync = this.baseValidate.constructor.name === 'AsyncFunction';
+			const isCastAsync = this.baseCast.constructor.name === 'AsyncFunction';
+
+			if (isValidateAsync) {
+				//C wrapper for baseValidate that modifies the error
+				this.validate = async function (value, accessory) {
 					try {
-						await this.validate(cast, accessory);
+						return await this.baseValidate(value, accessory);
 					} catch (e) {
 						throw this.editError(e);
 					}
-					return cast;
 				};
-
-				//G check/checkCast will return true or false for a strict/cast match
-				//G won't throw errors
+				//C check calls validate but instead returns true on pass and false on error
 				this.check = async function (value, accessory) {
 					try {
 						await this.validate(value, accessory);
@@ -2301,25 +2302,14 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 						return false;
 					}
 				};
-				this.checkCast = async function (value, accessory) {
-					const cast = await this.callAsyncCast(value, accessory);
-					try {
-						return await this.check(cast, accessory);
-					} catch (e) {
-						return false;
-					}
-				};
 			} else {
-				this.validateCast = function (value, accessory) {
-					const cast = this.callCast(value, accessory);
+				this.validate = function (value, accessory) {
 					try {
-						this.validate(cast, accessory);
+						return this.baseValidate(value, accessory);
 					} catch (e) {
 						throw this.editError(e);
 					}
-					return cast;
 				};
-
 				this.check = function (value, accessory) {
 					try {
 						this.validate(value, accessory);
@@ -2328,10 +2318,61 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 						return false;
 					}
 				};
-				this.checkCast = function (value, accessory) {
-					const cast = this.callCast(value, accessory);
+			}
+
+			if (isCastAsync) {
+				//C wrapper for baseCast that returns the last successfully cast value, this removes the need to write a bunch of try/catch blocks in the instanced baseCast method
+				this.cast = async function (value, accessory) {
+					accessory.castValue = value;
 					try {
-						return this.check(cast, accessory);
+						await this.baseCast(value, accessory);
+					} catch (e) {}
+					return accessory.castValue;
+				};
+			} else {
+				this.cast = function (value, accessory) {
+					accessory.castValue = value;
+					try {
+						this.baseCast(value, accessory);
+					} catch (e) {}
+					return accessory.castValue;
+				};
+			}
+
+			if (isValidateAsync || isCastAsync) {
+				//C validate that uses the value from cast() instead of the original value, also returns the cast value
+				this.validateCast = async function (value, accessory) {
+					try {
+						const cast = await this.cast(value, accessory);
+						await this.validate(cast, accessory);
+						return cast;
+					} catch (e) {
+						throw this.editError(e);
+					}
+				};
+				//C check that uses validateCast() instead of validate()
+				this.checkCast = async function (value, accessory) {
+					try {
+						await this.validateCast(value, accessory);
+						return true;
+					} catch (e) {
+						return false;
+					}
+				};
+			} else {
+				this.validateCast = function (value, accessory) {
+					try {
+						const cast = this.cast(value, accessory);
+						this.validate(cast, accessory);
+						return cast;
+					} catch (e) {
+						throw this.editError(e);
+					}
+				};
+				this.checkCast = function (value, accessory) {
+					try {
+						this.validateCast(value, accessory);
+						return true;
 					} catch (e) {
 						return false;
 					}
@@ -2340,22 +2381,6 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 		},
 	}),
 	prototypeProperties: parent => ({
-		//R decided to create wrapper functions for cast so that I don't have to write a bunch of try/catch blocks to prevent cast from erroring, the accessory.castValue is updated every time the value is cast, if it errors, the last castValue is just returned
-		async callAsyncCast(value, accessory) {
-			accessory.castValue = value;
-			try {
-				await this.cast(value, accessory);
-			} catch (e) {}
-			return accessory.castValue;
-		},
-		callCast(value, accessory) {
-			accessory.castValue = value;
-			try {
-				this.cast(value, accessory);
-			} catch (e) {}
-			return accessory.castValue;
-		},
-
 		fillError(error, fill) {
 			//C don't modify default properties
 			const filledReason = error.reason;
@@ -2397,53 +2422,209 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 	}),
 });
 sj.Rule2.augmentClass({
-	string: new sj.Rule2({
-		validate(value) {
-			if (!sj.isType(value, String)) throw new sj.Error({
-				origin: 'sj.Rule2.string.validate()',
-				reason: '$0 is not a string',
-				message: '$0 must be text.',
-				content: sj.image(value),
-			});
-		},
-		cast(value, accessory) {
-			//C a failed stringify can still be turned in to a string
-			if (typeof accessory.castValue === 'object') try { accessory.castValue = JSON.stringify(accessory.castValue); } catch (e) {} 
-			accessory.castValue = String(accessory.castValue);
-		},
-	}),
-	trimmed: new sj.Rule2({
-		validate(value) {
-			sj.Rule2.string.validate(value);
-			//TODO ensure that this regExp checks for all possible white space
-			//L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
-			if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.Error({
-				origin: 'sj.Rule2.trimmed.validate()',
-				reason: '$0 is not trimmed',
-				message: '$0 must not have any leading or trailing whitespace.',
-				content: sj.image(value),
-			});
-		},
-		cast(value, accessory) {
-			accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
-			accessory.castValue = accessory.castValue.trim();
-		},
-	}),
-	nonEmptyString: new sj.Rule2({
-		//C string has any non-whitespace characters
-		validate(value) {
-			sj.Rule2.string.validate(value);
-			if (value.trim() === '') throw new sj.Error({
-				origin: 'sj.Rule2.nonEmptyString.validate()',
-				reason: '$0 is empty or only has whitespace',
-				message: '$0 must not be empty.',
-				content: sj.image(value),
-			});
-		},
-		cast(value, accessory) {
-			accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
-			//! cannot cast any further than a string
-		},
+	staticProperties: parent => ({
+		// STRING
+		string: new sj.Rule2({
+			baseValidate(value) {
+				if (!sj.isType(value, String)) throw new sj.Error({
+					origin: 'sj.Rule2.string.baseValidate()',
+					reason: '$0 is not a string',
+					message: '$0 must be text.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				//C a failed stringify can still be turned in to a string
+				if (typeof accessory.castValue === 'object') try { accessory.castValue = JSON.stringify(accessory.castValue); } catch (e) {} 
+				accessory.castValue = String(accessory.castValue);
+			},
+		}),
+		trimmed: new sj.Rule2({
+			baseValidate(value) {
+				sj.Rule2.string.validate(value);
+				//TODO ensure that this regExp checks for all possible white space
+				//L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
+				if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.Error({
+					origin: 'sj.Rule2.trimmed.baseValidate()',
+					reason: '$0 is not trimmed',
+					message: '$0 must not have any leading or trailing whitespace.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
+				accessory.castValue = accessory.castValue.trim();
+			},
+		}),
+		nonEmptyString: new sj.Rule2({
+			//C string has any non-whitespace characters
+			baseValidate(value) {
+				sj.Rule2.string.validate(value);
+				if (value.trim() === '') throw new sj.Error({
+					origin: 'sj.Rule2.nonEmptyString.baseValidate()',
+					reason: '$0 is empty or only has whitespace',
+					message: '$0 must not be empty.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
+				//! cannot cast any further than a string
+			},
+		}),
+
+		// NUMBER
+		number: new sj.Rule2({
+			baseValidate(value) {
+				if (!sj.isType(value, Number)) throw new sj.Error({
+					origin: 'sj.Rule2.number.baseValidate()',
+					reason: '$0 is not a number',
+					message: '$0 must be a number.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				//C casts anything else to NaN
+				accessory.castValue = Number.parseFloat(accessory.castValue);
+			},
+		}),
+		nonNaNNumber: new sj.Rule2({
+			baseValidate(value) {
+				if (!sj.isType(value, Number) || Number.isNaN(value)) throw new sj.Error({
+					origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
+					reason: '$0 is not a number or is NaN',
+					message: '$0 must be a number.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+				//! don't cast NaN to a non-NaN number
+			},
+		}),
+
+		nonNegativeNumber: new sj.Rule2({
+			baseValidate(value) {
+				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
+				sj.Rule2.number.validate(value);
+				if (value < 0) throw new sj.Error({
+					origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
+					reason: '$0 is negative',
+					message: '$0 must not be negative.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+				//! don't cast negative number to a non-negative number
+			},
+		}),
+		nonPositiveNumber: new sj.Rule2({
+			baseValidate(value) {
+				sj.Rule2.number.validate(value);
+				if (0 < value) throw new sj.Error({
+					origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
+					reason: '$0 is positive',
+					message: '$0 must not be positive.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+				//! don't cast positive number to a non-positive number
+			},
+		}),
+		positiveNumber: new sj.Rule2({
+			baseValidate(value) {
+				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
+				sj.Rule2.number.validate(value);
+				if (value <= 0) throw new sj.Error({
+					origin: 'sj.Rule2.positiveNumber.baseValidate()',
+					reason: '$0 is negative or 0',
+					message: '$0 must be positive.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+				//! don't cast non-positive number to a positive number
+			},
+		}),
+		negativeNumber: new sj.Rule2({
+			baseValidate(value) {
+				sj.Rule2.number.validate(value);
+				if (0 <= value) throw new sj.Error({
+					origin: 'sj.Rule2.negativeNumber.baseValidate()',
+					reason: '$0 is positive or 0',
+					message: '$0 must be negative.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+				//! don't cast non-negative number to a negative number
+			},
+		}),
+
+		// INTEGER
+		integer: new sj.Rule2({
+			baseValidate(value) {
+				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
+				sj.Rule2.number.validate(value);
+				if (!Number.isInteger(value)) throw new sj.Error({
+					origin: 'sj.Rule2.integer.baseValidate()',
+					reason: '$0 is not an integer',
+					message: '$0 must be an integer.',
+					content: sj.image(value),
+				});
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+				//C chops any decimal off of floats
+				accessory.castValue = Number.parseInt(accessory.castValue);
+			},
+		}),
+
+		nonNegativeInteger: new sj.Rule2({
+			baseValidate(value) {
+				sj.Rule2.nonNegativeNumber.validate(value);
+				sj.Rule2.integer.validate(value);
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.nonNegativeNumber.validateCast(accessory.castValue);
+				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			},
+		}),
+		nonNegativeInteger: new sj.Rule2({
+			baseValidate(value) {
+				sj.Rule2.nonPositiveNumber.validate(value);
+				sj.Rule2.integer.validate(value);
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.nonPositiveNumber.validateCast(accessory.castValue);
+				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			},
+		}),
+		positiveInteger: new sj.Rule2({
+			baseValidate(value) {
+				sj.Rule2.positiveNumber.validate(value);
+				sj.Rule2.integer.validate(value);
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.positiveNumber.validateCast(accessory.castValue);
+				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			},
+		}),
+		negativeInteger: new sj.Rule2({
+			baseValidate(value) {
+				sj.Rule2.negativeNumber.validate(value);
+				sj.Rule2.integer.validate(value);
+			},
+			baseCast(value, accessory) {
+				accessory.castValue = sj.Rule2.negativeNumber.validateCast(accessory.castValue);
+				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			},
+		}),
 	}),
 });
 
@@ -2717,7 +2898,7 @@ sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
 	constructorParts: parent => ({
 		defaults: {
 			// OVERWRITE
-			content: [],
+			content: [], //? is this required to be an array, tracks aren't stored here anymore
 	
 			// NEW
 			userId: undefined,

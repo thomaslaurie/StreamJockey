@@ -1760,8 +1760,10 @@ sj.spotify.search = async function ({
 	startIndex = 0,
 	number = 1,
 }) {
-	//TODO validate
-	
+	// VALIDATE
+	sj.Rule2.nonEmptyString.validate(term);
+	sj.Rule2.nonNegativeInteger.validate(startIndex);
+	sj.Rule2.positiveInteger.validate(number);
 
 	const result = await sj.spotify.request('GET', 'search', {
 		q: term,
@@ -1785,18 +1787,15 @@ sj.spotify.search = async function ({
 		*/
 	});
 
-	return new sj.Playlist({
-		origin: 'spotify.search()',
-		content: result.tracks.items.map(track => {
-			return new sj.Track({
-				source: sj.spotify,
-				sourceId: track.id,
-				name: track.name,
-				duration: track.duration_ms,
-				link: track.external_urls.spotify,
-				artists: track.artists.map(artist => artist.name),
-			});
-		}),
+	return result.tracks.items.map(track => {
+		return new sj.Track({
+			source: sj.spotify,
+			sourceId: track.id,
+			name: track.name,
+			duration: track.duration_ms,
+			link: track.external_urls.spotify,
+			artists: track.artists.map(artist => artist.name),
+		});
 	});
 };
 

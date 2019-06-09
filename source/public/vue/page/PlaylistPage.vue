@@ -1,12 +1,14 @@
 <script>
     import AsyncDisplay from '../async/AsyncDisplay.vue';
-    import TrackDisplayList from '../track/TrackDisplayList.vue';
+	import TrackDisplayList from '../track/TrackDisplayList.vue';
+	import SearchPanel from '../track/SearchPanel.vue';
 
     export default {
         name: 'playlist-page',
         extends: AsyncDisplay,
         components: {
-            TrackDisplayList,
+			TrackDisplayList,
+			SearchPanel,
         },
         data() {
             return {
@@ -47,11 +49,7 @@
         <div id='main'>
             <track-display-list id='playlist' :p-query='{playlistId: data.id}' removeButton></track-display-list>
 
-            <div id='search-div' v-if='edit'>
-                <input v-model='searchTerm' @keyup.enter='search'>
-                <button @click='search'>Search</button>
-				<track-display-list :p-data='searchResults' addButton @add='add'></track-display-list>
-            </div>
+			<search-panel v-if='edit' :playlistId='data.id'></search-panel>
         </div>
     </async-switch>
 </template>
