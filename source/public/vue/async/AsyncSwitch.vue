@@ -31,7 +31,7 @@
                     return AsyncError;
                 },
             },
-        },
+		},
 	}
 	
 	/* //R Thought Process
@@ -133,11 +133,11 @@
     ></component>
     <component v-else-if='state === "loading"'
         :is='LoadingComponent'
-        @reload='reload'
+        @refresh='emitRefresh'
     ></component>
     <component v-else-if='state === "error"'
         :is='ErrorComponent'
-        @reload='reload'
+        @refresh='emitRefresh'
         :error='error'
     ></component>
 

@@ -4,7 +4,7 @@
     export default {
         name: 'async-loading',
         mixins: [emitRefresh],
-    }
+    };
 </script>
 
 

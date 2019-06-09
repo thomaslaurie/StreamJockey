@@ -2304,7 +2304,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 		defaults: {
 			//G baseValidate() and baseCast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
 
-			//G validate should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders) if failed
+			//G validate should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders, should be silent) if failed
 			baseValidate(value, accessory) {
 				throw sj.Error({
 					origin: 'sj.Rule2.validate()',
@@ -2343,15 +2343,15 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 
 			if (isValidateAsync) {
 				//C wrapper for baseValidate that modifies the error
-				this.validate = async function (value, accessory) {
+				this.validate = async function (value, accessory = {}) {
 					try {
 						return await this.baseValidate(value, accessory);
 					} catch (e) {
-						throw this.editError(e);
+						throw this.editError(e, accessory);
 					}
 				};
 				//C check calls validate but instead returns true on pass and false on error
-				this.check = async function (value, accessory) {
+				this.check = async function (value, accessory = {}) {
 					try {
 						await this.validate(value, accessory);
 						return true;
@@ -2360,14 +2360,14 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 					}
 				};
 			} else {
-				this.validate = function (value, accessory) {
+				this.validate = function (value, accessory = {}) {
 					try {
 						return this.baseValidate(value, accessory);
 					} catch (e) {
-						throw this.editError(e);
+						throw this.editError(e, accessory);
 					}
 				};
-				this.check = function (value, accessory) {
+				this.check = function (value, accessory = {}) {
 					try {
 						this.validate(value, accessory);
 						return true;
@@ -2379,7 +2379,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 
 			if (isCastAsync) {
 				//C wrapper for baseCast that returns the last successfully cast value, this removes the need to write a bunch of try/catch blocks in the instanced baseCast method
-				this.cast = async function (value, accessory) {
+				this.cast = async function (value, accessory = {}) {
 					accessory.castValue = value;
 					try {
 						await this.baseCast(value, accessory);
@@ -2387,7 +2387,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 					return accessory.castValue;
 				};
 			} else {
-				this.cast = function (value, accessory) {
+				this.cast = function (value, accessory = {}) {
 					accessory.castValue = value;
 					try {
 						this.baseCast(value, accessory);
@@ -2398,17 +2398,17 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 
 			if (isValidateAsync || isCastAsync) {
 				//C validate that uses the value from cast() instead of the original value, also returns the cast value
-				this.validateCast = async function (value, accessory) {
+				this.validateCast = async function (value, accessory = {}) {
 					try {
 						const cast = await this.cast(value, accessory);
 						await this.validate(cast, accessory);
 						return cast;
 					} catch (e) {
-						throw this.editError(e);
+						throw this.editError(e, accessory);
 					}
 				};
 				//C check that uses validateCast() instead of validate()
-				this.checkCast = async function (value, accessory) {
+				this.checkCast = async function (value, accessory = {}) {
 					try {
 						await this.validateCast(value, accessory);
 						return true;
@@ -2417,16 +2417,16 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 					}
 				};
 			} else {
-				this.validateCast = function (value, accessory) {
+				this.validateCast = function (value, accessory = {}) {
 					try {
 						const cast = this.cast(value, accessory);
 						this.validate(cast, accessory);
 						return cast;
 					} catch (e) {
-						throw this.editError(e);
+						throw this.editError(e, accessory);
 					}
 				};
-				this.checkCast = function (value, accessory) {
+				this.checkCast = function (value, accessory = {}) {
 					try {
 						this.validateCast(value, accessory);
 						return true;
@@ -2439,37 +2439,27 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 	}),
 	prototypeProperties: parent => ({
 		fillError(error, fill) {
-			//C don't modify default properties
-			const filledReason = error.reason;
-			const filledMessage = error.message;
-
 			//C replace placeholders
 			sj.any(fill).forEach((item, index) => {
 				const string = String(item);
-				filledReason.replace(`$${index}`, string);
-				filledMessage.replace(`$${index}`, string);
+				error.reason = error.reason.replace(`$${index}`, string);
+				error.message = error.message.replace(`$${index}`, string);
 			});
-
-			error.reason = filledReason;
-			error.message = filledMessage;
 		},
 		editError(targetError, {fill = this.fill, error, origin}) {
-			//C ensure that error is an sj.Error
-			const properError = sj.propagate(targetError);
-
 			//C fill error
-			fillError(properError, fill);
+			this.fillError(targetError, fill);
 
 			//C if ErrorList
-			if (sj.isType(properError, sj.ErrorList)) {
+			if (sj.isType(targetError, sj.ErrorList)) {
 				//C fill each item
-				for (const listError of properError.content) {
-					fillError(listError, fill);
+				for (const listError of targetError.content) {
+					this.fillError(listError, fill);
 				}
 			}
 
 			throw new sj.Error({
-				...this.properError,
+				...targetError,
 				//C custom properties //! will overwrite any filled properties
 				...error,
 				//C fixed properties
@@ -2483,8 +2473,8 @@ sj.Rule2.augmentClass({
 		// STRING
 		string: new sj.Rule2({
 			baseValidate(value) {
-				if (!sj.isType(value, String)) throw new sj.Error({
-					origin: 'sj.Rule2.string.baseValidate()',
+				if (!sj.isType(value, String)) throw new sj.SilentError({
+					origin: 'sj.Rule2.string.validate()',
 					reason: '$0 is not a string',
 					message: '$0 must be text.',
 					content: sj.image(value),
@@ -2501,8 +2491,8 @@ sj.Rule2.augmentClass({
 				sj.Rule2.string.validate(value);
 				//TODO ensure that this regExp checks for all possible white space
 				//L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
-				if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.Error({
-					origin: 'sj.Rule2.trimmed.baseValidate()',
+				if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.SilentError({
+					origin: 'sj.Rule2.trimmed.validate()',
 					reason: '$0 is not trimmed',
 					message: '$0 must not have any leading or trailing whitespace.',
 					content: sj.image(value),
@@ -2517,8 +2507,8 @@ sj.Rule2.augmentClass({
 			//C string has any non-whitespace characters
 			baseValidate(value) {
 				sj.Rule2.string.validate(value);
-				if (value.trim() === '') throw new sj.Error({
-					origin: 'sj.Rule2.nonEmptyString.baseValidate()',
+				if (value.trim() === '') throw new sj.SilentError({
+					origin: 'sj.Rule2.nonEmptyString.validate()',
 					reason: '$0 is empty or only has whitespace',
 					message: '$0 must not be empty.',
 					content: sj.image(value),
@@ -2533,8 +2523,8 @@ sj.Rule2.augmentClass({
 		// NUMBER
 		number: new sj.Rule2({
 			baseValidate(value) {
-				if (!sj.isType(value, Number)) throw new sj.Error({
-					origin: 'sj.Rule2.number.baseValidate()',
+				if (!sj.isType(value, Number)) throw new sj.SilentError({
+					origin: 'sj.Rule2.number.validate()',
 					reason: '$0 is not a number',
 					message: '$0 must be a number.',
 					content: sj.image(value),
@@ -2547,8 +2537,8 @@ sj.Rule2.augmentClass({
 		}),
 		nonNaNNumber: new sj.Rule2({
 			baseValidate(value) {
-				if (!sj.isType(value, Number) || Number.isNaN(value)) throw new sj.Error({
-					origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
+				if (!sj.isType(value, Number) || Number.isNaN(value)) throw new sj.SilentError({
+					origin: 'sj.Rule2.nonNaNNumber.validate()',
 					reason: '$0 is not a number or is NaN',
 					message: '$0 must be a number.',
 					content: sj.image(value),
@@ -2564,8 +2554,8 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
-				if (value < 0) throw new sj.Error({
-					origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
+				if (value < 0) throw new sj.SilentError({
+					origin: 'sj.Rule2.nonNegativeNumber.validate()',
 					reason: '$0 is negative',
 					message: '$0 must not be negative.',
 					content: sj.image(value),
@@ -2579,8 +2569,8 @@ sj.Rule2.augmentClass({
 		nonPositiveNumber: new sj.Rule2({
 			baseValidate(value) {
 				sj.Rule2.number.validate(value);
-				if (0 < value) throw new sj.Error({
-					origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
+				if (0 < value) throw new sj.SilentError({
+					origin: 'sj.Rule2.nonPositiveNumber.validate()',
 					reason: '$0 is positive',
 					message: '$0 must not be positive.',
 					content: sj.image(value),
@@ -2595,8 +2585,8 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
-				if (value <= 0) throw new sj.Error({
-					origin: 'sj.Rule2.positiveNumber.baseValidate()',
+				if (value <= 0) throw new sj.SilentError({
+					origin: 'sj.Rule2.positiveNumber.validate()',
 					reason: '$0 is negative or 0',
 					message: '$0 must be positive.',
 					content: sj.image(value),
@@ -2610,8 +2600,8 @@ sj.Rule2.augmentClass({
 		negativeNumber: new sj.Rule2({
 			baseValidate(value) {
 				sj.Rule2.number.validate(value);
-				if (0 <= value) throw new sj.Error({
-					origin: 'sj.Rule2.negativeNumber.baseValidate()',
+				if (0 <= value) throw new sj.SilentError({
+					origin: 'sj.Rule2.negativeNumber.validate()',
 					reason: '$0 is positive or 0',
 					message: '$0 must be negative.',
 					content: sj.image(value),
@@ -2628,8 +2618,8 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
-				if (!Number.isInteger(value)) throw new sj.Error({
-					origin: 'sj.Rule2.integer.baseValidate()',
+				if (!Number.isInteger(value)) throw new sj.SilentError({
+					origin: 'sj.Rule2.integer.validate()',
 					reason: '$0 is not an integer',
 					message: '$0 must be an integer.',
 					content: sj.image(value),
@@ -3267,7 +3257,7 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
-			if (sj.isType(accessory.options.query, Array)) accessory.options.query = sj.any(query);
+			if (sj.isType(accessory.options.query, Array)) accessory.options.query = sj.any(accessory.options.query);
 		},
 		defaults: {
 			table: undefined,

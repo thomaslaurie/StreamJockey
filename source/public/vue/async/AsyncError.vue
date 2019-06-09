@@ -16,7 +16,7 @@
         <h2>Default Error Component</h2>
         <p>Error: {{error.toString()}}</p>
 		<p>Stack: {{error.stack}}</p>
-		<button @click='reload()'>Reload</button>
+		<button @click='emitRefresh'>Refresh</button>
     </div>
 </template>
 
