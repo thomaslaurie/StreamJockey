@@ -458,33 +458,16 @@ sj.dynamicSort = function(list, ascending, prop) {
 	return sj.stableSort(list, compare);
 };
 
-/* TODO deep property access //! this is broken - must fix
-	const get = (p, o) =>
-	p.reduce((xs, x) => (xs && xs[x]) ? xs[x] : null, o);
-
-	let bar = {
-	bar: true,
-	}
-
-	console.log(get(['bar', 'bar'], bar));
-
-	// let foo = function (root, path) {
-	//   return path.reduce((dir, next) => {
-	//     if (dir && dir[next]) {
-	//       return dir[next];
-	//     } else {
-	//       return undefined;
-	//     }
-		
-		
-	//     if (current && current[next]) {
-	//       return current[next];
-	//     } else {
-	//       return 
-	//     }
-	//   }, root};
-	// }
-*/
+// MISC
+sj.deepAccess = function (thing, path) {
+	//C accesses nested properties of any variable type
+	//C prevents errors from being thrown on property access of undefined or null, instead returns undefined
+	return path.reduce((accumulator, key) => {
+		//C only undefined and null will throw errors for property access
+		if (accumulator === undefined || accumulator === null) return undefined;
+		else return accumulator[key];
+	}, thing);
+};
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
@@ -1370,7 +1353,7 @@ sj.Base = class Base {
 		code: 200,
 		type: 'Ok',
 		origin: '',
-		trace: sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
+		trace: '', //sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
 
 		// content
 		message: '',
@@ -1399,7 +1382,7 @@ sj.Base = class Base {
 		} else if (sj.isType(this, sj.Warn)) {
 			console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
 		} else {
-			console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${sj.trace()}`);
+			console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${sj.trace()}`); //
 		}
 	};
 

@@ -1758,20 +1758,18 @@ sj.searchResults = {
 sj.spotify.search = async function ({
 	term = '',
 	startIndex = 0,
-	number = 1,
+	amount = 1,
 }) {
 	// VALIDATE
-	console.log(sj.Rule2.nonEmptyString);
-
 	sj.Rule2.nonEmptyString.validate(term);
 	sj.Rule2.nonNegativeInteger.validate(startIndex);
-	sj.Rule2.positiveInteger.validate(number);
+	sj.Rule2.positiveInteger.validate(amount);
 
 	const result = await sj.spotify.request('GET', 'search', {
 		q: term,
 		type: 'track',
 		market: 'from_token',
-		limit: number,
+		limit: amount,
 		offset: startIndex,
 		// include_external: 'audio',
 

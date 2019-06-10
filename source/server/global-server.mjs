@@ -693,9 +693,9 @@ sj.Entity.augmentClass({
 
 		//C validates each using sj.Entity.schema
 		this.validate = async function (entity, methodName) {
-			let validated = {};
+			const validated = {};
 			await sj.asyncForEach(Object.keys(this.schema), async key => {
-				let prop = this.schema[key];
+				const prop = this.schema[key];
 
 				//C catches
 				if (!(prop.rule instanceof sj.Rule)) { // sj.Rule
@@ -711,7 +711,7 @@ sj.Entity.augmentClass({
 				//C check if optional and not empty, or if required
 				if ((prop[methodName].check && !sj.isEmpty(entity[key])) || prop[methodName].check === 2) {
 					//G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
-					let checked = await prop.rule.check(entity[key], entity[prop.against]);
+					const checked = await prop.rule.check(entity[key], entity[prop.against]);
 					validated[key] = sj.content(checked);
 					return checked;
 				} else {
@@ -1064,7 +1064,6 @@ sj.Track.augmentClass({
 			//C return early if none are moving
 			if (inputTracks.length === 0) {
 				return new sj.SuccessList({
-					log: true,
 					origin: 'sj.Track.order()',
 					message: 'track positions did not need to be set',
 				});
