@@ -7,29 +7,29 @@
         data() {
             return {
 				// OVERWRITES
-				deadContent: [],
-                sContent: [],
+                sData: [],
             };
         },
         props: {
 			// OVERWRITES
-            pContent: Array,
+			//C change data from Object to Array type, if used //TODO
+            pData: [Array],
 
 			// NEW
-            //TODO consider making orderBy take an array, which then is able to sort by multiple columns
+            //TODO consider making this take an array, which then is able to sort by multiple columns
             orderBy: String,  
             ascending: Boolean,
 		},
 		computed: {
 			// OVERWRITES
-			liveContent() {
+			queryData() {
+				//! AsyncDisplayList uses sj.any(subscription data)
 				if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.any(this.$store.getters.getLiveData(this.subscription));
-				else return [];
 			},
 
 			// NEW
-            orderedContent() {
-                return this.sj.dynamicSort(this.sj.any(this.content), this.ascending, this.orderBy);
+            orderedData() {
+                return this.sj.dynamicSort(this.sj.any(this.data), this.ascending, this.orderBy);
 			},
 
 			/* //G transparent components
@@ -51,9 +51,10 @@
         },
         methods: {
 			// OVERWRITES
-			async deadRefresh() {
-				this.deadContent = await this.Entity.get(this.query).then(this.sj.content).then(this.sj.any);
-			},		
+			async refreshData() {
+				if (!this.Entity) return [];
+				return await this.Entity.get(this.query).then(this.sj.content).then(this.sj.any);
+			},			
         },
 
     }
@@ -61,15 +62,9 @@
 
 
 <template>
-    <async-switch 
-		:state='state' 
-		:error='error' 
-		@refresh='refresh' 
-		:loading-component='LoadingComponent' 
-		:error-component='ErrorComponent'
-	>
+    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='LoadingComponent' :error-component='ErrorComponent'>
         <h2>Default List Display Component</h2>
-        <p v:for='item in orderedContent'>Default Item: {{item}}</p>
+        <p v:for='item in orderedData'>Default Item: {{item}}</p>
     </async-switch>
 </template>
 

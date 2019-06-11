@@ -18,12 +18,14 @@
 		:error='error' 
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
-		:error-component='$options.components.ErrorComponent'>
-        <h4>track #{{data.id}}, playlist #{{data.playlistId}}</h4>
+		:error-component='$options.components.ErrorComponent'
+		v-slot='slotProps'
+	>
+        <h4>track #{{content.id}}, playlist #{{content.playlistId}}</h4>
         <h4>position #</h4>
-        <h1>{{data.name}}</h1>
-        <h2>{{data.position}} - {{data.duration}}</h2>
-        <h2>{{data.source}} {{data.sourceId}}</h2>
+        <h1>{{content.name}}</h1>
+        <h2>{{content.position}} - {{content.duration}}</h2>
+        <h2>{{content.source}} {{content.sourceId}}</h2>
 
         <button>Info</button>
         <button>Play</button>

@@ -23,10 +23,11 @@
 		:error='error' 
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
-		:error-component='$options.components.ErrorComponent'>
-		<p>{{data.id}}</p>
-		<p>{{data.name}}</p>
-		<button @click='open(data.id)'>Profile</button>
+		:error-component='$options.components.ErrorComponent'
+		v-slot='slotProps'>
+		<p>{{content.id}}</p>
+		<p>{{content.name}}</p>
+		<button @click='open(content.id)'>Profile</button>
     </async-switch>
 </template>
 

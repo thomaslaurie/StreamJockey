@@ -28,7 +28,7 @@
 
 
 <template>
-    <div>
+    <div class='menu-bar'>
         MENU BAR
         <button @click='home'>Home</button>
         <button @click='add'>Add</button>
@@ -39,7 +39,7 @@
 
 
 <style lang='scss'>
-    div {
+    .menu-bar {
         width: 100%;
         background-color: red;
     }

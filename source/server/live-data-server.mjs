@@ -20,6 +20,8 @@ import sj from '../public/js/global.mjs';
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+//TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
+
 sj.Subscription.augmentClass({
 	constructorParts: parent => ({
 		defaults: {

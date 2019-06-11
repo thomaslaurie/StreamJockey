@@ -23,17 +23,18 @@
 		:error='error' 
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
-		:error-component='$options.components.ErrorComponent' 
+		:error-component='$options.components.ErrorComponent'
+		v-slot='slotProps' 
 	class='playlist-display'>
 		<div id='left'>
 			<!-- <button id='play-button' @click='play()'>Play</button> -->
 
 			<div id='content'>
-				<p id='name'>{{data.name}}</p>
+				<p id='name'>{{content.name}}</p>
 			</div>
 		</div>
 		<div id='right'>
-			<button @click='open(data.id)'>Open</button>
+			<button @click='open(content.id)'>Open</button>
 		</div>
     </async-switch>
 </template>

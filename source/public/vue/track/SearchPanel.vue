@@ -1,10 +1,10 @@
 <script>
-	import SearchTrackDisplayList from '../track/SearchTrackDisplayList.vue';
+	import TrackDisplayList from '../track/TrackDisplayList.vue';
 
     export default {
         name: 'search-panel',
         components: {
-            SearchTrackDisplayList,
+            TrackDisplayList,
         },
         data() {
             return {
@@ -60,7 +60,8 @@
 				//C add them all
 				await this.sj.Track.add(this.results);
 			},
-			async add(track) { //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
+			async add(track) { 
+				//C add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
 				track.playlistId = this.targetPlaylistId;
 				await this.sj.Track.add(track);
 			},
@@ -93,7 +94,7 @@
 		<input v-model='term' @keyup.enter='search'>
 		<button @click='search'>Search</button>
 
-		<search-track-display-list :p-query='{playlistId}' addButton @add='add'></search-track-display-list>
+		<track-display-list :p-query='{playlistId}' addButton @add='add'></track-display-list>
 	</div>
 </template>
 

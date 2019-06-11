@@ -23,14 +23,15 @@
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
 		:error-component='$options.components.ErrorComponent'
+		v-slot='slotProps'
 	class='user-display-list'>
         <ul>
             <li
-                v-for='user in data' 
+                v-for='user in content' 
                 :key='user.id' 
                 :display='user'
             >
-				<user-display :p-data='user' v-bind='attrs' v-on='listeners'></user-display>
+				<user-display :p-content='user' v-bind='attrs' v-on='listeners'></user-display>
             </li>
         </ul>
     </async-switch>

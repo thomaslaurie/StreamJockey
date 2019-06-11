@@ -34,12 +34,14 @@
 		:error='error' 
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
-		:error-component='$options.components.ErrorComponent'>
+		:error-component='$options.components.ErrorComponent'
+		v-slot='slotProps'
+	>
         <button @click='logout'>Logout</button>
-        <h4>user #{{data.id}}</h4>
-        <h1>{{data.name}}</h1>
-        <h3>{{data.email}}</h3>
-        <playlist-display-list :p-query='{userId: data.id}'></playlist-display-list>
+        <h4>user #{{content.id}}</h4>
+        <h1>{{content.name}}</h1>
+        <h3>{{content.email}}</h3>
+        <playlist-display-list :p-query='{userId: content.id}'></playlist-display-list>
     </async-switch>
 </template>
 

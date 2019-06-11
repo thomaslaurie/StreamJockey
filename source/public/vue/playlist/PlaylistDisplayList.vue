@@ -23,14 +23,16 @@
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
 		:error-component='$options.components.ErrorComponent'
-	class='playlist-display-list'>
+		v-slot='slotProps'
+		class='playlist-display-list'
+	>
         <ul>
             <li
-                v-for='playlist in data' 
+                v-for='playlist in content' 
                 :key='playlist.id' 
                 :display='playlist'
             >
-				<playlist-display :p-data='playlist' v-bind='attrs' v-on='listeners'></playlist-display>
+				<playlist-display :p-content='playlist' v-bind='attrs' v-on='listeners'></playlist-display>
             </li>
         </ul>
     </async-switch>

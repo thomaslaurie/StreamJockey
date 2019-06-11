@@ -18,15 +18,15 @@
                 this.$router.push(`/track/${id}`);
             },
             async play() {
-				await this.$store.dispatch('player/start', this.data);
+				await this.$store.dispatch('player/start', this.content);
 			},
 			async remove() { //! shortened to del to avoid delete reserved word
-				await this.sj.Track.remove(this.data);
-				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own data
+				await this.sj.Track.remove(this.content);
+				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
 			},
 			async add() {
 				//C does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
-				this.$emit('add', this.data);
+				this.$emit('add', this.content);
 			},
         },
     }
@@ -38,21 +38,23 @@
 		:error='error' 
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
-		:error-component='$options.components.ErrorComponent' 
-	class='track-display'>
+		:error-component='$options.components.ErrorComponent'
+		v-slot='slotProps' 
+		class='track-display'
+	>
 		<div id='left'>
 			<button id='play-button' @click='play()'>Play</button>
 
 			<div id='content'>
-				<p id='artists'>{{data.artists.join(', ')}}</p>
-				<p id='name'>{{data.name}}</p>
+				<p id='artists'>{{content.artists.join(', ')}}</p>
+				<p id='name'>{{content.name}}</p>
 			</div>
 		</div>
 		<div id='right'>
 			<button v-if='addButton' @click='add'>Add</button>
 			<button v-if='removeButton' @click='remove'>Delete</button>
 		</div>
-		<!-- //TODO <button @click='open(data.id)'>Info</button> -->
+		<!-- //TODO <button @click='open(content.id)'>Info</button> -->
     </async-switch>
 </template>
 

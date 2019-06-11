@@ -232,18 +232,18 @@
 				<button @click='remove'>Remove</button>
 
 				<h3>Result</h3>
-				<track-display-list v-if='entityType === "track"' :p-data='result'></track-display-list>
-				<playlist-display-list  v-else-if='entityType === "playlist"' :p-data='result'></playlist-display-list>
-				<user-display-list  v-else-if='entityType === "user"' :p-data='result'></user-display-list>
+				<track-display-list v-if='entityType === "track"' :p-content='result'></track-display-list>
+				<playlist-display-list  v-else-if='entityType === "playlist"' :p-content='result'></playlist-display-list>
+				<user-display-list  v-else-if='entityType === "user"' :p-content='result'></user-display-list>
 			</section>
 
 			<section>
 				<button @click='subscribe'>Subscribe</button>
 
 				<h3>Subscription</h3>
-				<track-display-list v-if='entityType === "track"' :p-data='subscriptionData'></track-display-list>
-				<playlist-display-list  v-else-if='entityType === "playlist"' :p-data='subscriptionData'></playlist-display-list>
-				<user-display-list  v-else-if='entityType === "user"' :p-data='subscriptionData'></user-display-list>
+				<track-display-list v-if='entityType === "track"' :p-content='subscriptionData'></track-display-list>
+				<playlist-display-list  v-else-if='entityType === "playlist"' :p-content='subscriptionData'></playlist-display-list>
+				<user-display-list  v-else-if='entityType === "user"' :p-content='subscriptionData'></user-display-list>
 			</section>
 		</div>
     </div>

@@ -28,9 +28,9 @@
 				this.searchResults = await this.sj.spotify.search(this.searchTerm).then(this.sj.content);
 			},
 			async add(track) { //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
-				track.playlistId = this.data.id;
+				track.playlistId = this.content.id;
 				await this.sj.Track.add(track);
-				await this.refreshData(); //TODO
+				await this.refresh(); //TODO
 			},
 		},
     }
@@ -43,18 +43,19 @@
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
 		:error-component='$options.components.ErrorComponent'
+		v-slot='slotProps'
 	class='playlist-page'>
-        <h4>playlist #{{data.id}}, user #{{data.userId}}</h4>
-        <h1>{{data.name}}</h1>
-        <h2>{{data.visibility}}</h2>
-        <p>{{data.description}}</p>
+        <h4>playlist #{{content.id}}, user #{{content.userId}}</h4>
+        <h1>{{content.name}}</h1>
+        <h2>{{content.visibility}}</h2>
+        <p>{{content.description}}</p>
 
         <button @click='edit = !edit'>Edit</button>
 
         <div id='main'>
-            <track-display-list id='playlist' :p-query='{playlistId: data.id}' removeButton></track-display-list>
+            <track-display-list id='playlist' :p-query='{playlistId: content.id}' removeButton></track-display-list>
 
-			<search-panel v-if='edit' :playlistId='data.id'></search-panel>
+			<search-panel v-if='edit' :playlistId='content.id'></search-panel>
         </div>
     </async-switch>
 </template>

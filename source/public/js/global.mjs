@@ -465,7 +465,8 @@ sj.dynamicSort = function(list, ascending, prop) {
 };
 
 // MISC
-sj.deepAccess = function (thing, path) {
+sj.deepAccess = function (thing, ...args) {
+	const path = args.flat();
 	//C accesses nested properties of any variable type
 	//C prevents errors from being thrown on property access of undefined or null, instead returns undefined
 	return path.reduce((accumulator, key) => {
@@ -477,6 +478,7 @@ sj.deepAccess = function (thing, path) {
 sj.Deferred = class Deferred extends Promise {
 	//C custom promise that can be resolved, rejected, and canceled outside it's executor
 	//G may be called without an executor
+	//? cancel-able promises might not be the best idea
 	constructor(executor = (resolve, reject) => {}) {
 		const closure = {canceled: false};
 

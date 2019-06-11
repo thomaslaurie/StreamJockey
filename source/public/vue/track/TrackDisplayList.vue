@@ -22,14 +22,16 @@
 		@refresh='refresh' 
 		:loading-component='$options.components.LoadingComponent' 
 		:error-component='$options.components.ErrorComponent'
-	class='track-display-list'>
+		v-slot='slotProps'
+		class='track-display-list'
+	>
         <ul>
             <li
-                v-for='track in data' 
+                v-for='track in content' 
                 :key='track.id' 
                 :display='track'
             >
-				<track-display :p-data='track' v-bind='attrs' v-on='listeners'></track-display>
+				<track-display :p-content='track' v-bind='attrs' v-on='listeners'></track-display>
             </li>
         </ul>
     </async-switch>
