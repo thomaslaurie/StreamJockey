@@ -17,11 +17,16 @@
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch 
+		:state='state' 
+		:error='error' 
+		@refresh='refresh' 
+		:loading-component='$options.components.LoadingComponent' 
+		:error-component='$options.components.ErrorComponent'>
         <h2>test display</h2>
     </async-switch>
 </template>
 
 
-<style scoped lang='scss'>
+<style lang='scss'>
 </style>

@@ -230,6 +230,12 @@ sj.image = function (value) {
 	return JSON.parse(JSON.stringify(fClone(value)));
 };
 
+// TYPE
+sj.isSubclass = function (a, b) {
+	if (typeof a !== 'function' || typeof b !== 'function') return false;
+	else return (a.prototype instanceof b);
+};
+
 // FORMAT
 sj.msFormat = function (ms) {
 	// extract
@@ -467,6 +473,39 @@ sj.deepAccess = function (thing, path) {
 		if (accumulator === undefined || accumulator === null) return undefined;
 		else return accumulator[key];
 	}, thing);
+};
+sj.Deferred = class Deferred extends Promise {
+	//C custom promise that can be resolved, rejected, and canceled outside it's executor
+	//G may be called without an executor
+	constructor(executor = (resolve, reject) => {}) {
+		const closure = {canceled: false};
+
+		super((resolve, reject) => {
+			closure.resolve = function (resolved) {
+				if (!closure.canceled) resolve(resolved);
+			};
+			closure.reject = function (rejected) {
+				if (!closure.canceled) reject(rejected);
+			};
+
+			return executor(resolve, reject);
+		});
+
+		Object.defineProperty(this, 'canceled', {
+			get() {
+				return closure.canceled;
+			},
+			set(value) {
+				closure.canceled = value;
+			},
+		});
+		
+		this.resolve = closure.resolve;
+		this.reject = closure.reject;
+		this.cancel = function () {
+			this.canceled = true;
+		};
+	}
 };
 
 

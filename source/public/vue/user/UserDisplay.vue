@@ -18,7 +18,12 @@
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch 
+		:state='state' 
+		:error='error' 
+		@refresh='refresh' 
+		:loading-component='$options.components.LoadingComponent' 
+		:error-component='$options.components.ErrorComponent'>
 		<p>{{data.id}}</p>
 		<p>{{data.name}}</p>
 		<button @click='open(data.id)'>Profile</button>

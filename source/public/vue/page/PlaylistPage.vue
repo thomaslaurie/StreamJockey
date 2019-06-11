@@ -37,7 +37,12 @@
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'
+    <async-switch 
+		:state='state' 
+		:error='error' 
+		@refresh='refresh' 
+		:loading-component='$options.components.LoadingComponent' 
+		:error-component='$options.components.ErrorComponent'
 	class='playlist-page'>
         <h4>playlist #{{data.id}}, user #{{data.userId}}</h4>
         <h1>{{data.name}}</h1>

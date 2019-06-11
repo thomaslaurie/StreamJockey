@@ -6,7 +6,11 @@
     import AsyncError from './AsyncError.vue';
 
     export default {
-        //C used to switch markup depending on the state prop, wraps around Display markup (slot) and can be passed custom loading & error components. passes an error prop to the error component and propagates reload events from loading and error components to the parent display component
+		//C switches component/markup depending on the passed state prop
+		//C wraps around slotted markup for display
+		//C may be passed custom delay, loading, and error components
+		//C passes its error prop on to the error component
+		//C propagates refresh events from loaading and error components up to it's parent
 
         name: 'async-switch',
         mixins: [emitRefresh],
@@ -141,7 +145,7 @@
         :error='error'
     ></component>
 
-    <!-- old 
+    <!-- //OLD
         //L rather than v-if, v-show keeps components alive, but cannot use v-else  https://vuejs.org/v2/guide/conditional.html#v-show 
 
         <div>
@@ -161,7 +165,5 @@
 </template>
 
 
-
-
-<style scoped lang='scss'>
+<style lang='scss'>
 </style>

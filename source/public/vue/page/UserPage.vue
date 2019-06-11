@@ -29,7 +29,12 @@
 
 
 <template>
-    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch 
+		:state='state' 
+		:error='error' 
+		@refresh='refresh' 
+		:loading-component='$options.components.LoadingComponent' 
+		:error-component='$options.components.ErrorComponent'>
         <button @click='logout'>Logout</button>
         <h4>user #{{data.id}}</h4>
         <h1>{{data.name}}</h1>
@@ -39,5 +44,5 @@
 </template>
 
 
-<style scoped lang='scss'>
+<style lang='scss'>
 </style>

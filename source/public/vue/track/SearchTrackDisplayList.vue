@@ -13,7 +13,12 @@
 
 
 <template>
-    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch 
+		:state='state' 
+		:error='error' 
+		@refresh='refresh' 
+		:loading-component='$options.components.LoadingComponent' 
+		:error-component='$options.components.ErrorComponent'>
         <ul>
             <li
                 v-for='track in data' 

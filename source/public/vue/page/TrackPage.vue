@@ -13,7 +13,12 @@
 </script>
 
 <template>
-    <async-switch :state='state' :error='error' @refresh='refresh' :loading-component='$options.components.LoadingComponent' :error-component='$options.components.ErrorComponent'>
+    <async-switch 
+		:state='state' 
+		:error='error' 
+		@refresh='refresh' 
+		:loading-component='$options.components.LoadingComponent' 
+		:error-component='$options.components.ErrorComponent'>
         <h4>track #{{data.id}}, playlist #{{data.playlistId}}</h4>
         <h4>position #</h4>
         <h1>{{data.name}}</h1>
@@ -25,5 +30,5 @@
     </async-switch>
 </template>
 
-<style scoped lang='scss'>
+<style lang='scss'>
 </style>
