@@ -169,7 +169,9 @@
             },
 
 			async liveRefresh() {
-				return await this.$store.dispatch('change', {
+				//---------- somehow an empty query is making its way into the subscription
+				console.log('change called', this.sj.image(this.subscription));
+				return await this.$store.dispatch('resubscribe', {
 					subscription: this.subscription,
 
 					Entity: this.Entity, 

@@ -14,7 +14,7 @@
             return {
 				// OVERWRITES
 				Entity: this.$root.sj.Playlist,
-				sQuery: {id: this.$route.params.id},
+				sQuery: {id: this.$root.sj.Rule2.nonNegativeInteger.validateCast(this.$route.params.id)},
 
 				// NEW
                 edit: true,
@@ -32,6 +32,9 @@
 				await this.sj.Track.add(track);
 				await this.refresh(); //TODO
 			},
+		},
+		created() {
+			console.log(typeof this.sQuery.id);
 		},
     }
 </script>

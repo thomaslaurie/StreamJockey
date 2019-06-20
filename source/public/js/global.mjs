@@ -227,7 +227,7 @@ sj.trace = function () {
 };
 sj.image = function (value) {
 	if (typeof value === null || typeof value !== 'object') return value;
-	return JSON.parse(JSON.stringify(fClone(value)));
+	return JSON.parse(JSON.stringify(sj.deepClone(value)));
 };
 
 // TYPE
@@ -474,6 +474,11 @@ sj.deepAccess = function (thing, ...args) {
 		if (accumulator === undefined || accumulator === null) return undefined;
 		else return accumulator[key];
 	}, thing);
+};
+sj.deepClone = function (...args) {
+	//C deep clones objects (root & nested objects aren't the same reference)
+	//C drops circular references and replaces with '[Circular]'
+	return fClone(...args);
 };
 sj.Deferred = class Deferred extends Promise {
 	//C custom promise that can be resolved, rejected, and canceled outside it's executor
@@ -1130,7 +1135,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	} 
 	if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) { //C stringify body
 		try {
-			options.body = JSON.stringify(fClone(options.body));
+			options.body = JSON.stringify(sj.deepClone(options.body));
 		} catch (e) {
 			//C catch stringify error (should be a cyclic reference)
 			throw new sj.Error({
@@ -2313,6 +2318,7 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 	}),
 });
 
+//---------- issues, here, validateCast not working, and sequence seems wrong
 sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
@@ -2385,6 +2391,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 				};
 			} else {
 				this.validate = function (value, accessory = {}) {
+					console.log('validate');
 					try {
 						return this.baseValidate(value, accessory);
 					} catch (e) {
@@ -2412,6 +2419,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 				};
 			} else {
 				this.cast = function (value, accessory = {}) {
+					console.log('cast');
 					accessory.castValue = value;
 					try {
 						this.baseCast(value, accessory);
@@ -2444,7 +2452,9 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 				this.validateCast = function (value, accessory = {}) {
 					try {
 						const cast = this.cast(value, accessory);
+						console.log('c', cast, typeof cast);
 						this.validate(cast, accessory);
+						console.log('v');
 						return cast;
 					} catch (e) {
 						throw this.editError(e, accessory);
@@ -2547,6 +2557,7 @@ sj.Rule2.augmentClass({
 		// NUMBER
 		number: new sj.Rule2({
 			baseValidate(value) {
+				console.log('baseValidate');
 				if (!sj.isType(value, Number)) throw new sj.SilentError({
 					origin: 'sj.Rule2.number.validate()',
 					reason: '$0 is not a number',
@@ -2555,6 +2566,7 @@ sj.Rule2.augmentClass({
 				});
 			},
 			baseCast(value, accessory) {
+				console.log('baseCast');
 				//C casts anything else to NaN
 				accessory.castValue = Number.parseFloat(accessory.castValue);
 			},
@@ -2860,8 +2872,8 @@ sj.User = sj.Base.makeClass('User', sj.Entity, {
 			email: '',
 			password: '',
 			password2: '',
-			spotifyRefreshToken: undefined,
-			socketId: undefined,
+			spotifyRefreshToken: null,
+			socketId: null,
 		},
 	}),
 	staticProperties(parent) {

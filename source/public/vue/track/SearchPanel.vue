@@ -63,6 +63,7 @@
 			async add(track) { 
 				//C add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
 				track.playlistId = this.targetPlaylistId;
+				console.log('t', this.sj.image(track));
 				await this.sj.Track.add(track);
 			},
 

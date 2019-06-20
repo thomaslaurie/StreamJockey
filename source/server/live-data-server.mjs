@@ -21,6 +21,9 @@ import sj from '../public/js/global.mjs';
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
+// when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
+
+//TODO this may be unrelated but it seems the liveQueries here are also piling up
 
 sj.Subscription.augmentClass({
 	constructorParts: parent => ({
@@ -43,12 +46,12 @@ export default {
 		this.socket = socket;
 
 		this.socket.use((socket, next) => {
+			//C give the cookie session to the socket
+			//C uses a temporary koa context to decrypt the session
 			//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
 			//L https://github.com/koajs/session/issues/53#issuecomment-311601304
-			//! socket.session is static, whereas koa ctx.session is dynamic //?
+			//!//? socket.session is static, whereas koa ctx.session is dynamic, that is I'm not sure that this is linked in any way to the cookie session
 			//L https://socket.io/docs/server-api/#namespace-use-fn
-
-			//C uses a temporary koa context to decrypt the session
 			socket.session = this.app.createContext(socket.request, new http.OutgoingMessage()).session;
 			next();
 		});
@@ -56,38 +59,49 @@ export default {
 		this.socket.on('connect', (socket) => {
 			console.log('CONNECT', socket.id);
 			
-
-			//C give socket id to session.user //? I don't think the actual cookie.session receives this, but for now only the socket.session needs it
+			//C if user is logged in, give the socketId to the session
+			//! I don't think the cookie session receives this, though it isn't needed there so far
 			if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = socket.id;
-
 
 			socket.on('disconnect', async (reason) => {
 				console.log('DISCONNECT', socket.id);
 
-				await sj.liveData.disconnect(socket.id).catch(rejected => { //TODO better way
+				await sj.liveData.disconnect(socket.id).catch(rejected => { 
+					//TODO handle better
 					if (sj.isType(rejected, sj.Base)) rejected.announce();
 					else console.error('subscription disconnect error:', rejected);
 				});
-				if (sj.isType(socket.session.user, sj.User)) delete socket.session.user.socketId;
+				
+				//? socket won't be used anymore, so does anything really need to be deleted here?
+				if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = sj.User.defaults.socketId;
 			});
 
 			socket.on('subscribe', async ({table, query}, callback) => {
-				console.log('SUBSCRIBE', table, query);
+				console.log('SUBSCRIBE', socket.id);
 
 				//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
-				let subscriber = socket.session.user;
-				if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
+				//TODO socketId validator, this is all that really matters here
+				const user = sj.isType(socket.session.user, sj.User)
+					? socket.session.user
+					: new sj.User({socketId: socket.id});
+					
 				//! using sj.Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
-				const result = await sj.liveData.add(sj.Entity.tableToEntity(table), query, subscriber).catch(sj.andResolve);
-				callback(result);		
+				const result = await sj.liveData.add(sj.Entity.tableToEntity(table), query, user).catch(sj.andResolve);
+
+				//!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
+				//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
+				//C using sj.deepClone (fClone) to drop circular references
+				callback(sj.deepClone(result));		
 			});
 			socket.on('unsubscribe', async ({table, query}, callback) => {
-				console.log('UNSUBSCRIBE', query);
+				console.log('UNSUBSCRIBE', socket.id);
 
-				let subscriber = socket.session.user;
-				if (!sj.isType(subscriber), sj.User) subscriber = new sj.User({socketId: socket.id});
-				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, subscriber).catch(sj.andResolve);
-				callback(result);
+				const user = sj.isType(socket.session.user, sj.User)
+					? socket.session.user
+					: new sj.User({socketId: socket.id});
+
+				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, user).catch(sj.andResolve);
+				callback(sj.deepClone(result));
 			});
 
 			socket.on('error', (reason) => {
@@ -109,6 +123,7 @@ export default {
 	//C subscribers/users are identified by their socketId, this is so that not-logged-in clients can still subscribe to data, while still allowing the full user object to be the subscriber
 	async add(Entity, query, user) {
 		//C process query
+		//TODO//? getMimic was being called with this query: [{playlistId: null}], twice, very rapidly, however even though they are the same query, the one called second resolves before the first one, why? afaik this isn't causing any issues, but it could later
 		const processedQuery = await Entity.getMimic(query);
 
 		//C find table
@@ -119,8 +134,8 @@ export default {
 		});
 
 		//C find liveQuery, add if it doesn't exist
-		let liveQuery = this.findLiveQuery(table, query);
-		if (!sj.isType(liveQuery), sj.LiveQuery) {
+		let liveQuery = this.findLiveQuery(table, processedQuery);
+		if (!sj.isType(liveQuery, sj.LiveQuery)) {
 			liveQuery = new sj.LiveQuery({
 				table,
 				query: processedQuery,
@@ -161,14 +176,14 @@ export default {
 		});
 
 		//C find liveQuery index
-		const liveQuery = this.findLiveQuery(table, query);
+		const liveQuery = this.findLiveQuery(table, processedQuery);
 		const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
 		if (!sj.isType(liveQuery, sj.LiveQuery) || liveQueryIndex < 0) return new sj.Warn({
 			origin: 'sj.subscriptions.remove()',
 			message: 'no subscription found for this query',
 			content: {
 				Entity,
-				query,
+				query: processedQuery,
 				liveQueryIndex,
 			},
 		});
@@ -180,9 +195,8 @@ export default {
 			origin: 'sj.subscriptions.remove()',
 			message: 'no subscriber found for this user',
 			content: {
-				Entity,
-				liveQuery,
-				user,
+				liveQuerySubscriptions: liveQuery.subscriptions,
+				socketId: user.socketId,
 				subscriptionIndex,
 			},
 		});
@@ -191,7 +205,9 @@ export default {
 		liveQuery.subscriptions.splice(subscriptionIndex, 1);
 
 		//C if no more subscriptions, remove liveQuery
-		if (liveQuery.subscriptions.length <= 0) this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
+		if (liveQuery.subscriptions.length <= 0) {
+			this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
+		}
 	
 		return new sj.Success({
 			origin: 'sj.removeSubscriber()',
@@ -238,17 +254,21 @@ export default {
 		}
 	},
 
-	async disconnect(user) {
+	async disconnect(socketId) {
 		//? unsubscribe all on disconnect and resubscribe all on connect? or have a timeout system?
+		//! this doesn't use the remove() method, because the specific subscription (query + user) aren't known, this finds all subscriptions with that user
 
-		for (const table in this.tables) {
-			for (let i = table.liveQueries.length-1; i < -1; i--) {
+		for (const pair of this.tables) {
+			const table = pair[1];
+			for (let i = table.liveQueries.length-1; i > -1; i--) {
 				const liveQuery = table.liveQueries[i];
 				//C for each subscription
 				for (let j = liveQuery.subscriptions.length-1; j > -1; j--) {
 					const subscription = liveQuery.subscriptions[j];
 					//C if it matches the passed user (by socketId), remove it
-					if (subscription.user.socketId === user.socketId) liveQuery.subscriptions.splice(j, 1);
+					if (subscription.user.socketId === socketId) {
+						liveQuery.subscriptions.splice(j, 1);
+					}
 				}
 
 				//C if the liveQuery no longer has any subscriptions, remove it
@@ -257,3 +277,9 @@ export default {
 		}
 	},
 };
+
+/* //TODO test:
+	no duplicate live queries
+	subscriptions get removed on disconnect
+	single refreshed liveQuery only ever has one subscription (user)
+*/

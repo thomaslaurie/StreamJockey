@@ -209,7 +209,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Command, {
 			});
 
 			//C change startingTrackSubscription to subscription of the new track
-			context.commit('setStartingTrackSubscription', await context.dispatch('change', {
+			context.commit('setStartingTrackSubscription', await context.dispatch('resubscribe', {
 				subscription: context.state.startingTrackSubscription,
 
 				Entity: sj.Track,

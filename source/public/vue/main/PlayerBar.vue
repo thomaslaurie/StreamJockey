@@ -64,7 +64,7 @@
 					//C if the playlistId has changed or the playlistTracksSubscription doesn't exist
 					} else if (id !== oldId || !this.sj.isType(this.playlistTracksSubscription, this.sj.Subscription)) {
 						//C update the playlistTracksSubscription to the proper playlistId
-						this.playlistTracksSubscription = await this.$store.dispatch('change', {
+						this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
 							subscription: this.playlistTracksSubscription,
 							Entity: this.sj.Track,
 							query: {playlistId: id},

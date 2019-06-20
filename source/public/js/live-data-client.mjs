@@ -720,6 +720,8 @@ export default {
 
 			//C unsubscribe on server
 			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			console.error('unsubscribe called');
+			//---------- here is where unsubscribe is being called where it shouldn't, however the server is still not properly handling the empty unsubscribe request
 			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
 
 			//C remove subscription from it's liveQuery
@@ -727,6 +729,36 @@ export default {
 
 			//C return null for null subscription
 			return null;
+		},
+		async resubscribe(context, {
+			// OLD
+			subscription,
+			strict = false,
+				
+			// NEW
+			Entity,
+			query,
+			options = {},
+		}) {
+			//G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
+
+			//C strict check here throws or lets function execute //! doesn't early return
+			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
+			if (strict && !sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+				origin: 'change()', 
+				reason: 'subscription is not an sj.Subscription',
+				content: subscription,
+			});
+			//C subscribe to new
+			const newSubscription = await context.dispatch('subscribe', {
+				Entity, //! Entity cannot be derived from the old subscription as it may not be an sj.Subscription if the function call is not strict
+				query,
+				options,
+			});
+			//C unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
+			context.dispatch('unsubscribe', {subscription, strict}); 
+			//C return new subscription
+			return newSubscription;
 		},
 		async update(context, {
 			Entity, 
@@ -776,36 +808,7 @@ export default {
 			if (pack.edited)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onEdit'});
 			if (pack.removed)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onRemove'});
 		},
-		async change(context, {
-			// OLD
-			subscription,
-			strict = false,
-				
-			// NEW
-			Entity,
-			query,
-			options = {},
-		}) {
-			//G subscribes to a new subscription, unsubscribes from an old one
-
-			//C strict check here throws or lets function execute //! doesn't early return
-			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-			if (strict && !sj.isType(subscription, sj.Subscription)) throw new sj.Error({
-				origin: 'change()', 
-				reason: 'subscription is not an sj.Subscription',
-				content: subscription,
-			});
-			//C subscribe to new
-			const newSubscription = await context.dispatch('subscribe', {
-				Entity, //! Entity cannot be derived from the old subscription as it may not be an sj.Subscription if the function call is not strict
-				query,
-				options,
-			});
-			//C unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
-			context.dispatch('unsubscribe', {subscription, strict}); 
-			//C return new subscription
-			return newSubscription;
-		},
+		
 
 		// SERVER
 		async serverSubscribe(context, {table, query}) {
