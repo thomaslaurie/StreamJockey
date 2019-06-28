@@ -2318,7 +2318,6 @@ sj.Rule.augmentClass({ //C add custom sj.Rules as statics of sj.Rule
 	}),
 });
 
-//---------- issues, here, validateCast not working, and sequence seems wrong
 sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
@@ -2334,70 +2333,47 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 		defaults: {
 			//G baseValidate() and baseCast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
 
-			//G validate should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders, should be silent) if failed
+			//G baseValidate() should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders) if failed, this error should be SilentError/log: false, as it is caught and processed in validate()
 			baseValidate(value, accessory) {
-				throw sj.Error({
-					origin: 'sj.Rule2.validate()',
-					reason: `an instanced validate function hasn't been created for this rule`,
+				throw new sj.SilentError({
+					origin: 'sj.Rule2.baseValidate()',
+					reason: `a baseValidate() function has not been created for this rule: ${this.name}`,
 				});
 			},
 
-			//G cast should have one or many casting functions (which may error freely), that update the accessory.castValue property.
-			//G avoid modifying the original value
-			//! don't directly call cast, as the casted value is not guaranteed to pass validation, be of the correct type, or have even changed
-			/* //R 
-				why not just throw the error and forget about the last successfully cast value?
-				
-				casting errors aren't very user friendly (because the user won't know what cast means), so just delegate the error handling to whats already written in the validate function
-				
-				Example: while '2.35' can be cast to the number, it cannot (in this example) be cast to an integer. the validator will throw 'number is not an integer' for this STRING, rather than having cast throw 'cannot cast number to integer'.
-
-				Also, managing to throw an error while returning the last casted value is a bit difficult, so just avoid it.
-			*/
-			baseCast(value, accessory) {
+			//G baseCast() should have one or more sequential casting functions (which may error freely) that modify accessory.castValue
+			//G baseCast() may use other rule's casting methods. but because they have their own internal casting steps, pass the castValue and the accessory object so that even if the casting function fails, the castValue will still retain any modifications: rule.validateCast(accessory.castValue, accessory); 
+			//R this is important because otherwise the casting method will just fail, leaving the castValue as the original, causing unexpected error messages (casting '4' as an integer would fail with 'not a number' instead of 'not an integer' because first the number casting would fail, leaving the castValue as a string, then validation would return the 'not a number' error).
+			baseCast(accessory) {
 				new sj.Warn({
 					log: true,
-					origin: 'sj.Rule2.cast()',
-					reason: `an instanced cast function hasn't been created for this rule`,
+					origin: 'sj.Rule2.baseCast()',
+					reason: `a baseCast() function has not been created for this rule: ${this.name}`,
 				});
 			},
 
-			//C string or array of strings used to replace $0, $1, $2... of specific properties (reason and message sofar) of an error and it's content errors if error is an ErrorList
+			//C string or array of strings used to replace $0, $1, $2... of specific properties (reason and message so far) of an error and it's content errors if error is an ErrorList
 			fill: 'Value',
 		},
 		afterInitialize() {
+			//C baseValidate and baseCast are guaranteed to be functions, this distinguishes between 'Function' and 'AsyncFunction'
+			const isValidateSync = this.baseValidate.constructor.name === 'Function';
+			const isCastSync = this.baseCast.constructor.name === 'Function';
+
 			//C try-catch blocks are used for both async and sync to increase clarity
 
-			const isValidateAsync = this.baseValidate.constructor.name === 'AsyncFunction';
-			const isCastAsync = this.baseCast.constructor.name === 'AsyncFunction';
-
-			if (isValidateAsync) {
-				//C wrapper for baseValidate that modifies the error
-				this.validate = async function (value, accessory = {}) {
-					try {
-						return await this.baseValidate(value, accessory);
-					} catch (e) {
-						throw this.editError(e, accessory);
-					}
-				};
-				//C check calls validate but instead returns true on pass and false on error
-				this.check = async function (value, accessory = {}) {
-					try {
-						await this.validate(value, accessory);
-						return true;
-					} catch (e) {
-						return false;
-					}
-				};
-			} else {
+			if (isValidateSync) {
+				//C calls baseValidate(), returns value on pass, throws a processed error on fail
 				this.validate = function (value, accessory = {}) {
-					console.log('validate');
+					console.log(this.name, 'validate:', typeof value, value);
 					try {
-						return this.baseValidate(value, accessory);
+						this.baseValidate(value, accessory);
+						return value;
 					} catch (e) {
-						throw this.editError(e, accessory);
+						throw this.processError(e, accessory);
 					}
 				};
+				//C calls validate but instead returns true on pass and false on error
 				this.check = function (value, accessory = {}) {
 					try {
 						this.validate(value, accessory);
@@ -2406,60 +2382,55 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 						return false;
 					}
 				};
-			}
-
-			if (isCastAsync) {
-				//C wrapper for baseCast that returns the last successfully cast value, this removes the need to write a bunch of try/catch blocks in the instanced baseCast method
-				this.cast = async function (value, accessory = {}) {
-					accessory.castValue = value;
-					try {
-						await this.baseCast(value, accessory);
-					} catch (e) {}
-					return accessory.castValue;
-				};
 			} else {
-				this.cast = function (value, accessory = {}) {
-					console.log('cast');
-					accessory.castValue = value;
+				this.validate = async function (value, accessory = {}) {
 					try {
-						this.baseCast(value, accessory);
-					} catch (e) {}
-					return accessory.castValue;
-				};
-			}
-
-			if (isValidateAsync || isCastAsync) {
-				//C validate that uses the value from cast() instead of the original value, also returns the cast value
-				this.validateCast = async function (value, accessory = {}) {
-					try {
-						const cast = await this.cast(value, accessory);
-						await this.validate(cast, accessory);
-						return cast;
+						await this.baseValidate(value, accessory);
+						return value;
 					} catch (e) {
-						throw this.editError(e, accessory);
+						throw this.processError(e, accessory);
 					}
 				};
-				//C check that uses validateCast() instead of validate()
-				this.checkCast = async function (value, accessory = {}) {
+				this.check = async function (value, accessory = {}) {
 					try {
-						await this.validateCast(value, accessory);
+						await this.validate(value, accessory);
 						return true;
 					} catch (e) {
 						return false;
 					}
 				};
-			} else {
+			}
+
+			if (isValidateSync && isCastSync) {
+				//C validate that uses the value from cast() instead of the original value, also returns the cast value
 				this.validateCast = function (value, accessory = {}) {
+					console.log(this.name, 'validateCast:', typeof value, value);
+
+					//C Casted values are stored on the accessory object so that upon error, the last successfully cast value can be used. 
+					//R This removes the need to write a bunch of try/catch blocks inside the baseCast method.
+					//R cast() was originally it's own function, however it was moved into validateCast() because it wasn't supposed to be used on its own as the casted value wasn't guaranteed to be correctly cast without throwing an error, as some values cannot be cast (negative to positive) it would've involved just re-validating the cast inside the function which is redundant.
+
+					//C The castValue starts as the original value.
+					accessory.castValue = value;
 					try {
-						const cast = this.cast(value, accessory);
-						console.log('c', cast, typeof cast);
-						this.validate(cast, accessory);
-						console.log('v');
-						return cast;
+						//C Don't throw upon baseCast() error, just use the last successful castValue and apply the respective validate() error.
+						/* //R 
+							why not just throw the error and forget about the last successfully cast value?
+							
+							casting errors aren't very user friendly (because the user won't know what cast means), so just delegate the error handling to whats already written in the validate function
+							
+							Example: while '2.35' can be cast to the number, it cannot (in this example) be cast to an integer. the validator will throw 'number is not an integer' for this STRING, rather than having cast throw 'cannot cast number to integer'.
+						*/
+						this.baseCast(accessory);
+					} catch (e) {};
+
+					try {
+						return this.validate(accessory.castValue, accessory);
 					} catch (e) {
-						throw this.editError(e, accessory);
+						throw this.processError(e, accessory);
 					}
 				};
+				//C same as check(), just uses validateCast() instead of validate()
 				this.checkCast = function (value, accessory = {}) {
 					try {
 						this.validateCast(value, accessory);
@@ -2468,39 +2439,71 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 						return false;
 					}
 				};
+			} else {
+				this.validateCast = async function (value, accessory = {}) {
+					accessory.castValue = value;
+					try {
+						await this.baseCast(accessory);
+					} catch (e) {};
+
+					try {
+						return await this.validate(accessory.castValue, accessory);
+					} catch (e) {
+						throw this.processError(e, accessory);
+					}
+				};
+				this.checkCast = async function (value, accessory = {}) {
+					try {
+						await this.validateCast(value, accessory);
+						return true;
+					} catch (e) {
+						return false;
+					}
+				};
 			}
 		},
 	}),
-	prototypeProperties: parent => ({
-		fillError(error, fill) {
-			//C replace placeholders
-			sj.any(fill).forEach((item, index) => {
-				const string = String(item);
-				error.reason = error.reason.replace(`$${index}`, string);
-				error.message = error.message.replace(`$${index}`, string);
-			});
-		},
-		editError(targetError, {fill = this.fill, error, origin}) {
-			//C fill error
-			this.fillError(targetError, fill);
+	prototypeProperties(parent) {
+		//C name property is tied to the rule-instance's key inside sj.Rule2, otherwise undefined
+		Object.defineProperty(this, 'name', {
+			get() {
+				return Object.keys(this.constructor).find(key => this.constructor[key] === this);
+			},
+		});
 
-			//C if ErrorList
-			if (sj.isType(targetError, sj.ErrorList)) {
-				//C fill each item
-				for (const listError of targetError.content) {
-					this.fillError(listError, fill);
+		return {
+			fillError(error, fill) {
+				//C replace placeholders
+				sj.any(fill).forEach((item, index) => {
+					const string = String(item);
+					error.reason = error.reason.replace(`$${index}`, string);
+					error.message = error.message.replace(`$${index}`, string);
+				});
+			},
+			processError(targetError, {fill = this.fill, error, origin}) {
+				//C may receive custom fill, error, and origin fields from accessory at call invocation
+
+				//C fill error
+				this.fillError(targetError, fill);
+	
+				//C if ErrorList
+				if (sj.isType(targetError, sj.ErrorList)) {
+					//C fill each item
+					for (const listError of targetError.content) {
+						this.fillError(listError, fill);
+					}
 				}
-			}
-
-			throw new sj.Error({
-				...targetError,
-				//C custom properties //! will overwrite any filled properties
-				...error,
-				//C fixed properties
-				origin,
-			});
-		},
-	}),
+	
+				throw new sj.Error({
+					...targetError,
+					//C custom properties //! will overwrite any filled properties
+					...error,
+					//C fixed properties
+					origin,
+				});
+			},
+		};
+	},
 });
 sj.Rule2.augmentClass({
 	staticProperties: parent => ({
@@ -2508,15 +2511,19 @@ sj.Rule2.augmentClass({
 		string: new sj.Rule2({
 			baseValidate(value) {
 				if (!sj.isType(value, String)) throw new sj.SilentError({
-					origin: 'sj.Rule2.string.validate()',
+					origin: 'sj.Rule2.string.baseValidate()',
 					reason: '$0 is not a string',
 					message: '$0 must be text.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
+			baseCast(accessory) {
 				//C a failed stringify can still be turned in to a string
-				if (typeof accessory.castValue === 'object') try { accessory.castValue = JSON.stringify(accessory.castValue); } catch (e) {} 
+				if (typeof accessory.castValue === 'object') {
+					try { 
+						accessory.castValue = JSON.stringify(accessory.castValue); 
+					} catch (e) {} 
+				}
 				accessory.castValue = String(accessory.castValue);
 			},
 		}),
@@ -2526,14 +2533,14 @@ sj.Rule2.augmentClass({
 				//TODO ensure that this regExp checks for all possible white space
 				//L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
 				if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.SilentError({
-					origin: 'sj.Rule2.trimmed.validate()',
+					origin: 'sj.Rule2.trimmed.baseValidate()',
 					reason: '$0 is not trimmed',
 					message: '$0 must not have any leading or trailing whitespace.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.string.validateCast(accessory.castValue, accessory);
 				accessory.castValue = accessory.castValue.trim();
 			},
 		}),
@@ -2542,14 +2549,14 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				sj.Rule2.string.validate(value);
 				if (value.trim() === '') throw new sj.SilentError({
-					origin: 'sj.Rule2.nonEmptyString.validate()',
+					origin: 'sj.Rule2.nonEmptyString.baseValidate()',
 					reason: '$0 is empty or only has whitespace',
 					message: '$0 must not be empty.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.string.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.string.validateCast(accessory.castValue, accessory);
 				//! cannot cast any further than a string
 			},
 		}),
@@ -2557,31 +2564,31 @@ sj.Rule2.augmentClass({
 		// NUMBER
 		number: new sj.Rule2({
 			baseValidate(value) {
-				console.log('baseValidate');
 				if (!sj.isType(value, Number)) throw new sj.SilentError({
-					origin: 'sj.Rule2.number.validate()',
+					origin: 'sj.Rule2.number.baseValidate()',
 					reason: '$0 is not a number',
 					message: '$0 must be a number.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				console.log('baseCast');
-				//C casts anything else to NaN
-				accessory.castValue = Number.parseFloat(accessory.castValue);
+			baseCast(accessory) {
+				//C parse strings for floats
+				//! do not cast to NaN
+				const n = Number.parseFloat(accessory.castValue);
+				if (!Number.isNaN(n)) accessory.castValue = n;
 			},
 		}),
 		nonNaNNumber: new sj.Rule2({
 			baseValidate(value) {
 				if (!sj.isType(value, Number) || Number.isNaN(value)) throw new sj.SilentError({
-					origin: 'sj.Rule2.nonNaNNumber.validate()',
+					origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
 					reason: '$0 is not a number or is NaN',
 					message: '$0 must be a number.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.number.validateCast(accessory.castValue, accessory);
 				//! don't cast NaN to a non-NaN number
 			},
 		}),
@@ -2591,29 +2598,31 @@ sj.Rule2.augmentClass({
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
 				if (value < 0) throw new sj.SilentError({
-					origin: 'sj.Rule2.nonNegativeNumber.validate()',
+					origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
 					reason: '$0 is negative',
 					message: '$0 must not be negative.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.number.validateCast(accessory.castValue, accessory);
 				//! don't cast negative number to a non-negative number
 			},
 		}),
 		nonPositiveNumber: new sj.Rule2({
 			baseValidate(value) {
 				sj.Rule2.number.validate(value);
-				if (0 < value) throw new sj.SilentError({
-					origin: 'sj.Rule2.nonPositiveNumber.validate()',
-					reason: '$0 is positive',
-					message: '$0 must not be positive.',
-					content: sj.image(value),
-				});
+				if (0 < value) {
+					throw new sj.SilentError({
+						origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
+						reason: '$0 is positive',
+						message: '$0 must not be positive.',
+						content: sj.image(value),
+					});
+				}
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.number.validateCast(accessory.castValue, accessory);
 				//! don't cast positive number to a non-positive number
 			},
 		}),
@@ -2622,14 +2631,14 @@ sj.Rule2.augmentClass({
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
 				if (value <= 0) throw new sj.SilentError({
-					origin: 'sj.Rule2.positiveNumber.validate()',
+					origin: 'sj.Rule2.positiveNumber.baseValidate()',
 					reason: '$0 is negative or 0',
 					message: '$0 must be positive.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.number.validateCast(accessory.castValue, accessory);
 				//! don't cast non-positive number to a positive number
 			},
 		}),
@@ -2637,14 +2646,14 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				sj.Rule2.number.validate(value);
 				if (0 <= value) throw new sj.SilentError({
-					origin: 'sj.Rule2.negativeNumber.validate()',
+					origin: 'sj.Rule2.negativeNumber.baseValidate()',
 					reason: '$0 is positive or 0',
 					message: '$0 must be negative.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.number.validateCast(accessory.castValue, accessory);
 				//! don't cast non-negative number to a negative number
 			},
 		}),
@@ -2655,37 +2664,38 @@ sj.Rule2.augmentClass({
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
 				if (!Number.isInteger(value)) throw new sj.SilentError({
-					origin: 'sj.Rule2.integer.validate()',
+					origin: 'sj.Rule2.integer.baseValidate()',
 					reason: '$0 is not an integer',
 					message: '$0 must be an integer.',
 					content: sj.image(value),
 				});
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.number.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.number.validateCast(accessory.castValue, accessory);
 				//C chops any decimal off of floats
+				//! this may give misleading errors, as the value will no longer fail because it's not an integer but because it's chopped value fails some other condition
 				accessory.castValue = Number.parseInt(accessory.castValue);
 			},
 		}),
-
+		
 		nonNegativeInteger: new sj.Rule2({
 			baseValidate(value) {
 				sj.Rule2.nonNegativeNumber.validate(value);
 				sj.Rule2.integer.validate(value);
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.nonNegativeNumber.validateCast(accessory.castValue);
-				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.nonNegativeNumber.validateCast(accessory.castValue, accessory);
+				sj.Rule2.integer.validateCast(accessory.castValue, accessory);
 			},
-		}),
-		nonNegativeInteger: new sj.Rule2({
+		}),	
+		nonPositiveInteger: new sj.Rule2({
 			baseValidate(value) {
 				sj.Rule2.nonPositiveNumber.validate(value);
 				sj.Rule2.integer.validate(value);
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.nonPositiveNumber.validateCast(accessory.castValue);
-				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.nonPositiveNumber.validateCast(accessory.castValue, accessory);
+				sj.Rule2.integer.validateCast(accessory.castValue, accessory);
 			},
 		}),
 		positiveInteger: new sj.Rule2({
@@ -2693,9 +2703,9 @@ sj.Rule2.augmentClass({
 				sj.Rule2.positiveNumber.validate(value);
 				sj.Rule2.integer.validate(value);
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.positiveNumber.validateCast(accessory.castValue);
-				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.positiveNumber.validateCast(accessory.castValue, accessory);
+				sj.Rule2.integer.validateCast(accessory.castValue, accessory);
 			},
 		}),
 		negativeInteger: new sj.Rule2({
@@ -2703,14 +2713,13 @@ sj.Rule2.augmentClass({
 				sj.Rule2.negativeNumber.validate(value);
 				sj.Rule2.integer.validate(value);
 			},
-			baseCast(value, accessory) {
-				accessory.castValue = sj.Rule2.negativeNumber.validateCast(accessory.castValue);
-				accessory.castValue = sj.Rule2.integer.validateCast(accessory.castValue);
+			baseCast(accessory) {
+				sj.Rule2.negativeNumber.validateCast(accessory.castValue, accessory);
+				sj.Rule2.integer.validateCast(accessory.castValue, accessory);
 			},
 		}),
 	}),
 });
-
 
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
 sj.Success = sj.Base.makeClass('Success', sj.Base, {
