@@ -11,6 +11,11 @@
 		data() { return {
 			Entity: this.$root.sj.Track,
 		}; },
+		watch: {
+			content(v) {
+				console.log('content:', this.sj.image(v));
+			},
+		},
     }
 </script>
 

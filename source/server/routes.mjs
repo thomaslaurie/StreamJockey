@@ -134,12 +134,12 @@ const apiRouter = new Router();
 */
 // server-side data & processing requests
 apiRouter
-.get('/test', async (ctx, next) => {
-	
-	console.log('TEST');
-	let test = ['blahblah', new sj.User()];
-	console.log('ROUTER CALL', test);
-	ctx.response.body = test;
+.post('/log', async (ctx, next) => {
+	console.log('CLIENT LOG:', ctx.request.body.message);
+	ctx.response.body = new sj.Success({
+		origin: 'routes.mjs /log POST',
+		message: 'received client log message',
+	});
 })
 
 // auth

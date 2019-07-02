@@ -14,7 +14,6 @@
             return {
 				// OVERWRITES
 				Entity: this.$root.sj.Playlist,
-				//sQuery: {id: this.$route.params.id},
 				sQuery: {id: this.$root.sj.Rule2.nonNegativeInteger.validateCast(this.$route.params.id)},
 
 				// NEW
@@ -22,7 +21,7 @@
 				searchTerm: '',
 				searchResults: [],
             };
-        },
+		},
         methods: {
 			// NEW
             async search() {
@@ -33,9 +32,6 @@
 				await this.sj.Track.add(track);
 				await this.refresh(); //TODO
 			},
-		},
-		created() {
-			console.log('HERE', typeof this.sQuery.id, this.sQuery.id);
 		},
     }
 </script>

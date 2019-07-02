@@ -719,9 +719,8 @@ export default {
 			
 
 			//C unsubscribe on server
+			//? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
 			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
-			console.error('unsubscribe called');
-			//---------- here is where unsubscribe is being called where it shouldn't, however the server is still not properly handling the empty unsubscribe request
 			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
 
 			//C remove subscription from it's liveQuery

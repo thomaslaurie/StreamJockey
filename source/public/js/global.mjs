@@ -70,6 +70,11 @@
 		Add timeouts to async functions.
 
 		Replace all 'var' with 'let' and 'const'
+
+
+	// SMALL
+		eslint + prettier configuration
+		//L https://medium.com/@pgivens/write-cleaner-code-using-prettier-and-eslint-in-vscode-d04f63805dcd
 */
 
 
@@ -2365,7 +2370,6 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 			if (isValidateSync) {
 				//C calls baseValidate(), returns value on pass, throws a processed error on fail
 				this.validate = function (value, accessory = {}) {
-					console.log(this.name, 'validate:', typeof value, value);
 					try {
 						this.baseValidate(value, accessory);
 						return value;
@@ -2404,8 +2408,6 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 			if (isValidateSync && isCastSync) {
 				//C validate that uses the value from cast() instead of the original value, also returns the cast value
 				this.validateCast = function (value, accessory = {}) {
-					console.log(this.name, 'validateCast:', typeof value, value);
-
 					//C Casted values are stored on the accessory object so that upon error, the last successfully cast value can be used. 
 					//R This removes the need to write a bunch of try/catch blocks inside the baseCast method.
 					//R cast() was originally it's own function, however it was moved into validateCast() because it wasn't supposed to be used on its own as the casted value wasn't guaranteed to be correctly cast without throwing an error, as some values cannot be cast (negative to positive) it would've involved just re-validating the cast inside the function which is redundant.
@@ -3262,6 +3264,9 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 	
 	staticProperties: parent => ({
 		instances: [],
+		find(name) {
+			return this.instances.find(instance => instance.name === name);
+		},
 	}),
 });
 

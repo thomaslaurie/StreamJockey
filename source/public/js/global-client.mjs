@@ -50,6 +50,18 @@ import sj from './global.mjs';
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 
+//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
+//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
+//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
+//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
+//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
+
+sj.serverLog = async function (message) {
+	return await sj.request('POST', `${sj.API_URL}/log`, {message});
+};
+
+
 //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
@@ -88,8 +100,6 @@ sj.Entity.augmentClass({
 		},
 	}),
 });
-
-
 
 // ACTION
 //R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state

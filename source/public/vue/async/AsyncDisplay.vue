@@ -169,8 +169,6 @@
             },
 
 			async liveRefresh() {
-				//---------- somehow an empty query is making its way into the subscription
-				console.log('change called', this.sj.image(this.subscription));
 				return await this.$store.dispatch('resubscribe', {
 					subscription: this.subscription,
 
@@ -200,7 +198,7 @@
 		},
 		watch: {
 			query: {
-				handler() {
+				handler(value) {
 					//C refresh() will be called when this.query changes, don't change the state to avoid flickering
 					this.refresh(this.state);
 				},
