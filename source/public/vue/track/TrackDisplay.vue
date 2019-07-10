@@ -62,9 +62,10 @@
 	$track-height: 50px;
 
 	.track-display{
-		height: $track-height;
+		// height: $track-height;
 		background-color: $list-item-color;
 		display: flex;
+		overflow: auto;
 		#left, #right {
 			display: inline-flex;
 		}
@@ -78,7 +79,7 @@
 			justify-content: flex-end;
 		}
 		#play-button {
-			width: $track-height;
+			// width: $track-height;
 			height: 100%;
 		}
 		#content {

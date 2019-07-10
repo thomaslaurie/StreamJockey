@@ -488,35 +488,60 @@ sj.deepClone = function (...args) {
 sj.Deferred = class Deferred extends Promise {
 	//C custom promise that can be resolved, rejected, and canceled outside it's executor
 	//G may be called without an executor
-	//? cancel-able promises might not be the best idea
+	//G to set a timeout, make one inside the executor, however although the promise won't reject if it has been fulfilled, ensure that it only happens if the promise is still pending to avoid side-effects (such as logging an error that never actually makes it out of executor)
+	//TODO//? cancel-able promises might not be the best idea
 	constructor(executor = (resolve, reject) => {}) {
-		const closure = {canceled: false};
+		//C closure is used here instead of instance variables because they cannot be defined before super is called (which requires such variables)
+		const closure = {
+			pending: true, //! doesn't stop additional resolve/reject calls, they still reach the parent promise, just acts as a readable state
+			canceled: false,
+		};
 
+		//C intercept executor function
 		super((resolve, reject) => {
 			closure.resolve = function (resolved) {
-				if (!closure.canceled) resolve(resolved);
+				if (!closure.canceled) {
+					closure.pending = false;
+					resolve(resolved);
+				}
 			};
 			closure.reject = function (rejected) {
-				if (!closure.canceled) reject(rejected);
+				if (!closure.canceled) {
+					closure.pending = false;
+					reject(rejected);
+				}
 			};
 
 			return executor(resolve, reject);
 		});
 
+		//C instance .resolve() and .reject() functions will use the closure to fulfill the promise from outside it's executor
+		this.resolve = closure.resolve;
+		this.reject = closure.reject;
+
+		//C prevents promise from being resolved or rejected in the future
+		this.cancel = function () {
+			closure.canceled = true;
+		};
+		//C rejects the result of the passed function on timeout
+		this.timeout = function (ms, onTimeout = () => 'Deferred promise timed out') {
+			sj.wait(ms).then(() => {
+				closure.reject(onTimeout());
+			});
+			return this;
+		};
+
+		//C allow read-only access of pending and canceled directly on the deferred promise
+		Object.defineProperty(this, 'pending', {
+			get() {
+				return closure.pending;
+			},
+		});
 		Object.defineProperty(this, 'canceled', {
 			get() {
 				return closure.canceled;
 			},
-			set(value) {
-				closure.canceled = value;
-			},
 		});
-		
-		this.resolve = closure.resolve;
-		this.reject = closure.reject;
-		this.cancel = function () {
-			this.canceled = true;
-		};
 	}
 };
 
@@ -1051,7 +1076,7 @@ sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
 		}
 
 		return result;
-	}
+	};
 	return await loop();
 };
 sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
@@ -1074,6 +1099,21 @@ sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
 		return result;
 	}
 	return await loop(count);
+};
+
+//C uses recursiveAsyncTime to periodically check a condition
+sj.waitForCondition = async function ({
+	interval = 100,
+	scaling = 1,
+	delay = 0,
+	timeout = 2000,
+	condition = () => false,
+}) {
+	await sj.recursiveAsyncTime(timeout, () => !condition(), async o => {
+		await sj.wait(o.time);
+		o.time = o.time * scaling;
+		return;
+	}, {time: interval + delay});
 };
 
 // HTTP

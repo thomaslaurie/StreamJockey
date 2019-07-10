@@ -38,6 +38,9 @@ import sj from './global.mjs';
 
 
 // external
+import moment from 'moment';
+import he from 'he';
+
 //import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './spotify-web-api.mjs'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 
@@ -49,6 +52,10 @@ import sj from './global.mjs';
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
+//C attach external libraries to sj so that they can be used where ever sj is imported
+sj.moment = moment;
+sj.he = he;
+
 
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
@@ -59,6 +66,22 @@ import sj from './global.mjs';
 
 sj.serverLog = async function (message) {
 	return await sj.request('POST', `${sj.API_URL}/log`, {message});
+};
+sj.loadScript = async function (url) {
+	//C dynamically loads a script from an external url, as would be done by a <script> element
+	//L modified from: https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#Dynamically_importing_scripts
+
+	const scriptElement = document.createElement('script');
+	const promise = new sj.Deferred();
+
+	scriptElement.onload = promise.resolve();
+	scriptElement.onerror = promise.reject();
+	
+	//C adds script as child of <head>
+	document.head.appendChild(scriptElement);
+	scriptElement.src = url;
+
+	return await promise;
 };
 
 
@@ -783,10 +806,12 @@ sj.Source.augmentClass({
 
 		return {
 			defaults: {
+				//TODO change these off undefined
 				auth: undefined,
-				getAccessToken: undefined,
 				request: undefined,
-	
+				getAccessToken: undefined,
+
+				search: undefined,
 	
 				player: undefined,
 				loadPlayer: undefined,
@@ -846,10 +871,11 @@ sj.session.logout = async function () {
 
 // global source objects
 sj.spotify = new sj.Source({
+	//TODO make apiReady and playerReady checks
 	name: 'spotify',
 	
-	//TODO make apiReady and playerReady checks
-
+	
+	//? where is this being called?
 	async auth() {
 		//C prompts the user to accept permissions in a new window, then receives an auth code from spotify
 		/* //R
@@ -886,7 +912,7 @@ sj.spotify = new sj.Source({
 		
 		//TODO there needs to be a scopes (permissions) check in here somewhere
 	
-		/* old
+		/* //OLD
 			//C request authURL & authKey
 			return fetch(`${sj.API_URL}/spotify/startAuthRequest`).then(resolved => {
 				//C open spotify auth request window
@@ -913,6 +939,18 @@ sj.spotify = new sj.Source({
 			});
 		*/
 	},
+	async request(method, path, body) {
+		//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
+		let urlPrefix = 'https://api.spotify.com/v1';
+		let token = await this.getAccessToken();
+		let header = {
+			...sj.JSON_HEADER,
+			Authorization: `Bearer ${token}`,
+		};
+	
+		return await sj.request(method, `${urlPrefix}/${path}`, body, header);
+	},
+	//? this is specific to spotify, maybe move this once optional options are implemented into classes
 	async getAccessToken() {
 		//C gets the api access token, handles all refreshing, initializing, errors, etc.
 		//C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
@@ -946,17 +984,50 @@ sj.spotify = new sj.Source({
 	
 		return this.credentials.accessToken;
 	},
-	async request(method, path, body) {
-		//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
-		let urlPrefix = 'https://api.spotify.com/v1';
-		let token = await this.getAccessToken();
-		let header = {
-			...sj.JSON_HEADER,
-			Authorization: `Bearer ${token}`,
-		};
+
+	async search({
+		term = '',
+		startIndex = 0,
+		amount = 1,
+	}) {
+		// VALIDATE
+		sj.Rule2.nonEmptyString.validate(term);
+		sj.Rule2.nonNegativeInteger.validate(startIndex);
+		sj.Rule2.positiveInteger.validate(amount);
 	
-		return await sj.request(method, `${urlPrefix}/${path}`, body, header);
-	},	
+		const result = await sj.spotify.request('GET', 'search', {
+			q: term,
+			type: 'track',
+			market: 'from_token',
+			limit: amount,
+			offset: startIndex,
+			// include_external: 'audio',
+	
+			/* //G
+				type: 
+					'A comma-separated list of item types to search across. Valid types are: album , artist, playlist, and track.'
+				market:
+					'An ISO 3166-1 alpha-2 country code or the string from_token. If a country code is specified, only artists, albums, and tracks with content that is playable in that market is returned. Note: Playlist results are not affected by the market parameter. If market is set to from_token, and a valid access token is specified in the request header, only content playable in the country associated with the user account, is returned. Users can view the country that is associated with their account in the account settings. A user must grant access to the user-read-private scope prior to when the access token is issued.'
+				limit:
+					'Maximum number of results to return. Default: 20, Minimum: 1, Maximum: 50, //! Note: The limit is applied within each type, not on the total response. For example, if the limit value is 3 and the type is artist,album, the response contains 3 artists and 3 albums.'
+				offset:
+					'The index of the first result to return. Default: 0 (the first result). Maximum offset (including limit): 10,000. Use with limit to get the next page of search results.'
+				include_external:
+					'Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses.'
+			*/
+		});
+	
+		return result.tracks.items.map(track => {
+			return new sj.Track({
+				source: sj.spotify,
+				sourceId: track.id,
+				name: track.name,
+				duration: track.duration_ms,
+				link: track.external_urls.spotify,
+				artists: track.artists.map(artist => artist.name),
+			});
+		});
+	},
 
 	playback: new sj.Playback({
 		//G source-specific playback should be the basic playback functions that connects this app to the source's api
@@ -1598,77 +1669,296 @@ sj.spotify = new sj.Source({
 		},
 	}),
 });
-
 sj.youtube = new sj.Source({
 	name: 'youtube',
 	idPrefix: 'https://www.youtube.com/watch?v=',
 
 	async auth() {
-		//TODO
-		return new sj.Error({
-			log: true,
-			origin: 'youtube.auth()',
-			message: 'this function is not yet implemented',
+		//L example code: https://developers.google.com/youtube/v3/docs/search/list
+
+		//TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
+		//? where does this go? oauth secret	U4GSxkedKmLF1rEEerp8leEz
+		
+
+		//C watch for gapi to be assigned by using a setter with a deferred promise
+		//L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
+		//OLD alternative option was to use sj.waitForCondition({condition: () => window.gapi !== undefined, timeout: 5000});
+		//! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
+		window.gapi2 = window.gapi;
+		const loaded = new sj.Deferred().timeout(5000, () => new sj.Error({
+			log: false,
+			origin: 'sj.youtube.auth()',
+			reason: 'gapi loading timed out',
+		}));
+		Object.defineProperty(window, 'gapi', {
+			configurable: true,
+			enumerable: true,
+			get() {
+				return window.gapi2;
+			},
+			set(value) {
+				//R gapi was first going to be stored on sj.youtube, however after gapi.cient.init() is called, gapi gets some cross-origin data defined on it. this is an issue when attempting to copy its data via fClone, as a cross-origin error will be thrown.
+				window.gapi2 = value;
+				loaded.resolve();
+			},
+		});
+
+		//C loads gapi into global scope 
+		//TODO is there any way to make this more module-like?
+		await sj.loadScript('https://apis.google.com/js/api.js');
+		//C wait for gapi
+		await loaded;
+
+		//C remove the watcher
+		Object.defineProperty(window, 'gapi', {
+			configurable: true,
+			enumerable: true,
+
+			value: window.gapi2,
+			writable: true,
+		});
+		delete window.gapi2;
+
+
+		//C load client library
+		await new Promise((resolve, reject) => {
+			//L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md
+			//C first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
+			gapi.load('client', {
+				callback(args) { //? no idea what the parameters passed here are
+					resolve(args);
+				},
+				onerror(args) {
+					reject(args);
+				},
+				ontimeout(args) {
+					reject(args); //TODO probably a custom error here?
+				},
+				timeout: 60000, //TODO
+			});
+		});
+
+		//C get apiKey and clientId stored on server
+		const {apiKey, clientId} = await sj.request('GET', `${sj.API_URL}/youtube/credentials`);
+
+		//C loads and performs authorization, short version of the code commented out below
+		//R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
+		await gapi.client.init({
+			//L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md#----gapiclientinitargs--
+			//TODO move keys
+			apiKey,
+			discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
+			clientId,
+
+			//https://www.googleapis.com/auth/youtube.force-ssl
+			//https://www.googleapis.com/auth/youtube
+			scope: 'https://www.googleapis.com/auth/youtube.readonly',
+		});
+
+
+		/* LONG IMPLEMENTATION
+			//! 'auth2:client' must be loaded above
+
+			//C init and signIn to OAuth
+			const googleAuth = await gapi.auth2.init({
+				//! may only be initialized once, and so client_id and scopes cannot be reinitialized
+				//L other options: https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
+				client_id: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com', //TODO move
+				//L The scopes to request, as a space-delimited string, may also be done in signIn() which adds on top of these scopes
+				scope: '', //TODO
+			});
+			await googleAuth.signIn({
+				//L https://developers.google.com/identity/sign-in/web/reference#googleauthsigninoptions
+				//L consent, select_account, or none (can fail)
+				prompt: 'consent',
+			});
+
+			//C init and load client
+			gapi.client.setApiKey('AIzaSyB8perHxXshPCS7MeazmYJyjCCZ0o2fadE') //TODO move
+			await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
+		*/
+
+		/* //OLD
+			async loadApi() { //? how to fit this into existing framework? this might be closer to auth()
+				// Get Script
+				// https://api.jquery.com/jquery.getscript/
+				return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
+					// Load libraries
+					// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiloadlibraries-callbackorconfig
+					// original code: https://developers.google.com/youtube/v3/docs/search/list
+					return new Promise(function(resolve, reject) {
+						gapi.load('client:auth2', {
+							callback: function() {
+								// Initialize the gapi.client object, which app uses to make API requests.
+								// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
+								// Promises: https://developers.google.com/api-client-library/javascript/features/promises
+								gapi.client.init({
+									apiKey: 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
+									clientId: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
+									discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
+									// at least one scope is needed, this is the bare minimum scope
+									scope: 'https://www.googleapis.com/auth/youtube.readonly'
+								}).then(function (resolved) {
+									resolve(new sj.Success({
+										log: true,
+										origin: 'youtube.loadApi()',
+										message: 'youtube api ready',
+									}));
+								}, function (rejected) {
+									reject(new sj.Error({
+										log: true,
+										origin: 'youtube.loadApi()',
+										message: 'failed to load youtube api',
+										reason: 'client initialization failed',
+										content: rejected,
+									}));
+								});
+							},
+							onerror: function() {
+								reject(new sj.Error({
+									log: true,
+									origin: 'youtube.loadApi()',
+									message: 'failed to load youtube libraries',
+									reason: 'gapi.load error',
+									content: reason,
+								}));
+							},
+							// TODO timeout
+							//timeout: 5000, // 5 seconds.
+							//ontimeout: function() {
+							// Handle timeout.
+							//alert('gapi.client could not load in a timely manner!');
+						});
+					});
+				}, function (jqxhr, settings, exception) {
+					throw new sj.Error({
+						log: true,
+						origin: 'youtube.loadApi()',
+						message: 'failed to load youtube api',
+						reason: exception,
+					});
+				});
+			},
+		*/
+	},
+	async request(method, path, body) {
+		//C check that user is authorized (signedIn)
+		//TODO how do I check that the client library is loaded?
+		if (window.gapi === undefined || window.gapi.auth2 === undefined || !window.gapi.auth2.getAuthInstance().isSignedIn.get()) {
+			await this.auth();
+		}
+
+		return await gapi.client.request({
+			method,
+			path: `/youtube/v3/${path}`,
+			params: body,
 		});
 	},
-	async loadApi() { //? how to fit this into existing framework? this might be closer to auth()
-		// Get Script
-		// https://api.jquery.com/jquery.getscript/
-		return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
-			// Load libraries
-			// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiloadlibraries-callbackorconfig
-			// original code: https://developers.google.com/youtube/v3/docs/search/list
-			return new Promise(function(resolve, reject) {
-				gapi.load('client:auth2', {
-					callback: function() {
-						// Initialize the gapi.client object, which app uses to make API requests.
-						// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
-						// Promises: https://developers.google.com/api-client-library/javascript/features/promises
-						gapi.client.init({
-							apiKey: 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
-							clientId: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
-							discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
-							// at least one scope is needed, this is the bare minimum scope
-							scope: 'https://www.googleapis.com/auth/youtube.readonly'
-						}).then(function (resolved) {
-							resolve(new sj.Success({
-								log: true,
-								origin: 'youtube.loadApi()',
-								message: 'youtube api ready',
-							}));
-						}, function (rejected) {
-							reject(new sj.Error({
-								log: true,
-								origin: 'youtube.loadApi()',
-								message: 'failed to load youtube api',
-								reason: 'client initialization failed',
-								content: rejected,
-							}));
-						});
-					},
-					onerror: function() {
-						reject(new sj.Error({
-							log: true,
-							origin: 'youtube.loadApi()',
-							message: 'failed to load youtube libraries',
-							reason: 'gapi.load error',
-							content: reason,
-						}));
-					},
-					// TODO timeout
-					//timeout: 5000, // 5 seconds.
-					//ontimeout: function() {
-					// Handle timeout.
-					//alert('gapi.client could not load in a timely manner!');
-				});
+
+	async search({
+		term = '',
+		startIndex = 0,
+		amount = 1,
+	}) {
+		// VALIDATE
+		sj.Rule2.nonEmptyString.validate(term);
+		sj.Rule2.nonNegativeInteger.validate(startIndex);
+		sj.Rule2.positiveInteger.validate(amount);
+
+
+		//C amass search result pages until the last requested search index is included
+		//! this will drive api quotas up fast if the startIndex or amount are high (n*50)
+		//!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
+		/* //R
+			default quota limit is 10 000 units per day (or not? I don't see a limit in the quotas tab of the api dashboard)
+			/search costs 100 per page, (so only allowed to search 100 times per day)
+			increasing the maxResults doesn't seem to increase the quota cost, but increasing the number of pages per search (by increasing startIndex or amount) will,
+			so the best solution to adapting this page system to my start/amount system would be to request the maximum number of results per page (50), then requesting the next page until the last result is retrieved - this will require the minimum number of pages
+		*/		
+
+		let limit = 1; //TODO temp safeguard
+
+		const allPageResults  = [];
+		let pageToken = null;
+		
+		while (allPageResults.length < startIndex + amount && limit > 0) {
+			const pageResults = await sj.youtube.request('GET', 'search', {
+				//L https://developers.google.com/youtube/v3/docs/search/list#parameters
+				part: 'snippet',
+				type: 'video',
+				maxResults: 50,
+				q: term,
+				//C conditionally add pageToken
+				//L https://stackoverflow.com/questions/11704267/in-javascript-how-to-conditionally-add-a-member-to-an-object/40560953#40560953
+				...(pageToken !== null && {pageToken}),
 			});
-		}, function (jqxhr, settings, exception) {
-			throw new sj.Error({
-				log: true,
-				origin: 'youtube.loadApi()',
-				message: 'failed to load youtube api',
-				reason: exception,
+			allPageResults.push(...pageResults.result.items);
+			pageToken = pageResults.nextPageToken;
+
+			limit--;
+		}
+		//C remove the unneeded results
+		const searchResults = allPageResults.slice(startIndex, startIndex + amount);
+
+
+		//C videoResults must also be searched because the contentDetails part is not available for the search request
+		//L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
+		const videoResult = await sj.youtube.request('GET', 'videos', {
+			//L https://developers.google.com/youtube/v3/docs/videos/list
+			//C join the results ids
+			id: searchResults.map(item => item.id.videoId).join(','),
+			//C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
+			part: 'contentDetails',
+		});
+		if (searchResults.length !== videoResult.result.items.length) throw new sj.Error({
+			origin: 'youtube.search()',
+			reason: 'search result length not equal to video result length',
+			content: {
+				searchLength: searchResults.length,
+				videoLength: videoResult.result.items.length,
+			},
+		});
+		videoResult.result.items.forEach((item, index) => {
+			//C ensure that ids line up
+			if (searchResults[index].id.videoId !== item.id) throw new sj.Error({
+				origin: 'youtube.search()',
+				reason: `search and video results at ${index} do not have the same id`,
 			});
+			//C append contentDetails part to the search results
+			searchResults[index].contentDetails = item.contentDetails;
+		});
+
+		return searchResults.map(({id: {videoId: id}, snippet, contentDetails}) => {
+			const track = {
+				source: sj.youtube, //! this is causing issues with fClone, its throwing a cross origin error
+				sourceId: id,
+				duration: sj.moment.duration(contentDetails.duration, sj.moment.ISO_8601).asMilliseconds(),
+				link: sj.youtube.idPrefix + id,
+			};
+			
+			//C assuming title format of 'Artist - Title'
+			//C splits on dash between one or any whitespace
+			const splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
+			if (splitTitle.length === 2)  { //C if splitTittle has the exact length of two
+				//C use the first part as the artists
+				//C splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
+				//TODO improve
+				track.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g);
+				//C use the second part as the name
+				track.name = splitTitle[1];
+			} else {
+				//C use the channel title as the artist
+				track.artists = [snippet.channelTitle];
+				//C use the full title as the name
+				track.name = snippet.title;
+			}	
+
+			//C apparently the titles are html encoded, (possibly the artist names too//?)
+			//L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
+			track.artists = track.artists.map(artist => sj.he.decode(artist));
+			track.name = sj.he.decode(track.name);
+
+			return new sj.Track(track);
 		});
 	},
 
@@ -1742,74 +2032,22 @@ sj.youtube = new sj.Source({
 	}),
 });
 
+//---------- move auth to server
 
-//  ███████╗███████╗ █████╗ ██████╗  ██████╗██╗  ██╗
-//  ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔════╝██║  ██║
-//  ███████╗█████╗  ███████║██████╔╝██║     ███████║
-//  ╚════██║██╔══╝  ██╔══██║██╔══██╗██║     ██╔══██║
-//  ███████║███████╗██║  ██║██║  ██║╚██████╗██║  ██║
-//  ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 
-//TODO move these into source / vuex
+/* //OLD
+	sj.searchResults = {
+		// details
+		'term': '',
+		'tracksPerSource': 5,
+		'page': 0,
 
-sj.searchResults = {
-	// details
-	'term': '',
-	'tracksPerSource': 5,
-	'page': 0,
+		// sources
+		'spotify': new sj.Playlist({origin: 'searchResults',}),
+		'youtube': new sj.Playlist({origin: 'searchResults',}),
 
-	// sources
-	'spotify': new sj.Playlist({origin: 'searchResults',}),
-	'youtube': new sj.Playlist({origin: 'searchResults',}),
-
-	'all': new sj.Playlist({origin: 'searchResults',}),
-};
-
-sj.spotify.search = async function ({
-	term = '',
-	startIndex = 0,
-	amount = 1,
-}) {
-	// VALIDATE
-	sj.Rule2.nonEmptyString.validate(term);
-	sj.Rule2.nonNegativeInteger.validate(startIndex);
-	sj.Rule2.positiveInteger.validate(amount);
-
-	const result = await sj.spotify.request('GET', 'search', {
-		q: term,
-		type: 'track',
-		market: 'from_token',
-		limit: amount,
-		offset: startIndex,
-		// include_external: 'audio',
-
-		/* //G
-			type: 
-				'A comma-separated list of item types to search across. Valid types are: album , artist, playlist, and track.'
-			market:
-				'An ISO 3166-1 alpha-2 country code or the string from_token. If a country code is specified, only artists, albums, and tracks with content that is playable in that market is returned. Note: Playlist results are not affected by the market parameter. If market is set to from_token, and a valid access token is specified in the request header, only content playable in the country associated with the user account, is returned. Users can view the country that is associated with their account in the account settings. A user must grant access to the user-read-private scope prior to when the access token is issued.'
-			limit:
-				'Maximum number of results to return. Default: 20, Minimum: 1, Maximum: 50, //! Note: The limit is applied within each type, not on the total response. For example, if the limit value is 3 and the type is artist,album, the response contains 3 artists and 3 albums.'
-			offset:
-				'The index of the first result to return. Default: 0 (the first result). Maximum offset (including limit): 10,000. Use with limit to get the next page of search results.'
-			include_external:
-				'Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses.'
-		*/
-	});
-
-	return result.tracks.items.map(track => {
-		return new sj.Track({
-			source: sj.spotify,
-			sourceId: track.id,
-			name: track.name,
-			duration: track.duration_ms,
-			link: track.external_urls.spotify,
-			artists: track.artists.map(artist => artist.name),
-		});
-	});
-};
-
-/*
+		'all': new sj.Playlist({origin: 'searchResults',}),
+	};
 	sj.youtube.search = async function (term) {
 		var args = {
 			method: 'GET',

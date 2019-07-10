@@ -18,10 +18,6 @@
                 const me = await this.sj.session.get().then(this.sj.content);
                 this.$router.push(`/user/${me.id}`);
 			},
-			
-			async auth() {
-                let temp = await this.sj.spotify.auth();
-            },
         },
     }
 </script>
@@ -33,7 +29,6 @@
         <button @click='home'>Home</button>
         <button @click='add'>Add</button>
         <button @click='profile'>Profile</button>
-		<button @click='auth()'>Auth</button>
     </div>
 </template>
 
@@ -41,6 +36,6 @@
 <style lang='scss'>
     .menu-bar {
         width: 100%;
-        background-color: red;
+        // background-color: red;
     }
 </style>

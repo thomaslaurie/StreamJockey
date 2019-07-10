@@ -100,6 +100,7 @@ const apiRouter = new Router();
 //  ██╔══██║██╔═══╝ ██║
 //  ██║  ██║██║     ██║
 //  ╚═╝  ╚═╝╚═╝     ╚═╝
+//TODO consider putting .catch(sj.andResolve) as a middleware?
 
 /*
 	let listenerList = [
@@ -162,6 +163,11 @@ apiRouter
 .get('/spotify/refreshToken', async (ctx, next) => {
 	ctx.response.body = await sj.spotify.refreshToken(ctx).catch(sj.andResolve);
 })
+
+.get('/youtube/credentials', async (ctx, next) => {
+	ctx.response.body = await sj.youtube.getCredentials().catch(sj.andResolve);
+})
+
 
 // session
 //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request

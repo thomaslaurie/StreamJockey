@@ -29,7 +29,7 @@
         	<label 
 				:for='`${sourceInstance.name}SearchRadio`'
 			>
-				{{sourceInstance.name}}{{index}}
+				{{sourceInstance.name}}
 			</label>
 		</div>
 
