@@ -74,8 +74,8 @@ sj.loadScript = async function (url) {
 	const scriptElement = document.createElement('script');
 	const promise = new sj.Deferred();
 
-	scriptElement.onload = promise.resolve();
-	scriptElement.onerror = promise.reject();
+	scriptElement.onerror = promise.reject;
+	scriptElement.onload = promise.resolve;
 	
 	//C adds script as child of <head>
 	document.head.appendChild(scriptElement);
@@ -2031,145 +2031,6 @@ sj.youtube = new sj.Source({
 		},
 	}),
 });
-
-//---------- move auth to server
-
-
-/* //OLD
-	sj.searchResults = {
-		// details
-		'term': '',
-		'tracksPerSource': 5,
-		'page': 0,
-
-		// sources
-		'spotify': new sj.Playlist({origin: 'searchResults',}),
-		'youtube': new sj.Playlist({origin: 'searchResults',}),
-
-		'all': new sj.Playlist({origin: 'searchResults',}),
-	};
-	sj.youtube.search = async function (term) {
-		var args = {
-			method: 'GET',
-			path: '/youtube/v3/search',
-			params: {
-				// https://developers.google.com/youtube/v3/docs/search/list#parameters
-				part: 'snippet',
-				type: 'video',
-
-				// min 0, max 50, default 5
-				maxResults: sj.searchResults.tracksPerSource,
-				// nextPageToken (and prevPageToken) are returned with each search result, fill this in to get to other pages
-				//pageToken: token,
-
-				q: term,
-			}
-		};
-
-		return new Promise(function (resolve, reject) {
-			// convert gapi.client.request() to promise
-			gapi.client.request(args).then(function (resolved) {
-				resolve(resolved);
-			}, function (rejected) {
-				reject(new sj.Error({
-					log: true, 
-					origin: 'youtube.search()',
-					message: 'tracks could not be retrieved',
-					reason: 'gapi request was rejected',
-					content: rejected,
-				}));
-			});
-		}).then(function (resolved) {
-			// save term
-			sj.searchResults.term = term;
-
-			// create list of ids
-			var ids = [];
-			resolved.result.items.forEach(function (track, i) {
-				ids[i] = track.id.videoId;
-			});
-
-			return youtube.getTracks(ids);
-		}).then(function (resolved) {
-			// save sj.Playlist
-			sj.searchResults.youtube = resolved;
-			return new sj.Success({
-				log: true,
-				origin: 'youtube.search()',
-				message: 'tracks retrieved',
-				content: resolved,
-			});
-		}).catch(function (rejected) {
-			throw sj.propagate(rejected);
-		});
-	};
-	sj.youtube.getTracks = async function (ids) {
-		// takes list of ids from youtube's resolved.result.items.id.videoId
-
-		// prepare args
-		var args = {
-			method: 'GET',
-			path: '/youtube/v3/videos',
-			params: {
-				id: ids.join(','),
-				part: 'snippet,contentDetails',
-			}
-		};
-
-		// https://developers.google.com/youtube/v3/docs/videos/list
-		return new Promise(function (resolve, reject) {
-			// convert gapi.client.request() to promise
-			gapi.client.request(args).then(function (resolved) {
-				resolve(resolved);
-			}, function (rejected) {
-				reject(new sj.Error({
-					log: true, 
-					origin: 'youtube.getTracks() gapi.client.request().then()',
-					message: 'tracks could not be retrieved',
-					reason: 'gapi request was rejected',
-					content: rejected,
-				}));
-			});
-		}).then(function(resolved) {
-			// array of track objects
-			var playlist = new sj.Playlist({
-				log: false,
-				origin: 'youtube.getTracks()',
-			});
-
-			resolved.result.items.forEach(function (track, i) {
-				playlist.content[i] = new sj.Track({});
-
-				playlist.content[i].source = youtube;
-				playlist.content[i].sourceId = track.id;
-
-				// convert artist - title format
-				// TODO make better regex
-				var stringSplit = track.snippet.title.split(/( +- +)/);
-				if (stringSplit.length === 2) {
-					var artistSplit = stringSplit[0].split(/( +[&x] +)/);
-					artistSplit.forEach(function(artist) {
-						// fill artists
-						playlist.content[i].artists.push(artist);
-					});
-					playlist.content[i].title = stringSplit[1];
-				} else {
-					playlist.content[i].artists = [track.snippet.channelTitle];
-					playlist.content[i].title = track.snippet.title;
-				}
-
-				// convert ISO_8601 duration to milliseconds
-				playlist.content[i].duration = moment.duration(track.contentDetails.duration, moment.ISO_8601).asMilliseconds();
-				playlist.content[i].link = youtube.idPrefix + playlist.content[i].id;	
-			});
-
-			playlist.announce();
-			return playlist;
-		}).catch(function (rejected) {
-			throw sj.propagate(rejected);
-		});
-	};
-*/
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
