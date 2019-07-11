@@ -135,6 +135,7 @@
 			@input='input($event)'
 			@change='change($event)'
 		>
+		<div id='youtube'></div>
 	</div>
 </template>
 

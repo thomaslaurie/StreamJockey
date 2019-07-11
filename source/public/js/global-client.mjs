@@ -886,21 +886,21 @@ sj.spotify = new sj.Source({
 		*/
 	
 		//C request url
-		let requestCredentials = await sj.request('GET', `${sj.API_URL}/spotify/authRequestStart`);
+		const requestCredentials = await sj.request('GET', `${sj.API_URL}/spotify/authRequestStart`);
 	
 		//C open spotify auth request window
 		//L https://www.w3schools.com/jsref/met_win_open.asp
-		let authWindow = window.open(requestCredentials.authRequestURL);
+		const authWindow = window.open(requestCredentials.authRequestURL);
 	
 		//C listen for response from spotify
 		//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-		let authCredentials = await sj.request('POST', `${sj.API_URL}/spotify/authRequestEnd`, requestCredentials);
+		const authCredentials = await sj.request('POST', `${sj.API_URL}/spotify/authRequestEnd`, requestCredentials);
 	
 		//C automatically close window when data is received
 		authWindow.close();
 	
 		//C exchange auth code for tokens
-		let tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
+		const tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
 		this.credentials.accessToken = tokens.accessToken;
 		this.credentials.expires = tokens.accessToken;
 		this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
@@ -1677,7 +1677,6 @@ sj.youtube = new sj.Source({
 		//L example code: https://developers.google.com/youtube/v3/docs/search/list
 
 		//TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
-		//? where does this go? oauth secret	U4GSxkedKmLF1rEEerp8leEz
 		
 
 		//C watch for gapi to be assigned by using a setter with a deferred promise
@@ -1774,7 +1773,7 @@ sj.youtube = new sj.Source({
 			});
 
 			//C init and load client
-			gapi.client.setApiKey('AIzaSyB8perHxXshPCS7MeazmYJyjCCZ0o2fadE') //TODO move
+			gapi.client.setApiKey('key')
 			await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
 		*/
 
@@ -1964,6 +1963,43 @@ sj.youtube = new sj.Source({
 
 	playback: new sj.Playback({
 		actions: {
+			async loadPlayer(context) {
+				//C load youtube iframe api
+				await sj.loadScript('https://www.youtube.com/iframe_api');
+
+				window.onYouTubeIframeAPIReady = function () {
+					context.commit('setState', {
+						player: new YT.Player('element tag id', {
+							width: '640',
+							height: '390',
+							videoId: 'M71c1UVf-VE',
+							playerVars: {
+								controls: 0,
+								disablekb: 1,
+								enablejsapi: 1,
+								fs: 0,
+								iv_load_policy: 3,
+								modestbranding: 1,
+								//TODO origin: own domain
+							},
+
+							//L https://developers.google.com/youtube/iframe_api_reference#Events
+							events: {
+								onReady() {
+									//TODO
+								},
+								onError() {
+									//TODO
+								},
+								onStateChange() {
+									//TODO
+								},
+							},
+						}),
+					});
+				};
+			},
+
 			async loadPlayer(context) {
 				//TODO make this async
 
