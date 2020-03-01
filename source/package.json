@@ -1,15 +1,9 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "private": true,
   "scripts": {
     "build": "npx webpack --watch --config ./config/webpack.config.js",
     "server": "npx nodemon --experimental-modules ./server/index.mjs",
     "all": "npx run-p build server"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "bcrypt": "^4.0.0",
     "btoa": "^1.2.1",
@@ -38,5 +32,6 @@
     "vue-template-compiler": "^2.6.4",
     "webpack": "^4.29.3",
     "webpack-cli": "^3.2.3"
-  }
+  },
+  "private": true
 }
