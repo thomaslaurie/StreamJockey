@@ -155,6 +155,7 @@ sj.liveData.start({
 //  ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝
 
 // START SERVER
+//G Connect at http://localhost:<PORT>
 server.listen(PORT, () => {
 	console.log('███████████████████████████████████████');
 	console.log(`SERVER LISTENING ON PORT ${PORT}`);

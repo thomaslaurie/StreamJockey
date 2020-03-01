@@ -265,6 +265,10 @@ sj.clamp = function (input, min, max) {
 	else if (max < input) return max;
 	else return input;
 };
+sj.escapeRegExp = function (string) {
+	//L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 // HTTP
 sj.encodeProps = function (obj) {
@@ -486,9 +490,8 @@ sj.deepClone = function (...args) {
 	return fClone(...args);
 };
 sj.Deferred = class Deferred extends Promise {
-	//C custom promise that can be resolved, rejected, and canceled outside it's executor
-	//G may be called without an executor
-	//G to set a timeout, make one inside the executor, however although the promise won't reject if it has been fulfilled, ensure that it only happens if the promise is still pending to avoid side-effects (such as logging an error that never actually makes it out of executor)
+	//C custom promise that can be resolved, rejected, and canceled outside it's resolver
+	//G may be called without a resolver
 	//TODO//? cancel-able promises might not be the best idea
 	constructor(executor = (resolve, reject) => {}) {
 		//C closure is used here instead of instance variables because they cannot be defined before super is called (which requires such variables)
@@ -526,7 +529,8 @@ sj.Deferred = class Deferred extends Promise {
 		//C rejects the result of the passed function on timeout
 		this.timeout = function (ms, onTimeout = () => 'Deferred promise timed out') {
 			sj.wait(ms).then(() => {
-				closure.reject(onTimeout());
+				//! doesn't call onTimeout() if the promise is already fulfilled, to avoid side-effects
+				if (closure.pending) closure.reject(onTimeout());
 			});
 			return this;
 		};
@@ -1407,6 +1411,7 @@ sj.Base = class Base {
 
 		//C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
 		Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent));
+		//? shouldn't the this reference be the parent.prototype?
 	
 
 		return MadeClass;
@@ -3286,6 +3291,7 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 		defaults: {
 			// NEW
 			name: undefined, //! source.name is a unique identifier
+			nullPrefix: '',
 			idPrefix: '',
 			
 			credentials: new sj.Credentials(),

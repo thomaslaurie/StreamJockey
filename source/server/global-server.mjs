@@ -78,6 +78,8 @@
 		
 		permissions: [admin, self, password, link, public, etc.]
 
+		track names that don't fit the requirements (too short, too long, etc. will throw an error when trying to add, this isn't desirable because all the track names will be external) should use casting if those restrictions are necesary
+
 	// CONSIDER
     	delegating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single 
 

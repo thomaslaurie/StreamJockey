@@ -131,6 +131,7 @@ sj.Entity.augmentClass({
 //G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
 //G tightly integrated with VueX
 //TODO consider a stop command? it would stop all sources and set the current source back to null
+//TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
 sj.Command = sj.Base.makeClass('Command', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
@@ -238,7 +239,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Command, {
 
 			//C pause all
 			await sj.asyncForEach(sj.Source.instances, async source => {
-				await context.dispatch(`${source.name}/pause`);
+				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
 			});
 
 			//C change startingTrackSubscription to subscription of the new track
@@ -295,21 +296,15 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Command, {
 		async trigger(context) {
 			await parent.prototype.trigger.call(this, context);
 
-			if (this.isPlaying) {
-				//C resume target source, pause other sources
-				await sj.asyncForEach(sj.Source.instances, async source => {
-					if (source === this.source) {
-						await context.dispatch(`${source.name}/resume`);
-					} else {
-						await context.dispatch(`${source.name}/pause`);
-					}
-				});
-			} else {
-				//C pause all
-				await sj.asyncForEach(sj.Source.instances, async source => {
-					await context.dispatch(`${source.name}/pause`);
-				});
-			}
+			await sj.asyncForEach(sj.Source.instances, async source => {
+				if (this.isPlaying && source === this.source) {
+					//C resume target if resuming
+					await context.dispatch(`${source.name}/resume`);
+				} else {
+					//C pause all or rest
+					if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
+				}
+			});
 		},
 	}),
 });
@@ -371,7 +366,7 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Command, {
 
 			//C adjust volume on all sources
 			await sj.asyncForEach(sj.Source.instances, async source => {
-				await context.dispatch(`${source.name}/volume`, this.volume);
+				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/volume`, this.volume);
 			});
 		},
 	}),
@@ -420,6 +415,47 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 			startingTrack: null,
 		},
 		baseActions: {
+			async start(context, track) {
+				const {watch, dispatch, getters: {duration}} = context;
+				const timeBefore = Date.now();
+				const deferred = new sj.Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+					origin: 'sj.Playback.baseActions.start()',
+					reason: 'start state timed out',
+				}));
+
+				console.log(sj.image(context), sj.image(Object.getPrototypeOf(context)));
+				//console.log(sj.image(context.watch));
+
+				const unwatch = watch(
+					//C pack desired state
+					({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
+					//C evaluate state conditions
+					({sourceId, isPlaying, progress}) => {
+						if (
+							//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+							sourceId === track.sourceId &&
+							isPlaying === true &&
+							progress <= (Date.now() - timeBefore) / duration
+						) {
+							deferred.resolve();
+						}
+					}, 
+					{deep: true, immediate: true}
+				);
+
+				//C trigger api
+				await dispatch('baseStart', track);
+
+				//C wait for desired state
+				await deferred;
+				unwatch();
+
+				return new sj.Success({
+					origin: 'sj.Playback.baseActions.start()',
+					reason: 'start command completed',
+				});
+			},
+
 			/* //OLD
 				async preserveLocalMetadata(context, track) {
 					if (!sj.isType(track, sj.Track)) throw new sj.Error({
@@ -456,6 +492,22 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 			},
 		},
 		baseGetters: {
+			//C safe getters for track properties
+			sourceId:	state => sj.deepAccess(state, 'track', 'sourceId'),
+			duration:	state => sj.deepAccess(state, 'track', 'duration'),
+
+			//C state conditions for command resolution
+			isStarted:	(state, {sourceId, duration}) => (id, timeBefore) => (
+				sourceId === id &&
+				state.isPlaying === true &&
+				state.progress <= (Date.now() - timeBefore) / duration
+			),
+
+			//TODO
+			// isPaused:
+			// isResumed:
+			// isSeeked:
+			// isVolumed:
 		},
 		baseModules: {
 		},
@@ -1193,33 +1245,6 @@ sj.spotify = new sj.Source({
 								message: 'spotify player loaded',
 								content: player,
 							}));
-			
-							/* //OLD
-								spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-									triggerResolve(new sj.Success({
-										origin: 'spotify.loadPlayer()',
-										message: 'spotify player loaded',
-									}));
-			
-									// TODO updatePlayback(); ?
-								}, function (rejected) {
-									triggerReject(new sj.Error({
-										log: true,
-										code: JSON.parse(error.response).error.status,
-										origin: 'spotify.loadPlayer()',
-										message: 'spotify player could not be loaded',
-										reason: JSON.parse(error.response).error.message,
-										content: error,
-									}));
-								}).catch(function (rejected) {
-									triggerReject(new sj.Error({
-										log: true,
-										origin: 'spotify.loadPlayer()',
-										message: 'spotify player could not be loaded',
-										content: rejected,
-									}));
-								});
-							*/
 						});
 						player.on('not_ready', ({device_id}) => {
 							//? don't know what to do here
@@ -1495,6 +1520,8 @@ sj.spotify = new sj.Source({
 				*/
 			},
 
+			
+			//C spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
 			async updatePlayback(context, state) {
 				//C formats and commits playback state
 
@@ -1671,7 +1698,9 @@ sj.spotify = new sj.Source({
 });
 sj.youtube = new sj.Source({
 	name: 'youtube',
-	idPrefix: 'https://www.youtube.com/watch?v=',
+	idPrefix:	'https://www.youtube.com/watch?v=',
+	nullPrefix:	'https://www.youtube.com/watch',
+	
 
 	async auth() {
 		//L example code: https://developers.google.com/youtube/v3/docs/search/list
@@ -1681,10 +1710,10 @@ sj.youtube = new sj.Source({
 
 		//C watch for gapi to be assigned by using a setter with a deferred promise
 		//L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
-		//OLD alternative option was to use sj.waitForCondition({condition: () => window.gapi !== undefined, timeout: 5000});
+		//OLD alternative option was to use sj.waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
 		//! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
 		window.gapi2 = window.gapi;
-		const loaded = new sj.Deferred().timeout(5000, () => new sj.Error({
+		const loaded = new sj.Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
 			log: false,
 			origin: 'sj.youtube.auth()',
 			reason: 'gapi loading timed out',
@@ -1776,69 +1805,6 @@ sj.youtube = new sj.Source({
 			gapi.client.setApiKey('key')
 			await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
 		*/
-
-		/* //OLD
-			async loadApi() { //? how to fit this into existing framework? this might be closer to auth()
-				// Get Script
-				// https://api.jquery.com/jquery.getscript/
-				return $.getScript('https://apis.google.com/js/api.js').then(function (data, textStatus, jqXHR) {
-					// Load libraries
-					// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiloadlibraries-callbackorconfig
-					// original code: https://developers.google.com/youtube/v3/docs/search/list
-					return new Promise(function(resolve, reject) {
-						gapi.load('client:auth2', {
-							callback: function() {
-								// Initialize the gapi.client object, which app uses to make API requests.
-								// https://developers.google.com/api-client-library/javascript/reference/referencedocs#gapiclientinitargs
-								// Promises: https://developers.google.com/api-client-library/javascript/features/promises
-								gapi.client.init({
-									apiKey: 'AIzaSyA8XRqqzcwUpMd5xY_S2l92iduuUMHT9iY',
-									clientId: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com',
-									discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
-									// at least one scope is needed, this is the bare minimum scope
-									scope: 'https://www.googleapis.com/auth/youtube.readonly'
-								}).then(function (resolved) {
-									resolve(new sj.Success({
-										log: true,
-										origin: 'youtube.loadApi()',
-										message: 'youtube api ready',
-									}));
-								}, function (rejected) {
-									reject(new sj.Error({
-										log: true,
-										origin: 'youtube.loadApi()',
-										message: 'failed to load youtube api',
-										reason: 'client initialization failed',
-										content: rejected,
-									}));
-								});
-							},
-							onerror: function() {
-								reject(new sj.Error({
-									log: true,
-									origin: 'youtube.loadApi()',
-									message: 'failed to load youtube libraries',
-									reason: 'gapi.load error',
-									content: reason,
-								}));
-							},
-							// TODO timeout
-							//timeout: 5000, // 5 seconds.
-							//ontimeout: function() {
-							// Handle timeout.
-							//alert('gapi.client could not load in a timely manner!');
-						});
-					});
-				}, function (jqxhr, settings, exception) {
-					throw new sj.Error({
-						log: true,
-						origin: 'youtube.loadApi()',
-						message: 'failed to load youtube api',
-						reason: exception,
-					});
-				});
-			},
-		*/
 	},
 	async request(method, path, body) {
 		//C check that user is authorized (signedIn)
@@ -1927,38 +1893,13 @@ sj.youtube = new sj.Source({
 			searchResults[index].contentDetails = item.contentDetails;
 		});
 
-		return searchResults.map(({id: {videoId: id}, snippet, contentDetails}) => {
-			const track = {
-				source: sj.youtube, //! this is causing issues with fClone, its throwing a cross origin error
-				sourceId: id,
-				duration: sj.moment.duration(contentDetails.duration, sj.moment.ISO_8601).asMilliseconds(),
-				link: sj.youtube.idPrefix + id,
-			};
-			
-			//C assuming title format of 'Artist - Title'
-			//C splits on dash between one or any whitespace
-			const splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
-			if (splitTitle.length === 2)  { //C if splitTittle has the exact length of two
-				//C use the first part as the artists
-				//C splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
-				//TODO improve
-				track.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g);
-				//C use the second part as the name
-				track.name = splitTitle[1];
-			} else {
-				//C use the channel title as the artist
-				track.artists = [snippet.channelTitle];
-				//C use the full title as the name
-				track.name = snippet.title;
-			}	
-
-			//C apparently the titles are html encoded, (possibly the artist names too//?)
-			//L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
-			track.artists = track.artists.map(artist => sj.he.decode(artist));
-			track.name = sj.he.decode(track.name);
-
-			return new sj.Track(track);
-		});
+		return searchResults.map(({id: {videoId: id}, snippet, contentDetails}) => new sj.Track({
+			source: sj.youtube, //! this is causing issues with fClone, its throwing a cross origin error
+			sourceId: id,
+			link: sj.youtube.idPrefix + id,
+			...this.formatSnippet(snippet),
+			...this.formatContentDetails(contentDetails),
+		}));
 	},
 
 	playback: new sj.Playback({
@@ -1967,12 +1908,18 @@ sj.youtube = new sj.Source({
 				//C load youtube iframe api
 				await sj.loadScript('https://www.youtube.com/iframe_api');
 
+				//TODO choose timeout
+				const deferred = new sj.Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+					origin: 'sj.youtube loadPlayer()',
+					reason: 'youtube iframe player load timed out',
+				}));
+
 				window.onYouTubeIframeAPIReady = function () {
 					context.commit('setState', {
-						player: new YT.Player('element tag id', {
+						player: new YT.Player('youtubeIFrame', { //! this won't throw any error if the element id doesn't exist
 							width: '640',
 							height: '390',
-							videoId: 'M71c1UVf-VE',
+							//videoId: 'M71c1UVf-VE',
 							playerVars: {
 								controls: 0,
 								disablekb: 1,
@@ -1985,88 +1932,165 @@ sj.youtube = new sj.Source({
 
 							//L https://developers.google.com/youtube/iframe_api_reference#Events
 							events: {
-								onReady() {
-									//TODO
+								async onReady(event) {
+									await context.dispatch('checkPlayback');
+									deferred.resolve(new sj.Success({
+										origin: 'sj.youtube loadPlayer()',
+										reason: 'youtube iframe player loaded',
+									}));
 								},
-								onError() {
-									//TODO
+								async onStateChange(event) {
+									//! onStateChange event only has the playbackState data, checkPlayback gets this anyways
+									await context.dispatch('checkPlayback');
 								},
-								onStateChange() {
+								onError(event) {
 									//TODO
+									console.error('youtube player onError:', event);
 								},
+								
 							},
 						}),
 					});
 				};
+
+				return await deferred;
 			},
 
-			async loadPlayer(context) {
-				//TODO make this async
+			async checkPlayback(context) {
+				const state = {};
+				const track = {};
 
-				$.getScript('https://www.youtube.com/iframe_api').fail(function (jqxhr, settings, exception) {
-					callback(new sj.Error({
-						log: true,
-						origin: 'youtube.loadPlayer()',
-						message: 'failed to load youtube player',
-						reason: exception,
-						content: exception,
-					}));
+
+				const player = context.state.player;
+
+				track.link = player.getVideoUrl();
+				//C remove the idPrefix or nullPrefix from youtube urls
+				//! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
+				track.sourceId = track.link.replace(
+					new RegExp(`${sj.escapeRegExp(sj.youtube.idPrefix)}|${sj.escapeRegExp(sj.youtube.nullPrefix)}`), 
+					''
+				);
+
+				const playerDuration = player.getDuration();
+				//! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
+				//C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
+				track.duration = playerDuration === 0 ? Infinity : playerDuration;
+				state.progress = player.getCurrentTime() * 1000 / track.duration;
+
+				const playerState = player.getPlayerState();
+				state.isPlaying = playerState === 1 || playerState === 3; 
+				/* //G
+					-1 un-started
+					0 ended
+					1 playing
+					2 paused
+					3 buffering - this should be considered as playing, but not influence the progress
+					5 video cued
+				*/
+
+				//C if muted: volume is 0, convert 0-100 to 0-1 range
+				state.volume = player.isMuted() ? 0 : player.getVolume() / 100; //C 
+
+				state.timestamp = Date.now();
+
+				//C get name and artists from current track, starting track, or an api call
+				//R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
+				if (track.sourceId === sj.deepAccess(context, 'state', 'track', 'sourceId')) {
+					track.name = context.state.track.name;
+					track.artists = [...context.state.track.artists];
+				} else if (track.sourceId === sj.deepAccess(context, 'state', 'startingTrack', 'sourceId')) {
+					track.name = context.state.startingTrack.name;
+					track.artists = [...context.state.startingTrack.artists];
+				} else {
+					const video = await sj.youtube.request('GET', 'videos', {id: track.sourceId, part: 'snippet'});
+					if (video.result.items.length === 1) {
+						const formattedSnippet = sj.youtube.formatSnippet(video.result.items[0].snippet);
+						track.name = formattedSnippet.name;
+						track.artists = formattedSnippet.artists;
+					}
+				}
+
+				state.track = new sj.Track(track);
+
+
+				context.commit('setState', state);
+				return new sj.Success({
+					origin: 'youtube module action - checkPlayback()',
+					message: 'youtube playback updated',
+					content: state,
 				});
+			},
 
-				// callback
-				window.onYouTubeIframeAPIReady = function () {
-					// https://developers.google.com/youtube/iframe_api_reference#Playback_status
-					// (DOM element, args)
-					window.youtubePlayer = new YT.Player('youtubePlayer', {
-						height: '100%',
-						width: '100%',
-						events: {
-							onReady: onPlayerReady,
-							onStateChange: onPlayerStateChange,
-							onError: onPlayerError,
-						}
-					});
-				}
 
-				// player callback
-				window.onPlayerReady = function (event) {
-					var result = new sj.Success({
-						log: true,
-						origin: 'youtube.loadPlayer()',
-						message: 'youtube player loaded',
-					});
+			async baseStart({state: {player}}, {sourceId}) {
+				player.loadVideoById({
+					videoId: track.sourceId,
+					//startSeconds
+					//endSeconds
+					//suggestedQuality
+				});
+			},
 
-					// TODO updatePlayback();
-				}
-
-				window.onPlayerStateChange = function (event) {
-					// TODO 3 - buffering counts as 'playing' for play/pause but should count as paused for progression, need to figure out out to handle this as right now it always counts as playing
-
-					// playing
-					if (event.data === 1 || event.data === 3) {
-						youtube.playback.isPlaying = true;
-					} else {
-						youtube.playback.isPlaying = false;
-					}
-
-					// nothing other than playing is given information here, however because the api functions are synchronous (except for the track) could we not just call them here too? even though the commands of play/pause and seeking are infrequent enough to warrant checking every time - theres a triple state change (2, 3, 1) when just seeking so there would have to be check to limit the check to one time
-
-					// progress
-					if (event.data === 1 || event.data === 2) {
-						youtube.playback.progress = youtubePlayer.getCurrentTime() * 1000;
-						youtube.playback.timestamp = Date.now();
-					}
-				}
-
-				window.onPlayerError = function (event) {
-					console.error(event);
-				}
-
-				// youtubePlayer.destroy() kills the iframe
+			// async start(context, track) {
+			// },
+			async pause({state: {player}}) {
+				player.pauseVideo();
+				//TODO return
+			},
+			async resume({state: {player}}) {
+				player.playVideo();
+				//TODO return
+			},
+			async seek({state: {player}}, progress) {
+				const seconds = progress * track.duration * 0.001;
+				player.seekTo(seconds, true);
+				//TODO return
+			},
+			async volume({state: player}, volume) {
+				player.setVolume(volume * 100);
+				player.unMute();
+				//TODO return
 			},
 		},
 	}),
 });
+//TODO move inside
+sj.youtube.formatContentDetails = function (contentDetails) {
+	const pack = {};
+	pack.duration = sj.moment.duration(contentDetails.duration, sj.moment.ISO_8601).asMilliseconds();
+	return pack;
+},
+sj.youtube.formatSnippet = function (snippet) {
+	const pack = {};
+	if (!sj.isType(snippet, Object)) throw new sj.Error({
+		origin: 'sj.youtube.formatSnippet()',
+		reason: 'snippet is not an object',
+	});
+
+	//C assuming title format of 'Artist - Title'
+	//C splits on dash between one or any whitespace
+	const splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
+	if (splitTitle.length === 2)  { //C if splitTittle has the exact length of two
+		//C use the first part as the artists
+		//C splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
+		//TODO improve
+		pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g);
+		//C use the second part as the name
+		pack.name = splitTitle[1];
+	} else {
+		//C use the channel title as the artist
+		pack.artists = [snippet.channelTitle];
+		//C use the full title as the name
+		pack.name = snippet.title;
+	}
+
+	//C apparently the titles are html encoded, (possibly the artist names too//?)
+	//L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
+	pack.artists = pack.artists.map(artist => sj.he.decode(artist));
+	pack.name = sj.he.decode(pack.name);
+
+	return pack;
+};
 
 
 //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
