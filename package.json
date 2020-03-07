@@ -1,0 +1,40 @@
+{
+	"private": true,
+	"scripts": {
+		"build": "npx webpack --config ./source/config/webpack.config.js",
+		"server": "npx nodemon --experimental-modules ./build/server/index.bundle.js",
+		"all": "npx run-p build server"
+	},
+	"dependencies": {
+		"bcryptjs": "^2.4.3",
+		"btoa": "^1.2.1",
+		"dotenv": "^6.0.0",
+		"he": "^1.2.0",
+		"koa": "^2.5.1",
+		"koa-bodyparser": "^4.2.1",
+		"koa-router": "^7.4.0",
+		"koa-send": "^5.0.0",
+		"koa-session": "^5.8.2",
+		"moment": "^2.24.0",
+		"node-fetch": "^2.3.0",
+		"pg": "^7.4.3",
+		"pg-promise": "^8.4.5",
+		"sass-loader": "^8.0.2",
+		"socket.io": "^2.3.0",
+		"spotify-web-api-node": "^4.0.0"
+	},
+	"devDependencies": {
+		"@open-wc/webpack-import-meta-loader": "^0.4.3",
+		"clean-webpack-plugin": "^3.0.0",
+		"css-loader": "^2.1.0",
+		"html-webpack-plugin": "^3.2.0",
+		"node-sass": "^4.13.0",
+		"nodemon": "^1.18.10",
+		"npm-run-all": "^4.1.5",
+		"vue-loader": "^15.6.2",
+		"vue-template-compiler": "^2.6.4",
+		"webpack": "^4.29.3",
+		"webpack-cli": "^3.2.3",
+		"webpack-node-externals": "^1.7.2"
+	}
+}

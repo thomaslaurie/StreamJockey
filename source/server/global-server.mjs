@@ -100,7 +100,7 @@
 
 // external
 import fetch from 'node-fetch'; //C global.mjs uses fetch
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // internal
 import sj from '../public/js/global.mjs';

@@ -1,9 +1,24 @@
-const path = require('path');
-const VueLoaderPlugin = require('vue-loader/lib/plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+//R Not all modules on npm are 'bundle-able' or compatible with non-Node environments: bcrypt is written in C. This was causing errors when trying to bundle server-side code with Webpack, it just wasn't able to. Used bcryptjs instead.
 
-module.exports = {
-    //L https://webpack.js.org/guides/development/
+//TODO checkout webpack HMR, dev-server, dev-middleware, etc.
+
+// nodemon = automatic rebuild & restart
+// watch = automatic rebuild, but requires manual client refresh
+
+// webpack-dev-server = server to serve files + dev-middleware
+// webpack-dev-middleware = proxy that causes automatic client refresh upon change
+
+// hot = module replacement without refresh (preserves page state)
+
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+
+module.exports = [{
+	// CLIENT
+	target: 'web',
     mode: 'development',
 	entry: {
 		js: path.resolve(__dirname, '../public/js/index.mjs'),
@@ -15,7 +30,7 @@ module.exports = {
 		//publicPath: 'dist/', //C the prefix that gets added to resource requests, //L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
 		//TODO consider tossing not-yet-bundled resources into dist too (index.html, css)
 	},
-    devtool: 'cheap-module-eval-source-map', //L https://webpack.js.org/configuration/devtool/
+    devtool: 'eval-source-map', //L https://webpack.js.org/configuration/devtool/
     module: {
         rules: [
             {
@@ -39,20 +54,26 @@ module.exports = {
 					{
 						loader: 'sass-loader',
 						options: {
-							data: `@import './public/css/global.scss';`,
+							//! Apparently breaks sass source-maps.
+							prependData: `@import 'global.scss';`,
+							sassOptions: {
+								includePaths: [path.resolve(__dirname, '../public/css/')],
+							},
+							// 	data: `@import '${path.resolve(__dirname, './public/index.html')}';`,
 						},
 					},
                 ],
             },
         ],
-    },
+	},
     plugins: [
+		new CleanWebpackPlugin(),
 		new VueLoaderPlugin(),
 		new HtmlWebpackPlugin({
 			template: path.resolve(__dirname, '../public/index.html'),
 		}),
 	],
-	/* //R don't need this yet
+	/* //R Don't need this yet.
 		resolve: {
 			//L https://webpack.js.org/configuration/resolve
 			//L https://gist.github.com/sokra/27b24881210b56bbaff7#resolving-options
@@ -72,4 +93,39 @@ module.exports = {
 			},
 		},
 	*/
-};
+}, {
+	// SERVER
+	target: 'node',
+	mode: 'development',
+	entry: {
+		index: path.resolve(__dirname, '../server/index.mjs'),
+	},
+	output: {
+		filename: 'index.bundle.js',
+		path: path.resolve(__dirname, '../../build/server'),
+	},
+	devtool: 'eval-source-map',
+	module: {
+		rules: [
+			{
+				//L Required to load import.meta syntax: https://github.com/webpack/webpack/issues/6719#issuecomment-546840116
+				test: /(\.js|\.mjs)$/,
+				loader: '@open-wc/webpack-import-meta-loader',
+			},
+		],
+	},
+	externals: [
+		//C Don't bundle node_modules.
+		nodeExternals(),
+	],
+	plugins: [
+		new CleanWebpackPlugin(),
+		/* //OLD Only required if bundling node_modules	
+			const {IgnorePlugin} = require('webpack');
+			//L Required to patch pg-promise: https://github.com/serverless-heaven/serverless-webpack/issues/78#issuecomment-405646040
+			new IgnorePlugin(/^pg-native$/),
+			//L Required to patch socket.io: https://github.com/socketio/engine.io/issues/575#issuecomment-578081012
+			new IgnorePlugin(/^uws$/),
+		*/
+	],
+}];
