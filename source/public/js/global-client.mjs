@@ -36,7 +36,6 @@
 // internal
 import sj from './global.mjs';
 
-
 // external
 import moment from 'moment';
 import he from 'he';
