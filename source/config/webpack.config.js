@@ -17,11 +17,12 @@ const nodeExternals = require('webpack-node-externals');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
 
 module.exports = (env, args) => {
-	// COMMON
-	//L https://webpack.js.org/configuration/mode
-	const mode = args.mode;
-	//L https://webpack.js.org/configuration/devtool
-	const devtool = args.mode === 'development' ? 'eval-source-map' : undefined;
+	const common = {
+		//L https://webpack.js.org/configuration/mode
+		mode: args.mode,
+		//L https://webpack.js.org/configuration/devtool
+		devtool: args.mode === 'development' ? 'eval-source-map' : undefined,
+	};
 
 	return [{
 		// CLIENT
@@ -78,8 +79,7 @@ module.exports = (env, args) => {
 				template: path.resolve(__dirname, '../public/index.html'),
 			}),
 		],
-		mode,
-		devtool,
+		...common,
 		/* //R Don't need this yet.
 			resolve: {
 				//L https://webpack.js.org/configuration/resolve
@@ -134,7 +134,6 @@ module.exports = (env, args) => {
 				new IgnorePlugin(/^uws$/),
 			*/
 		],
-		mode,
-		devtool,
+		...common,
 	}];
 };
