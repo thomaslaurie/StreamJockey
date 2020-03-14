@@ -85,7 +85,8 @@ import auth from './auth.mjs';
 //L make own __dirname since it isn't exposed in modules: https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
 //L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
 //TODO there has to be a cleaner way of doing this (especially the replace manipulation)
-const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
+//R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
+// const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
 const root = path.join(__dirname, '../../build/public');
 const app = '/index.html';
 

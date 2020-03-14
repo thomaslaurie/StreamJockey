@@ -61,14 +61,11 @@
 	const watch    = args.watch      ? '--watch'           : '';
 	const node     = args.watch      ? 'nodemon'           : 'node';
 
-	const parallel = [];
-	if (buildClient) {
-		parallel.push(asyncSpawn(`npx webpack --config ${webpackPath}  ${mode} ${debug} ${progress} ${watch}`));
-	}
+	//TODO Client will also build the server but just not run the server.
+	asyncSpawn(`npx webpack --config ${webpackPath}  ${mode} ${debug} ${progress} ${watch}`);
 	if (buildServer) {
-		asyncSpawn(`${node} ${serverPath} --experimental-modules`)
+		asyncSpawn(`${node} ${serverPath} --experimental-modules`);
 	}
-	await Promise.all(parallel);
 
 	// TIMER
 	const [buildTime] = process.hrtime(startTime);

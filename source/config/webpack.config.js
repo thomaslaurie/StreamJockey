@@ -26,6 +26,7 @@ module.exports = (env, args) => {
 
 	return [{
 		// CLIENT
+		...common,
 		target: 'web',
 		entry: {
 			js: path.resolve(__dirname, '../public/js/index.mjs'),
@@ -79,7 +80,6 @@ module.exports = (env, args) => {
 				template: path.resolve(__dirname, '../public/index.html'),
 			}),
 		],
-		...common,
 		/* //R Don't need this yet.
 			resolve: {
 				//L https://webpack.js.org/configuration/resolve
@@ -102,7 +102,7 @@ module.exports = (env, args) => {
 		*/
 	}, {
 		// SERVER
-		
+		...common,
 		target: 'node',
 		entry: {
 			index: path.resolve(__dirname, '../server/index.mjs'),
@@ -134,6 +134,5 @@ module.exports = (env, args) => {
 				new IgnorePlugin(/^uws$/),
 			*/
 		],
-		...common,
 	}];
 };
