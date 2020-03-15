@@ -71,7 +71,7 @@ import send from 'koa-send'; //L https://github.com/koajs/send
 
 // internal
 import sj from './global-server.mjs';
-import auth from './auth.mjs';
+import auth from './auth.mjs'; // side-effects
 
 
 //  ██╗███╗   ██╗██╗████████╗

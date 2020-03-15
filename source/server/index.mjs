@@ -40,10 +40,9 @@ import '../config/config.mjs';
 // builtin
 
 // external
-// import parser from 'minimist';
-// import webpack from 'webpack';
+import parser from 'minimist';
 import Koa from 'koa'; //L https://github.com/koajs
-// import koaWebpack from 'koa-webpack';
+import koaWebpack from 'koa-webpack';
 import bodyParser from 'koa-bodyparser'; //L https://github.com/koajs/bodyparser
 import session from 'koa-session'; //L https://github.com/koajs/session
 
@@ -53,7 +52,7 @@ import http from 'http'; //TODO consider changing to the https module?
 
 
 // internal
-// import { client } from '../config/webpack.config2.mjs'
+import { client } from '../config/webpack.config2.mjs';
 import sj from './global-server.mjs';
 import router from './routes.mjs';
 
@@ -66,27 +65,27 @@ import router from './routes.mjs';
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 // OPTIONS
-// const serverOptions = parser(process.argv.slice(2), {
-// 	string: [
-// 		'client-build-method',
-// 		'client-mode',
-// 	],
-// 	default: {
-// 		/* Options
-// 			'compile'  - builds the client code once
-// 			'watch'    - watches the client code
-// 			'refresh'  - use webpack-dev-middleware
-// 			'hot'      - use webpack HMR
-// 			'external' - assume code is already built/watched by another process
-// 		*/
-// 		'client-build-method': 'external',
-// 		/* Options
-// 			'development' - passed to webpack
-// 			'production'  - passed to webpack
-// 		*/
-// 		'client-mode': 'development',
-// 	},
-// });
+const serverOptions = parser(process.argv.slice(2), {
+	string: [
+		'client-build-method',
+		'client-mode',
+	],
+	default: {
+		/* Options
+			'compile'  - builds the client code once
+			'watch'    - watches the client code
+			'refresh'  - use webpack-dev-middleware
+			'hot'      - use webpack HMR
+			'external' - assume code is already built/watched by another process
+		*/
+		'client-build-method': 'external',
+		/* Options
+			'development' - passed to webpack
+			'production'  - passed to webpack
+		*/
+		'client-mode': 'development',
+	},
+});
 
 // const compiler = webpack(client({}, {
 // 	mode: serverOptions['client-mode'],
@@ -102,7 +101,7 @@ import router from './routes.mjs';
 // 	}));
 // });
 
-// (async function () {
+(async function () {
 
 
 
@@ -231,4 +230,4 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 
-// })();
+})();

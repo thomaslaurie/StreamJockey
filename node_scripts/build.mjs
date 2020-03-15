@@ -1,17 +1,19 @@
-#!/usr/bin/env node
-'use strict';
+// #!/usr/bin/env node
+
+// DEPENDENCIES
+import path from 'path';
+import asyncSpawn from './util/async-spawn.mjs';
+import getModule from './util/get-module.mjs';
+import createFile from './util/create-file.mjs';
+import webpack from 'webpack';
+import { client, server } from '../source/config/webpack.config2.mjs';
 
 (async function () {
 	// TIMER
 	const startTime = process.hrtime();
 	
-	// DEPENDENCIES
-	const path = require('path');
-	const asyncSpawn = require('./util/async-spawn.js');
-	const parser = await require('./util/get-module.js')('minimist', 'devDependencies');
-	const createFile = require('./util/create-file.js');
-
 	// OPTIONS
+	const parser = await getModule('minimist', 'devDependencies');
 	const args = parser(process.argv.slice(2), {
 		boolean: [
 			'clean',
