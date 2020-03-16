@@ -67,18 +67,18 @@ import router from './routes.mjs';
 // OPTIONS
 const serverOptions = parser(process.argv.slice(2), {
 	string: [
-		'client-build-method',
+		'client',
 		'client-mode',
 	],
 	default: {
 		/* Options
+			'off'      - assume code is already built/watched by another process
 			'compile'  - builds the client code once
 			'watch'    - watches the client code
 			'refresh'  - use webpack-dev-middleware
 			'hot'      - use webpack HMR
-			'external' - assume code is already built/watched by another process
 		*/
-		'client-build-method': 'external',
+		'client': 'off',
 		/* Options
 			'development' - passed to webpack
 			'production'  - passed to webpack
@@ -86,6 +86,8 @@ const serverOptions = parser(process.argv.slice(2), {
 		'client-mode': 'development',
 	},
 });
+
+console.log('options', serverOptions);
 
 // const compiler = webpack(client({}, {
 // 	mode: serverOptions['client-mode'],

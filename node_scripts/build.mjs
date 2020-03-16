@@ -4,7 +4,6 @@
 import path from 'path';
 import asyncSpawn from './util/async-spawn.mjs';
 import getModule from './util/get-module.mjs';
-import createFile from './util/create-file.mjs';
 import webpack from 'webpack';
 import { clientOptions, serverOptions } from '../source/config/webpack.config2.mjs';
 
@@ -30,18 +29,48 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 			w: 'watch',
 		},
 		string: [
-			'webpack-path',
+			// 'webpack-path',
+			// --webpack-path=source/config/webpack.config.js
 			'server-path', 
+			'client',
+			'server',
 		],
 		default: {
-			'webpack-path': 'webpack.config.js',
+			// 'webpack-path': 'webpack.config.js',
 			'server-path': '',
+
+			// 'off', 'compile', 'watch', 'refresh', 'hot'
+			'client': 'compile',
+			// 'off', 'compile', 'watch', 'refresh', 'hot'
+			'server': 'refresh',
 		},
 	});
 
-	const buildClient = !args['server-only'];
-	const buildServer = !args['client-only'];
-	const webpackPath = path.resolve(args['webpack-path']);
+	// INTERPRET
+	const buildClientHere = 
+		args.client === 'compile' || 
+		args.client === 'watch';
+	const buildClientOnServer = 
+		args.client === 'refresh' ||
+		args.client === 'hot';
+	// No client start semantics (yet).
+	
+	const buildServerHere = 
+		args.server === 'compile' ||
+		args.server === 'watch'   ||
+		args.server === 'refresh'; // nodemon
+	//TODO consider:
+	// const buildServerOnProxy = 
+	// 	args.server === 'hot';
+	const startServer = 
+		args.server === 'refresh';
+	//TODO split off semantics of 'build' vs 'start', sort out compile/watch of server vs client
+
+	const buildHere = buildClientHere || buildServerHere;
+	const watch = buildHere && (args.client === 'watch' || args.server === 'watch');
+
+
+
 	const serverPath  = path.resolve(args['server-path']);
 
 	// SEQUENTIAL
@@ -51,10 +80,11 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 		// Ideally install would also use 'npm ci', however there is an issue with doing this when an editor is open: https://github.com/microsoft/TypeScript/issues/29407
 		await asyncSpawn('npm install');
 	}
-	if (buildServer) {
+
+	// if (buildServer) {
 		// Creates an empty server file if it doesn't exist initially (before webpack builds it) so that node will have something to run.
 		// await createFile(serverPath, '');
-	}
+	// }
 
 	// PARALLEL
 	// const mode     = args.production ? '--mode production' : '--mode development'; // pass thru
@@ -73,51 +103,48 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 
 
 
-
+	// BUILD CONFIGURATIONS
 	const mode = args.production ? 'production' : 'development';
-
 	const configOptions = [];
-	if (buildClient) {
-		configOptions.push(clientOptions({}, {
-			mode,
-		}));
-	}
-	if (buildServer) {
-		configOptions.push(serverOptions({}, {
-			mode,
-		}));
-	}
+	if (buildClientHere) configOptions.push(clientOptions({}, {mode}));
+	if (buildServerHere) configOptions.push(serverOptions({}, {mode}));
 
-	const compiler = webpack(configOptions);
+	if (buildHere) {
+		const compiler = webpack(configOptions);
 
-	let resolve, reject;
-	const deferred = new Promise((res, rej) => {
-		resolve = res;
-		reject = rej;
-	});
-	const compileHandler = (error, stats) => {
-		if (error) {
-			reject('error');
-			return;
+		// BUILD HANDLER
+		let resolve, reject;
+		const deferred = new Promise((res, rej) => {
+			resolve = res;
+			reject = rej;
+		});
+		const compileHandler = (error, stats) => {
+			if (error) {
+				reject('error');
+				return;
+			}
+			console.log(stats.toString({colors: true}));
+			resolve(stats);
+		};
+	
+		// COMPILE
+		if (watch) {
+			const watchOptions = {};
+			compiler.watch(watchOptions, compileHandler);
+		} else {
+			compiler.run(compileHandler);
 		}
-		console.log(stats.toString({colors: true}));
-		resolve(stats);
-	};
 
-	if (args.watch) {
-		const watchOptions = {};
-		compiler.watch(watchOptions, compileHandler);
-	} else {
-		compiler.run(compileHandler);
+		await deferred;
 	}
 
-	await deferred;
-
-	if (buildServer) {
-		//---------- why am I still getting this window issue?
-		const node     = args.watch      ? 'nodemon'           : 'node';
-		await asyncSpawn(`${node} ${serverPath} --experimental-modules`);
+	// START SERVER
+	if (startServer) {
+		const node = args.server === 'refresh' ? 'nodemon' : 'node';
+		const clientBuildType = buildClientOnServer ? `--client=${args.client}` : '';
+		await asyncSpawn(`${node} ${serverPath} ${clientBuildType} --client-mode=${mode} --experimental-modules`);
 	}
+
 
 
 	// TIMER
