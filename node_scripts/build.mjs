@@ -6,7 +6,7 @@ import asyncSpawn from './util/async-spawn.mjs';
 import getModule from './util/get-module.mjs';
 import createFile from './util/create-file.mjs';
 import webpack from 'webpack';
-import { client, server } from '../source/config/webpack.config2.mjs';
+import { clientOptions, serverOptions } from '../source/config/webpack.config2.mjs';
 
 (async function () {
 	// TIMER
@@ -53,26 +53,71 @@ import { client, server } from '../source/config/webpack.config2.mjs';
 	}
 	if (buildServer) {
 		// Creates an empty server file if it doesn't exist initially (before webpack builds it) so that node will have something to run.
-		await createFile(serverPath, '');
+		// await createFile(serverPath, '');
 	}
 
 	// PARALLEL
-	const mode     = args.production ? '--mode production' : '--mode development'; // pass thru
-	const debug    = args.production ? ''                  : '--debug';  // ignore
-	const progress = args.production ? ''                  : '--progress'; // always
-	const watch    = args.watch      ? '--watch'           : '';
-	const node     = args.watch      ? 'nodemon'           : 'node';
+	// const mode     = args.production ? '--mode production' : '--mode development'; // pass thru
+	// const debug    = args.production ? ''                  : '--debug';  // ignore
+	// const progress = args.production ? ''                  : '--progress'; // always
+	// const watch    = args.watch      ? '--watch'           : '';
+	// const node     = args.watch      ? 'nodemon'           : 'node';
 
-	const parallel = [];
-	//TODO Client will also build the server but just not run the server.
-	parallel.push(asyncSpawn(`npx webpack --config ${webpackPath}  ${mode} ${debug} ${progress} ${watch}`));
-	if (buildServer) {
-		asyncSpawn(`${node} ${serverPath} --experimental-modules`)
+	// const parallel = [];
+	// //TODO Client will also build the server but just not run the server.
+	// parallel.push(asyncSpawn(`npx webpack --config ${webpackPath}  ${mode} ${debug} ${progress} ${watch}`));
+	// if (buildServer) {
+	// 	asyncSpawn(`${node} ${serverPath} --experimental-modules`)
+	// }
+	// await Promise.all(parallel);
+
+
+
+
+	const mode = args.production ? 'production' : 'development';
+
+	const configOptions = [];
+	if (buildClient) {
+		configOptions.push(clientOptions({}, {
+			mode,
+		}));
 	}
-	await Promise.all(parallel);
+	if (buildServer) {
+		configOptions.push(serverOptions({}, {
+			mode,
+		}));
+	}
 
+	const compiler = webpack(configOptions);
 
+	let resolve, reject;
+	const deferred = new Promise((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	const compileHandler = (error, stats) => {
+		if (error) {
+			reject('error');
+			return;
+		}
+		console.log(stats.toString({colors: true}));
+		resolve(stats);
+	};
 
+	if (args.watch) {
+		const watchOptions = {};
+		compiler.watch(watchOptions, compileHandler);
+	} else {
+		compiler.run(compileHandler);
+	}
+
+	await deferred;
+
+	if (buildServer) {
+		//---------- why am I still getting this window issue?
+		const node     = args.watch      ? 'nodemon'           : 'node';
+		await asyncSpawn(`${node} ${serverPath} --experimental-modules`);
+	}
 
 
 	// TIMER

@@ -39,8 +39,7 @@ import cwp from 'clean-webpack-plugin';
 const CleanWebpackPlugin = cwp.CleanWebpackPlugin;
 import nodeExternals from 'webpack-node-externals';
 import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
-
-const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
+import __dirname from './__dirname.cjs';
 
 // COMMON
 const common = {
@@ -57,7 +56,7 @@ const common = {
 };
 
 // TARGETS
-export const client = (env, argv) => ({
+export const clientOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'web',
 	entry: {
@@ -115,7 +114,7 @@ export const client = (env, argv) => ({
 	],
 });
 
-export const server = (env, argv) => ({
+export const serverOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'node',
 	entry: {
@@ -124,15 +123,6 @@ export const server = (env, argv) => ({
 	output: {
 		filename: 'index.bundle.js',
 		path: path.resolve(__dirname, '../../build/server'),
-	},
-	module: {
-		rules: [
-			{
-				//L Required to load import.meta syntax: https://github.com/webpack/webpack/issues/6719#issuecomment-546840116
-				test: /(\.js|\.mjs)$/,
-				loader: '@open-wc/webpack-import-meta-loader',
-			},
-		],
 	},
 	externals: [
 		//C Don't bundle node_modules.
