@@ -52,10 +52,12 @@ import http from 'http'; //TODO consider changing to the https module?
 
 
 // internal
-import { client } from '../config/webpack.config2.mjs';
+import sourcePath from '../source-path.cjs';
+import { clientOptions } from '../config/webpack.config2.mjs';
 import sj from './global-server.mjs';
 import router from './routes.mjs';
 
+console.log('server source path:', sourcePath());
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -87,8 +89,6 @@ const serverOptions = parser(process.argv.slice(2), {
 	},
 });
 
-console.log('options', serverOptions);
-
 // const compiler = webpack(client({}, {
 // 	mode: serverOptions['client-mode'],
 // }));
@@ -103,20 +103,21 @@ console.log('options', serverOptions);
 // 	}));
 // });
 
+
 (async function () {
 
-
-
-// const koaWebpackMiddleware = await koaWebpack({
-// 	// compiler: compiler,
-// 	config: client({}, {
-// 		mode: serverOptions['client-mode'],
-// 	}),
-// 	devMiddleware: {
-// 		methods: ['HEAD', 'GET', 'POST', 'PATCH', 'DELETE'],
-// 	},
-// 	hotClient: false,
-// });
+//----------
+// issue seems that baking the config into the bundle causes the context (directory) for references in the config to have the wrong root directory, so this may have to be passed in instead (which is fine)
+const koaWebpackMiddleware = await koaWebpack({
+	// compiler: compiler,
+	config: clientOptions({}, {
+		mode: serverOptions['client-mode'],
+	}),
+	devMiddleware: {
+		methods: ['HEAD', 'GET', 'POST', 'PATCH', 'DELETE'],
+	},
+	hotClient: false,
+});
 
 
 
@@ -221,7 +222,7 @@ sj.liveData.start({
 // START SERVER
 //G Connect at http://localhost:<PORT>
 server.listen(PORT, () => {
-	console.log(`█████████████████████████████`);
+	console.log(`\n█████████████████████████████`);
 	console.log(`SERVER LISTENING ON PORT ${PORT}`);
 });
 

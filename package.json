@@ -1,7 +1,7 @@
 {
 	"private": true,
 	"scripts": {
-		"build": "node --experimental-modules node_scripts/build.mjs --server-path=./build/server/index.bundle.js",
+		"build": "node node_scripts/build.mjs --experimental-modules --server-path=./build/server/index.bundle.js",
 		"build:client": "npm run build -- --client-only",
 		"build:server": "npm run build -- --server-only"
 	},
@@ -21,6 +21,7 @@
 		"pg-promise": "^8.4.5",
 		"sass-loader": "^8.0.2",
 		"socket.io": "^2.3.0",
+		"source-map-support": "^0.5.16",
 		"spotify-web-api-node": "^4.0.0"
 	},
 	"devDependencies": {

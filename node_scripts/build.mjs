@@ -19,8 +19,7 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 			'install',
 			'production',
 			'watch',
-			'client-only',
-			'server-only',
+			'hold-server',
 		],
 		alias: {
 			c: 'clean',
@@ -40,9 +39,10 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 			'server-path': '',
 
 			// 'off', 'compile', 'watch', 'refresh', 'hot'
-			'client': 'compile',
+			'client': 'refresh',
 			// 'off', 'compile', 'watch', 'refresh', 'hot'
 			'server': 'refresh',
+			
 		},
 	});
 
@@ -62,12 +62,15 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 	//TODO consider:
 	// const buildServerOnProxy = 
 	// 	args.server === 'hot';
-	const startServer = 
-		args.server === 'refresh';
+	const startServer = !args['hold-server'];
 	//TODO split off semantics of 'build' vs 'start', sort out compile/watch of server vs client
 
 	const buildHere = buildClientHere || buildServerHere;
-	const watch = buildHere && (args.client === 'watch' || args.server === 'watch');
+	const watch = buildHere && (
+		args.client === 'watch' || 
+		args.server === 'watch' || 
+		args.server === 'refresh'
+	);
 
 
 
@@ -129,9 +132,11 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 	
 		// COMPILE
 		if (watch) {
+			console.log('WWW watching');
 			const watchOptions = {};
 			compiler.watch(watchOptions, compileHandler);
 		} else {
+			console.log('WWW compiling');
 			compiler.run(compileHandler);
 		}
 
@@ -140,9 +145,10 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 
 	// START SERVER
 	if (startServer) {
-		const node = args.server === 'refresh' ? 'nodemon' : 'node';
+		// const node = args.server === 'refresh' ? 'nodemon' : 'node'; //TODO this won't work, nodemon will restart for ANY change in the directory - this removes the benefit of webpack-dev-middleware
+		const node = 'node';
 		const clientBuildType = buildClientOnServer ? `--client=${args.client}` : '';
-		await asyncSpawn(`${node} ${serverPath} ${clientBuildType} --client-mode=${mode} --experimental-modules`);
+		await asyncSpawn(`${node} --require source-map-support/register ${serverPath} ${clientBuildType} --client-mode=${mode} --experimental-modules`);
 	}
 
 
