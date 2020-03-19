@@ -5,7 +5,7 @@ import path from 'path';
 import asyncSpawn from './util/async-spawn.mjs';
 import getModule from './util/get-module.mjs';
 import webpack from 'webpack';
-import { clientOptions, serverOptions } from '../source/config/webpack.config2.mjs';
+import { clientOptions, serverOptions } from '../source/config/webpack.config.mjs';
 
 (async function () {
 	// TIMER
@@ -39,9 +39,9 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 			'server-path': '',
 
 			// 'off', 'compile', 'watch', 'refresh', 'hot'
-			'client': 'refresh',
+			'client': 'compile',
 			// 'off', 'compile', 'watch', 'refresh', 'hot'
-			'server': 'refresh',
+			'server': 'compile',
 			
 		},
 	});
@@ -132,11 +132,9 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 	
 		// COMPILE
 		if (watch) {
-			console.log('WWW watching');
 			const watchOptions = {};
 			compiler.watch(watchOptions, compileHandler);
 		} else {
-			console.log('WWW compiling');
 			compiler.run(compileHandler);
 		}
 
@@ -145,10 +143,11 @@ import { clientOptions, serverOptions } from '../source/config/webpack.config2.m
 
 	// START SERVER
 	if (startServer) {
-		// const node = args.server === 'refresh' ? 'nodemon' : 'node'; //TODO this won't work, nodemon will restart for ANY change in the directory - this removes the benefit of webpack-dev-middleware
-		const node = 'node';
+		//TODO Get the build directory from some constant.
+		const serverBuildDirectory = './build/server';
+		const node = args.server === 'refresh' ? 'nodemon' : 'node';
 		const clientBuildType = buildClientOnServer ? `--client=${args.client}` : '';
-		await asyncSpawn(`${node} --require source-map-support/register ${serverPath} ${clientBuildType} --client-mode=${mode} --experimental-modules`);
+		await asyncSpawn(`cd ${serverBuildDirectory} && npx ${node} --require source-map-support/register ${serverPath} ${clientBuildType} --client-mode=${mode}`);
 	}
 
 

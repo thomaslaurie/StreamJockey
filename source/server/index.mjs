@@ -38,6 +38,7 @@
 import '../config/config.mjs';
 
 // builtin
+import path from 'path';
 
 // external
 import parser from 'minimist';
@@ -50,14 +51,12 @@ import session from 'koa-session'; //L https://github.com/koajs/session
 import SocketIO from 'socket.io'; //L socket io: https://socket.io/docs/emit-cheatsheet
 import http from 'http'; //TODO consider changing to the https module?
 
-
 // internal
 import sourcePath from '../source-path.cjs';
-import { clientOptions } from '../config/webpack.config2.mjs';
+import { clientOptions, clientIndexFileName } from '../config/webpack.config.mjs';
 import sj from './global-server.mjs';
-import router from './routes.mjs';
+import Router from './routes.mjs';
 
-console.log('server source path:', sourcePath());
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -89,6 +88,9 @@ const serverOptions = parser(process.argv.slice(2), {
 	},
 });
 
+// INTERPRET
+const useMiddleware = (serverOptions.client === 'refresh' || serverOptions.client === 'hot');
+
 // const compiler = webpack(client({}, {
 // 	mode: serverOptions['client-mode'],
 // }));
@@ -106,18 +108,29 @@ const serverOptions = parser(process.argv.slice(2), {
 
 (async function () {
 
-//----------
-// issue seems that baking the config into the bundle causes the context (directory) for references in the config to have the wrong root directory, so this may have to be passed in instead (which is fine)
-const koaWebpackMiddleware = await koaWebpack({
-	// compiler: compiler,
-	config: clientOptions({}, {
-		mode: serverOptions['client-mode'],
-	}),
-	devMiddleware: {
-		methods: ['HEAD', 'GET', 'POST', 'PATCH', 'DELETE'],
-	},
-	hotClient: false,
+const config = clientOptions({}, {
+	mode: serverOptions['client-mode'],
 });
+
+let koaWebpackMiddleware;
+const routerOptions = {};
+if (useMiddleware) {
+	koaWebpackMiddleware = await koaWebpack({
+		// compiler: compiler,
+		config,
+		devMiddleware: {
+			methods: ['HEAD', 'GET', 'POST', 'PATCH', 'DELETE'],
+		},
+		hotClient: false,
+	});
+
+	routerOptions.replaceIndex = function (ctx) {
+		const filename = path.resolve(config.output.path, clientIndexFileName);
+		ctx.response.type = 'html';
+		ctx.response.body = koaWebpackMiddleware.devMiddleware.fileSystem.createReadStream(filename);
+	};
+}
+const router = Router(routerOptions);
 
 
 
@@ -161,8 +174,6 @@ sj.liveData.socket = socketIO.of('/live-data');
 //  ██║ ╚═╝ ██║██║██████╔╝██████╔╝███████╗███████╗╚███╔███╔╝██║  ██║██║  ██║███████╗
 //  ╚═╝     ╚═╝╚═╝╚═════╝ ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 
-// app.use(koaWebpackMiddleware);
-
 /*
 	// response timer
 	app.use(async (ctx, next) => {
@@ -199,11 +210,17 @@ app.use(session(sessionConfig, app));
 	});
 */
 
+if (useMiddleware) {
+	app.use(koaWebpackMiddleware);
+}
+
+
 // ROUTES
 app.use(router.routes());
 
 //L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
 app.use(router.allowedMethods()); 
+
 
 // LIVE DATA
 sj.liveData.start({

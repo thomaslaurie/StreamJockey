@@ -40,6 +40,8 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
 import nodeExternals from 'webpack-node-externals';
 
+export const clientIndexFileName = 'index.html';
+
 // COMMON
 const common = {
 	options: (env, argv) => ({
@@ -69,7 +71,7 @@ export const clientOptions = (env, argv) => ({
 		path: sourcePath('../build/public'),
 		//TODO This is explicitly required for webpack-dev-middleware, not 100% sure what it should be yet though.
 		//publicPath: 'dist/', //C the prefix that gets added to resource requests, //L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
-		//TODO consider tossing not-yet-bundled resources into dist too (index.html, css)
+		//TODO consider tossing not-yet-bundled resources into dist too (clientIndex, css)
 		publicPath: '/', 
 	},
 	module: {
@@ -100,7 +102,7 @@ export const clientOptions = (env, argv) => ({
 							sassOptions: {
 								includePaths: [sourcePath('public/css')],
 							},
-							// data: `@import '${sourcePath('public/index.html')}';`,
+							// data: `@import '${sourcePath(`public/${clientIndex}`)}';`,
 						},
 					},
 				],
@@ -111,7 +113,7 @@ export const clientOptions = (env, argv) => ({
 		...common.plugins(env, argv),
 		new VueLoaderPlugin(),
 		new HtmlWebpackPlugin({
-			template: sourcePath('public/index.html'),
+			template: sourcePath(`public/${clientIndexFileName}`),
 		}),
 	],
 });
