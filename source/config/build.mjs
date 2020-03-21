@@ -1,8 +1,25 @@
-// DEPENDENCIES
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+
+// EXTERNAL
+import webpack from 'webpack';
+
+// INTERNAL
 import asyncSpawn from '../node-util/async-spawn.mjs';
 import getModule from '../node-util/get-module.mjs';
-import webpack from 'webpack';
 import {clientOptions, serverOptions} from './webpack.config.mjs';
+
+
+//  ██████╗ ██╗   ██╗██╗██╗     ██████╗ 
+//  ██╔══██╗██║   ██║██║██║     ██╔══██╗
+//  ██████╔╝██║   ██║██║██║     ██║  ██║
+//  ██╔══██╗██║   ██║██║██║     ██║  ██║
+//  ██████╔╝╚██████╔╝██║███████╗██████╔╝
+//  ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ 
 
 (async function () {
 	// TIMER
@@ -39,7 +56,7 @@ import {clientOptions, serverOptions} from './webpack.config.mjs';
 
 	// INTERPRET OPTIONS
 	const buildClientHere = 
-		args.client === 'compile' || 
+		args.client === 'compile' ||
 		args.client === 'watch';
 	const buildServerHere = 
 		args.server === 'compile' ||
@@ -47,8 +64,8 @@ import {clientOptions, serverOptions} from './webpack.config.mjs';
 		args.server === 'refresh';
 	const buildHere = buildClientHere || buildServerHere;
 	const watch = buildHere && (
-		args.client === 'watch' || 
-		args.server === 'watch' || 
+		args.client === 'watch' ||
+		args.server === 'watch' ||
 		args.server === 'refresh'
 	);
 	const startServer = args.start !== '';

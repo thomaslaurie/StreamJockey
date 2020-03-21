@@ -286,14 +286,15 @@ export default function ({replaceIndex}) {
 			return;
 		}
 
-		// if (replaceIndex !== undefined) {
-		// 	replaceIndex(ctx);
-		// } 
-		// else {
-			//C otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
-			//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-			await send(ctx, app, {root: root});
-		// }
+		/* webpack-dev-middleware
+			if (replaceIndex !== undefined) {
+				replaceIndex(ctx);
+			} 
+			else {
+		*/
+		//C otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
+		//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+		await send(ctx, app, {root: root});
 	})
 	.all('/*', async (ctx, next) => {
 		ctx.body = ctx.body + '.all /* reached';

@@ -1,3 +1,10 @@
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+
 //R Not all modules on npm are 'bundle-able' or compatible with non-Node environments: bcrypt is written in C. This was causing errors when trying to bundle server-side code with Webpack, it just wasn't able to. Used bcryptjs instead.
 //R Unless nodeExternals is used, in which case node_modules are ignored and a node environment is assumed.
 
@@ -30,9 +37,17 @@
 		Not relevant where webpack has been setup for Client and/or Server.
 */
 
-//TODO Start off by doing a single startup command for refresh of both client and server.
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+
+// BUILT-IN
 import path from 'path';
-import sourcePath from '../node-util/source-path.cjs';
+
+// EXTERNAL
 import webpack from 'webpack';
 import CWP from 'clean-webpack-plugin';
 const CleanWebpackPlugin = CWP.CleanWebpackPlugin;
@@ -40,6 +55,18 @@ import HtmlWebpackPlugin from 'html-webpack-plugin';
 import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
 import nodeExternals from 'webpack-node-externals';
 
+// INTERNAL
+import sourcePath from '../node-util/source-path.cjs';
+
+
+//   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗ 
+//  ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝ 
+//  ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
+//  ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
+//  ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
+//   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝ 
+
+// CONSTANTS
 export const clientIndexFileName = 'index.html';
 
 // COMMON
