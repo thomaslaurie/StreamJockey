@@ -151,9 +151,6 @@ Object.defineProperty(sj, 'URL_HEADER', {value: Object.freeze({
 	'Content-Type': 'application/x-www-form-urlencoded',
 })});
 
-console.log('adfasdf');
-
-
 //C used to indicate a specific server error
 sj.resolveActions = {
 	spotifyAuth: 'spotify auth',

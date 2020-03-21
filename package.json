@@ -1,7 +1,7 @@
 {
 	"private": true,
 	"scripts": {
-		"build": "node node_scripts/build.mjs --experimental-modules --server-path=./build/server/index.bundle.js",
+		"build": "node source/config/build.mjs --experimental-modules --start=build/server/index.bundle.js",
 		"build:client": "npm run build -- --client-only",
 		"build:server": "npm run build -- --server-only"
 	},

@@ -1,8 +1,8 @@
 // Simplified async wrapper for fs.unlink, resolves when the file doesn't exist.
 
-const {unlink} = require('fs');
+import { unlink } from 'fs';
 
-module.exports = async function (path) {
+export default async function (path) {
 	return new Promise((resolve, reject) => {
 		unlink(path, (error) => {
 			if (error != null && error !== 'ENOENT') {

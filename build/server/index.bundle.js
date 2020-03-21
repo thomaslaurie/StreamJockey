@@ -81,15 +81,15 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./source/server/index.mjs");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./server/index.mjs");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ "./source/config/config.mjs":
-/*!**********************************!*\
-  !*** ./source/config/config.mjs ***!
-  \**********************************/
+/***/ "./config/config.mjs":
+/*!***************************!*\
+  !*** ./config/config.mjs ***!
+  \***************************/
 /*! no exports provided */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -103,10 +103,10 @@ dotenv__WEBPACK_IMPORTED_MODULE_0__.config({path: './config/.env'}); //C relativ
 
 /***/ }),
 
-/***/ "./source/config/webpack.config.mjs":
-/*!******************************************!*\
-  !*** ./source/config/webpack.config.mjs ***!
-  \******************************************/
+/***/ "./config/webpack.config.mjs":
+/*!***********************************!*\
+  !*** ./config/webpack.config.mjs ***!
+  \***********************************/
 /*! exports provided: clientIndexFileName, clientOptions, serverOptions */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -115,12 +115,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientIndexFileName", function() { return clientIndexFileName; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientOptions", function() { return clientOptions; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverOptions", function() { return serverOptions; });
-/* harmony import */ var _source_path_cjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../source-path.cjs */ "./source/source-path.cjs");
-/* harmony import */ var webpack__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! webpack */ "webpack");
-/* harmony import */ var clean_webpack_plugin__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! clean-webpack-plugin */ "clean-webpack-plugin");
-/* harmony import */ var html_webpack_plugin__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! html-webpack-plugin */ "html-webpack-plugin");
-/* harmony import */ var vue_loader_lib_plugin_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! vue-loader/lib/plugin.js */ "vue-loader/lib/plugin.js");
-/* harmony import */ var webpack_node_externals__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! webpack-node-externals */ "webpack-node-externals");
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
+/* harmony import */ var _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../node-util/source-path.cjs */ "./node-util/source-path.cjs");
+/* harmony import */ var webpack__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! webpack */ "webpack");
+/* harmony import */ var clean_webpack_plugin__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! clean-webpack-plugin */ "clean-webpack-plugin");
+/* harmony import */ var html_webpack_plugin__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! html-webpack-plugin */ "html-webpack-plugin");
+/* harmony import */ var vue_loader_lib_plugin_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! vue-loader/lib/plugin.js */ "vue-loader/lib/plugin.js");
+/* harmony import */ var webpack_node_externals__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! webpack-node-externals */ "webpack-node-externals");
 //R Not all modules on npm are 'bundle-able' or compatible with non-Node environments: bcrypt is written in C. This was causing errors when trying to bundle server-side code with Webpack, it just wasn't able to. Used bcryptjs instead.
 //R Unless nodeExternals is used, in which case node_modules are ignored and a node environment is assumed.
 
@@ -158,12 +159,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const CleanWebpackPlugin = clean_webpack_plugin__WEBPACK_IMPORTED_MODULE_2__.CleanWebpackPlugin;
+const CleanWebpackPlugin = clean_webpack_plugin__WEBPACK_IMPORTED_MODULE_3__.CleanWebpackPlugin;
 
 
 
 
 const clientIndexFileName = 'index.html';
+
+console.log('████ base from config:', _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__());
 
 // COMMON
 const common = {
@@ -174,10 +177,11 @@ const common = {
 		//! 'eval-source-map' doesn't seem to work with source-map-support.
 		//L https://www.npmjs.com/package/source-map-support
 		devtool: argv.mode === 'development' ? 'source-map' : undefined,
+		context: path__WEBPACK_IMPORTED_MODULE_0__.resolve('C:/Users/Thomas/Documents/Personal-Work/StreamJockey.git/source'),
 	}),
 	plugins: (env, argv) => ([
 		new CleanWebpackPlugin(),
-		new webpack__WEBPACK_IMPORTED_MODULE_1__.ProgressPlugin(),
+		new webpack__WEBPACK_IMPORTED_MODULE_2__.ProgressPlugin(),
 	]),
 };
 
@@ -186,12 +190,12 @@ const clientOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'web',
 	entry: {
-		js: _source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('public/js/index.mjs'),
+		index: _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__('public/js/index.mjs'),
 	},
 	output: {
-		filename: 'index.bundle.js',
+		filename: '[name].bundle.js',
 		chunkFilename: '[name].chunk.js',
-		path: _source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('../build/public'),
+		path: _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__('../build/public'),
 		//TODO This is explicitly required for webpack-dev-middleware, not 100% sure what it should be yet though.
 		//publicPath: 'dist/', //C the prefix that gets added to resource requests, //L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
 		//TODO consider tossing not-yet-bundled resources into dist too (clientIndex, css)
@@ -223,7 +227,7 @@ const clientOptions = (env, argv) => ({
 							//! Apparently breaks sass source-maps.
 							prependData: `@import 'global.scss';`,
 							sassOptions: {
-								includePaths: [_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('public/css')],
+								includePaths: [_node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__('public/css')],
 							},
 							// data: `@import '${sourcePath(`public/${clientIndex}`)}';`,
 						},
@@ -234,9 +238,9 @@ const clientOptions = (env, argv) => ({
 	},
 	plugins: [
 		...common.plugins(env, argv),
-		new vue_loader_lib_plugin_js__WEBPACK_IMPORTED_MODULE_4__(),
-		new html_webpack_plugin__WEBPACK_IMPORTED_MODULE_3__({
-			template: _source_path_cjs__WEBPACK_IMPORTED_MODULE_0__(`public/${clientIndexFileName}`),
+		new vue_loader_lib_plugin_js__WEBPACK_IMPORTED_MODULE_5__(),
+		new html_webpack_plugin__WEBPACK_IMPORTED_MODULE_4__({
+			template: _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__(`public/${clientIndexFileName}`),
 		}),
 	],
 });
@@ -244,40 +248,106 @@ const serverOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'node',
 	entry: {
-		index: _source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('server/index.mjs'),
+		index: _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__('server/index.mjs'),
 	},
 	output: {
-		filename: 'index.bundle.js',
-		path: _source_path_cjs__WEBPACK_IMPORTED_MODULE_0__('../build/server'),
+		filename: '[name].bundle.js',
+		path: _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_1__('../build/server'),
 	},
 	plugins: [
 		...common.plugins(env, argv),
-		/* //OLD Only required if bundling node_modules	
+		{ /* custom node globals polyfill */
+			//L From: https://github.com/webpack/webpack/issues/1599#issuecomment-550291610
+			//G//! Works with default node-global config settings.
+			apply(compiler) {
+				function setModuleConstant(expressionName, fn) {
+					compiler.hooks.normalModuleFactory.tap('MyPlugin', factory => {
+						factory.hooks.parser.for('javascript/auto').tap('MyPlugin', (parser, _options) => {
+							parser.hooks.expression.for(expressionName).tap('MyPlugin', () => {
+								parser.state.current.addVariable(expressionName, JSON.stringify(fn(parser.state.module)));
+								return true;
+							});
+						});
+					});
+				}
+		
+				setModuleConstant('__filename', function (module) {
+					return module.resource;
+				});
+		
+				setModuleConstant('__dirname', function (module) {
+					return module.context;
+				});
+			},
+		},
+		/* //OLD If bundling node_modules:
 			const {IgnorePlugin} = require('webpack');
 			//L Required to patch pg-promise: https://github.com/serverless-heaven/serverless-webpack/issues/78#issuecomment-405646040
 			new IgnorePlugin(/^pg-native$/),
 			//L Required to patch socket.io: https://github.com/socketio/engine.io/issues/575#issuecomment-578081012
 			new IgnorePlugin(/^uws$/),
-		*/
+		*/	
 	],
 	externals: [
 		//C Don't bundle node_modules.
-		webpack_node_externals__WEBPACK_IMPORTED_MODULE_5__(),
+		webpack_node_externals__WEBPACK_IMPORTED_MODULE_6__(),
 	],
-	node: {
-		//C Required for source-path.cjs to work properly.
-		//R Still won't work properly on its own though.
-		__dirname: true,
-		//TODO __filename, when it's needed.
-	},
 });
 
 /***/ }),
 
-/***/ "./source/public/js/fclone.mjs":
-/*!*************************************!*\
-  !*** ./source/public/js/fclone.mjs ***!
-  \*************************************/
+/***/ "./node-util/source-path.cjs":
+/*!***********************************!*\
+  !*** ./node-util/source-path.cjs ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(__dirname) {//C Returns an absolute path relative to the source directory.
+//G Use in places where __dirname would normally be required, like config options or non-webpack-recognized imports.
+/* //! Do NOT move this file. 
+	If it must be moved, 
+		either ensure all references to this file and all relative paths passed to this function are updated, 
+		or update the <base path> of this function: resolve(<__dirname, '../',> ...relativePaths)
+*/
+/* //R Workaround for __dirname / import.meta / webpack issues. 
+	The __dirname node global doesn't exist in ES Modules, even when run with node.
+		Webpack is supposed to be able to polyfill this with node: {__dirname: true}, however it doesn't seem to be working.
+	The alternative import.meta would normally be the workaround for raw modules. 
+		However Webpack doesn't support this yet: //L https://github.com/webpack/webpack/issues/6719
+		@open-wc/webpack-import-meta-loader didn't work because it relies on window which isn't available in node.
+		@bable/plugin-syntax-import-meta just didn't work at all.
+		When webpack is able to parse import.meta, this could be a universal solution:
+			//OLD
+			import path from 'path';
+
+			export default function (metaURL) {
+				return path.dirname(new URL(metaURL.replace(/^file:\/\/\//, '')).pathname);
+			};
+	Using __dirname only in a CommonJS Module, and instead importing it into ES Modules didn't work either.
+		Because it was actually just using the directory node was being run from.
+		// This still required using node: {__dirname: true}
+		//L Solution from: https://medium.com/@almtechhub/es-modules-and-import-meta-dirname-babel-trick-39aad026682
+		Here it was being wrapped in a path call because using the exported __dirname from outside this directory wouldn't make much semantic sense.
+	Current solution is just to use an environment variable with the absolute path.
+*/
+
+const {resolve} = __webpack_require__(/*! path */ "path");
+module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePaths);
+
+
+
+//---------- ack, this also depends on where node is being run from
+// seems like __dirname is only tied exactly to where node is being run from (the workaround isn't working)
+
+/* WEBPACK VAR INJECTION */}.call(this, "C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\source\\node-util"))
+
+/***/ }),
+
+/***/ "./public/js/fclone.mjs":
+/*!******************************!*\
+  !*** ./public/js/fclone.mjs ***!
+  \******************************/
 /*! exports provided: default */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -348,16 +418,16 @@ function fclone(obj, refs) {
 
 /***/ }),
 
-/***/ "./source/public/js/global.mjs":
-/*!*************************************!*\
-  !*** ./source/public/js/global.mjs ***!
-  \*************************************/
+/***/ "./public/js/global.mjs":
+/*!******************************!*\
+  !*** ./public/js/global.mjs ***!
+  \******************************/
 /*! exports provided: default */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _fclone_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fclone.mjs */ "./source/public/js/fclone.mjs");
+/* harmony import */ var _fclone_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fclone.mjs */ "./public/js/fclone.mjs");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -510,7 +580,6 @@ Object.defineProperty(sj, 'URL_HEADER', {value: Object.freeze({
 	'Accept': 'application/json',
 	'Content-Type': 'application/x-www-form-urlencoded',
 })});
-
 
 //C used to indicate a specific server error
 sj.resolveActions = {
@@ -3760,10 +3829,10 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
 
 /***/ }),
 
-/***/ "./source/server/auth.mjs":
-/*!********************************!*\
-  !*** ./source/server/auth.mjs ***!
-  \********************************/
+/***/ "./server/auth.mjs":
+/*!*************************!*\
+  !*** ./server/auth.mjs ***!
+  \*************************/
 /*! exports provided: default */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -3771,7 +3840,7 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "events");
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
-/* harmony import */ var _global_server_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./global-server.mjs */ "./source/server/global-server.mjs");
+/* harmony import */ var _global_server_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./global-server.mjs */ "./server/global-server.mjs");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -4086,10 +4155,10 @@ Object.assign(_global_server_mjs__WEBPACK_IMPORTED_MODULE_2__["default"].youtube
 
 /***/ }),
 
-/***/ "./source/server/db.mjs":
-/*!******************************!*\
-  !*** ./source/server/db.mjs ***!
-  \******************************/
+/***/ "./server/db.mjs":
+/*!***********************!*\
+  !*** ./server/db.mjs ***!
+  \***********************/
 /*! exports provided: default, pgp */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -4165,10 +4234,10 @@ const schema = {
 
 /***/ }),
 
-/***/ "./source/server/global-server.mjs":
-/*!*****************************************!*\
-  !*** ./source/server/global-server.mjs ***!
-  \*****************************************/
+/***/ "./server/global-server.mjs":
+/*!**********************************!*\
+  !*** ./server/global-server.mjs ***!
+  \**********************************/
 /*! exports provided: default */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -4176,9 +4245,9 @@ const schema = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! node-fetch */ "node-fetch");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
-/* harmony import */ var _public_js_global_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/global.mjs */ "./source/public/js/global.mjs");
-/* harmony import */ var _db_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./db.mjs */ "./source/server/db.mjs");
-/* harmony import */ var _live_data_server_mjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./live-data-server.mjs */ "./source/server/live-data-server.mjs");
+/* harmony import */ var _public_js_global_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/global.mjs */ "./public/js/global.mjs");
+/* harmony import */ var _db_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./db.mjs */ "./server/db.mjs");
+/* harmony import */ var _live_data_server_mjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./live-data-server.mjs */ "./server/live-data-server.mjs");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -5530,16 +5599,16 @@ _public_js_global_mjs__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass
 
 /***/ }),
 
-/***/ "./source/server/index.mjs":
-/*!*********************************!*\
-  !*** ./source/server/index.mjs ***!
-  \*********************************/
+/***/ "./server/index.mjs":
+/*!**************************!*\
+  !*** ./server/index.mjs ***!
+  \**************************/
 /*! no exports provided */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _config_config_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/config.mjs */ "./source/config/config.mjs");
+/* harmony import */ var _config_config_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/config.mjs */ "./config/config.mjs");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var minimist__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! minimist */ "minimist");
 /* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa */ "koa");
@@ -5548,10 +5617,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! koa-session */ "koa-session");
 /* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! socket.io */ "socket.io");
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! http */ "http");
-/* harmony import */ var _source_path_cjs__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../source-path.cjs */ "./source/source-path.cjs");
-/* harmony import */ var _config_webpack_config_mjs__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../config/webpack.config.mjs */ "./source/config/webpack.config.mjs");
-/* harmony import */ var _global_server_mjs__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./global-server.mjs */ "./source/server/global-server.mjs");
-/* harmony import */ var _routes_mjs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./routes.mjs */ "./source/server/routes.mjs");
+/* harmony import */ var _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../node-util/source-path.cjs */ "./node-util/source-path.cjs");
+/* harmony import */ var _config_webpack_config_mjs__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../config/webpack.config.mjs */ "./config/webpack.config.mjs");
+/* harmony import */ var _global_server_mjs__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./global-server.mjs */ "./server/global-server.mjs");
+/* harmony import */ var _routes_mjs__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./routes.mjs */ "./server/routes.mjs");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -5610,6 +5679,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+console.log('████ __dirname from index:', __dirname);
+console.log('████ base from index:', _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_9__());
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -5808,17 +5881,17 @@ process.on('unhandledRejection', (reason, p) => {
 
 /***/ }),
 
-/***/ "./source/server/live-data-server.mjs":
-/*!********************************************!*\
-  !*** ./source/server/live-data-server.mjs ***!
-  \********************************************/
+/***/ "./server/live-data-server.mjs":
+/*!*************************************!*\
+  !*** ./server/live-data-server.mjs ***!
+  \*************************************/
 /*! exports provided: default */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! http */ "http");
-/* harmony import */ var _public_js_global_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/global.mjs */ "./source/public/js/global.mjs");
+/* harmony import */ var _public_js_global_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/global.mjs */ "./public/js/global.mjs");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -6108,10 +6181,10 @@ _public_js_global_mjs__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription.augme
 
 /***/ }),
 
-/***/ "./source/server/routes.mjs":
-/*!**********************************!*\
-  !*** ./source/server/routes.mjs ***!
-  \**********************************/
+/***/ "./server/routes.mjs":
+/*!***************************!*\
+  !*** ./server/routes.mjs ***!
+  \***************************/
 /*! exports provided: default */
 /***/ (function(__webpack_module__, __webpack_exports__, __webpack_require__) {
 
@@ -6121,10 +6194,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
 /* harmony import */ var koa_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa-router */ "koa-router");
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-send */ "koa-send");
-/* harmony import */ var _source_path_cjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../source-path.cjs */ "./source/source-path.cjs");
-/* harmony import */ var _config_webpack_config_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../config/webpack.config.mjs */ "./source/config/webpack.config.mjs");
-/* harmony import */ var _global_server_mjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./global-server.mjs */ "./source/server/global-server.mjs");
-/* harmony import */ var _auth_mjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./auth.mjs */ "./source/server/auth.mjs");
+/* harmony import */ var _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../node-util/source-path.cjs */ "./node-util/source-path.cjs");
+/* harmony import */ var _config_webpack_config_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../config/webpack.config.mjs */ "./config/webpack.config.mjs");
+/* harmony import */ var _global_server_mjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./global-server.mjs */ "./server/global-server.mjs");
+/* harmony import */ var _auth_mjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./auth.mjs */ "./server/auth.mjs");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -6217,8 +6290,11 @@ __webpack_require__.r(__webpack_exports__);
 	//TODO there has to be a cleaner way of doing this (especially the replace manipulation)
 	//R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
 	// const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-	const root = _source_path_cjs__WEBPACK_IMPORTED_MODULE_4__('../build/public');
+	const root = _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_4__('../build/public');
 	const app = `/${_config_webpack_config_mjs__WEBPACK_IMPORTED_MODULE_5__["clientIndexFileName"]}`;
+
+	console.log('████ base from routes:', _node_util_source_path_cjs__WEBPACK_IMPORTED_MODULE_4__());
+	console.log('████ root from routes:', root);
 
 	// router
 	const router = new koa_router__WEBPACK_IMPORTED_MODULE_2__();
@@ -6430,41 +6506,6 @@ __webpack_require__.r(__webpack_exports__);
 	return router;
 });;
 
-
-/***/ }),
-
-/***/ "./source/source-path.cjs":
-/*!********************************!*\
-  !*** ./source/source-path.cjs ***!
-  \********************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(__dirname) {/* //R Workaround for __dirname / import.meta / webpack issues. 
-	The __dirname node global doesn't exist in ES Modules, even when run with node.
-		Webpack is supposed to be able to polyfill this with node: {__dirname: true}, however it doesn't seem to be working.
-	The alternative import.meta would normally be the workaround for raw modules. 
-		However Webpack doesn't support this yet: //L https://github.com/webpack/webpack/issues/6719
-		@open-wc/webpack-import-meta-loader didn't work because it relies on window which isn't available in node.
-		@bable/plugin-syntax-import-meta just didn't work at all.
-		When webpack is able to parse import.meta, this could be a universal solution:
-			//OLD
-			import path from 'path';
-
-			export default function (metaURL) {
-				return path.dirname(new URL(metaURL.replace(/^file:\/\/\//, '')).pathname);
-			};
-	//! The best solution so far is to only use __dirname in a CommonJS Module, and instead import it into ES Modules.
-		//! This still requires using node: {__dirname: true}
-		//L Solution from: https://medium.com/@almtechhub/es-modules-and-import-meta-dirname-babel-trick-39aad026682
-	Here its being wrapped in a path call because using the exported __dirname from outside this directory wouldn't make much semantic sense.
-*/
-//G Use in places where __dirname would normally be required, like config options or non-webpack-recognized imports.
-//! Do NOT move this file, unless all references to this function are updated.
-const {resolve} = __webpack_require__(/*! path */ "path");
-module.exports = (...relativePaths) => resolve(__dirname, ...relativePaths);
-
-/* WEBPACK VAR INJECTION */}.call(this, "source"))
 
 /***/ }),
 

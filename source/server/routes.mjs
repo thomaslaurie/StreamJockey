@@ -70,7 +70,7 @@ import Router from 'koa-router'; //L https://github.com/alexmingoia/koa-router
 import send from 'koa-send'; //L https://github.com/koajs/send
 
 // internal
-import sourcePath from '../source-path.cjs';
+import sourcePath from '../node-util/source-path.cjs';
 import { clientIndexFileName } from '../config/webpack.config.mjs';
 import sj from './global-server.mjs';
 import auth from './auth.mjs'; // side-effects

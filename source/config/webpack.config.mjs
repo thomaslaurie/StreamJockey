@@ -31,8 +31,8 @@
 */
 
 //TODO Start off by doing a single startup command for refresh of both client and server.
-
-import sourcePath from '../source-path.cjs';
+import path from 'path';
+import sourcePath from '../node-util/source-path.cjs';
 import webpack from 'webpack';
 import CWP from 'clean-webpack-plugin';
 const CleanWebpackPlugin = CWP.CleanWebpackPlugin;
@@ -51,6 +51,7 @@ const common = {
 		//! 'eval-source-map' doesn't seem to work with source-map-support.
 		//L https://www.npmjs.com/package/source-map-support
 		devtool: argv.mode === 'development' ? 'source-map' : undefined,
+		context: path.resolve('C:/Users/Thomas/Documents/Personal-Work/StreamJockey.git/source'),
 	}),
 	plugins: (env, argv) => ([
 		new CleanWebpackPlugin(),
@@ -63,10 +64,10 @@ export const clientOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'web',
 	entry: {
-		js: sourcePath('public/js/index.mjs'),
+		index: sourcePath('public/js/index.mjs'),
 	},
 	output: {
-		filename: 'index.bundle.js',
+		filename: '[name].bundle.js',
 		chunkFilename: '[name].chunk.js',
 		path: sourcePath('../build/public'),
 		//TODO This is explicitly required for webpack-dev-middleware, not 100% sure what it should be yet though.
@@ -124,27 +125,45 @@ export const serverOptions = (env, argv) => ({
 		index: sourcePath('server/index.mjs'),
 	},
 	output: {
-		filename: 'index.bundle.js',
+		filename: '[name].bundle.js',
 		path: sourcePath('../build/server'),
 	},
 	plugins: [
 		...common.plugins(env, argv),
-		/* //OLD Only required if bundling node_modules	
+		{ /* custom node globals polyfill */
+			//L From: https://github.com/webpack/webpack/issues/1599#issuecomment-550291610
+			//G//! Works with default node-global config settings (replaces node: {__dirname: true}).
+			apply(compiler) {
+				function setModuleConstant(expressionName, fn) {
+					compiler.hooks.normalModuleFactory.tap('MyPlugin', factory => {
+						factory.hooks.parser.for('javascript/auto').tap('MyPlugin', (parser, _options) => {
+							parser.hooks.expression.for(expressionName).tap('MyPlugin', () => {
+								parser.state.current.addVariable(expressionName, JSON.stringify(fn(parser.state.module)));
+								return true;
+							});
+						});
+					});
+				}
+		
+				setModuleConstant('__filename', function (module) {
+					return module.resource;
+				});
+		
+				setModuleConstant('__dirname', function (module) {
+					return module.context;
+				});
+			},
+		},
+		/* //OLD If bundling node_modules:
 			const {IgnorePlugin} = require('webpack');
 			//L Required to patch pg-promise: https://github.com/serverless-heaven/serverless-webpack/issues/78#issuecomment-405646040
 			new IgnorePlugin(/^pg-native$/),
 			//L Required to patch socket.io: https://github.com/socketio/engine.io/issues/575#issuecomment-578081012
 			new IgnorePlugin(/^uws$/),
-		*/
+		*/	
 	],
 	externals: [
 		//C Don't bundle node_modules.
 		nodeExternals(),
 	],
-	node: {
-		//C Required for source-path.cjs to work properly.
-		//R Still won't work properly on its own though.
-		__dirname: true,
-		//TODO __filename, when it's needed.
-	},
 });

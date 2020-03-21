@@ -52,7 +52,7 @@ import SocketIO from 'socket.io'; //L socket io: https://socket.io/docs/emit-che
 import http from 'http'; //TODO consider changing to the https module?
 
 // internal
-import sourcePath from '../source-path.cjs';
+import sourcePath from '../node-util/source-path.cjs';
 import { clientOptions, clientIndexFileName } from '../config/webpack.config.mjs';
 import sj from './global-server.mjs';
 import Router from './routes.mjs';
