@@ -77,6 +77,15 @@
 		//L https://medium.com/@pgivens/write-cleaner-code-using-prettier-and-eslint-in-vscode-d04f63805dcd
 */
 
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+
+import './polyfill.js'; // side effects
+
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -89,7 +98,6 @@ let sj = {};
 
 sj.appName = 'StreamJockey';
 
-import fClone from './fclone.js'; //L https://github.com/soyuka/fclone
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
 	//L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
@@ -103,41 +111,7 @@ if (typeof fetch !== 'undefined') {
 		});
 	}
 }
-if (!Array.prototype.flat) {
-    //L https://github.com/jonathantneal/array-flat-polyfill
-	Object.defineProperties(Array.prototype, {
-		flat: {
-			configurable: true,
-			value: function flat() {
-				let depth = isNaN(arguments[0]) ? 1 : Number(arguments[0]);
-				const stack = Array.prototype.slice.call(this);
-				const result = [];
 
-				while (depth && stack.length) {
-					const next = stack.pop();
-
-					if (Object(next) instanceof Array) {
-						--depth;
-
-						Array.prototype.push.apply(stack, next);
-					} else {
-						result.unshift(next);
-					}
-				}
-
-				return result.concat(stack);
-			},
-			writable: true
-		},
-		flatMap: {
-			configurable: true,
-			value: function flatMap(callback) {
-				return Array.prototype.map.apply(this, arguments).flat();
-			},
-			writable: true
-		}
-	});
-}
 
 // CONSTANTS
 Object.defineProperty(sj, 'SERVER_URL', {value: `http://localhost:3000`});
