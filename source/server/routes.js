@@ -71,9 +71,9 @@ import send from 'koa-send'; //L https://github.com/koajs/send
 
 // internal
 import sourcePath from '../node-util/source-path.cjs';
-import { clientIndexFileName } from '../config/webpack.config.mjs';
-import sj from './global-server.mjs';
-import auth from './auth.mjs'; // side-effects
+import { clientIndexFileName } from '../config/project-paths.js';
+import sj from './global-server.js';
+import auth from './auth.js'; // side-effects
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -142,7 +142,7 @@ export default function ({replaceIndex}) {
 	.post('/log', async (ctx, next) => {
 		console.log('CLIENT LOG:', ctx.request.body.message);
 		ctx.response.body = new sj.Success({
-			origin: 'routes.mjs /log POST',
+			origin: 'routes.js /log POST',
 			message: 'received client log message',
 		});
 	})

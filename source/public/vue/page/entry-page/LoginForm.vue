@@ -1,5 +1,5 @@
 <script>
-    //import {mapState} from '../../../js/vuex.esm.browser.mjs'; 
+    //import {mapState} from '../../../js/vuex.esm.browser.js'; 
 
     export default {
         name: 'login-form',

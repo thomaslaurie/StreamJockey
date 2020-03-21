@@ -1,5 +1,5 @@
 <script>
-    import sj from '../../js/global-client.mjs';
+    import sj from '../../js/global-client.js';
 
     import AsyncDisplay from '../async/AsyncDisplay.vue';
 

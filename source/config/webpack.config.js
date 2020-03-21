@@ -56,6 +56,7 @@ import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
 import nodeExternals from 'webpack-node-externals';
 
 // INTERNAL
+import { clientIndexFileName } from './project-paths.js';
 import sourcePath from '../node-util/source-path.cjs';
 
 
@@ -65,9 +66,6 @@ import sourcePath from '../node-util/source-path.cjs';
 //  ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
 //  ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝ 
-
-// CONSTANTS
-export const clientIndexFileName = 'index.html';
 
 // COMMON
 const common = {
@@ -91,7 +89,7 @@ export const clientOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'web',
 	entry: {
-		index: sourcePath('public/js/index.mjs'),
+		index: sourcePath('public/js/index.js'),
 	},
 	output: {
 		filename: '[name].bundle.js',
@@ -149,10 +147,11 @@ export const serverOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'node',
 	entry: {
-		index: sourcePath('server/index.mjs'),
+		index: sourcePath('server/index.js'),
 	},
 	output: {
-		filename: '[name].bundle.js',
+		//! Compiling as a CJS file
+		filename: '[name].bundle.cjs',
 		path: sourcePath('../build/server'),
 	},
 	plugins: [

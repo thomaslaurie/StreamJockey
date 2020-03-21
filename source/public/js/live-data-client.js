@@ -249,8 +249,8 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-//! depends on global-client.mjs because it is used in index.mjs alongside global-client.mjs
-import sj from './global-client.mjs';
+//! depends on global-client.js because it is used in index.js alongside global-client.js
+import sj from './global-client.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗

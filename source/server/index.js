@@ -35,10 +35,9 @@
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
 // TOP
-import '../config/environment-variables.mjs';
+import '../config/environment-variables.js';
 
 // BUILT-IN
-import path from 'path';
 
 // EXTERNAL
 import parser from 'minimist';
@@ -52,9 +51,9 @@ import SocketIO from 'socket.io'; //L socket io: https://socket.io/docs/emit-che
 import http from 'http'; //TODO consider changing to the https module?
 
 // INTERNAL
-import { clientOptions, clientIndexFileName } from '../config/webpack.config.mjs';
-import sj from './global-server.mjs';
-import Router from './routes.mjs';
+// import { clientOptions, clientIndexFileName } from '../config/webpack.config.js';
+import sj from './global-server.js';
+import Router from './routes.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗

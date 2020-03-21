@@ -146,18 +146,18 @@
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
 // external
-//L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js //! renamed from .js to .mjs
-import Vue from './vue.esm.browser.mjs'; 
-//L https://unpkg.com/vue-router@3.0.2/ //! renamed from .js to .mjs, manually converted to esm (remove closure & export default instead of return)
-import VueRouter from './vue-router.esm.browser.mjs';
-//L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! renamed from .js to .mjs, manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
-import VueX from './vuex.esm.browser.mjs'; 
+//L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js
+import Vue from './vue.esm.browser.js'; 
+//L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return)
+import VueRouter from './vue-router.esm.browser.js';
+//L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
+import VueX from './vuex.esm.browser.js'; 
 
 import SocketIO from 'socket.io-client';
 
 // internal
-import sj from './global-client.mjs';
-import liveData from './live-data-client.mjs';
+import sj from './global-client.js';
+import liveData from './live-data-client.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗

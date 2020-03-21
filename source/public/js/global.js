@@ -89,7 +89,7 @@ let sj = {};
 
 sj.appName = 'StreamJockey';
 
-import fClone from './fclone.mjs'; //L https://github.com/soyuka/fclone
+import fClone from './fclone.js'; //L https://github.com/soyuka/fclone
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
 	//L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
@@ -98,7 +98,7 @@ if (typeof fetch !== 'undefined') {
 	sj.fetch = async function () {
 		throw new sj.Error({
 			log: true,
-			origin: 'global.mjs init',
+			origin: 'global.js init',
 			reason: 'fetch is not defined',
 		});
 	}
@@ -2117,7 +2117,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 
 		/* //OLD decided this was redundant
 			//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
-			//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.mjs
+			//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.js
 			async checkProperty(obj, prop, value2) {
 				//C validate arguments
 				if (!sj.isType(obj, 'object')) {
@@ -2152,7 +2152,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				return result;
 			}
 		*/
-		/* //OLD, new check ruleset was created in global-server.mjs
+		/* //OLD, new check ruleset was created in global-server.js
 			static async checkRuleSet(ruleSet) {
 				//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
 				return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {

@@ -39,7 +39,7 @@ import EventEmitter from 'events';
 import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
  
 // internal
-import sj from './global-server.mjs';
+import sj from './global-server.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝

@@ -34,14 +34,14 @@
 // builtin
 
 // internal
-import sj from './global.mjs';
+import sj from './global.js';
 
 // external
 import moment from 'moment';
 import he from 'he';
 
 //import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
-//import SpotifyWebApi from './spotify-web-api.mjs'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
+//import SpotifyWebApi from './spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 
 
 //  ██╗███╗   ██╗██╗████████╗

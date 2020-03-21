@@ -1,5 +1,5 @@
 <script>
-    import VueX, {mapState} from '../../js/vuex.esm.browser.mjs'; 
+    import VueX, {mapState} from '../../js/vuex.esm.browser.js'; 
 
     export default {
         name: 'add-playlist-page',

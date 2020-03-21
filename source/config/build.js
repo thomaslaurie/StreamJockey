@@ -9,9 +9,9 @@
 import webpack from 'webpack';
 
 // INTERNAL
-import asyncSpawn from '../node-util/async-spawn.mjs';
-import getModule from '../node-util/get-module.mjs';
-import {clientOptions, serverOptions} from './webpack.config.mjs';
+import asyncSpawn from '../node-util/async-spawn.js';
+import getModule from '../node-util/get-module.js';
+import {clientOptions, serverOptions} from './webpack.config.js';
 
 
 //  ██████╗ ██╗   ██╗██╗██╗     ██████╗ 

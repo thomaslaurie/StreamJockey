@@ -2,7 +2,7 @@
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 
 	//C for use of sj inside validator function
-	import sj from '../../js/global-client.mjs';
+	import sj from '../../js/global-client.js';
 
     export default {
         name: 'search-results',

@@ -99,13 +99,13 @@
 // builtin
 
 // external
-import fetch from 'node-fetch'; //C global.mjs uses fetch
+import fetch from 'node-fetch'; //C global.js uses fetch
 import bcrypt from 'bcryptjs';
 
 // internal
-import sj from '../public/js/global.mjs';
-import database, {pgp} from './db.mjs';
-import liveData from './live-data-server.mjs';
+import sj from '../public/js/global.js';
+import database, {pgp} from './db.js';
+import liveData from './live-data-server.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗

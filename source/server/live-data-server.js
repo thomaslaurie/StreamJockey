@@ -9,8 +9,8 @@
 import http from 'http'; //TODO consider changing to the https module?
 
 // INTERNAL
-//! depends on the common global.mjs not the global-server.mjs because global-server.mjs uses this module
-import sj from '../public/js/global.mjs';
+//! depends on the common global.js not the global-server.js because global-server.js uses this module
+import sj from '../public/js/global.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗

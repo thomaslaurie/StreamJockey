@@ -1,7 +1,7 @@
 // Returns a module, if it can't be found, install it and then return it.
 
 import path from 'path';
-import asyncSpawn from './async-spawn.mjs';
+import asyncSpawn from './async-spawn.js';
 
 export default async function (name, location = 'dependencies') {
 	try {
