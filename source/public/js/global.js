@@ -120,13 +120,6 @@ if (typeof fetch !== 'undefined') {
 // CONSTANTS
 define.constant(sj, constants);
 
-//----------
-
-//C used to indicate a specific server error
-sj.resolveActions = {
-	spotifyAuth: 'spotify auth',
-};
-
 
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
