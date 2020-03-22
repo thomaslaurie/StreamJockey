@@ -86,12 +86,18 @@
 
 // BUILT-IN
 
-// EXTERNAL
-
 // INTERNAL
 import './polyfill.js'; // side effects
-import { define } from './utility/index.js';
+import { 
+	define, 
+	test, 
+	wait,
+	replaceAll,
+} from './utility/index.js';
 import * as constants from './constants.js';
+
+// EXTERNAL
+import fClone from './fclone.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -131,39 +137,10 @@ define.constant(sj, constants);
 //C these don't reference any sj.Bases
 
 // TESTING
-sj.test = async function(tests, origin) {
-	let failCount = 0;
-	tests.forEach((test, i) => {
-		if (!test[1]) {
-			console.error(`${origin} - test failed: ${test[0]}`);
-			failCount++;
-		}
-	});
-
-	if (failCount === 0) {
-		console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
-		return true;
-	} else return false;
-};
-sj.performance = function (iterations, fs) {
-	fs.forEach((f, index) => {
-		console.time(`Function ${index} Start`);
-		for(let i = 0; i < iterations; i++) {
-			f();
-		}
-		console.timeEnd(`Function ${index} End`);
-	});
-};
-sj.wait = async function (ms) {
-    //C used for basic waiting, //! should not be used if the callback needs to be canceled
-	return new Promise(resolve => {
-		if (ms <= 2147483647) { //L maximum timeout length: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
-			sj.setTimeout(() => {
-				resolve(`finished waiting ${ms}ms`);
-			}, ms);
-		}
-	});
-};
+define.constant(sj, {
+	test,
+	wait,
+});
 sj.trace = function () {
 	try {
 		throw Error('');
@@ -173,9 +150,9 @@ sj.trace = function () {
 		//C get stack
 		const stackTrace0 = e.stack;
 		//C 'file:///' is removed (so that the URIs are clickable in node)
-		const stackTrace1 = sj.stringReplaceAll(stackTrace0, 'file:///', '');
+		const stackTrace1 = replaceAll(stackTrace0, 'file:///', '');
 		//C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-		const stackTrace2 = sj.stringReplaceAll(stackTrace1, 'Error\n', '');
+		const stackTrace2 = replaceAll(stackTrace1, 'Error\n', '');
 		//C removes any line with Object.sj.trace
 
 		let ignore = [
@@ -186,9 +163,9 @@ sj.trace = function () {
 			'Object.sj.propagate',
 			'sj.Error.announce',
 		];
-		ignore = sj.stringReplaceAll(ignore.join('|'), '.', '\.');
+		ignore = replaceAll(ignore.join('|'), '.', '\.');
 		const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-		const stackTrace3 = sj.stringReplaceAll(stackTrace2, exp, '');
+		const stackTrace3 = replaceAll(stackTrace2, exp, '');
 
 		return stackTrace0;
 	}
@@ -196,41 +173,6 @@ sj.trace = function () {
 sj.image = function (value) {
 	if (typeof value === null || typeof value !== 'object') return value;
 	return JSON.parse(JSON.stringify(sj.deepClone(value)));
-};
-
-// TYPE
-sj.isSubclass = function (a, b) {
-	if (typeof a !== 'function' || typeof b !== 'function') return false;
-	else return (a.prototype instanceof b);
-};
-
-// FORMAT
-sj.msFormat = function (ms) {
-	// extract
-	var minutes = Math.floor(ms / 60000);
-	var seconds = Math.ceil(ms % 60000);
-
-	// format
-	seconds = ('0' + seconds).slice(-2);
-
-	// returns ...0:00 format rounded up to the nearest second
-	return minutes + ':' + seconds;
-};
-sj.stringReplaceAll = function(input, search, replace) {
-	return input.split(search).join(replace);
-};
-sj.capFirst = function(string) {
-	return string.charAt(0).toUpperCase() + string.slice(1);
-};
-sj.clamp = function (input, min, max) {
-	if (min > max) throw 'sj.clamp() min argument cannot be greater than max argument';
-	if (input < min) return min;
-	else if (max < input) return max;
-	else return input;
-};
-sj.escapeRegExp = function (string) {
-	//L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
-	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
 // HTTP
@@ -871,7 +813,7 @@ sj.catchUnexpected = function (input) {
 			error.reason = input.toString();
 
 			//C replace trace with actual trace (which has clickable URIs)
-			error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
+			error.trace = replaceAll(input.stack, 'file:///', '');
 		} else if (sj.isType(input, sj.Base)) {
 			error.reason = `unexpected ${input.constructorName}`;
 		} else {

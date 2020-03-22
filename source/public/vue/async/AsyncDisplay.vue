@@ -75,7 +75,13 @@
 			},
 			//C query prioritized over static content
 			usingQuery() {
-				if (!this.sj.isSubclass(this.Entity, this.sj.Entity)) throw new this.sj.Error({
+				//TODO Inlined this function because it was only being used here. Figure out if this can be removed.
+				function isSubclass (a, b) {
+					if (typeof a !== 'function' || typeof b !== 'function') return false;
+					else return (a.prototype instanceof b);
+				};
+
+				if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.sj.Error({
 						origin: 'AsyncDisplay usingQuery()',
 						reason: 'attempting to use a query but Entity is not a child class of sj.Entity',
 						content: this.sj.image(this.Entity),

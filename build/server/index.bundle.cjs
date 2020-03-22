@@ -191,6 +191,81 @@ const URL_HEADER = Object.freeze({
 
 /***/ }),
 
+/***/ "./public/js/fclone.js":
+/*!*****************************!*\
+  !*** ./public/js/fclone.js ***!
+  \*****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// see if it looks and smells like an iterable object, and do accept length === 0
+function isArrayLike(item) {
+  if (Array.isArray(item)) return true;
+  const len = item && item.length;
+  return typeof len === 'number' && (len === 0 || len - 1 in item) && typeof item.indexOf === 'function';
+}
+
+function fclone(obj, refs) {
+  if (!obj || "object" !== typeof obj) return obj;
+
+  if (obj instanceof Date) {
+    return new Date(obj);
+  }
+
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(obj)) {
+    return new Buffer(obj);
+  } // typed array Int32Array etc.
+
+
+  if (typeof obj.subarray === 'function' && /[A-Z][A-Za-z\d]+Array/.test(Object.prototype.toString.call(obj))) {
+    return obj.subarray(0);
+  }
+
+  if (!refs) {
+    refs = [];
+  }
+
+  if (isArrayLike(obj)) {
+    refs[refs.length] = obj;
+    let l = obj.length;
+    let i = -1;
+    let copy = [];
+
+    while (l > ++i) {
+      copy[i] = ~refs.indexOf(obj[i]) ? '[Circular]' : fclone(obj[i], refs);
+    }
+
+    refs.length && refs.length--;
+    return copy;
+  }
+
+  refs[refs.length] = obj;
+  let copy = {};
+
+  if (obj instanceof Error) {
+    copy.name = obj.name;
+    copy.message = obj.message;
+    copy.stack = obj.stack;
+  }
+
+  let keys = Object.keys(obj);
+  let l = keys.length;
+
+  while (l--) {
+    let k = keys[l];
+    copy[k] = ~refs.indexOf(obj[k]) ? '[Circular]' : fclone(obj[k], refs);
+  }
+
+  refs.length && refs.length--;
+  return copy;
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (fclone);
+
+/***/ }),
+
 /***/ "./public/js/global.js":
 /*!*****************************!*\
   !*** ./public/js/global.js ***!
@@ -204,6 +279,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_polyfill_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./public/js/utility/index.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants.js */ "./public/js/constants.js");
+/* harmony import */ var _fclone_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./fclone.js */ "./public/js/fclone.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -287,10 +363,11 @@ __webpack_require__.r(__webpack_exports__);
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 // BUILT-IN
-// EXTERNAL
 // INTERNAL
  // side effects
 
+
+ // EXTERNAL
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -316,11 +393,7 @@ if (typeof fetch !== 'undefined') {
 } // CONSTANTS
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_2__); //C used to indicate a specific server error
-
-sj.resolveActions = {
-  spotifyAuth: 'spotify auth'
-}; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_2__); //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
 //  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
@@ -329,44 +402,10 @@ sj.resolveActions = {
 //C these don't reference any sj.Bases
 // TESTING
 
-sj.test = async function (tests, origin) {
-  let failCount = 0;
-  tests.forEach((test, i) => {
-    if (!test[1]) {
-      console.error(`${origin} - test failed: ${test[0]}`);
-      failCount++;
-    }
-  });
-
-  if (failCount === 0) {
-    console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
-    return true;
-  } else return false;
-};
-
-sj.performance = function (iterations, fs) {
-  fs.forEach((f, index) => {
-    console.time(`Function ${index} Start`);
-
-    for (let i = 0; i < iterations; i++) {
-      f();
-    }
-
-    console.timeEnd(`Function ${index} End`);
-  });
-};
-
-sj.wait = async function (ms) {
-  //C used for basic waiting, //! should not be used if the callback needs to be canceled
-  return new Promise(resolve => {
-    if (ms <= 2147483647) {
-      //L maximum timeout length: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
-      sj.setTimeout(() => {
-        resolve(`finished waiting ${ms}ms`);
-      }, ms);
-    }
-  });
-};
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
+  test: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["test"],
+  wait: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"]
+});
 
 sj.trace = function () {
   try {
@@ -376,14 +415,14 @@ sj.trace = function () {
     //C get stack
     const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
 
-    const stackTrace1 = sj.stringReplaceAll(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+    const stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-    const stackTrace2 = sj.stringReplaceAll(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+    const stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
 
     let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-    ignore = sj.stringReplaceAll(ignore.join('|'), '.', '\.');
+    ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(ignore.join('|'), '.', '\.');
     const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-    const stackTrace3 = sj.stringReplaceAll(stackTrace2, exp, '');
+    const stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace2, exp, '');
     return stackTrace0;
   }
 };
@@ -391,40 +430,6 @@ sj.trace = function () {
 sj.image = function (value) {
   if (typeof value === null || typeof value !== 'object') return value;
   return JSON.parse(JSON.stringify(sj.deepClone(value)));
-}; // TYPE
-
-
-sj.isSubclass = function (a, b) {
-  if (typeof a !== 'function' || typeof b !== 'function') return false;else return a.prototype instanceof b;
-}; // FORMAT
-
-
-sj.msFormat = function (ms) {
-  // extract
-  var minutes = Math.floor(ms / 60000);
-  var seconds = Math.ceil(ms % 60000); // format
-
-  seconds = ('0' + seconds).slice(-2); // returns ...0:00 format rounded up to the nearest second
-
-  return minutes + ':' + seconds;
-};
-
-sj.stringReplaceAll = function (input, search, replace) {
-  return input.split(search).join(replace);
-};
-
-sj.capFirst = function (string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-};
-
-sj.clamp = function (input, min, max) {
-  if (min > max) throw 'sj.clamp() min argument cannot be greater than max argument';
-  if (input < min) return min;else if (max < input) return max;else return input;
-};
-
-sj.escapeRegExp = function (string) {
-  //L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }; // HTTP
 
 
@@ -670,7 +675,7 @@ sj.deepAccess = function (thing, ...args) {
 sj.deepClone = function (...args) {
   //C deep clones objects (root & nested objects aren't the same reference)
   //C drops circular references and replaces with '[Circular]'
-  return fClone(...args);
+  return Object(_fclone_js__WEBPACK_IMPORTED_MODULE_3__["default"])(...args);
 };
 
 sj.Deferred = class Deferred extends Promise {
@@ -1077,7 +1082,7 @@ sj.catchUnexpected = function (input) {
       //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
       error.reason = input.toString(); //C replace trace with actual trace (which has clickable URIs)
 
-      error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
+      error.trace = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(input.stack, 'file:///', '');
     } else if (sj.isType(input, sj.Base)) {
       error.reason = `unexpected ${input.constructorName}`;
     } else {
@@ -3585,6 +3590,22 @@ function boolCatch(f) {
 
 /***/ }),
 
+/***/ "./public/js/utility/clamp.js":
+/*!************************************!*\
+  !*** ./public/js/utility/clamp.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (input, min, max) {
+  if (min > max) throw `min: ${min} must not be greater than max: ${max}`;else if (input < min) return min;else if (input > max) return max;else return input;
+});
+;
+
+/***/ }),
+
 /***/ "./public/js/utility/combinations.js":
 /*!*******************************************!*\
   !*** ./public/js/utility/combinations.js ***!
@@ -3883,6 +3904,20 @@ const constructor = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
+
+/***/ }),
+
+/***/ "./public/js/utility/constants.js":
+/*!****************************************!*\
+  !*** ./public/js/utility/constants.js ***!
+  \****************************************/
+/*! exports provided: MAX_SAFE_32_BIT_INTEGER */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_SAFE_32_BIT_INTEGER", function() { return MAX_SAFE_32_BIT_INTEGER; });
+const MAX_SAFE_32_BIT_INTEGER = 2147483647;
 
 /***/ }),
 
@@ -4545,6 +4580,29 @@ _define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
 
 /***/ }),
 
+/***/ "./public/js/utility/format-ms.js":
+/*!****************************************!*\
+  !*** ./public/js/utility/format-ms.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//TODO Unused
+//TODO Format hours, days, etc.
+/* harmony default export */ __webpack_exports__["default"] = (function (ms) {
+  // extract
+  var minutes = Math.floor(ms / 60000);
+  var seconds = Math.ceil(ms % 60000); // format
+
+  seconds = ('0' + seconds).slice(-2); // returns ...0:00 format rounded up to the nearest second
+
+  return minutes + ':' + seconds;
+});
+
+/***/ }),
+
 /***/ "./public/js/utility/get-keys.js":
 /*!***************************************!*\
   !*** ./public/js/utility/get-keys.js ***!
@@ -4609,43 +4667,64 @@ function getKeys(object, {
 /*!************************************!*\
   !*** ./public/js/utility/index.js ***!
   \************************************/
-/*! exports provided: boolCatch, combinations, deepCompare, define, reference, test, Rule, commonRules, Interface, SymbolInterface, DynamicClass */
+/*! exports provided: capitalizeFirstCharacter, escapeRegExp, replaceAll, boolCatch, clamp, combinations, deepCompare, define, formatMs, reference, test, wait, Rule, commonRules, Interface, SymbolInterface, DynamicClass */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./bool-catch.js */ "./public/js/utility/bool-catch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _string_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./string/index.js */ "./public/js/utility/string/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_0__["capitalizeFirstCharacter"]; });
 
-/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./combinations.js */ "./public/js/utility/combinations.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"]; });
 
-/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./deep-compare.js */ "./public/js/utility/deep-compare.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"]; });
 
-/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./define.js */ "./public/js/utility/define.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./bool-catch.js */ "./public/js/utility/bool-catch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./reference.js */ "./public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./clamp.js */ "./public/js/utility/clamp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./test.js */ "./public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./combinations.js */ "./public/js/utility/combinations.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./rule.js */ "./public/js/utility/rule.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./deep-compare.js */ "./public/js/utility/deep-compare.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./common-rules.js */ "./public/js/utility/common-rules.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _common_rules_js__WEBPACK_IMPORTED_MODULE_7__; });
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./interface.js */ "./public/js/utility/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_8__["Interface"]; });
+/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./define.js */ "./public/js/utility/define.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_8__["SymbolInterface"]; });
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./format-ms.js */ "./public/js/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./dynamic-class.js */ "./public/js/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./reference.js */ "./public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-// Small Utilities
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./test.js */ "./public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./wait.js */ "./public/js/utility/wait.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./rule.js */ "./public/js/utility/rule.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+
+/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./common-rules.js */ "./public/js/utility/common-rules.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _common_rules_js__WEBPACK_IMPORTED_MODULE_11__; });
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./interface.js */ "./public/js/utility/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["Interface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["SymbolInterface"]; });
+
+/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./dynamic-class.js */ "./public/js/utility/dynamic-class.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+
+// Nested
+ // Small Utilities
+
+
+
+
 
 
 
@@ -5031,6 +5110,78 @@ class Rule {
 
 /***/ }),
 
+/***/ "./public/js/utility/string/capitalize-first-character.js":
+/*!****************************************************************!*\
+  !*** ./public/js/utility/string/capitalize-first-character.js ***!
+  \****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+});
+
+/***/ }),
+
+/***/ "./public/js/utility/string/escape-reg-exp.js":
+/*!****************************************************!*\
+  !*** ./public/js/utility/string/escape-reg-exp.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (string) {
+  //L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+});
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/string/index.js":
+/*!*******************************************!*\
+  !*** ./public/js/utility/string/index.js ***!
+  \*******************************************/
+/*! exports provided: capitalizeFirstCharacter, escapeRegExp, replaceAll */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./capitalize-first-character.js */ "./public/js/utility/string/capitalize-first-character.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./escape-reg-exp.js */ "./public/js/utility/string/escape-reg-exp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _replace_all__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./replace-all */ "./public/js/utility/string/replace-all.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+
+
+
+
+/***/ }),
+
+/***/ "./public/js/utility/string/replace-all.js":
+/*!*************************************************!*\
+  !*** ./public/js/utility/string/replace-all.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (input, search, replace) {
+  return input.split(search).join(replace);
+});
+;
+
+/***/ }),
+
 /***/ "./public/js/utility/test.js":
 /*!***********************************!*\
   !*** ./public/js/utility/test.js ***!
@@ -5058,6 +5209,35 @@ async function test(tests, origin) {
     return false;
   }
 }
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/wait.js":
+/*!***********************************!*\
+  !*** ./public/js/utility/wait.js ***!
+  \***********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants.js */ "./public/js/utility/constants.js");
+// Basic wait promise.
+//! Does not resolve if timeout is larger than MAX_SAFE_32_BIT_INTEGER
+//TODO Maybe think about functionality for handling larger numbers, infinity, negative numbers, etc.
+
+/* harmony default export */ __webpack_exports__["default"] = (async function (ms) {
+  //C used for basic waiting, //! should not be used if the callback needs to be canceled
+  return new Promise(resolve => {
+    //L maximum timeout length: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
+    if (ms <= _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_SAFE_32_BIT_INTEGER"]) {
+      sj.setTimeout(() => {
+        resolve();
+      }, ms);
+    }
+  });
+});
 ;
 
 /***/ }),

@@ -31,12 +31,17 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-// builtin
+// BUILT-IN
 
-// internal
+// INTERNAL
+import { 
+	clamp, 
+	capitalizeFirstCharacter,
+	escapeRegExp,
+} from './utility/index.js';
 import sj from './global.js';
 
-// external
+// EXTERNAL
 import moment from 'moment';
 import he from 'he';
 
@@ -753,7 +758,7 @@ sj.Playback.module = new sj.Playback({
 				const sourceState = state[state.source.name];
 				const elapsedTime = state.clock - sourceState.timestamp;
 				const elapsedProgress = elapsedTime / sourceState.track.duration;
-				return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
+				return clamp(sourceState.progress + elapsedProgress, 0, 1);
 			},
 			desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
 				//! this will update x-times per second when playing as the track progress is constantly updating
@@ -793,7 +798,7 @@ sj.Playback.module = new sj.Playback({
 				//C if playing, return inferred progress
 				const elapsedTime = state.clock - state[state.source.name].timestamp;
 				const elapsedProgress = elapsedTime / state[state.source.name].track.duration;
-				progress = sj.clamp(state[state.source.name].progress + elapsedProgress, 0, 1);
+				progress = clamp(state[state.source.name].progress + elapsedProgress, 0, 1);
 			}
 
 			return progress;
@@ -813,7 +818,7 @@ sj.Playback.module = new sj.Playback({
 		// DESIRED
 		flattenPlayback: (state, getters) => key => {
 			//C value starts as the actualValue
-			let value = getters[`actual${sj.capFirst(key)}`];
+			let value = getters[`actual${capitalizeFirstCharacter(key)}`];
 			//C then if defined, sentCommand
 			if (sj.isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key];
 			//C then if defined, each queuedCommand
@@ -1967,7 +1972,7 @@ sj.youtube = new sj.Source({
 				//C remove the idPrefix or nullPrefix from youtube urls
 				//! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 				track.sourceId = track.link.replace(
-					new RegExp(`${sj.escapeRegExp(sj.youtube.idPrefix)}|${sj.escapeRegExp(sj.youtube.nullPrefix)}`), 
+					new RegExp(`${escapeRegExp(sj.youtube.idPrefix)}|${escapeRegExp(sj.youtube.nullPrefix)}`), 
 					''
 				);
 

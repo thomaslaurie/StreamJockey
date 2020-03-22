@@ -399,7 +399,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
     //C query prioritized over static content
     usingQuery() {
-      if (!this.sj.isSubclass(this.Entity, this.sj.Entity)) throw new this.sj.Error({
+      //TODO Inlined this function because it was only being used here. Figure out if this can be removed.
+      function isSubclass(a, b) {
+        if (typeof a !== 'function' || typeof b !== 'function') return false;else return a.prototype instanceof b;
+      }
+
+      ;
+      if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.sj.Error({
         origin: 'AsyncDisplay usingQuery()',
         reason: 'attempting to use a query but Entity is not a child class of sj.Entity',
         content: this.sj.image(this.Entity)
@@ -37427,6 +37433,82 @@ var URL_HEADER = Object.freeze({
 
 /***/ }),
 
+/***/ "./public/js/fclone.js":
+/*!*****************************!*\
+  !*** ./public/js/fclone.js ***!
+  \*****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function(Buffer) {// see if it looks and smells like an iterable object, and do accept length === 0
+function isArrayLike(item) {
+  if (Array.isArray(item)) return true;
+  var len = item && item.length;
+  return typeof len === 'number' && (len === 0 || len - 1 in item) && typeof item.indexOf === 'function';
+}
+
+function fclone(obj, refs) {
+  if (!obj || "object" !== typeof obj) return obj;
+
+  if (obj instanceof Date) {
+    return new Date(obj);
+  }
+
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(obj)) {
+    return new Buffer(obj);
+  } // typed array Int32Array etc.
+
+
+  if (typeof obj.subarray === 'function' && /[A-Z][A-Za-z\d]+Array/.test(Object.prototype.toString.call(obj))) {
+    return obj.subarray(0);
+  }
+
+  if (!refs) {
+    refs = [];
+  }
+
+  if (isArrayLike(obj)) {
+    refs[refs.length] = obj;
+    var _l = obj.length;
+    var i = -1;
+    var _copy = [];
+
+    while (_l > ++i) {
+      _copy[i] = ~refs.indexOf(obj[i]) ? '[Circular]' : fclone(obj[i], refs);
+    }
+
+    refs.length && refs.length--;
+    return _copy;
+  }
+
+  refs[refs.length] = obj;
+  var copy = {};
+
+  if (obj instanceof Error) {
+    copy.name = obj.name;
+    copy.message = obj.message;
+    copy.stack = obj.stack;
+  }
+
+  var keys = Object.keys(obj);
+  var l = keys.length;
+
+  while (l--) {
+    var k = keys[l];
+    copy[k] = ~refs.indexOf(obj[k]) ? '[Circular]' : fclone(obj[k], refs);
+  }
+
+  refs.length && refs.length--;
+  return copy;
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (fclone);
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/node-libs-browser/node_modules/buffer/index.js */ "../node_modules/node-libs-browser/node_modules/buffer/index.js").Buffer))
+
+/***/ }),
+
 /***/ "./public/js/global-client.js":
 /*!************************************!*\
   !*** ./public/js/global-client.js ***!
@@ -37436,11 +37518,12 @@ var URL_HEADER = Object.freeze({
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./global.js */ "./public/js/global.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! moment */ "../node_modules/moment/moment.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! he */ "../node_modules/he/he.js");
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./public/js/utility/index.js");
+/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./global.js */ "./public/js/global.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! moment */ "../node_modules/moment/moment.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! he */ "../node_modules/he/he.js");
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_3__);
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37479,9 +37562,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-// builtin
-// internal
- // external
+// BUILT-IN
+// INTERNAL
+
+ // EXTERNAL
 
 
  //import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -37494,18 +37578,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 //C attach external libraries to sj so that they can be used where ever sj is imported
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_1___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].he = he__WEBPACK_IMPORTED_MODULE_2___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].appName = 'StreamJockey'; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_2___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he = he__WEBPACK_IMPORTED_MODULE_3___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].appName = 'StreamJockey'; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
 //  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].serverLog = /*#__PURE__*/function () {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].serverLog = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator(function* (message) {
-    return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/log"), {
+    return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/log"), {
       message
     });
   });
@@ -37515,12 +37599,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].serverLog = /*#__PURE__*/func
   };
 }();
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].loadScript = /*#__PURE__*/function () {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript = /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator(function* (url) {
     //C dynamically loads a script from an external url, as would be done by a <script> element
     //L modified from: https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#Dynamically_importing_scripts
     var scriptElement = document.createElement('script');
-    var promise = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Deferred();
+    var promise = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred();
     scriptElement.onerror = promise.reject;
     scriptElement.onload = promise.resolve; //C adds script as child of <head>
 
@@ -37541,7 +37625,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].loadScript = /*#__PURE__*/fun
 // ENTITY CRUD METHODS
 
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Entity.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
   prototypeProperties: parent => ({
     add() {
       var _this = this;
@@ -37582,7 +37666,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Entity.augmentClass({
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/").concat(_this5.table), _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].shake(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].any(query), _this5.filters.addIn));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this5.table), _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].shake(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query), _this5.filters.addIn));
       })();
     },
 
@@ -37590,7 +37674,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Entity.augmentClass({
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/").concat(_this6.table, "?").concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].encodeList(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].shake(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].any(query), _this6.filters.getIn))));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this6.table, "?").concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].encodeList(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].shake(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query), _this6.filters.getIn))));
       })();
     },
 
@@ -37598,7 +37682,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Entity.augmentClass({
       var _this7 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('PATCH', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/").concat(_this7.table), _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].shake(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].any(query), _this7.filters.editIn));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('PATCH', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this7.table), _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].shake(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query), _this7.filters.editIn));
       })();
     },
 
@@ -37606,7 +37690,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Entity.augmentClass({
       var _this8 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/").concat(_this8.table), _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].shake(query, _this8.filters.removeIn));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this8.table), _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].shake(query, _this8.filters.removeIn));
       })();
     }
 
@@ -37619,11 +37703,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Entity.augmentClass({
 //TODO consider a stop command? it would stop all sources and set the current source back to null
 //TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base.makeClass('Command', _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Command', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a source
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source)) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source)) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Command.beforeInitialize()',
         message: 'no source is active to receive this command',
         reason: "sj.Command instance.source must be an sj.Source: ".concat(accessory.options.source),
@@ -37641,7 +37725,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command = _global_js__WEBPACK
       this.fullResolve = function (success) {
         //C resolve collapsed commands
         this.collapsedCommands.forEach(collapsedCommand => {
-          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37653,7 +37737,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command = _global_js__WEBPACK
       this.fullReject = function (error) {
         //C//! RESOLVE collapsed commands
         this.collapsedCommands.forEach(a => {
-          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37663,14 +37747,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command = _global_js__WEBPACK
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+        throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           origin: 'sj.Command.resolve()',
           reason: 'command.resolve called but it has not been given a resolve function'
         });
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+        throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           origin: 'sj.Command.reject()',
           reason: 'command.reject called but it has not been given a reject function'
         });
@@ -37681,7 +37765,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command = _global_js__WEBPACK
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
       //C otherCommand must be an sj.Command, and have the same playback-state properties
-      return _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command) && otherCommand.source === this.source;
+      return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command) && otherCommand.source === this.source;
     },
 
     collapseCondition(otherCommand) {
@@ -37702,11 +37786,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command = _global_js__WEBPACK
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Start = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base.makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a track
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track)) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track)) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Start.beforeInitialize()',
         reason: 'sj.Start instance.track must be an sj.Track',
         content: accessory.options.track
@@ -37721,14 +37805,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Start = _global_js__WEBPACK_I
   }),
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track) //C catch non-sj.Tracks
+      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track) //C catch non-sj.Tracks
       && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
       && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
     },
 
     collapseCondition(otherCommand) {
       //C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek;
     },
 
     trigger(context) {
@@ -37737,7 +37821,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Start = _global_js__WEBPACK_I
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this10, context); //C pause all
 
-        yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source.instances, /*#__PURE__*/function () {
+        yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
           });
@@ -37749,7 +37833,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Start = _global_js__WEBPACK_I
 
         context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
           subscription: context.state.startingTrackSubscription,
-          Entity: _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track,
+          Entity: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track,
           query: {
             id: _this10.track.id
           },
@@ -37771,7 +37855,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Start = _global_js__WEBPACK_I
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Toggle = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base.makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   //? pause command might not have a desired progress?
   constructorParts: parent => ({
     beforeInitialize(_ref4) {
@@ -37779,7 +37863,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Toggle = _global_js__WEBPACK_
         options
       } = _ref4;
       //G isPlaying must be manually set to true or false
-      if (options.isPlaying !== true && options.isPlaying !== false) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+      if (options.isPlaying !== true && options.isPlaying !== false) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Toggle',
         reason: "Toggle isPlaying must be true or false: ".concat(options.isPlaying),
         content: options.isPlaying
@@ -37806,7 +37890,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Toggle = _global_js__WEBPACK_
 
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this11, context);
-        yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source.instances, /*#__PURE__*/function () {
+        yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref5 = _asyncToGenerator(function* (source) {
             if (_this11.isPlaying && source === _this11.source) {
               //C resume target if resuming
@@ -37826,14 +37910,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Toggle = _global_js__WEBPACK_
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Seek = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base.makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(_ref6) {
       var {
         options
       } = _ref6;
       //G progress must be manually set between 0 and 1\
-      if (options.progress < 0 || 1 < options.progress) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+      if (options.progress < 0 || 1 < options.progress) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Seek.trigger()',
         reason: "seek progress is not a number between 0 and 1: ".concat(options.progress),
         content: options.progress
@@ -37850,7 +37934,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Seek = _global_js__WEBPACK_IM
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek;
     },
 
     trigger(context) {
@@ -37864,14 +37948,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Seek = _global_js__WEBPACK_IM
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Volume = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base.makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(_ref7) {
       var {
         options
       } = _ref7;
       //G volume must be manually set between 0 and 1
-      if (options.volume < 0 || 1 < options.volume) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+      if (options.volume < 0 || 1 < options.volume) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Volume.trigger()',
         reason: "volume is not a number between 0 and 1: ".concat(options.volume),
         content: options.volume
@@ -37888,7 +37972,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Volume = _global_js__WEBPACK_
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Volume;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume;
     },
 
     trigger(context) {
@@ -37897,7 +37981,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Volume = _global_js__WEBPACK_
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this13, context); //C adjust volume on all sources
 
-        yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source.instances, /*#__PURE__*/function () {
+        yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref8 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this13.volume);
           });
@@ -37912,7 +37996,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Volume = _global_js__WEBPACK_
   })
 }); // PLAYBACK
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base.makeClass('Playback', _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Base, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Playback', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base, {
   constructorParts(parent) {
     return {
       defaults: {
@@ -37962,11 +38046,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback = _global_js__WEBPAC
             }
           } = context;
           var timeBefore = Date.now();
-          var deferred = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+          var deferred = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start state timed out'
           }));
-          console.log(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].image(context), _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].image(Object.getPrototypeOf(context))); //console.log(sj.image(context.watch));
+          console.log(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].image(context), _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].image(Object.getPrototypeOf(context))); //console.log(sj.image(context.watch));
 
           var unwatch = watch( //C pack desired state
           (_ref9, _ref10) => {
@@ -38005,7 +38089,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback = _global_js__WEBPAC
 
           yield deferred;
           unwatch();
-          return new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start command completed'
           });
@@ -38050,8 +38134,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback = _global_js__WEBPAC
     },
     baseGetters: {
       //C safe getters for track properties
-      sourceId: state => _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].deepAccess(state, 'track', 'sourceId'),
-      duration: state => _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].deepAccess(state, 'track', 'duration'),
+      sourceId: state => _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(state, 'track', 'sourceId'),
+      duration: state => _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(state, 'track', 'duration'),
       //C state conditions for command resolution
       isStarted: (state, _ref12) => {
         var {
@@ -38069,7 +38153,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback = _global_js__WEBPAC
     baseModules: {}
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback({
   //G main playback module for app
   modules: {},
   state: {
@@ -38172,7 +38256,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
           command.reject = reject;
         }); //C push command to the queue or resolve it (because it has been collapsed)
 
-        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
           origin: 'pushCommand()',
           reason: 'command was annihilated'
         })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
@@ -38207,7 +38291,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
         var {
           dispatch
         } = _ref13;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Start({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start({
           source: track.source,
           //! uses track's source
           track
@@ -38223,7 +38307,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref14;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
           //! other non-start basic playback functions just use the current desiredPlayback source
           isPlaying: false
@@ -38239,7 +38323,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref15;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
           isPlaying: true
         }));
@@ -38254,7 +38338,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref16;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Seek({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek({
           source,
           progress
         }));
@@ -38270,7 +38354,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
           }
         } = _ref17;
         //TODO volume should change volume on all sources
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Volume({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume({
           source,
           volume
         }));
@@ -38287,7 +38371,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
             desiredIsPlaying: isPlaying
           }
         } = _ref18;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
           isPlaying: !isPlaying
         }));
@@ -38356,7 +38440,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
     		const sourceState = state[state.source.name];
     		const elapsedTime = state.clock - sourceState.timestamp;
     		const elapsedProgress = elapsedTime / sourceState.track.duration;
-    		return sj.clamp(sourceState.progress + elapsedProgress, 0, 1);
+    		return clamp(sourceState.progress + elapsedProgress, 0, 1);
     	},
     	desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
     		//! this will update x-times per second when playing as the track progress is constantly updating
@@ -38365,7 +38449,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
     */
     // ACTUAL
     sourceOrBase: (state, getters) => key => {
-      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.baseState[key];else return state[state.source.name][key];
+      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.baseState[key];else return state[state.source.name][key];
     },
     actualSource: (state, getters) => {
       return state.source;
@@ -38373,10 +38457,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
     actualTrack: (state, getters, rootState, rootGetters) => {
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track)) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track)) {
         //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-        if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -38385,11 +38469,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
     actualProgress: (state, getters) => {
       var progress = getters.sourceOrBase('progress');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
         //C if playing, return inferred progress
         var elapsedTime = state.clock - state[state.source.name].timestamp;
         var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
-        progress = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].clamp(state[state.source.name].progress + elapsedProgress, 0, 1);
+        progress = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
       }
 
       return progress;
@@ -38406,9 +38490,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
     // DESIRED
     flattenPlayback: (state, getters) => key => {
       //C value starts as the actualValue
-      var value = getters["actual".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].capFirst(key))]; //C then if defined, sentCommand
+      var value = getters["actual".concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
 
       for (var queuedCommand of state.commandQueue) {
         if (queuedCommand[key] !== undefined) value = queuedCommand[key];
@@ -38430,17 +38514,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module = new _global
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Subscription)) return _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].one(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].one(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Subscription)) return _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].one(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].one(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
     }
   }
 }); // SOURCE
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass({
   constructorParts(parent) {
-    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source.afterInitialize;
+    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.afterInitialize;
     return {
       defaults: {
         //TODO change these off undefined
@@ -38457,7 +38541,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source.augmentClass({
         oldAfterInitialize.call(this);
         this.playback.state.source = this; //C push own playback module to main playback modules
 
-        _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
+        _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
           namespaced: true
         });
       }
@@ -38472,9 +38556,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source.augmentClass({
 //  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].session.login = /*#__PURE__*/function () {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = /*#__PURE__*/function () {
   var _ref19 = _asyncToGenerator(function* (user) {
-    return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/session"), new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
+    return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/session"), new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
   });
 
   return function (_x6) {
@@ -38482,11 +38566,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].session.login = /*#__PURE__*/
   };
 }();
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/session"));
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/session"));
 });
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/session")); //TODO reconnect socket subscriptions to update subscriber info
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/session")); //TODO reconnect socket subscriptions to update subscriber info
 }); //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
@@ -38504,7 +38588,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].session.logout = /*#__PURE__*
 */
 // global source objects
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
 
@@ -38522,22 +38606,22 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
       
       */
       //C request url
-      var requestCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/spotify/authRequestStart")); //C open spotify auth request window
+      var requestCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/authRequestStart")); //C open spotify auth request window
       //L https://www.w3schools.com/jsref/met_win_open.asp
 
       var authWindow = window.open(requestCredentials.authRequestURL); //C listen for response from spotify
       //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 
-      var authCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/spotify/authRequestEnd"), requestCredentials); //C automatically close window when data is received
+      var authCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/authRequestEnd"), requestCredentials); //C automatically close window when data is received
 
       authWindow.close(); //C exchange auth code for tokens
 
-      var tokens = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/spotify/exchangeToken"), authCredentials);
+      var tokens = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/exchangeToken"), authCredentials);
       _this14.credentials.accessToken = tokens.accessToken;
       _this14.credentials.expires = tokens.accessToken;
       _this14.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
-      return new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+      return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
         origin: 'sj.spotify.auth()',
         message: 'authorized spotify'
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
@@ -38579,11 +38663,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
       var urlPrefix = 'https://api.spotify.com/v1';
       var token = yield _this15.getAccessToken();
 
-      var header = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].JSON_HEADER, {
+      var header = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].JSON_HEADER, {
         Authorization: "Bearer ".concat(token)
       });
 
-      return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request(method, "".concat(urlPrefix, "/").concat(path), body, header);
+      return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request(method, "".concat(urlPrefix, "/").concat(path), body, header);
     })();
   },
 
@@ -38600,13 +38684,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
 
       var refresh = /*#__PURE__*/function () {
         var _ref22 = _asyncToGenerator(function* (that) {
-          var result = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].andResolve);
+          var result = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].andResolve);
 
-          if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].AuthRequired)) {
+          if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].AuthRequired)) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
-          } else if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error)) {
-            throw _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].propagate(result);
+          } else if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error)) {
+            throw _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(result);
           } else {
             //C assign sj.spotify.credentials
             that.credentials.accessToken = result.accessToken;
@@ -38620,7 +38704,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
       }(); //C if client doesn't have token or if it has expired, refresh it immediately
 
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isEmpty(_this16.credentials.accessToken) || _this16.credentials.expires <= Date.now()) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isEmpty(_this16.credentials.accessToken) || _this16.credentials.expires <= Date.now()) {
         yield refresh(that);
       } //C if token is soon to expire, refresh in the background, return the existing token
 
@@ -38641,10 +38725,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
         amount = 1
       } = _ref23;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Rule2.positiveInteger.validate(amount);
-      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify.request('GET', 'search', {
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.positiveInteger.validate(amount);
+      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.request('GET', 'search', {
         q: term,
         type: 'track',
         market: 'from_token',
@@ -38666,8 +38750,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
 
       });
       return result.tracks.items.map(track => {
-        return new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify,
+        return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify,
           sourceId: track.id,
           name: track.name,
           duration: track.duration_ms,
@@ -38678,7 +38762,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback({
     //G source-specific playback should be the basic playback functions that connects this app to the source's api
     actions: {
       loadPlayer(context) {
@@ -38688,10 +38772,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
             window.onSpotifyWebPlaybackSDKReady = function () {
               var player = new window.Spotify.Player({
                 //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-                name: _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].appName,
+                name: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].appName,
                 getOAuthToken: function () {
                   var _getOAuthToken = _asyncToGenerator(function* (callback) {
-                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify.getAccessToken();
+                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.getAccessToken();
                     callback(token);
                   });
 
@@ -38705,11 +38789,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
               });
               player.formatState = function (state) {
                 //TODO state could be anything from the callback, better validate it somehow
-                if (!_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(state, Object)) return {};
+                if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state, Object)) return {};
                 var t = state.track_window.current_track;
                 return {
-                  track: new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track({
-                    source: _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify,
+                  track: new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track({
+                    source: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify,
                     sourceId: t.id,
                     name: t.name,
                     duration: t.duration_ms,
@@ -38745,7 +38829,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
 
                             yield context.dispatch('updatePlayback', state); //C resolve
 
-                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success(success)); //C prevent other exit points from executing their code
+                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success(success)); //C prevent other exit points from executing their code
 
                             resolved = true;
                           }
@@ -38766,7 +38850,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                         if (!resolved) {
                           _this17.removeListener('player_state_changed', callback);
 
-                          reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error(_objectSpread({}, error, {
+                          reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error(_objectSpread({}, error, {
                             content: rejected
                           })));
                           resolved = true;
@@ -38779,17 +38863,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                       if (!resolved && stateCondition(context.state)) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success(success));
+                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success(success));
                         resolved = true;
                       } //C if timed out, reject
 
 
-                      yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].wait(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.requestTimeout);
+                      yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout);
 
                       if (!resolved) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Timeout(timeoutError));
+                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Timeout(timeoutError));
                         resolved = true;
                       }
                     });
@@ -38828,12 +38912,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                     player
                   }); //C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 
-                  yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify.request('PUT', 'me/player', {
+                  yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.request('PUT', 'me/player', {
                     device_ids: [device_id],
                     play: false // keeps current playback state
 
                   }).catch(rejected => {
-                    reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+                    reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                       //code: JSON.parse(error.response).error.status,
                       origin: 'spotify.loadPlayer()',
                       message: 'spotify player could not be loaded',
@@ -38843,21 +38927,21 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                   }); //C wait for device to transfer
                   //TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
 
-                  yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].recursiveAsyncTime(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.requestTimeout * 2, result => {
+                  yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].recursiveAsyncTime(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout * 2, result => {
                     //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
                     //C this is fine, it just means that it's not ready, so just catch anything.
-                    return !_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(result, Object) || !_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(result.device, Object) || result.device.id !== device_id;
+                    return !_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, Object) || !_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result.device, Object) || result.device.id !== device_id;
                   }, /*#__PURE__*/function () {
                     var _ref30 = _asyncToGenerator(function* (o) {
                       //C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
                       //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
                       //C timeout is doubled here to work better with the doubling delay time.
                       //C using an object wrapper for the delay argument so that it can be modified between iterations
-                      yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].wait(o.delay);
+                      yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(o.delay);
                       o.delay = o.delay * 2; //C double the delay each time
 
-                      return yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify.request('Get', 'me/player').catch(rejected => {
-                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+                      return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.request('Get', 'me/player').catch(rejected => {
+                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                           //code: JSON.parse(error.response).error.status,
                           origin: 'spotify.loadPlayer()',
                           message: 'spotify player could not be loaded',
@@ -38882,7 +38966,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                   yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
 
                   yield context.dispatch('pause');
-                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
                     origin: 'spotify.loadPlayer()',
                     message: 'spotify player loaded',
                     content: player
@@ -38908,7 +38992,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref32;
                 //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an initialization error',
@@ -38920,7 +39004,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref33;
                 //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an authentication error',
@@ -38932,7 +39016,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref34;
                 //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'this account does not have a valid Spotify Premium subscription',
@@ -38957,13 +39041,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
                 //C 'returns a promise with a boolean for whether or not the connection was successful'
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
                 //! do not resolve here, the player will trigger the 'ready' event when its truly ready
-                if (!resolved) reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+                if (!resolved) reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
                   reason: 'spotify.connect() failed'
                 }));
               }, rejected => {
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Unreachable({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Unreachable({
                   //C a rejection shouldn't be possible here
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
@@ -39212,7 +39296,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
 
 
           context.commit('setState', newState);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'spotify module command - updatePlayback()',
             message: 'spotify playback updated',
             content: newState
@@ -39225,7 +39309,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
           //C retrieves playback from api and updates it
           //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
           var state = yield context.state.player.getCurrentState().catch(rejected => {
-            throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+            throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               log: true,
               //code: JSON.parse(rejected.response).error.status,
               origin: 'spotify.checkPlayback()',
@@ -39235,7 +39319,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
             });
           });
           yield context.dispatch('updatePlayback', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'spotify module command - checkPlayback()',
             message: 'spotify playback checked',
             content: context.state
@@ -39281,7 +39365,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
             }
           }); //TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
 
-          yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].wait(1000);
+          yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(1000);
           return result;
         })();
       },
@@ -39428,7 +39512,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].spotify = new _global_js__WEB
     }
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source({
   name: 'youtube',
   idPrefix: 'https://www.youtube.com/watch?v=',
   nullPrefix: 'https://www.youtube.com/watch',
@@ -39442,7 +39526,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
       //OLD alternative option was to use sj.waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
-      var loaded = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+      var loaded = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         log: false,
         origin: 'sj.youtube.auth()',
         reason: 'gapi loading timed out'
@@ -39464,7 +39548,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
       }); //C loads gapi into global scope 
       //TODO is there any way to make this more module-like?
 
-      yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].loadScript('https://apis.google.com/js/api.js'); //C wait for gapi
+      yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript('https://apis.google.com/js/api.js'); //C wait for gapi
 
       yield loaded; //C remove the watcher
 
@@ -39501,7 +39585,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
       var {
         apiKey,
         clientId
-      } = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].API_URL, "/youtube/credentials")); //C loads and performs authorization, short version of the code commented out below
+      } = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/youtube/credentials")); //C loads and performs authorization, short version of the code commented out below
       //R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
 
       yield gapi.client.init({
@@ -39564,9 +39648,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
         amount = 1
       } = _ref40;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
       //! this will drive api quotas up fast if the startIndex or amount are high (n*50)
       //!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
 
@@ -39583,7 +39667,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
       var pageToken = null;
 
       while (allPageResults.length < startIndex + amount && limit > 0) {
-        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.request('GET', 'search', _objectSpread({
+        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.request('GET', 'search', _objectSpread({
           //L https://developers.google.com/youtube/v3/docs/search/list#parameters
           part: 'snippet',
           type: 'video',
@@ -39601,14 +39685,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
       var searchResults = allPageResults.slice(startIndex, startIndex + amount); //C videoResults must also be searched because the contentDetails part is not available for the search request
       //L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
 
-      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.request('GET', 'videos', {
+      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.request('GET', 'videos', {
         //L https://developers.google.com/youtube/v3/docs/videos/list
         //C join the results ids
         id: searchResults.map(item => item.id.videoId).join(','),
         //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
         part: 'contentDetails'
       });
-      if (searchResults.length !== videoResult.result.items.length) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+      if (searchResults.length !== videoResult.result.items.length) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'youtube.search()',
         reason: 'search result length not equal to video result length',
         content: {
@@ -39618,7 +39702,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
       });
       videoResult.result.items.forEach((item, index) => {
         //C ensure that ids line up
-        if (searchResults[index].id.videoId !== item.id) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+        if (searchResults[index].id.videoId !== item.id) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           origin: 'youtube.search()',
           reason: "search and video results at ".concat(index, " do not have the same id")
         }); //C append contentDetails part to the search results
@@ -39633,24 +39717,24 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
           snippet,
           contentDetails
         } = _ref41;
-        return new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track(_objectSpread({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube,
+        return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track(_objectSpread({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
           sourceId: id,
-          link: _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.idPrefix + id
+          link: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.idPrefix + id
         }, _this19.formatSnippet(snippet), {}, _this19.formatContentDetails(contentDetails)));
       });
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback({
     actions: {
       loadPlayer(context) {
         return _asyncToGenerator(function* () {
           //C load youtube iframe api
-          yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].loadScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
+          yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
-          var deferred = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+          var deferred = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
             origin: 'sj.youtube loadPlayer()',
             reason: 'youtube iframe player load timed out'
           }));
@@ -39676,7 +39760,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
                   onReady(event) {
                     return _asyncToGenerator(function* () {
                       yield context.dispatch('checkPlayback');
-                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
                         origin: 'sj.youtube loadPlayer()',
                         reason: 'youtube iframe player loaded'
                       }));
@@ -39712,7 +39796,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
           track.link = player.getVideoUrl(); //C remove the idPrefix or nullPrefix from youtube urls
           //! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 
-          track.sourceId = track.link.replace(new RegExp("".concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].escapeRegExp(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.idPrefix), "|").concat(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].escapeRegExp(_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.nullPrefix))), '');
+          track.sourceId = track.link.replace(new RegExp("".concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.idPrefix), "|").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.nullPrefix))), '');
           var playerDuration = player.getDuration(); //! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
           //C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
 
@@ -39735,28 +39819,28 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
           state.timestamp = Date.now(); //C get name and artists from current track, starting track, or an api call
           //R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
 
-          if (track.sourceId === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].deepAccess(context, 'state', 'track', 'sourceId')) {
+          if (track.sourceId === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(context, 'state', 'track', 'sourceId')) {
             track.name = context.state.track.name;
             track.artists = [...context.state.track.artists];
-          } else if (track.sourceId === _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].deepAccess(context, 'state', 'startingTrack', 'sourceId')) {
+          } else if (track.sourceId === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(context, 'state', 'startingTrack', 'sourceId')) {
             track.name = context.state.startingTrack.name;
             track.artists = [...context.state.startingTrack.artists];
           } else {
-            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.request('GET', 'videos', {
+            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.request('GET', 'videos', {
               id: track.sourceId,
               part: 'snippet'
             });
 
             if (video.result.items.length === 1) {
-              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.formatSnippet(video.result.items[0].snippet);
+              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.formatSnippet(video.result.items[0].snippet);
               track.name = formattedSnippet.name;
               track.artists = formattedSnippet.artists;
             }
           }
 
-          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Track(track);
+          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track(track);
           context.commit('setState', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'youtube module action - checkPlayback()',
             message: 'youtube playback updated',
             content: state
@@ -39833,13 +39917,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube = new _global_js__WEB
   })
 }); //TODO move inside
 
-_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.formatContentDetails = function (contentDetails) {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.formatContentDetails = function (contentDetails) {
   var pack = {};
-  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].moment.ISO_8601).asMilliseconds();
+  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment.ISO_8601).asMilliseconds();
   return pack;
-}, _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.formatSnippet = function (snippet) {
+}, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.formatSnippet = function (snippet) {
   var pack = {};
-  if (!_global_js__WEBPACK_IMPORTED_MODULE_0__["default"].isType(snippet, Object)) throw new _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].Error({
+  if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(snippet, Object)) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
     origin: 'sj.youtube.formatSnippet()',
     reason: 'snippet is not an object'
   }); //C assuming title format of 'Artist - Title'
@@ -39864,8 +39948,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.formatContentDetails 
   //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
 
 
-  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].he.decode(artist));
-  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].he.decode(pack.name);
+  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he.decode(artist));
+  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he.decode(pack.name);
   return pack;
 }; //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
 //  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
@@ -40071,7 +40155,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_0__["default"].youtube.formatContentDetails 
 	};
 */
 
-/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
 
 /***/ }),
 
@@ -40088,6 +40172,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_polyfill_js__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./public/js/utility/index.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants.js */ "./public/js/constants.js");
+/* harmony import */ var _fclone_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./fclone.js */ "./public/js/fclone.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -40185,10 +40270,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 // BUILT-IN
-// EXTERNAL
 // INTERNAL
  // side effects
 
+
+ // EXTERNAL
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -40214,11 +40300,7 @@ if (typeof fetch !== 'undefined') {
 } // CONSTANTS
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_2__); //C used to indicate a specific server error
-
-sj.resolveActions = {
-  spotifyAuth: 'spotify auth'
-}; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_2__); //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
 //  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
@@ -40227,56 +40309,10 @@ sj.resolveActions = {
 //C these don't reference any sj.Bases
 // TESTING
 
-sj.test = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(function* (tests, origin) {
-    var failCount = 0;
-    tests.forEach((test, i) => {
-      if (!test[1]) {
-        console.error("".concat(origin, " - test failed: ").concat(test[0]));
-        failCount++;
-      }
-    });
-
-    if (failCount === 0) {
-      console.log("%c".concat(origin, " - all tests passed"), 'background-color: #d0efd8');
-      return true;
-    } else return false;
-  });
-
-  return function (_x, _x2) {
-    return _ref2.apply(this, arguments);
-  };
-}();
-
-sj.performance = function (iterations, fs) {
-  fs.forEach((f, index) => {
-    console.time("Function ".concat(index, " Start"));
-
-    for (var i = 0; i < iterations; i++) {
-      f();
-    }
-
-    console.timeEnd("Function ".concat(index, " End"));
-  });
-};
-
-sj.wait = /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator(function* (ms) {
-    //C used for basic waiting, //! should not be used if the callback needs to be canceled
-    return new Promise(resolve => {
-      if (ms <= 2147483647) {
-        //L maximum timeout length: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
-        sj.setTimeout(() => {
-          resolve("finished waiting ".concat(ms, "ms"));
-        }, ms);
-      }
-    });
-  });
-
-  return function (_x3) {
-    return _ref3.apply(this, arguments);
-  };
-}();
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
+  test: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["test"],
+  wait: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"]
+});
 
 sj.trace = function () {
   try {
@@ -40286,14 +40322,14 @@ sj.trace = function () {
     //C get stack
     var stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
 
-    var stackTrace1 = sj.stringReplaceAll(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+    var stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-    var stackTrace2 = sj.stringReplaceAll(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+    var stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
 
     var ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-    ignore = sj.stringReplaceAll(ignore.join('|'), '.', '\.');
+    ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(ignore.join('|'), '.', '\.');
     var exp = new RegExp("(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:".concat(ignore, ")(?:.+?(?=\\n|\n|\r|$))"), 'g');
-    var stackTrace3 = sj.stringReplaceAll(stackTrace2, exp, '');
+    var stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace2, exp, '');
     return stackTrace0;
   }
 };
@@ -40301,40 +40337,6 @@ sj.trace = function () {
 sj.image = function (value) {
   if (typeof value === null || typeof value !== 'object') return value;
   return JSON.parse(JSON.stringify(sj.deepClone(value)));
-}; // TYPE
-
-
-sj.isSubclass = function (a, b) {
-  if (typeof a !== 'function' || typeof b !== 'function') return false;else return a.prototype instanceof b;
-}; // FORMAT
-
-
-sj.msFormat = function (ms) {
-  // extract
-  var minutes = Math.floor(ms / 60000);
-  var seconds = Math.ceil(ms % 60000); // format
-
-  seconds = ('0' + seconds).slice(-2); // returns ...0:00 format rounded up to the nearest second
-
-  return minutes + ':' + seconds;
-};
-
-sj.stringReplaceAll = function (input, search, replace) {
-  return input.split(search).join(replace);
-};
-
-sj.capFirst = function (string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-};
-
-sj.clamp = function (input, min, max) {
-  if (min > max) throw 'sj.clamp() min argument cannot be greater than max argument';
-  if (input < min) return min;else if (max < input) return max;else return input;
-};
-
-sj.escapeRegExp = function (string) {
-  //L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }; // HTTP
 
 
@@ -40588,7 +40590,7 @@ sj.deepAccess = function (thing) {
 sj.deepClone = function () {
   //C deep clones objects (root & nested objects aren't the same reference)
   //C drops circular references and replaces with '[Circular]'
-  return fClone(...arguments);
+  return Object(_fclone_js__WEBPACK_IMPORTED_MODULE_3__["default"])(...arguments);
 };
 
 sj.Deferred = class Deferred extends Promise {
@@ -41002,7 +41004,7 @@ sj.catchUnexpected = function (input) {
       //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
       error.reason = input.toString(); //C replace trace with actual trace (which has clickable URIs)
 
-      error.trace = sj.stringReplaceAll(input.stack, 'file:///', '');
+      error.trace = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(input.stack, 'file:///', '');
     } else if (sj.isType(input, sj.Base)) {
       error.reason = "unexpected ".concat(input.constructorName);
     } else {
@@ -41044,14 +41046,14 @@ sj.andResolve = function (rejected) {
 
 
 sj.asyncForEach = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator(function* (list, callback) {
+  var _ref2 = _asyncToGenerator(function* (list, callback) {
     //C executes an async function for each item in an array, throws entire result list if any of it's items were thrown
     //L this helped: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
     //C list is shallow copied because list could also be an array-like object
     //L https://stackoverflow.com/questions/31084619/map-a-javascript-es6-map
     var tempList = [...list];
     var results = yield Promise.all(tempList.map( /*#__PURE__*/function () {
-      var _ref5 = _asyncToGenerator(function* (item, index, self) {
+      var _ref3 = _asyncToGenerator(function* (item, index, self) {
         return callback(item, index, self).then(resolved => {
           return {
             resolved: true,
@@ -41066,8 +41068,8 @@ sj.asyncForEach = /*#__PURE__*/function () {
         });
       });
 
-      return function (_x6, _x7, _x8) {
-        return _ref5.apply(this, arguments);
+      return function (_x3, _x4, _x5) {
+        return _ref3.apply(this, arguments);
       };
     }())); //C while references are fine, primitives need to be given back to the original list
 
@@ -41087,8 +41089,8 @@ sj.asyncForEach = /*#__PURE__*/function () {
     }
   });
 
-  return function (_x4, _x5) {
-    return _ref4.apply(this, arguments);
+  return function (_x, _x2) {
+    return _ref2.apply(this, arguments);
   };
 }(); // FORMAT
 
@@ -41129,7 +41131,7 @@ sj.content = function (resolved) {
 
 
 sj.recursiveSyncTime = /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
       args[_key4 - 3] = arguments[_key4];
     }
@@ -41159,13 +41161,13 @@ sj.recursiveSyncTime = /*#__PURE__*/function () {
     return loop();
   });
 
-  return function (_x9, _x10, _x11) {
-    return _ref6.apply(this, arguments);
+  return function (_x6, _x7, _x8) {
+    return _ref4.apply(this, arguments);
   };
 }();
 
 sj.recursiveSyncCount = /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref5 = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len5 = arguments.length, args = new Array(_len5 > 3 ? _len5 - 3 : 0), _key5 = 3; _key5 < _len5; _key5++) {
       args[_key5 - 3] = arguments[_key5];
     }
@@ -41194,13 +41196,13 @@ sj.recursiveSyncCount = /*#__PURE__*/function () {
     return loop(count);
   });
 
-  return function (_x12, _x13, _x14) {
-    return _ref7.apply(this, arguments);
+  return function (_x9, _x10, _x11) {
+    return _ref5.apply(this, arguments);
   };
 }();
 
 sj.recursiveAsyncTime = /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref6 = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len6 = arguments.length, args = new Array(_len6 > 3 ? _len6 - 3 : 0), _key6 = 3; _key6 < _len6; _key6++) {
       args[_key6 - 3] = arguments[_key6];
     }
@@ -41237,20 +41239,20 @@ sj.recursiveAsyncTime = /*#__PURE__*/function () {
     return yield loop();
   });
 
-  return function (_x15, _x16, _x17) {
-    return _ref8.apply(this, arguments);
+  return function (_x12, _x13, _x14) {
+    return _ref6.apply(this, arguments);
   };
 }();
 
 sj.recursiveAsyncCount = /*#__PURE__*/function () {
-  var _ref9 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref7 = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len7 = arguments.length, args = new Array(_len7 > 3 ? _len7 - 3 : 0), _key7 = 3; _key7 < _len7; _key7++) {
       args[_key7 - 3] = arguments[_key7];
     }
 
     var count = 0;
 
-    function loop(_x21) {
+    function loop(_x18) {
       return _loop2.apply(this, arguments);
     }
 
@@ -41279,38 +41281,38 @@ sj.recursiveAsyncCount = /*#__PURE__*/function () {
     return yield loop(count);
   });
 
-  return function (_x18, _x19, _x20) {
-    return _ref9.apply(this, arguments);
+  return function (_x15, _x16, _x17) {
+    return _ref7.apply(this, arguments);
   };
 }(); //C uses recursiveAsyncTime to periodically check a condition
 
 
 sj.waitForCondition = /*#__PURE__*/function () {
-  var _ref11 = _asyncToGenerator(function* (_ref10) {
+  var _ref9 = _asyncToGenerator(function* (_ref8) {
     var {
       interval = 100,
       scaling = 1,
       delay = 0,
       timeout = 2000,
       condition = () => false
-    } = _ref10;
+    } = _ref8;
     yield sj.recursiveAsyncTime(timeout, () => !condition(), /*#__PURE__*/function () {
-      var _ref12 = _asyncToGenerator(function* (o) {
+      var _ref10 = _asyncToGenerator(function* (o) {
         yield sj.wait(o.time);
         o.time = o.time * scaling;
         return;
       });
 
-      return function (_x23) {
-        return _ref12.apply(this, arguments);
+      return function (_x20) {
+        return _ref10.apply(this, arguments);
       };
     }(), {
       time: interval + delay
     });
   });
 
-  return function (_x22) {
-    return _ref11.apply(this, arguments);
+  return function (_x19) {
+    return _ref9.apply(this, arguments);
   };
 }(); // HTTP
 
@@ -41363,7 +41365,7 @@ sj.rebuild = function (input, strict) {
 };
 
 sj.request = /*#__PURE__*/function () {
-  var _ref13 = _asyncToGenerator(function* (method, url, body) {
+  var _ref11 = _asyncToGenerator(function* (method, url, body) {
     var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : sj.JSON_HEADER;
 
     /* //! use UPPERCASE HTTP methods...
@@ -41451,8 +41453,8 @@ sj.request = /*#__PURE__*/function () {
     }
   });
 
-  return function (_x24, _x25, _x26) {
-    return _ref13.apply(this, arguments);
+  return function (_x21, _x22, _x23) {
+    return _ref11.apply(this, arguments);
   };
 }(); // LIVE DATA
 
@@ -41478,7 +41480,7 @@ sj.makeKey = function (length) {
 };
 
 sj.addKey = /*#__PURE__*/function () {
-  var _ref14 = _asyncToGenerator(function* (list, timeout) {
+  var _ref12 = _asyncToGenerator(function* (list, timeout) {
     var pack = {};
     var defaultTimeout = 300000; //C default 5 minutes
 
@@ -41501,13 +41503,13 @@ sj.addKey = /*#__PURE__*/function () {
     return pack;
   });
 
-  return function (_x27, _x28) {
-    return _ref14.apply(this, arguments);
+  return function (_x24, _x25) {
+    return _ref12.apply(this, arguments);
   };
 }();
 
 sj.checkKey = /*#__PURE__*/function () {
-  var _ref15 = _asyncToGenerator(function* (list, key) {
+  var _ref13 = _asyncToGenerator(function* (list, key) {
     //C checks a list for a key, will remove and return if found, will clean up timed-out keys
     for (var i = 0; i < list.length; i++) {
       //C check if timed out
@@ -41530,8 +41532,8 @@ sj.checkKey = /*#__PURE__*/function () {
     });
   });
 
-  return function (_x29, _x30) {
-    return _ref15.apply(this, arguments);
+  return function (_x26, _x27) {
+    return _ref13.apply(this, arguments);
   };
 }(); //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -41581,7 +41583,7 @@ sj.Base = class Base {
 (function () {
   //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
   //TODO consider deep defaults
-  this.makeClass = function (name, parent, _ref16) {
+  this.makeClass = function (name, parent, _ref14) {
     var {
       //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
       //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -41590,7 +41592,7 @@ sj.Base = class Base {
       prototypeProperties = parent => ({}),
       //G static properties & methods
       staticProperties = parent => ({})
-    } = _ref16;
+    } = _ref14;
     //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
     // VALIDATE
     if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
@@ -41638,12 +41640,12 @@ sj.Base = class Base {
     return MadeClass;
   };
 
-  this.augmentClass = function (_ref17) {
+  this.augmentClass = function (_ref15) {
     var {
       constructorParts = parent => ({}),
       prototypeProperties = parent => ({}),
       staticProperties = parent => ({})
-    } = _ref17;
+    } = _ref15;
     //C add or overwrite existing properties with new ones
     //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
     //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
@@ -42606,7 +42608,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validate = /*#__PURE__*/function () {
-          var _ref19 = _asyncToGenerator(function* (value) {
+          var _ref17 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42617,13 +42619,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x31) {
-            return _ref19.apply(this, arguments);
+          return function (_x28) {
+            return _ref17.apply(this, arguments);
           };
         }();
 
         this.check = /*#__PURE__*/function () {
-          var _ref20 = _asyncToGenerator(function* (value) {
+          var _ref18 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42634,8 +42636,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x32) {
-            return _ref20.apply(this, arguments);
+          return function (_x29) {
+            return _ref18.apply(this, arguments);
           };
         }();
       }
@@ -42685,7 +42687,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validateCast = /*#__PURE__*/function () {
-          var _ref21 = _asyncToGenerator(function* (value) {
+          var _ref19 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             accessory.castValue = value;
 
@@ -42702,13 +42704,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x33) {
-            return _ref21.apply(this, arguments);
+          return function (_x30) {
+            return _ref19.apply(this, arguments);
           };
         }();
 
         this.checkCast = /*#__PURE__*/function () {
-          var _ref22 = _asyncToGenerator(function* (value) {
+          var _ref20 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42719,8 +42721,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x34) {
-            return _ref22.apply(this, arguments);
+          return function (_x31) {
+            return _ref20.apply(this, arguments);
           };
         }();
       }
@@ -42746,12 +42748,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         });
       },
 
-      processError(targetError, _ref23) {
+      processError(targetError, _ref21) {
         var {
           fill = this.fill,
           error,
           origin
-        } = _ref23;
+        } = _ref21;
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
@@ -45542,6 +45544,22 @@ function boolCatch(f) {
 
 /***/ }),
 
+/***/ "./public/js/utility/clamp.js":
+/*!************************************!*\
+  !*** ./public/js/utility/clamp.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (input, min, max) {
+  if (min > max) throw "min: ".concat(min, " must not be greater than max: ").concat(max);else if (input < min) return min;else if (input > max) return max;else return input;
+});
+;
+
+/***/ }),
+
 /***/ "./public/js/utility/combinations.js":
 /*!*******************************************!*\
   !*** ./public/js/utility/combinations.js ***!
@@ -45846,6 +45864,20 @@ var constructor = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }
 
 });
+
+/***/ }),
+
+/***/ "./public/js/utility/constants.js":
+/*!****************************************!*\
+  !*** ./public/js/utility/constants.js ***!
+  \****************************************/
+/*! exports provided: MAX_SAFE_32_BIT_INTEGER */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_SAFE_32_BIT_INTEGER", function() { return MAX_SAFE_32_BIT_INTEGER; });
+var MAX_SAFE_32_BIT_INTEGER = 2147483647;
 
 /***/ }),
 
@@ -46539,6 +46571,29 @@ _define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
 
 /***/ }),
 
+/***/ "./public/js/utility/format-ms.js":
+/*!****************************************!*\
+  !*** ./public/js/utility/format-ms.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//TODO Unused
+//TODO Format hours, days, etc.
+/* harmony default export */ __webpack_exports__["default"] = (function (ms) {
+  // extract
+  var minutes = Math.floor(ms / 60000);
+  var seconds = Math.ceil(ms % 60000); // format
+
+  seconds = ('0' + seconds).slice(-2); // returns ...0:00 format rounded up to the nearest second
+
+  return minutes + ':' + seconds;
+});
+
+/***/ }),
+
 /***/ "./public/js/utility/get-keys.js":
 /*!***************************************!*\
   !*** ./public/js/utility/get-keys.js ***!
@@ -46604,43 +46659,64 @@ function getKeys(object) {
 /*!************************************!*\
   !*** ./public/js/utility/index.js ***!
   \************************************/
-/*! exports provided: boolCatch, combinations, deepCompare, define, reference, test, Rule, commonRules, Interface, SymbolInterface, DynamicClass */
+/*! exports provided: capitalizeFirstCharacter, escapeRegExp, replaceAll, boolCatch, clamp, combinations, deepCompare, define, formatMs, reference, test, wait, Rule, commonRules, Interface, SymbolInterface, DynamicClass */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./bool-catch.js */ "./public/js/utility/bool-catch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _string_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./string/index.js */ "./public/js/utility/string/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_0__["capitalizeFirstCharacter"]; });
 
-/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./combinations.js */ "./public/js/utility/combinations.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"]; });
 
-/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./deep-compare.js */ "./public/js/utility/deep-compare.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"]; });
 
-/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./define.js */ "./public/js/utility/define.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./bool-catch.js */ "./public/js/utility/bool-catch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./reference.js */ "./public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./clamp.js */ "./public/js/utility/clamp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./test.js */ "./public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./combinations.js */ "./public/js/utility/combinations.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./rule.js */ "./public/js/utility/rule.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./deep-compare.js */ "./public/js/utility/deep-compare.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./common-rules.js */ "./public/js/utility/common-rules.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _common_rules_js__WEBPACK_IMPORTED_MODULE_7__; });
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./interface.js */ "./public/js/utility/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_8__["Interface"]; });
+/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./define.js */ "./public/js/utility/define.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_8__["SymbolInterface"]; });
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./format-ms.js */ "./public/js/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./dynamic-class.js */ "./public/js/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./reference.js */ "./public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-// Small Utilities
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./test.js */ "./public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./wait.js */ "./public/js/utility/wait.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./rule.js */ "./public/js/utility/rule.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+
+/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./common-rules.js */ "./public/js/utility/common-rules.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _common_rules_js__WEBPACK_IMPORTED_MODULE_11__; });
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./interface.js */ "./public/js/utility/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["Interface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["SymbolInterface"]; });
+
+/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./dynamic-class.js */ "./public/js/utility/dynamic-class.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+
+// Nested
+ // Small Utilities
+
+
+
+
 
 
 
@@ -47089,6 +47165,78 @@ class Rule {
 
 /***/ }),
 
+/***/ "./public/js/utility/string/capitalize-first-character.js":
+/*!****************************************************************!*\
+  !*** ./public/js/utility/string/capitalize-first-character.js ***!
+  \****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+});
+
+/***/ }),
+
+/***/ "./public/js/utility/string/escape-reg-exp.js":
+/*!****************************************************!*\
+  !*** ./public/js/utility/string/escape-reg-exp.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (string) {
+  //L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+});
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/string/index.js":
+/*!*******************************************!*\
+  !*** ./public/js/utility/string/index.js ***!
+  \*******************************************/
+/*! exports provided: capitalizeFirstCharacter, escapeRegExp, replaceAll */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./capitalize-first-character.js */ "./public/js/utility/string/capitalize-first-character.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./escape-reg-exp.js */ "./public/js/utility/string/escape-reg-exp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _replace_all__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./replace-all */ "./public/js/utility/string/replace-all.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+
+
+
+
+/***/ }),
+
+/***/ "./public/js/utility/string/replace-all.js":
+/*!*************************************************!*\
+  !*** ./public/js/utility/string/replace-all.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (input, search, replace) {
+  return input.split(search).join(replace);
+});
+;
+
+/***/ }),
+
 /***/ "./public/js/utility/test.js":
 /*!***********************************!*\
   !*** ./public/js/utility/test.js ***!
@@ -47126,6 +47274,47 @@ function _test() {
     }
   });
   return _test.apply(this, arguments);
+}
+
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/wait.js":
+/*!***********************************!*\
+  !*** ./public/js/utility/wait.js ***!
+  \***********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants.js */ "./public/js/utility/constants.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+// Basic wait promise.
+//! Does not resolve if timeout is larger than MAX_SAFE_32_BIT_INTEGER
+//TODO Maybe think about functionality for handling larger numbers, infinity, negative numbers, etc.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (_x) {
+  return _ref.apply(this, arguments);
+});
+
+function _ref() {
+  _ref = _asyncToGenerator(function* (ms) {
+    //C used for basic waiting, //! should not be used if the callback needs to be canceled
+    return new Promise(resolve => {
+      //L maximum timeout length: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
+      if (ms <= _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_SAFE_32_BIT_INTEGER"]) {
+        sj.setTimeout(() => {
+          resolve();
+        }, ms);
+      }
+    });
+  });
+  return _ref.apply(this, arguments);
 }
 
 ;
