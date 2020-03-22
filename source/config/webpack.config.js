@@ -78,6 +78,25 @@ const common = {
 		devtool: argv.mode === 'development' ? 'source-map' : undefined,
 		context: path.resolve('C:/Users/Thomas/Documents/Personal-Work/StreamJockey.git/source'),
 	}),
+	babelRule(targets) {
+		return {
+			test: /\.js$/,
+			use: {
+				loader: 'babel-loader',
+				options: {
+					presets: [
+						[
+							'@babel/preset-env',
+							{
+								targets,
+							},
+						],
+					],
+					plugins: ['@babel/plugin-proposal-export-namespace-from'],
+				},
+			},
+		};
+	},
 	plugins: (env, argv) => ([
 		new CleanWebpackPlugin(),
 		new webpack.ProgressPlugin(),
@@ -133,6 +152,7 @@ export const clientOptions = (env, argv) => ({
 					},
 				],
 			},
+			common.babelRule({esmodules: true}),
 		],
 	},
 	plugins: [
@@ -153,6 +173,9 @@ export const serverOptions = (env, argv) => ({
 		//! Compiling as a CJS file
 		filename: '[name].bundle.cjs',
 		path: sourcePath('../build/server'),
+	},
+	module: {
+		rules: [common.babelRule({node: true})],
 	},
 	plugins: [
 		...common.plugins(env, argv),

@@ -84,8 +84,14 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-import './polyfill.js'; // side effects
+// BUILT-IN
 
+// EXTERNAL
+
+// INTERNAL
+import './polyfill.js'; // side effects
+import { define } from './utility/index.js';
+import * as constants from './constants.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -94,10 +100,9 @@ import './polyfill.js'; // side effects
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-let sj = {};
+const sj = {};
 
-sj.appName = 'StreamJockey';
-
+// POLYFILL
 if (typeof fetch !== 'undefined') {
 	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
 	//L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
@@ -112,18 +117,10 @@ if (typeof fetch !== 'undefined') {
 	}
 }
 
-
 // CONSTANTS
-Object.defineProperty(sj, 'SERVER_URL', {value: `http://localhost:3000`});
-Object.defineProperty(sj, 'API_URL', {value: `${sj.SERVER_URL}/api`});
-Object.defineProperty(sj, 'JSON_HEADER', {value: Object.freeze({
-	'Accept': 'application/json',
-	'Content-Type': 'application/json',
-})});
-Object.defineProperty(sj, 'URL_HEADER', {value: Object.freeze({
-	'Accept': 'application/json',
-	'Content-Type': 'application/x-www-form-urlencoded',
-})});
+define.constant(sj, constants);
+
+//----------
 
 //C used to indicate a specific server error
 sj.resolveActions = {

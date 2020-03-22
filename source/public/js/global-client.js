@@ -54,6 +54,7 @@ import he from 'he';
 //C attach external libraries to sj so that they can be used where ever sj is imported
 sj.moment = moment;
 sj.he = he;
+sj.appName = 'StreamJockey';
 
 
 //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
