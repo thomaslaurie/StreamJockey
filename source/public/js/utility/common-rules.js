@@ -1,13 +1,37 @@
 import Rule from './rule.js';
 
+//G Include anything here that is possible to implement incorrectly, even for basic types.
+//R Rules for basic types are also useful for custom casting, errors, and consistency.
+
 //TODO ensure that import * can be tree shaken
-//R should be useful to write rules for even basic types, because then custom casting and errors can be used, plus consistency
 
 //L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async
 // sync func
 // async func
 
 // BUILT-IN RULES
+
+// OBJECTS
+export const object = new Rule({
+	//L https://stackoverflow.com/a/22482737
+	validator(value) {
+		
+		if (value === null || typeof value !== 'object' || typeof value !== 'function') {
+			throw new Error('Value is not an object.');
+		}
+	}
+});
+
+// ARRAYS
+export const array = new Rule({
+	//L Why not instanceof? - http://web.mit.edu/jwalden/www/isArray.html
+	//TODO Doesn't this then apply to all classes? Should all classes use validators like this or just use instanceof?
+	validator(value) {
+		if (!Array.isArray(value)) {
+			throw new Error('Value is not an array.')
+		}
+	}
+});
 
 // FUNCTIONS
 export const func = new Rule({

@@ -40340,75 +40340,14 @@ sj.image = function (value) {
 }; // HTTP
 
 
-sj.encodeProps = function (obj) {
-  //! every value is encoded as a string, objects as [object Object] and arrays as comma delimited encoded values
-  return Object.keys(obj).map(key => {
-    return "".concat(encodeURIComponent(key), "=").concat(encodeURIComponent(obj[key]));
-  }).join('&');
-};
-
-sj.decodeProps = function (encoded) {
-  //! every value is decoded as a string
-  var pairs = encoded.split('&');
-  var obj = {};
-  pairs.forEach(pair => {
-    var parts = pair.split('=');
-    obj[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
-  });
-  return obj;
-};
-
-sj.encodeList = function (list) {
-  //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
-  //! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
-  var indexed = {};
-  sj.any(list).forEach((obj, i) => {
-    Object.keys(obj).forEach(key => {
-      indexed["".concat(key, "-").concat(i)] = obj[key];
-    });
-  });
-  return sj.encodeProps(indexed);
-};
-
-sj.decodeList = function (encoded) {
-  //C decodes a list of encoded objects with '-i' suffixed property keys
-  //! any key not matching the format will be discarded
-  var indexed = sj.decodeProps(encoded);
-  var list = [];
-  var indexedKeys = Object.keys(indexed);
-
-  for (var i = 0; i < indexedKeys.length; i++) {
-    //C validate delimiter
-    var delimiterIndex = indexedKeys[i].lastIndexOf('-');
-
-    if (delimiterIndex < 0) {
-      break;
-    } //C validate index
-
-
-    var objIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
-
-    if (!sj.isType(objIndex, 'integer')) {
-      break;
-    } //C get the real key
-
-
-    var key = indexedKeys[i].slice(0, delimiterIndex);
-
-    if (!sj.isType(list[objIndex], Object)) {
-      //C if the obj doesn't exist yet, add it with the prop
-      list[objIndex] = {
-        [key]: indexed[indexedKeys[i]]
-      };
-    } else {
-      //C otherwise add the prop to the existing object
-      list[objIndex][key] = indexed[indexedKeys[i]];
-    }
-  }
-
-  return list;
-}; // FILTER
-
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
+  encodeProps: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"],
+  //TODO
+  decodeProps: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeProperties"],
+  //TODO
+  encodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeList"],
+  decodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeList"]
+}); // FILTER
 
 sj.shake = function (obj, properties) {
   //C returns a new object with only the desired properties
@@ -41095,33 +41034,10 @@ sj.asyncForEach = /*#__PURE__*/function () {
 }(); // FORMAT
 
 
-sj.one = function (a) {
-  //C unwraps the first item of an array where one item is expected
-  if (!sj.isType(a, Array)) {
-    return a;
-  } else if (a.length === 1) {
-    return a[0];
-  } else if (a.length >= 2) {
-    //TODO make a warning object / handler?
-    console.warn('sj.one() pulled a single value out of an array with many');
-    return a[0];
-  } else if (a.length === 0) {
-    //! this does not return undefined because we are 'expecting' one value (//TODO though this may be changed later to return undefined)
-    throw new sj.Error({
-      log: true,
-      origin: 'sj.one()',
-      code: 404,
-      message: 'no data found',
-      reason: 'array has no values, expected one',
-      content: a
-    });
-  }
-};
-
-sj.any = function (o) {
-  //C wraps a value in an array if not already inside one
-  return sj.isType(o, Array) ? o : [o];
-};
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
+  any: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"],
+  one: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]
+});
 
 sj.content = function (resolved) {
   //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
@@ -45522,6 +45438,63 @@ if (Array.prototype.flat === undefined) {
 
 /***/ }),
 
+/***/ "./public/js/utility/array/any.js":
+/*!****************************************!*\
+  !*** ./public/js/utility/array/any.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../common-rules.js */ "./public/js/utility/common-rules.js");
+// Wraps a value in an array. If the value is already an array, its items get spread into a fresh one.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+  return _common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(value) ? [...value] : [value];
+});
+
+/***/ }),
+
+/***/ "./public/js/utility/array/index.js":
+/*!******************************************!*\
+  !*** ./public/js/utility/array/index.js ***!
+  \******************************************/
+/*! exports provided: any, one */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./any.js */ "./public/js/utility/array/any.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _any_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./one.js */ "./public/js/utility/array/one.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./public/js/utility/array/one.js":
+/*!****************************************!*\
+  !*** ./public/js/utility/array/one.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../common-rules.js */ "./public/js/utility/common-rules.js");
+// Returns the first item of an array, or the value otherwise.
+//G If exactly one item is required, instead of undefined, use a validator.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+  return _common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(value) ? value[0] : value;
+});
+
+/***/ }),
+
 /***/ "./public/js/utility/bool-catch.js":
 /*!*****************************************!*\
   !*** ./public/js/utility/bool-catch.js ***!
@@ -45630,11 +45603,13 @@ function combinations(optionsObject) {
 /*!*******************************************!*\
   !*** ./public/js/utility/common-rules.js ***!
   \*******************************************/
-/*! exports provided: func, string, trimmedString, visibleString, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, constructor */
+/*! exports provided: object, array, func, string, trimmedString, visibleString, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, constructor */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "object", function() { return object; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "func", function() { return func; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
@@ -45652,13 +45627,35 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return constructor; });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rule.js */ "./public/js/utility/rule.js");
- //TODO ensure that import * can be tree shaken
-//R should be useful to write rules for even basic types, because then custom casting and errors can be used, plus consistency
+ //G Include anything here that is possible to implement incorrectly, even for basic types.
+//R Rules for basic types are also useful for custom casting, errors, and consistency.
+//TODO ensure that import * can be tree shaken
 //L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async
 // sync func
 // async func
 // BUILT-IN RULES
-// FUNCTIONS
+// OBJECTS
+
+var object = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  //L https://stackoverflow.com/a/22482737
+  validator(value) {
+    if (value === null || typeof value !== 'object' || typeof value !== 'function') {
+      throw new Error('Value is not an object.');
+    }
+  }
+
+}); // ARRAYS
+
+var array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  //L Why not instanceof? - http://web.mit.edu/jwalden/www/isArray.html
+  //TODO Doesn't this then apply to all classes? Should all classes use validators like this or just use instanceof?
+  validator(value) {
+    if (!Array.isArray(value)) {
+      throw new Error('Value is not an array.');
+    }
+  }
+
+}); // FUNCTIONS
 
 var func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   validator(value) {
@@ -46659,7 +46656,7 @@ function getKeys(object) {
 /*!************************************!*\
   !*** ./public/js/utility/index.js ***!
   \************************************/
-/*! exports provided: capitalizeFirstCharacter, escapeRegExp, replaceAll, boolCatch, clamp, combinations, deepCompare, define, formatMs, reference, test, wait, Rule, commonRules, Interface, SymbolInterface, DynamicClass */
+/*! exports provided: capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, any, one, boolCatch, clamp, combinations, deepCompare, define, formatMs, reference, test, wait, Rule, commonRules, Interface, SymbolInterface, DynamicClass */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46671,47 +46668,63 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"]; });
 
-/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./bool-catch.js */ "./public/js/utility/bool-catch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./uri/index.js */ "./public/js/utility/uri/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"]; });
 
-/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./clamp.js */ "./public/js/utility/clamp.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeProperties"]; });
 
-/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./combinations.js */ "./public/js/utility/combinations.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeList"]; });
 
-/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./deep-compare.js */ "./public/js/utility/deep-compare.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeList"]; });
 
-/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./define.js */ "./public/js/utility/define.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+/* harmony import */ var _array_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./array/index.js */ "./public/js/utility/array/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_2__["any"]; });
 
-/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./format-ms.js */ "./public/js/utility/format-ms.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./reference.js */ "./public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./bool-catch.js */ "./public/js/utility/bool-catch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./test.js */ "./public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./clamp.js */ "./public/js/utility/clamp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./wait.js */ "./public/js/utility/wait.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./combinations.js */ "./public/js/utility/combinations.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./rule.js */ "./public/js/utility/rule.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./deep-compare.js */ "./public/js/utility/deep-compare.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
-/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./common-rules.js */ "./public/js/utility/common-rules.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _common_rules_js__WEBPACK_IMPORTED_MODULE_11__; });
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./interface.js */ "./public/js/utility/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["Interface"]; });
+/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./define.js */ "./public/js/utility/define.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["SymbolInterface"]; });
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./format-ms.js */ "./public/js/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./dynamic-class.js */ "./public/js/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./reference.js */ "./public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./test.js */ "./public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+
+/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./wait.js */ "./public/js/utility/wait.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
+
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./rule.js */ "./public/js/utility/rule.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
+
+/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./common-rules.js */ "./public/js/utility/common-rules.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _common_rules_js__WEBPACK_IMPORTED_MODULE_13__; });
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./interface.js */ "./public/js/utility/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_14__["Interface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_14__["SymbolInterface"]; });
+
+/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./dynamic-class.js */ "./public/js/utility/dynamic-class.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
 // Nested
+
+
  // Small Utilities
 
 
@@ -47277,6 +47290,159 @@ function _test() {
 }
 
 ;
+
+/***/ }),
+
+/***/ "./public/js/utility/uri/decode-list.js":
+/*!**********************************************!*\
+  !*** ./public/js/utility/uri/decode-list.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./decode-properties.js */ "./public/js/utility/uri/decode-properties.js");
+/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../common-rules.js */ "./public/js/utility/common-rules.js");
+function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (encoded) {
+  //C decodes a list of encoded objects with '-i' suffixed property keys
+  //! any key not matching the format will be discarded
+  var indexed = Object(_decode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"])(encoded);
+  var list = [];
+  var indexedKeys = Object.keys(indexed);
+
+  for (var i = 0; i < indexedKeys.length; _readOnlyError("i"), i++) {
+    //C validate delimiter
+    var delimiterIndex = indexedKeys[i].lastIndexOf('-');
+
+    if (delimiterIndex < 0) {
+      break;
+    } //C validate index
+
+
+    var objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
+
+    if (!_common_rules_js__WEBPACK_IMPORTED_MODULE_1__["integer"].test(objectIndex)) {
+      break;
+    } //C get the real key
+
+
+    var key = indexedKeys[i].slice(0, delimiterIndex);
+
+    if (!_common_rules_js__WEBPACK_IMPORTED_MODULE_1__["object"].test(list[objectIndex])) {
+      //C if the obj doesn't exist yet, add it with the prop
+      list[objectIndex] = {
+        [key]: indexed[indexedKeys[i]]
+      };
+    } else {
+      //C otherwise add the prop to the existing object
+      list[objectIndex][key] = indexed[indexedKeys[i]];
+    }
+  }
+
+  return list;
+});
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/uri/decode-properties.js":
+/*!****************************************************!*\
+  !*** ./public/js/utility/uri/decode-properties.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// Decodes every value as a string.
+/* harmony default export */ __webpack_exports__["default"] = (function (encodedString) {
+  var keyValuePairs = encodedString.split('&');
+  var object = {};
+  keyValuePairs.forEach(keyValuePair => {
+    var [key, value] = keyValuePair.split('=');
+    object[decodeURIComponent(key)] = decodeURIComponent(value);
+  });
+  return object;
+});
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/uri/encode-list.js":
+/*!**********************************************!*\
+  !*** ./public/js/utility/uri/encode-list.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _array_any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../array/any.js */ "./public/js/utility/array/any.js");
+/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode-properties.js */ "./public/js/utility/uri/encode-properties.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (list) {
+  //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
+  //! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
+  var indexed = {};
+  Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {
+    Object.keys(object).forEach(key => {
+      indexed["".concat(key, "-").concat(index)] = object[key];
+    });
+  });
+  return Object(_encode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"])(indexed);
+});
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/uri/encode-properties.js":
+/*!****************************************************!*\
+  !*** ./public/js/utility/uri/encode-properties.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// Encodes values as strings, objects as [object Object] and arrays as comma delimited strings.
+/* harmony default export */ __webpack_exports__["default"] = (function (object) {
+  return Object.keys(object).map(key => "".concat(encodeURIComponent(key), "=").concat(encodeURIComponent(object[key]))).join('&');
+});
+;
+
+/***/ }),
+
+/***/ "./public/js/utility/uri/index.js":
+/*!****************************************!*\
+  !*** ./public/js/utility/uri/index.js ***!
+  \****************************************/
+/*! exports provided: encodeProperties, decodeProperties, encodeList, decodeList */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./encode-properties.js */ "./public/js/utility/uri/encode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./decode-properties.js */ "./public/js/utility/uri/decode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./encode-list.js */ "./public/js/utility/uri/encode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./decode-list.js */ "./public/js/utility/uri/decode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
+
+
+
 
 /***/ }),
 

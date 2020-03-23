@@ -93,6 +93,12 @@ import {
 	test, 
 	wait,
 	replaceAll,
+	encodeProperties,
+	decodeProperties,
+	encodeList,
+	decodeList,
+	any,
+	one,
 } from './utility/index.js';
 import * as constants from './constants.js';
 
@@ -176,63 +182,12 @@ sj.image = function (value) {
 };
 
 // HTTP
-sj.encodeProps = function (obj) {
-	//! every value is encoded as a string, objects as [object Object] and arrays as comma delimited encoded values
-	return Object.keys(obj).map(key => {
-		return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
-	}).join('&');
-};
-sj.decodeProps = function (encoded) {
-	//! every value is decoded as a string
-	let pairs = encoded.split('&');
-	let obj = {};
-	pairs.forEach(pair => {
-		let parts = pair.split('=');
-		obj[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
-	});
-	return obj;
-};
-sj.encodeList = function (list) {
-	//C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
-	//! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
-	let indexed = {};
-	sj.any(list).forEach((obj, i) => {
-		Object.keys(obj).forEach(key => {
-			indexed[`${key}-${i}`] = obj[key];
-		});
-	});
-	return sj.encodeProps(indexed);
-};
-sj.decodeList = function (encoded) {
-	//C decodes a list of encoded objects with '-i' suffixed property keys
-	//! any key not matching the format will be discarded
-	let indexed = sj.decodeProps(encoded);
-	let list = [];
-	let indexedKeys = Object.keys(indexed);
-	for (let i = 0; i < indexedKeys.length; i++) {
-		//C validate delimiter
-		let delimiterIndex = indexedKeys[i].lastIndexOf('-');
-		if (delimiterIndex < 0) {break}
-
-		//C validate index
-		let objIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
-		if (!sj.isType(objIndex, 'integer')) {break}
-
-		//C get the real key
-		let key = indexedKeys[i].slice(0, delimiterIndex);
-
-		if (!sj.isType(list[objIndex], Object)) {
-			//C if the obj doesn't exist yet, add it with the prop
-			list[objIndex] = {
-				[key]: indexed[indexedKeys[i]],
-			};
-		} else {
-			//C otherwise add the prop to the existing object
-			list[objIndex][key] = indexed[indexedKeys[i]];
-		}
-	}
-	return list;
-};
+define.constant(sj, {
+	encodeProps: encodeProperties, //TODO
+	decodeProps: decodeProperties, //TODO
+	encodeList,
+	decodeList,
+});
 
 // FILTER
 sj.shake = function (obj, properties) {
@@ -891,32 +846,11 @@ sj.asyncForEach = async function (list, callback) {
 };
 
 // FORMAT
-sj.one = function (a) {
-	//C unwraps the first item of an array where one item is expected
-	if (!sj.isType(a, Array)) {
-		return a;
-	} else if (a.length === 1) {
-		return a[0];
-	} else if (a.length >= 2) {
-		//TODO make a warning object / handler?
-		console.warn('sj.one() pulled a single value out of an array with many');
-		return a[0];
-	} else if (a.length === 0) {
-		//! this does not return undefined because we are 'expecting' one value (//TODO though this may be changed later to return undefined)
-		throw new sj.Error({
-			log: true,
-			origin: 'sj.one()',
-			code: 404,
-			message: 'no data found',
-			reason: 'array has no values, expected one',
-			content: a,
-		});
-	}
-};
-sj.any = function (o) {
-	//C wraps a value in an array if not already inside one
-	return sj.isType(o, Array) ? o : [o];
-};
+define.constant(sj, {
+	any,
+	one,
+});
+
 sj.content = function (resolved) {
 	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
 	return resolved.content;
