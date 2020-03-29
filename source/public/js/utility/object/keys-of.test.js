@@ -1,9 +1,9 @@
-import test from './test.js';
-import getKeys from './get-keys.js';
-import combinations from './combinations.js';
-import deepCompare from './deep-compare.js';
+//TODO add tests for forKeysOf, and filter
 
-//TODO add filer test
+import test from '../test.js';
+import {getKeysOf} from './keys-of.js';
+import combinations from '../combinations.js';
+import deepCompare from './deep-compare.js';
 
 export default function testGetKeys() {
 	return test([
@@ -102,7 +102,7 @@ export default function testGetKeys() {
 			const propertyCombinations = combinations(propertyOptions);
 		
 			for (const propertyCombination of propertyCombinations) {
-				const keys = getKeys(child, propertyCombination);
+				const keys = getKeysOf(child, propertyCombination);
 				const retrievedLocations = keys.map((p) => {
 					if (typeof p === 'symbol') {
 						return p.toString().slice(7, -1);
@@ -137,7 +137,7 @@ export default function testGetKeys() {
 			child.baz = 'baz';
 			child.same = same;
 		
-			const keys = getKeys(child, {
+			const keys = getKeysOf(child, {
 				own: true,
 				inherited: true,
 		
@@ -165,7 +165,7 @@ export default function testGetKeys() {
 			child.same = same;
 		
 			
-			const keys = getKeys(child, {
+			const keys = getKeysOf(child, {
 				own: true,
 				inherited: true,
 		
@@ -185,7 +185,5 @@ export default function testGetKeys() {
 		
 			return true;
 		})()],
-	], 'get-keys');
+	], 'keys-of');
 };
-
-testGetKeys();

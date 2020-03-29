@@ -9,7 +9,7 @@ import {
 	ANY,
 } from './interface.js';
 
-export function testInterface() {
+export default function interfaceTest() {
 	const symbolInterface = new SymbolInterface({
 		foo: (o, k) => o[k] === 'foo',
 	});
@@ -180,5 +180,3 @@ export function testInterface() {
 		],
 	], 'Interface');
 };
-
-testInterface();

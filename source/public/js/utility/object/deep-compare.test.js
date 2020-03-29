@@ -1,7 +1,7 @@
-import test from './test.js';
+import test from '../test.js';
 import deepCompare from './deep-compare.js';
 
-export default function testDeepCompare() {
+export default function deepCompareTest() {
 	const oA = {
 		a: 'a',
 		b: 'b',

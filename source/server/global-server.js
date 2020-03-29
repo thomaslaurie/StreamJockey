@@ -96,16 +96,17 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝ 
 
-// builtin
+// BUILT-IN
 
-// external
-import fetch from 'node-fetch'; //C global.js uses fetch
-import bcrypt from 'bcryptjs';
-
-// internal
+// INTERNAL
+import {pick} from '../public/js/utility/index.js';
 import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
 import liveData from './live-data-server.js';
+
+// EXTERNAL
+import fetch from 'node-fetch'; //C global.js uses fetch
+import bcrypt from 'bcryptjs';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -612,7 +613,7 @@ sj.Entity.augmentClass({
 					await sj.asyncForEach(inputMapped, async entity => {
 						//C before, ignore add
 						if (!isGet && methodName !== 'add') {
-							const before = await this.getQuery(t, sj.shake(entity, this.filters.id)).then(sj.any).catch(sj.propagate)
+							const before = await this.getQuery(t, pick(entity, this.filters.id)).then(sj.any).catch(sj.propagate)
 							inputBefore.push(...before);
 						}
 
@@ -632,7 +633,7 @@ sj.Entity.augmentClass({
 				const influencedAfter = [];
 				if (!isGet) {
 					await sj.asyncForEach(influencedMapped, async influencedEntity => {
-						const before = await this.getQuery(t, sj.shake(influencedEntity, this.filters.id)).then(sj.any).catch(sj.propagate);
+						const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(sj.any).catch(sj.propagate);
 						influencedBefore.push(...before);
 
 						const after = await this.editQuery(t, influencedEntity).then(sj.any).catch(sj.propagate);
@@ -657,7 +658,7 @@ sj.Entity.augmentClass({
 			}).catch(sj.propagate); //! finish the transaction here so that notify won't be called before the database has updated
 
 			//C shake for subscriptions with getOut filter
-			const shookGet = after.map(list => sj.shake(list, this.filters.getOut));
+			const shookGet = after.map(list => sj.any(list).map((item) => pick(item, this.filters.getOut)));
 
 			//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 			const timestamp = Date.now();
@@ -668,7 +669,7 @@ sj.Entity.augmentClass({
 			else if (isGetMimic) return shookGet[1]; 
 
 			//C shake for return
-			const shook = after.map(list => sj.shake(list, this.filters[methodName+'Out']));
+			const shook = after.map(list => sj.any(list).map((item) => pick(item, this.filters[methodName+'Out'])));
 
 			//C rebuild
 			const built = shook.map(list => list.map(entity => new this(entity)));

@@ -1,7 +1,7 @@
-import test from './test.js';
+import test from '../test.js';
 import define from './define.js';
 
-export default function testDefine() {
+export default function defineTest() {
 	const tests = [];
 
 	const object = {};
@@ -32,18 +32,18 @@ export default function testDefine() {
 	tests.push(['can redefine variable', canRedefineVariable]);
 
 
-	// GET ONLY
-	define.getOnly(object, {get go() {}});
+	// GET ter
+	define.getter(object, {get go() {}});
 	const descriptorGO = Object.getOwnPropertyDescriptor(object, 'go');
-	tests.push(['getOnly has getter', typeof descriptorGO.get === 'function']);
-	tests.push(['getOnly does not have setter', descriptorGO.set === undefined]);
+	tests.push(['getter has getter', typeof descriptorGO.get === 'function']);
+	tests.push(['getter does not have setter', descriptorGO.set === undefined]);
 
 
-	// SET ONLY
-	define.setOnly(object, {set so(v) {}});
+	// SET ter
+	define.setter(object, {set so(v) {}});
 	const descriptorSO = Object.getOwnPropertyDescriptor(object, 'so');
-	tests.push(['setOnly has setter', typeof descriptorSO.set === 'function']);
-	tests.push(['setOnly does not have getter', descriptorSO.get === undefined]);
+	tests.push(['setter has setter', typeof descriptorSO.set === 'function']);
+	tests.push(['setter does not have getter', descriptorSO.get === undefined]);
 
 	
 	// ACCESSOR
@@ -66,5 +66,3 @@ export default function testDefine() {
 		...tests,
 	], 'define');
 };
-
-testDefine();

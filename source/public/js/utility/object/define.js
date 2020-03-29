@@ -1,15 +1,12 @@
-import getKeys from './get-keys.js';
-
 const ownKeys = function (object) {
-	return getKeys(object, {
-		own: true,
-		named: true,
-		symbol: true,
-		enumerable: true,
-		nonEnumerable: true,
-
-		inherited: false,
-	});
+	/* //R//! Not using getKeysOf() here to avoid a circular dependency.
+		define.js > Rule.js > common-rules.js > keys-of.js > define.js
+		Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
+	*/
+	return [
+		...Object.getOwnPropertyNames(object),
+		...Object.getOwnPropertySymbols(object),
+	];
 };
 
 //C define is a container for less verbose versions of Object.defineProperty()

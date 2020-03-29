@@ -57,7 +57,7 @@ import nodeExternals from 'webpack-node-externals';
 
 // INTERNAL
 import { clientIndexFileName } from './project-paths.js';
-import sourcePath from '../node-util/source-path.cjs';
+import sourcePath from '../node-utility/source-path.cjs';
 
 
 //   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗ 

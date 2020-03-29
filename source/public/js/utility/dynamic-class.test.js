@@ -1,8 +1,8 @@
 import test from './test.js';
 import dynamicClass from './dynamic-class.js';
-import deepCompare from './deep-compare.js';
+import deepCompare from './object/deep-compare.js';
 import boolCatch from './bool-catch.js';
-import getKeys from './get-keys.js';
+import {getKeysOf} from './object/keys-of.js';
 
 export default function dynamicClassTest() {
 	const tests = [];
@@ -277,7 +277,8 @@ export default function dynamicClassTest() {
 		},
 		// enumerable, configurable are opposite the defaults
 		transferToInstance(properties, target) {
-			for (const key of getKeys(properties, {
+			//TODO replace with forKeysOf()
+			for (const key of getKeysOf(properties, {
 				own:           true,
 				named:         true,
 				symbol:        true,
@@ -296,7 +297,7 @@ export default function dynamicClassTest() {
 			}
 		},
 		transferToPrototype(properties, target) {
-			for (const key of getKeys(properties, {
+			for (const key of getKeysOf(properties, {
 				own:           true,
 				named:         true,
 				symbol:        true,
@@ -315,7 +316,7 @@ export default function dynamicClassTest() {
 			}
 		},
 		transferToStatic(properties, target) {
-			for (const key of getKeys(properties, {
+			for (const key of getKeysOf(properties, {
 				own:           true,
 				named:         true,
 				symbol:        true,
@@ -537,6 +538,3 @@ export default function dynamicClassTest() {
 
 	test(tests, 'dynamicClass');
 };
-
-dynamicClassTest();
-

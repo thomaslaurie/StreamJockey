@@ -1,4 +1,4 @@
-import test from './test.js';
+import test from '../test.js';
 import * as rules from './common-rules.js';
 
 export default function testCommonRules() {
@@ -6,5 +6,3 @@ export default function testCommonRules() {
 		//TODO
 	], 'common-rules');
 };
-
-testCommonRules();

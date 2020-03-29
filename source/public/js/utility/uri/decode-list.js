@@ -1,5 +1,5 @@
 import decodeProperties from './decode-properties.js';
-import {integer, object} from '../common-rules.js';
+import {integer, object} from '../validation/common-rules.js';
 
 export default function (encoded) {
 	//C decodes a list of encoded objects with '-i' suffixed property keys
@@ -7,7 +7,7 @@ export default function (encoded) {
 	const indexed = decodeProperties(encoded);
 	const list = [];
 	const indexedKeys = Object.keys(indexed);
-	for (const i = 0; i < indexedKeys.length; i++) {
+	for (let i = 0; i < indexedKeys.length; i++) {
 		//C validate delimiter
 		const delimiterIndex = indexedKeys[i].lastIndexOf('-');
 		if (delimiterIndex < 0) {break}

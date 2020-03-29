@@ -1,6 +1,8 @@
-import define from './define.js';
-import { formReferences, extractValues } from './reference.js';
-import boolCatch from './bool-catch.js';
+//TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
+
+import define from '../object/define.js';
+import {formReferences, extractValues} from '../reference.js';
+import boolCatch from '../bool-catch.js';
 
 export class Rule {
 	constructor({
@@ -19,6 +21,7 @@ export class Rule {
 			Should modify Reference instance 'value' property on success, throw on failure.
 			Should have one or many sequential mutations.
 			May be sync or async.
+			//! Caster does not implicitly exclude redundant casts. Ie, for a symbol rule, if x is already a symbol, the caster for the symbol will still execute and throw a type error as symbols cannot be converted to strings. Must include a redundancy check for rules that require it.
 
 			If using other rules' casters, use validateCast() and pass the same References.
 			Do not pass reference.value and do not set any reference.value as the result of a validateCast(), the nested caster will mutate the passed arguments directly.
@@ -41,13 +44,13 @@ export class Rule {
 		define.constant(this, {validator, caster});
 		
 		// false when x.constructor.name === 'AsyncFunction'
-		const validatorIsSynchronous = validator.constructor.name === 'Function';
-		const casterIsSynchronous    = caster.constructor.name === 'Function';
+		const validatorIsSynchronous = this.validator.constructor.name === 'Function';
+		const casterIsSynchronous    = this.caster.constructor.name === 'Function';
 
 		if (validatorIsSynchronous) {
 			define.constant(this, {
 				validate(...args) {
-					validator(...args);
+					this.validator(...args);
 				},
 				test(...args) {
 					return boolCatch(() => this.validate(...args));
@@ -56,7 +59,7 @@ export class Rule {
 		} else {
 			define.constant(this, {
 				async validate(...args) {
-					await validator(...args);
+					await this.validator(...args);
 				},
 				async test(...args) {
 					return boolCatch(async () => await this.validate(...args));
@@ -71,7 +74,7 @@ export class Rule {
 					const references = formReferences(args);
 
 					try {
-						caster(...references);
+						this.caster(...references);
 					} catch (e) {} // Suppress casting errors, just get as far as possible.
 	
 					const values = extractValues(references);
@@ -88,7 +91,7 @@ export class Rule {
 					const references = formReferences(args);
 
 					try {
-						await caster(...references);
+						await this.caster(...references);
 					} catch (e) {}
 	
 					const values = extractValues(references);

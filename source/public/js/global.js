@@ -99,6 +99,7 @@ import {
 	decodeList,
 	any,
 	one,
+	pick,
 } from './utility/index.js';
 import * as constants from './constants.js';
 
@@ -190,51 +191,6 @@ define.constant(sj, {
 });
 
 // FILTER
-sj.shake = function (obj, properties) {
-	//C returns a new object with only the desired properties
-	let s = (obj, properties) => {
-		if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
-			throw new sj.Error({
-				origin: 'sj.shake()',
-				reason: 'first argument is not an object',
-				content: obj,
-			});
-		}
-		if (!Array.isArray(properties)) {
-			throw new sj.Error({
-				origin: 'sj.shake()',
-				reason: 'second argument is not an array',
-				content: properties,
-			});
-		}
-		/* //R properties can be symbols, or any variable in maps
-			if (!properties.each(property => typeof property === 'string')) {
-				throw new sj.Error({
-					origin: 'sj.shake()',
-					reason: "second argument's items are not all strings",
-					content: properties,
-				});
-			}
-		*/
-
-		let newObj = {};
-		properties.forEach(prop => {
-			if (obj[prop] !== undefined) {
-				newObj[prop] = obj[prop];
-			}
-		});
-		return newObj;
-	}
-
-	//C handle objects and arrays of objects
-	if (Array.isArray(obj)) return obj.map(item => s(item, properties));
-	else return s(obj, properties);
-};
-sj.shake.test = function () {
-	sj.test([
-		['simple', true === sj.deepMatch(sj.shake([{a: 'a', b: 'b'}, {a: 'a', c: 'c'}], ['a']), [{a: 'a'}, {a: 'a'}])],
-	], 'sj.shake.test()');
-};
 sj.assignDefined = function (target, ...args) {
 	args.forEach(arg => {
 		Object.keys(arg).forEach(key => {
@@ -1343,7 +1299,7 @@ sj.Base = class Base {
 		//C assign all properties from options
 		if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); 
 		//C or only assign properties declared in defaults
-		else Object.assign(composed, extendedDefaults, sj.shake(options, Object.keys(extendedDefaults))); 
+		else Object.assign(composed, extendedDefaults, pick(options, Object.keys(extendedDefaults))); 
 		//C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
 		sj.assignDefined(this, composed); //? is this preferable to simply using sj.assignDefined in places where it's needed?
 
@@ -2669,7 +2625,7 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
 				Object.defineProperties(that.filters, {
 					[key]: {
 						get: function () { 
-							return sj.shake(that, that.constructor.filters[key]);
+							return pick(that, that.constructor.filters[key]);
 						}
 					}
 				});
@@ -3224,15 +3180,3 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
 
 
 export default sj;
-
-
-//  ████████╗███████╗███████╗████████╗
-//  ╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝
-//     ██║   █████╗  ███████╗   ██║   
-//     ██║   ██╔══╝  ╚════██║   ██║   
-//     ██║   ███████╗███████║   ██║   
-//     ╚═╝   ╚══════╝╚══════╝   ╚═╝   
-
-//sj.deepMatch.test();
-//sj.shake.test();
-//sj.Base.test();

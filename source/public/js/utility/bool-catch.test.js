@@ -1,7 +1,7 @@
 import test from './test.js';
 import boolCatch from './bool-catch.js';
 
-export default function testBoolCatch() {
+export default function boolCatchTest() {
 	test([
 		['any return passes', boolCatch(() => 'asdf')],
 		['false return passes', boolCatch(() => false)],
@@ -9,5 +9,3 @@ export default function testBoolCatch() {
 		['true throw fails', !boolCatch(() => { throw true })],
 	], 'bool-catch');
 };
-
-testBoolCatch();

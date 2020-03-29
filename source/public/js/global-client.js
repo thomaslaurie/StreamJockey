@@ -38,6 +38,7 @@ import {
 	clamp, 
 	capitalizeFirstCharacter,
 	escapeRegExp,
+	pick,
 } from './utility/index.js';
 import sj from './global.js';
 
@@ -115,16 +116,31 @@ sj.Entity.augmentClass({
 	}),
 	staticProperties: parent => ({
 		async add(query) {
-			return await sj.request('POST', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.addIn));
+			return await sj.request(
+				'POST', 
+				`${sj.API_URL}/${this.table}`, 
+				sj.any(query).map((q) => pick(q, this.filters.addIn))
+			);
 		},
 		async get(query) {
-			return await sj.request('GET', `${sj.API_URL}/${this.table}?${sj.encodeList(sj.shake(sj.any(query), this.filters.getIn))}`);
+			return await sj.request(
+				'GET', 
+				`${sj.API_URL}/${this.table}?${sj.encodeList(sj.any(query).map((q) => pick(q, this.filters.getIn)))}`
+			);
 		},
 		async edit(query) {
-			return await sj.request('PATCH', `${sj.API_URL}/${this.table}`, sj.shake(sj.any(query), this.filters.editIn));
+			return await sj.request(
+				'PATCH', 
+				`${sj.API_URL}/${this.table}`, 
+				sj.any(query).map((q) => pick(q, this.filters.editIn))
+			);
 		},
 		async remove(query) {
-			return await sj.request('DELETE', `${sj.API_URL}/${this.table}`, sj.shake(query, this.filters.removeIn));
+			return await sj.request(
+				'DELETE', 
+				`${sj.API_URL}/${this.table}`, 
+				sj.any(query).map((q) => pick(q,  this.filters.removeIn))
+			);
 		},
 	}),
 });

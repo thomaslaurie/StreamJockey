@@ -76,10 +76,10 @@
 	)
 */
 
-import define from './define.js';
-import getKeys from './get-keys.js';
-import Rule from './rule.js';
-import * as rules from './common-rules.js';
+import define from './object/define.js';
+import {getKeysOf} from './object/keys-of.js';
+import Rule from './validation/rule.js';
+import * as rules from './validation/common-rules.js';
 import { SymbolInterface } from './interface.js';
 
 // INTERFACE
@@ -159,7 +159,8 @@ const customRules = {
 
 // TRANSFER FUNCTIONS
 const baseTransfer = (properties, target, enumerableCondition) => {
-	for (const key of getKeys(properties, {
+	//TODO replace with forKeysOf()
+	for (const key of getKeysOf(properties, {
 		own:           true,
 		named:         true,
 		symbol:        true,

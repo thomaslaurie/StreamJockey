@@ -250,6 +250,7 @@
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
 //! depends on global-client.js because it is used in index.js alongside global-client.js
+import {pick} from './utility/index.js';
 import sj from './global-client.js';
 
 
@@ -668,7 +669,7 @@ export default {
 			
 
 			//C subscribe on server 
-			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			const preparedQuery = sj.any(query).map((q) => pick(q, Entity.filters.getIn));
 			const processedQuery = await context.dispatch('serverSubscribe', {table, query: preparedQuery});
 
 			//C add subscriber, from this point data will live-update
@@ -720,7 +721,7 @@ export default {
 
 			//C unsubscribe on server
 			//? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
-			const preparedQuery = sj.shake(sj.any(query), Entity.filters.getIn);
+			const preparedQuery = sj.any(query).map((q) => pick(q, Entity.filters.getIn));
 			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
 
 			//C remove subscription from it's liveQuery

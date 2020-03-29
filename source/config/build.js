@@ -9,8 +9,8 @@
 import webpack from 'webpack';
 
 // INTERNAL
-import asyncSpawn from '../node-util/async-spawn.js';
-import getModule from '../node-util/get-module.js';
+import asyncSpawn from '../node-utility/async-spawn.js';
+import getModule from '../node-utility/get-module.js';
 import {clientOptions, serverOptions} from './webpack.config.js';
 
 
@@ -21,7 +21,7 @@ import {clientOptions, serverOptions} from './webpack.config.js';
 //  ██████╔╝╚██████╔╝██║███████╗██████╔╝
 //  ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ 
 
-(async function () {
+(async () => {
 	// TIMER
 	const startTime = process.hrtime();
 	

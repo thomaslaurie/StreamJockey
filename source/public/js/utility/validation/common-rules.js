@@ -1,4 +1,5 @@
 import Rule from './rule.js';
+import {getKeysOf} from '../object/keys-of.js';
 
 //G Include anything here that is possible to implement incorrectly, even for basic types.
 //R Rules for basic types are also useful for custom casting, errors, and consistency.
@@ -15,8 +16,7 @@ import Rule from './rule.js';
 export const object = new Rule({
 	//L https://stackoverflow.com/a/22482737
 	validator(value) {
-		
-		if (value === null || typeof value !== 'object' || typeof value !== 'function') {
+		if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
 			throw new Error('Value is not an object.');
 		}
 	}
@@ -43,7 +43,9 @@ export const func = new Rule({
 // STRINGS
 export const string = new Rule({
 	validator(value) {
-		if (typeof value !== 'string') throw new Error('Value is not a string.');
+		if (typeof value !== 'string') {
+			throw new Error('Value is not a string.');
+		}
 	},
 	caster(reference) {
 		// Stringify if able to.
@@ -81,6 +83,24 @@ export const visibleString = new Rule({
 	caster(reference) {
 		string.validateCast(reference);
 		// Cannot cast any further than a string.
+	},
+});
+
+// SYMBOLS
+export const symbol = new Rule({
+	validator(value) {
+		//L If transpiling to ES5, an additional check is required: https://stackoverflow.com/questions/46479169/check-if-value-is-a-symbol-in-javascript
+		if (typeof value !== 'symbol') {
+			throw new Error('Value is not a symbol.');
+		}
+	},
+	caster(reference) {
+		// Non-symbol values cast as the stringified description of a new symbol.
+		if (!this.validate(reference.value)) {
+			// Symbol(x) cannot convert symbols to strings, but String(x) in string.validateCast() can.
+			string.validateCast(reference.value);
+			reference.value = Symbol(reference.value);
+		}
 	},
 });
 
@@ -207,7 +227,7 @@ export const negativeInteger = new Rule({
 	},
 });
 
-// COMPLEX
+// SPECIAL
 export const constructor = new Rule({
 	validator(value) {
 		try { 
@@ -215,6 +235,38 @@ export const constructor = new Rule({
 		} catch (e) { 
 			throw new Error('Value is not a constructor.');
 		}
+	},
+});
+const keyify = function (value) {
+	// Create a null object with only one property.
+	const nullObject = Object.create(null);
+	nullObject[value] = true;
+
+	// Find that only property's key.
+	const [keyifiedValue] = getKeysOf(nullObject, {
+		own: true,
+		named: true,
+		symbol: true,
+		enumerable: true,
+
+		nonEnumerable: false,
+		inherited: false,
+	});
+
+	return keyifiedValue;
+};
+export const key = new Rule({
+	// Keys that won't be cast / have already been cast as a result of being used as a property key.
+	//! Does not include numbers, those get cast to strings.
+	validator(value) {
+		const keyifiedValue = keyify(value);
+
+		if (value !== keyifiedValue) {
+			throw 'Value is not keyified.';
+		}
+	},
+	caster(reference) {
+		reference.value = keyify(reference.value);
 	},
 });
 

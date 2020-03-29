@@ -1,7 +1,8 @@
 //TODO make validator keys the string keys not the literal keys, easier to access
+//TODO implement poly-validate.
 
-import getKeys from './get-keys.js';
-import define  from './define.js';
+import {getKeysOf} from './object/keys-of.js';
+import define  from './object/define.js';
 
 // EXPORT CONSTANTS
 //TODO export these in a better way (maybe attach them to VirtualInterface as static properties).
@@ -19,7 +20,7 @@ export const exists = function (object, key) {
 
 // PRIVATE UTILITIES
 function getValidatorKeys(validators) {
-	return getKeys(validators, {
+	return getKeysOf(validators, {
 		own:           true,
 		named:         true,
 		symbol:        true,

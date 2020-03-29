@@ -1,7 +1,7 @@
 import test from './test.js';
 import combinations from './combinations.js';
 
-export default function testCombinations() {
+export default function combinationsTest() {
 	const optionsObjects = [
 		{},
 		{a: []},
@@ -92,5 +92,3 @@ export default function testCombinations() {
 		...tests,
 	], 'combinations');
 };
-
-testCombinations();

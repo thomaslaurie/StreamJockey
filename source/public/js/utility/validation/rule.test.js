@@ -1,8 +1,8 @@
-import test from './test.js';
-import boolCatch from './bool-catch.js';
+import test from '../test.js';
+import boolCatch from '../bool-catch.js';
 import Rule from './rule.js';
 
-export function testRule() {
+export default function ruleTest() {
 	const string = new Rule({
 		validator(value) {
 			if (typeof value !== 'string') {
@@ -35,8 +35,8 @@ export function testRule() {
 	return test([
 		['validate pass', boolCatch(() => string.validate('asdf'))],
 		['validate fail', !boolCatch(() => string.validate(12345))],
-		['check pass', string.check('asdf')],
-		['check fail', !string.check(12345)],
+		['check pass', string.test('asdf')],
+		['check fail', !string.test(12345)],
 
 		['validate cast pass', boolCatch(() => {
 			const [result] = populatedString.validateCast('  asdf  ');
@@ -45,9 +45,7 @@ export function testRule() {
 			}
 		})],
 		['validate cast fail', !boolCatch(() => populatedString.validateCast(''))],
-		['check cast pass', populatedString.check('   asdf   ')],
-		['check cast fail', !populatedString.check('')],
+		['check cast pass', populatedString.test('   asdf   ')],
+		['check cast fail', !populatedString.test('')],
 	], 'Rule');
 };
-
-testRule();
