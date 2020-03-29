@@ -179,7 +179,7 @@ sj.trace = function () {
 };
 sj.image = function (value) {
 	if (typeof value === null || typeof value !== 'object') return value;
-	return JSON.parse(JSON.stringify(sj.deepClone(value)));
+	return JSON.parse(JSON.stringify(sj.deepClone(value))); //? Why is a deepClone needed here?
 };
 
 // HTTP
@@ -198,95 +198,6 @@ sj.assignDefined = function (target, ...args) {
 		});
 	});
 	return target;
-};
-
-// SORT
-sj.stableSort = function(list, compare) {
-	//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-	//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-	//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
-	
-	let defaultCompare = (a, b) => {
-		//C low to high
-		return a - b;
-	}
-
-	//C set compare to passed function or default
-	compare = typeof compare === 'function' ? compare : defaultCompare;
-
-	//C create new array with original index preserved
-	let frozen = list.map(function (item, index) {
-		return {value: item, index: index};
-	}); 
-
-	let stableCompare = function (a, b) {
-		let order = compare(a.value, b.value);
-
-		if (order === 0) {
-			//C if equal, sort based on their original order
-			return a.index - b.index;
-		} else {
-			//C sort normally
-			return order;
-		}
-	}
-
-	frozen.sort(stableCompare);
-
-	//C feed sorted array back into original array
-	for (let i = 0; i < list.length; i++) {
-		list[i] = frozen[i].value;
-	}
-
-	return list;
-};
-sj.dynamicSort = function(list, ascending, prop) {
-	//C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
-
-	//C ascending will flip the list into descending if false
-	if (ascending) {
-		ascending = 1;
-	} else {
-		ascending = -1;
-	}
-
-	let compare;
-	if (sj.isType(prop, 'string')) {
-		//C if prop is defined, compare props
-		if (list.every(item => sj.isType(item[prop], 'number') || sj.isType(item[prop], 'boolean'))) {
-			//C if values are numbers or boolean, do number compare
-			compare = function (a, b) {
-				return (a[prop] - b[prop]) * ascending;
-			}
-		} else {
-			//C if values are strings, other, or mixed, do a string conversion and string compare
-			compare = function (a, b) {
-				//C convert to strings
-				let as = a[prop] + '';
-				let bs = b[prop] + '';
-
-				//C string compare
-				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
-				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
-			}
-		}
-	} else {
-		//C if no prop is defined, compare values
-		//! this is the exact same as above, just without the property
-		if (list.every(item => sj.isType(item, 'number') || sj.isType(item, 'boolean'))) {
-			compare = function (a, b) {
-				return (a - b) * ascending;
-			}
-		} else {
-			compare = function (a, b) {
-				let as = a + '';
-				let bs = b + '';
-				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
-			}
-		}
-	}
-
-	return sj.stableSort(list, compare);
 };
 
 // MISC

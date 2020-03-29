@@ -99,7 +99,10 @@
 // BUILT-IN
 
 // INTERNAL
-import {pick} from '../public/js/utility/index.js';
+import {
+	pick,
+	stableSort,
+} from '../public/js/utility/index.js';
 import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
 import liveData from './live-data-server.js';
@@ -1219,10 +1222,10 @@ sj.Track.augmentClass({
 	
 	
 					//C sort
-					sj.stableSort(playlist.others, (a, b) => a.position - b.position);
+					stableSort(playlist.others, (a, b) => a.position - b.position);
 					//C stable sort by inputIndex then position to resolve clashes by position then inputIndex
-					sj.stableSort(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-					sj.stableSort(playlist.inputsToPosition, (a, b) => a.position - b.position);
+					stableSort(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+					stableSort(playlist.inputsToPosition, (a, b) => a.position - b.position);
 	
 					//console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
 					//console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);

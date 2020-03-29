@@ -429,7 +429,7 @@ sj.trace = function () {
 
 sj.image = function (value) {
   if (typeof value === null || typeof value !== 'object') return value;
-  return JSON.parse(JSON.stringify(sj.deepClone(value)));
+  return JSON.parse(JSON.stringify(sj.deepClone(value))); //? Why is a deepClone needed here?
 }; // HTTP
 
 
@@ -449,99 +449,6 @@ sj.assignDefined = function (target, ...args) {
     });
   });
   return target;
-}; // SORT
-
-
-sj.stableSort = function (list, compare) {
-  //L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-  //L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-  //L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
-  let defaultCompare = (a, b) => {
-    //C low to high
-    return a - b;
-  }; //C set compare to passed function or default
-
-
-  compare = typeof compare === 'function' ? compare : defaultCompare; //C create new array with original index preserved
-
-  let frozen = list.map(function (item, index) {
-    return {
-      value: item,
-      index: index
-    };
-  });
-
-  let stableCompare = function (a, b) {
-    let order = compare(a.value, b.value);
-
-    if (order === 0) {
-      //C if equal, sort based on their original order
-      return a.index - b.index;
-    } else {
-      //C sort normally
-      return order;
-    }
-  };
-
-  frozen.sort(stableCompare); //C feed sorted array back into original array
-
-  for (let i = 0; i < list.length; i++) {
-    list[i] = frozen[i].value;
-  }
-
-  return list;
-};
-
-sj.dynamicSort = function (list, ascending, prop) {
-  //C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
-  //C ascending will flip the list into descending if false
-  if (ascending) {
-    ascending = 1;
-  } else {
-    ascending = -1;
-  }
-
-  let compare;
-
-  if (sj.isType(prop, 'string')) {
-    //C if prop is defined, compare props
-    if (list.every(item => sj.isType(item[prop], 'number') || sj.isType(item[prop], 'boolean'))) {
-      //C if values are numbers or boolean, do number compare
-      compare = function (a, b) {
-        return (a[prop] - b[prop]) * ascending;
-      };
-    } else {
-      //C if values are strings, other, or mixed, do a string conversion and string compare
-      compare = function (a, b) {
-        //C convert to strings
-        let as = a[prop] + '';
-        let bs = b[prop] + ''; //C string compare
-        //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
-
-        return as.localeCompare(bs, 'en', {
-          sensitivity: 'base'
-        }) * ascending;
-      };
-    }
-  } else {
-    //C if no prop is defined, compare values
-    //! this is the exact same as above, just without the property
-    if (list.every(item => sj.isType(item, 'number') || sj.isType(item, 'boolean'))) {
-      compare = function (a, b) {
-        return (a - b) * ascending;
-      };
-    } else {
-      compare = function (a, b) {
-        let as = a + '';
-        let bs = b + '';
-        return as.localeCompare(bs, 'en', {
-          sensitivity: 'base'
-        }) * ascending;
-      };
-    }
-  }
-
-  return sj.stableSort(list, compare);
 }; // MISC
 
 
@@ -3438,11 +3345,79 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./public/js/utility/array/dynamic-sort.js":
+/*!*************************************************!*\
+  !*** ./public/js/utility/array/dynamic-sort.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./stable-sort.js */ "./public/js/utility/array/stable-sort.js");
+//TODO add validation
+//TODO consider replacing typechecks with a 'comparable' rule.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (list, ascending, prop) {
+  //C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
+  //C ascending will flip the list into descending if false
+  if (ascending) {
+    ascending = 1;
+  } else {
+    ascending = -1;
+  }
+
+  let compare;
+
+  if (typeof prop === 'string') {
+    //C if prop is defined, compare props
+    if (list.every(item => typeof item[prop] === 'number' || typeof item[prop] === 'boolean')) {
+      //C if values are numbers or boolean, do number compare
+      compare = function (a, b) {
+        return (a[prop] - b[prop]) * ascending;
+      };
+    } else {
+      //C if values are strings, other, or mixed, do a string conversion and string compare
+      compare = function (a, b) {
+        //C convert to strings
+        let as = a[prop] + '';
+        let bs = b[prop] + ''; //C string compare
+        //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+
+        return as.localeCompare(bs, 'en', {
+          sensitivity: 'base'
+        }) * ascending;
+      };
+    }
+  } else {
+    //C if no prop is defined, compare values
+    //! this is the exact same as above, just without the property
+    if (list.every(item => typeof item === 'number' || typeof item === 'boolean')) {
+      compare = function (a, b) {
+        return (a - b) * ascending;
+      };
+    } else {
+      compare = function (a, b) {
+        let as = a + '';
+        let bs = b + '';
+        return as.localeCompare(bs, 'en', {
+          sensitivity: 'base'
+        }) * ascending;
+      };
+    }
+  }
+
+  return Object(_stable_sort_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list, compare);
+});
+;
+
+/***/ }),
+
 /***/ "./public/js/utility/array/index.js":
 /*!******************************************!*\
   !*** ./public/js/utility/array/index.js ***!
   \******************************************/
-/*! exports provided: any, one */
+/*! exports provided: any, one, stableSort, dynamicsort */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3452,6 +3427,14 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./one.js */ "./public/js/utility/array/one.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./stable-sort.js */ "./public/js/utility/array/stable-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dynamic-sort.js */ "./public/js/utility/array/dynamic-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicsort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
 
 
 
@@ -3474,6 +3457,50 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = (function (value) {
   return _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(value) ? value[0] : value;
 });
+
+/***/ }),
+
+/***/ "./public/js/utility/array/stable-sort.js":
+/*!************************************************!*\
+  !*** ./public/js/utility/array/stable-sort.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./public/js/utility/validation/common-rules.js");
+//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
+//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+
+/* harmony default export */ __webpack_exports__["default"] = (function (array, compare = (a, b) => {
+  //C low to high
+  return a - b;
+}) {
+  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].validate(array);
+  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(compare); //C Create new array where the original index is preserved.
+
+  const preservedArray = array.map((value, index) => ({
+    value,
+    index
+  }));
+
+  const stableCompare = (a, b) => {
+    const order = compare(a.value, b.value); //C If equal, sort based on original order, otherwise sort normally.
+
+    return order === 0 ? a.index - b.index : order;
+  };
+
+  preservedArray.sort(stableCompare); //C Overwrite original array with sorted values.
+
+  for (let i = 0; i < array.length; i++) {
+    array[i] = preservedArray[i].value;
+  }
+
+  return array;
+});
+;
 
 /***/ }),
 
@@ -4008,7 +4035,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************!*\
   !*** ./public/js/utility/index.js ***!
   \************************************/
-/*! exports provided: any, one, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test, wait */
+/*! exports provided: any, one, stableSort, dynamicsort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test, wait */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4017,6 +4044,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicsort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicsort"]; });
 
 /* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/index.js */ "./public/js/utility/object/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["deepCompare"]; });
@@ -7130,10 +7161,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
             }
           }); //C sort
 
-          _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].stableSort(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+          Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
 
-          _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].stableSort(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-          _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].stableSort(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+          Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+          Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
           //console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
           //console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
           //console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');

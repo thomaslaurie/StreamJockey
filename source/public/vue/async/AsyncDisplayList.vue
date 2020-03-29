@@ -1,4 +1,5 @@
 <script>
+	import {dynamicSort} from '../../js/utility/index.js';
     import AsyncDisplay from './AsyncDisplay.vue';
 
     export default {
@@ -29,7 +30,7 @@
 
 			// NEW
             orderedContent() {
-                return this.sj.dynamicSort(this.sj.any(this.content), this.ascending, this.orderBy);
+                return dynamicSort(this.sj.any(this.content), this.ascending, this.orderBy);
 			},
 
 			/* //G transparent components
