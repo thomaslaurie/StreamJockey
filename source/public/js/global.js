@@ -192,16 +192,6 @@ define.constant(sj, {
 });
 
 // MISC
-sj.deepAccess = function (thing, ...args) {
-	const path = args.flat();
-	//C accesses nested properties of any variable type
-	//C prevents errors from being thrown on property access of undefined or null, instead returns undefined
-	return path.reduce((accumulator, key) => {
-		//C only undefined and null will throw errors for property access
-		if (accumulator === undefined || accumulator === null) return undefined;
-		else return accumulator[key];
-	}, thing);
-};
 sj.deepClone = function (...args) {
 	//C deep clones objects (root & nested objects aren't the same reference)
 	//C drops circular references and replaces with '[Circular]'

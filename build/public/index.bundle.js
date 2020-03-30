@@ -384,7 +384,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     liveContent() {
       //! one item here, uses sj.any() in AsyncDisplayList
       //? should this type check go into usingLive?
-      if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.one(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use the sj.deepAccess() function
+      if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.one(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
       //R however the real issue was that because I am using slotted content, even though it isn't rendering due to the state property, the elements still require their data references (unlike v-if and other methods)
       //L using a custom directive was a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
     },
@@ -38136,8 +38136,16 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback = _global_js__WEBPAC
     },
     baseGetters: {
       //C safe getters for track properties
-      sourceId: state => _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(state, 'track', 'sourceId'),
-      duration: state => _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(state, 'track', 'duration'),
+      sourceId: state => {
+        var _state$track;
+
+        return state === null || state === void 0 ? void 0 : (_state$track = state.track) === null || _state$track === void 0 ? void 0 : _state$track.sourceId;
+      },
+      duration: state => {
+        var _state$track2;
+
+        return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
+      },
       //C state conditions for command resolution
       isStarted: (state, _ref12) => {
         var {
@@ -39792,6 +39800,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
 
       checkPlayback(context) {
         return _asyncToGenerator(function* () {
+          var _context$state, _context$state$track, _context$state2, _context$state2$start;
+
           var state = {};
           var track = {};
           var player = context.state.player;
@@ -39821,10 +39831,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
           state.timestamp = Date.now(); //C get name and artists from current track, starting track, or an api call
           //R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
 
-          if (track.sourceId === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(context, 'state', 'track', 'sourceId')) {
+          if (track.sourceId === (context === null || context === void 0 ? void 0 : (_context$state = context.state) === null || _context$state === void 0 ? void 0 : (_context$state$track = _context$state.track) === null || _context$state$track === void 0 ? void 0 : _context$state$track.sourceId)) {
             track.name = context.state.track.name;
             track.artists = [...context.state.track.artists];
-          } else if (track.sourceId === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].deepAccess(context, 'state', 'startingTrack', 'sourceId')) {
+          } else if (track.sourceId === (context === null || context === void 0 ? void 0 : (_context$state2 = context.state) === null || _context$state2 === void 0 ? void 0 : (_context$state2$start = _context$state2.startingTrack) === null || _context$state2$start === void 0 ? void 0 : _context$state2$start.sourceId)) {
             track.name = context.state.startingTrack.name;
             track.artists = [...context.state.startingTrack.artists];
           } else {
@@ -40351,20 +40361,6 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
   decodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeList"]
 }); // MISC
 
-sj.deepAccess = function (thing) {
-  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
-  }
-
-  var path = args.flat(); //C accesses nested properties of any variable type
-  //C prevents errors from being thrown on property access of undefined or null, instead returns undefined
-
-  return path.reduce((accumulator, key) => {
-    //C only undefined and null will throw errors for property access
-    if (accumulator === undefined || accumulator === null) return undefined;else return accumulator[key];
-  }, thing);
-};
-
 sj.deepClone = function () {
   //C deep clones objects (root & nested objects aren't the same reference)
   //C drops circular references and replaces with '[Circular]'
@@ -40454,8 +40450,8 @@ sj.setTimeout = function (f, delay) {
     // });
   }
 
-  for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-    args[_key2 - 2] = arguments[_key2];
+  for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    args[_key - 2] = arguments[_key];
   }
 
   return setTimeout(f, delay, ...args);
@@ -40838,8 +40834,8 @@ sj.content = function (resolved) {
 
 sj.recursiveSyncTime = /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len3 = arguments.length, args = new Array(_len3 > 3 ? _len3 - 3 : 0), _key3 = 3; _key3 < _len3; _key3++) {
-      args[_key3 - 3] = arguments[_key3];
+    for (var _len2 = arguments.length, args = new Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
+      args[_key2 - 3] = arguments[_key2];
     }
 
     //L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
@@ -40874,8 +40870,8 @@ sj.recursiveSyncTime = /*#__PURE__*/function () {
 
 sj.recursiveSyncCount = /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
-      args[_key4 - 3] = arguments[_key4];
+    for (var _len3 = arguments.length, args = new Array(_len3 > 3 ? _len3 - 3 : 0), _key3 = 3; _key3 < _len3; _key3++) {
+      args[_key3 - 3] = arguments[_key3];
     }
 
     var count = 0;
@@ -40909,8 +40905,8 @@ sj.recursiveSyncCount = /*#__PURE__*/function () {
 
 sj.recursiveAsyncTime = /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len5 = arguments.length, args = new Array(_len5 > 3 ? _len5 - 3 : 0), _key5 = 3; _key5 < _len5; _key5++) {
-      args[_key5 - 3] = arguments[_key5];
+    for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
+      args[_key4 - 3] = arguments[_key4];
     }
 
     var timestamp = Date.now();
@@ -40952,8 +40948,8 @@ sj.recursiveAsyncTime = /*#__PURE__*/function () {
 
 sj.recursiveAsyncCount = /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len6 = arguments.length, args = new Array(_len6 > 3 ? _len6 - 3 : 0), _key6 = 3; _key6 < _len6; _key6++) {
-      args[_key6 - 3] = arguments[_key6];
+    for (var _len5 = arguments.length, args = new Array(_len5 > 3 ? _len5 - 3 : 0), _key5 = 3; _key5 < _len5; _key5++) {
+      args[_key5 - 3] = arguments[_key5];
     }
 
     var count = 0;

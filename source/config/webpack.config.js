@@ -92,7 +92,10 @@ const common = {
 							},
 						],
 					],
-					plugins: ['@babel/plugin-proposal-export-namespace-from'],
+					plugins: [
+						'@babel/plugin-proposal-export-namespace-from',
+						'@babel/plugin-proposal-optional-chaining',
+					],
 				},
 			},
 		};

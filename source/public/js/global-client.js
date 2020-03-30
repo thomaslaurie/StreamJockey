@@ -515,8 +515,8 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 		},
 		baseGetters: {
 			//C safe getters for track properties
-			sourceId:	state => sj.deepAccess(state, 'track', 'sourceId'),
-			duration:	state => sj.deepAccess(state, 'track', 'duration'),
+			sourceId: (state) => state?.track?.sourceId,
+			duration: (state) => state?.track?.duration,
 
 			//C state conditions for command resolution
 			isStarted:	(state, {sourceId, duration}) => (id, timeBefore) => (
@@ -2017,10 +2017,10 @@ sj.youtube = new sj.Source({
 
 				//C get name and artists from current track, starting track, or an api call
 				//R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
-				if (track.sourceId === sj.deepAccess(context, 'state', 'track', 'sourceId')) {
+				if (track.sourceId === context?.state?.track?.sourceId) {
 					track.name = context.state.track.name;
 					track.artists = [...context.state.track.artists];
-				} else if (track.sourceId === sj.deepAccess(context, 'state', 'startingTrack', 'sourceId')) {
+				} else if (track.sourceId === context?.state?.startingTrack?.sourceId) {
 					track.name = context.state.startingTrack.name;
 					track.artists = [...context.state.startingTrack.artists];
 				} else {
