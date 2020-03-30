@@ -547,7 +547,7 @@ export default {
 			//C updated is triggered only after entities are successfully retrieved from the server
 			pack.updated = true;
 
-			//! do not use asyncForEach loops here, these must be sequential because they use indexes which ended up getting messed up by parallel splices
+			//! do not use asyncMap loops here, these must be sequential because they use indexes which ended up getting messed up by parallel splices
 
 			//C for each existing cachedEntity
 			for (const cachedEntity of liveQuery.cachedEntityRefs) {

@@ -4,6 +4,8 @@
 //G Callback takes same argument order as Array.map callback.
 //! Can mutate the original array.
 
+//TODO The semantics of this might not be correct - why would a mixed list of fulfilled and rejected values be useful? The rejected promises are also all caught so basic throws aren't useful. Maybe explicitly filtering out fulfillments from the thrown array would be better? To fix this would require going in and ensuring all uses work with this change.
+
 import {
 	array as arrayRule,
 	func as functionRule,

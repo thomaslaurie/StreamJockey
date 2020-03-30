@@ -40349,25 +40349,11 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
   //TODO
   encodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeList"],
   decodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeList"]
-}); // FILTER
-
-sj.assignDefined = function (target) {
-  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
-  }
-
-  args.forEach(arg => {
-    Object.keys(arg).forEach(key => {
-      if (arg[key] !== undefined) target[key] = arg[key];
-    });
-  });
-  return target;
-}; // MISC
-
+}); // MISC
 
 sj.deepAccess = function (thing) {
-  for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-    args[_key2 - 1] = arguments[_key2];
+  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
   }
 
   var path = args.flat(); //C accesses nested properties of any variable type
@@ -40468,8 +40454,8 @@ sj.setTimeout = function (f, delay) {
     // });
   }
 
-  for (var _len3 = arguments.length, args = new Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
-    args[_key3 - 2] = arguments[_key3];
+  for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+    args[_key2 - 2] = arguments[_key2];
   }
 
   return setTimeout(f, delay, ...args);
@@ -40835,57 +40821,7 @@ sj.andResolve = function (rejected) {
   } catch (e) {
     return e;
   }
-}; // PROMISE
-
-
-sj.asyncForEach = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(function* (list, callback) {
-    //C executes an async function for each item in an array, throws entire result list if any of it's items were thrown
-    //L this helped: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
-    //C list is shallow copied because list could also be an array-like object
-    //L https://stackoverflow.com/questions/31084619/map-a-javascript-es6-map
-    var tempList = [...list];
-    var results = yield Promise.all(tempList.map( /*#__PURE__*/function () {
-      var _ref3 = _asyncToGenerator(function* (item, index, self) {
-        return callback(item, index, self).then(resolved => {
-          return {
-            resolved: true,
-            content: resolved
-          };
-        }, rejected => {
-          //C temporarily resolve rejections in a pack so that every item will be processed
-          return {
-            resolved: false,
-            content: sj.propagate(rejected)
-          };
-        });
-      });
-
-      return function (_x3, _x4, _x5) {
-        return _ref3.apply(this, arguments);
-      };
-    }())); //C while references are fine, primitives need to be given back to the original list
-
-    for (var i = 0; i < list.length; i++) {
-      list[i] = tempList[i];
-    } //C check if any rejected
-
-
-    var allResolved = results.every(item => item.resolved); //C un-pack
-
-    results = results.map(item => item.content);
-
-    if (allResolved) {
-      return results;
-    } else {
-      throw results;
-    }
-  });
-
-  return function (_x, _x2) {
-    return _ref2.apply(this, arguments);
-  };
-}(); // FORMAT
+}; // FORMAT
 
 
 _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
@@ -40901,9 +40837,9 @@ sj.content = function (resolved) {
 
 
 sj.recursiveSyncTime = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
-      args[_key4 - 3] = arguments[_key4];
+  var _ref2 = _asyncToGenerator(function* (n, loopCondition, f) {
+    for (var _len3 = arguments.length, args = new Array(_len3 > 3 ? _len3 - 3 : 0), _key3 = 3; _key3 < _len3; _key3++) {
+      args[_key3 - 3] = arguments[_key3];
     }
 
     //L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
@@ -40931,15 +40867,15 @@ sj.recursiveSyncTime = /*#__PURE__*/function () {
     return loop();
   });
 
-  return function (_x6, _x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function (_x, _x2, _x3) {
+    return _ref2.apply(this, arguments);
   };
 }();
 
 sj.recursiveSyncCount = /*#__PURE__*/function () {
-  var _ref5 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len5 = arguments.length, args = new Array(_len5 > 3 ? _len5 - 3 : 0), _key5 = 3; _key5 < _len5; _key5++) {
-      args[_key5 - 3] = arguments[_key5];
+  var _ref3 = _asyncToGenerator(function* (n, loopCondition, f) {
+    for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
+      args[_key4 - 3] = arguments[_key4];
     }
 
     var count = 0;
@@ -40966,15 +40902,15 @@ sj.recursiveSyncCount = /*#__PURE__*/function () {
     return loop(count);
   });
 
-  return function (_x9, _x10, _x11) {
-    return _ref5.apply(this, arguments);
+  return function (_x4, _x5, _x6) {
+    return _ref3.apply(this, arguments);
   };
 }();
 
 sj.recursiveAsyncTime = /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len6 = arguments.length, args = new Array(_len6 > 3 ? _len6 - 3 : 0), _key6 = 3; _key6 < _len6; _key6++) {
-      args[_key6 - 3] = arguments[_key6];
+  var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
+    for (var _len5 = arguments.length, args = new Array(_len5 > 3 ? _len5 - 3 : 0), _key5 = 3; _key5 < _len5; _key5++) {
+      args[_key5 - 3] = arguments[_key5];
     }
 
     var timestamp = Date.now();
@@ -41009,20 +40945,20 @@ sj.recursiveAsyncTime = /*#__PURE__*/function () {
     return yield loop();
   });
 
-  return function (_x12, _x13, _x14) {
-    return _ref6.apply(this, arguments);
+  return function (_x7, _x8, _x9) {
+    return _ref4.apply(this, arguments);
   };
 }();
 
 sj.recursiveAsyncCount = /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len7 = arguments.length, args = new Array(_len7 > 3 ? _len7 - 3 : 0), _key7 = 3; _key7 < _len7; _key7++) {
-      args[_key7 - 3] = arguments[_key7];
+  var _ref5 = _asyncToGenerator(function* (n, loopCondition, f) {
+    for (var _len6 = arguments.length, args = new Array(_len6 > 3 ? _len6 - 3 : 0), _key6 = 3; _key6 < _len6; _key6++) {
+      args[_key6 - 3] = arguments[_key6];
     }
 
     var count = 0;
 
-    function loop(_x18) {
+    function loop(_x13) {
       return _loop2.apply(this, arguments);
     }
 
@@ -41051,38 +40987,38 @@ sj.recursiveAsyncCount = /*#__PURE__*/function () {
     return yield loop(count);
   });
 
-  return function (_x15, _x16, _x17) {
-    return _ref7.apply(this, arguments);
+  return function (_x10, _x11, _x12) {
+    return _ref5.apply(this, arguments);
   };
 }(); //C uses recursiveAsyncTime to periodically check a condition
 
 
 sj.waitForCondition = /*#__PURE__*/function () {
-  var _ref9 = _asyncToGenerator(function* (_ref8) {
+  var _ref7 = _asyncToGenerator(function* (_ref6) {
     var {
       interval = 100,
       scaling = 1,
       delay = 0,
       timeout = 2000,
       condition = () => false
-    } = _ref8;
+    } = _ref6;
     yield sj.recursiveAsyncTime(timeout, () => !condition(), /*#__PURE__*/function () {
-      var _ref10 = _asyncToGenerator(function* (o) {
+      var _ref8 = _asyncToGenerator(function* (o) {
         yield sj.wait(o.time);
         o.time = o.time * scaling;
         return;
       });
 
-      return function (_x20) {
-        return _ref10.apply(this, arguments);
+      return function (_x15) {
+        return _ref8.apply(this, arguments);
       };
     }(), {
       time: interval + delay
     });
   });
 
-  return function (_x19) {
-    return _ref9.apply(this, arguments);
+  return function (_x14) {
+    return _ref7.apply(this, arguments);
   };
 }(); // HTTP
 
@@ -41135,7 +41071,7 @@ sj.rebuild = function (input, strict) {
 };
 
 sj.request = /*#__PURE__*/function () {
-  var _ref11 = _asyncToGenerator(function* (method, url, body) {
+  var _ref9 = _asyncToGenerator(function* (method, url, body) {
     var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : sj.JSON_HEADER;
 
     /* //! use UPPERCASE HTTP methods...
@@ -41223,8 +41159,8 @@ sj.request = /*#__PURE__*/function () {
     }
   });
 
-  return function (_x21, _x22, _x23) {
-    return _ref11.apply(this, arguments);
+  return function (_x16, _x17, _x18) {
+    return _ref9.apply(this, arguments);
   };
 }(); // LIVE DATA
 
@@ -41250,7 +41186,7 @@ sj.makeKey = function (length) {
 };
 
 sj.addKey = /*#__PURE__*/function () {
-  var _ref12 = _asyncToGenerator(function* (list, timeout) {
+  var _ref10 = _asyncToGenerator(function* (list, timeout) {
     var pack = {};
     var defaultTimeout = 300000; //C default 5 minutes
 
@@ -41273,13 +41209,13 @@ sj.addKey = /*#__PURE__*/function () {
     return pack;
   });
 
-  return function (_x24, _x25) {
-    return _ref12.apply(this, arguments);
+  return function (_x19, _x20) {
+    return _ref10.apply(this, arguments);
   };
 }();
 
 sj.checkKey = /*#__PURE__*/function () {
-  var _ref13 = _asyncToGenerator(function* (list, key) {
+  var _ref11 = _asyncToGenerator(function* (list, key) {
     //C checks a list for a key, will remove and return if found, will clean up timed-out keys
     for (var i = 0; i < list.length; i++) {
       //C check if timed out
@@ -41302,8 +41238,8 @@ sj.checkKey = /*#__PURE__*/function () {
     });
   });
 
-  return function (_x26, _x27) {
-    return _ref13.apply(this, arguments);
+  return function (_x21, _x22) {
+    return _ref11.apply(this, arguments);
   };
 }(); //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -41353,7 +41289,7 @@ sj.Base = class Base {
 (function () {
   //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
   //TODO consider deep defaults
-  this.makeClass = function (name, parent, _ref14) {
+  this.makeClass = function (name, parent, _ref12) {
     var {
       //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
       //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -41362,7 +41298,7 @@ sj.Base = class Base {
       prototypeProperties = parent => ({}),
       //G static properties & methods
       staticProperties = parent => ({})
-    } = _ref14;
+    } = _ref12;
     //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
     // VALIDATE
     if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
@@ -41410,12 +41346,12 @@ sj.Base = class Base {
     return MadeClass;
   };
 
-  this.augmentClass = function (_ref15) {
+  this.augmentClass = function (_ref13) {
     var {
       constructorParts = parent => ({}),
       prototypeProperties = parent => ({}),
       staticProperties = parent => ({})
-    } = _ref15;
+    } = _ref13;
     //C add or overwrite existing properties with new ones
     //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
     //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
@@ -41510,9 +41446,11 @@ sj.Base = class Base {
 
     if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); //C or only assign properties declared in defaults
     else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
+    //? is this preferable to simply using assign defined in places where it's needed?
 
-    sj.assignDefined(this, composed); //? is this preferable to simply using sj.assignDefined in places where it's needed?
-    //C call ancestor's and own afterInitialize in order
+    Object.keys(composed).forEach(key => {
+      if (composed[key] !== undefined) this[key] = composed[key];
+    }); //C call ancestor's and own afterInitialize in order
 
     for (var _i2 = chain.length - 1; _i2 >= 0; _i2--) {
       chain[_i2].afterInitialize.call(this, accessory);
@@ -42378,7 +42316,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validate = /*#__PURE__*/function () {
-          var _ref17 = _asyncToGenerator(function* (value) {
+          var _ref15 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42389,13 +42327,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x28) {
-            return _ref17.apply(this, arguments);
+          return function (_x23) {
+            return _ref15.apply(this, arguments);
           };
         }();
 
         this.check = /*#__PURE__*/function () {
-          var _ref18 = _asyncToGenerator(function* (value) {
+          var _ref16 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42406,8 +42344,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x29) {
-            return _ref18.apply(this, arguments);
+          return function (_x24) {
+            return _ref16.apply(this, arguments);
           };
         }();
       }
@@ -42457,7 +42395,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validateCast = /*#__PURE__*/function () {
-          var _ref19 = _asyncToGenerator(function* (value) {
+          var _ref17 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             accessory.castValue = value;
 
@@ -42474,13 +42412,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x30) {
-            return _ref19.apply(this, arguments);
+          return function (_x25) {
+            return _ref17.apply(this, arguments);
           };
         }();
 
         this.checkCast = /*#__PURE__*/function () {
-          var _ref20 = _asyncToGenerator(function* (value) {
+          var _ref18 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42491,8 +42429,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x31) {
-            return _ref20.apply(this, arguments);
+          return function (_x26) {
+            return _ref18.apply(this, arguments);
           };
         }();
       }
@@ -42518,12 +42456,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         });
       },
 
-      processError(targetError, _ref21) {
+      processError(targetError, _ref19) {
         var {
           fill = this.fill,
           error,
           origin
-        } = _ref21;
+        } = _ref19;
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
@@ -44379,7 +44317,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           timestamp
         }); //C updated is triggered only after entities are successfully retrieved from the server
 
-        pack.updated = true; //! do not use asyncForEach loops here, these must be sequential because they use indexes which ended up getting messed up by parallel splices
+        pack.updated = true; //! do not use asyncMap loops here, these must be sequential because they use indexes which ended up getting messed up by parallel splices
         //C for each existing cachedEntity
 
         var _loop = function* _loop(cachedEntity) {
@@ -45322,6 +45260,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // When all async functions are settled, returns an array of results if all are fulfilled, but throws the array of results if any reject.
 //G Callback takes same argument order as Array.map callback.
 //! Can mutate the original array.
+//TODO The semantics of this might not be correct - why would a mixed list of fulfilled and rejected values be useful? The rejected promises are also all caught so basic throws aren't useful. Maybe explicitly filtering out fulfillments from the thrown array would be better? To fix this would require going in and ensuring all uses work with this change.
 
 /* harmony default export */ __webpack_exports__["default"] = (function (_x, _x2) {
   return _ref.apply(this, arguments);

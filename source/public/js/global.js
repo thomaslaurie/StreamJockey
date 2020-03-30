@@ -191,16 +191,6 @@ define.constant(sj, {
 	decodeList,
 });
 
-// FILTER
-sj.assignDefined = function (target, ...args) {
-	args.forEach(arg => {
-		Object.keys(arg).forEach(key => {
-			if (arg[key] !== undefined) target[key] = arg[key];
-		});
-	});
-	return target;
-};
-
 // MISC
 sj.deepAccess = function (thing, ...args) {
 	const path = args.flat();
@@ -672,46 +662,6 @@ sj.andResolve = function (rejected) {
 		return sj.propagate(rejected);
 	} catch (e) {
 		return e;
-	}
-};
-
-// PROMISE
-sj.asyncForEach = async function (list, callback) {
-	//C executes an async function for each item in an array, throws entire result list if any of it's items were thrown
-	//L this helped: https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
-	
-	
-
-	//C list is shallow copied because list could also be an array-like object
-	//L https://stackoverflow.com/questions/31084619/map-a-javascript-es6-map
-	let tempList = [...list];
-	let results = await Promise.all(tempList.map(async (item, index, self) => callback(item, index, self).then(resolved => {
-		return {
-			resolved: true,
-			content: resolved,
-		}
-	}, rejected => {
-		//C temporarily resolve rejections in a pack so that every item will be processed
-		return {
-			resolved: false,
-			content: sj.propagate(rejected),
-		}
-	})));
-
-	//C while references are fine, primitives need to be given back to the original list
-	for(let i = 0; i < list.length; i++) {
-		list[i] = tempList[i];
-	}
-
-	//C check if any rejected
-	let allResolved = results.every(item => item.resolved);
-	//C un-pack
-	results = results.map(item => item.content); 
-
-	if (allResolved) {
-		return results;
-	} else {
-		throw results;
 	}
 };
 
@@ -1215,7 +1165,10 @@ sj.Base = class Base {
 		//C or only assign properties declared in defaults
 		else Object.assign(composed, extendedDefaults, pick(options, Object.keys(extendedDefaults))); 
 		//C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
-		sj.assignDefined(this, composed); //? is this preferable to simply using sj.assignDefined in places where it's needed?
+		//? is this preferable to simply using assign defined in places where it's needed?
+		Object.keys(composed).forEach((key) => {
+			if (composed[key] !== undefined) this[key] = composed[key];
+		}); 
 
 		//C call ancestor's and own afterInitialize in order
 		for (let i = chain.length-1; i >= 0; i--) chain[i].afterInitialize.call(this, accessory);
