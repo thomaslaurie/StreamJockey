@@ -37823,7 +37823,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start = _global_js__WEBPACK_I
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this10, context); //C pause all
 
-        yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
           });
@@ -37892,7 +37892,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle = _global_js__WEBPACK_
 
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this11, context);
-        yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref5 = _asyncToGenerator(function* (source) {
             if (_this11.isPlaying && source === _this11.source) {
               //C resume target if resuming
@@ -37983,7 +37983,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume = _global_js__WEBPACK_
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this13, context); //C adjust volume on all sources
 
-        yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref8 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this13.volume);
           });
@@ -40603,7 +40603,8 @@ sj.isEmpty = function (input) {
   return !(sj.isType(input, 'boolean') || sj.isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
   //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
   sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || sj.isType(input, 'object') && Object.keys(input).length > 0 || sj.isType(input, 'array') && input.length > 0);
-}; //TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+}; //TODO extract this, matchOrder is not supported in the new deepCompare() function, so must think of a work around.
+//TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
 
 
 sj.deepMatch = function (a, b) {
@@ -41216,7 +41217,7 @@ sj.request = /*#__PURE__*/function () {
     };
 
     if (sj.isType(parsedResult, Array)) {
-      return yield sj.asyncForEach(parsedResult, item => build(item));
+      return yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
     } else {
       return build(parsedResult);
     }
@@ -45303,6 +45304,54 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./public/js/utility/array/async-map.js":
+/*!**********************************************!*\
+  !*** ./public/js/utility/array/async-map.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./public/js/utility/validation/common-rules.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+// Executes an async function for each item in an array.
+// When all async functions are settled, returns an array of results if all are fulfilled, but throws the array of results if any reject.
+//G Callback takes same argument order as Array.map callback.
+//! Can mutate the original array.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (_x, _x2) {
+  return _ref.apply(this, arguments);
+});
+
+function _ref() {
+  _ref = _asyncToGenerator(function* (array, callback) {
+    // Validate.
+    _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].validate(array);
+    _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback); // Wait for every promise to settle.
+
+    var promises = array.map((item, index, self) => callback(item, index, self));
+    var outcomes = yield Promise.allSettled(promises); // Extract fulfillment and results.
+
+    var allFulfilled = outcomes.every(outcome => outcome.status === 'fulfilled');
+    var results = outcomes.map(outcome => outcome.status === 'fulfilled' ? outcome.value : outcome.reason); // Return fulfilled results or reject mixed results.
+
+    if (allFulfilled) {
+      return results;
+    } else {
+      throw results;
+    }
+  });
+  return _ref.apply(this, arguments);
+}
+
+;
+
+/***/ }),
+
 /***/ "./public/js/utility/array/dynamic-sort.js":
 /*!*************************************************!*\
   !*** ./public/js/utility/array/dynamic-sort.js ***!
@@ -45375,7 +45424,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!******************************************!*\
   !*** ./public/js/utility/array/index.js ***!
   \******************************************/
-/*! exports provided: any, one, stableSort, dynamicsort */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -45383,14 +45432,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./any.js */ "./public/js/utility/array/any.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _any_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./one.js */ "./public/js/utility/array/one.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _async_map_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./async-map.js */ "./public/js/utility/array/async-map.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _async_map_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./stable-sort.js */ "./public/js/utility/array/stable-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dynamic-sort.js */ "./public/js/utility/array/dynamic-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dynamic-sort.js */ "./public/js/utility/array/dynamic-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicsort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./one.js */ "./public/js/utility/array/one.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./stable-sort.js */ "./public/js/utility/array/stable-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
 
 
 
@@ -46023,7 +46076,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************!*\
   !*** ./public/js/utility/index.js ***!
   \************************************/
-/*! exports provided: any, one, stableSort, dynamicsort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test, wait */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test, wait */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46031,11 +46084,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _array_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./array/index.js */ "./public/js/utility/array/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicSort"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicsort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicsort"]; });
 
 /* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/index.js */ "./public/js/utility/object/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["deepCompare"]; });
@@ -46385,8 +46440,8 @@ function deepCompare(a, b) {
     //C true:  compare selected key-values on x to the same key-values anywhere on y
     //C false: compare selected key-values on x to the same key-values selected on y
     anywhere = false,
-    //C true:  compares a against b and b against a
-    //C false: compares a against b
+    //C true:  compares a against b 
+    //C false: compares a against b and b against a
     //? what if subsetting needs to stop a specific depth?
     //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
     subset = false,
@@ -47121,7 +47176,7 @@ __webpack_require__.r(__webpack_exports__);
  //G Include anything here that is possible to implement incorrectly, even for basic types.
 //R Rules for basic types are also useful for custom casting, errors, and consistency.
 //TODO ensure that import * can be tree shaken
-//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async
+//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
 // sync func
 // async func
 // BUILT-IN RULES

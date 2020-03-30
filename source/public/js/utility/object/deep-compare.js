@@ -29,8 +29,8 @@ export default function deepCompare(a, b, options = {}) {
 		//C false: compare selected key-values on x to the same key-values selected on y
 		anywhere = false,
 
-		//C true:  compares a against b and b against a
-		//C false: compares a against b
+		//C true:  compares a against b 
+		//C false: compares a against b and b against a
 		//? what if subsetting needs to stop a specific depth?
 		//R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
 		subset = false,

@@ -39,6 +39,7 @@ import {
 	capitalizeFirstCharacter,
 	escapeRegExp,
 	pick,
+	asyncMap,
 } from './utility/index.js';
 import sj from './global.js';
 
@@ -259,7 +260,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Command, {
 			await parent.prototype.trigger.call(this, context);
 
 			//C pause all
-			await sj.asyncForEach(sj.Source.instances, async source => {
+			await asyncMap(sj.Source.instances, async source => {
 				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
 			});
 
@@ -317,7 +318,7 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Command, {
 		async trigger(context) {
 			await parent.prototype.trigger.call(this, context);
 
-			await sj.asyncForEach(sj.Source.instances, async source => {
+			await asyncMap(sj.Source.instances, async source => {
 				if (this.isPlaying && source === this.source) {
 					//C resume target if resuming
 					await context.dispatch(`${source.name}/resume`);
@@ -386,7 +387,7 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Command, {
 			await parent.prototype.trigger.call(this, context);
 
 			//C adjust volume on all sources
-			await sj.asyncForEach(sj.Source.instances, async source => {
+			await asyncMap(sj.Source.instances, async source => {
 				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/volume`, this.volume);
 			});
 		},

@@ -6,7 +6,7 @@ import {getKeysOf} from '../object/keys-of.js';
 
 //TODO ensure that import * can be tree shaken
 
-//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async
+//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
 // sync func
 // async func
 

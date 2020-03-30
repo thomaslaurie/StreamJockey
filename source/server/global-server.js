@@ -102,6 +102,7 @@
 import {
 	pick,
 	stableSort,
+	asyncMap,
 } from '../public/js/utility/index.js';
 import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
@@ -596,10 +597,10 @@ sj.Entity.augmentClass({
 				const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
 				//C validate
-				const validatedEntities = await sj.asyncForEach(beforeEntities, async entity => await this.validate(entity, methodName).catch(sj.propagate));
+				const validatedEntities = await asyncMap(beforeEntities, async entity => await this.validate(entity, methodName).catch(sj.propagate));
 
 				//C prepare
-				const preparedEntities = await sj.asyncForEach(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate));
+				const preparedEntities = await asyncMap(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate));
 
 				//C accommodate
 				const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate) : [];
@@ -613,7 +614,7 @@ sj.Entity.augmentClass({
 				const inputBefore = [];
 				const inputAfter = isGetMimic ? inputMapped : [];
 				if (!isGetMimic) {
-					await sj.asyncForEach(inputMapped, async entity => {
+					await asyncMap(inputMapped, async entity => {
 						//C before, ignore add
 						if (!isGet && methodName !== 'add') {
 							const before = await this.getQuery(t, pick(entity, this.filters.id)).then(sj.any).catch(sj.propagate)
@@ -635,7 +636,7 @@ sj.Entity.augmentClass({
 				const influencedBefore = [];
 				const influencedAfter = [];
 				if (!isGet) {
-					await sj.asyncForEach(influencedMapped, async influencedEntity => {
+					await asyncMap(influencedMapped, async influencedEntity => {
 						const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(sj.any).catch(sj.propagate);
 						influencedBefore.push(...before);
 
@@ -657,7 +658,7 @@ sj.Entity.augmentClass({
 				const unmapped = all.map(list => this.unmapColumns(list));
 
 				//C process
-				return await sj.asyncForEach(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
+				return await asyncMap(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
 			}).catch(sj.propagate); //! finish the transaction here so that notify won't be called before the database has updated
 
 			//C shake for subscriptions with getOut filter
@@ -700,7 +701,7 @@ sj.Entity.augmentClass({
 		//C validates each using sj.Entity.schema
 		this.validate = async function (entity, methodName) {
 			const validated = {};
-			await sj.asyncForEach(Object.keys(this.schema), async key => {
+			await asyncMap(Object.keys(this.schema), async key => {
 				const prop = this.schema[key];
 
 				//C catches
@@ -1083,7 +1084,7 @@ sj.Track.augmentClass({
 				const inputIndex = Symbol();
 	
 				//C retrieve track's playlist, group each track by playlist & moveType
-				await sj.asyncForEach(inputTracks, async (track, index) => {
+				await asyncMap(inputTracks, async (track, index) => {
 					const storePlaylist = function (playlistId, existingTracks) {
 						if (!sj.isType(playlistId, 'integer')) throw new sj.Error({
 							origin: 'sj.Track.order()',

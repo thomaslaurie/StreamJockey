@@ -100,6 +100,7 @@ import {
 	any,
 	one,
 	pick,
+	asyncMap,
 } from './utility/index.js';
 import * as constants from './constants.js';
 
@@ -429,6 +430,8 @@ sj.isEmpty = function (input) {
         (sj.isType(input, 'array') && input.length > 0)
 	);
 };
+
+//TODO extract this, matchOrder is not supported in the new deepCompare() function, so must think of a work around.
 //TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
 sj.deepMatch = function (a, b, {
 	deep = true, 
@@ -945,7 +948,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 		return item;
 	}
 	if (sj.isType(parsedResult, Array)) {
-		return await sj.asyncForEach(parsedResult, item => build(item));
+		return await asyncMap(parsedResult, item => build(item));
 	} else {
 		return build(parsedResult);
 	}

@@ -680,7 +680,8 @@ sj.isEmpty = function (input) {
   return !(sj.isType(input, 'boolean') || sj.isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
   //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
   sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || sj.isType(input, 'object') && Object.keys(input).length > 0 || sj.isType(input, 'array') && input.length > 0);
-}; //TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+}; //TODO extract this, matchOrder is not supported in the new deepCompare() function, so must think of a work around.
+//TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
 
 
 sj.deepMatch = function (a, b, {
@@ -1208,7 +1209,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
   };
 
   if (sj.isType(parsedResult, Array)) {
-    return await sj.asyncForEach(parsedResult, item => build(item));
+    return await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
   } else {
     return build(parsedResult);
   }
@@ -3345,6 +3346,42 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./public/js/utility/array/async-map.js":
+/*!**********************************************!*\
+  !*** ./public/js/utility/array/async-map.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./public/js/utility/validation/common-rules.js");
+// Executes an async function for each item in an array.
+// When all async functions are settled, returns an array of results if all are fulfilled, but throws the array of results if any reject.
+//G Callback takes same argument order as Array.map callback.
+//! Can mutate the original array.
+
+/* harmony default export */ __webpack_exports__["default"] = (async function (array, callback) {
+  // Validate.
+  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].validate(array);
+  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback); // Wait for every promise to settle.
+
+  const promises = array.map((item, index, self) => callback(item, index, self));
+  const outcomes = await Promise.allSettled(promises); // Extract fulfillment and results.
+
+  const allFulfilled = outcomes.every(outcome => outcome.status === 'fulfilled');
+  const results = outcomes.map(outcome => outcome.status === 'fulfilled' ? outcome.value : outcome.reason); // Return fulfilled results or reject mixed results.
+
+  if (allFulfilled) {
+    return results;
+  } else {
+    throw results;
+  }
+});
+;
+
+/***/ }),
+
 /***/ "./public/js/utility/array/dynamic-sort.js":
 /*!*************************************************!*\
   !*** ./public/js/utility/array/dynamic-sort.js ***!
@@ -3417,7 +3454,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!******************************************!*\
   !*** ./public/js/utility/array/index.js ***!
   \******************************************/
-/*! exports provided: any, one, stableSort, dynamicsort */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3425,14 +3462,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./any.js */ "./public/js/utility/array/any.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _any_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./one.js */ "./public/js/utility/array/one.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _async_map_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./async-map.js */ "./public/js/utility/array/async-map.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _async_map_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./stable-sort.js */ "./public/js/utility/array/stable-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dynamic-sort.js */ "./public/js/utility/array/dynamic-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./dynamic-sort.js */ "./public/js/utility/array/dynamic-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicsort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./one.js */ "./public/js/utility/array/one.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./stable-sort.js */ "./public/js/utility/array/stable-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
 
 
 
@@ -4035,7 +4076,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************!*\
   !*** ./public/js/utility/index.js ***!
   \************************************/
-/*! exports provided: any, one, stableSort, dynamicsort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test, wait */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test, wait */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4043,11 +4084,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _array_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./array/index.js */ "./public/js/utility/array/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicSort"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicsort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicsort"]; });
 
 /* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/index.js */ "./public/js/utility/object/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["deepCompare"]; });
@@ -4382,8 +4425,8 @@ function deepCompare(a, b, options = {}) {
     //C true:  compare selected key-values on x to the same key-values anywhere on y
     //C false: compare selected key-values on x to the same key-values selected on y
     anywhere = false,
-    //C true:  compares a against b and b against a
-    //C false: compares a against b
+    //C true:  compares a against b 
+    //C false: compares a against b and b against a
     //? what if subsetting needs to stop a specific depth?
     //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
     subset = false,
@@ -5092,7 +5135,7 @@ __webpack_require__.r(__webpack_exports__);
  //G Include anything here that is possible to implement incorrectly, even for basic types.
 //R Rules for basic types are also useful for custom casting, errors, and consistency.
 //TODO ensure that import * can be tree shaken
-//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async
+//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
 // sync func
 // async func
 // BUILT-IN RULES
@@ -6582,9 +6625,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C prepare
+        const validatedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C prepare
 
-        const preparedEntities = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C accommodate
+        const preparedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C accommodate
 
         const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate) : []; //C map
 
@@ -6595,7 +6638,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         const inputAfter = isGetMimic ? inputMapped : [];
 
         if (!isGetMimic) {
-          await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(inputMapped, async entity => {
+          await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
               const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
@@ -6617,7 +6660,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         const influencedAfter = [];
 
         if (!isGet) {
-          await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(influencedMapped, async influencedEntity => {
+          await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
             const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
             influencedBefore.push(...before);
             const after = await this.editQuery(t, influencedEntity).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
@@ -6634,7 +6677,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate));
+        return await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate));
       }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
@@ -6665,7 +6708,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
     this.validate = async function (entity, methodName) {
       const validated = {};
-      await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(Object.keys(this.schema), async key => {
+      await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
         const prop = this.schema[key]; //C catches
 
         if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule)) {
@@ -7045,7 +7088,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
         const influencedTracks = [];
         const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
 
-        await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].asyncForEach(inputTracks, async (track, index) => {
+        await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
             if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(playlistId, 'integer')) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               origin: 'sj.Track.order()',
