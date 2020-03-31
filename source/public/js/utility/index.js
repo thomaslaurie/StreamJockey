@@ -2,6 +2,7 @@
 export * from './array/index.js';
 export * from './object/index.js';
 export * from './string/index.js';
+export * from './time/index.js';
 export * from './uri/index.js';
 export * from './validation/index.js';
 
@@ -15,4 +16,3 @@ export * as constants               from './constants.js';
 export {Interface, SymbolInterface} from './interface.js'; //TODO constants aren't exported, find an elegant way to do this.
 export {default as reference}       from './reference.js';
 export {default as test}            from './test.js';
-export {default as wait}            from './wait.js';

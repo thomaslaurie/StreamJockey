@@ -15,4 +15,3 @@ export {default as dynamicClassTest} from './dynamic-class.test.js';
 export {default as interfaceTest} from './interface.test.js';
 export {default as referenceTest} from './reference.test.js';
 //TODO test test
-//TODO wait test

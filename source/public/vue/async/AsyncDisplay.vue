@@ -1,4 +1,6 @@
 <script>
+	import {setTimer} from '../../js/utility/index.js';
+
 	import AsyncSwitch from './AsyncSwitch.vue';
 	
     import AsyncDelay from './AsyncDelay.vue';
@@ -23,15 +25,15 @@
 				//C used with AsyncSwitch to switch between delay, loading, error components, and the slotted display makrup from this component
 				//! at the moment, the 'delay' state will only appear at the start of the component's creation as it blends the transition from no-content to loading-content, however when there is already existing content, delay is not used as it would cause flickering when refreshing content
 				state: 'delay',
-				//C refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's delayId and timeoutId
+				//C refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's clearDelay and clearTieout
 				refreshPromise: null, 
 				//C ms before switching to 'loading'
 				//TODO I can still see delay flickering
                 delay: 1000,
-				delayId: null,
+				clearDelay: null,
 				//C ms before throwing a timeout error and switching to 'error'
                 timeout: Infinity,
-				timeoutId: null,
+				clearTimeout: null,
 				
 				// GENERAL
 				Entity: null, //C subscription Entity type
@@ -150,27 +152,27 @@
 					reason: 'refresh promise must be an instance of sj.Deferred',
 				});
 
-                this.delayId = this.sj.setTimeout(() => {
+                this.clearDelay = setTimer(this.delay, () => {
 					//C switch state to 'loading' after delay time
 					this.state = 'loading';
-                }, this.delay);
-                this.timeoutId = this.sj.setTimeout(() => {
+                });
+                this.clearTimeout = setTimer(this.timeout, () => {
 					//C reject after timeout time
 					this.refreshPromise.reject(new this.sj.Error({
                         origin: 'AsyncDisplay.load()',
                         message: 'content request timed out',
                     }));
-				}, this.timeout);
+				});
             },
             clearTimeouts() {
 				//C clear
-                clearTimeout(this.delayId);
-				clearTimeout(this.timeoutId);
+				this.clearDelay?.();
+				this.clearTimeout?.();
 				if (this.sj.isType(this.refreshPromise, this.sj.Deferred)) this.refreshPromise.cancel();
 
 				//C reset
-				this.delayId = null;
-				this.timeoutId = null;
+				this.clearDelay = null;
+				this.clearTimeout = null;
 				this.refreshPromise = null;
             },
 

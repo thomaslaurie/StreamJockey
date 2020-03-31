@@ -250,7 +250,10 @@
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
 //! depends on global-client.js because it is used in index.js alongside global-client.js
-import {pick} from './utility/index.js';
+import {
+	pick,
+	setTimer,
+} from './utility/index.js';
 import sj from './global-client.js';
 
 
@@ -813,15 +816,15 @@ export default {
 		// SERVER
 		async serverSubscribe(context, {table, query}) {
 			return await new Promise((resolve, reject) => {
-				const timeoutId = sj.setTimeout(() => {
+				const clearTimer = setTimer(context.state.timeout, () => {
 					reject(new sj.Error({
 						log: true,
 						reason: 'socket - subscribe timed out',
 					}));
-				}, context.state.timeout);
+				});
 
 				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
-					clearTimeout(timeoutId);
+					clearTimer();
 					if (sj.isType(result, sj.Error)) reject(result);
 					else resolve(result);
 				});
@@ -829,15 +832,15 @@ export default {
 		},
 		async serverUnsubscribe(context, {table, query}) {
 			await new Promise((resolve, reject) => {
-				const timeoutId = sj.setTimeout(() => {
+				const clearTimer = setTimer(context.state.timeout, () => {
 					reject(new sj.Error({
 						log: true,
 						reason: 'socket - unsubscribe timed out',
 					}));
-				}, context.state.timeout);
+				});
 
 				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
-					clearTimeout(timeoutId);
+					clearTimer();
 					if (sj.isType(result, sj.Error)) reject(result);
 					else resolve(result);
 				});

@@ -105,7 +105,7 @@ import {
 import * as constants from './constants.js';
 
 // EXTERNAL
-import fClone from 'fclone';
+import fclone from 'fclone';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -261,24 +261,6 @@ sj.Deferred = class Deferred extends Promise {
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 
 //C these reference sj.Bases, don't call these until classes are defined
-
-sj.setTimeout = function (f, delay, ...args) {
-	//C allows the use of Infinity for setTimeout()
-	//! this will be clamped to 2147483647
-	//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
-	//L https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
-
-	if (delay > 2147483647) {
-		delay = 2147483647;
-		// new sj.Warn({
-		// 	origin: 'setTimeout()',
-		// 	message: 'setTimeout delay clamped to 2147483647 (24.8) days',
-		// });
-	}
-
-	return setTimeout(f, delay, ...args);
-};
-
 
 // SESSION //C holds login, get, logout, etc. methods
 sj.session = {};

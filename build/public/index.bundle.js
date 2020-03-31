@@ -312,13 +312,15 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
-/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
-/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
-/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
+/* harmony import */ var _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
+/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
+/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
+/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 
@@ -328,11 +330,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display',
   components: {
-    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
+    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
     //TODO make actual default components
-    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
-    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
-    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
+    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_4__["default"]
   },
 
   data() {
@@ -341,15 +343,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       //C used with AsyncSwitch to switch between delay, loading, error components, and the slotted display makrup from this component
       //! at the moment, the 'delay' state will only appear at the start of the component's creation as it blends the transition from no-content to loading-content, however when there is already existing content, delay is not used as it would cause flickering when refreshing content
       state: 'delay',
-      //C refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's delayId and timeoutId
+      //C refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's clearDelay and clearTieout
       refreshPromise: null,
       //C ms before switching to 'loading'
       //TODO I can still see delay flickering
       delay: 1000,
-      delayId: null,
+      clearDelay: null,
       //C ms before throwing a timeout error and switching to 'error'
       timeout: Infinity,
-      timeoutId: null,
+      clearTimeout: null,
       // GENERAL
       Entity: null,
       //C subscription Entity type
@@ -471,27 +473,29 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         origin: 'AsyncContent startTimeouts()',
         reason: 'refresh promise must be an instance of sj.Deferred'
       });
-      this.delayId = this.sj.setTimeout(() => {
+      this.clearDelay = Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["setTimer"])(this.delay, () => {
         //C switch state to 'loading' after delay time
         this.state = 'loading';
-      }, this.delay);
-      this.timeoutId = this.sj.setTimeout(() => {
+      });
+      this.clearTimeout = Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["setTimer"])(this.timeout, () => {
         //C reject after timeout time
         this.refreshPromise.reject(new this.sj.Error({
           origin: 'AsyncDisplay.load()',
           message: 'content request timed out'
         }));
-      }, this.timeout);
+      });
     },
 
     clearTimeouts() {
+      var _this$clearDelay, _this$clearTimeout;
+
       //C clear
-      clearTimeout(this.delayId);
-      clearTimeout(this.timeoutId);
+      (_this$clearDelay = this.clearDelay) === null || _this$clearDelay === void 0 ? void 0 : _this$clearDelay.call(this);
+      (_this$clearTimeout = this.clearTimeout) === null || _this$clearTimeout === void 0 ? void 0 : _this$clearTimeout.call(this);
       if (this.sj.isType(this.refreshPromise, this.sj.Deferred)) this.refreshPromise.cancel(); //C reset
 
-      this.delayId = null;
-      this.timeoutId = null;
+      this.clearDelay = null;
+      this.clearTimeout = null;
       this.refreshPromise = null;
     },
 
@@ -40365,7 +40369,7 @@ sj.trace = function () {
 
 sj.image = function (value) {
   if (typeof value === null || typeof value !== 'object') return value;
-  return JSON.parse(JSON.stringify(fclone(value))); //? Why is a deepClone needed here?
+  return JSON.parse(JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_3___default()(value))); //? Why is a deepClone needed here?
 }; // HTTP
 
 
@@ -40448,26 +40452,7 @@ sj.Deferred = class Deferred extends Promise {
 //  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 //C these reference sj.Bases, don't call these until classes are defined
-
-sj.setTimeout = function (f, delay) {
-  //C allows the use of Infinity for setTimeout()
-  //! this will be clamped to 2147483647
-  //L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
-  //L https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
-  if (delay > 2147483647) {
-    delay = 2147483647; // new sj.Warn({
-    // 	origin: 'setTimeout()',
-    // 	message: 'setTimeout delay clamped to 2147483647 (24.8) days',
-    // });
-  }
-
-  for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    args[_key - 2] = arguments[_key];
-  }
-
-  return setTimeout(f, delay, ...args);
-}; // SESSION //C holds login, get, logout, etc. methods
-
+// SESSION //C holds login, get, logout, etc. methods
 
 sj.session = {}; // TYPE
 
@@ -40845,8 +40830,8 @@ sj.content = function (resolved) {
 
 sj.recursiveSyncTime = /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len2 = arguments.length, args = new Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
-      args[_key2 - 3] = arguments[_key2];
+    for (var _len = arguments.length, args = new Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
+      args[_key - 3] = arguments[_key];
     }
 
     //L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
@@ -40881,8 +40866,8 @@ sj.recursiveSyncTime = /*#__PURE__*/function () {
 
 sj.recursiveSyncCount = /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len3 = arguments.length, args = new Array(_len3 > 3 ? _len3 - 3 : 0), _key3 = 3; _key3 < _len3; _key3++) {
-      args[_key3 - 3] = arguments[_key3];
+    for (var _len2 = arguments.length, args = new Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
+      args[_key2 - 3] = arguments[_key2];
     }
 
     var count = 0;
@@ -40916,8 +40901,8 @@ sj.recursiveSyncCount = /*#__PURE__*/function () {
 
 sj.recursiveAsyncTime = /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
-      args[_key4 - 3] = arguments[_key4];
+    for (var _len3 = arguments.length, args = new Array(_len3 > 3 ? _len3 - 3 : 0), _key3 = 3; _key3 < _len3; _key3++) {
+      args[_key3 - 3] = arguments[_key3];
     }
 
     var timestamp = Date.now();
@@ -40959,8 +40944,8 @@ sj.recursiveAsyncTime = /*#__PURE__*/function () {
 
 sj.recursiveAsyncCount = /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len5 = arguments.length, args = new Array(_len5 > 3 ? _len5 - 3 : 0), _key5 = 3; _key5 < _len5; _key5++) {
-      args[_key5 - 3] = arguments[_key5];
+    for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
+      args[_key4 - 3] = arguments[_key4];
     }
 
     var count = 0;
@@ -41104,7 +41089,7 @@ sj.request = /*#__PURE__*/function () {
     if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) {
       //C stringify body
       try {
-        options.body = JSON.stringify(fclone(options.body));
+        options.body = JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_3___default()(options.body));
       } catch (e) {
         //C catch stringify error (should be a cyclic reference)
         throw new sj.Error({
@@ -44682,17 +44667,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         } = _ref26;
         return yield new Promise((resolve, reject) => {
-          var timeoutId = _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].setTimeout(() => {
+          var clearTimer = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["setTimer"])(context.state.timeout, () => {
             reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               log: true,
               reason: 'socket - subscribe timed out'
             }));
-          }, context.state.timeout);
+          });
           context.state.socket.emit('subscribe', {
             table: table.Entity.table,
             query
           }, result => {
-            clearTimeout(timeoutId);
+            clearTimer();
             if (_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error)) reject(result);else resolve(result);
           });
         }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
@@ -44706,17 +44691,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         } = _ref27;
         yield new Promise((resolve, reject) => {
-          var timeoutId = _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].setTimeout(() => {
+          var clearTimer = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["setTimer"])(context.state.timeout, () => {
             reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               log: true,
               reason: 'socket - unsubscribe timed out'
             }));
-          }, context.state.timeout);
+          });
           context.state.socket.emit('unsubscribe', {
             table: table.Entity.table,
             query
           }, result => {
-            clearTimeout(timeoutId);
+            clearTimer();
             if (_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error)) reject(result);else resolve(result);
           });
         }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
@@ -45570,13 +45555,13 @@ function combinations(optionsObject) {
 /*!***********************************************!*\
   !*** ./source/public/js/utility/constants.js ***!
   \***********************************************/
-/*! exports provided: MAX_SAFE_32_BIT_INTEGER */
+/*! exports provided: MAX_32_BIT_INTEGER */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_SAFE_32_BIT_INTEGER", function() { return MAX_SAFE_32_BIT_INTEGER; });
-var MAX_SAFE_32_BIT_INTEGER = 2147483647;
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_32_BIT_INTEGER", function() { return MAX_32_BIT_INTEGER; });
+var MAX_32_BIT_INTEGER = 2147483647;
 
 /***/ }),
 
@@ -46022,7 +46007,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test, wait */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46056,54 +46041,57 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"]; });
 
-/* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./uri/index.js */ "./source/public/js/utility/uri/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_3__["encodeProperties"]; });
+/* harmony import */ var _time_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./time/index.js */ "./source/public/js/utility/time/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["setTimer"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_3__["decodeProperties"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_3__["encodeList"]; });
+/* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./uri/index.js */ "./source/public/js/utility/uri/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeProperties"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_3__["decodeList"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeProperties"]; });
 
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_4__["commonRules"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeList"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexValidate", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_4__["flexValidate"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_4__["Rule"]; });
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["commonRules"]; });
 
-/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./bool-catch.js */ "./source/public/js/utility/bool-catch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexValidate", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["flexValidate"]; });
 
-/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./clamp.js */ "./source/public/js/utility/clamp.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Rule"]; });
 
-/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./combinations.js */ "./source/public/js/utility/combinations.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./bool-catch.js */ "./source/public/js/utility/bool-catch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
 
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/public/js/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./clamp.js */ "./source/public/js/utility/clamp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./format-ms.js */ "./source/public/js/utility/format-ms.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combinations.js */ "./source/public/js/utility/combinations.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_10__; });
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_11__["Interface"]; });
+/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/public/js/utility/dynamic-class.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_11__["SymbolInterface"]; });
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./format-ms.js */ "./source/public/js/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_11__; });
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["Interface"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["SymbolInterface"]; });
 
-/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./wait.js */ "./source/public/js/utility/wait.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
 
 // NESTED
+
 
 
 
@@ -46118,7 +46106,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //TODO constants aren't exported, find an elegant way to do this.
-
 
 
 
@@ -46936,6 +46923,145 @@ function _test() {
 
 /***/ }),
 
+/***/ "./source/public/js/utility/time/index.js":
+/*!************************************************!*\
+  !*** ./source/public/js/utility/time/index.js ***!
+  \************************************************/
+/*! exports provided: setTimer, wait */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _set_timer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./set-timer.js */ "./source/public/js/utility/time/set-timer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _set_timer_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./wait.js */ "./source/public/js/utility/time/wait.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/public/js/utility/time/set-timer.js":
+/*!****************************************************!*\
+  !*** ./source/public/js/utility/time/set-timer.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants.js */ "./source/public/js/utility/constants.js");
+//R setTimeout has a maximum delay of MAX_32_BIT_INTEGER past which the timeout will execute immediately.
+//G Use this timer instead to support longer timeouts.
+
+/**
+ * Executes a function after a delay time, similar to setTimeout.
+ * 
+ * @param  {number}   delay - Delay in milliseconds.
+ * @param  {function} func  - Function executed after delay.
+ * @param  {...any}   args  - Arguments passed to the function.
+ * 
+ * @returns {function}        Function that clears the timer.
+ */
+
+/* harmony default export */ __webpack_exports__["default"] = (function (delay, func) {
+  for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    args[_key - 2] = arguments[_key];
+  }
+
+  //TODO Add validation, maybe remove support for negative numbers and NaN as they don't semantically make sense.
+  // If delay is 0, negative, or NaN (similar to setTimeout).
+  if (delay <= 0 || NaN) {
+    // Execute function immediately.
+    func(...args); // Return empty function, as an instantaneous timeout cannot be cleared.
+
+    return function () {};
+  } // If delay is infinite.
+
+
+  if (delay === Infinity) {
+    // Never execute the function.
+    // Return empty function, as an infinite timeout is effectively cleared already.
+    return function () {};
+  } // Remainder
+
+
+  var remainder = delay % _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_32_BIT_INTEGER"]; // Quotient
+
+  var overflowChunkCount = BigInt((delay - remainder) / _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_32_BIT_INTEGER"]); // Current timeout ID.
+
+  var timeoutId;
+
+  (function nestTimeout() {
+    if (overflowChunkCount > 0) {
+      // If there are chunks of overflowed time left:
+      // Set a timeout for the full chunk of time.
+      timeoutId = setTimeout(() => {
+        // Upon finishing:
+        // Mark the time chunk as 'finished' by reducing the count.
+        overflowChunkCount--; // Evaluate the time state again.
+
+        nestTimeout();
+      }, _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_32_BIT_INTEGER"]);
+    } else {
+      // Else, there are no chunks of overflowed time left:
+      // Set a timeout for the remaining time.
+      timeoutId = setTimeout(func, remainder, ...args);
+    }
+  })();
+
+  return function () {
+    clearTimeout(timeoutId);
+  };
+});
+;
+
+/***/ }),
+
+/***/ "./source/public/js/utility/time/wait.js":
+/*!***********************************************!*\
+  !*** ./source/public/js/utility/time/wait.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+//G Used for basic async waiting.
+//! Cannot be canceled.
+
+/**
+ * Asynchronously waits a period of time, then resolves.
+ * 
+ * @param {number} duration - Time to wait, in milliseconds.
+ * 
+ * @returns {Promise} Promise that resolves after wait duration.
+ */
+/* harmony default export */ __webpack_exports__["default"] = (function (_x) {
+  return _ref.apply(this, arguments);
+});
+
+function _ref() {
+  _ref = _asyncToGenerator(function* (duration) {
+    return new Promise(resolve => {
+      setTimer(duration, () => {
+        resolve();
+      });
+    });
+  });
+  return _ref.apply(this, arguments);
+}
+
+;
+
+/***/ }),
+
 /***/ "./source/public/js/utility/uri/decode-list.js":
 /*!*****************************************************!*\
   !*** ./source/public/js/utility/uri/decode-list.js ***!
@@ -47679,47 +47805,6 @@ class Rule {
 }
 ;
 /* harmony default export */ __webpack_exports__["default"] = (Rule);
-
-/***/ }),
-
-/***/ "./source/public/js/utility/wait.js":
-/*!******************************************!*\
-  !*** ./source/public/js/utility/wait.js ***!
-  \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-// Basic wait promise.
-//! Does not resolve if timeout is larger than MAX_SAFE_32_BIT_INTEGER
-//TODO Maybe think about functionality for handling larger numbers, infinity, negative numbers, etc.
-
-/* harmony default export */ __webpack_exports__["default"] = (function (_x) {
-  return _ref.apply(this, arguments);
-});
-
-function _ref() {
-  _ref = _asyncToGenerator(function* (ms) {
-    //C used for basic waiting, //! should not be used if the callback needs to be canceled
-    return new Promise(resolve => {
-      //L maximum timeout length: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout#Maximum_delay_value
-      if (ms <= _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_SAFE_32_BIT_INTEGER"]) {
-        sj.setTimeout(() => {
-          resolve();
-        }, ms);
-      }
-    });
-  });
-  return _ref.apply(this, arguments);
-}
-
-;
 
 /***/ }),
 
