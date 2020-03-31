@@ -1,9 +1,9 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([["spotify-player"],{
 
-/***/ "./public/js/spotify-player.js":
-/*!*************************************!*\
-  !*** ./public/js/spotify-player.js ***!
-  \*************************************/
+/***/ "./source/public/js/spotify-player.js":
+/*!********************************************!*\
+  !*** ./source/public/js/spotify-player.js ***!
+  \********************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 

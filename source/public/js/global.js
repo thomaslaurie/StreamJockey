@@ -105,7 +105,7 @@ import {
 import * as constants from './constants.js';
 
 // EXTERNAL
-import fClone from './fclone.js';
+import fClone from 'fclone';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -180,7 +180,7 @@ sj.trace = function () {
 };
 sj.image = function (value) {
 	if (typeof value === null || typeof value !== 'object') return value;
-	return JSON.parse(JSON.stringify(sj.deepClone(value))); //? Why is a deepClone needed here?
+	return JSON.parse(JSON.stringify(fclone(value))); //? Why is a deepClone needed here?
 };
 
 // HTTP
@@ -192,11 +192,6 @@ define.constant(sj, {
 });
 
 // MISC
-sj.deepClone = function (...args) {
-	//C deep clones objects (root & nested objects aren't the same reference)
-	//C drops circular references and replaces with '[Circular]'
-	return fClone(...args);
-};
 sj.Deferred = class Deferred extends Promise {
 	//C custom promise that can be resolved, rejected, and canceled outside it's resolver
 	//G may be called without a resolver
@@ -833,7 +828,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	} 
 	if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) { //C stringify body
 		try {
-			options.body = JSON.stringify(sj.deepClone(options.body));
+			options.body = JSON.stringify(fclone(options.body));
 		} catch (e) {
 			//C catch stringify error (should be a cyclic reference)
 			throw new sj.Error({

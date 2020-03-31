@@ -7,6 +7,7 @@
 
 // EXTERNAL
 import http from 'http'; //TODO consider changing to the https module?
+import fclone from 'fclone';
 
 // INTERNAL
 //! depends on the common global.js not the global-server.js because global-server.js uses this module
@@ -90,8 +91,8 @@ export default {
 
 				//!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
 				//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
-				//C using sj.deepClone (fClone) to drop circular references
-				callback(sj.deepClone(result));		
+				//C using fclone to drop circular references
+				callback(fclone(result));		
 			});
 			socket.on('unsubscribe', async ({table, query}, callback) => {
 				console.log('UNSUBSCRIBE', socket.id);
@@ -101,7 +102,7 @@ export default {
 					: new sj.User({socketId: socket.id});
 
 				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, user).catch(sj.andResolve);
-				callback(sj.deepClone(result));
+				callback(fclone(result));
 			});
 
 			socket.on('error', (reason) => {

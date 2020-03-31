@@ -76,7 +76,6 @@ const common = {
 		//! 'eval-source-map' doesn't seem to work with source-map-support.
 		//L https://www.npmjs.com/package/source-map-support
 		devtool: argv.mode === 'development' ? 'source-map' : undefined,
-		context: path.resolve('C:/Users/Thomas/Documents/Personal-Work/StreamJockey.git/source'),
 	}),
 	babelRule(targets) {
 		return {
