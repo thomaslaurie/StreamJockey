@@ -31,15 +31,19 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-// builtin
+// BUILT-IN
 import EventEmitter from 'events';
 
-// external
+// EXTERNAL
 //import btoa from 'btoa';
 import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
  
-// internal
+// INTERNAL
+import {
+	wait,
+} from '../public/js/utility/index.js';
 import sj from './global-server.js';
+
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -204,7 +208,7 @@ Object.assign(sj.spotify, {
 			});
 
 			//C setup timeout
-			sj.wait(credentials.authRequestTimeout).then(() => {
+			wait(credentials.authRequestTimeout).then(() => {
 				reject(new sj.Error({
 					log: true,
 					origin: 'sj.spotify.endAuthRequest()',

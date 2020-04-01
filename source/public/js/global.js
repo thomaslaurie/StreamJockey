@@ -191,67 +191,6 @@ define.constant(sj, {
 	decodeList,
 });
 
-// MISC
-sj.Deferred = class Deferred extends Promise {
-	//C custom promise that can be resolved, rejected, and canceled outside it's resolver
-	//G may be called without a resolver
-	//TODO//? cancel-able promises might not be the best idea
-	constructor(executor = (resolve, reject) => {}) {
-		//C closure is used here instead of instance variables because they cannot be defined before super is called (which requires such variables)
-		const closure = {
-			pending: true, //! doesn't stop additional resolve/reject calls, they still reach the parent promise, just acts as a readable state
-			canceled: false,
-		};
-
-		//C intercept executor function
-		super((resolve, reject) => {
-			closure.resolve = function (resolved) {
-				if (!closure.canceled) {
-					closure.pending = false;
-					resolve(resolved);
-				}
-			};
-			closure.reject = function (rejected) {
-				if (!closure.canceled) {
-					closure.pending = false;
-					reject(rejected);
-				}
-			};
-
-			return executor(resolve, reject);
-		});
-
-		//C instance .resolve() and .reject() functions will use the closure to fulfill the promise from outside it's executor
-		this.resolve = closure.resolve;
-		this.reject = closure.reject;
-
-		//C prevents promise from being resolved or rejected in the future
-		this.cancel = function () {
-			closure.canceled = true;
-		};
-		//C rejects the result of the passed function on timeout
-		this.timeout = function (ms, onTimeout = () => 'Deferred promise timed out') {
-			sj.wait(ms).then(() => {
-				//! doesn't call onTimeout() if the promise is already fulfilled, to avoid side-effects
-				if (closure.pending) closure.reject(onTimeout());
-			});
-			return this;
-		};
-
-		//C allow read-only access of pending and canceled directly on the deferred promise
-		Object.defineProperty(this, 'pending', {
-			get() {
-				return closure.pending;
-			},
-		});
-		Object.defineProperty(this, 'canceled', {
-			get() {
-				return closure.canceled;
-			},
-		});
-	}
-};
-
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
@@ -740,7 +679,7 @@ sj.waitForCondition = async function ({
 	condition = () => false,
 }) {
 	await sj.recursiveAsyncTime(timeout, () => !condition(), async o => {
-		await sj.wait(o.time);
+		await wait(o.time);
 		o.time = o.time * scaling;
 		return;
 	}, {time: interval + delay});

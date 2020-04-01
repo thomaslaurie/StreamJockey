@@ -253,6 +253,7 @@
 import {
 	pick,
 	setTimer,
+	wait,
 } from './utility/index.js';
 import sj from './global-client.js';
 
@@ -969,7 +970,7 @@ export default {
 					let mainResult = await doF(Entity, data, accessory, data2);
 			
 					//C wait some time for notification to come back
-					await sj.wait(1000);
+					await wait(1000);
 			
 					//C undo
 					let undoResult = await undoF(Entity, data, accessory, data2);
@@ -1077,7 +1078,7 @@ export default {
 			//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
 
 			//C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
-			await sj.wait(2000);
+			await wait(2000);
 
 			const tests = [];
 
@@ -1095,7 +1096,7 @@ export default {
 						return false;
 					}
 				}, async o => {
-					await sj.wait(o.delay);
+					await wait(o.delay);
 					o.delay = o.delay * 1.25;
 					return;
 				}, {delay: 50});

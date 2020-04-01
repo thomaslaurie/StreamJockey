@@ -10,6 +10,7 @@ export * from './validation/index.js';
 export {default as boolCatch}       from './bool-catch.js';
 export {default as clamp}           from './clamp.js';
 export {default as combinations}    from './combinations.js';
+export {default as Deferred}        from './deferred.js';
 export {default as DynamicClass}    from './dynamic-class.js';
 export {default as formatMs}        from './format-ms.js';
 export * as constants               from './constants.js';

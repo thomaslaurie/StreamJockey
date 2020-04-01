@@ -451,7 +451,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         _this.clearTimeouts(); //C using a deferred promise here so that success, failure, and timeouts can all funnel into the same promise and handlers
 
 
-        _this.refreshPromise = new _this.sj.Deferred();
+        _this.refreshPromise = new _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]();
         _this.state = switchToState;
 
         _this.startTimeouts();
@@ -464,14 +464,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //? what happens to then? if this promise doesn't resolve or reject is this eventually garbage collected?
 
 
-        if (_this.sj.isType(_this.refreshPromise, _this.sj.Deferred)) _this.refreshPromise.then(_this.handleSuccess, _this.handleError);
+        if (_this.sj.isType(_this.refreshPromise, _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"])) _this.refreshPromise.then(_this.handleSuccess, _this.handleError);
       })();
     },
 
     startTimeouts() {
-      if (!this.sj.isType(this.refreshPromise, this.sj.Deferred)) throw new this.sj.Error({
+      if (!this.sj.isType(this.refreshPromise, _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"])) throw new this.sj.Error({
         origin: 'AsyncContent startTimeouts()',
-        reason: 'refresh promise must be an instance of sj.Deferred'
+        reason: 'refresh promise must be an instance of Deferred'
       });
       this.clearDelay = Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["setTimer"])(this.delay, () => {
         //C switch state to 'loading' after delay time
@@ -492,7 +492,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       //C clear
       (_this$clearDelay = this.clearDelay) === null || _this$clearDelay === void 0 ? void 0 : _this$clearDelay.call(this);
       (_this$clearTimeout = this.clearTimeout) === null || _this$clearTimeout === void 0 ? void 0 : _this$clearTimeout.call(this);
-      if (this.sj.isType(this.refreshPromise, this.sj.Deferred)) this.refreshPromise.cancel(); //C reset
+      if (this.sj.isType(this.refreshPromise, _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"])) this.refreshPromise.cancel(); //C reset
 
       this.clearDelay = null;
       this.clearTimeout = null;
@@ -1484,7 +1484,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _js_global_client_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/global-client.js */ "./source/public/js/global-client.js");
+/* harmony import */ var _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/utility/index.js */ "./source/public/js/utility/index.js");
 /* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -1499,7 +1499,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     // OVERWRITES
     refreshData() {
       return _asyncToGenerator(function* () {
-        yield _js_global_client_js__WEBPACK_IMPORTED_MODULE_0__["default"].wait(1000);
+        yield Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(1000);
         throw {
           test: 'test'
         };
@@ -37626,7 +37626,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript = /*#__PURE__*/fun
     //C dynamically loads a script from an external url, as would be done by a <script> element
     //L modified from: https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#Dynamically_importing_scripts
     var scriptElement = document.createElement('script');
-    var promise = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred();
+    var promise = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]();
     scriptElement.onerror = promise.reject;
     scriptElement.onload = promise.resolve; //C adds script as child of <head>
 
@@ -38068,7 +38068,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback = _global_js__WEBPAC
             }
           } = context;
           var timeBefore = Date.now();
-          var deferred = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+          var deferred = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start state timed out'
           }));
@@ -38898,7 +38898,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                       } //C if timed out, reject
 
 
-                      yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout);
+                      yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout);
 
                       if (!resolved) {
                         _this17.removeListener('player_state_changed', callback);
@@ -38967,7 +38967,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                       //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
                       //C timeout is doubled here to work better with the doubling delay time.
                       //C using an object wrapper for the delay argument so that it can be modified between iterations
-                      yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(o.delay);
+                      yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(o.delay);
                       o.delay = o.delay * 2; //C double the delay each time
 
                       return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.request('Get', 'me/player').catch(rejected => {
@@ -39395,7 +39395,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
             }
           }); //TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
 
-          yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(1000);
+          yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(1000);
           return result;
         })();
       },
@@ -39553,10 +39553,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
       //TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
       //C watch for gapi to be assigned by using a setter with a deferred promise
       //L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
-      //OLD alternative option was to use sj.waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
+      //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
-      var loaded = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+      var loaded = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         log: false,
         origin: 'sj.youtube.auth()',
         reason: 'gapi loading timed out'
@@ -39764,7 +39764,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
           //C load youtube iframe api
           yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
-          var deferred = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Deferred().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+          var deferred = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
             origin: 'sj.youtube loadPlayer()',
             reason: 'youtube iframe player load timed out'
           }));
@@ -40380,72 +40380,7 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
   //TODO
   encodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeList"],
   decodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeList"]
-}); // MISC
-
-sj.Deferred = class Deferred extends Promise {
-  //C custom promise that can be resolved, rejected, and canceled outside it's resolver
-  //G may be called without a resolver
-  //TODO//? cancel-able promises might not be the best idea
-  constructor() {
-    var executor = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : (resolve, reject) => {};
-    //C closure is used here instead of instance variables because they cannot be defined before super is called (which requires such variables)
-    var closure = {
-      pending: true,
-      //! doesn't stop additional resolve/reject calls, they still reach the parent promise, just acts as a readable state
-      canceled: false
-    }; //C intercept executor function
-
-    super((resolve, reject) => {
-      closure.resolve = function (resolved) {
-        if (!closure.canceled) {
-          closure.pending = false;
-          resolve(resolved);
-        }
-      };
-
-      closure.reject = function (rejected) {
-        if (!closure.canceled) {
-          closure.pending = false;
-          reject(rejected);
-        }
-      };
-
-      return executor(resolve, reject);
-    }); //C instance .resolve() and .reject() functions will use the closure to fulfill the promise from outside it's executor
-
-    this.resolve = closure.resolve;
-    this.reject = closure.reject; //C prevents promise from being resolved or rejected in the future
-
-    this.cancel = function () {
-      closure.canceled = true;
-    }; //C rejects the result of the passed function on timeout
-
-
-    this.timeout = function (ms) {
-      var onTimeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : () => 'Deferred promise timed out';
-      sj.wait(ms).then(() => {
-        //! doesn't call onTimeout() if the promise is already fulfilled, to avoid side-effects
-        if (closure.pending) closure.reject(onTimeout());
-      });
-      return this;
-    }; //C allow read-only access of pending and canceled directly on the deferred promise
-
-
-    Object.defineProperty(this, 'pending', {
-      get() {
-        return closure.pending;
-      }
-
-    });
-    Object.defineProperty(this, 'canceled', {
-      get() {
-        return closure.canceled;
-      }
-
-    });
-  }
-
-}; //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+}); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -40996,7 +40931,7 @@ sj.waitForCondition = /*#__PURE__*/function () {
     } = _ref6;
     yield sj.recursiveAsyncTime(timeout, () => !condition(), /*#__PURE__*/function () {
       var _ref8 = _asyncToGenerator(function* (o) {
-        yield sj.wait(o.time);
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(o.time);
         o.time = o.time * scaling;
         return;
       });
@@ -43404,7 +43339,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 						// let playlist = await sj.Playlist.get(new sj.Playlist({
 						//     id: //TODO,
 						// }));
-						await sj.wait(2000);
+						await wait(2000);
 						
 						// let _this = this;
 						// this.$nextTick(() => {
@@ -44858,7 +44793,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
               var mainResult = yield doF(Entity, data, accessory, data2); //C wait some time for notification to come back
 
-              yield _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(1000); //C undo
+              yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(1000); //C undo
 
               var undoResult = yield undoF(Entity, data, accessory, data2); //C unsubscribe
 
@@ -45026,7 +44961,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(function* () {
         //TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
         //C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
-        yield _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(2000);
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(2000);
         var tests = [];
 
         var uniqueName = () => "liveQuery".concat(_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeKey(7));
@@ -45046,7 +44981,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               }
             }, /*#__PURE__*/function () {
               var _ref47 = _asyncToGenerator(function* (o) {
-                yield _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].wait(o.delay);
+                yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(o.delay);
                 o.delay = o.delay * 1.25;
                 return;
               });
@@ -45565,6 +45500,93 @@ var MAX_32_BIT_INTEGER = 2147483647;
 
 /***/ }),
 
+/***/ "./source/public/js/utility/deferred.js":
+/*!**********************************************!*\
+  !*** ./source/public/js/utility/deferred.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Deferred; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/public/js/utility/object/define.js");
+/* harmony import */ var _time_wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./time/wait.js */ "./source/public/js/utility/time/wait.js");
+// Custom promise that can be resolve, rejected, and cancelled outside its executor.
+// May be called without an executor, upon which it will never resolve.
+
+
+class Deferred extends Promise {
+  constructor() {
+    var executor = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : () => {};
+    //R Closures are used here instead of instance variables because instance variables don't exist before super is called. This is required because this super call is being intercepted to tap into the resolve/reject calls.
+    var closure = {
+      isPending: true,
+      // If closure.isCanceled is true, instance.resolve() / instance.reject() are prevented from actually resolving/rejecting the promise.
+      //R Cancel is useful specifically for deferred promises to ensure that they cannot be fulfilled/rejected in the future.
+      isCanceled: false
+    };
+
+    var interceptedExecutor = (resolve, reject) => {
+      closure.resolve = function (resolved) {
+        if (!closure.isCanceled) {
+          closure.isPending = false;
+          resolve(resolved);
+        }
+      };
+
+      closure.reject = function (rejected) {
+        if (!closure.isCanceled) {
+          closure.isPending = false;
+          reject(rejected);
+        }
+      };
+
+      return executor(resolve, reject);
+    };
+
+    super(interceptedExecutor); // INSTANCE VARIABLES
+
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].getter(this, {
+      // Read-only access to closure.isPending and closure.isCanceled.
+      get isPending() {
+        return closure.isPending;
+      },
+
+      get isCanceled() {
+        return closure.isCanceled;
+      }
+
+    });
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      // Access to resolve/reject functions.
+      resolve: closure.resolve,
+      reject: closure.reject,
+
+      // Ability to prevent promise from settling.
+      cancel() {
+        closure.isCanceled = true;
+      },
+
+      // Ability to set automatic rejection upon timeout.
+      timeout(duration) {
+        var onTimeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : () => 'Deferred promise timed out.';
+        Object(_time_wait_js__WEBPACK_IMPORTED_MODULE_1__["default"])(duration).then(() => {
+          // Don't timeout if promise has settled.
+          if (closure.isPending) {
+            this.reject(onTimeout());
+          }
+        });
+      }
+
+    });
+  }
+
+}
+;
+
+/***/ }),
+
 /***/ "./source/public/js/utility/dynamic-class.js":
 /*!***************************************************!*\
   !*** ./source/public/js/utility/dynamic-class.js ***!
@@ -46007,7 +46029,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46071,24 +46093,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combinations.js */ "./source/public/js/utility/combinations.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/public/js/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./deferred.js */ "./source/public/js/utility/deferred.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
-/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./format-ms.js */ "./source/public/js/utility/format-ms.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/public/js/utility/dynamic-class.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_11__; });
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["Interface"]; });
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./format-ms.js */ "./source/public/js/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["SymbolInterface"]; });
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_12__; });
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["Interface"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["SymbolInterface"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
 // NESTED
 
@@ -46097,6 +46122,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
  // LOCAL
+
 
 
 

@@ -40,6 +40,8 @@ import {
 	escapeRegExp,
 	pick,
 	asyncMap,
+	wait,
+	Deferred,
 } from './utility/index.js';
 import sj from './global.js';
 
@@ -79,7 +81,7 @@ sj.loadScript = async function (url) {
 	//L modified from: https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#Dynamically_importing_scripts
 
 	const scriptElement = document.createElement('script');
-	const promise = new sj.Deferred();
+	const promise = new Deferred();
 
 	scriptElement.onerror = promise.reject;
 	scriptElement.onload = promise.resolve;
@@ -440,7 +442,7 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 			async start(context, track) {
 				const {watch, dispatch, getters: {duration}} = context;
 				const timeBefore = Date.now();
-				const deferred = new sj.Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+				const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
 					origin: 'sj.Playback.baseActions.start()',
 					reason: 'start state timed out',
 				}));
@@ -1185,7 +1187,7 @@ sj.spotify = new sj.Source({
 								}
 								
 								//C if timed out, reject
-								await sj.wait(sj.Playback.requestTimeout);
+								await wait(sj.Playback.requestTimeout);
 								if (!resolved) {
 									this.removeListener('player_state_changed', callback);
 									reject(new sj.Timeout(timeoutError));
@@ -1240,7 +1242,7 @@ sj.spotify = new sj.Source({
 								//L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
 								//C timeout is doubled here to work better with the doubling delay time.
 								//C using an object wrapper for the delay argument so that it can be modified between iterations
-								await sj.wait(o.delay);
+								await wait(o.delay);
 								o.delay = o.delay*2; //C double the delay each time
 								return await sj.spotify.request('Get', 'me/player').catch(rejected => {
 									reject(new sj.Error({
@@ -1637,7 +1639,7 @@ sj.spotify = new sj.Source({
 					},
 				});
 				//TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
-				await sj.wait(1000);
+				await wait(1000);
 				return result;
 			},
 			async pause({state: {player}}) {
@@ -1732,10 +1734,10 @@ sj.youtube = new sj.Source({
 
 		//C watch for gapi to be assigned by using a setter with a deferred promise
 		//L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
-		//OLD alternative option was to use sj.waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
+		//OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
 		//! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
 		window.gapi2 = window.gapi;
-		const loaded = new sj.Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+		const loaded = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
 			log: false,
 			origin: 'sj.youtube.auth()',
 			reason: 'gapi loading timed out',
@@ -1931,7 +1933,7 @@ sj.youtube = new sj.Source({
 				await sj.loadScript('https://www.youtube.com/iframe_api');
 
 				//TODO choose timeout
-				const deferred = new sj.Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+				const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
 					origin: 'sj.youtube loadPlayer()',
 					reason: 'youtube iframe player load timed out',
 				}));

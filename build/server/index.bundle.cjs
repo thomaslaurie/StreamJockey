@@ -366,70 +366,7 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
   //TODO
   encodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeList"],
   decodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeList"]
-}); // MISC
-
-sj.Deferred = class Deferred extends Promise {
-  //C custom promise that can be resolved, rejected, and canceled outside it's resolver
-  //G may be called without a resolver
-  //TODO//? cancel-able promises might not be the best idea
-  constructor(executor = (resolve, reject) => {}) {
-    //C closure is used here instead of instance variables because they cannot be defined before super is called (which requires such variables)
-    const closure = {
-      pending: true,
-      //! doesn't stop additional resolve/reject calls, they still reach the parent promise, just acts as a readable state
-      canceled: false
-    }; //C intercept executor function
-
-    super((resolve, reject) => {
-      closure.resolve = function (resolved) {
-        if (!closure.canceled) {
-          closure.pending = false;
-          resolve(resolved);
-        }
-      };
-
-      closure.reject = function (rejected) {
-        if (!closure.canceled) {
-          closure.pending = false;
-          reject(rejected);
-        }
-      };
-
-      return executor(resolve, reject);
-    }); //C instance .resolve() and .reject() functions will use the closure to fulfill the promise from outside it's executor
-
-    this.resolve = closure.resolve;
-    this.reject = closure.reject; //C prevents promise from being resolved or rejected in the future
-
-    this.cancel = function () {
-      closure.canceled = true;
-    }; //C rejects the result of the passed function on timeout
-
-
-    this.timeout = function (ms, onTimeout = () => 'Deferred promise timed out') {
-      sj.wait(ms).then(() => {
-        //! doesn't call onTimeout() if the promise is already fulfilled, to avoid side-effects
-        if (closure.pending) closure.reject(onTimeout());
-      });
-      return this;
-    }; //C allow read-only access of pending and canceled directly on the deferred promise
-
-
-    Object.defineProperty(this, 'pending', {
-      get() {
-        return closure.pending;
-      }
-
-    });
-    Object.defineProperty(this, 'canceled', {
-      get() {
-        return closure.canceled;
-      }
-
-    });
-  }
-
-}; //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+}); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -922,7 +859,7 @@ sj.waitForCondition = async function ({
   condition = () => false
 }) {
   await sj.recursiveAsyncTime(timeout, () => !condition(), async o => {
-    await sj.wait(o.time);
+    await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(o.time);
     o.time = o.time * scaling;
     return;
   }, {
@@ -3509,6 +3446,91 @@ const MAX_32_BIT_INTEGER = 2147483647;
 
 /***/ }),
 
+/***/ "./source/public/js/utility/deferred.js":
+/*!**********************************************!*\
+  !*** ./source/public/js/utility/deferred.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Deferred; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/public/js/utility/object/define.js");
+/* harmony import */ var _time_wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./time/wait.js */ "./source/public/js/utility/time/wait.js");
+// Custom promise that can be resolve, rejected, and cancelled outside its executor.
+// May be called without an executor, upon which it will never resolve.
+
+
+class Deferred extends Promise {
+  constructor(executor = () => {}) {
+    //R Closures are used here instead of instance variables because instance variables don't exist before super is called. This is required because this super call is being intercepted to tap into the resolve/reject calls.
+    const closure = {
+      isPending: true,
+      // If closure.isCanceled is true, instance.resolve() / instance.reject() are prevented from actually resolving/rejecting the promise.
+      //R Cancel is useful specifically for deferred promises to ensure that they cannot be fulfilled/rejected in the future.
+      isCanceled: false
+    };
+
+    const interceptedExecutor = (resolve, reject) => {
+      closure.resolve = function (resolved) {
+        if (!closure.isCanceled) {
+          closure.isPending = false;
+          resolve(resolved);
+        }
+      };
+
+      closure.reject = function (rejected) {
+        if (!closure.isCanceled) {
+          closure.isPending = false;
+          reject(rejected);
+        }
+      };
+
+      return executor(resolve, reject);
+    };
+
+    super(interceptedExecutor); // INSTANCE VARIABLES
+
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].getter(this, {
+      // Read-only access to closure.isPending and closure.isCanceled.
+      get isPending() {
+        return closure.isPending;
+      },
+
+      get isCanceled() {
+        return closure.isCanceled;
+      }
+
+    });
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      // Access to resolve/reject functions.
+      resolve: closure.resolve,
+      reject: closure.reject,
+
+      // Ability to prevent promise from settling.
+      cancel() {
+        closure.isCanceled = true;
+      },
+
+      // Ability to set automatic rejection upon timeout.
+      timeout(duration, onTimeout = () => 'Deferred promise timed out.') {
+        Object(_time_wait_js__WEBPACK_IMPORTED_MODULE_1__["default"])(duration).then(() => {
+          // Don't timeout if promise has settled.
+          if (closure.isPending) {
+            this.reject(onTimeout());
+          }
+        });
+      }
+
+    });
+  }
+
+}
+;
+
+/***/ }),
+
 /***/ "./source/public/js/utility/dynamic-class.js":
 /*!***************************************************!*\
   !*** ./source/public/js/utility/dynamic-class.js ***!
@@ -3928,7 +3950,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3992,24 +4014,27 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combinations.js */ "./source/public/js/utility/combinations.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/public/js/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./deferred.js */ "./source/public/js/utility/deferred.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
-/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./format-ms.js */ "./source/public/js/utility/format-ms.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/public/js/utility/dynamic-class.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "DynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_11__; });
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["Interface"]; });
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./format-ms.js */ "./source/public/js/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_12__["SymbolInterface"]; });
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_12__; });
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["Interface"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_13__["default"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["SymbolInterface"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
 // NESTED
 
@@ -4018,6 +4043,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
  // LOCAL
+
 
 
 
@@ -5624,7 +5650,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
+/* harmony import */ var _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -5654,12 +5681,13 @@ __webpack_require__.r(__webpack_exports__);
 //  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-// builtin
- // external
+// BUILT-IN
+ // EXTERNAL
 //import btoa from 'btoa';
 
  //L https://github.com/thelinmichael/spotify-web-api-node
-// internal
+// INTERNAL
+
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -5683,11 +5711,11 @@ auth.requestTimeout = 300000; //C 5 minutes
 auth.requestKeys = [];
 
 auth.addRequestKey = async function () {
-  return await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].addKey(this.requestKeys, this.requestTimeout);
+  return await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].addKey(this.requestKeys, this.requestTimeout);
 };
 
 auth.checkRequestKey = async function (key) {
-  let pack = await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].checkKey(this.requestKeys, key);
+  let pack = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].checkKey(this.requestKeys, key);
   return {
     authRequestKey: pack.key,
     authRequestTimestamp: pack.timestamp
@@ -5702,7 +5730,7 @@ auth.checkRequestKey = async function (key) {
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 
 
-_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source({
+_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify = new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Source({
   name: 'spotify',
   api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default.a({
     //C create api object and set credentials in constructor
@@ -5731,8 +5759,8 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_
   authRequestManually: true,
   makeAuthRequestURL: function (key) {
     //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.api._credentials.redirectUri, String)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.redirectUri, String)) {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
         log: true,
         origin: 'spotify.makeAuthRequestURL()',
         message: 'one or more api credentials are missing or of the wrong type',
@@ -5749,10 +5777,10 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_
   }
 }); //TODO make any property available for sj.Source
 
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify, {
+Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify, {
   startAuthRequest: async function () {
     let pack = await auth.addRequestKey();
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
       authRequestKey: pack.key,
       authRequestTimestamp: pack.timestamp,
       authRequestTimeout: pack.timeout,
@@ -5775,8 +5803,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
     //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
     await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query.code, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query.code, undefined)) {
+      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -5786,8 +5814,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
     } //C ensure that spotify didn't send an error
 
 
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query.error, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query.error, undefined)) {
+      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -5797,7 +5825,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
     } //C send the event and credentials for endAuthRequest() to pick up
 
 
-    emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Credentials({
+    emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
       //? sj.success here?
       authRequestKey: query.state,
       //? is this needed anymore?
@@ -5813,8 +5841,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
         resolve(result);
       }); //C setup timeout
 
-      _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].wait(credentials.authRequestTimeout).then(() => {
-        reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
+        reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           log: true,
           origin: 'sj.spotify.endAuthRequest()',
           message: 'request timeout'
@@ -5829,7 +5857,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
     let timestamp = Date.now(); //C exchange the auth code for tokens
     //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', 'https://accounts.spotify.com/api/token', _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].encodeProps({
+    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].encodeProps({
       grant_type: 'authorization_code',
       code: credentials.authCode,
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
@@ -5837,8 +5865,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
       client_id: process.env.SPOTIFY_CLIENT_ID,
       client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
-    }), _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].URL_HEADER).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    }), _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].URL_HEADER).catch(rejected => {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token exchange failed',
@@ -5847,13 +5875,13 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
     }); //C store refresh token in database
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
-    await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.edit({
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
+    await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
     }).then(resolved => {}); //C repack and return
 
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
       accessToken: result.access_token,
       expires: timestamp + result.expires_in,
       //refreshToken: result.refresh_token,
@@ -5863,22 +5891,22 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
   },
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
-    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).then(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].one).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
+    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].one).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(refreshToken)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].AuthRequired();
+    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isEmpty(refreshToken)) {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].AuthRequired();
     } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
     let timestamp = Date.now();
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', 'https://accounts.spotify.com/api/token', _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].encodeProps({
+    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].encodeProps({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
       client_id: process.env.SPOTIFY_CLIENT_ID,
       client_secret: process.env.SPOTIFY_CLIENT_SECRET
-    }), _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].URL_HEADER).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    }), _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].URL_HEADER).catch(rejected => {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token refresh failed',
@@ -5886,27 +5914,27 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
       });
     }); //C if a new refresh token was sent
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result.refresh_token, 'string')) {
+    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result.refresh_token, 'string')) {
       //? better validation?
       //C store it
-      await _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.edit({
+      await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
     } //C send only the accessToken and the expiry time
 
 
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
       origin: 'sj.spotify.refreshToken()',
       accessToken: result.access_token,
       expires: timestamp + result.expires_in
     });
   }
 });
-_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source({
+_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube = new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Source({
   name: 'youtube'
 });
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube, {
+Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube, {
   getCredentials: async function () {
     return {
       apiKey: process.env.YOUTUBE_API_KEY,

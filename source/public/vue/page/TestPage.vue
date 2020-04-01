@@ -1,5 +1,7 @@
 <script>
-    import sj from '../../js/global-client.js';
+	import {
+		wait,
+	} from '../../js/utility/index.js';
 
     import AsyncDisplay from '../async/AsyncDisplay.vue';
 
@@ -9,7 +11,7 @@
         methods: {
 			// OVERWRITES
             async refreshData() {
-                await sj.wait(1000);
+                await wait(1000);
                 throw {test: 'test'};
             },
         },

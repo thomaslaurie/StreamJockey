@@ -56,7 +56,7 @@
 						// let playlist = await sj.Playlist.get(new sj.Playlist({
 						//     id: //TODO,
 						// }));
-						await sj.wait(2000);
+						await wait(2000);
 						
 						// let _this = this;
 						// this.$nextTick(() => {

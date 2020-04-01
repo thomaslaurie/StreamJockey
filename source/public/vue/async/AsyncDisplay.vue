@@ -1,5 +1,8 @@
 <script>
-	import {setTimer} from '../../js/utility/index.js';
+	import {
+		setTimer,
+		Deferred,
+	} from '../../js/utility/index.js';
 
 	import AsyncSwitch from './AsyncSwitch.vue';
 	
@@ -127,7 +130,7 @@
 				this.clearTimeouts();
 
 				//C using a deferred promise here so that success, failure, and timeouts can all funnel into the same promise and handlers
-				this.refreshPromise = new this.sj.Deferred();
+				this.refreshPromise = new Deferred();
 				this.state = switchToState;
 				
 				this.startTimeouts();
@@ -143,13 +146,13 @@
 
 				//! don't await here, because if refreshPromise is canceled, refresh will never resolve
 				//? what happens to then? if this promise doesn't resolve or reject is this eventually garbage collected?
-				if (this.sj.isType(this.refreshPromise, this.sj.Deferred)) this.refreshPromise.then(this.handleSuccess, this.handleError);
+				if (this.sj.isType(this.refreshPromise, Deferred)) this.refreshPromise.then(this.handleSuccess, this.handleError);
 			},
 
 			startTimeouts() {
-				if (!this.sj.isType(this.refreshPromise, this.sj.Deferred)) throw new this.sj.Error({
+				if (!this.sj.isType(this.refreshPromise, Deferred)) throw new this.sj.Error({
 					origin: 'AsyncContent startTimeouts()',
-					reason: 'refresh promise must be an instance of sj.Deferred',
+					reason: 'refresh promise must be an instance of Deferred',
 				});
 
                 this.clearDelay = setTimer(this.delay, () => {
@@ -168,7 +171,7 @@
 				//C clear
 				this.clearDelay?.();
 				this.clearTimeout?.();
-				if (this.sj.isType(this.refreshPromise, this.sj.Deferred)) this.refreshPromise.cancel();
+				if (this.sj.isType(this.refreshPromise, Deferred)) this.refreshPromise.cancel();
 
 				//C reset
 				this.clearDelay = null;
