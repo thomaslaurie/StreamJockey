@@ -10,6 +10,7 @@ import http from 'http'; //TODO consider changing to the https module?
 import fclone from 'fclone';
 
 // INTERNAL
+import deepCompare, {compareUnorderedArrays} from '../public/js/utility/object/deep-compare.js';
 //! depends on the common global.js not the global-server.js because global-server.js uses this module
 import sj from '../public/js/global.js';
 
@@ -115,7 +116,7 @@ export default {
 		return this.tables.get(Entity);
 	},
 	findLiveQuery(table, query) {
-		return table.liveQueries.find(liveQuery => sj.deepMatch(query, liveQuery.query, {matchOrder: false}));
+		return table.liveQueries.find(liveQuery => deepCompare(query, liveQuery.query, {compareFunction: compareUnorderedArrays}));
 	},
 	findSubscription(liveQuery, user) {
 		return liveQuery.subscriptions.find(subscription => subscription.user.socketId === user.socketId);
@@ -231,10 +232,10 @@ export default {
 				//C if any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new
 				//R query is an array of object queries, must iterate each then subset match, or else nothing will match because query switches from superset to subset
 				if (
-					liveQuery.query.some(part => sj.deepMatch(part, entity, {
-						matchOrder: false,
-						matchIfSubset: true,
-						matchIfTooDeep: true,
+					liveQuery.query.some(part => deepCompare(part, entity, {
+						compareFunction: compareUnorderedArrays,
+						subset: true,
+						resultIfTooDeep: true,
 					})) &&
 					timestamp > liveQuery.timestamp
 				) {

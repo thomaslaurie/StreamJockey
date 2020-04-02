@@ -295,4 +295,3 @@ const vm = new Vue({
 		await this.$store.dispatch('player/startClock');
 	},
 });
-

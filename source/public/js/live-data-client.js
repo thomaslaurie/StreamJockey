@@ -262,6 +262,7 @@ import {
 	wait,
 	test,
 } from './utility/index.js';
+import deepCompare, {compareUnorderedArrays} from './utility/object/deep-compare.js';
 import sj from './global-client.js';
 
 
@@ -287,7 +288,7 @@ export default {
 			return table.cachedEntities.find(cachedEntity => cachedEntity.entity.id === entity.id);
 		},
 		findLiveQuery: state => ({table, query}) => {
-			return table.liveQueries.find(liveQuery => sj.deepMatch(liveQuery.query, query, {matchOrder: false}));
+			return table.liveQueries.find(liveQuery => deepCompare(liveQuery.query, query, {compareFunction: compareUnorderedArrays}));
 		},
 		
 		getLiveData: state => subscription => {
@@ -471,7 +472,7 @@ export default {
 			//C if new data
 			if (timestamp > cachedEntity.timestamp) {
 				//C if different data
-				if (!sj.deepMatch(cachedEntity.entity, entity)) {
+				if (!deepCompare(cachedEntity.entity, entity)) {
 					//C update data and timestamp
 					context.commit('setCachedEntity', {
 						cachedEntity, 
@@ -970,7 +971,7 @@ export default {
 					context.state.socket.on('notify', notifyResult => { //? when is this listener removed?
 						console.log('CALLED');
 						notifiedResult = notifyResult;
-						if (sj.deepMatch(queryPack.query, notifyResult.changed, {matchIfSubset: true})) notified = true;
+						if (deepCompare(queryPack.query, notifyResult.changed, {subset: true})) notified = true;
 					});
 			
 					//C do

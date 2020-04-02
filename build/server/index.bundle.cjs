@@ -490,177 +490,6 @@ sj.isEmpty = function (input) {
   return !(sj.isType(input, 'boolean') || sj.isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
   //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
   sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || sj.isType(input, 'object') && Object.keys(input).length > 0 || sj.isType(input, 'array') && input.length > 0);
-}; //TODO extract this, matchOrder is not supported in the new deepCompare() function, so must think of a work around.
-//TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-
-
-sj.deepMatch = function (a, b, {
-  deep = true,
-  depth = 10,
-  matchIfTooDeep = false,
-  matchIfSubset = false,
-  //C matches objects and arrays if a is a subset of b
-  matchOrder = true,
-  logDifference = false //C logs first difference found if not matching
-
-} = {
-  deep: true,
-  depth: 10,
-  matchIfTooDeep: false,
-  matchIfSubset: false,
-  matchOrder: true,
-  logDifference: false
-}) {
-  if (depth <= 0) return matchIfTooDeep;
-  if (a === b) return true; // primitives & references
-
-  if (sj.isType(a, NaN) && sj.isType(b, NaN)) return true; // NaN
-
-  if (deep) {
-    let matchDeeper = function (a, b) {
-      return sj.deepMatch(a, b, {
-        deep,
-        depth: depth - 1,
-        matchIfTooDeep,
-        matchIfSubset,
-        matchOrder
-      });
-    };
-
-    if (sj.isType(a, Object) && sj.isType(b, Object)) {
-      // objects
-      let matches = true;
-      Object.keys(a).forEach(key => {
-        //C match all keys of a to the same keys in b
-        if (!matchDeeper(a[key], b[key])) {
-          matches = false;
-          if (logDifference) console.log(`deepMatch property difference - ${key}: ${a[key]}, ${b[key]}`);
-        }
-      });
-
-      if (!matchIfSubset) {
-        Object.keys(b).forEach(key => {
-          //C match all keys of b to the same keys in a //TODO optimize here
-          if (!matchDeeper(a[key], b[key])) {
-            matches = false;
-            if (logDifference) console.log(`deepMatch property difference - ${key}: ${a[key]}, ${b[key]}`);
-          }
-        });
-      }
-
-      return matches;
-    }
-
-    if (sj.isType(a, Array) && sj.isType(b, Array)) {
-      // arrays
-      let matches = true;
-      a.forEach((inA, i) => {
-        if (matchOrder) {
-          if (!matchDeeper(a[i], b[i])) {
-            matches = false;
-            if (logDifference) console.log(`deepMatch index difference - ${i}: ${a[i]}, ${b[i]}`);
-          }
-        } else {
-          //C match any inB to current inA
-          if (!b.some(inB => matchDeeper(inA, inB))) {
-            matches = false;
-            if (logDifference) console.log(`deepMatch extra item in b - ${inB}`);
-          }
-        }
-      });
-
-      if (!matchIfSubset) {
-        b.forEach((inB, i) => {
-          if (matchOrder) {
-            if (!matchDeeper(a[i], b[i])) {
-              matches = false;
-              if (logDifference) console.log(`deepMatch index difference - ${i}: ${a[i]}, ${b[i]}`);
-            }
-          } else {
-            if (!a.some(inA => matchDeeper(inA, inB))) {
-              matches = false;
-              if (logDifference) console.log(`deepMatch extra item in a - ${inA}`);
-            }
-          }
-        });
-      }
-
-      return matches;
-    }
-  }
-
-  return false;
-};
-
-sj.deepMatch.test = function () {
-  let oA = {
-    a: 'a',
-    b: 'b'
-  };
-  let oB = {
-    a: 'a',
-    b: 'b'
-  };
-  let oC = {
-    a: 'a',
-    b: 'b',
-    c: 'c'
-  };
-  let oD = {
-    a: 'a',
-    b: 'not b'
-  };
-  let aA = ['a', 'b'];
-  let aB = ['a', 'b'];
-  let aC = ['a', 'b', 'c'];
-  let aD = ['a', 'not b'];
-  let aE = ['a', 'c', 'b'];
-  let nA = {
-    a: {
-      a: {
-        a: {
-          a: 'a'
-        }
-      }
-    }
-  };
-  let nB = {
-    a: {
-      a: {
-        a: {
-          a: 'a'
-        }
-      }
-    }
-  }; //C aF is subset of aG at first level, but then aG is a subset of aF at second level, this should fail matchIfSubset
-
-  let aF = [{
-    a: 'a',
-    b: 'b'
-  }];
-  let aG = [{
-    a: 'a'
-  }, {
-    b: 'b'
-  }];
-  Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"])([['match positive number', true === sj.deepMatch(1, 1)], ['match zero', true === sj.deepMatch(0, 0)], ['match negative number', true === sj.deepMatch(-1, -1)], ['match infinity', true === sj.deepMatch(Infinity, Infinity)], ['match negative infinity', true === sj.deepMatch(-Infinity, -Infinity)], ['match NaN', true === sj.deepMatch(NaN, NaN)], ['mismatch positive number', false === sj.deepMatch(4, 3193)], ['mismatch positive negative', false === sj.deepMatch(-3, 0)], ['mismatch infinity, number', false === sj.deepMatch(Infinity, 2345678909875498765456789)], ['mismatch infinity, -infinity', false === sj.deepMatch(Infinity, -Infinity)], ['mismatch NaN, zero', false === sj.deepMatch(NaN, 0)], ['match true', true === sj.deepMatch(true, true)], ['match false', true === sj.deepMatch(false, false)], ['mismatch true, false', false === sj.deepMatch(true, false)], ['match string', true === sj.deepMatch('test', 'test')], ['match empty', true === sj.deepMatch('', '')], ['match "undefined"', true === sj.deepMatch('undefined', 'undefined')], ['match "null"', true === sj.deepMatch('null', 'null')], ['mismatch string', false === sj.deepMatch('string', 'test')], ['mismatch empty and filled', false === sj.deepMatch('', 'test')], ['match object reference', true === sj.deepMatch(oA, oA)], ['match object items', true === sj.deepMatch(oA, oB)], ['match object subset', true === sj.deepMatch(oA, oC, {
-    matchIfSubset: true
-  })], ['mismatch object not deep', false === sj.deepMatch(oA, oB, {
-    deep: false
-  })], ['mismatch object, not subset', false === sj.deepMatch(oA, oC)], ['mismatch object props', false === sj.deepMatch(oA, oD)], ['match array reference', true === sj.deepMatch(aA, aA)], ['match array items', true === sj.deepMatch(aA, aB)], ['match array subset', true === sj.deepMatch(aA, aC, {
-    matchIfSubset: true
-  })], ['match array, not order', true === sj.deepMatch(aC, aE, {
-    matchOrder: false
-  })], ['mismatch array, not deep', false === sj.deepMatch(aA, aB, {
-    deep: false
-  })], ['mismatch array, not subset', false === sj.deepMatch(aA, aC)], ['mismatch array items', false === sj.deepMatch(aA, aD)], ['mismatch array, order', false === sj.deepMatch(aC, aE)], ['mismatch object, array', false === sj.deepMatch({}, [])], ['match nested', true === sj.deepMatch(nA, nB)], ['match nested if too deep', true === sj.deepMatch(nA, nB, {
-    depth: 2,
-    matchIfTooDeep: true
-  })], ['mismatch nested if too deep', false === sj.deepMatch(nA, nB, {
-    depth: 2
-  })], ['mismatch subset switch', false === sj.deepMatch(aF, aG, {
-    matchIfSubset: true
-  })]], 'deepMatch');
 }; // ERROR
 
 
@@ -939,7 +768,6 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
     }
   }
 
-  console.log('REQUEST');
   let result = await Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["fetch"])(url, options).catch(rejected => {
     //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
     //C catch network error
@@ -4278,15 +4106,16 @@ class SymbolInterface extends VirtualInterface {
 /*!*********************************************************!*\
   !*** ./source/public/js/utility/object/deep-compare.js ***!
   \*********************************************************/
-/*! exports provided: default */
+/*! exports provided: defaultOptions, default, compareUnorderedArrays */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultOptions", function() { return defaultOptions; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return deepCompare; });
-const isObject = function (v) {
-  return v !== null && typeof v === 'object';
-};
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compareUnorderedArrays", function() { return compareUnorderedArrays; });
+/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+
 
 const compareDeeper = function (a, b, options) {
   const {
@@ -4301,34 +4130,45 @@ const logDifferenceFunction = function (key, aValue, bValue) {
   console.log(`deepCompare property difference - ${key}: ${aValue}, ${bValue}`);
 };
 
+const defaultOptions = {
+  //C 0 based, will call depth+1 layers of comparisons
+  depth: 1,
+  //C used for custom comparisons (like un-ordered lists)
+  //! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
+  compareFunction: compareUnorderedArrays = (a, b) => a === b,
+  //C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
+  //C used for custom key selection (inherited, enumerable, symbol, etc.)
+  selectFunction: Object.keys,
+  //C true:  compare selected key-values on x to the same key-values anywhere on y
+  //C false: compare selected key-values on x to the same key-values selected on y
+  anywhere: false,
+  //C true:  compares a against b 
+  //C false: compares a against b and b against a
+  //? what if subsetting needs to stop a specific depth?
+  //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
+  subset: false,
+  //C compare result for values that are too deep
+  resultIfTooDeep: false,
+  logDifference: false
+};
 function deepCompare(a, b, options = {}) {
   const {
-    //C 0 based, will call depth+1 layers of comparisons
-    depth = 1,
-    //C used for custom comparisons (like un-ordered lists)
-    //! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
-    compareFunction = (a, b) => a === b,
-    //C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
-    //C used for custom key selection (inherited, enumerable, symbol, etc.)
-    selectFunction = Object.keys,
-    //C true:  compare selected key-values on x to the same key-values anywhere on y
-    //C false: compare selected key-values on x to the same key-values selected on y
-    anywhere = false,
-    //C true:  compares a against b 
-    //C false: compares a against b and b against a
-    //? what if subsetting needs to stop a specific depth?
-    //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
-    subset = false,
-    //C compare result for values that are too deep
-    resultIfTooDeep = false,
-    logDifference = false
-  } = options; // limit to depth
+    depth,
+    compareFunction,
+    selectFunction,
+    anywhere,
+    subset,
+    resultIfTooDeep,
+    logDifference
+  } = { ...defaultOptions,
+    ...options
+  }; // limit to depth
 
   if (depth < 0) return resultIfTooDeep; // compare values
 
   if (compareFunction(a, b, options)) return true; // compare properties
 
-  if (isObject(a) && isObject(b)) {
+  if (_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(a) && _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(b)) {
     let result = true; // selected keys
 
     const aSelectedKeys = selectFunction(a);
@@ -4367,6 +4207,28 @@ function deepCompare(a, b, options = {}) {
   }
 
   return false;
+}
+; // COMPARE FUNCTIONS
+
+function compareUnorderedArrays(a, b, options) {
+  //R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
+  // If a and b are arrays:
+  if (_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(a) && _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(b)) {
+    // Match if:
+    let result = true; // All items of a exist in b.
+
+    if (a.some(item => !b.includes(item))) result = false; // And if not a subset comparison.
+
+    if (!subset) {
+      // All items of b exist in a.
+      if (b.some(item => !a.includes(item))) result = false;
+    }
+
+    return result;
+  } else {
+    // Use the default compare function.
+    return defaultOptions.compareFunction(a, b, options);
+  }
 }
 ; //L diagrams: https://www.figma.com/file/57kSw6SaPX3qJUSdzMpfJo/Object-Property-Locations-Comparison?node-id=0%3A1
 
@@ -7571,7 +7433,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
+/* harmony import */ var _public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/utility/object/deep-compare.js */ "./source/public/js/utility/object/deep-compare.js");
+/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -7582,7 +7445,8 @@ __webpack_require__.r(__webpack_exports__);
  //TODO consider changing to the https module?
 
  // INTERNAL
-//! depends on the common global.js not the global-server.js because global-server.js uses this module
+
+ //! depends on the common global.js not the global-server.js because global-server.js uses this module
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -7594,7 +7458,7 @@ __webpack_require__.r(__webpack_exports__);
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
 //TODO this may be unrelated but it seems the liveQueries here are also piling up
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmentClass({
   constructorParts: parent => ({
     defaults: {
       user: null
@@ -7604,7 +7468,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
 /* harmony default export */ __webpack_exports__["default"] = ({
   app: null,
   socket: null,
-  tables: _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable.makeTables(),
+  tables: _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable.makeTables(),
 
   start({
     app,
@@ -7626,15 +7490,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
       console.log('CONNECT', socket.id); //C if user is logged in, give the socketId to the session
       //! I don't think the cookie session receives this, though it isn't needed there so far
 
-      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User)) socket.session.user.socketId = socket.id;
+      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User)) socket.session.user.socketId = socket.id;
       socket.on('disconnect', async reason => {
         console.log('DISCONNECT', socket.id);
-        await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.disconnect(socket.id).catch(rejected => {
+        await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.disconnect(socket.id).catch(rejected => {
           //TODO handle better
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(rejected, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base)) rejected.announce();else console.error('subscription disconnect error:', rejected);
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(rejected, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Base)) rejected.announce();else console.error('subscription disconnect error:', rejected);
         }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-        if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User)) socket.session.user.socketId = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.defaults.socketId;
+        if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User)) socket.session.user.socketId = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.defaults.socketId;
       });
       socket.on('subscribe', async ({
         table,
@@ -7643,11 +7507,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
         console.log('SUBSCRIBE', socket.id); //C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
         //TODO socketId validator, this is all that really matters here
 
-        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User) ? socket.session.user : new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User({
+        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User) ? socket.session.user : new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User({
           socketId: socket.id
         }); //! using sj.Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
-        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.add(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.tableToEntity(table), query, user).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].andResolve); //!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
+        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.add(_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity.tableToEntity(table), query, user).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].andResolve); //!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
         //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
         //C using fclone to drop circular references
 
@@ -7658,10 +7522,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
         query
       }, callback) => {
         console.log('UNSUBSCRIBE', socket.id);
-        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User) ? socket.session.user : new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User({
+        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User) ? socket.session.user : new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User({
           socketId: socket.id
         });
-        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.remove(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.tableToEntity(table), query, user).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].andResolve);
+        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.remove(_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity.tableToEntity(table), query, user).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].andResolve);
         callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
       });
       socket.on('error', reason => {
@@ -7675,8 +7539,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
   },
 
   findLiveQuery(table, query) {
-    return table.liveQueries.find(liveQuery => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].deepMatch(query, liveQuery.query, {
-      matchOrder: false
+    return table.liveQueries.find(liveQuery => Object(_public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(query, liveQuery.query, {
+      compareFunction: _public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"]
     }));
   },
 
@@ -7691,15 +7555,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
       origin: 'sj.liveData.add()',
       reason: 'table is not an sj.LiveTable'
     }); //C find liveQuery, add if it doesn't exist
 
     let liveQuery = this.findLiveQuery(table, processedQuery);
 
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(liveQuery, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery)) {
-      liveQuery = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) {
+      liveQuery = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery({
         table,
         query: processedQuery
       });
@@ -7709,8 +7573,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
 
     let subscription = this.findSubscription(liveQuery, user);
 
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(subscription, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) {
-      subscription = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) {
+      subscription = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription({
         liveQuery,
         user
       });
@@ -7719,7 +7583,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
 
 
     Object.assign(subscription.user, user);
-    return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+    return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success({
       origin: 'sj.addSubscriber()',
       message: 'added subscriber',
       content: processedQuery
@@ -7732,14 +7596,14 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
       origin: 'sj.liveData.remove()',
       reason: 'table is not an sj.LiveTable'
     }); //C find liveQuery index
 
     const liveQuery = this.findLiveQuery(table, processedQuery);
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(liveQuery, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery) || liveQueryIndex < 0) return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Warn({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery) || liveQueryIndex < 0) return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Warn({
       origin: 'sj.subscriptions.remove()',
       message: 'no subscription found for this query',
       content: {
@@ -7751,7 +7615,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
 
     const subscription = this.findSubscription(liveQuery, user);
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(subscription, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription) || subscriptionIndex < 0) return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Warn({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription) || subscriptionIndex < 0) return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Warn({
       origin: 'sj.subscriptions.remove()',
       message: 'no subscriber found for this user',
       content: {
@@ -7767,7 +7631,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
       this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
     }
 
-    return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+    return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success({
       origin: 'sj.removeSubscriber()',
       message: 'removed subscriber',
       content: processedQuery
@@ -7777,7 +7641,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
   async notify(Entity, entities, timestamp) {
     //C for each liveQuery
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
       origin: 'sj.liveData.notify()',
       reason: 'table is not an sj.LiveTable'
     });
@@ -7787,10 +7651,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription.augmen
       for (const entity of entities) {
         //C if any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new
         //R query is an array of object queries, must iterate each then subset match, or else nothing will match because query switches from superset to subset
-        if (liveQuery.query.some(part => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].deepMatch(part, entity, {
-          matchOrder: false,
-          matchIfSubset: true,
-          matchIfTooDeep: true
+        if (liveQuery.query.some(part => Object(_public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(part, entity, {
+          compareFunction: _public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"],
+          subset: true,
+          resultIfTooDeep: true
         })) && timestamp > liveQuery.timestamp) {
           //C set the new timestamp
           liveQuery.timestamp = timestamp; //C for each subscription

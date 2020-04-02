@@ -40527,178 +40527,6 @@ sj.isEmpty = function (input) {
   return !(sj.isType(input, 'boolean') || sj.isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
   //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
   sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || sj.isType(input, 'object') && Object.keys(input).length > 0 || sj.isType(input, 'array') && input.length > 0);
-}; //TODO extract this, matchOrder is not supported in the new deepCompare() function, so must think of a work around.
-//TODO consider using Object.is() (where +0 !== -0 and NaN === NaN) //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-
-
-sj.deepMatch = function (a, b) {
-  var {
-    deep = true,
-    depth = 10,
-    matchIfTooDeep = false,
-    matchIfSubset = false,
-    //C matches objects and arrays if a is a subset of b
-    matchOrder = true,
-    logDifference = false //C logs first difference found if not matching
-
-  } = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
-    deep: true,
-    depth: 10,
-    matchIfTooDeep: false,
-    matchIfSubset: false,
-    matchOrder: true,
-    logDifference: false
-  };
-  if (depth <= 0) return matchIfTooDeep;
-  if (a === b) return true; // primitives & references
-
-  if (sj.isType(a, NaN) && sj.isType(b, NaN)) return true; // NaN
-
-  if (deep) {
-    var matchDeeper = function matchDeeper(a, b) {
-      return sj.deepMatch(a, b, {
-        deep,
-        depth: depth - 1,
-        matchIfTooDeep,
-        matchIfSubset,
-        matchOrder
-      });
-    };
-
-    if (sj.isType(a, Object) && sj.isType(b, Object)) {
-      // objects
-      var matches = true;
-      Object.keys(a).forEach(key => {
-        //C match all keys of a to the same keys in b
-        if (!matchDeeper(a[key], b[key])) {
-          matches = false;
-          if (logDifference) console.log("deepMatch property difference - ".concat(key, ": ").concat(a[key], ", ").concat(b[key]));
-        }
-      });
-
-      if (!matchIfSubset) {
-        Object.keys(b).forEach(key => {
-          //C match all keys of b to the same keys in a //TODO optimize here
-          if (!matchDeeper(a[key], b[key])) {
-            matches = false;
-            if (logDifference) console.log("deepMatch property difference - ".concat(key, ": ").concat(a[key], ", ").concat(b[key]));
-          }
-        });
-      }
-
-      return matches;
-    }
-
-    if (sj.isType(a, Array) && sj.isType(b, Array)) {
-      // arrays
-      var _matches = true;
-      a.forEach((inA, i) => {
-        if (matchOrder) {
-          if (!matchDeeper(a[i], b[i])) {
-            _matches = false;
-            if (logDifference) console.log("deepMatch index difference - ".concat(i, ": ").concat(a[i], ", ").concat(b[i]));
-          }
-        } else {
-          //C match any inB to current inA
-          if (!b.some(inB => matchDeeper(inA, inB))) {
-            _matches = false;
-            if (logDifference) console.log("deepMatch extra item in b - ".concat(inB));
-          }
-        }
-      });
-
-      if (!matchIfSubset) {
-        b.forEach((inB, i) => {
-          if (matchOrder) {
-            if (!matchDeeper(a[i], b[i])) {
-              _matches = false;
-              if (logDifference) console.log("deepMatch index difference - ".concat(i, ": ").concat(a[i], ", ").concat(b[i]));
-            }
-          } else {
-            if (!a.some(inA => matchDeeper(inA, inB))) {
-              _matches = false;
-              if (logDifference) console.log("deepMatch extra item in a - ".concat(inA));
-            }
-          }
-        });
-      }
-
-      return _matches;
-    }
-  }
-
-  return false;
-};
-
-sj.deepMatch.test = function () {
-  var oA = {
-    a: 'a',
-    b: 'b'
-  };
-  var oB = {
-    a: 'a',
-    b: 'b'
-  };
-  var oC = {
-    a: 'a',
-    b: 'b',
-    c: 'c'
-  };
-  var oD = {
-    a: 'a',
-    b: 'not b'
-  };
-  var aA = ['a', 'b'];
-  var aB = ['a', 'b'];
-  var aC = ['a', 'b', 'c'];
-  var aD = ['a', 'not b'];
-  var aE = ['a', 'c', 'b'];
-  var nA = {
-    a: {
-      a: {
-        a: {
-          a: 'a'
-        }
-      }
-    }
-  };
-  var nB = {
-    a: {
-      a: {
-        a: {
-          a: 'a'
-        }
-      }
-    }
-  }; //C aF is subset of aG at first level, but then aG is a subset of aF at second level, this should fail matchIfSubset
-
-  var aF = [{
-    a: 'a',
-    b: 'b'
-  }];
-  var aG = [{
-    a: 'a'
-  }, {
-    b: 'b'
-  }];
-  Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"])([['match positive number', true === sj.deepMatch(1, 1)], ['match zero', true === sj.deepMatch(0, 0)], ['match negative number', true === sj.deepMatch(-1, -1)], ['match infinity', true === sj.deepMatch(Infinity, Infinity)], ['match negative infinity', true === sj.deepMatch(-Infinity, -Infinity)], ['match NaN', true === sj.deepMatch(NaN, NaN)], ['mismatch positive number', false === sj.deepMatch(4, 3193)], ['mismatch positive negative', false === sj.deepMatch(-3, 0)], ['mismatch infinity, number', false === sj.deepMatch(Infinity, 2345678909875498765456789)], ['mismatch infinity, -infinity', false === sj.deepMatch(Infinity, -Infinity)], ['mismatch NaN, zero', false === sj.deepMatch(NaN, 0)], ['match true', true === sj.deepMatch(true, true)], ['match false', true === sj.deepMatch(false, false)], ['mismatch true, false', false === sj.deepMatch(true, false)], ['match string', true === sj.deepMatch('test', 'test')], ['match empty', true === sj.deepMatch('', '')], ['match "undefined"', true === sj.deepMatch('undefined', 'undefined')], ['match "null"', true === sj.deepMatch('null', 'null')], ['mismatch string', false === sj.deepMatch('string', 'test')], ['mismatch empty and filled', false === sj.deepMatch('', 'test')], ['match object reference', true === sj.deepMatch(oA, oA)], ['match object items', true === sj.deepMatch(oA, oB)], ['match object subset', true === sj.deepMatch(oA, oC, {
-    matchIfSubset: true
-  })], ['mismatch object not deep', false === sj.deepMatch(oA, oB, {
-    deep: false
-  })], ['mismatch object, not subset', false === sj.deepMatch(oA, oC)], ['mismatch object props', false === sj.deepMatch(oA, oD)], ['match array reference', true === sj.deepMatch(aA, aA)], ['match array items', true === sj.deepMatch(aA, aB)], ['match array subset', true === sj.deepMatch(aA, aC, {
-    matchIfSubset: true
-  })], ['match array, not order', true === sj.deepMatch(aC, aE, {
-    matchOrder: false
-  })], ['mismatch array, not deep', false === sj.deepMatch(aA, aB, {
-    deep: false
-  })], ['mismatch array, not subset', false === sj.deepMatch(aA, aC)], ['mismatch array items', false === sj.deepMatch(aA, aD)], ['mismatch array, order', false === sj.deepMatch(aC, aE)], ['mismatch object, array', false === sj.deepMatch({}, [])], ['match nested', true === sj.deepMatch(nA, nB)], ['match nested if too deep', true === sj.deepMatch(nA, nB, {
-    depth: 2,
-    matchIfTooDeep: true
-  })], ['mismatch nested if too deep', false === sj.deepMatch(nA, nB, {
-    depth: 2
-  })], ['mismatch subset switch', false === sj.deepMatch(aF, aG, {
-    matchIfSubset: true
-  })]], 'deepMatch');
 }; // ERROR
 
 
@@ -41047,7 +40875,6 @@ sj.request = /*#__PURE__*/function () {
       }
     }
 
-    console.log('REQUEST');
     var result = yield Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["fetch"])(url, options).catch(rejected => {
       //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
       //C catch network error
@@ -43598,7 +43425,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _global_client_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./global-client.js */ "./source/public/js/global-client.js");
+/* harmony import */ var _utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/object/deep-compare.js */ "./source/public/js/utility/object/deep-compare.js");
+/* harmony import */ var _global_client_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-client.js */ "./source/public/js/global-client.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -43863,6 +43691,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //! depends on global-client.js because it is used in index.js alongside global-client.js
 
 
+
  //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
 //  ████╗ ████║██╔═══██╗██╔══██╗██║   ██║██║     ██╔════╝
 //  ██╔████╔██║██║   ██║██║  ██║██║   ██║██║     █████╗  
@@ -43872,7 +43701,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   state: {
-    tables: _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable.makeTables(),
+    tables: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable.makeTables(),
     socket: null,
     timeout: 10000 //C 10 seconds
 
@@ -43894,27 +43723,27 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         table,
         query
       } = _ref2;
-      return table.liveQueries.find(liveQuery => _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].deepMatch(liveQuery.query, query, {
-        matchOrder: false
+      return table.liveQueries.find(liveQuery => Object(_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(liveQuery.query, query, {
+        compareFunction: _utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"]
       }));
     },
     getLiveData: state => subscription => {
       //C validate
-      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
         origin: 'getLiveData()',
         reason: 'subscription is not an sj.Subscription',
         content: subscription
       }); //C shorten
 
       var liveQuery = subscription.liveQuery;
-      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
         origin: 'getLiveData()',
         reason: "liveQuery is not an sj.LiveQuery",
         content: liveQuery
       }); //C get all liveQuery.cachedEntityRefs.entity
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(cachedEntityRef, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntityRef, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'getLiveData()',
           reason: 'cachedEntityRef is not a cachedEntity',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(cachedEntityRef)
@@ -43924,7 +43753,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     isSingle: state => subscription => {
       var query = subscription.liveQuery.query;
-      return query.length === 1 && Object.keys(query[0]) === 1 && _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query[0].id, 'integer');
+      return query.length === 1 && Object.keys(query[0]) === 1 && _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query[0].id, 'integer');
     }
   },
   mutations: {
@@ -44047,13 +43876,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = liveQuery.table; //C add cachedEntity to table if it doesn't exist
 
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(context.getters.findCachedEntity({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(context.getters.findCachedEntity({
           table,
           entity
-        }), _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].CachedEntity)) {
+        }), _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) {
           context.commit('pushCachedEntity', {
             cachedEntities: table.cachedEntities,
-            cachedEntity: new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].CachedEntity({
+            cachedEntity: new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity({
               table,
               entity
             })
@@ -44065,7 +43894,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           entity
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Unreachable({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
           origin: 'addCachedEntity()'
         }); //C shorthand
 
@@ -44074,7 +43903,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
         var foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
-        if (foundLiveQueryRef !== foundCachedEntityRef) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Unreachable({
+        if (foundLiveQueryRef !== foundCachedEntityRef) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
           origin: 'addCachedEntity()',
           reason: 'either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen',
           content: {
@@ -44110,12 +43939,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref16;
         //C find both reference indexes
         var cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
-        if (cachedEntityRefIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (cachedEntityRefIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'removeCachedEntity()',
           reason: 'cachedEntityRef not found in liveQuery'
         });
         var liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
-        if (liveQueryRefIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (liveQueryRefIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'removeCachedEntity()',
           reason: 'liveQueryRef not found in cachedEntity'
         }); //C remove references from each other
@@ -44132,7 +43961,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (cachedEntity.liveQueryRefs.length <= 0) {
           //C remove the cachedEntity
           var cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
-          if (cachedEntityIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+          if (cachedEntityIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
             origin: 'removeCachedEntity()',
             reason: 'cachedEntity not found in table'
           });
@@ -44158,7 +43987,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         if (timestamp > cachedEntity.timestamp) {
           //C if different data
-          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].deepMatch(cachedEntity.entity, entity)) {
+          if (!Object(_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(cachedEntity.entity, entity)) {
             //C update data and timestamp
             context.commit('setCachedEntity', {
               cachedEntity,
@@ -44190,14 +44019,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref18;
 
         //C if the liveQuery cannot be found
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(context.getters.findLiveQuery({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(context.getters.findLiveQuery({
           table,
           query
-        }), _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery)) {
+        }), _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) {
           //C add it
           context.commit('pushLiveQuery', {
             liveQueries: table.liveQueries,
-            liveQuery: new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery({
+            liveQuery: new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery({
               table,
               query
             })
@@ -44207,7 +44036,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table,
             query
           });
-          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Unreachable({
+          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
             origin: 'addLiveQuery()'
           }); //C trigger the initial update
 
@@ -44234,7 +44063,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             liveQueries: table.liveQueries,
             index: liveQueryIndex
           });
-        } else throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        } else throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'removeLiveQuery',
           reason: 'liveQuery not found in table'
         });
@@ -44263,7 +44092,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = liveQuery; //C don't trigger update for calls older than the existing data
 
         if (callTimestamp <= liveQuery.timestamp) {
-          new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Warn({
+          new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Warn({
             origin: 'update()',
             message: 'cachedEntities not updated because newer data has already been received',
             reason: "data timestamp: ".concat(liveQuery.timestamp, ", update timestamp: ").concat(callTimestamp)
@@ -44323,7 +44152,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             entity
           });
 
-          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(_cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Unreachable({
+          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(_cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
             origin: 'update()'
           }); //C edit the cachedEntity (won't edit if data is old, or unchanged)
 
@@ -44381,13 +44210,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         }); //! this should never fail
 
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Unreachable({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
           origin: 'addSubscription()',
           reason: 'liveQuery not found in table',
           content: liveQuery
         }); //C create a new subscription
 
-        var subscription = new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription(_objectSpread({}, options, {
+        var subscription = new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription(_objectSpread({}, options, {
           liveQuery //C parent reference
 
         })); //C push and return
@@ -44412,7 +44241,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             subscriptions: liveQuery.subscriptions,
             index: subscriptionIndex
           });
-        } else throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        } else throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'removeSubscription',
           reason: 'subscription not found in liveQuery'
         }); //C if liveQuery no longer has any subscriptions
@@ -44434,30 +44263,30 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //C validate
         //TODO how to check if class is subclass, because this is getting ridiculous
         //L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'subscribe()',
           reason: 'Entity is not an sj.Entity',
           content: Entity
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'subscribe()',
           reason: 'query is not an Object',
           content: query
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(options, Object)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(options, Object)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'subscribe()',
           reason: 'options is not an Object',
           content: options
         }); //C shorten
 
         var table = context.getters.findTable(Entity);
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'subscribe()',
           reason: 'table is not an sj.LiveTable',
           content: table
         }); //C subscribe on server 
 
-        var preparedQuery = _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
+        var preparedQuery = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
         var processedQuery = yield context.dispatch('serverSubscribe', {
           table,
           query: preparedQuery
@@ -44482,8 +44311,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref23;
 
         //C validate //! return early if not a subscription
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) {
-          if (strict) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) {
+          if (strict) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
             origin: 'unsubscribe()',
             reason: 'subscription is not an sj.Subscription',
             content: subscription
@@ -44492,32 +44321,32 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
         var liveQuery = subscription.liveQuery;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'unsubscribe()',
           reason: "liveQuery is not an sj.LiveQuery",
           content: liveQuery
         });
         var query = liveQuery.query;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'unsubscribe()',
           reason: 'query is not an Object',
           content: query
         });
         var table = liveQuery.table;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'unsubscribe()',
           reason: 'table is not an sj.LiveTable',
           content: table
         });
         var Entity = table.Entity;
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'unsubscribe()',
           reason: 'Entity is not an sj.LiveTable',
           content: Entity
         }); //C unsubscribe on server
         //? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
 
-        var preparedQuery = _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
+        var preparedQuery = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
         var processedQuery = yield context.dispatch('serverUnsubscribe', {
           table,
           query: preparedQuery
@@ -44543,7 +44372,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
         //C strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-        if (strict && !_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (strict && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'change()',
           reason: 'subscription is not an sj.Subscription',
           content: subscription
@@ -44573,20 +44402,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           timestamp
         } = _ref25;
         //C validate
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'update()',
           reason: 'Entity is not an sj.Entity',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(Entity)
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'update()',
           reason: 'query is not an Object',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(query)
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(timestamp, 'integer')) timestamp = Date.now(); //C shorten
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(timestamp, 'integer')) timestamp = Date.now(); //C shorten
 
         var table = context.getters.findTable(Entity);
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'update()',
           reason: 'table is not an sj.LiveTable',
           content: {
@@ -44598,7 +44427,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           query
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           origin: 'update()',
           reason: "liveQuery is not an sj.LiveQuery",
           content: {
@@ -44641,7 +44470,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref26;
         return yield new Promise((resolve, reject) => {
           var clearTimer = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(context.state.timeout, () => {
-            reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+            reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
               log: true,
               reason: 'socket - subscribe timed out'
             }));
@@ -44651,9 +44480,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error)) reject(result);else resolve(result);
+            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error)) reject(result);else resolve(result);
           });
-        }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+        }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
       })();
     },
 
@@ -44665,7 +44494,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref27;
         yield new Promise((resolve, reject) => {
           var clearTimer = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(context.state.timeout, () => {
-            reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+            reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
               log: true,
               reason: 'socket - unsubscribe timed out'
             }));
@@ -44675,9 +44504,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error)) reject(result);else resolve(result);
+            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error)) reject(result);else resolve(result);
           });
-        }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+        }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
       })();
     },
 
@@ -44769,7 +44598,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               query,
               timestamp
             } = _ref30;
-            var Entity = _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.tableToEntity(table);
+            var Entity = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity.tableToEntity(table);
             context.dispatch('update', {
               Entity,
               query,
@@ -44784,20 +44613,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //TODO rewrite this
 
         context.state.socket.test = /*#__PURE__*/_asyncToGenerator(function* () {
-          _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.placeholder = {
+          _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track.placeholder = {
             playlistId: 2,
             name: 'placeholder name',
             duration: 1234,
-            source: _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
+            source: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
             sourceId: 'placeholderSourceId',
             artists: ['foo', 'bar']
           };
-          _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.placeholder = {
+          _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist.placeholder = {
             userId: 3,
             name: 'placeholder name',
             description: 'placeholder description'
           };
-          _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.placeholder = {
+          _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.placeholder = {
             name: 'placeholder name',
             email: 'placeholder email',
             password: 'placeholder password'
@@ -44808,7 +44637,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               //C subscribe
               var subscribeResult = yield new Promise((resolve, reject) => {
                 context.state.socket.emit('subscribe', queryPack, result => {
-                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success)) {
+                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success)) {
                     resolve(result);
                   } else {
                     reject(result);
@@ -44824,8 +44653,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
                 //? when is this listener removed?
                 console.log('CALLED');
                 notifiedResult = notifyResult;
-                if (_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].deepMatch(queryPack.query, notifyResult.changed, {
-                  matchIfSubset: true
+                if (Object(_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(queryPack.query, notifyResult.changed, {
+                  subset: true
                 })) notified = true;
               }); //C do
 
@@ -44837,7 +44666,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
               var unsubscribeResult = yield new Promise((resolve, reject) => {
                 context.state.socket.emit('unsubscribe', queryPack, result => {
-                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success)) {
+                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success)) {
                     resolve(result);
                   } else {
                     reject(result);
@@ -44860,7 +44689,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               }), /*#__PURE__*/function () {
                 var _ref36 = _asyncToGenerator(function* (Entity, data, accessory) {
                   var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, data));
-                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].one(addResult.content).id;
+                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one(addResult.content).id;
                   return addResult;
                 });
 
@@ -44892,7 +44721,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               return yield wrap(Entity, queryPack, dataBefore, /*#__PURE__*/function () {
                 var _ref39 = _asyncToGenerator(function* (Entity, dataBefore, accessory, dataAfter) {
                   var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, dataBefore));
-                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].one(addResult.content).id;
+                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one(addResult.content).id;
                   return addResult;
                 });
 
@@ -44932,7 +44761,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               return yield wrap(Entity, queryPack, data, /*#__PURE__*/function () {
                 var _ref43 = _asyncToGenerator(function* (Entity, data, accessory) {
                   var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, data));
-                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].one(addResult.content).id;
+                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one(addResult.content).id;
                   return addResult;
                 });
 
@@ -44964,21 +44793,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           //['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
           //['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
           //['edit to new name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
-          ['remove track name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track, {
+          ['remove track name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track, {
             table: 'tracks',
             query: {
               name: 'some name'
             }
           }, {
             name: 'some name'
-          }))], ['remove playlist name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist, {
+          }))], ['remove playlist name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist, {
             table: 'playlists',
             query: {
               name: 'some name'
             }
           }, {
             name: 'some name'
-          }))], ['remove user name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].User, {
+          }))], ['remove user name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User, {
             table: 'users',
             query: {
               name: 'some name'
@@ -44986,9 +44815,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }, {
             name: 'some name'
           }))]], 'context.state.socket.test()');
-          delete _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.placeholder;
-          delete _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.placeholder;
-          delete _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.placeholder;
+          delete _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track.placeholder;
+          delete _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist.placeholder;
+          delete _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.placeholder;
         }); //await context.state.socket.test();
         //C module test
         //await context.dispatch('test');
@@ -45002,7 +44831,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(2000);
         var tests = [];
 
-        var uniqueName = () => "liveQuery".concat(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeKey(7));
+        var uniqueName = () => "liveQuery".concat(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].makeKey(7));
 
         var uniqueDuration = () => Math.round(Math.random() * 100000);
 
@@ -45010,7 +44839,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var waitForUpdate = /*#__PURE__*/function () {
           var _ref46 = _asyncToGenerator(function* () {
-            yield _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].recursiveAsyncTime(2000, result => {
+            yield _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].recursiveAsyncTime(2000, result => {
               if (updated) {
                 updated = false;
                 return true;
@@ -45038,30 +44867,30 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }(); // CREATE
 
 
-        var user = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].User({
+        var user = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User({
           name: uniqueName(),
           email: uniqueName(),
           password: 'placeholder',
           password2: 'placeholder'
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].one);
-        var playlist = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist({
+        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one);
+        var playlist = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist({
           userId: user.id,
           name: uniqueName(),
           description: 'placeholder'
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].one);
-        var track = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track({
+        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one);
+        var track = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track({
           playlistId: playlist.id,
-          source: _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
+          source: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
           sourceId: 'placeholder',
           name: uniqueName(),
           duration: uniqueDuration()
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].one); // MAKE SUBSCRIPTION
+        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one); // MAKE SUBSCRIPTION
 
         var onAddCount = 0;
         var onEditCount = 0;
         var onRemoveCount = 0;
         var trackSubscription = yield context.dispatch('subscribe', {
-          Entity: _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track,
+          Entity: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track,
           query: {
             name: track.name
           },
@@ -45084,7 +44913,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
           }
         });
-        tests.push(['isSubscription', _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(trackSubscription, _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)]); // ITERATE
+        tests.push(['isSubscription', _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(trackSubscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)]); // ITERATE
 
         var iterations = Math.round(Math.random() * 10) + 5;
         var xTracks = [];
@@ -45100,9 +44929,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         yield waitForUpdate();
 
         for (var i = 0; i < iterations; i++) {
-          xTracks[i] = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track(_objectSpread({}, track, {
+          xTracks[i] = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track(_objectSpread({}, track, {
             position: undefined
-          })).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].one);
+          })).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one);
         }
 
         yield waitForUpdate(); //console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
@@ -46394,21 +46223,22 @@ class SymbolInterface extends VirtualInterface {
 /*!*********************************************************!*\
   !*** ./source/public/js/utility/object/deep-compare.js ***!
   \*********************************************************/
-/*! exports provided: default */
+/*! exports provided: defaultOptions, default, compareUnorderedArrays */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultOptions", function() { return defaultOptions; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return deepCompare; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compareUnorderedArrays", function() { return compareUnorderedArrays; });
+/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var isObject = function isObject(v) {
-  return v !== null && typeof v === 'object';
-};
+
 
 var compareDeeper = function compareDeeper(a, b, options) {
   var {
@@ -46423,35 +46253,46 @@ var logDifferenceFunction = function logDifferenceFunction(key, aValue, bValue) 
   console.log("deepCompare property difference - ".concat(key, ": ").concat(aValue, ", ").concat(bValue));
 };
 
+var defaultOptions = {
+  //C 0 based, will call depth+1 layers of comparisons
+  depth: 1,
+  //C used for custom comparisons (like un-ordered lists)
+  //! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
+  compareFunction: compareUnorderedArrays = (a, b) => a === b,
+  //C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
+  //C used for custom key selection (inherited, enumerable, symbol, etc.)
+  selectFunction: Object.keys,
+  //C true:  compare selected key-values on x to the same key-values anywhere on y
+  //C false: compare selected key-values on x to the same key-values selected on y
+  anywhere: false,
+  //C true:  compares a against b 
+  //C false: compares a against b and b against a
+  //? what if subsetting needs to stop a specific depth?
+  //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
+  subset: false,
+  //C compare result for values that are too deep
+  resultIfTooDeep: false,
+  logDifference: false
+};
 function deepCompare(a, b) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
   var {
-    //C 0 based, will call depth+1 layers of comparisons
-    depth = 1,
-    //C used for custom comparisons (like un-ordered lists)
-    //! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
-    compareFunction = (a, b) => a === b,
-    //C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
-    //C used for custom key selection (inherited, enumerable, symbol, etc.)
-    selectFunction = Object.keys,
-    //C true:  compare selected key-values on x to the same key-values anywhere on y
-    //C false: compare selected key-values on x to the same key-values selected on y
-    anywhere = false,
-    //C true:  compares a against b 
-    //C false: compares a against b and b against a
-    //? what if subsetting needs to stop a specific depth?
-    //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
-    subset = false,
-    //C compare result for values that are too deep
-    resultIfTooDeep = false,
-    logDifference = false
-  } = options; // limit to depth
+    depth,
+    compareFunction,
+    selectFunction,
+    anywhere,
+    subset,
+    resultIfTooDeep,
+    logDifference
+  } = _objectSpread({}, defaultOptions, {}, options); // limit to depth
+
 
   if (depth < 0) return resultIfTooDeep; // compare values
 
   if (compareFunction(a, b, options)) return true; // compare properties
 
-  if (isObject(a) && isObject(b)) {
+  if (_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(a) && _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(b)) {
     var result = true; // selected keys
 
     var aSelectedKeys = selectFunction(a);
@@ -46491,6 +46332,28 @@ function deepCompare(a, b) {
   }
 
   return false;
+}
+; // COMPARE FUNCTIONS
+
+function compareUnorderedArrays(a, b, options) {
+  //R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
+  // If a and b are arrays:
+  if (_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(a) && _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(b)) {
+    // Match if:
+    var result = true; // All items of a exist in b.
+
+    if (a.some(item => !b.includes(item))) result = false; // And if not a subset comparison.
+
+    if (!subset) {
+      // All items of b exist in a.
+      if (b.some(item => !a.includes(item))) result = false;
+    }
+
+    return result;
+  } else {
+    // Use the default compare function.
+    return defaultOptions.compareFunction(a, b, options);
+  }
 }
 ; //L diagrams: https://www.figma.com/file/57kSw6SaPX3qJUSdzMpfJo/Object-Property-Locations-Comparison?node-id=0%3A1
 

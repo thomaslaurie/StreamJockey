@@ -1,6 +1,5 @@
-const isObject = function (v) {
-	return v !== null && typeof v === 'object';
-};
+import {object, array} from '../validation/common-rules.js';
+
 const compareDeeper = function (a, b, options) {
 	const {depth} = options;
 	return deepCompare(a, b, {
@@ -12,34 +11,47 @@ const logDifferenceFunction = function (key, aValue, bValue) {
 	console.log(`deepCompare property difference - ${key}: ${aValue}, ${bValue}`);
 };
 
+export const defaultOptions = {
+	//C 0 based, will call depth+1 layers of comparisons
+	depth: 1,
+
+	//C used for custom comparisons (like un-ordered lists)
+	//! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
+	compareFunction: compareUnorderedArrays = (a, b) => a === b,
+
+	//C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
+	//C used for custom key selection (inherited, enumerable, symbol, etc.)
+	selectFunction: Object.keys,
+
+	//C true:  compare selected key-values on x to the same key-values anywhere on y
+	//C false: compare selected key-values on x to the same key-values selected on y
+	anywhere: false,
+
+	//C true:  compares a against b 
+	//C false: compares a against b and b against a
+	//? what if subsetting needs to stop a specific depth?
+	//R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
+	subset: false,
+
+	//C compare result for values that are too deep
+	resultIfTooDeep: false,
+
+	logDifference: false,
+};
+
 export default function deepCompare(a, b, options = {}) {
 	const {
-		//C 0 based, will call depth+1 layers of comparisons
-		depth = 1,
-
-		//C used for custom comparisons (like un-ordered lists)
-		//! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
-		compareFunction = (a, b) => a === b,
-
-		//C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
-		//C used for custom key selection (inherited, enumerable, symbol, etc.)
-		selectFunction = Object.keys,
-
-		//C true:  compare selected key-values on x to the same key-values anywhere on y
-		//C false: compare selected key-values on x to the same key-values selected on y
-		anywhere = false,
-
-		//C true:  compares a against b 
-		//C false: compares a against b and b against a
-		//? what if subsetting needs to stop a specific depth?
-		//R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
-		subset = false,
-
-		//C compare result for values that are too deep
-		resultIfTooDeep = false,
-	
-		logDifference = false,
-	} = options;
+		depth,
+		compareFunction,
+		selectFunction,
+		anywhere,
+		subset,
+		resultIfTooDeep,
+		logDifference,
+	} = {
+		...defaultOptions,
+		...options,
+	};
 
 	// limit to depth
 	if (depth < 0) return resultIfTooDeep;
@@ -48,7 +60,7 @@ export default function deepCompare(a, b, options = {}) {
 	if (compareFunction(a, b, options)) return true;
 
 	// compare properties
-	if (isObject(a) && isObject(b)) {
+	if (object.test(a) && object.test(b)) {
 		let result = true;
 
 		// selected keys
@@ -90,6 +102,28 @@ export default function deepCompare(a, b, options = {}) {
 	}
 
 	return false;
+};
+
+// COMPARE FUNCTIONS
+export function compareUnorderedArrays(a, b, options) {
+	//R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
+
+	// If a and b are arrays:
+	if (array.test(a) && array.test(b)) {
+		// Match if:
+		let result = true;
+		// All items of a exist in b.
+		if (    a.some((item) => !b.includes(item))) result = false;
+		// And if not a subset comparison.
+		if (!subset) {
+			// All items of b exist in a.
+			if (b.some((item) => !a.includes(item))) result = false;
+		}
+		return result;
+	} else {	
+		// Use the default compare function.
+		return defaultOptions.compareFunction(a, b, options);
+	}
 };
 
 //L diagrams: https://www.figma.com/file/57kSw6SaPX3qJUSdzMpfJo/Object-Property-Locations-Comparison?node-id=0%3A1
