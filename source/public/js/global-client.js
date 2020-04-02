@@ -43,7 +43,8 @@ import {
 	wait,
 	Deferred,
 	encodeList,
-
+	one,
+	any,
 } from './utility/index.js';
 import sj from './global.js';
 
@@ -125,27 +126,27 @@ sj.Entity.augmentClass({
 			return await sj.request(
 				'POST', 
 				`${sj.API_URL}/${this.table}`, 
-				sj.any(query).map((q) => pick(q, this.filters.addIn))
+				any(query).map((q) => pick(q, this.filters.addIn))
 			);
 		},
 		async get(query) {
 			return await sj.request(
 				'GET', 
-				`${sj.API_URL}/${this.table}?${encodeList(sj.any(query).map((q) => pick(q, this.filters.getIn)))}`
+				`${sj.API_URL}/${this.table}?${encodeList(any(query).map((q) => pick(q, this.filters.getIn)))}`
 			);
 		},
 		async edit(query) {
 			return await sj.request(
 				'PATCH', 
 				`${sj.API_URL}/${this.table}`, 
-				sj.any(query).map((q) => pick(q, this.filters.editIn))
+				any(query).map((q) => pick(q, this.filters.editIn))
 			);
 		},
 		async remove(query) {
 			return await sj.request(
 				'DELETE', 
 				`${sj.API_URL}/${this.table}`, 
-				sj.any(query).map((q) => pick(q,  this.filters.removeIn))
+				any(query).map((q) => pick(q,  this.filters.removeIn))
 			);
 		},
 	}),
@@ -868,11 +869,11 @@ sj.Playback.module = new sj.Playback({
 
 		// LOCAL TRACKS
 		currentTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.currentTrackSubscription, sj.Subscription)) return sj.one(rootGetters.getLiveData(state.currentTrackSubscription));
+			if (sj.isType(state.currentTrackSubscription, sj.Subscription)) return one(rootGetters.getLiveData(state.currentTrackSubscription));
 			else return null;
 		},
 		startingTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.startingTrackSubscription, sj.Subscription)) return sj.one(rootGetters.getLiveData(state.startingTrackSubscription));
+			if (sj.isType(state.startingTrackSubscription, sj.Subscription)) return one(rootGetters.getLiveData(state.startingTrackSubscription));
 			else return null;
 		},
 	},

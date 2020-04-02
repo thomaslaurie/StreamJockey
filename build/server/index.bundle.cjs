@@ -553,11 +553,6 @@ sj.andResolve = function (rejected) {
 }; // FORMAT
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, {
-  any: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"],
-  one: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]
-});
-
 sj.content = function (resolved) {
   //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
   return resolved.content;
@@ -2039,7 +2034,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
     return {
       fillError(error, fill) {
         //C replace placeholders
-        sj.any(fill).forEach((item, index) => {
+        Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(fill).forEach((item, index) => {
           const string = String(item);
           error.reason = error.reason.replace(`$${index}`, string);
           error.message = error.message.replace(`$${index}`, string);
@@ -2866,7 +2861,7 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
-      if (sj.isType(accessory.options.query, Array)) accessory.options.query = sj.any(accessory.options.query);
+      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(accessory.options.query);
     },
 
     defaults: {
@@ -5765,7 +5760,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
     let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
-    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].one).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 
     if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isEmpty(refreshToken)) {
       throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].AuthRequired();
@@ -6460,7 +6455,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         reason: `cannot call CRUD method directly on sj.Entity`
       }); //C cast as array
 
-      const entities = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(anyEntities); //C shorthand
+      const entities = Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
 
       const isGetMimic = methodName === 'getMimic'; //C store getMimic
 
@@ -6488,12 +6483,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
           await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+              const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this[methodName + 'Query'](t, entity).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             if (methodName !== 'remove') inputAfter.push(...after);
           }).catch(rejected => {
             throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
@@ -6508,9 +6503,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
         if (!isGet) {
           await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this.editQuery(t, influencedEntity).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedAfter.push(...after);
           }).catch(rejected => {
             throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
@@ -6528,14 +6523,14 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
       }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
-      const shookGet = after.map(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+      const shookGet = after.map(list => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
       const timestamp = Date.now(); //C if get, don't notify
 
       if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
       else if (isGetMimic) return shookGet[1]; //C shake for return
 
-      const shook = after.map(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
+      const shook = after.map(list => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
       const built = shook.map(list => list.map(entity => new this(entity)));
       return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({ ...this[methodName + 'Success'](),
@@ -6841,7 +6836,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentCla
 _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass({
   prototypeProperties(parent) {
     this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
-      return await this.constructor.order(db, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(this));
+      return await this.constructor.order(db, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
     };
   },
 

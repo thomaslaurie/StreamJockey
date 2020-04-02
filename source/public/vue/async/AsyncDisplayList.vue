@@ -1,5 +1,8 @@
 <script>
-	import {dynamicSort} from '../../js/utility/index.js';
+	import {
+		dynamicSort,
+		any,
+	} from '../../js/utility/index.js';
     import AsyncDisplay from './AsyncDisplay.vue';
 
     export default {
@@ -24,13 +27,13 @@
 		computed: {
 			// OVERWRITES
 			liveContent() {
-				if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.any(this.$store.getters.getLiveData(this.subscription));
+				if (this.sj.isType(this.subscription, this.sj.Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
 				else return [];
 			},
 
 			// NEW
             orderedContent() {
-                return dynamicSort(this.sj.any(this.content), this.ascending, this.orderBy);
+                return dynamicSort(any(this.content), this.ascending, this.orderBy);
 			},
 
 			/* //G transparent components
@@ -53,7 +56,7 @@
         methods: {
 			// OVERWRITES
 			async deadRefresh() {
-				this.deadContent = await this.Entity.get(this.query).then(this.sj.content).then(this.sj.any);
+				this.deadContent = await this.Entity.get(this.query).then(this.sj.content).then(any);
 			},		
         },
 

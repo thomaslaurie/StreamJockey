@@ -1,4 +1,7 @@
 <script>
+	import {
+		one,
+	} from '../../js/utility/index.js';
     import VueX, {mapState} from '../../js/vuex.esm.browser.js'; 
 
     export default {
@@ -18,7 +21,7 @@
                 const playlist = await this.sj.Playlist.add({
                     userId: currentUser.id,
                     ...this,
-				}).then(this.sj.content).then(this.sj.one).catch(rejected => {
+				}).then(this.sj.content).then(one).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
                 })

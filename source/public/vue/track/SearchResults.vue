@@ -1,4 +1,7 @@
 <script>
+	import {
+		one,
+	} from '../../js/utility/index.js';
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 
 	//C for use of sj inside validator function
@@ -99,7 +102,7 @@
 					this.playlist = await new this.sj.Playlist({
 						userId: currentUser.id,
 						name: `searchPlaylist${this.sj.makeKey(10)}`,
-					}).add().then(this.sj.content).then(this.sj.one);
+					}).add().then(this.sj.content).then(one);
 					console.log('PLAYLIST ADDED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
 				},
 				async removePlaylist() {

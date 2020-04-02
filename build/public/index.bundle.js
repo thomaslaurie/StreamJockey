@@ -389,9 +389,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   computed: {
     // GENERAL
     liveContent() {
-      //! one item here, uses sj.any() in AsyncDisplayList
+      //! one item here, uses any() in AsyncDisplayList
       //? should this type check go into usingLive?
-      if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.one(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
+      if (this.sj.isType(this.subscription, this.sj.Subscription)) return Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
       //R however the real issue was that because I am using slotted content, even though it isn't rendering due to the state property, the elements still require their data references (unlike v-if and other methods)
       //L using a custom directive was a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
     },
@@ -522,8 +522,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this3 = this;
 
       return _asyncToGenerator(function* () {
-        //! one item here, uses sj.any() in AsyncDisplayList
-        _this3.deadContent = yield _this3.Entity.get(_this3.query).then(_this3.sj.content).then(_this3.sj.one);
+        //! one item here, uses any() in AsyncDisplayList
+        _this3.deadContent = yield _this3.Entity.get(_this3.query).then(_this3.sj.content).then(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
       })();
     },
 
@@ -602,12 +602,12 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
   computed: {
     // OVERWRITES
     liveContent() {
-      if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.any(this.$store.getters.getLiveData(this.subscription));else return [];
+      if (this.sj.isType(this.subscription, this.sj.Subscription)) return Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));else return [];
     },
 
     // NEW
     orderedContent() {
-      return Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicSort"])(this.sj.any(this.content), this.ascending, this.orderBy);
+      return Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicSort"])(Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.content), this.ascending, this.orderBy);
     },
 
     /* //G transparent components
@@ -636,7 +636,7 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        _this.deadContent = yield _this.Entity.get(_this.query).then(_this.sj.content).then(_this.sj.any);
+        _this.deadContent = yield _this.Entity.get(_this.query).then(_this.sj.content).then(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]);
       })();
     }
 
@@ -1064,7 +1064,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _js_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/vuex.esm.browser.js */ "./source/public/js/vuex.esm.browser.js");
+/* harmony import */ var _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _js_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../js/vuex.esm.browser.js */ "./source/public/js/vuex.esm.browser.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1074,6 +1075,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -1086,7 +1088,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     };
   },
 
-  computed: _objectSpread({}, Object(_js_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["mapState"])(['me'])),
+  computed: _objectSpread({}, Object(_js_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["mapState"])(['me'])),
   methods: {
     submit() {
       var _this = this;
@@ -1095,7 +1097,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         var currentUser = yield _this.sj.session.get().then(_this.sj.content);
         var playlist = yield _this.sj.Playlist.add(_objectSpread({
           userId: currentUser.id
-        }, _this)).then(_this.sj.content).then(_this.sj.one).catch(rejected => {
+        }, _this)).then(_this.sj.content).then(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
           //TODO handle error
           console.error(rejected);
         });
@@ -1133,9 +1135,10 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
-/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
+/* harmony import */ var _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
+/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
+/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1149,12 +1152,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'database-page',
   components: {
-    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
-    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
-    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"]
+    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
+    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
   },
 
   data() {
@@ -1206,7 +1210,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     subscriptionData: function subscriptionData() {
       //TODO I think this is old, transition to the new AsyncDisplay
-      if (sj.isType(this.subscription, sj.Subscription)) return this.sj.any(this.$store.getters.getLiveData(this.subscription));
+      if (sj.isType(this.subscription, sj.Subscription)) return Object(_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
     }
   },
   watch: {
@@ -1646,11 +1650,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../js/utility/index.js */ "./source/public/js/utility/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-//import {mapState} from '../../../js/vuex.esm.browser.js'; 
+ //import {mapState} from '../../../js/vuex.esm.browser.js'; 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'login-form',
 
@@ -1670,7 +1676,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var result = yield _this.sj.session.login(_this).catch(rejected => {
           //TODO handle error
           console.error(rejected);
-        }); //let me = this.sj.one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
+        }); //let me = one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
         //this.$store.commit('setMe', me);
 
         _this.$router.push('/');
@@ -1848,11 +1854,13 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _js_global_client_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../js/global-client.js */ "./source/public/js/global-client.js");
+/* harmony import */ var _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
+/* harmony import */ var _js_global_client_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../js/global-client.js */ "./source/public/js/global-client.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
  //C for use of sj inside validator function
 
@@ -1860,7 +1868,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'search-results',
   components: {
-    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_0__["default"]
+    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
   },
 
   data() {
@@ -1875,7 +1883,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       default: null,
 
       validator(value) {
-        return _js_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances.includes(value);
+        return _js_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances.includes(value);
       }
 
     },
@@ -1885,7 +1893,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       validator(value) {
         //! validator cannot reference this, must use a separately imported sj reference
-        return value === null || _js_global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.positiveInteger.check(value);
+        return value === null || _js_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.positiveInteger.check(value);
       }
 
     }
@@ -1958,7 +1966,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     		this.playlist = await new this.sj.Playlist({
     			userId: currentUser.id,
     			name: `searchPlaylist${this.sj.makeKey(10)}`,
-    		}).add().then(this.sj.content).then(this.sj.one);
+    		}).add().then(this.sj.content).then(one);
     		console.log('PLAYLIST ADDED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
     	},
     	async removePlaylist() {
@@ -37759,7 +37767,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this5.table), _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this5.filters.addIn)));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this5.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this5.filters.addIn)));
       })();
     },
 
@@ -37767,7 +37775,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this6.table, "?").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeList"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this6.filters.getIn)))));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this6.table, "?").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeList"])(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this6.filters.getIn)))));
       })();
     },
 
@@ -37775,7 +37783,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
       var _this7 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('PATCH', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this7.table), _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this7.filters.editIn)));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('PATCH', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this7.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this7.filters.editIn)));
       })();
     },
 
@@ -37783,7 +37791,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
       var _this8 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this8.table), _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this8.filters.removeIn)));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this8.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this8.filters.removeIn)));
       })();
     }
 
@@ -38615,10 +38623,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].one(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].one(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
     }
   }
 }); // SOURCE
@@ -40590,11 +40598,6 @@ sj.andResolve = function (rejected) {
 }; // FORMAT
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, {
-  any: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"],
-  one: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]
-});
-
 sj.content = function (resolved) {
   //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
   return resolved.content;
@@ -42235,7 +42238,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
     return {
       fillError(error, fill) {
         //C replace placeholders
-        sj.any(fill).forEach((item, index) => {
+        Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(fill).forEach((item, index) => {
           var string = String(item);
           error.reason = error.reason.replace("$".concat(index), string);
           error.message = error.message.replace("$".concat(index), string);
@@ -43059,7 +43062,7 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
-      if (sj.isType(accessory.options.query, Array)) accessory.options.query = sj.any(accessory.options.query);
+      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(accessory.options.query);
     },
 
     defaults: {
@@ -44286,7 +44289,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           content: table
         }); //C subscribe on server 
 
-        var preparedQuery = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
+        var preparedQuery = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
         var processedQuery = yield context.dispatch('serverSubscribe', {
           table,
           query: preparedQuery
@@ -44346,7 +44349,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }); //C unsubscribe on server
         //? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
 
-        var preparedQuery = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
+        var preparedQuery = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
         var processedQuery = yield context.dispatch('serverUnsubscribe', {
           table,
           query: preparedQuery
@@ -44689,7 +44692,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               }), /*#__PURE__*/function () {
                 var _ref36 = _asyncToGenerator(function* (Entity, data, accessory) {
                   var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, data));
-                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one(addResult.content).id;
+                  accessory.id = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(addResult.content).id;
                   return addResult;
                 });
 
@@ -44721,7 +44724,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               return yield wrap(Entity, queryPack, dataBefore, /*#__PURE__*/function () {
                 var _ref39 = _asyncToGenerator(function* (Entity, dataBefore, accessory, dataAfter) {
                   var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, dataBefore));
-                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one(addResult.content).id;
+                  accessory.id = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(addResult.content).id;
                   return addResult;
                 });
 
@@ -44761,7 +44764,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               return yield wrap(Entity, queryPack, data, /*#__PURE__*/function () {
                 var _ref43 = _asyncToGenerator(function* (Entity, data, accessory) {
                   var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, data));
-                  accessory.id = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one(addResult.content).id;
+                  accessory.id = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(addResult.content).id;
                   return addResult;
                 });
 
@@ -44872,19 +44875,19 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           email: uniqueName(),
           password: 'placeholder',
           password2: 'placeholder'
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one);
+        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         var playlist = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist({
           userId: user.id,
           name: uniqueName(),
           description: 'placeholder'
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one);
+        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         var track = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track({
           playlistId: playlist.id,
           source: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
           sourceId: 'placeholder',
           name: uniqueName(),
           duration: uniqueDuration()
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one); // MAKE SUBSCRIPTION
+        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]); // MAKE SUBSCRIPTION
 
         var onAddCount = 0;
         var onEditCount = 0;
@@ -44931,7 +44934,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         for (var i = 0; i < iterations; i++) {
           xTracks[i] = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track(_objectSpread({}, track, {
             position: undefined
-          })).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].one);
+          })).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         }
 
         yield waitForUpdate(); //console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);

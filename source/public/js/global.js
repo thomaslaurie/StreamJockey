@@ -318,11 +318,6 @@ sj.andResolve = function (rejected) {
 };
 
 // FORMAT
-define.constant(sj, {
-	any,
-	one,
-});
-
 sj.content = function (resolved) {
 	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
 	return resolved.content;
@@ -1864,7 +1859,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 		return {
 			fillError(error, fill) {
 				//C replace placeholders
-				sj.any(fill).forEach((item, index) => {
+				any(fill).forEach((item, index) => {
 					const string = String(item);
 					error.reason = error.reason.replace(`$${index}`, string);
 					error.message = error.message.replace(`$${index}`, string);
@@ -2696,7 +2691,7 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
-			if (sj.isType(accessory.options.query, Array)) accessory.options.query = sj.any(accessory.options.query);
+			if (sj.isType(accessory.options.query, Array)) accessory.options.query = any(accessory.options.query);
 		},
 		defaults: {
 			table: undefined,

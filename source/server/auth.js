@@ -42,6 +42,7 @@ import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinm
 import {
 	wait,
 	encodeProperties,
+	one,
 } from '../public/js/utility/index.js';
 import sj from './global-server.js';
 
@@ -261,7 +262,7 @@ Object.assign(sj.spotify, {
 	refreshToken: async function (ctx) {
 		//C get the refresh token from the database
 		let me = await sj.session.get(ctx).then(sj.content);
-		let refreshToken = await sj.User.get(me).then(sj.content).then(sj.one).then(resolved => resolved.spotifyRefreshToken);
+		let refreshToken = await sj.User.get(me).then(sj.content).then(one).then(resolved => resolved.spotifyRefreshToken);
 
 		//C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 		if (sj.isEmpty(refreshToken)) {

@@ -103,6 +103,7 @@ import {
 	pick,
 	stableSort,
 	asyncMap,
+	any,
 } from '../public/js/utility/index.js';
 import {
 	fetch,
@@ -583,7 +584,7 @@ sj.Entity.augmentClass({
 			});
 
 			//C cast as array
-			const entities = sj.any(anyEntities);
+			const entities = any(anyEntities);
 
 			//C shorthand
 			const isGetMimic = methodName === 'getMimic'; //C store getMimic
@@ -618,12 +619,12 @@ sj.Entity.augmentClass({
 					await asyncMap(inputMapped, async entity => {
 						//C before, ignore add
 						if (!isGet && methodName !== 'add') {
-							const before = await this.getQuery(t, pick(entity, this.filters.id)).then(sj.any).catch(sj.propagate)
+							const before = await this.getQuery(t, pick(entity, this.filters.id)).then(any).catch(sj.propagate)
 							inputBefore.push(...before);
 						}
 
 						//C after, ignore remove (still needs to execute though)
-						const after = await this[methodName+'Query'](t, entity).then(sj.any).catch(sj.propagate);
+						const after = await this[methodName+'Query'](t, entity).then(any).catch(sj.propagate);
 						if (methodName !== 'remove') inputAfter.push(...after);
 					}).catch(rejected => {
 						throw sj.propagate(new sj.ErrorList({
@@ -638,10 +639,10 @@ sj.Entity.augmentClass({
 				const influencedAfter = [];
 				if (!isGet) {
 					await asyncMap(influencedMapped, async influencedEntity => {
-						const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(sj.any).catch(sj.propagate);
+						const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(any).catch(sj.propagate);
 						influencedBefore.push(...before);
 
-						const after = await this.editQuery(t, influencedEntity).then(sj.any).catch(sj.propagate);
+						const after = await this.editQuery(t, influencedEntity).then(any).catch(sj.propagate);
 						influencedAfter.push(...after);
 					}).catch(rejected => {
 						throw sj.propagate(new sj.ErrorList({
@@ -663,7 +664,7 @@ sj.Entity.augmentClass({
 			}).catch(sj.propagate); //! finish the transaction here so that notify won't be called before the database has updated
 
 			//C shake for subscriptions with getOut filter
-			const shookGet = after.map(list => sj.any(list).map((item) => pick(item, this.filters.getOut)));
+			const shookGet = after.map(list => any(list).map((item) => pick(item, this.filters.getOut)));
 
 			//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 			const timestamp = Date.now();
@@ -674,7 +675,7 @@ sj.Entity.augmentClass({
 			else if (isGetMimic) return shookGet[1]; 
 
 			//C shake for return
-			const shook = after.map(list => sj.any(list).map((item) => pick(item, this.filters[methodName+'Out'])));
+			const shook = after.map(list => any(list).map((item) => pick(item, this.filters[methodName+'Out'])));
 
 			//C rebuild
 			const built = shook.map(list => list.map(entity => new this(entity)));
@@ -980,7 +981,7 @@ sj.Playlist.augmentClass({
 sj.Track.augmentClass({
 	prototypeProperties(parent) {
 		this.order = async function (db = sj.db) {
-			return await this.constructor.order(db, sj.any(this));
+			return await this.constructor.order(db, any(this));
 		};
 	},
 	staticProperties(parent) {

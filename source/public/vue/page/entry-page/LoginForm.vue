@@ -1,4 +1,7 @@
 <script>
+	import {
+		one,
+	} from '../../../js/utility/index.js';
     //import {mapState} from '../../../js/vuex.esm.browser.js'; 
 
     export default {
@@ -17,7 +20,7 @@
                     console.error(rejected);
                 });
                 
-                //let me = this.sj.one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
+                //let me = one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
                 //this.$store.commit('setMe', me);
                 this.$router.push('/');
             }

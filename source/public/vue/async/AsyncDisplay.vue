@@ -6,6 +6,8 @@
 	import {
 		setTimer,
 		Deferred,
+		one,
+		any,
 	} from '../../js/utility/index.js';
 
 	import AsyncSwitch from './AsyncSwitch.vue';
@@ -65,9 +67,9 @@
 		computed: {
 			// GENERAL
 			liveContent() {
-				//! one item here, uses sj.any() in AsyncDisplayList
+				//! one item here, uses any() in AsyncDisplayList
 				//? should this type check go into usingLive?
-				if (this.sj.isType(this.subscription, this.sj.Subscription)) return this.sj.one(this.$store.getters.getLiveData(this.subscription));
+				if (this.sj.isType(this.subscription, this.sj.Subscription)) return one(this.$store.getters.getLiveData(this.subscription));
 				else return null;
 
 				//R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
@@ -193,8 +195,8 @@
 				});
 			},
 			async deadRefresh() {
-				//! one item here, uses sj.any() in AsyncDisplayList
-				this.deadContent = await this.Entity.get(this.query).then(this.sj.content).then(this.sj.one);
+				//! one item here, uses any() in AsyncDisplayList
+				this.deadContent = await this.Entity.get(this.query).then(this.sj.content).then(one);
 			},
 
             handleSuccess(resolved) {

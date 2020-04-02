@@ -261,6 +261,8 @@ import {
 	setTimer,
 	wait,
 	test,
+	one,
+	any,
 } from './utility/index.js';
 import deepCompare, {compareUnorderedArrays} from './utility/object/deep-compare.js';
 import sj from './global-client.js';
@@ -681,7 +683,7 @@ export default {
 			
 
 			//C subscribe on server 
-			const preparedQuery = sj.any(query).map((q) => pick(q, Entity.filters.getIn));
+			const preparedQuery = any(query).map((q) => pick(q, Entity.filters.getIn));
 			const processedQuery = await context.dispatch('serverSubscribe', {table, query: preparedQuery});
 
 			//C add subscriber, from this point data will live-update
@@ -733,7 +735,7 @@ export default {
 
 			//C unsubscribe on server
 			//? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
-			const preparedQuery = sj.any(query).map((q) => pick(q, Entity.filters.getIn));
+			const preparedQuery = any(query).map((q) => pick(q, Entity.filters.getIn));
 			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
 
 			//C remove subscription from it's liveQuery
@@ -1006,7 +1008,7 @@ export default {
 								...Entity.placeholder, //C fill in missing data
 								...data,
 							});
-							accessory.id = sj.one(addResult.content).id;
+							accessory.id = one(addResult.content).id;
 							return addResult;
 						}, 
 						async (Entity, data, accessory) => {
@@ -1023,7 +1025,7 @@ export default {
 								...Entity.placeholder,
 								...dataBefore,
 							});
-							accessory.id = sj.one(addResult.content).id;
+							accessory.id = one(addResult.content).id;
 							return addResult;
 						},
 						async (Entity, dataBefore, accessory, dataAfter) => {
@@ -1044,7 +1046,7 @@ export default {
 								...Entity.placeholder,
 								...data,
 							});
-							accessory.id = sj.one(addResult.content).id;
+							accessory.id = one(addResult.content).id;
 							return addResult;
 						},
 						async (Entity, data, accessory) => {
@@ -1116,19 +1118,19 @@ export default {
 				email: uniqueName(),
 				password: 'placeholder',
 				password2: 'placeholder',
-			}).add().then(sj.content).then(sj.one);
+			}).add().then(sj.content).then(one);
 			const playlist = await new sj.Playlist({
 				userId: user.id,
 				name: uniqueName(),
 				description: 'placeholder',
-			}).add().then(sj.content).then(sj.one);
+			}).add().then(sj.content).then(one);
 			const track = await new sj.Track({
 				playlistId: playlist.id,
 				source: sj.spotify,
 				sourceId: 'placeholder',
 				name: uniqueName(),
 				duration: uniqueDuration(),
-			}).add().then(sj.content).then(sj.one);
+			}).add().then(sj.content).then(one);
 
 			
 			// MAKE SUBSCRIPTION
@@ -1190,7 +1192,7 @@ export default {
 				xTracks[i] = await new sj.Track({
 					...track, 
 					position: undefined,
-				}).add().then(sj.content).then(sj.one);
+				}).add().then(sj.content).then(one);
 			}
 			await waitForUpdate();
 			//console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);

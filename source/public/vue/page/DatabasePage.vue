@@ -1,4 +1,8 @@
 <script>
+	import {
+		any,
+	} from '../../js/utility/index.js';
+	
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
 	import UserDisplayList from '../user/UserDisplayList.vue';
@@ -65,7 +69,7 @@
 
 			subscriptionData: function () {
 				//TODO I think this is old, transition to the new AsyncDisplay
-				if (sj.isType(this.subscription, sj.Subscription)) return this.sj.any(this.$store.getters.getLiveData(this.subscription));
+				if (sj.isType(this.subscription, sj.Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
 			},
 		},
 		watch: {
