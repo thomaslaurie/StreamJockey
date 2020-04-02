@@ -2,6 +2,12 @@
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
+/******/ 	// object to store loaded chunks
+/******/ 	// "0" means "already loaded"
+/******/ 	var installedChunks = {
+/******/ 		"index": 0
+/******/ 	};
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/
@@ -78,6 +84,13 @@
 /******/
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// uncaught error handler for webpack runtime
+/******/ 	__webpack_require__.oe = function(err) {
+/******/ 		process.nextTick(function() {
+/******/ 			throw err; // catch this error by using import().catch()
+/******/ 		});
+/******/ 	};
 /******/
 /******/
 /******/ 	// Load entry module and return exports
@@ -191,6 +204,41 @@ const URL_HEADER = Object.freeze({
 
 /***/ }),
 
+/***/ "./source/public/js/derived-utility/fetch.js":
+/*!***************************************************!*\
+  !*** ./source/public/js/derived-utility/fetch.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// Dynamically imports fetch from 'node-fetch' if it is not available.
+/* harmony default export */ __webpack_exports__["default"] = (async function (...args) {
+  // Must use typeof because it won't throw a reference error. https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
+  // Fetch requires
+  if (typeof fetch === 'undefined') return Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(null, /*! node-fetch */ "node-fetch", 7)).then(m => m.default(...args));else return fetch(...args);
+});
+;
+
+/***/ }),
+
+/***/ "./source/public/js/derived-utility/index.js":
+/*!***************************************************!*\
+  !*** ./source/public/js/derived-utility/index.js ***!
+  \***************************************************/
+/*! exports provided: fetch */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/public/js/derived-utility/fetch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+
+
+/***/ }),
+
 /***/ "./source/public/js/global.js":
 /*!************************************!*\
   !*** ./source/public/js/global.js ***!
@@ -205,7 +253,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./polyfill.js */ "./source/public/js/polyfill.js");
 /* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_polyfill_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -295,6 +344,7 @@ __webpack_require__.r(__webpack_exports__);
  // side effects
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -302,31 +352,9 @@ __webpack_require__.r(__webpack_exports__);
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-const sj = {}; // POLYFILL
+const sj = {}; // CONSTANTS
 
-if (typeof fetch !== 'undefined') {
-  //L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
-  //L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
-  sj.fetch = fetch.bind(window);
-} else {
-  sj.fetch = async function () {
-    throw new sj.Error({
-      log: true,
-      origin: 'global.js init',
-      reason: 'fetch is not defined'
-    });
-  };
-} // CONSTANTS
-
-
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-//C these don't reference any sj.Bases
-//   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_4__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -911,7 +939,8 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
     }
   }
 
-  let result = await sj.fetch(url, options).catch(rejected => {
+  console.log('REQUEST');
+  let result = await Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["fetch"])(url, options).catch(rejected => {
     //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
     //C catch network error
     //L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
@@ -6008,11 +6037,10 @@ const schema = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../public/js/utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! node-fetch */ "node-fetch");
-/* harmony import */ var node_fetch__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(node_fetch__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _public_js_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
+/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_5__);
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
@@ -6113,9 +6141,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
- // EXTERNAL
 
- //C global.js uses fetch
+ // EXTERNAL
+// import fetch from 'node-fetch'; //C global.js uses fetch
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -6123,15 +6151,14 @@ __webpack_require__.r(__webpack_exports__);
 //  ██║██║╚██╗██║██║   ██║   
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝    
-
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].fetch = node_fetch__WEBPACK_IMPORTED_MODULE_4___default.a; // BCRYPT
+// BCRYPT
 
 const saltRounds = 10; // DATABASE
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //C for use of db with globals so that db doesn't have to be imported twice
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db = _db_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //C for use of db with globals so that db doesn't have to be imported twice
 // LIVE DATA
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //  ██╗   ██╗████████╗██╗██╗     
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_4__["default"]; //  ██╗   ██╗████████╗██╗██╗     
 //  ██║   ██║╚══██╔══╝██║██║     
 //  ██║   ██║   ██║   ██║██║     
 //  ██║   ██║   ██║   ██║██║     
@@ -6169,7 +6196,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
   	};
   */
   // initialize
-  return _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db.tx(async function (t) {
+  return _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db.tx(async function (t) {
     // TODO this will not alter tables if they do already exist (save this for migration)
     // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
     // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
@@ -6184,7 +6211,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
 
 
     return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-      throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+      throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
         log: true,
         origin: 'schema initialization',
         message: 'database error',
@@ -6203,7 +6230,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
 				"email" text CONSTRAINT "users_email_key" UNIQUE,
 				"spotifyRefreshToken" text
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: true,
           origin: 'users table initialization',
           message: 'database error',
@@ -6220,7 +6247,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
                 SELECT id, name, email 
                 FROM "sj"."users"
             ;`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: true,
           origin: 'users_self initialization',
           message: 'database error',
@@ -6235,7 +6262,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
                 SELECT id, name
                 FROM "sj"."users"
             ;`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: true,
           origin: 'users_public initialization',
           message: 'database error',
@@ -6257,7 +6284,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
                 
                 CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: true,
           origin: 'playlists table initialization',
           message: 'database error',
@@ -6280,7 +6307,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
 
                 CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: true,
           origin: 'tracks table initialization',
           message: 'database error',
@@ -6291,13 +6318,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
         });
       });
     }).catch(rejected => {
-      throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(rejected);
+      throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
     });
   }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(rejected);
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
   });
 })().then(resolved => {
-  new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'initialize database',
     message: 'database initialized'
   });
@@ -6305,7 +6332,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
   console.log(rejected);
 });
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError = function (pgError, sjError) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError = function (pgError, sjError) {
   //TODO any validation needed here?
   //TODO consider separating insertion checks into Conditions so multiple parameters are checked
   //TODO add targets and cssClasses to each violation case too
@@ -6353,7 +6380,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError 
   return sjError;
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //C this shouldn't insert anything
     return `("id") SELECT 0 WHERE 0 = 1`;
@@ -6373,11 +6400,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues = funct
     placeholders = placeholders.join(', ');
     placeholders = `(${placeholders})`; //? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
 
-    return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
+    return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
   }
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
     //C return a false clause
@@ -6387,15 +6414,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere = functi
     let pairs = [];
     pairs = Object.keys(mappedEntity).map(key => {
       //C wrap array in another array so that pgp doesn't think its values are for separate placeholders
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
+      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
     }); //C join with ' AND '
 
     return pairs.join(' AND ');
   }
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
     //C don't make any change
@@ -6405,8 +6432,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet = function
     let pairs = []; //C pair as formatted string
 
     pairs = Object.keys(mappedEntity).map(key => {
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input);
+      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input);
     }); //C join with ', '
 
     return pairs.join(', ');
@@ -6420,16 +6447,16 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet = function
 // CRUD
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = async function (db, ctx, user) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = async function (db, ctx, user) {
   //C validate
-  user.name = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content);
-  user.password = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  user.name = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
+  user.password = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
   //C get password
 
   let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
     return resolved.password;
   }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
       log: false,
       origin: 'login()',
       message: 'could not login, database error'
@@ -6437,7 +6464,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = asy
   }); //C check password
 
   let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_5___default.a.compare(user.password, existingPassword).catch(rejected => {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
       log: true,
       origin: 'login()',
       message: 'server error',
@@ -6449,7 +6476,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = asy
   });
 
   if (!isMatch) {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
       log: true,
       origin: 'login()',
       message: 'incorrect password',
@@ -6460,40 +6487,40 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = asy
 
 
   user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
       log: false,
       origin: 'login()',
       message: 'could not login, database error'
     }));
   });
-  ctx.session.user = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User(user);
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  ctx.session.user = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User(user);
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'login()',
     message: 'user logged in',
     content: ctx.session.user
   });
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.get = async function (ctx) {
-  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn(ctx);
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get = async function (ctx) {
+  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn(ctx);
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'getMe()',
     content: ctx.session.user
   });
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.logout = async function (ctx) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = async function (ctx) {
   delete ctx.session.user;
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'logout()',
     message: 'user logged out'
   });
 }; // UTIL
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn = async function (ctx) {
-  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(ctx.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(ctx.session.user.id, 'integer')) {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async function (ctx) {
+  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user.id, 'integer')) {
+    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
       log: true,
       origin: 'isLoggedIn()',
       code: 403,
@@ -6506,9 +6533,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn = async 
   } //C redundancy check to make sure id is right format
 
 
-  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule.id.check(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
+  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule.id.check(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
 
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'isLoggedIn()',
     message: 'user is logged in'
   });
@@ -6520,7 +6547,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn = async 
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
   prototypeProperties: parent => ({
     async add(db) {
       return await this.constructor.add(this, db);
@@ -6542,23 +6569,23 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
   staticProperties(parent) {
     // CRUD METHODS
-    this.add = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.add = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'add');
     };
 
-    this.get = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.get = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'get');
     };
 
-    this.edit = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.edit = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'edit');
     };
 
-    this.remove = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.remove = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'remove');
     };
 
-    this.getMimic = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.getMimic = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       //C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.liveData.notify()
       return await this.frame(db, query, 'getMimic');
     }; // FRAME
@@ -6566,12 +6593,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
     this.frame = async function (db, anyEntities, methodName) {
       //C catch sj.Entity
-      if (this === _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+      if (this === _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
         origin: 'sj.Entity.[CRUD]',
         reason: `cannot call CRUD method directly on sj.Entity`
       }); //C cast as array
 
-      const entities = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(anyEntities); //C shorthand
+      const entities = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(anyEntities); //C shorthand
 
       const isGetMimic = methodName === 'getMimic'; //C store getMimic
 
@@ -6583,11 +6610,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C prepare
+        const validatedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C prepare
 
-        const preparedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C accommodate
+        const preparedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C accommodate
 
-        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate) : []; //C map
+        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate) : []; //C map
 
         const inputMapped = this.mapColumns(preparedEntities);
         const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
@@ -6599,15 +6626,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
           await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+              const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+            const after = await this[methodName + 'Query'](t, entity).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             if (methodName !== 'remove') inputAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({ ...this[methodName + 'Error'](),
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -6619,12 +6646,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
         if (!isGet) {
           await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+            const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+            const after = await this.editQuery(t, influencedEntity).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({ ...this[methodName + 'Error'](),
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -6635,21 +6662,21 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate));
-      }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
+        return await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate));
+      }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
-      const shookGet = after.map(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+      const shookGet = after.map(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
       const timestamp = Date.now(); //C if get, don't notify
 
-      if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
+      if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
       else if (isGetMimic) return shookGet[1]; //C shake for return
 
-      const shook = after.map(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
+      const shook = after.map(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
       const built = shook.map(list => list.map(entity => new this(entity)));
-      return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({ ...this[methodName + 'Success'](),
+      return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({ ...this[methodName + 'Success'](),
         //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
         content: built[1],
         timestamp
@@ -6669,9 +6696,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
       await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
         const prop = this.schema[key]; //C catches
 
-        if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule)) {
+        if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule)) {
           // sj.Rule
-          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
             log: true,
             origin: 'sj.Entity.validate()',
             message: 'validation error',
@@ -6681,20 +6708,20 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         } //C check if optional and not empty, or if required
 
 
-        if (prop[methodName].check && !_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isEmpty(entity[key]) || prop[methodName].check === 2) {
+        if (prop[methodName].check && !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(entity[key]) || prop[methodName].check === 2) {
           //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
           const checked = await prop.rule.check(entity[key], entity[prop.against]);
-          validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content(checked);
+          validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content(checked);
           return checked;
         } else {
           //C don't pack into validated
-          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
             origin: 'sj.Entity.validate()',
             message: `optional ${key} is empty, skipped validation`
           });
         }
       }).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({
           origin: 'sj.Entity.validate()',
           message: 'one or more issues with properties',
           reason: 'validating properties returned one or more errors',
@@ -6722,7 +6749,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         let mappedEntity = {};
         Object.keys(entity).forEach(key => {
           //C for each property
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(this.schema[key], Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(this.schema[key].columnName, String)) {
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key], Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key].columnName, String)) {
             //C if schema has property 
             mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
           } else {
@@ -6742,7 +6769,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
           //C for each columnName
           let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
 
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(key, String)) {
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(key, String)) {
             //C set entity[key] as value of mappedEntity[columnName]
             entity[key] = mappedEntity[columnName];
           } else {
@@ -6757,7 +6784,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
     this.queryOrder = `ORDER BY "id" ASC`; //C executes SQL queries
 
     this.addQuery = async function (t, mappedEntity) {
-      let values = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+      let values = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
       //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
       let row = await t.one(`
@@ -6765,7 +6792,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: false,
           origin: `sj.${this.name}.add()`,
           message: `could not add ${this.name}s`
@@ -6775,14 +6802,14 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
     };
 
     this.getQuery = async function (t, mappedEntity) {
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere(mappedEntity);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere(mappedEntity);
       let rows = await t.any(`
 				SELECT * 
 				FROM "sj"."${this.table}" 
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: false,
           origin: `sj.${this.name}.get()`,
           message: `could not get ${this.name}s`
@@ -6796,8 +6823,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         id,
         ...mappedEntitySet
       } = mappedEntity;
-      let set = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet(mappedEntitySet);
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere({
+      let set = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet(mappedEntitySet);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere({
         id
       });
       let row = await t.one(`
@@ -6806,7 +6833,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: false,
           origin: `sj.${this.name}.edit()`,
           message: `could not edit ${this.names}`
@@ -6816,13 +6843,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
     };
 
     this.removeQuery = async function (t, mappedEntity) {
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere(mappedEntity);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere(mappedEntity);
       let row = await t.one(`
 				DELETE FROM "sj"."${this.table}" 
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: false,
           origin: `sj.${this.name}.remove()`,
           message: `could not remove ${this.names}s`
@@ -6895,7 +6922,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
   }
 
 });
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
   constructorProperties: parent => ({
     defaults: {
       serverTestProp: null
@@ -6908,15 +6935,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.augmentClass({
   staticProperties(parent) {
     // CRUD
     this.addPrepare = this.editPrepare = async function (t, user) {
       let newUser = Object.assign([], user); //C hash password
       //TODO might be a vulnerability here with this string check
 
-      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_5___default.a.hash(newUser.password, saltRounds).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_5___default.a.hash(newUser.password, saltRounds).catch(rejected => {
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: true,
           origin: 'sj.User.add()',
           message: 'failed to add user',
@@ -6937,7 +6964,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.augmentClass({
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playlist.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentClass({
   staticProperties: parent => ({
     // CRUD
     queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
@@ -6949,10 +6976,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playlist.augmentCla
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass({
   prototypeProperties(parent) {
-    this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
-      return await this.constructor.order(db, _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(this));
+    this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+      return await this.constructor.order(db, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].any(this));
     };
   },
 
@@ -6961,7 +6988,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
     this.addBefore = this.getBefore = this.editBefore = this.removeBefore = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(entity.source, Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(entity.source.name, String) ? entity.source.name : undefined;
+        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source, Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source.name, String) ? entity.source.name : undefined;
       });
       return newEntities;
     };
@@ -6972,10 +6999,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
         id: Symbol()
       };
 
-      if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(newTrack.position, 'integer')) {
-        let existingTracks = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.get({
+      if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newTrack.position, 'integer')) {
+        let existingTracks = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.get({
           playlistId: newTrack.playlistId
-        }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content);
+        }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
         newTrack.position = existingTracks.length;
       }
 
@@ -6996,7 +7023,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
       //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
       //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
       await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
           log: false,
           origin: 'sj.Track.move()',
           message: 'could not order tracks, database error',
@@ -7004,13 +7031,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
           cssClass: 'notifyError'
         }));
       });
-      return await this.order(t, tracks).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+      return await this.order(t, tracks).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
     };
 
     this.addAfter = this.getAfter = this.editAfter = this.deleteAfter = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances.find(source => source.name === entity.source);
+        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances.find(source => source.name === entity.source);
       });
       return newEntities;
     }; // UTIL
@@ -7028,13 +7055,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
       //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
       //C filter out tracks
       let inputTracks = tracks.filter(track => //C without an id (including symbol)
-      (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isEmpty(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
-      !_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isEmpty(track.position) || track.position === null || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isEmpty(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+      (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
+      !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(track.position) || track.position === null || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
       inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
       if (inputTracks.length === 0) {
-        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({
+        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({
           origin: 'sj.Track.order()',
           message: 'track positions did not need to be set'
         });
@@ -7048,11 +7075,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
 
         await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(playlistId, 'integer')) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(playlistId, 'integer')) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
               origin: 'sj.Track.order()',
               reason: `playlistId is not an integer: ${playlistId}`
             });
-            if (!Array.isArray(existingTracks)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+            if (!Array.isArray(existingTracks)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
               origin: 'sj.Track.order()',
               reason: `existingTracks is not an array: ${existingTracks}`
             }); //C stores playlist in playlists if not already stored
@@ -7080,11 +7107,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
           const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; //C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
           //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
-          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
+          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
+					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = (
@@ -7094,7 +7121,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
 						)
 					`, track.id);
           const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
               log: false,
               origin: 'sj.Track.order()',
               message: 'could not move tracks'
@@ -7108,7 +7135,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
             delete t.playlistId;
           });
 
-          if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) {
+          if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) {
             //C if not switching playlists
             //C group by action
             currentPlaylistStored['inputsTo' + action].push(track);
@@ -7120,7 +7147,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
 							FROM "sj"."tracks" 
 							WHERE "playlistId" = $1
 						`, track.playlistId).catch(rejected => {
-              throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+              throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
                 log: false,
                 origin: 'sj.Track.order()',
                 message: 'could not move tracks'
@@ -7135,12 +7162,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
             anotherPlaylistStored.inputsToAdd.push(track);
           }
 
-          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
             origin: 'sj.Track.order()',
             message: "retrieved track's playlist"
           });
         }).catch(rejected => {
-          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({
+          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({
             origin: 'sj.Track.order() - movingTracks iterator',
             message: `could not retrieve some track's playlist`,
             content: rejected
@@ -7157,7 +7184,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
           playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
 
           playlist.inputsToPosition.forEach(trackToPosition => {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(trackToPosition.position, Number)) {
+            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(trackToPosition.position, Number)) {
               trackToPosition.position === Infinity;
             }
           }); //C sort
@@ -7228,7 +7255,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
             delete inputTrack.position;
           }
         });
-        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({
+        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({
           origin: 'sj.Track.order()',
           message: 'influenced tracks calculated',
           content: influencedTracks
@@ -7285,7 +7312,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
 
 /***/ }),
 

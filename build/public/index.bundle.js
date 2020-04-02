@@ -37548,6 +37548,57 @@ var URL_HEADER = Object.freeze({
 
 /***/ }),
 
+/***/ "./source/public/js/derived-utility/fetch.js":
+/*!***************************************************!*\
+  !*** ./source/public/js/derived-utility/fetch.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+// Dynamically imports fetch from 'node-fetch' if it is not available.
+/* harmony default export */ __webpack_exports__["default"] = (function () {
+  return _ref.apply(this, arguments);
+});
+
+function _ref() {
+  _ref = _asyncToGenerator(function* () {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    // Must use typeof because it won't throw a reference error. https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
+    // Fetch requires
+    if (typeof fetch === 'undefined') return __webpack_require__.e(/*! import() */ 0).then(__webpack_require__.t.bind(null, /*! node-fetch */ "./node_modules/node-fetch/browser.js", 7)).then(m => m.default(...args));else return fetch(...args);
+  });
+  return _ref.apply(this, arguments);
+}
+
+;
+
+/***/ }),
+
+/***/ "./source/public/js/derived-utility/index.js":
+/*!***************************************************!*\
+  !*** ./source/public/js/derived-utility/index.js ***!
+  \***************************************************/
+/*! exports provided: fetch */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/public/js/derived-utility/fetch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+
+
+/***/ }),
+
 /***/ "./source/public/js/global-client.js":
 /*!*******************************************!*\
   !*** ./source/public/js/global-client.js ***!
@@ -40225,7 +40276,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./polyfill.js */ "./source/public/js/polyfill.js");
 /* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_polyfill_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -40329,6 +40381,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  // side effects
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -40336,31 +40389,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-var sj = {}; // POLYFILL
+var sj = {}; // CONSTANTS
 
-if (typeof fetch !== 'undefined') {
-  //L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
-  //L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
-  sj.fetch = fetch.bind(window);
-} else {
-  sj.fetch = /*#__PURE__*/_asyncToGenerator(function* () {
-    throw new sj.Error({
-      log: true,
-      origin: 'global.js init',
-      reason: 'fetch is not defined'
-    });
-  });
-} // CONSTANTS
-
-
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-//C these don't reference any sj.Bases
-//   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_4__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -40744,7 +40775,7 @@ sj.content = function (resolved) {
 
 
 sj.recursiveSyncTime = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len = arguments.length, args = new Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
       args[_key - 3] = arguments[_key];
     }
@@ -40775,12 +40806,12 @@ sj.recursiveSyncTime = /*#__PURE__*/function () {
   });
 
   return function (_x, _x2, _x3) {
-    return _ref2.apply(this, arguments);
+    return _ref.apply(this, arguments);
   };
 }();
 
 sj.recursiveSyncCount = /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref2 = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len2 = arguments.length, args = new Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
       args[_key2 - 3] = arguments[_key2];
     }
@@ -40810,12 +40841,12 @@ sj.recursiveSyncCount = /*#__PURE__*/function () {
   });
 
   return function (_x4, _x5, _x6) {
-    return _ref3.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }();
 
 sj.recursiveAsyncTime = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref3 = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len3 = arguments.length, args = new Array(_len3 > 3 ? _len3 - 3 : 0), _key3 = 3; _key3 < _len3; _key3++) {
       args[_key3 - 3] = arguments[_key3];
     }
@@ -40853,12 +40884,12 @@ sj.recursiveAsyncTime = /*#__PURE__*/function () {
   });
 
   return function (_x7, _x8, _x9) {
-    return _ref4.apply(this, arguments);
+    return _ref3.apply(this, arguments);
   };
 }();
 
 sj.recursiveAsyncCount = /*#__PURE__*/function () {
-  var _ref5 = _asyncToGenerator(function* (n, loopCondition, f) {
+  var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
     for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
       args[_key4 - 3] = arguments[_key4];
     }
@@ -40895,29 +40926,29 @@ sj.recursiveAsyncCount = /*#__PURE__*/function () {
   });
 
   return function (_x10, _x11, _x12) {
-    return _ref5.apply(this, arguments);
+    return _ref4.apply(this, arguments);
   };
 }(); //C uses recursiveAsyncTime to periodically check a condition
 
 
 sj.waitForCondition = /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator(function* (_ref6) {
+  var _ref6 = _asyncToGenerator(function* (_ref5) {
     var {
       interval = 100,
       scaling = 1,
       delay = 0,
       timeout = 2000,
       condition = () => false
-    } = _ref6;
+    } = _ref5;
     yield sj.recursiveAsyncTime(timeout, () => !condition(), /*#__PURE__*/function () {
-      var _ref8 = _asyncToGenerator(function* (o) {
+      var _ref7 = _asyncToGenerator(function* (o) {
         yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(o.time);
         o.time = o.time * scaling;
         return;
       });
 
       return function (_x15) {
-        return _ref8.apply(this, arguments);
+        return _ref7.apply(this, arguments);
       };
     }(), {
       time: interval + delay
@@ -40925,7 +40956,7 @@ sj.waitForCondition = /*#__PURE__*/function () {
   });
 
   return function (_x14) {
-    return _ref7.apply(this, arguments);
+    return _ref6.apply(this, arguments);
   };
 }(); // HTTP
 
@@ -40978,7 +41009,7 @@ sj.rebuild = function (input, strict) {
 };
 
 sj.request = /*#__PURE__*/function () {
-  var _ref9 = _asyncToGenerator(function* (method, url, body) {
+  var _ref8 = _asyncToGenerator(function* (method, url, body) {
     var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : sj.JSON_HEADER;
 
     /* //! use UPPERCASE HTTP methods...
@@ -41016,7 +41047,8 @@ sj.request = /*#__PURE__*/function () {
       }
     }
 
-    var result = yield sj.fetch(url, options).catch(rejected => {
+    console.log('REQUEST');
+    var result = yield Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["fetch"])(url, options).catch(rejected => {
       //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
       //C catch network error
       //L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
@@ -41067,7 +41099,7 @@ sj.request = /*#__PURE__*/function () {
   });
 
   return function (_x16, _x17, _x18) {
-    return _ref9.apply(this, arguments);
+    return _ref8.apply(this, arguments);
   };
 }(); // LIVE DATA
 
@@ -41093,7 +41125,7 @@ sj.makeKey = function (length) {
 };
 
 sj.addKey = /*#__PURE__*/function () {
-  var _ref10 = _asyncToGenerator(function* (list, timeout) {
+  var _ref9 = _asyncToGenerator(function* (list, timeout) {
     var pack = {};
     var defaultTimeout = 300000; //C default 5 minutes
 
@@ -41117,12 +41149,12 @@ sj.addKey = /*#__PURE__*/function () {
   });
 
   return function (_x19, _x20) {
-    return _ref10.apply(this, arguments);
+    return _ref9.apply(this, arguments);
   };
 }();
 
 sj.checkKey = /*#__PURE__*/function () {
-  var _ref11 = _asyncToGenerator(function* (list, key) {
+  var _ref10 = _asyncToGenerator(function* (list, key) {
     //C checks a list for a key, will remove and return if found, will clean up timed-out keys
     for (var i = 0; i < list.length; i++) {
       //C check if timed out
@@ -41146,7 +41178,7 @@ sj.checkKey = /*#__PURE__*/function () {
   });
 
   return function (_x21, _x22) {
-    return _ref11.apply(this, arguments);
+    return _ref10.apply(this, arguments);
   };
 }(); //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -41196,7 +41228,7 @@ sj.Base = class Base {
 (function () {
   //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
   //TODO consider deep defaults
-  this.makeClass = function (name, parent, _ref12) {
+  this.makeClass = function (name, parent, _ref11) {
     var {
       //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
       //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -41205,7 +41237,7 @@ sj.Base = class Base {
       prototypeProperties = parent => ({}),
       //G static properties & methods
       staticProperties = parent => ({})
-    } = _ref12;
+    } = _ref11;
     //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
     // VALIDATE
     if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
@@ -41253,12 +41285,12 @@ sj.Base = class Base {
     return MadeClass;
   };
 
-  this.augmentClass = function (_ref13) {
+  this.augmentClass = function (_ref12) {
     var {
       constructorParts = parent => ({}),
       prototypeProperties = parent => ({}),
       staticProperties = parent => ({})
-    } = _ref13;
+    } = _ref12;
     //C add or overwrite existing properties with new ones
     //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
     //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
@@ -42243,7 +42275,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validate = /*#__PURE__*/function () {
-          var _ref15 = _asyncToGenerator(function* (value) {
+          var _ref14 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42255,12 +42287,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
           });
 
           return function (_x23) {
-            return _ref15.apply(this, arguments);
+            return _ref14.apply(this, arguments);
           };
         }();
 
         this.check = /*#__PURE__*/function () {
-          var _ref16 = _asyncToGenerator(function* (value) {
+          var _ref15 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42272,7 +42304,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
           });
 
           return function (_x24) {
-            return _ref16.apply(this, arguments);
+            return _ref15.apply(this, arguments);
           };
         }();
       }
@@ -42322,7 +42354,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validateCast = /*#__PURE__*/function () {
-          var _ref17 = _asyncToGenerator(function* (value) {
+          var _ref16 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             accessory.castValue = value;
 
@@ -42340,12 +42372,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
           });
 
           return function (_x25) {
-            return _ref17.apply(this, arguments);
+            return _ref16.apply(this, arguments);
           };
         }();
 
         this.checkCast = /*#__PURE__*/function () {
-          var _ref18 = _asyncToGenerator(function* (value) {
+          var _ref17 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42357,7 +42389,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
           });
 
           return function (_x26) {
-            return _ref18.apply(this, arguments);
+            return _ref17.apply(this, arguments);
           };
         }();
       }
@@ -42383,12 +42415,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         });
       },
 
-      processError(targetError, _ref19) {
+      processError(targetError, _ref18) {
         var {
           fill = this.fill,
           error,
           origin
-        } = _ref19;
+        } = _ref18;
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList

@@ -104,12 +104,15 @@ import {
 	stableSort,
 	asyncMap,
 } from '../public/js/utility/index.js';
+import {
+	fetch,
+} from '../public/js/derived-utility/index.js';
 import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
 import liveData from './live-data-server.js';
 
 // EXTERNAL
-import fetch from 'node-fetch'; //C global.js uses fetch
+// import fetch from 'node-fetch'; //C global.js uses fetch
 import bcrypt from 'bcryptjs';
 
 
@@ -119,8 +122,6 @@ import bcrypt from 'bcryptjs';
 //  ██║██║╚██╗██║██║   ██║   
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝    
-
-sj.fetch = fetch;
 
 // BCRYPT
 const saltRounds = 10; 

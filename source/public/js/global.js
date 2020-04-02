@@ -102,7 +102,11 @@ import {
 	pick,
 	asyncMap,
 } from './utility/index.js';
+import {
+	fetch,
+} from './derived-utility/index.js';
 import * as constants from './constants.js';
+
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -114,33 +118,8 @@ import * as constants from './constants.js';
 
 const sj = {};
 
-// POLYFILL
-if (typeof fetch !== 'undefined') {
-	//L typeof doesn't throw reference error: https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
-	//L fetch also needs the window context: https://stackoverflow.com/questions/10743596/why-are-certain-function-calls-termed-illegal-invocations-in-javascript
-	sj.fetch = fetch.bind(window);
-} else {
-	sj.fetch = async function () {
-		throw new sj.Error({
-			log: true,
-			origin: 'global.js init',
-			reason: 'fetch is not defined',
-		});
-	}
-}
-
 // CONSTANTS
 define.constant(sj, constants);
-
-
-//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-
-//C these don't reference any sj.Bases
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
@@ -712,7 +691,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 		}
 	}
 
-	let result = await sj.fetch(url, options).catch(rejected => { //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+	let result = await fetch(url, options).catch(rejected => { //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
 		//C catch network error
 		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
 		//TODO properly parse
