@@ -254,6 +254,7 @@ import {
 	pick,
 	setTimer,
 	wait,
+	test,
 } from './utility/index.js';
 import sj from './global-client.js';
 
@@ -1047,7 +1048,7 @@ export default {
 				};
 			
 			
-				sj.test([
+				test([
 					//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
 					//['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
 					//['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
@@ -1244,7 +1245,7 @@ export default {
 			await user.remove();
 
 			//TODO add tests for convergent liveQueries
-			const passed = await sj.test([
+			const passed = await test([
 				...tests,
 			], 'liveQuery');
 

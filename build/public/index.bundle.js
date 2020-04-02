@@ -40350,11 +40350,6 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants
 //C these don't reference any sj.Bases
 // TESTING
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, {
-  test: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"],
-  wait: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"]
-});
-
 sj.trace = function () {
   try {
     throw Error('');
@@ -40669,7 +40664,7 @@ sj.deepMatch.test = function () {
   }, {
     b: 'b'
   }];
-  sj.test([['match positive number', true === sj.deepMatch(1, 1)], ['match zero', true === sj.deepMatch(0, 0)], ['match negative number', true === sj.deepMatch(-1, -1)], ['match infinity', true === sj.deepMatch(Infinity, Infinity)], ['match negative infinity', true === sj.deepMatch(-Infinity, -Infinity)], ['match NaN', true === sj.deepMatch(NaN, NaN)], ['mismatch positive number', false === sj.deepMatch(4, 3193)], ['mismatch positive negative', false === sj.deepMatch(-3, 0)], ['mismatch infinity, number', false === sj.deepMatch(Infinity, 2345678909875498765456789)], ['mismatch infinity, -infinity', false === sj.deepMatch(Infinity, -Infinity)], ['mismatch NaN, zero', false === sj.deepMatch(NaN, 0)], ['match true', true === sj.deepMatch(true, true)], ['match false', true === sj.deepMatch(false, false)], ['mismatch true, false', false === sj.deepMatch(true, false)], ['match string', true === sj.deepMatch('test', 'test')], ['match empty', true === sj.deepMatch('', '')], ['match "undefined"', true === sj.deepMatch('undefined', 'undefined')], ['match "null"', true === sj.deepMatch('null', 'null')], ['mismatch string', false === sj.deepMatch('string', 'test')], ['mismatch empty and filled', false === sj.deepMatch('', 'test')], ['match object reference', true === sj.deepMatch(oA, oA)], ['match object items', true === sj.deepMatch(oA, oB)], ['match object subset', true === sj.deepMatch(oA, oC, {
+  Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"])([['match positive number', true === sj.deepMatch(1, 1)], ['match zero', true === sj.deepMatch(0, 0)], ['match negative number', true === sj.deepMatch(-1, -1)], ['match infinity', true === sj.deepMatch(Infinity, Infinity)], ['match negative infinity', true === sj.deepMatch(-Infinity, -Infinity)], ['match NaN', true === sj.deepMatch(NaN, NaN)], ['mismatch positive number', false === sj.deepMatch(4, 3193)], ['mismatch positive negative', false === sj.deepMatch(-3, 0)], ['mismatch infinity, number', false === sj.deepMatch(Infinity, 2345678909875498765456789)], ['mismatch infinity, -infinity', false === sj.deepMatch(Infinity, -Infinity)], ['mismatch NaN, zero', false === sj.deepMatch(NaN, 0)], ['match true', true === sj.deepMatch(true, true)], ['match false', true === sj.deepMatch(false, false)], ['mismatch true, false', false === sj.deepMatch(true, false)], ['match string', true === sj.deepMatch('test', 'test')], ['match empty', true === sj.deepMatch('', '')], ['match "undefined"', true === sj.deepMatch('undefined', 'undefined')], ['match "null"', true === sj.deepMatch('null', 'null')], ['mismatch string', false === sj.deepMatch('string', 'test')], ['mismatch empty and filled', false === sj.deepMatch('', 'test')], ['match object reference', true === sj.deepMatch(oA, oA)], ['match object items', true === sj.deepMatch(oA, oB)], ['match object subset', true === sj.deepMatch(oA, oC, {
     matchIfSubset: true
   })], ['mismatch object not deep', false === sj.deepMatch(oA, oB, {
     deep: false
@@ -41549,7 +41544,7 @@ sj.Base.test = /*#__PURE__*/_asyncToGenerator(function* () {
     })
   });
   var c2 = new C();
-  yield sj.test([// INHERITANCE
+  yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"])([// INHERITANCE
   ['A prototype is sj.Base', Object.getPrototypeOf(A) === sj.Base], ['AA prototype is A', Object.getPrototypeOf(AA) === A], ['AAAA prototype is AA', Object.getPrototypeOf(AAA) === AA], ['a isType sj.Base', sj.isType(a, sj.Base)], ['aa isType sj.Base', sj.isType(aa, sj.Base)], ['aaa isType sj.Base', sj.isType(aaa, sj.Base)], // SIBLINGS
   ['a !isType B', !sj.isType(a, B)], ['aa !isType AB', !sj.isType(aa, AB)], ['aaa !isType AAB', !sj.isType(aaa, AAB)], // COUSINS
   ['aa !isType BA', !sj.isType(aa, BA)], // INSTANCES
@@ -44920,7 +44915,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             };
           }();
 
-          _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].test([//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+          Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["test"])([//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
           //['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
           //['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
           //['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
@@ -45096,7 +45091,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         yield playlist.remove();
         yield user.remove(); //TODO add tests for convergent liveQueries
 
-        var passed = yield _global_client_js__WEBPACK_IMPORTED_MODULE_1__["default"].test([...tests], 'liveQuery'); //C this refreshes the page until the test fails
+        var passed = yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["test"])([...tests], 'liveQuery'); //C this refreshes the page until the test fails
         //if (passed) document.location.reload();
       })();
     }

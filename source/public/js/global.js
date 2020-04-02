@@ -97,9 +97,6 @@ import {
 	wait,
 	replaceAll,
 	encodeProperties,
-	decodeProperties,
-	encodeList,
-	decodeList,
 	any,
 	one,
 	pick,
@@ -146,10 +143,6 @@ define.constant(sj, constants);
 //C these don't reference any sj.Bases
 
 // TESTING
-define.constant(sj, {
-	test,
-	wait,
-});
 sj.trace = function () {
 	try {
 		throw Error('');
@@ -461,7 +454,7 @@ sj.deepMatch.test = function () {
 		},
 	];
 
-	sj.test([
+	test([
 		['match positive number', 		true === sj.deepMatch(1, 1)],
 		['match zero', 					true === sj.deepMatch(0, 0)],
 		['match negative number', 		true === sj.deepMatch(-1, -1)],
@@ -1230,7 +1223,7 @@ sj.Base.test = async function () {
 	const c2 = new C();
 
 
-	await sj.test([
+	await test([
 		// INHERITANCE
 		['A prototype is sj.Base', 	Object.getPrototypeOf(A) === sj.Base],
 		['AA prototype is A', 		Object.getPrototypeOf(AA) === A],
