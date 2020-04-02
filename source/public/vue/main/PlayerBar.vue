@@ -1,4 +1,7 @@
 <script>
+	// EXTERNAL
+	import fclone from 'fclone';
+
     export default {
 		name: 'player-bar',
 
@@ -79,8 +82,8 @@
 			async test() {
 				console.log('%c---------', 'background-color: orange');
 				
-				console.log('prevTrack', this.sj.image(this.prevTrack));
-				console.log('nextTrack', this.sj.image(this.nextTrack));
+				console.log('prevTrack', this.fclone(this.prevTrack));
+				console.log('nextTrack', this.fclone(this.nextTrack));
 			},
 
 			// BUTTONS

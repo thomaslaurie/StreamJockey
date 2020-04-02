@@ -1,6 +1,8 @@
 //G Used for basic async waiting.
 //! Cannot be canceled.
 
+import setTimer from './set-timer.js';
+
 /**
  * Asynchronously waits a period of time, then resolves.
  * 

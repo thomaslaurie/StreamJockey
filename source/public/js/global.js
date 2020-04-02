@@ -172,10 +172,6 @@ sj.trace = function () {
 		return stackTrace0;
 	}
 };
-sj.image = function (value) {
-	if (typeof value === null || typeof value !== 'object') return value;
-	return JSON.parse(JSON.stringify(fclone(value))); //? Why is a deepClone needed here?
-};
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
@@ -1931,7 +1927,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 			) throw new sj.Error({
 				origin: 'sj.Rule2.beforeInit()',
 				reason: 'baseValidate or baseCast is not a function',
-				content: sj.image(accessory.options),
+				content: fclone(accessory.options),
 			});
 		},
 		defaults: {
@@ -2115,7 +2111,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.string.baseValidate()',
 					reason: '$0 is not a string',
 					message: '$0 must be text.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2137,7 +2133,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.trimmed.baseValidate()',
 					reason: '$0 is not trimmed',
 					message: '$0 must not have any leading or trailing whitespace.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2153,7 +2149,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.nonEmptyString.baseValidate()',
 					reason: '$0 is empty or only has whitespace',
 					message: '$0 must not be empty.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2169,7 +2165,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.number.baseValidate()',
 					reason: '$0 is not a number',
 					message: '$0 must be a number.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2185,7 +2181,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
 					reason: '$0 is not a number or is NaN',
 					message: '$0 must be a number.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2202,7 +2198,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
 					reason: '$0 is negative',
 					message: '$0 must not be negative.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2218,7 +2214,7 @@ sj.Rule2.augmentClass({
 						origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
 						reason: '$0 is positive',
 						message: '$0 must not be positive.',
-						content: sj.image(value),
+						content: fclone(value),
 					});
 				}
 			},
@@ -2235,7 +2231,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.positiveNumber.baseValidate()',
 					reason: '$0 is negative or 0',
 					message: '$0 must be positive.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2250,7 +2246,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.negativeNumber.baseValidate()',
 					reason: '$0 is positive or 0',
 					message: '$0 must be negative.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {
@@ -2268,7 +2264,7 @@ sj.Rule2.augmentClass({
 					origin: 'sj.Rule2.integer.baseValidate()',
 					reason: '$0 is not an integer',
 					message: '$0 must be an integer.',
-					content: sj.image(value),
+					content: fclone(value),
 				});
 			},
 			baseCast(accessory) {

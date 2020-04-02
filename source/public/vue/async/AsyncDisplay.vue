@@ -1,4 +1,8 @@
 <script>
+	// EXTERNAL
+	import fclone from 'fclone';
+
+	// INTERNAL
 	import {
 		setTimer,
 		Deferred,
@@ -89,7 +93,7 @@
 				if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.sj.Error({
 						origin: 'AsyncDisplay usingQuery()',
 						reason: 'attempting to use a query but Entity is not a child class of sj.Entity',
-						content: this.sj.image(this.Entity),
+						content: this.fclone(this.Entity),
 					});
 				return !!(
 					(this.usingParent && this.pQuery) ||

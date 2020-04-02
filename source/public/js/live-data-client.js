@@ -249,6 +249,12 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
+// BUILT-IN
+
+// EXTERNAL
+import fclone from 'fclone';
+
+// INTERNAL
 //! depends on global-client.js because it is used in index.js alongside global-client.js
 import {
 	pick,
@@ -305,7 +311,7 @@ export default {
 				if (!sj.isType(cachedEntityRef, sj.CachedEntity)) throw new sj.Error({
 					origin: 'getLiveData()',
 					reason: 'cachedEntityRef is not a cachedEntity',
-					content: sj.image(cachedEntityRef),
+					content: fclone(cachedEntityRef),
 				});
 				return cachedEntityRef.entity;
 			});
@@ -774,12 +780,12 @@ export default {
 			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
 				origin: 'update()', 
 				reason: 'Entity is not an sj.Entity',
-				content: sj.image(Entity),
+				content: fclone(Entity),
 			});
 			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
 				origin: 'update()', 
 				reason: 'query is not an Object',
-				content: sj.image(query),
+				content: fclone(query),
 			});
 			if (!sj.isType(timestamp, 'integer')) timestamp = Date.now();
 
@@ -789,8 +795,8 @@ export default {
 				origin: 'update()', 
 				reason: 'table is not an sj.LiveTable',
 				content: {
-					Entity: sj.image(Entity),
-					table: sj.image(table),
+					Entity: fclone(Entity),
+					table: fclone(table),
 				},
 			});
 			const liveQuery = context.getters.findLiveQuery({table, query});
@@ -798,9 +804,9 @@ export default {
 				origin: 'update()',
 				reason: `liveQuery is not an sj.LiveQuery`,
 				content: {
-					query: sj.image(query),
-					table: sj.image(table),
-					liveQuery: sj.image(liveQuery),
+					query: fclone(query),
+					table: fclone(table),
+					liveQuery: fclone(liveQuery),
 				},
 			});
 

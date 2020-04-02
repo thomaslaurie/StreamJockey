@@ -48,6 +48,7 @@ import {
 import sj from './global.js';
 
 // EXTERNAL
+import fclone from 'fclone';
 import moment from 'moment';
 import he from 'he';
 
@@ -449,8 +450,8 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 					reason: 'start state timed out',
 				}));
 
-				console.log(sj.image(context), sj.image(Object.getPrototypeOf(context)));
-				//console.log(sj.image(context.watch));
+				console.log(fclone(context), fclone(Object.getPrototypeOf(context)));
+				//console.log(fclone(context.watch));
 
 				const unwatch = watch(
 					//C pack desired state
