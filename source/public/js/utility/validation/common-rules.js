@@ -19,7 +19,24 @@ export const object = new Rule({
 		if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
 			throw new Error('Value is not an object.');
 		}
-	}
+	},
+});
+export const populatedObject = new Rule({
+	validator(value) {
+		object.validate(value);
+
+		if (getKeysOf(value, {
+			own: true,
+			enumerable: true,
+			nonEnumerable: true,
+			named: true,
+			symbol: true,
+
+			inherited: false,
+		}).length === 0) {
+			throw new Error('Object is not populated.');
+		}
+	},
 });
 
 // ARRAYS
@@ -57,6 +74,7 @@ export const string = new Rule({
 		reference.value = String(reference.value);
 	},
 });
+
 export const trimmedString = new Rule({
 	validator(value) {
 		string.validate(value);
@@ -77,7 +95,19 @@ export const visibleString = new Rule({
 	validator(value) {
 		string.validate(value);
 		if (trimmedString.validateCast(value) === '') {
-			throw 'String is empty.';
+			throw 'String is not visible.';
+		}
+	},
+	caster(reference) {
+		string.validateCast(reference);
+		// Cannot cast any further than a string.
+	},
+});
+export const populatedString = new Rule({
+	validator(value) {
+		string.validate(value);
+		if (value === '') {
+			throw 'String is not populated.';
 		}
 	},
 	caster(reference) {

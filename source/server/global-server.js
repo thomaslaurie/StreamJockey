@@ -117,6 +117,22 @@ import liveData from './live-data-server.js';
 import bcrypt from 'bcryptjs';
 
 
+//TODO refactor this function out in favor of more specific validators.
+// global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
+function isEmpty(input) {
+	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
+	return !(
+		sj.isType(input, 'boolean') || 
+        sj.isType(input, 'number') || 
+        //C check for empty and whitespace strings and string conversions of null and undefined
+        //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
+        (sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') ||
+        (sj.isType(input, 'object') && Object.keys(input).length > 0) ||
+        (sj.isType(input, 'array') && input.length > 0)
+	);
+};
+
+
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -718,7 +734,7 @@ sj.Entity.augmentClass({
 				}
 
 				//C check if optional and not empty, or if required
-				if ((prop[methodName].check && !sj.isEmpty(entity[key])) || prop[methodName].check === 2) {
+				if ((prop[methodName].check && !isEmpty(entity[key])) || prop[methodName].check === 2) {
 					//G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
 					const checked = await prop.rule.check(entity[key], entity[prop.against]);
 					validated[key] = sj.content(checked);
@@ -1064,9 +1080,9 @@ sj.Track.augmentClass({
 			//C filter out tracks
 			let inputTracks = tracks.filter(track => 
 				//C without an id (including symbol)
-				(!sj.isEmpty(track.id) || typeof track.id === 'symbol') 
+				(!isEmpty(track.id) || typeof track.id === 'symbol') 
 				//C and without a position (including null) or playlistId
-				&& (!sj.isEmpty(track.position) || track.position === null || !sj.isEmpty(track.playlistId))); 
+				&& (!isEmpty(track.position) || track.position === null || !isEmpty(track.playlistId))); 
 			//C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 			inputTracks = inputTracks.filter((track, index, self) => self.slice(index+1).every(trackAfter => track.id !== trackAfter.id));
 	

@@ -483,13 +483,6 @@ sj.isType = function (input, type) {
   }
 
   return false;
-};
-
-sj.isEmpty = function (input) {
-  //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-  return !(sj.isType(input, 'boolean') || sj.isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
-  //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-  sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || sj.isType(input, 'object') && Object.keys(input).length > 0 || sj.isType(input, 'array') && input.length > 0);
 }; // ERROR
 
 
@@ -4975,17 +4968,19 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************************!*\
   !*** ./source/public/js/utility/validation/common-rules.js ***!
   \*************************************************************/
-/*! exports provided: object, array, func, string, trimmedString, visibleString, symbol, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, constructor, key */
+/*! exports provided: object, populatedObject, array, func, string, trimmedString, visibleString, populatedString, symbol, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, constructor, key */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "object", function() { return object; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return populatedObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "func", function() { return func; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return visibleString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return populatedString; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return symbol; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "number", function() { return number; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return nonNaNNumber; });
@@ -5017,6 +5012,23 @@ const object = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   validator(value) {
     if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
       throw new Error('Value is not an object.');
+    }
+  }
+
+});
+const populatedObject = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    object.validate(value);
+
+    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(value, {
+      own: true,
+      enumerable: true,
+      nonEnumerable: true,
+      named: true,
+      symbol: true,
+      inherited: false
+    }).length === 0) {
+      throw new Error('Object is not populated.');
     }
   }
 
@@ -5082,7 +5094,21 @@ const visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
     string.validate(value);
 
     if (trimmedString.validateCast(value) === '') {
-      throw 'String is empty.';
+      throw 'String is not visible.';
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference); // Cannot cast any further than a string.
+  }
+
+});
+const populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value);
+
+    if (value === '') {
+      throw 'String is not populated.';
     }
   },
 
@@ -5519,7 +5545,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
+/* harmony import */ var _public_js_utility_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../public/js/utility/validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -5557,6 +5584,7 @@ __webpack_require__.r(__webpack_exports__);
 // INTERNAL
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -5579,11 +5607,11 @@ auth.requestTimeout = 300000; //C 5 minutes
 auth.requestKeys = [];
 
 auth.addRequestKey = async function () {
-  return await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].addKey(this.requestKeys, this.requestTimeout);
+  return await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].addKey(this.requestKeys, this.requestTimeout);
 };
 
 auth.checkRequestKey = async function (key) {
-  let pack = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].checkKey(this.requestKeys, key);
+  let pack = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].checkKey(this.requestKeys, key);
   return {
     authRequestKey: pack.key,
     authRequestTimestamp: pack.timestamp
@@ -5598,7 +5626,7 @@ auth.checkRequestKey = async function (key) {
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 
 
-_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify = new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Source({
+_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
   name: 'spotify',
   api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default.a({
     //C create api object and set credentials in constructor
@@ -5627,8 +5655,8 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify = new _global_
   authRequestManually: true,
   makeAuthRequestURL: function (key) {
     //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.redirectUri, String)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.redirectUri, String)) {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         origin: 'spotify.makeAuthRequestURL()',
         message: 'one or more api credentials are missing or of the wrong type',
@@ -5645,10 +5673,10 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify = new _global_
   }
 }); //TODO make any property available for sj.Source
 
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify, {
+Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify, {
   startAuthRequest: async function () {
     let pack = await auth.addRequestKey();
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       authRequestKey: pack.key,
       authRequestTimestamp: pack.timestamp,
       authRequestTimeout: pack.timeout,
@@ -5671,8 +5699,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
     await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query.code, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.code, undefined)) {
+      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -5682,8 +5710,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     } //C ensure that spotify didn't send an error
 
 
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query.error, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.error, undefined)) {
+      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -5693,7 +5721,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     } //C send the event and credentials for endAuthRequest() to pick up
 
 
-    emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       //? sj.success here?
       authRequestKey: query.state,
       //? is this needed anymore?
@@ -5710,7 +5738,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
       }); //C setup timeout
 
       Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
-        reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
           log: true,
           origin: 'sj.spotify.endAuthRequest()',
           message: 'request timeout'
@@ -5725,7 +5753,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     let timestamp = Date.now(); //C exchange the auth code for tokens
     //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
       grant_type: 'authorization_code',
       code: credentials.authCode,
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
@@ -5733,8 +5761,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
       client_id: process.env.SPOTIFY_CLIENT_ID,
       client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
-    }), _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].URL_HEADER).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    }), _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER).catch(rejected => {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token exchange failed',
@@ -5743,13 +5771,13 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     }); //C store refresh token in database
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
-    await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.edit({
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
+    await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
     }).then(resolved => {}); //C repack and return
 
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       accessToken: result.access_token,
       expires: timestamp + result.expires_in,
       //refreshToken: result.refresh_token,
@@ -5759,22 +5787,23 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
   },
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
-    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
+    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    //TODO reconsider this string test
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isEmpty(refreshToken)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].AuthRequired();
+    if (!_public_js_utility_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["visibleString"].test(refreshToken)) {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].AuthRequired();
     } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
     let timestamp = Date.now();
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
       client_id: process.env.SPOTIFY_CLIENT_ID,
       client_secret: process.env.SPOTIFY_CLIENT_SECRET
-    }), _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].URL_HEADER).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    }), _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER).catch(rejected => {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token refresh failed',
@@ -5782,27 +5811,27 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
       });
     }); //C if a new refresh token was sent
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result.refresh_token, 'string')) {
+    if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result.refresh_token, 'string')) {
       //? better validation?
       //C store it
-      await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.edit({
+      await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
     } //C send only the accessToken and the expiry time
 
 
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       origin: 'sj.spotify.refreshToken()',
       accessToken: result.access_token,
       expires: timestamp + result.expires_in
     });
   }
 });
-_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube = new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Source({
+_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
   name: 'youtube'
 });
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube, {
+Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube, {
   getCredentials: async function () {
     return {
       apiKey: process.env.YOUTUBE_API_KEY,
@@ -6002,7 +6031,17 @@ __webpack_require__.r(__webpack_exports__);
  // EXTERNAL
 // import fetch from 'node-fetch'; //C global.js uses fetch
 
- //  ██╗███╗   ██╗██╗████████╗
+ //TODO refactor this function out in favor of more specific validators.
+// global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
+
+function isEmpty(input) {
+  //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
+  return !(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'boolean') || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
+  //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
+  _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'object') && Object.keys(input).length > 0 || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'array') && input.length > 0);
+}
+
+; //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
 //  ██║██║╚██╗██║██║   ██║   
@@ -6565,7 +6604,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         } //C check if optional and not empty, or if required
 
 
-        if (prop[methodName].check && !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(entity[key]) || prop[methodName].check === 2) {
+        if (prop[methodName].check && !isEmpty(entity[key]) || prop[methodName].check === 2) {
           //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
           const checked = await prop.rule.check(entity[key], entity[prop.against]);
           validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content(checked);
@@ -6912,8 +6951,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
       //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
       //C filter out tracks
       let inputTracks = tracks.filter(track => //C without an id (including symbol)
-      (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
-      !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(track.position) || track.position === null || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isEmpty(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+      (!isEmpty(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
+      !isEmpty(track.position) || track.position === null || !isEmpty(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
       inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
@@ -7717,11 +7756,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-send */ "koa-send");
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_send__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../public/js/utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
-/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
-/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
-/* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
+/* harmony import */ var _public_js_utility_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../public/js/utility/validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
+/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
+/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
+/* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -7793,6 +7833,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  // side-effects
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -7810,8 +7851,8 @@ __webpack_require__.r(__webpack_exports__);
   //TODO there has to be a cleaner way of doing this (especially the replace manipulation)
   //R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
   // const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-  const root = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5___default()('../build/public');
-  const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__["clientIndexFileName"]}`; // router
+  const root = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_6___default()('../build/public');
+  const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_7__["clientIndexFileName"]}`; // router
 
   const router = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a();
   const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a(); //   █████╗ ██████╗ ██╗
@@ -7857,69 +7898,69 @@ __webpack_require__.r(__webpack_exports__);
 
   apiRouter.post('/log', async (ctx, next) => {
     console.log('CLIENT LOG:', ctx.request.body.message);
-    ctx.response.body = new _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Success({
+    ctx.response.body = new _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Success({
       origin: 'routes.js /log POST',
       message: 'received client log message'
     });
   }) // auth
   .get('/spotify/authRequestStart', async (ctx, next) => {
     //C retrieves an auth request URL and it's respective local key (for event handling)
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.startAuthRequest().catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].spotify.startAuthRequest().catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }).get('/spotify/authRedirect', async (ctx, next) => {
     //C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
     //! this URL is sensitive to the url given to spotify developer site (i think)
-    await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.receiveAuthRequest(ctx.request.query).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].spotify.receiveAuthRequest(ctx.request.query).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
     await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
       root: root
     });
   }).post('/spotify/authRequestEnd', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.endAuthRequest(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].spotify.endAuthRequest(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }).post('/spotify/exchangeToken', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.exchangeToken(ctx, ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].spotify.exchangeToken(ctx, ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }).get('/spotify/refreshToken', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.refreshToken(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].spotify.refreshToken(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }).get('/youtube/credentials', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].youtube.getCredentials().catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].youtube.getCredentials().catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }) // session
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.login(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].db, ctx, ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].session.login(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].db, ctx, ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }).get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.get(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].session.get(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }).delete('/session', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.logout(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].session.logout(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }) // user
-  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].User.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }) // playlist
-  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Playlist.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }) // track
-  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
+  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.table}`, async (ctx, next) => {
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Track.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].andResolve);
   }) // catch
   .all('/*', async (ctx, next) => {
-    ctx.response.body = new _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Error({
+    ctx.response.body = new _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].Error({
       log: true,
       origin: 'apiRouter',
       message: 'could not process request',
@@ -7959,7 +8000,7 @@ __webpack_require__.r(__webpack_exports__);
     } //C redirect if not logged in
 
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].isEmpty(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+    if (!_public_js_utility_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_5__["populatedObject"].test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
       //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 
