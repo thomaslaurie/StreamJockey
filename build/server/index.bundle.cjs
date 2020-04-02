@@ -326,27 +326,7 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 //C these don't reference any sj.Bases
-// TESTING
-
-sj.trace = function () {
-  try {
-    throw Error('');
-  } catch (e) {
-    //TODO figure out how to properly display newlines as strings inside objects
-    //C get stack
-    const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
-
-    const stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-
-    const stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
-
-    let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-    ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(ignore.join('|'), '.', '\.');
-    const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-    const stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace2, exp, '');
-    return stackTrace0;
-  }
-}; //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+//   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -354,7 +334,6 @@ sj.trace = function () {
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 //C these reference sj.Bases, don't call these until classes are defined
 // SESSION //C holds login, get, logout, etc. methods
-
 
 sj.session = {}; // TYPE
 
@@ -1208,6 +1187,26 @@ sj.Base = class Base {
 
   this.afterInitialize = function (accessory) {};
 
+  this.trace = function () {
+    try {
+      throw Error('');
+    } catch (e) {
+      //TODO figure out how to properly display newlines as strings inside objects
+      //C get stack
+      const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
+
+      const stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+
+      const stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+
+      let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
+      ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(ignore.join('|'), '.', '\.');
+      const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
+      const stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace2, exp, '');
+      return stackTrace0;
+    }
+  };
+
   this.prototype.announce = function () {
     //R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
     if (sj.isType(this, sj.Error)) {
@@ -1215,7 +1214,7 @@ sj.Base = class Base {
     } else if (sj.isType(this, sj.Warn)) {
       console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
     } else {
-      console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${sj.trace()}`); //
+      console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //
     }
   };
 
