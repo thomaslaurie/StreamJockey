@@ -86,6 +86,9 @@
 
 // BUILT-IN
 
+// EXTERNAL
+import fclone from 'fclone';
+
 // INTERNAL
 import './polyfill.js'; // side effects
 import { 
@@ -104,8 +107,6 @@ import {
 } from './utility/index.js';
 import * as constants from './constants.js';
 
-// EXTERNAL
-import fclone from 'fclone';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -182,14 +183,6 @@ sj.image = function (value) {
 	if (typeof value === null || typeof value !== 'object') return value;
 	return JSON.parse(JSON.stringify(fclone(value))); //? Why is a deepClone needed here?
 };
-
-// HTTP
-define.constant(sj, {
-	encodeProps: encodeProperties, //TODO
-	decodeProps: decodeProperties, //TODO
-	encodeList,
-	decodeList,
-});
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
@@ -743,7 +736,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	};
 	if (method === 'GET') {
 		if (sj.isType(body, Object)) {
-			url += `?${sj.encodeProps(body)}`;
+			url += `?${encodeProperties(body)}`;
 		}
 		delete options.body;
 	} 

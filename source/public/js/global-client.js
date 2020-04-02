@@ -42,6 +42,8 @@ import {
 	asyncMap,
 	wait,
 	Deferred,
+	encodeList,
+
 } from './utility/index.js';
 import sj from './global.js';
 
@@ -128,7 +130,7 @@ sj.Entity.augmentClass({
 		async get(query) {
 			return await sj.request(
 				'GET', 
-				`${sj.API_URL}/${this.table}?${sj.encodeList(sj.any(query).map((q) => pick(q, this.filters.getIn)))}`
+				`${sj.API_URL}/${this.table}?${encodeList(sj.any(query).map((q) => pick(q, this.filters.getIn)))}`
 			);
 		},
 		async edit(query) {

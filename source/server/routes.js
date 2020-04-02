@@ -61,15 +61,18 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-// builtin
+// BUILT-IN
 import path from 'path';
 import fs from 'fs';
 
-// external
+// EXTERNAL
 import Router from 'koa-router'; //L https://github.com/alexmingoia/koa-router
 import send from 'koa-send'; //L https://github.com/koajs/send
 
-// internal
+// INTERNAL
+import {
+	decodeList,
+} from '../public/js/utility/index.js';
 import sourcePath from '../node-utility/source-path.cjs';
 import { clientIndexFileName } from '../config/project-paths.js';
 import sj from './global-server.js';
@@ -193,7 +196,7 @@ export default function ({replaceIndex}) {
 		ctx.response.body = await sj.User.add(ctx.request.body).catch(sj.andResolve);
 	})
 	.get(`/${sj.User.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.User.get(sj.decodeList(ctx.querystring)).catch(sj.andResolve);
+		ctx.response.body = await sj.User.get(decodeList(ctx.querystring)).catch(sj.andResolve);
 	})
 	.patch(`/${sj.User.table}`, async (ctx, next) => {
 		ctx.response.body = await sj.User.edit(ctx.request.body).catch(sj.andResolve);
@@ -207,7 +210,7 @@ export default function ({replaceIndex}) {
 		ctx.response.body = await sj.Playlist.add(ctx.request.body).catch(sj.andResolve);
 	})
 	.get(`/${sj.Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Playlist.get(sj.decodeList(ctx.querystring)).catch(sj.andResolve);
+		ctx.response.body = await sj.Playlist.get(decodeList(ctx.querystring)).catch(sj.andResolve);
 	})
 	.patch(`/${sj.Playlist.table}`, async (ctx, next) => {
 		ctx.response.body = await sj.Playlist.edit(ctx.request.body).catch(sj.andResolve);
@@ -221,7 +224,7 @@ export default function ({replaceIndex}) {
 		ctx.response.body = await sj.Track.add(ctx.request.body).catch(sj.andResolve);
 	})
 	.get(`/${sj.Track.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Track.get(sj.decodeList(ctx.querystring)).catch(sj.andResolve);
+		ctx.response.body = await sj.Track.get(decodeList(ctx.querystring)).catch(sj.andResolve);
 	})
 	.patch(`/${sj.Track.table}`, async (ctx, next) => {
 		ctx.response.body = await sj.Track.edit(ctx.request.body).catch(sj.andResolve);

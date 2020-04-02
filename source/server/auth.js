@@ -41,6 +41,7 @@ import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinm
 // INTERNAL
 import {
 	wait,
+	encodeProperties,
 } from '../public/js/utility/index.js';
 import sj from './global-server.js';
 
@@ -225,7 +226,7 @@ Object.assign(sj.spotify, {
 		let timestamp = Date.now();
 		//C exchange the auth code for tokens
 		//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-		let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', sj.encodeProps({
+		let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', encodeProperties({
 			grant_type: 'authorization_code',
 			code: credentials.authCode,
 			redirect_uri: process.env.SPOTIFY_REDIRECT_URI, //C only used for validation, no need to make a second redirect handler
@@ -269,7 +270,7 @@ Object.assign(sj.spotify, {
 
 		//C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 		let timestamp = Date.now();
-		let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', sj.encodeProps({
+		let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', encodeProperties({
 			grant_type: 'refresh_token',
 			refresh_token: refreshToken,
 			

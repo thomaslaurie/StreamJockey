@@ -656,6 +656,12 @@ __webpack_require__.r(__webpack_exports__);
   mixins: [_mixins_emitRefresh_js__WEBPACK_IMPORTED_MODULE_0__["default"]],
   props: {
     error: [Object, Error]
+  },
+  methods: {
+    logError() {
+      console.error(this.error);
+    }
+
   }
 });
 
@@ -34619,6 +34625,8 @@ var render = function() {
     _vm._v(" "),
     _c("p", [_vm._v("Stack: " + _vm._s(_vm.error.stack))]),
     _vm._v(" "),
+    _c("button", { on: { click: _vm.logError } }, [_vm._v("Log Error")]),
+    _vm._v(" "),
     _c("button", { on: { click: _vm.emitRefresh } }, [_vm._v("Refresh")])
   ])
 }
@@ -37696,7 +37704,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this6.table, "?").concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].encodeList(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this6.filters.getIn)))));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this6.table, "?").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeList"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].any(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this6.filters.getIn)))));
       })();
     },
 
@@ -40200,12 +40208,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.formatContentDetails 
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./polyfill.js */ "./source/public/js/polyfill.js");
-/* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_polyfill_js__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./polyfill.js */ "./source/public/js/polyfill.js");
+/* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_polyfill_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -40303,11 +40311,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 // BUILT-IN
-// INTERNAL
+// EXTERNAL
+ // INTERNAL
+
  // side effects
 
-
- // EXTERNAL
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -40333,7 +40341,7 @@ if (typeof fetch !== 'undefined') {
 } // CONSTANTS
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_2__); //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
 //  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
@@ -40342,9 +40350,9 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants
 //C these don't reference any sj.Bases
 // TESTING
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
-  test: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["test"],
-  wait: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"]
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, {
+  test: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"],
+  wait: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"]
 });
 
 sj.trace = function () {
@@ -40355,32 +40363,22 @@ sj.trace = function () {
     //C get stack
     var stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
 
-    var stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+    var stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-    var stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+    var stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
 
     var ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-    ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(ignore.join('|'), '.', '\.');
+    ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(ignore.join('|'), '.', '\.');
     var exp = new RegExp("(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:".concat(ignore, ")(?:.+?(?=\\n|\n|\r|$))"), 'g');
-    var stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace2, exp, '');
+    var stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace2, exp, '');
     return stackTrace0;
   }
 };
 
 sj.image = function (value) {
   if (typeof value === null || typeof value !== 'object') return value;
-  return JSON.parse(JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_3___default()(value))); //? Why is a deepClone needed here?
-}; // HTTP
-
-
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
-  encodeProps: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"],
-  //TODO
-  decodeProps: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeProperties"],
-  //TODO
-  encodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeList"],
-  decodeList: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["decodeList"]
-}); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+  return JSON.parse(JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(value))); //? Why is a deepClone needed here?
+}; //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -40388,6 +40386,7 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 //C these reference sj.Bases, don't call these until classes are defined
 // SESSION //C holds login, get, logout, etc. methods
+
 
 sj.session = {}; // TYPE
 
@@ -40710,7 +40709,7 @@ sj.catchUnexpected = function (input) {
       //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
       error.reason = input.toString(); //C replace trace with actual trace (which has clickable URIs)
 
-      error.trace = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(input.stack, 'file:///', '');
+      error.trace = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(input.stack, 'file:///', '');
     } else if (sj.isType(input, sj.Base)) {
       error.reason = "unexpected ".concat(input.constructorName);
     } else {
@@ -40751,9 +40750,9 @@ sj.andResolve = function (rejected) {
 }; // FORMAT
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, {
-  any: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"],
-  one: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, {
+  any: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"],
+  one: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]
 });
 
 sj.content = function (resolved) {
@@ -40931,7 +40930,7 @@ sj.waitForCondition = /*#__PURE__*/function () {
     } = _ref6;
     yield sj.recursiveAsyncTime(timeout, () => !condition(), /*#__PURE__*/function () {
       var _ref8 = _asyncToGenerator(function* (o) {
-        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(o.time);
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(o.time);
         o.time = o.time * scaling;
         return;
       });
@@ -41015,7 +41014,7 @@ sj.request = /*#__PURE__*/function () {
 
     if (method === 'GET') {
       if (sj.isType(body, Object)) {
-        url += "?".concat(sj.encodeProps(body));
+        url += "?".concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])(body));
       }
 
       delete options.body;
@@ -41024,7 +41023,7 @@ sj.request = /*#__PURE__*/function () {
     if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) {
       //C stringify body
       try {
-        options.body = JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_3___default()(options.body));
+        options.body = JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(options.body));
       } catch (e) {
         //C catch stringify error (should be a cyclic reference)
         throw new sj.Error({
@@ -41080,7 +41079,7 @@ sj.request = /*#__PURE__*/function () {
     };
 
     if (sj.isType(parsedResult, Array)) {
-      return yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
+      return yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(parsedResult, item => build(item));
     } else {
       return build(parsedResult);
     }
@@ -41372,7 +41371,7 @@ sj.Base = class Base {
     var composed = {}; //C assign all properties from options
 
     if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); //C or only assign properties declared in defaults
-    else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
+    else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
     //? is this preferable to simply using assign defined in places where it's needed?
 
     Object.keys(composed).forEach(key => {
@@ -42705,7 +42704,7 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
         Object.defineProperties(that.filters, {
           [key]: {
             get: function get() {
-              return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, that.constructor.filters[key]);
+              return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(that, that.constructor.filters[key]);
             }
           }
         });
