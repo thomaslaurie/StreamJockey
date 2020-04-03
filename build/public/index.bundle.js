@@ -1965,7 +1965,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     		const currentUser = await this.sj.session.get().then(this.sj.content);
     		this.playlist = await new this.sj.Playlist({
     			userId: currentUser.id,
-    			name: `searchPlaylist${this.sj.makeKey(10)}`,
+    			name: `searchPlaylist${keyCode.create(10)}`,
     		}).add().then(this.sj.content).then(one);
     		console.log('PLAYLIST ADDED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
     	},
@@ -40746,70 +40746,7 @@ sj.Subscriptions = function () {
   sj.Entity.children.forEach(child => {
     this[child.table] = [];
   });
-}; // RANDOM KEY GENERATION //TODO this is only public for testing
-
-
-sj.makeKey = function (length) {
-  //C use only characters allowed in URLs
-  var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  var key = '';
-
-  for (var i = 0; i < length; i++) {
-    key += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-
-  return key;
-};
-
-sj.addKey = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(function* (list, timeout) {
-    var pack = {};
-    var defaultTimeout = 300000; //C default 5 minutes
-
-    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"])(() => sj.makeKey(10), {
-      until: key => !list.includes(key),
-      countout: 100
-    });
-    pack.timestamp = Date.now();
-    pack.timeout = pack.timestamp;
-    sj.isType(timeout, 'number') ? pack.timeout += timeout : pack.timeout += defaultTimeout;
-    list.push(pack);
-    return pack;
-  });
-
-  return function (_x4, _x5) {
-    return _ref2.apply(this, arguments);
-  };
-}();
-
-sj.checkKey = /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator(function* (list, key) {
-    //C checks a list for a key, will remove and return if found, will clean up timed-out keys
-    for (var i = 0; i < list.length; i++) {
-      //C check if timed out
-      var fresh = list[i].timeout > Date.now() ? true : false; //C if the key is found and not timed out, take it out and return it
-
-      if (list[i].key === key && fresh) {
-        return list.splice(i, 1)[0];
-      } //C remove timed-out keys //TODO check that this works
-
-
-      if (!fresh) {
-        list.splice(i, 1);
-      }
-    }
-
-    throw new sj.Error({
-      log: true,
-      origin: 'checkKey()',
-      message: 'request timeout, or just an invalid key'
-    });
-  });
-
-  return function (_x6, _x7) {
-    return _ref3.apply(this, arguments);
-  };
-}(); //   ██████╗██╗      █████╗ ███████╗███████╗
+}; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -40857,7 +40794,7 @@ sj.Base = class Base {
 (function () {
   //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
   //TODO consider deep defaults
-  this.makeClass = function (name, parent, _ref4) {
+  this.makeClass = function (name, parent, _ref2) {
     var {
       //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
       //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -40866,7 +40803,7 @@ sj.Base = class Base {
       prototypeProperties = parent => ({}),
       //G static properties & methods
       staticProperties = parent => ({})
-    } = _ref4;
+    } = _ref2;
     //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
     // VALIDATE
     if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
@@ -40914,12 +40851,12 @@ sj.Base = class Base {
     return MadeClass;
   };
 
-  this.augmentClass = function (_ref5) {
+  this.augmentClass = function (_ref3) {
     var {
       constructorParts = parent => ({}),
       prototypeProperties = parent => ({}),
       staticProperties = parent => ({})
-    } = _ref5;
+    } = _ref3;
     //C add or overwrite existing properties with new ones
     //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
     //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
@@ -41904,7 +41841,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validate = /*#__PURE__*/function () {
-          var _ref7 = _asyncToGenerator(function* (value) {
+          var _ref5 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -41915,13 +41852,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x8) {
-            return _ref7.apply(this, arguments);
+          return function (_x4) {
+            return _ref5.apply(this, arguments);
           };
         }();
 
         this.check = /*#__PURE__*/function () {
-          var _ref8 = _asyncToGenerator(function* (value) {
+          var _ref6 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -41932,8 +41869,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x9) {
-            return _ref8.apply(this, arguments);
+          return function (_x5) {
+            return _ref6.apply(this, arguments);
           };
         }();
       }
@@ -41983,7 +41920,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validateCast = /*#__PURE__*/function () {
-          var _ref9 = _asyncToGenerator(function* (value) {
+          var _ref7 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             accessory.castValue = value;
 
@@ -42000,13 +41937,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x10) {
-            return _ref9.apply(this, arguments);
+          return function (_x6) {
+            return _ref7.apply(this, arguments);
           };
         }();
 
         this.checkCast = /*#__PURE__*/function () {
-          var _ref10 = _asyncToGenerator(function* (value) {
+          var _ref8 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42017,8 +41954,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x11) {
-            return _ref10.apply(this, arguments);
+          return function (_x7) {
+            return _ref8.apply(this, arguments);
           };
         }();
       }
@@ -42044,12 +41981,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         });
       },
 
-      processError(targetError, _ref11) {
+      processError(targetError, _ref9) {
         var {
           fill = this.fill,
           error,
           origin
-        } = _ref11;
+        } = _ref9;
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
@@ -44633,7 +44570,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(2000);
         var tests = [];
 
-        var uniqueName = () => "liveQuery".concat(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].makeKey(7));
+        var uniqueName = () => "liveQuery".concat(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["keyCode"].create(7));
 
         var uniqueDuration = () => Math.round(Math.random() * 100000);
 
@@ -45696,7 +45633,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, repeat, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -45776,14 +45713,16 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["SymbolInterface"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./key-code.js */ "./source/public/js/utility/key-code.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_14__; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
-/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
 
 // NESTED
 
@@ -45800,8 +45739,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
  //TODO constants aren't exported, find an elegant way to do this.
+
+
+
 
 
 
@@ -46018,6 +45959,116 @@ class SymbolInterface extends VirtualInterface {
     freezeSpecialProperties(this);
   }
 
+}
+;
+
+/***/ }),
+
+/***/ "./source/public/js/utility/key-code.js":
+/*!**********************************************!*\
+  !*** ./source/public/js/utility/key-code.js ***!
+  \**********************************************/
+/*! exports provided: create, addTo, verify */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addTo", function() { return addTo; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "verify", function() { return verify; });
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "./source/public/js/utility/index.js");
+
+var packRule = new _index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].object.validate(value);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(value.key);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(value.timestamp);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(value.timeout);
+  }
+
+});
+var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+function create() {
+  var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
+  // Validate input.
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(length); // Create.
+
+  var key = '';
+
+  for (var i = 0; i < length; i++) {
+    var index = Math.floor(Math.random() * characters.length);
+    key += characters.charAt(index);
+  } // Validate output.
+
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(key); // Return.
+
+  return key;
+}
+;
+var defaultTimeout = 300000; // 5 minutes
+
+var tryLimit = 1000;
+function addTo(list) {
+  var timeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaultTimeout;
+  // Validate inputs.
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].array.validate(list);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(timeout); // Create.
+
+  var key = repeat(() => create(), {
+    until: key => !list.includes(key),
+    countout: tryLimit,
+
+    onCountout() {
+      throw new Error("Failed to add key to list, took over ".concat(tryLimit, " tries."));
+    }
+
+  });
+  var timestamp = Date.now();
+  var pack = {
+    key,
+    timestamp,
+    timeout: timestamp + timeout
+  }; // Validate output.
+
+  packRule.validate(pack); // Return.
+
+  list.push(pack);
+  return pack;
+}
+; // Checks if a list has a key. Cleans up timed-out keys.
+
+function verify(list, key) {
+  // Validate inputs.
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].array.validate(list);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(key); // Iterate over list.
+
+  for (var i = list.length - 1; i >= 0; i--) {
+    var pack = list[i]; // Validate items in the list.
+
+    packRule.validate(pack); // Determine if item has timed out.
+
+    var fresh = pack.timeout > Date.now;
+
+    if (pack.key === key) {
+      // If key matches,
+      if (fresh) {
+        // and it hasn't timed out, remove the pack from the list and return it,
+        return list.splice(i, 1)[0];
+      } else {
+        // else throw a timeout error.
+        throw new Error('Key timed out.');
+      }
+    } else {
+      // Remove non-matching packs if they've timed out.
+      if (!fresh) {
+        list.splice(i, 1);
+      }
+    }
+  } // If the key isn't found, throw an error.
+
+
+  throw new Error('Invalid key.');
 }
 ;
 

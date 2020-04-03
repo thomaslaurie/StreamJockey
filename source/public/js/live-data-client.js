@@ -264,6 +264,7 @@ import {
 	one,
 	any,
 	repeat,
+	keyCode,
 } from './utility/index.js';
 import deepCompare, {compareUnorderedArrays} from './utility/object/deep-compare.js';
 import sj from './global-client.js';
@@ -1093,7 +1094,7 @@ export default {
 
 			const tests = [];
 
-			const uniqueName = () => `liveQuery${sj.makeKey(7)}`;
+			const uniqueName = () => `liveQuery${keyCode.create(7)}`;
 			const uniqueDuration = () => Math.round(Math.random()*100000);
 
 			let updated = false;

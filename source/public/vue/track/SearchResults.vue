@@ -1,6 +1,7 @@
 <script>
 	import {
 		one,
+		keyCode,
 	} from '../../js/utility/index.js';
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 
@@ -101,7 +102,7 @@
 					const currentUser = await this.sj.session.get().then(this.sj.content);
 					this.playlist = await new this.sj.Playlist({
 						userId: currentUser.id,
-						name: `searchPlaylist${this.sj.makeKey(10)}`,
+						name: `searchPlaylist${keyCode.create(10)}`,
 					}).add().then(this.sj.content).then(one);
 					console.log('PLAYLIST ADDED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
 				},

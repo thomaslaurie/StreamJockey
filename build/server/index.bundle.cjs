@@ -692,57 +692,6 @@ sj.Subscriptions = function () {
   sj.Entity.children.forEach(child => {
     this[child.table] = [];
   });
-}; // RANDOM KEY GENERATION //TODO this is only public for testing
-
-
-sj.makeKey = function (length) {
-  //C use only characters allowed in URLs
-  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let key = '';
-
-  for (let i = 0; i < length; i++) {
-    key += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-
-  return key;
-};
-
-sj.addKey = async function (list, timeout) {
-  let pack = {};
-  let defaultTimeout = 300000; //C default 5 minutes
-
-  Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"])(() => sj.makeKey(10), {
-    until: key => !list.includes(key),
-    countout: 100
-  });
-  pack.timestamp = Date.now();
-  pack.timeout = pack.timestamp;
-  sj.isType(timeout, 'number') ? pack.timeout += timeout : pack.timeout += defaultTimeout;
-  list.push(pack);
-  return pack;
-};
-
-sj.checkKey = async function (list, key) {
-  //C checks a list for a key, will remove and return if found, will clean up timed-out keys
-  for (let i = 0; i < list.length; i++) {
-    //C check if timed out
-    let fresh = list[i].timeout > Date.now() ? true : false; //C if the key is found and not timed out, take it out and return it
-
-    if (list[i].key === key && fresh) {
-      return list.splice(i, 1)[0];
-    } //C remove timed-out keys //TODO check that this works
-
-
-    if (!fresh) {
-      list.splice(i, 1);
-    }
-  }
-
-  throw new sj.Error({
-    log: true,
-    origin: 'checkKey()',
-    message: 'request timeout, or just an invalid key'
-  });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
@@ -3647,7 +3596,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, repeat, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3727,14 +3676,16 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["SymbolInterface"]; });
 
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./key-code.js */ "./source/public/js/utility/key-code.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_14__; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
-/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
 
 // NESTED
 
@@ -3751,8 +3702,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
  //TODO constants aren't exported, find an elegant way to do this.
+
+
+
 
 
 
@@ -3961,6 +3914,114 @@ class SymbolInterface extends VirtualInterface {
     freezeSpecialProperties(this);
   }
 
+}
+;
+
+/***/ }),
+
+/***/ "./source/public/js/utility/key-code.js":
+/*!**********************************************!*\
+  !*** ./source/public/js/utility/key-code.js ***!
+  \**********************************************/
+/*! exports provided: create, addTo, verify */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addTo", function() { return addTo; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "verify", function() { return verify; });
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "./source/public/js/utility/index.js");
+
+const packRule = new _index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].object.validate(value);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(value.key);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(value.timestamp);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(value.timeout);
+  }
+
+});
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+function create(length = 10) {
+  // Validate input.
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(length); // Create.
+
+  let key = '';
+
+  for (let i = 0; i < length; i++) {
+    const index = Math.floor(Math.random() * characters.length);
+    key += characters.charAt(index);
+  } // Validate output.
+
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(key); // Return.
+
+  return key;
+}
+;
+const defaultTimeout = 300000; // 5 minutes
+
+const tryLimit = 1000;
+function addTo(list, timeout = defaultTimeout) {
+  // Validate inputs.
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].array.validate(list);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(timeout); // Create.
+
+  const key = repeat(() => create(), {
+    until: key => !list.includes(key),
+    countout: tryLimit,
+
+    onCountout() {
+      throw new Error(`Failed to add key to list, took over ${tryLimit} tries.`);
+    }
+
+  });
+  const timestamp = Date.now();
+  const pack = {
+    key,
+    timestamp,
+    timeout: timestamp + timeout
+  }; // Validate output.
+
+  packRule.validate(pack); // Return.
+
+  list.push(pack);
+  return pack;
+}
+; // Checks if a list has a key. Cleans up timed-out keys.
+
+function verify(list, key) {
+  // Validate inputs.
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].array.validate(list);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(key); // Iterate over list.
+
+  for (let i = list.length - 1; i >= 0; i--) {
+    const pack = list[i]; // Validate items in the list.
+
+    packRule.validate(pack); // Determine if item has timed out.
+
+    const fresh = pack.timeout > Date.now;
+
+    if (pack.key === key) {
+      // If key matches,
+      if (fresh) {
+        // and it hasn't timed out, remove the pack from the list and return it,
+        return list.splice(i, 1)[0];
+      } else {
+        // else throw a timeout error.
+        throw new Error('Key timed out.');
+      }
+    } else {
+      // Remove non-matching packs if they've timed out.
+      if (!fresh) {
+        list.splice(i, 1);
+      }
+    }
+  } // If the key isn't found, throw an error.
+
+
+  throw new Error('Invalid key.');
 }
 ;
 
@@ -5599,11 +5660,11 @@ auth.requestTimeout = 300000; //C 5 minutes
 auth.requestKeys = [];
 
 auth.addRequestKey = async function () {
-  return await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].addKey(this.requestKeys, this.requestTimeout);
+  return await _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].addTo(this.requestKeys, this.requestTimeout);
 };
 
 auth.checkRequestKey = async function (key) {
-  let pack = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].checkKey(this.requestKeys, key);
+  let pack = await _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].verify(this.requestKeys, key);
   return {
     authRequestKey: pack.key,
     authRequestTimestamp: pack.timestamp

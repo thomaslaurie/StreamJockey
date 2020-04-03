@@ -43,6 +43,7 @@ import {
 	wait,
 	encodeProperties,
 	one,
+	keyCode,
 } from '../public/js/utility/index.js';
 import {
 	visibleString,
@@ -73,10 +74,10 @@ let auth = {};
 auth.requestTimeout = 300000; //C 5 minutes
 auth.requestKeys = [];
 auth.addRequestKey = async function () {
-    return await sj.addKey(this.requestKeys, this.requestTimeout);
+    return await keyCode.addTo(this.requestKeys, this.requestTimeout);
 };
 auth.checkRequestKey = async function (key) {
-    let pack =  await sj.checkKey(this.requestKeys, key);
+    let pack = await keyCode.verify(this.requestKeys, key);
     return {authRequestKey: pack.key, authRequestTimestamp: pack.timestamp};
 };
 
