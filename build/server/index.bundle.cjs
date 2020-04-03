@@ -550,27 +550,6 @@ sj.andResolve = function (rejected) {
 sj.content = function (resolved) {
   //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
   return resolved.content;
-}; //C Periodically checks a condition.
-
-
-sj.waitForCondition = async function ({
-  interval = 100,
-  scaling = 1,
-  delay = 0,
-  timeout = 2000,
-  condition = () => false
-}) {
-  let count = 0;
-  let time = interval;
-  await _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async(async () => {
-    await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(count === 0 ? time + delay : delay);
-    count++;
-    time = time * scaling;
-    return;
-  }, {
-    until: condition,
-    timeout
-  });
 }; // HTTP
 
 

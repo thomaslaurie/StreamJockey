@@ -40596,35 +40596,7 @@ sj.andResolve = function (rejected) {
 sj.content = function (resolved) {
   //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
   return resolved.content;
-}; //C Periodically checks a condition.
-
-
-sj.waitForCondition = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(function* (_ref) {
-    var {
-      interval = 100,
-      scaling = 1,
-      delay = 0,
-      timeout = 2000,
-      condition = () => false
-    } = _ref;
-    var count = 0;
-    var time = interval;
-    yield _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-      yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(count === 0 ? time + delay : delay);
-      count++;
-      time = time * scaling;
-      return;
-    }), {
-      until: condition,
-      timeout
-    });
-  });
-
-  return function (_x) {
-    return _ref2.apply(this, arguments);
-  };
-}(); // HTTP
+}; // HTTP
 
 
 sj.rebuild = function (input, strict) {
@@ -40675,7 +40647,7 @@ sj.rebuild = function (input, strict) {
 };
 
 sj.request = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator(function* (method, url, body) {
+  var _ref = _asyncToGenerator(function* (method, url, body) {
     var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : sj.JSON_HEADER;
 
     /* //! use UPPERCASE HTTP methods...
@@ -40763,8 +40735,8 @@ sj.request = /*#__PURE__*/function () {
     }
   });
 
-  return function (_x2, _x3, _x4) {
-    return _ref4.apply(this, arguments);
+  return function (_x, _x2, _x3) {
+    return _ref.apply(this, arguments);
   };
 }(); // LIVE DATA
 
@@ -40790,7 +40762,7 @@ sj.makeKey = function (length) {
 };
 
 sj.addKey = /*#__PURE__*/function () {
-  var _ref5 = _asyncToGenerator(function* (list, timeout) {
+  var _ref2 = _asyncToGenerator(function* (list, timeout) {
     var pack = {};
     var defaultTimeout = 300000; //C default 5 minutes
 
@@ -40805,13 +40777,13 @@ sj.addKey = /*#__PURE__*/function () {
     return pack;
   });
 
-  return function (_x5, _x6) {
-    return _ref5.apply(this, arguments);
+  return function (_x4, _x5) {
+    return _ref2.apply(this, arguments);
   };
 }();
 
 sj.checkKey = /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator(function* (list, key) {
+  var _ref3 = _asyncToGenerator(function* (list, key) {
     //C checks a list for a key, will remove and return if found, will clean up timed-out keys
     for (var i = 0; i < list.length; i++) {
       //C check if timed out
@@ -40834,8 +40806,8 @@ sj.checkKey = /*#__PURE__*/function () {
     });
   });
 
-  return function (_x7, _x8) {
-    return _ref6.apply(this, arguments);
+  return function (_x6, _x7) {
+    return _ref3.apply(this, arguments);
   };
 }(); //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -40885,7 +40857,7 @@ sj.Base = class Base {
 (function () {
   //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
   //TODO consider deep defaults
-  this.makeClass = function (name, parent, _ref7) {
+  this.makeClass = function (name, parent, _ref4) {
     var {
       //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
       //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -40894,7 +40866,7 @@ sj.Base = class Base {
       prototypeProperties = parent => ({}),
       //G static properties & methods
       staticProperties = parent => ({})
-    } = _ref7;
+    } = _ref4;
     //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
     // VALIDATE
     if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
@@ -40942,12 +40914,12 @@ sj.Base = class Base {
     return MadeClass;
   };
 
-  this.augmentClass = function (_ref8) {
+  this.augmentClass = function (_ref5) {
     var {
       constructorParts = parent => ({}),
       prototypeProperties = parent => ({}),
       staticProperties = parent => ({})
-    } = _ref8;
+    } = _ref5;
     //C add or overwrite existing properties with new ones
     //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
     //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
@@ -41932,7 +41904,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validate = /*#__PURE__*/function () {
-          var _ref10 = _asyncToGenerator(function* (value) {
+          var _ref7 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -41943,13 +41915,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x9) {
-            return _ref10.apply(this, arguments);
+          return function (_x8) {
+            return _ref7.apply(this, arguments);
           };
         }();
 
         this.check = /*#__PURE__*/function () {
-          var _ref11 = _asyncToGenerator(function* (value) {
+          var _ref8 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -41960,8 +41932,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x10) {
-            return _ref11.apply(this, arguments);
+          return function (_x9) {
+            return _ref8.apply(this, arguments);
           };
         }();
       }
@@ -42011,7 +41983,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validateCast = /*#__PURE__*/function () {
-          var _ref12 = _asyncToGenerator(function* (value) {
+          var _ref9 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             accessory.castValue = value;
 
@@ -42028,13 +42000,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x11) {
-            return _ref12.apply(this, arguments);
+          return function (_x10) {
+            return _ref9.apply(this, arguments);
           };
         }();
 
         this.checkCast = /*#__PURE__*/function () {
-          var _ref13 = _asyncToGenerator(function* (value) {
+          var _ref10 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42045,8 +42017,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x12) {
-            return _ref13.apply(this, arguments);
+          return function (_x11) {
+            return _ref10.apply(this, arguments);
           };
         }();
       }
@@ -42072,12 +42044,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         });
       },
 
-      processError(targetError, _ref14) {
+      processError(targetError, _ref11) {
         var {
           fill = this.fill,
           error,
           origin
-        } = _ref14;
+        } = _ref11;
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList

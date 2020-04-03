@@ -312,31 +312,6 @@ sj.content = function (resolved) {
 	return resolved.content;
 };
 
-//C Periodically checks a condition.
-sj.waitForCondition = async function ({
-	interval = 100,
-	scaling = 1,
-	delay = 0,
-	timeout = 2000,
-	condition = () => false,
-}) {
-	let count = 0;
-	let time = interval;
-
-	await repeat.async(async () => {
-		await wait((count === 0)
-			? time + delay
-			: delay
-		);
-		count++;
-		time = time * scaling;	
-		return;
-	}, {
-		until: condition,
-		timeout,
-	});
-};
-
 // HTTP
 sj.rebuild = function (input, strict) {
 	//C turns a bare object back into its custom class if it has a valid constructorName property
