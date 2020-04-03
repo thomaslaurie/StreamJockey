@@ -170,9 +170,10 @@ export const integer = new Rule({
 		reference.value = Number.parseInt(reference.value);
 	},
 });
+//TODO integer or infinity
 
-// Defining 0 as neither positive or negative.
-//L Don't worry about NaN: https://stackoverflow.com/a/26982925
+//! Defining 0 as neither positive or negative.
+//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
 export const nonNegativeNumber = new Rule({
 	validator(value) {
 		number.validate(value);

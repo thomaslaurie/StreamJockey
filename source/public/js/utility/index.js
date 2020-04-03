@@ -16,4 +16,5 @@ export {default as formatMs}        from './format-ms.js';
 export * as constants               from './constants.js';
 export {Interface, SymbolInterface} from './interface.js'; //TODO constants aren't exported, find an elegant way to do this.
 export {default as reference}       from './reference.js';
+export {default as repeat}          from './repeat.js';
 export {default as test}            from './test.js';

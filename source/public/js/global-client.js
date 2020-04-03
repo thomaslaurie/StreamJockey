@@ -45,6 +45,7 @@ import {
 	encodeList,
 	one,
 	any,
+	repeat,
 } from './utility/index.js';
 import {
 	visibleString,
@@ -1239,19 +1240,16 @@ sj.spotify = new sj.Source({
 
 							//C wait for device to transfer
 							//TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
-							await sj.recursiveAsyncTime(sj.Playback.requestTimeout*2, result => {
-								//L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
-								//C this is fine, it just means that it's not ready, so just catch anything.
-								return !sj.isType(result, Object) || 
-								!sj.isType(result.device, Object) || 
-								result.device.id !== device_id;
-							}, async o => { 
+							
+							//C starting delay
+							let delay = 100;
+							await repeat.async(async () => {
 								//C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
 								//L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
 								//C timeout is doubled here to work better with the doubling delay time.
 								//C using an object wrapper for the delay argument so that it can be modified between iterations
-								await wait(o.delay);
-								o.delay = o.delay*2; //C double the delay each time
+								await wait(delay);
+								delay = delay*2; //C double the delay each time
 								return await sj.spotify.request('Get', 'me/player').catch(rejected => {
 									reject(new sj.Error({
 										//code: JSON.parse(error.response).error.status,
@@ -1263,8 +1261,18 @@ sj.spotify = new sj.Source({
 
 									return {device: {id: device_id}}; //C break the loop after rejecting
 								});
-								//C starting delay
-							}, {delay: 100});
+							}, {
+								until(result) {
+									//L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
+									//C this is fine, it just means that it's not ready, so just catch anything.
+									return (
+										sj.isType(result, Object) 		 &&
+										sj.isType(result.device, Object) &&
+										result.device.id === device_id
+									);
+								},
+								timeout: sj.Playback.requestTimeout * 2,
+							});
 
 							//C check playback state //? this was commented out earlier and after pause, was this causing issues?
 							await context.dispatch('checkPlayback');

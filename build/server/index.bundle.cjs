@@ -364,6 +364,7 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants
 // SESSION //C holds login, get, logout, etc. methods
 
 sj.session = {}; // TYPE
+//TODO refactor this out, but this will be a lot of work to test
 
 sj.isType = function (input, type) {
   //C matches 'input' type or super-type to 'type' value or string representation or builtin object
@@ -549,111 +550,7 @@ sj.andResolve = function (rejected) {
 sj.content = function (resolved) {
   //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
   return resolved.content;
-}; // RECURSION
-//TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-
-
-sj.recursiveSyncTime = async function (n, loopCondition, f, ...args) {
-  //L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
-  let timestamp = Date.now();
-
-  function loop() {
-    if (Date.now() > timestamp + n) {
-      throw new sj.Error({
-        log: true,
-        origin: 'recursiveSyncTime()',
-        reason: 'recursive function timed out',
-        content: f
-      });
-    }
-
-    let result = f(...args);
-
-    if (loopCondition(result)) {
-      result = loop();
-    }
-
-    return result;
-  }
-
-  return loop();
-};
-
-sj.recursiveSyncCount = async function (n, loopCondition, f, ...args) {
-  let count = 0;
-
-  function loop(count) {
-    if (count >= n) {
-      throw new sj.Error({
-        log: true,
-        origin: 'recursiveSyncCount',
-        reason: 'recursive function counted out',
-        content: f
-      });
-    }
-
-    let result = f(...args);
-
-    if (loopCondition(result)) {
-      result = loop(++count);
-    }
-
-    return result;
-  }
-
-  return loop(count);
-};
-
-sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
-  let timestamp = Date.now();
-
-  async function loop() {
-    if (Date.now() > timestamp + n) {
-      throw new sj.Error({
-        log: true,
-        origin: 'recursiveAsyncTime()',
-        reason: 'recursive function timed out',
-        content: f
-      });
-    }
-
-    let result = await f(...args);
-
-    if (loopCondition(result)) {
-      result = await loop();
-    }
-
-    return result;
-  }
-
-  ;
-  return await loop();
-};
-
-sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
-  let count = 0;
-
-  async function loop(count) {
-    if (count >= n) {
-      throw new sj.Error({
-        log: true,
-        origin: 'recursiveAsyncCount()',
-        reason: 'recursive function counted out',
-        content: f
-      });
-    }
-
-    let result = await f(...args);
-
-    if (loopCondition(result)) {
-      result = await loop(++count);
-    }
-
-    return result;
-  }
-
-  return await loop(count);
-}; //C uses recursiveAsyncTime to periodically check a condition
+}; //C Periodically checks a condition.
 
 
 sj.waitForCondition = async function ({
@@ -663,12 +560,16 @@ sj.waitForCondition = async function ({
   timeout = 2000,
   condition = () => false
 }) {
-  await sj.recursiveAsyncTime(timeout, () => !condition(), async o => {
-    await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(o.time);
-    o.time = o.time * scaling;
+  let count = 0;
+  let time = interval;
+  await _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async(async () => {
+    await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(count === 0 ? time + delay : delay);
+    count++;
+    time = time * scaling;
     return;
   }, {
-    time: interval + delay
+    until: condition,
+    timeout
   });
 }; // HTTP
 
@@ -831,18 +732,10 @@ sj.addKey = async function (list, timeout) {
   let pack = {};
   let defaultTimeout = 300000; //C default 5 minutes
 
-  pack.key = await sj.recursiveSyncCount(100, key => {
-    let found = false;
-
-    for (let i = 0; i < list.length; i++) {
-      if (list[i].key === key) {
-        found = true;
-        break;
-      }
-    }
-
-    return found;
-  }, sj.makeKey, 10);
+  Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"])(() => sj.makeKey(10), {
+    until: key => !list.includes(key),
+    countout: 100
+  });
   pack.timestamp = Date.now();
   pack.timeout = pack.timestamp;
   sj.isType(timeout, 'number') ? pack.timeout += timeout : pack.timeout += defaultTimeout;
@@ -3775,7 +3668,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, repeat, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3858,8 +3751,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
 
 // NESTED
 
@@ -3878,6 +3774,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //TODO constants aren't exported, find an elegant way to do this.
+
 
 
 
@@ -4585,6 +4482,121 @@ function extractValues(references) {
 
 /***/ }),
 
+/***/ "./source/public/js/utility/repeat.js":
+/*!********************************************!*\
+  !*** ./source/public/js/utility/repeat.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "./source/public/js/utility/index.js");
+
+/**
+ * Repeats a function until a condition is met or the call times-out or counts-out.
+ * Guaranteed to call the function at least once.
+ * 
+ * @param {Function} func               - Function to repeat.
+ * @param {Object}   options
+ * @param {Function} options.until      - Condition upon which the function will stop.
+ * @param {number}   options.timeout    - Number of milliseconds the function may repeat for.
+ * @param {number}   options.countout   - Number of times the function may execute.
+ * @param {Function} options.onTimeout  - Called when repeat times out.
+ * @param {Function} options.onCountout - Called when repeat counts out.
+ */
+
+function repeat(func, options = {}) {
+  const {
+    until = result => false,
+    timeout = Infinity,
+    countout = Infinity,
+    onTimeout = (func, options, lastResult) => {
+      throw new Error('Repeat function call timed out.');
+    },
+    onCountout = (func, options, lastResult) => {
+      throw new Error('Repeat function call counted out.');
+    }
+  } = options;
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(func);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(until);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeNumber.test(timeout); // >= 0
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].positiveNumber.test(countout); // >= 1
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onTimeout);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onCountout);
+  let result;
+  let counter = 0;
+  let time = Date.now();
+  const timeLimit = time + timeout;
+  const countLimit = Math.floor(countout);
+
+  while (true) {
+    result = func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+
+    if (until(result)) break; // Update 
+
+    time = Date.now();
+    counter++;
+    if (time >= timeLimit) onTimeout(func, options, lastResult);
+    if (counter >= countLimit) onCountout(func, options, lastResult);
+  }
+
+  return result;
+}
+
+; // Async Variation
+
+repeat.sync = repeat;
+
+repeat.async = async function (func, options = {}) {
+  const {
+    until = result => false,
+    // Condition upon which the function will stop.
+    timeout = Infinity,
+    // Number of milliseconds the function may repeat for.
+    countout = Infinity,
+    // Number of times the function may execute.
+    onTimeout = (func, options, lastResult) => {
+      throw new Error('Repeat function call timed out.');
+    },
+    onCountout = (func, options, lastResult) => {
+      throw new Error('Repeat function call counted out.');
+    }
+  } = options;
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(func);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(until);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeNumber.test(timeout); // >= 0
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].positiveNumber.test(countout); // >= 1
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onTimeout);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onCountout);
+  let result;
+  let counter = 0;
+  let time = Date.now();
+  const timeLimit = time + timeout;
+  const countLimit = Math.floor(countout);
+
+  while (true) {
+    result = await func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+
+    if (await until(result)) break; // Update 
+
+    time = Date.now();
+    counter++;
+    if (time >= timeLimit) await onTimeout(func, options, lastResult);
+    if (counter >= countLimit) await onCountout(func, options, lastResult);
+  }
+
+  return result;
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (repeat);
+
+/***/ }),
+
 /***/ "./source/public/js/utility/string/capitalize-first-character.js":
 /*!***********************************************************************!*\
   !*** ./source/public/js/utility/string/capitalize-first-character.js ***!
@@ -5177,8 +5189,9 @@ const integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
     reference.value = Number.parseInt(reference.value);
   }
 
-}); // Defining 0 as neither positive or negative.
-//L Don't worry about NaN: https://stackoverflow.com/a/26982925
+}); //TODO integer or infinity
+//! Defining 0 as neither positive or negative.
+//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
 
 const nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   validator(value) {

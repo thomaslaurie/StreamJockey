@@ -39038,41 +39038,39 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     }));
                   }); //C wait for device to transfer
                   //TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
+                  //C starting delay
 
-                  yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].recursiveAsyncTime(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout * 2, result => {
-                    //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
-                    //C this is fine, it just means that it's not ready, so just catch anything.
-                    return !_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, Object) || !_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result.device, Object) || result.device.id !== device_id;
-                  }, /*#__PURE__*/function () {
-                    var _ref30 = _asyncToGenerator(function* (o) {
-                      //C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
-                      //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
-                      //C timeout is doubled here to work better with the doubling delay time.
-                      //C using an object wrapper for the delay argument so that it can be modified between iterations
-                      yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(o.delay);
-                      o.delay = o.delay * 2; //C double the delay each time
+                  var delay = 100;
+                  yield _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+                    //C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
+                    //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
+                    //C timeout is doubled here to work better with the doubling delay time.
+                    //C using an object wrapper for the delay argument so that it can be modified between iterations
+                    yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(delay);
+                    delay = delay * 2; //C double the delay each time
 
-                      return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('Get', 'me/player').catch(rejected => {
-                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
-                          //code: JSON.parse(error.response).error.status,
-                          origin: 'spotify.loadPlayer()',
-                          message: 'spotify player could not be loaded',
-                          //reason: JSON.parse(error.response).error.message,
-                          content: rejected
-                        }));
-                        return {
-                          device: {
-                            id: device_id
-                          }
-                        }; //C break the loop after rejecting
-                      }); //C starting delay
+                    return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('Get', 'me/player').catch(rejected => {
+                      reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                        //code: JSON.parse(error.response).error.status,
+                        origin: 'spotify.loadPlayer()',
+                        message: 'spotify player could not be loaded',
+                        //reason: JSON.parse(error.response).error.message,
+                        content: rejected
+                      }));
+                      return {
+                        device: {
+                          id: device_id
+                        }
+                      }; //C break the loop after rejecting
                     });
+                  }), {
+                    until(result) {
+                      //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
+                      //C this is fine, it just means that it's not ready, so just catch anything.
+                      return _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result.device, Object) && result.device.id === device_id;
+                    },
 
-                    return function (_x14) {
-                      return _ref30.apply(this, arguments);
-                    };
-                  }(), {
-                    delay: 100
+                    timeout: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout * 2
                   }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
 
                   yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
@@ -40412,6 +40410,7 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants
 // SESSION //C holds login, get, logout, etc. methods
 
 sj.session = {}; // TYPE
+//TODO refactor this out, but this will be a lot of work to test
 
 sj.isType = function (input, type) {
   //C matches 'input' type or super-type to 'type' value or string representation or builtin object
@@ -40597,193 +40596,33 @@ sj.andResolve = function (rejected) {
 sj.content = function (resolved) {
   //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
   return resolved.content;
-}; // RECURSION
-//TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-
-
-sj.recursiveSyncTime = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len = arguments.length, args = new Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
-      args[_key - 3] = arguments[_key];
-    }
-
-    //L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
-    var timestamp = Date.now();
-
-    function loop() {
-      if (Date.now() > timestamp + n) {
-        throw new sj.Error({
-          log: true,
-          origin: 'recursiveSyncTime()',
-          reason: 'recursive function timed out',
-          content: f
-        });
-      }
-
-      var result = f(...args);
-
-      if (loopCondition(result)) {
-        result = loop();
-      }
-
-      return result;
-    }
-
-    return loop();
-  });
-
-  return function (_x, _x2, _x3) {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-sj.recursiveSyncCount = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len2 = arguments.length, args = new Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
-      args[_key2 - 3] = arguments[_key2];
-    }
-
-    var count = 0;
-
-    function loop(count) {
-      if (count >= n) {
-        throw new sj.Error({
-          log: true,
-          origin: 'recursiveSyncCount',
-          reason: 'recursive function counted out',
-          content: f
-        });
-      }
-
-      var result = f(...args);
-
-      if (loopCondition(result)) {
-        result = loop(++count);
-      }
-
-      return result;
-    }
-
-    return loop(count);
-  });
-
-  return function (_x4, _x5, _x6) {
-    return _ref2.apply(this, arguments);
-  };
-}();
-
-sj.recursiveAsyncTime = /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len3 = arguments.length, args = new Array(_len3 > 3 ? _len3 - 3 : 0), _key3 = 3; _key3 < _len3; _key3++) {
-      args[_key3 - 3] = arguments[_key3];
-    }
-
-    var timestamp = Date.now();
-
-    function loop() {
-      return _loop.apply(this, arguments);
-    }
-
-    function _loop() {
-      _loop = _asyncToGenerator(function* () {
-        if (Date.now() > timestamp + n) {
-          throw new sj.Error({
-            log: true,
-            origin: 'recursiveAsyncTime()',
-            reason: 'recursive function timed out',
-            content: f
-          });
-        }
-
-        var result = yield f(...args);
-
-        if (loopCondition(result)) {
-          result = yield loop();
-        }
-
-        return result;
-      });
-      return _loop.apply(this, arguments);
-    }
-
-    ;
-    return yield loop();
-  });
-
-  return function (_x7, _x8, _x9) {
-    return _ref3.apply(this, arguments);
-  };
-}();
-
-sj.recursiveAsyncCount = /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator(function* (n, loopCondition, f) {
-    for (var _len4 = arguments.length, args = new Array(_len4 > 3 ? _len4 - 3 : 0), _key4 = 3; _key4 < _len4; _key4++) {
-      args[_key4 - 3] = arguments[_key4];
-    }
-
-    var count = 0;
-
-    function loop(_x13) {
-      return _loop2.apply(this, arguments);
-    }
-
-    function _loop2() {
-      _loop2 = _asyncToGenerator(function* (count) {
-        if (count >= n) {
-          throw new sj.Error({
-            log: true,
-            origin: 'recursiveAsyncCount()',
-            reason: 'recursive function counted out',
-            content: f
-          });
-        }
-
-        var result = yield f(...args);
-
-        if (loopCondition(result)) {
-          result = yield loop(++count);
-        }
-
-        return result;
-      });
-      return _loop2.apply(this, arguments);
-    }
-
-    return yield loop(count);
-  });
-
-  return function (_x10, _x11, _x12) {
-    return _ref4.apply(this, arguments);
-  };
-}(); //C uses recursiveAsyncTime to periodically check a condition
+}; //C Periodically checks a condition.
 
 
 sj.waitForCondition = /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator(function* (_ref5) {
+  var _ref2 = _asyncToGenerator(function* (_ref) {
     var {
       interval = 100,
       scaling = 1,
       delay = 0,
       timeout = 2000,
       condition = () => false
-    } = _ref5;
-    yield sj.recursiveAsyncTime(timeout, () => !condition(), /*#__PURE__*/function () {
-      var _ref7 = _asyncToGenerator(function* (o) {
-        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(o.time);
-        o.time = o.time * scaling;
-        return;
-      });
-
-      return function (_x15) {
-        return _ref7.apply(this, arguments);
-      };
-    }(), {
-      time: interval + delay
+    } = _ref;
+    var count = 0;
+    var time = interval;
+    yield _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+      yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(count === 0 ? time + delay : delay);
+      count++;
+      time = time * scaling;
+      return;
+    }), {
+      until: condition,
+      timeout
     });
   });
 
-  return function (_x14) {
-    return _ref6.apply(this, arguments);
+  return function (_x) {
+    return _ref2.apply(this, arguments);
   };
 }(); // HTTP
 
@@ -40836,7 +40675,7 @@ sj.rebuild = function (input, strict) {
 };
 
 sj.request = /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator(function* (method, url, body) {
+  var _ref4 = _asyncToGenerator(function* (method, url, body) {
     var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : sj.JSON_HEADER;
 
     /* //! use UPPERCASE HTTP methods...
@@ -40924,8 +40763,8 @@ sj.request = /*#__PURE__*/function () {
     }
   });
 
-  return function (_x16, _x17, _x18) {
-    return _ref8.apply(this, arguments);
+  return function (_x2, _x3, _x4) {
+    return _ref4.apply(this, arguments);
   };
 }(); // LIVE DATA
 
@@ -40951,22 +40790,14 @@ sj.makeKey = function (length) {
 };
 
 sj.addKey = /*#__PURE__*/function () {
-  var _ref9 = _asyncToGenerator(function* (list, timeout) {
+  var _ref5 = _asyncToGenerator(function* (list, timeout) {
     var pack = {};
     var defaultTimeout = 300000; //C default 5 minutes
 
-    pack.key = yield sj.recursiveSyncCount(100, key => {
-      var found = false;
-
-      for (var i = 0; i < list.length; i++) {
-        if (list[i].key === key) {
-          found = true;
-          break;
-        }
-      }
-
-      return found;
-    }, sj.makeKey, 10);
+    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"])(() => sj.makeKey(10), {
+      until: key => !list.includes(key),
+      countout: 100
+    });
     pack.timestamp = Date.now();
     pack.timeout = pack.timestamp;
     sj.isType(timeout, 'number') ? pack.timeout += timeout : pack.timeout += defaultTimeout;
@@ -40974,13 +40805,13 @@ sj.addKey = /*#__PURE__*/function () {
     return pack;
   });
 
-  return function (_x19, _x20) {
-    return _ref9.apply(this, arguments);
+  return function (_x5, _x6) {
+    return _ref5.apply(this, arguments);
   };
 }();
 
 sj.checkKey = /*#__PURE__*/function () {
-  var _ref10 = _asyncToGenerator(function* (list, key) {
+  var _ref6 = _asyncToGenerator(function* (list, key) {
     //C checks a list for a key, will remove and return if found, will clean up timed-out keys
     for (var i = 0; i < list.length; i++) {
       //C check if timed out
@@ -41003,8 +40834,8 @@ sj.checkKey = /*#__PURE__*/function () {
     });
   });
 
-  return function (_x21, _x22) {
-    return _ref10.apply(this, arguments);
+  return function (_x7, _x8) {
+    return _ref6.apply(this, arguments);
   };
 }(); //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
@@ -41054,7 +40885,7 @@ sj.Base = class Base {
 (function () {
   //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
   //TODO consider deep defaults
-  this.makeClass = function (name, parent, _ref11) {
+  this.makeClass = function (name, parent, _ref7) {
     var {
       //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
       //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -41063,7 +40894,7 @@ sj.Base = class Base {
       prototypeProperties = parent => ({}),
       //G static properties & methods
       staticProperties = parent => ({})
-    } = _ref11;
+    } = _ref7;
     //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
     // VALIDATE
     if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
@@ -41111,12 +40942,12 @@ sj.Base = class Base {
     return MadeClass;
   };
 
-  this.augmentClass = function (_ref12) {
+  this.augmentClass = function (_ref8) {
     var {
       constructorParts = parent => ({}),
       prototypeProperties = parent => ({}),
       staticProperties = parent => ({})
-    } = _ref12;
+    } = _ref8;
     //C add or overwrite existing properties with new ones
     //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
     //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
@@ -42101,7 +41932,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validate = /*#__PURE__*/function () {
-          var _ref14 = _asyncToGenerator(function* (value) {
+          var _ref10 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42112,13 +41943,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x23) {
-            return _ref14.apply(this, arguments);
+          return function (_x9) {
+            return _ref10.apply(this, arguments);
           };
         }();
 
         this.check = /*#__PURE__*/function () {
-          var _ref15 = _asyncToGenerator(function* (value) {
+          var _ref11 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42129,8 +41960,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x24) {
-            return _ref15.apply(this, arguments);
+          return function (_x10) {
+            return _ref11.apply(this, arguments);
           };
         }();
       }
@@ -42180,7 +42011,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validateCast = /*#__PURE__*/function () {
-          var _ref16 = _asyncToGenerator(function* (value) {
+          var _ref12 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             accessory.castValue = value;
 
@@ -42197,13 +42028,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x25) {
-            return _ref16.apply(this, arguments);
+          return function (_x11) {
+            return _ref12.apply(this, arguments);
           };
         }();
 
         this.checkCast = /*#__PURE__*/function () {
-          var _ref17 = _asyncToGenerator(function* (value) {
+          var _ref13 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42214,8 +42045,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x26) {
-            return _ref17.apply(this, arguments);
+          return function (_x12) {
+            return _ref13.apply(this, arguments);
           };
         }();
       }
@@ -42241,12 +42072,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         });
       },
 
-      processError(targetError, _ref18) {
+      processError(targetError, _ref14) {
         var {
           fill = this.fill,
           error,
           origin
-        } = _ref18;
+        } = _ref14;
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
@@ -44838,25 +44669,23 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var waitForUpdate = /*#__PURE__*/function () {
           var _ref46 = _asyncToGenerator(function* () {
-            yield _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].recursiveAsyncTime(2000, result => {
-              if (updated) {
-                updated = false;
-                return true;
-              } else {
-                return false;
-              }
-            }, /*#__PURE__*/function () {
-              var _ref47 = _asyncToGenerator(function* (o) {
-                yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(o.delay);
-                o.delay = o.delay * 1.25;
-                return;
-              });
+            var delay = 50;
+            yield _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+              yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(delay);
+              delay = delay * 1.25;
+              return;
+            }), {
+              until(result) {
+                //? When switching from while to until, this wasn't flipped because it seemed backwards before/
+                if (updated) {
+                  updated = false;
+                  return true; //? maybe should be false
+                } else {
+                  return false; //? maybe should be true
+                }
+              },
 
-              return function (_x44) {
-                return _ref47.apply(this, arguments);
-              };
-            }(), {
-              delay: 50
+              timeout: 2000
             });
           });
 
@@ -45895,7 +45724,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, reference, repeat, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -45978,8 +45807,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+
+/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
 
 // NESTED
 
@@ -45998,6 +45830,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //TODO constants aren't exported, find an elegant way to do this.
+
 
 
 
@@ -46734,6 +46567,133 @@ function extractValues(references) {
 
 /***/ }),
 
+/***/ "./source/public/js/utility/repeat.js":
+/*!********************************************!*\
+  !*** ./source/public/js/utility/repeat.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "./source/public/js/utility/index.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+
+/**
+ * Repeats a function until a condition is met or the call times-out or counts-out.
+ * Guaranteed to call the function at least once.
+ * 
+ * @param {Function} func               - Function to repeat.
+ * @param {Object}   options
+ * @param {Function} options.until      - Condition upon which the function will stop.
+ * @param {number}   options.timeout    - Number of milliseconds the function may repeat for.
+ * @param {number}   options.countout   - Number of times the function may execute.
+ * @param {Function} options.onTimeout  - Called when repeat times out.
+ * @param {Function} options.onCountout - Called when repeat counts out.
+ */
+
+function repeat(func) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var {
+    until = result => false,
+    timeout = Infinity,
+    countout = Infinity,
+    onTimeout = (func, options, lastResult) => {
+      throw new Error('Repeat function call timed out.');
+    },
+    onCountout = (func, options, lastResult) => {
+      throw new Error('Repeat function call counted out.');
+    }
+  } = options;
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(func);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(until);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeNumber.test(timeout); // >= 0
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].positiveNumber.test(countout); // >= 1
+
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onTimeout);
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onCountout);
+  var result;
+  var counter = 0;
+  var time = Date.now();
+  var timeLimit = time + timeout;
+  var countLimit = Math.floor(countout);
+
+  while (true) {
+    result = func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+
+    if (until(result)) break; // Update 
+
+    time = Date.now();
+    counter++;
+    if (time >= timeLimit) onTimeout(func, options, lastResult);
+    if (counter >= countLimit) onCountout(func, options, lastResult);
+  }
+
+  return result;
+}
+
+; // Async Variation
+
+repeat.sync = repeat;
+
+repeat.async = /*#__PURE__*/function () {
+  var _ref = _asyncToGenerator(function* (func) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var {
+      until = result => false,
+      // Condition upon which the function will stop.
+      timeout = Infinity,
+      // Number of milliseconds the function may repeat for.
+      countout = Infinity,
+      // Number of times the function may execute.
+      onTimeout = (func, options, lastResult) => {
+        throw new Error('Repeat function call timed out.');
+      },
+      onCountout = (func, options, lastResult) => {
+        throw new Error('Repeat function call counted out.');
+      }
+    } = options;
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(func);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(until);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeNumber.test(timeout); // >= 0
+
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].positiveNumber.test(countout); // >= 1
+
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onTimeout);
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onCountout);
+    var result;
+    var counter = 0;
+    var time = Date.now();
+    var timeLimit = time + timeout;
+    var countLimit = Math.floor(countout);
+
+    while (true) {
+      result = yield func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+
+      if (yield until(result)) break; // Update 
+
+      time = Date.now();
+      counter++;
+      if (time >= timeLimit) yield onTimeout(func, options, lastResult);
+      if (counter >= countLimit) yield onCountout(func, options, lastResult);
+    }
+
+    return result;
+  });
+
+  return function (_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+/* harmony default export */ __webpack_exports__["default"] = (repeat);
+
+/***/ }),
+
 /***/ "./source/public/js/utility/string/capitalize-first-character.js":
 /*!***********************************************************************!*\
   !*** ./source/public/js/utility/string/capitalize-first-character.js ***!
@@ -47354,8 +47314,9 @@ var integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
     reference.value = Number.parseInt(reference.value);
   }
 
-}); // Defining 0 as neither positive or negative.
-//L Don't worry about NaN: https://stackoverflow.com/a/26982925
+}); //TODO integer or infinity
+//! Defining 0 as neither positive or negative.
+//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
 
 var nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   validator(value) {

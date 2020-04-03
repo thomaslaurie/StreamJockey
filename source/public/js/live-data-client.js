@@ -263,6 +263,7 @@ import {
 	test,
 	one,
 	any,
+	repeat,
 } from './utility/index.js';
 import deepCompare, {compareUnorderedArrays} from './utility/object/deep-compare.js';
 import sj from './global-client.js';
@@ -1098,18 +1099,23 @@ export default {
 			let updated = false;
 			//C rapidly checks updated until it is true, then resets it
 			const waitForUpdate = async function () {
-				await sj.recursiveAsyncTime(2000, result => {
-					if (updated) {
-						updated = false;
-						return true;
-					} else {
-						return false;
-					}
-				}, async o => {
-					await wait(o.delay);
-					o.delay = o.delay * 1.25;
+				let delay = 50;
+				await repeat.async(async () => {
+					await wait(delay);
+					delay = delay * 1.25;
 					return;
-				}, {delay: 50});
+				}, {
+					until(result) {
+						//? When switching from while to until, this wasn't flipped because it seemed backwards before/
+						if (updated) {
+							updated = false;
+							return true; //? maybe should be false
+						} else {
+							return false; //? maybe should be true
+						}
+					},
+					timeout: 2000,
+				});
 			};
 
 			// CREATE

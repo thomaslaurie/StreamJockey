@@ -98,9 +98,9 @@ import {
 	replaceAll,
 	encodeProperties,
 	any,
-	one,
 	pick,
 	asyncMap,
+	repeat,
 } from './utility/index.js';
 import {
 	fetch,
@@ -135,6 +135,7 @@ define.constant(sj, constants);
 sj.session = {};
 
 // TYPE
+//TODO refactor this out, but this will be a lot of work to test
 sj.isType = function (input, type) {
 	//C matches 'input' type or super-type to 'type' value or string representation or builtin object
 	//!//! will not match arrays to Object
@@ -311,95 +312,7 @@ sj.content = function (resolved) {
 	return resolved.content;
 };
 
-// RECURSION
-//TODO consider using Promise.race //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-sj.recursiveSyncTime = async function (n, loopCondition, f, ...args) {
-	//L rest parameters	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters
-	let timestamp = Date.now();
-	function loop() {
-		if (Date.now() > timestamp + n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveSyncTime()',
-				reason: 'recursive function timed out',
-				content: f,
-			});
-		}
-
-		let result = f(...args);
-		if (loopCondition(result)) {
-			result = loop();
-		}
-
-		return result;
-	}
-	return loop();
-};
-sj.recursiveSyncCount = async function (n, loopCondition, f, ...args) {
-	let count = 0;
-	function loop(count) {
-		if (count >= n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveSyncCount',
-				reason: 'recursive function counted out',
-				content: f,
-			});
-		}
-
-		let result = f(...args);
-		if (loopCondition(result)) {
-			result = loop(++count);
-		}
-
-		return result;
-	}
-	return loop(count);
-};
-sj.recursiveAsyncTime = async function (n, loopCondition, f, ...args) {
-	let timestamp = Date.now();
-	async function loop() {
-		if (Date.now() > timestamp + n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveAsyncTime()',
-				reason: 'recursive function timed out',
-				content: f,
-			});
-		}
-
-		let result = await f(...args);
-		if (loopCondition(result)) {
-			result = await loop();
-		}
-
-		return result;
-	};
-	return await loop();
-};
-sj.recursiveAsyncCount = async function (n, loopCondition, f, ...args) {
-	let count = 0;
-	async function loop(count) {
-		if (count >= n) {
-			throw new sj.Error({
-				log: true,
-				origin: 'recursiveAsyncCount()',
-				reason: 'recursive function counted out',
-				content: f,
-			});
-		}
-
-		let result = await f(...args);
-		if (loopCondition(result)) {
-			result = await loop(++count);
-		}
-
-		return result;
-	}
-	return await loop(count);
-};
-
-//C uses recursiveAsyncTime to periodically check a condition
+//C Periodically checks a condition.
 sj.waitForCondition = async function ({
 	interval = 100,
 	scaling = 1,
@@ -407,11 +320,21 @@ sj.waitForCondition = async function ({
 	timeout = 2000,
 	condition = () => false,
 }) {
-	await sj.recursiveAsyncTime(timeout, () => !condition(), async o => {
-		await wait(o.time);
-		o.time = o.time * scaling;
+	let count = 0;
+	let time = interval;
+
+	await repeat.async(async () => {
+		await wait((count === 0)
+			? time + delay
+			: delay
+		);
+		count++;
+		time = time * scaling;	
 		return;
-	}, {time: interval + delay});
+	}, {
+		until: condition,
+		timeout,
+	});
 };
 
 // HTTP
@@ -561,16 +484,10 @@ sj.addKey = async function (list, timeout) {
     let pack = {};
     let defaultTimeout = 300000; //C default 5 minutes
 
-    pack.key = await sj.recursiveSyncCount(100, (key) => {
-        let found = false;
-        for (let i = 0; i < list.length; i++) {
-            if (list[i].key === key) {
-                found = true;
-                break;
-            }
-        }
-        return found;
-    }, sj.makeKey, 10);
+	repeat(() => sj.makeKey(10), {
+		until: (key) => !list.includes(key),
+		countout: 100,
+	});
 
     pack.timestamp = Date.now();
     pack.timeout = pack.timestamp;
