@@ -37617,14 +37617,13 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _utility_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
-/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_4__);
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37666,7 +37665,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // BUILT-IN
 // INTERNAL
 
-
  // EXTERNAL
 
 
@@ -37681,18 +37679,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 //C attach external libraries to sj so that they can be used where ever sj is imported
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_4___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he = he__WEBPACK_IMPORTED_MODULE_5___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].appName = 'StreamJockey'; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_3___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he = he__WEBPACK_IMPORTED_MODULE_4___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].appName = 'StreamJockey'; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
 //  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].serverLog = /*#__PURE__*/function () {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].serverLog = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator(function* (message) {
-    return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/log"), {
+    return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/log"), {
       message
     });
   });
@@ -37702,7 +37700,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].serverLog = /*#__PURE__*/func
   };
 }();
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].loadScript = /*#__PURE__*/function () {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript = /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator(function* (url) {
     //C dynamically loads a script from an external url, as would be done by a <script> element
     //L modified from: https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#Dynamically_importing_scripts
@@ -37728,7 +37726,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].loadScript = /*#__PURE__*/fun
 // ENTITY CRUD METHODS
 
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
   prototypeProperties: parent => ({
     add() {
       var _this = this;
@@ -37769,7 +37767,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this5.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this5.filters.addIn)));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this5.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this5.filters.addIn)));
       })();
     },
 
@@ -37777,7 +37775,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this6.table, "?").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeList"])(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this6.filters.getIn)))));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this6.table, "?").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeList"])(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this6.filters.getIn)))));
       })();
     },
 
@@ -37785,7 +37783,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this7 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('PATCH', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this7.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this7.filters.editIn)));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('PATCH', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this7.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this7.filters.editIn)));
       })();
     },
 
@@ -37793,7 +37791,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this8 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this8.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this8.filters.removeIn)));
+        return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/").concat(_this8.table), Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this8.filters.removeIn)));
       })();
     }
 
@@ -37806,11 +37804,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
 //TODO consider a stop command? it would stop all sources and set the current source back to null
 //TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Command', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Command', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a source
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source)) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source)) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Command.beforeInitialize()',
         message: 'no source is active to receive this command',
         reason: "sj.Command instance.source must be an sj.Source: ".concat(accessory.options.source),
@@ -37828,7 +37826,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
       this.fullResolve = function (success) {
         //C resolve collapsed commands
         this.collapsedCommands.forEach(collapsedCommand => {
-          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37840,7 +37838,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
       this.fullReject = function (error) {
         //C//! RESOLVE collapsed commands
         this.collapsedCommands.forEach(a => {
-          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37850,14 +37848,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           origin: 'sj.Command.resolve()',
           reason: 'command.resolve called but it has not been given a resolve function'
         });
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           origin: 'sj.Command.reject()',
           reason: 'command.reject called but it has not been given a reject function'
         });
@@ -37868,7 +37866,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
       //C otherCommand must be an sj.Command, and have the same playback-state properties
-      return _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command) && otherCommand.source === this.source;
+      return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command) && otherCommand.source === this.source;
     },
 
     collapseCondition(otherCommand) {
@@ -37889,11 +37887,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a track
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track)) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track)) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Start.beforeInitialize()',
         reason: 'sj.Start instance.track must be an sj.Track',
         content: accessory.options.track
@@ -37908,14 +37906,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_I
   }),
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track) //C catch non-sj.Tracks
+      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track) //C catch non-sj.Tracks
       && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
       && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
     },
 
     collapseCondition(otherCommand) {
       //C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek;
     },
 
     trigger(context) {
@@ -37924,7 +37922,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_I
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this10, context); //C pause all
 
-        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
           });
@@ -37936,7 +37934,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_I
 
         context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
           subscription: context.state.startingTrackSubscription,
-          Entity: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track,
+          Entity: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track,
           query: {
             id: _this10.track.id
           },
@@ -37958,7 +37956,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_I
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   //? pause command might not have a desired progress?
   constructorParts: parent => ({
     beforeInitialize(_ref4) {
@@ -37966,7 +37964,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_
         options
       } = _ref4;
       //G isPlaying must be manually set to true or false
-      if (options.isPlaying !== true && options.isPlaying !== false) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (options.isPlaying !== true && options.isPlaying !== false) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Toggle',
         reason: "Toggle isPlaying must be true or false: ".concat(options.isPlaying),
         content: options.isPlaying
@@ -37993,7 +37991,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_
 
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this11, context);
-        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref5 = _asyncToGenerator(function* (source) {
             if (_this11.isPlaying && source === _this11.source) {
               //C resume target if resuming
@@ -38013,14 +38011,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(_ref6) {
       var {
         options
       } = _ref6;
       //G progress must be manually set between 0 and 1\
-      if (options.progress < 0 || 1 < options.progress) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (options.progress < 0 || 1 < options.progress) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Seek.trigger()',
         reason: "seek progress is not a number between 0 and 1: ".concat(options.progress),
         content: options.progress
@@ -38037,7 +38035,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek = _global_js__WEBPACK_IM
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek;
     },
 
     trigger(context) {
@@ -38051,14 +38049,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek = _global_js__WEBPACK_IM
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(_ref7) {
       var {
         options
       } = _ref7;
       //G volume must be manually set between 0 and 1
-      if (options.volume < 0 || 1 < options.volume) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (options.volume < 0 || 1 < options.volume) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Volume.trigger()',
         reason: "volume is not a number between 0 and 1: ".concat(options.volume),
         content: options.volume
@@ -38075,7 +38073,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume;
     },
 
     trigger(context) {
@@ -38084,7 +38082,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this13, context); //C adjust volume on all sources
 
-        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref8 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this13.volume);
           });
@@ -38099,7 +38097,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_
   })
 }); // PLAYBACK
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Playback', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base, {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base.makeClass('Playback', _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Base, {
   constructorParts(parent) {
     return {
       defaults: {
@@ -38149,11 +38147,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPAC
             }
           } = context;
           var timeBefore = Date.now();
-          var deferred = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+          var deferred = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start state timed out'
           }));
-          console.log(fclone__WEBPACK_IMPORTED_MODULE_3___default()(context), fclone__WEBPACK_IMPORTED_MODULE_3___default()(Object.getPrototypeOf(context))); //console.log(fclone(context.watch));
+          console.log(fclone__WEBPACK_IMPORTED_MODULE_2___default()(context), fclone__WEBPACK_IMPORTED_MODULE_2___default()(Object.getPrototypeOf(context))); //console.log(fclone(context.watch));
 
           var unwatch = watch( //C pack desired state
           (_ref9, _ref10) => {
@@ -38192,7 +38190,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPAC
 
           yield deferred;
           unwatch();
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start command completed'
           });
@@ -38264,7 +38262,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPAC
     baseModules: {}
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback({
   //G main playback module for app
   modules: {},
   state: {
@@ -38367,7 +38365,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
           command.reject = reject;
         }); //C push command to the queue or resolve it (because it has been collapsed)
 
-        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
           origin: 'pushCommand()',
           reason: 'command was annihilated'
         })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
@@ -38402,7 +38400,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
         var {
           dispatch
         } = _ref13;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start({
           source: track.source,
           //! uses track's source
           track
@@ -38418,7 +38416,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref14;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
           //! other non-start basic playback functions just use the current desiredPlayback source
           isPlaying: false
@@ -38434,7 +38432,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref15;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
           isPlaying: true
         }));
@@ -38449,7 +38447,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref16;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek({
           source,
           progress
         }));
@@ -38465,7 +38463,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
           }
         } = _ref17;
         //TODO volume should change volume on all sources
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume({
           source,
           volume
         }));
@@ -38482,7 +38480,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredIsPlaying: isPlaying
           }
         } = _ref18;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
           isPlaying: !isPlaying
         }));
@@ -38560,7 +38558,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     */
     // ACTUAL
     sourceOrBase: (state, getters) => key => {
-      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.baseState[key];else return state[state.source.name][key];
+      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.baseState[key];else return state[state.source.name][key];
     },
     actualSource: (state, getters) => {
       return state.source;
@@ -38568,10 +38566,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     actualTrack: (state, getters, rootState, rootGetters) => {
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track)) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track)) {
         //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-        if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -38580,7 +38578,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     actualProgress: (state, getters) => {
       var progress = getters.sourceOrBase('progress');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
         //C if playing, return inferred progress
         var elapsedTime = state.clock - state[state.source.name].timestamp;
         var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
@@ -38603,7 +38601,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
       //C value starts as the actualValue
       var value = getters["actual".concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
 
       for (var queuedCommand of state.commandQueue) {
         if (queuedCommand[key] !== undefined) value = queuedCommand[key];
@@ -38625,17 +38623,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Subscription)) return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
     }
   }
 }); // SOURCE
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass({
   constructorParts(parent) {
-    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.afterInitialize;
+    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.afterInitialize;
     return {
       defaults: {
         //TODO change these off undefined
@@ -38652,7 +38650,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
         oldAfterInitialize.call(this);
         this.playback.state.source = this; //C push own playback module to main playback modules
 
-        _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
+        _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
           namespaced: true
         });
       }
@@ -38667,9 +38665,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
 //  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = /*#__PURE__*/function () {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = /*#__PURE__*/function () {
   var _ref19 = _asyncToGenerator(function* (user) {
-    return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/session"), new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
+    return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/session"), new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
   });
 
   return function (_x6) {
@@ -38677,11 +38675,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = /*#__PURE__*/
   };
 }();
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/session"));
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/session"));
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/session")); //TODO reconnect socket subscriptions to update subscriber info
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/session")); //TODO reconnect socket subscriptions to update subscriber info
 }); //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
@@ -38699,7 +38697,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = /*#__PURE__*
 */
 // global source objects
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
 
@@ -38717,22 +38715,22 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
       
       */
       //C request url
-      var requestCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/authRequestStart")); //C open spotify auth request window
+      var requestCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/authRequestStart")); //C open spotify auth request window
       //L https://www.w3schools.com/jsref/met_win_open.asp
 
       var authWindow = window.open(requestCredentials.authRequestURL); //C listen for response from spotify
       //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 
-      var authCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/authRequestEnd"), requestCredentials); //C automatically close window when data is received
+      var authCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/authRequestEnd"), requestCredentials); //C automatically close window when data is received
 
       authWindow.close(); //C exchange auth code for tokens
 
-      var tokens = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/exchangeToken"), authCredentials);
+      var tokens = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/exchangeToken"), authCredentials);
       _this14.credentials.accessToken = tokens.accessToken;
       _this14.credentials.expires = tokens.accessToken;
       _this14.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
-      return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+      return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
         origin: 'sj.spotify.auth()',
         message: 'authorized spotify'
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
@@ -38774,11 +38772,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
       var urlPrefix = 'https://api.spotify.com/v1';
       var token = yield _this15.getAccessToken();
 
-      var header = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].JSON_HEADER, {
+      var header = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].JSON_HEADER, {
         Authorization: "Bearer ".concat(token)
       });
 
-      return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request(method, "".concat(urlPrefix, "/").concat(path), body, header);
+      return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request(method, "".concat(urlPrefix, "/").concat(path), body, header);
     })();
   },
 
@@ -38795,13 +38793,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
       var refresh = /*#__PURE__*/function () {
         var _ref22 = _asyncToGenerator(function* (that) {
-          var result = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].andResolve);
+          var result = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].andResolve);
 
-          if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].AuthRequired)) {
+          if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].AuthRequired)) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
-          } else if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error)) {
-            throw _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(result);
+          } else if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error)) {
+            throw _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(result);
           } else {
             //C assign sj.spotify.credentials
             that.credentials.accessToken = result.accessToken;
@@ -38816,7 +38814,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
       //TODO reconsider this string test
 
 
-      if (!_utility_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_1__["visibleString"].test(_this16.credentials.accessToken) || _this16.credentials.expires <= Date.now()) {
+      if (!_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].visibleString.test(_this16.credentials.accessToken) || _this16.credentials.expires <= Date.now()) {
         yield refresh(that);
       } //C if token is soon to expire, refresh in the background, return the existing token
 
@@ -38837,10 +38835,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         amount = 1
       } = _ref23;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.positiveInteger.validate(amount);
-      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('GET', 'search', {
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.positiveInteger.validate(amount);
+      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.request('GET', 'search', {
         q: term,
         type: 'track',
         market: 'from_token',
@@ -38862,8 +38860,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
       });
       return result.tracks.items.map(track => {
-        return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
+        return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify,
           sourceId: track.id,
           name: track.name,
           duration: track.duration_ms,
@@ -38874,7 +38872,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback({
     //G source-specific playback should be the basic playback functions that connects this app to the source's api
     actions: {
       loadPlayer(context) {
@@ -38884,10 +38882,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
             window.onSpotifyWebPlaybackSDKReady = function () {
               var player = new window.Spotify.Player({
                 //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-                name: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].appName,
+                name: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].appName,
                 getOAuthToken: function () {
                   var _getOAuthToken = _asyncToGenerator(function* (callback) {
-                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.getAccessToken();
+                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.getAccessToken();
                     callback(token);
                   });
 
@@ -38901,11 +38899,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
               });
               player.formatState = function (state) {
                 //TODO state could be anything from the callback, better validate it somehow
-                if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state, Object)) return {};
+                if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(state, Object)) return {};
                 var t = state.track_window.current_track;
                 return {
-                  track: new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track({
-                    source: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
+                  track: new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track({
+                    source: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify,
                     sourceId: t.id,
                     name: t.name,
                     duration: t.duration_ms,
@@ -38941,7 +38939,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
                             yield context.dispatch('updatePlayback', state); //C resolve
 
-                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success(success)); //C prevent other exit points from executing their code
+                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success(success)); //C prevent other exit points from executing their code
 
                             resolved = true;
                           }
@@ -38962,7 +38960,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                         if (!resolved) {
                           _this17.removeListener('player_state_changed', callback);
 
-                          reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error(_objectSpread({}, error, {
+                          reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error(_objectSpread({}, error, {
                             content: rejected
                           })));
                           resolved = true;
@@ -38975,17 +38973,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                       if (!resolved && stateCondition(context.state)) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success(success));
+                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success(success));
                         resolved = true;
                       } //C if timed out, reject
 
 
-                      yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout);
+                      yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout);
 
                       if (!resolved) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Timeout(timeoutError));
+                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Timeout(timeoutError));
                         resolved = true;
                       }
                     });
@@ -39024,12 +39022,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     player
                   }); //C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 
-                  yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('PUT', 'me/player', {
+                  yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.request('PUT', 'me/player', {
                     device_ids: [device_id],
                     play: false // keeps current playback state
 
                   }).catch(rejected => {
-                    reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                    reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                       //code: JSON.parse(error.response).error.status,
                       origin: 'spotify.loadPlayer()',
                       message: 'spotify player could not be loaded',
@@ -39049,8 +39047,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(delay);
                     delay = delay * 2; //C double the delay each time
 
-                    return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('Get', 'me/player').catch(rejected => {
-                      reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                    return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify.request('Get', 'me/player').catch(rejected => {
+                      reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                         //code: JSON.parse(error.response).error.status,
                         origin: 'spotify.loadPlayer()',
                         message: 'spotify player could not be loaded',
@@ -39067,16 +39065,16 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     until(result) {
                       //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
                       //C this is fine, it just means that it's not ready, so just catch anything.
-                      return _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result.device, Object) && result.device.id === device_id;
+                      return _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result.device, Object) && result.device.id === device_id;
                     },
 
-                    timeout: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout * 2
+                    timeout: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout * 2
                   }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
 
                   yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
 
                   yield context.dispatch('pause');
-                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
                     origin: 'spotify.loadPlayer()',
                     message: 'spotify player loaded',
                     content: player
@@ -39102,7 +39100,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref32;
                 //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an initialization error',
@@ -39114,7 +39112,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref33;
                 //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an authentication error',
@@ -39126,7 +39124,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref34;
                 //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'this account does not have a valid Spotify Premium subscription',
@@ -39151,13 +39149,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                 //C 'returns a promise with a boolean for whether or not the connection was successful'
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
                 //! do not resolve here, the player will trigger the 'ready' event when its truly ready
-                if (!resolved) reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                if (!resolved) reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
                   reason: 'spotify.connect() failed'
                 }));
               }, rejected => {
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Unreachable({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Unreachable({
                   //C a rejection shouldn't be possible here
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
@@ -39406,7 +39404,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
 
           context.commit('setState', newState);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'spotify module command - updatePlayback()',
             message: 'spotify playback updated',
             content: newState
@@ -39419,7 +39417,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
           //C retrieves playback from api and updates it
           //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
           var state = yield context.state.player.getCurrentState().catch(rejected => {
-            throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+            throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               log: true,
               //code: JSON.parse(rejected.response).error.status,
               origin: 'spotify.checkPlayback()',
@@ -39429,7 +39427,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
             });
           });
           yield context.dispatch('updatePlayback', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'spotify module command - checkPlayback()',
             message: 'spotify playback checked',
             content: context.state
@@ -39622,7 +39620,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
     }
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source({
   name: 'youtube',
   idPrefix: 'https://www.youtube.com/watch?v=',
   nullPrefix: 'https://www.youtube.com/watch',
@@ -39636,7 +39634,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
-      var loaded = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      var loaded = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         log: false,
         origin: 'sj.youtube.auth()',
         reason: 'gapi loading timed out'
@@ -39658,7 +39656,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       }); //C loads gapi into global scope 
       //TODO is there any way to make this more module-like?
 
-      yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].loadScript('https://apis.google.com/js/api.js'); //C wait for gapi
+      yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript('https://apis.google.com/js/api.js'); //C wait for gapi
 
       yield loaded; //C remove the watcher
 
@@ -39695,7 +39693,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       var {
         apiKey,
         clientId
-      } = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/youtube/credentials")); //C loads and performs authorization, short version of the code commented out below
+      } = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/youtube/credentials")); //C loads and performs authorization, short version of the code commented out below
       //R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
 
       yield gapi.client.init({
@@ -39758,9 +39756,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
         amount = 1
       } = _ref40;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
       //! this will drive api quotas up fast if the startIndex or amount are high (n*50)
       //!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
 
@@ -39777,7 +39775,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       var pageToken = null;
 
       while (allPageResults.length < startIndex + amount && limit > 0) {
-        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.request('GET', 'search', _objectSpread({
+        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.request('GET', 'search', _objectSpread({
           //L https://developers.google.com/youtube/v3/docs/search/list#parameters
           part: 'snippet',
           type: 'video',
@@ -39795,14 +39793,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       var searchResults = allPageResults.slice(startIndex, startIndex + amount); //C videoResults must also be searched because the contentDetails part is not available for the search request
       //L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
 
-      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.request('GET', 'videos', {
+      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.request('GET', 'videos', {
         //L https://developers.google.com/youtube/v3/docs/videos/list
         //C join the results ids
         id: searchResults.map(item => item.id.videoId).join(','),
         //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
         part: 'contentDetails'
       });
-      if (searchResults.length !== videoResult.result.items.length) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (searchResults.length !== videoResult.result.items.length) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'youtube.search()',
         reason: 'search result length not equal to video result length',
         content: {
@@ -39812,7 +39810,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       });
       videoResult.result.items.forEach((item, index) => {
         //C ensure that ids line up
-        if (searchResults[index].id.videoId !== item.id) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (searchResults[index].id.videoId !== item.id) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           origin: 'youtube.search()',
           reason: "search and video results at ".concat(index, " do not have the same id")
         }); //C append contentDetails part to the search results
@@ -39827,24 +39825,24 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
           snippet,
           contentDetails
         } = _ref41;
-        return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track(_objectSpread({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube,
+        return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track(_objectSpread({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
           sourceId: id,
-          link: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.idPrefix + id
+          link: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.idPrefix + id
         }, _this19.formatSnippet(snippet), {}, _this19.formatContentDetails(contentDetails)));
       });
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback({
     actions: {
       loadPlayer(context) {
         return _asyncToGenerator(function* () {
           //C load youtube iframe api
-          yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].loadScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
+          yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].loadScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
-          var deferred = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+          var deferred = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
             origin: 'sj.youtube loadPlayer()',
             reason: 'youtube iframe player load timed out'
           }));
@@ -39870,7 +39868,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
                   onReady(event) {
                     return _asyncToGenerator(function* () {
                       yield context.dispatch('checkPlayback');
-                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
                         origin: 'sj.youtube loadPlayer()',
                         reason: 'youtube iframe player loaded'
                       }));
@@ -39908,7 +39906,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
           track.link = player.getVideoUrl(); //C remove the idPrefix or nullPrefix from youtube urls
           //! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 
-          track.sourceId = track.link.replace(new RegExp("".concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.idPrefix), "|").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.nullPrefix))), '');
+          track.sourceId = track.link.replace(new RegExp("".concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.idPrefix), "|").concat(Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.nullPrefix))), '');
           var playerDuration = player.getDuration(); //! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
           //C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
 
@@ -39938,21 +39936,21 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
             track.name = context.state.startingTrack.name;
             track.artists = [...context.state.startingTrack.artists];
           } else {
-            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.request('GET', 'videos', {
+            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.request('GET', 'videos', {
               id: track.sourceId,
               part: 'snippet'
             });
 
             if (video.result.items.length === 1) {
-              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatSnippet(video.result.items[0].snippet);
+              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.formatSnippet(video.result.items[0].snippet);
               track.name = formattedSnippet.name;
               track.artists = formattedSnippet.artists;
             }
           }
 
-          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track(track);
+          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track(track);
           context.commit('setState', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'youtube module action - checkPlayback()',
             message: 'youtube playback updated',
             content: state
@@ -40029,13 +40027,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
   })
 }); //TODO move inside
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatContentDetails = function (contentDetails) {
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.formatContentDetails = function (contentDetails) {
   var pack = {};
-  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment.ISO_8601).asMilliseconds();
+  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment.ISO_8601).asMilliseconds();
   return pack;
-}, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatSnippet = function (snippet) {
+}, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube.formatSnippet = function (snippet) {
   var pack = {};
-  if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(snippet, Object)) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+  if (!_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(snippet, Object)) throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
     origin: 'sj.youtube.formatSnippet()',
     reason: 'snippet is not an object'
   }); //C assuming title format of 'Artist - Title'
@@ -40060,8 +40058,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatContentDetails 
   //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
 
 
-  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he.decode(artist));
-  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he.decode(pack.name);
+  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he.decode(artist));
+  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he.decode(pack.name);
   return pack;
 }; //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
 //  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
@@ -40267,7 +40265,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatContentDetails 
 	};
 */
 
-/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
 
 /***/ }),
 
@@ -44764,11 +44762,11 @@ if (Array.prototype.flat === undefined) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
 // Wraps a value in an array. If the value is already an array, its items get spread into a fresh one.
 
 /* harmony default export */ __webpack_exports__["default"] = (function (value) {
-  return _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(value) ? [...value] : [value];
+  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? [...value] : [value];
 });
 
 /***/ }),
@@ -44782,7 +44780,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -44800,8 +44798,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 function _ref() {
   _ref = _asyncToGenerator(function* (array, callback) {
     // Validate.
-    _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].validate(array);
-    _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback); // Wait for every promise to settle.
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(callback); // Wait for every promise to settle.
 
     var promises = array.map((item, index, self) => callback(item, index, self));
     var outcomes = yield Promise.allSettled(promises); // Extract fulfillment and results.
@@ -44931,12 +44929,12 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
 // Returns the first item of an array, or the value otherwise.
 //G If exactly one item is required, instead of undefined, use a validator.
 
 /* harmony default export */ __webpack_exports__["default"] = (function (value) {
-  return _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(value) ? value[0] : value;
+  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? value[0] : value;
 });
 
 /***/ }),
@@ -44950,7 +44948,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
 //L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
 //L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
 //L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
@@ -44960,8 +44958,8 @@ __webpack_require__.r(__webpack_exports__);
     //C low to high
     return a - b;
   };
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].validate(array);
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(compare); //C Create new array where the original index is preserved.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); //C Create new array where the original index is preserved.
 
   var preservedArray = array.map((value, index) => ({
     value,
@@ -45203,7 +45201,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/public/js/utility/object/define.js");
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
 /* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
 /* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
 /* //R
 	CLASS COMPOSITION (
@@ -45289,16 +45287,16 @@ __webpack_require__.r(__webpack_exports__);
  // INTERFACE
 
 var dynamicClass = new _interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
-  intercept: value => _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["func"].test(value),
-  instance: value => _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["func"].test(value),
-  prototype: value => _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["func"].test(value),
-  static: value => _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["func"].test(value)
+  intercept: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value),
+  instance: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value),
+  prototype: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value),
+  static: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)
 }); // VALIDATION
 
 var customRules = {
   name: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["string"].test(value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(value)) {
         throw new Error("'name' option must be a string, not a ".concat(typeof value));
       }
     }
@@ -45306,7 +45304,7 @@ var customRules = {
   }),
   extends: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["constructor"].test(value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].constructor.test(value)) {
         throw new Error("'extends' option must be a constructor, not a ".concat(typeof value));
       }
     }
@@ -45346,7 +45344,7 @@ var customRules = {
   }),
   transferToInstance: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["func"].test(value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
         throw new Error("'transferToInstance' option must be a function, not a ".concat(typeof value));
       }
     }
@@ -45354,7 +45352,7 @@ var customRules = {
   }),
   transferToPrototype: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["func"].test(value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
         throw new Error("'transferToPrototype' option must be a function, not a ".concat(typeof value));
       }
     }
@@ -45362,7 +45360,7 @@ var customRules = {
   }),
   transferToStatic: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_3__["func"].test(value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
         throw new Error("'transferToStatic' option must be a function, not a ".concat(typeof value));
       }
     }
@@ -45633,7 +45631,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, commonRules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat, test */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -45682,7 +45680,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"]; });
 
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["commonRules"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexValidate", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["flexValidate"]; });
 
@@ -45976,14 +45974,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addTo", function() { return addTo; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "verify", function() { return verify; });
-/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
 
-var packRule = new _index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+var packRule = new _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
   validator(value) {
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].object.validate(value);
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(value.key);
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(value.timestamp);
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(value.timeout);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(value);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(value.key);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timestamp);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timeout);
   }
 
 });
@@ -45991,7 +45989,7 @@ var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
 function create() {
   var length = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
   // Validate input.
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(length); // Create.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(length); // Create.
 
   var key = '';
 
@@ -46001,7 +45999,7 @@ function create() {
   } // Validate output.
 
 
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(key); // Return.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Return.
 
   return key;
 }
@@ -46012,8 +46010,8 @@ var tryLimit = 1000;
 function addTo(list) {
   var timeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaultTimeout;
   // Validate inputs.
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].array.validate(list);
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeInteger.validate(timeout); // Create.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(timeout); // Create.
 
   var key = repeat(() => create(), {
     until: key => !list.includes(key),
@@ -46040,8 +46038,8 @@ function addTo(list) {
 
 function verify(list, key) {
   // Validate inputs.
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].array.validate(list);
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].string.validate(key); // Iterate over list.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Iterate over list.
 
   for (var i = list.length - 1; i >= 0; i--) {
     var pack = list[i]; // Validate items in the list.
@@ -46086,7 +46084,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultOptions", function() { return defaultOptions; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return deepCompare; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compareUnorderedArrays", function() { return compareUnorderedArrays; });
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -46147,7 +46145,7 @@ function deepCompare(a, b) {
 
   if (compareFunction(a, b, options)) return true; // compare properties
 
-  if (_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(a) && _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(b)) {
+  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(b)) {
     var result = true; // selected keys
 
     var aSelectedKeys = selectFunction(a);
@@ -46193,7 +46191,7 @@ function deepCompare(a, b) {
 function compareUnorderedArrays(a, b, options) {
   //R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
   // If a and b are arrays:
-  if (_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(a) && _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].test(b)) {
+  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(b)) {
     // Match if:
     var result = true; // All items of a exist in b.
 
@@ -46235,7 +46233,7 @@ function compareUnorderedArrays(a, b, options) {
 __webpack_require__.r(__webpack_exports__);
 var ownKeys = function ownKeys(object) {
   /* //R//! Not using getKeysOf() here to avoid a circular dependency.
-  	define.js > Rule.js > common-rules.js > keys-of.js > define.js
+  	define.js > Rule.js > rules.js > keys-of.js > define.js
   	Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
   */
   return [...Object.getOwnPropertyNames(object), ...Object.getOwnPropertySymbols(object)];
@@ -46419,8 +46417,9 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return forKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return getKeysOf; });
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
-/* harmony import */ var _validation_flex_validate_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/flex-validate.js */ "./source/public/js/utility/validation/flex-validate.js");
+/* harmony import */ var _validation_flex_validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-validate.js */ "./source/public/js/utility/validation/flex-validate.js");
+/* harmony import */ var _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/objects/object.js */ "./source/public/js/utility/validation/rules/objects/object.js");
+/* harmony import */ var _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../validation/rules/functions.js */ "./source/public/js/utility/validation/rules/functions.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -46435,16 +46434,22 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 // getKeysOf returns an array of  all keys of an object that match the specified attributes and filter.
 // Attributes default to own, named, enumerable keys. This is the same as Object.keys().
 //! Duplicated code in define.js to remove a circular dependency.
+ // Importing directly instead of from ../validation/rules/index.js to avoid circular reference.
 
 
+
+var rules = {
+  object: _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+  func: _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__["func"]
+};
 function forKeysOf(object) {
   var optionsOrCallback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
   // OPTIONS / VALIDATION
   var options = typeof optionsOrCallback === 'function' ? {
     callback: optionsOrCallback
   } : optionsOrCallback;
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].validate(object);
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].validate(options);
+  rules.object.validate(object);
+  rules.object.validate(options);
   var {
     own = true,
     inherited = false,
@@ -46454,7 +46459,7 @@ function forKeysOf(object) {
     nonEnumerable = false,
     callback = () => {}
   } = options;
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback); // OWN / INHERITED
+  rules.func.validate(callback); // OWN / INHERITED
 
   var chain = [];
   if (own) chain.push(object);
@@ -46497,15 +46502,15 @@ function getKeysOf(object) {
   var options = typeof optionsOrFilter === 'function' ? {
     filter: optionsOrFilter
   } : optionsOrFilter;
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].validate(object);
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].validate(options);
+  rules.object.validate(object);
+  rules.object.validate(options);
 
   var {
     filter = (object, key) => true
   } = options,
       rest = _objectWithoutProperties(options, ["filter"]);
 
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(filter); // ARRAY
+  rules.func.validate(filter); // ARRAY
 
   var keys = []; // undefined & null return empty array
 
@@ -46513,7 +46518,7 @@ function getKeysOf(object) {
 
   forKeysOf(object, _objectSpread({
     callback(object, key) {
-      if (Object(_validation_flex_validate_js__WEBPACK_IMPORTED_MODULE_1__["default"])(filter, object, key)) {
+      if (Object(_validation_flex_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(filter, object, key)) {
         keys.push(key);
       }
     }
@@ -46534,7 +46539,7 @@ function getKeysOf(object) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
 // Copies all non-undefined properties of an object onto a new object.
 //! Invokes getters.
 //! Does not copy descriptors.
@@ -46543,8 +46548,8 @@ __webpack_require__.r(__webpack_exports__);
 //R It wouldn't be possible to store a preset list of properties to pick.
 
 /* harmony default export */ __webpack_exports__["default"] = (function (oldObject, keys) {
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["object"].validate(oldObject);
-  _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_0__["array"].validate(keys);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(oldObject);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys);
   var newObject = {};
 
   for (var key of keys) {
@@ -46599,7 +46604,7 @@ function extractValues(references) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -46631,14 +46636,14 @@ function repeat(func) {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(func);
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(until);
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeNumber.test(timeout); // >= 0
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.test(timeout); // >= 0
 
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].positiveNumber.test(countout); // >= 1
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.test(countout); // >= 1
 
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onTimeout);
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onCountout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onCountout);
   var result;
   var counter = 0;
   var time = Date.now();
@@ -46680,14 +46685,14 @@ repeat.async = /*#__PURE__*/function () {
         throw new Error('Repeat function call counted out.');
       }
     } = options;
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(func);
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(until);
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].nonNegativeNumber.test(timeout); // >= 0
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(func);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(until);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.test(timeout); // >= 0
 
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].positiveNumber.test(countout); // >= 1
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.test(countout); // >= 1
 
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onTimeout);
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["commonRules"].func.test(onCountout);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onTimeout);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onCountout);
     var result;
     var counter = 0;
     var time = Date.now();
@@ -46764,8 +46769,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./escape-reg-exp.js */ "./source/public/js/utility/string/escape-reg-exp.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _replace_all__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./replace-all */ "./source/public/js/utility/string/replace-all.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _replace_all_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./replace-all.js */ "./source/public/js/utility/string/replace-all.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
 
 
@@ -46983,7 +46988,7 @@ function _ref() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./decode-properties.js */ "./source/public/js/utility/uri/decode-properties.js");
-/* harmony import */ var _validation_common_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
 
 
 /* harmony default export */ __webpack_exports__["default"] = (function (encoded) {
@@ -47004,14 +47009,14 @@ __webpack_require__.r(__webpack_exports__);
 
     var objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
 
-    if (!_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_1__["integer"].test(objectIndex)) {
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(objectIndex)) {
       break;
     } //C get the real key
 
 
     var key = indexedKeys[i].slice(0, delimiterIndex);
 
-    if (!_validation_common_rules_js__WEBPACK_IMPORTED_MODULE_1__["object"].test(list[objectIndex])) {
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(list[objectIndex])) {
       //C if the obj doesn't exist yet, add it with the prop
       list[objectIndex] = {
         [key]: indexed[indexedKeys[i]]
@@ -47124,363 +47129,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/public/js/utility/validation/common-rules.js":
-/*!*************************************************************!*\
-  !*** ./source/public/js/utility/validation/common-rules.js ***!
-  \*************************************************************/
-/*! exports provided: object, populatedObject, array, func, string, trimmedString, visibleString, populatedString, symbol, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, constructor, key */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "object", function() { return object; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return populatedObject; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "func", function() { return func; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return visibleString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return populatedString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return symbol; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "number", function() { return number; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return nonNaNNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return integer; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return nonNegativeNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return nonPositiveNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return positiveNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return negativeNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return nonNegativeInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return nonPositiveInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return constructor; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "key", function() { return key; });
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
-
- //G Include anything here that is possible to implement incorrectly, even for basic types.
-//R Rules for basic types are also useful for custom casting, errors, and consistency.
-//TODO ensure that import * can be tree shaken
-//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
-// sync func
-// async func
-// BUILT-IN RULES
-// OBJECTS
-
-var object = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  //L https://stackoverflow.com/a/22482737
-  validator(value) {
-    if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
-      throw new Error('Value is not an object.');
-    }
-  }
-
-});
-var populatedObject = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    object.validate(value);
-
-    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(value, {
-      own: true,
-      enumerable: true,
-      nonEnumerable: true,
-      named: true,
-      symbol: true,
-      inherited: false
-    }).length === 0) {
-      throw new Error('Object is not populated.');
-    }
-  }
-
-}); // ARRAYS
-
-var array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  //L Why not instanceof? - http://web.mit.edu/jwalden/www/isArray.html
-  //TODO Doesn't this then apply to all classes? Should all classes use validators like this or just use instanceof?
-  validator(value) {
-    if (!Array.isArray(value)) {
-      throw new Error('Value is not an array.');
-    }
-  }
-
-}); // FUNCTIONS
-
-var func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    if (typeof value !== 'function') throw new Error('Value is not a function.');
-  }
-
-}); // STRINGS
-
-var string = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    if (typeof value !== 'string') {
-      throw new Error('Value is not a string.');
-    }
-  },
-
-  caster(reference) {
-    // Stringify if able to.
-    if (typeof reference.value === 'object') {
-      try {
-        reference.value = JSON.stringify(reference.value);
-      } catch (e) {}
-    }
-
-    reference.value = String(reference.value);
-  }
-
-});
-var trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    string.validate(value); //TODO Create a thorough test for this.
-    //TODO See https://en.wikipedia.org/wiki/Whitespace_character
-    //! If this gets changed, ensure the caster .trim() function is updated too.
-    //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
-
-    if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) {
-      throw new Error('String has leading and/or trailing whitespace.');
-    }
-  },
-
-  caster(reference) {
-    string.validateCast(reference);
-    reference.value = reference.value.trim();
-  }
-
-});
-var visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    string.validate(value);
-
-    if (trimmedString.validateCast(value) === '') {
-      throw 'String is not visible.';
-    }
-  },
-
-  caster(reference) {
-    string.validateCast(reference); // Cannot cast any further than a string.
-  }
-
-});
-var populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    string.validate(value);
-
-    if (value === '') {
-      throw 'String is not populated.';
-    }
-  },
-
-  caster(reference) {
-    string.validateCast(reference); // Cannot cast any further than a string.
-  }
-
-}); // SYMBOLS
-
-var symbol = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    //L If transpiling to ES5, an additional check is required: https://stackoverflow.com/questions/46479169/check-if-value-is-a-symbol-in-javascript
-    if (typeof value !== 'symbol') {
-      throw new Error('Value is not a symbol.');
-    }
-  },
-
-  caster(reference) {
-    // Non-symbol values cast as the stringified description of a new symbol.
-    if (!this.validate(reference.value)) {
-      // Symbol(x) cannot convert symbols to strings, but String(x) in string.validateCast() can.
-      string.validateCast(reference.value);
-      reference.value = Symbol(reference.value);
-    }
-  }
-
-}); // NUMBERS
-
-var number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    if (typeof value !== 'number') {
-      throw new Error('Value is not a number.');
-    }
-  },
-
-  caster(reference) {
-    // Parse strings for floats.
-    var n = Number.parseFloat(reference.value); // But do not cast non-numbers to NaN.
-
-    if (!Number.isNaN(n)) reference.value = n;
-  }
-
-});
-var nonNaNNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-
-    if (Number.isNaN(value)) {
-      throw new Error('Number is NaN.');
-    }
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-var integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (!Number.isInteger(value)) throw new Error('Number is not an integet.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference);
-    reference.value = Number.parseInt(reference.value);
-  }
-
-}); //TODO integer or infinity
-//! Defining 0 as neither positive or negative.
-//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
-
-var nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value < 0) throw new Error('Number is negative.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-var nonPositiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value > 0) throw new Error('Number is positive.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-var positiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value <= 0) throw new Error('Number is not positive.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-var negativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value >= 0) throw new Error('Number is not negative.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-}); //? This calls the number validator twice, any way to optimize this?
-
-var nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    nonNegativeNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    nonNegativeNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-});
-var nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    nonPositiveNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    nonPositiveNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-});
-var positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    positiveNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    positiveNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-});
-var negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    negativeNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    negativeNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-}); // SPECIAL
-
-var constructor = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    try {
-      var Test = class extends value {};
-    } catch (e) {
-      throw new Error('Value is not a constructor.');
-    }
-  }
-
-});
-
-var keyify = function keyify(value) {
-  // Create a null object with only one property.
-  var nullObject = Object.create(null);
-  nullObject[value] = true; // Find that only property's key.
-
-  var [keyifiedValue] = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(nullObject, {
-    own: true,
-    named: true,
-    symbol: true,
-    enumerable: true,
-    nonEnumerable: false,
-    inherited: false
-  });
-  return keyifiedValue;
-};
-
-var key = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  // Keys that won't be cast / have already been cast as a result of being used as a property key.
-  //! Does not include numbers, those get cast to strings.
-  validator(value) {
-    var keyifiedValue = keyify(value);
-
-    if (value !== keyifiedValue) {
-      throw 'Value is not keyified.';
-    }
-  },
-
-  caster(reference) {
-    reference.value = keyify(reference.value);
-  }
-
-});
-
-/***/ }),
-
 /***/ "./source/public/js/utility/validation/flex-validate.js":
 /*!**************************************************************!*\
   !*** ./source/public/js/utility/validation/flex-validate.js ***!
@@ -47545,13 +47193,13 @@ function flexValidate(validator) {
 /*!******************************************************!*\
   !*** ./source/public/js/utility/validation/index.js ***!
   \******************************************************/
-/*! exports provided: commonRules, flexValidate, Rule */
+/*! exports provided: rules, flexValidate, Rule */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _common_rules_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./common-rules.js */ "./source/public/js/utility/validation/common-rules.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "commonRules", function() { return _common_rules_js__WEBPACK_IMPORTED_MODULE_0__; });
+/* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _rules_index_js__WEBPACK_IMPORTED_MODULE_0__; });
 /* harmony import */ var _flex_validate_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flex-validate.js */ "./source/public/js/utility/validation/flex-validate.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexValidate", function() { return _flex_validate_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
@@ -47750,6 +47398,557 @@ class Rule {
 }
 ;
 /* harmony default export */ __webpack_exports__["default"] = (Rule);
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/arrays.js":
+/*!*************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/arrays.js ***!
+  \*************************************************************/
+/*! exports provided: array */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
+
+var array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  //L Why not instanceof? - http://web.mit.edu/jwalden/www/isArray.html
+  //TODO Doesn't this then apply to all classes? Should all classes use validators like this or just use instanceof?
+  validator(value) {
+    if (!Array.isArray(value)) {
+      throw new Error('Value is not an array.');
+    }
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/constructor.js":
+/*!******************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/constructor.js ***!
+  \******************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    try {
+      var Test = class extends value {};
+    } catch (e) {
+      throw new Error('Value is not a constructor.');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/functions.js":
+/*!****************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/functions.js ***!
+  \****************************************************************/
+/*! exports provided: func */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "func", function() { return func; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
+//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
+// sync func
+// async func
+
+var func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'function') throw new Error('Value is not a function.');
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/index.js":
+/*!************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/index.js ***!
+  \************************************************************/
+/*! exports provided: object, populatedObject, array, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./objects/index.js */ "./source/public/js/utility/validation/rules/objects/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["populatedObject"]; });
+
+/* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./arrays.js */ "./source/public/js/utility/validation/rules/arrays.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"]; });
+
+/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constructor.js */ "./source/public/js/utility/validation/rules/constructor.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./functions.js */ "./source/public/js/utility/validation/rules/functions.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_3__["func"]; });
+
+/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./key.js */ "./source/public/js/utility/validation/rules/key.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./numbers.js */ "./source/public/js/utility/validation/rules/numbers.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["number"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNaNNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["integer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeInteger"]; });
+
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./strings.js */ "./source/public/js/utility/validation/rules/strings.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["string"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["trimmedString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["visibleString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["populatedString"]; });
+
+/* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./symbol.js */ "./source/public/js/utility/validation/rules/symbol.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+//G Include anything here that is possible to implement incorrectly, even for basic types.
+//R Rules for basic types are also useful for custom casting, errors, and consistency.
+
+
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/key.js":
+/*!**********************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/key.js ***!
+  \**********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
+
+
+
+var keyify = function keyify(value) {
+  // Create a null object with only one property.
+  var nullObject = Object.create(null);
+  nullObject[value] = true; // Find that only property's key.
+
+  var [keyifiedValue] = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(nullObject, {
+    own: true,
+    named: true,
+    symbol: true,
+    enumerable: true,
+    nonEnumerable: false,
+    inherited: false
+  });
+  return keyifiedValue;
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  // Keys that won't be cast / have already been cast as a result of being used as a property key.
+  //! Does not include numbers, those get cast to strings.
+  validator(value) {
+    var keyifiedValue = keyify(value);
+
+    if (value !== keyifiedValue) {
+      throw 'Value is not keyified.';
+    }
+  },
+
+  caster(reference) {
+    reference.value = keyify(reference.value);
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/numbers.js":
+/*!**************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/numbers.js ***!
+  \**************************************************************/
+/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "number", function() { return number; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return nonNaNNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return integer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return nonNegativeNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return nonPositiveNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return positiveNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return negativeNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return nonNegativeInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return nonPositiveInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
+
+var number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'number') {
+      throw new Error('Value is not a number.');
+    }
+  },
+
+  caster(reference) {
+    // Parse strings for floats.
+    var n = Number.parseFloat(reference.value); // But do not cast non-numbers to NaN.
+
+    if (!Number.isNaN(n)) reference.value = n;
+  }
+
+});
+var nonNaNNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+
+    if (Number.isNaN(value)) {
+      throw new Error('Number is NaN.');
+    }
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+var integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (!Number.isInteger(value)) throw new Error('Number is not an integet.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference);
+    reference.value = Number.parseInt(reference.value);
+  }
+
+}); //! Defining 0 as neither positive or negative.
+//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
+
+var nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value < 0) throw new Error('Number is negative.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+var nonPositiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value > 0) throw new Error('Number is positive.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+var positiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value <= 0) throw new Error('Number is not positive.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+var negativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value >= 0) throw new Error('Number is not negative.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+var nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    nonNegativeNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    nonNegativeNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+var nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    nonPositiveNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    nonPositiveNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+var positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    positiveNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    positiveNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+var negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    negativeNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    negativeNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/objects/index.js":
+/*!********************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/objects/index.js ***!
+  \********************************************************************/
+/*! exports provided: object, populatedObject */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object.js */ "./source/public/js/utility/validation/rules/objects/object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _object_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./populated-object.js */ "./source/public/js/utility/validation/rules/objects/populated-object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/objects/object.js":
+/*!*********************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/objects/object.js ***!
+  \*********************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/public/js/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  //L https://stackoverflow.com/a/22482737
+  validator(value) {
+    if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
+      throw new Error('Value is not an object.');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/objects/populated-object.js":
+/*!*******************************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/objects/populated-object.js ***!
+  \*******************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/public/js/utility/validation/rule.js");
+/* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object.js */ "./source/public/js/utility/validation/rules/objects/object.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    _object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
+
+    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(value, {
+      own: true,
+      enumerable: true,
+      nonEnumerable: true,
+      named: true,
+      symbol: true,
+      inherited: false
+    }).length === 0) {
+      throw new Error('Object is not populated.');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/strings.js":
+/*!**************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/strings.js ***!
+  \**************************************************************/
+/*! exports provided: string, trimmedString, visibleString, populatedString */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return visibleString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return populatedString; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
+
+var string = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'string') {
+      throw new Error('Value is not a string.');
+    }
+  },
+
+  caster(reference) {
+    // Stringify if able to.
+    if (typeof reference.value === 'object') {
+      try {
+        reference.value = JSON.stringify(reference.value);
+      } catch (e) {}
+    }
+
+    reference.value = String(reference.value);
+  }
+
+});
+var trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value); //TODO Create a thorough test for this.
+    //TODO See https://en.wikipedia.org/wiki/Whitespace_character
+    //! If this gets changed, ensure the caster .trim() function is updated too.
+    //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
+
+    if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) {
+      throw new Error('String has leading and/or trailing whitespace.');
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference);
+    reference.value = reference.value.trim();
+  }
+
+});
+var visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value);
+
+    if (trimmedString.validateCast(value) === '') {
+      throw 'String is not visible.';
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference); // Cannot cast any further than a string.
+  }
+
+});
+var populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value);
+
+    if (value === '') {
+      throw 'String is not populated.';
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference); // Cannot cast any further than a string.
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/rules/symbol.js":
+/*!*************************************************************!*\
+  !*** ./source/public/js/utility/validation/rules/symbol.js ***!
+  \*************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./strings.js */ "./source/public/js/utility/validation/rules/strings.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    //L If transpiling to ES5, an additional check is required: https://stackoverflow.com/questions/46479169/check-if-value-is-a-symbol-in-javascript
+    if (typeof value !== 'symbol') {
+      throw new Error('Value is not a symbol.');
+    }
+  },
+
+  caster(reference) {
+    // Non-symbol values cast as the stringified description of a new symbol.
+    if (!this.validate(reference.value)) {
+      // Symbol(x) cannot convert symbols to strings, but String(x) in string.validateCast() can.
+      _strings_js__WEBPACK_IMPORTED_MODULE_1__["string"].validateCast(reference.value);
+      reference.value = Symbol(reference.value);
+    }
+  }
+
+}));
 
 /***/ }),
 

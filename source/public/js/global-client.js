@@ -46,10 +46,8 @@ import {
 	one,
 	any,
 	repeat,
+	rules,
 } from './utility/index.js';
-import {
-	visibleString,
-} from './utility/validation/common-rules.js';
 import sj from './global.js';
 
 // EXTERNAL
@@ -1059,7 +1057,7 @@ sj.spotify = new sj.Source({
 	
 		//C if client doesn't have token or if it has expired, refresh it immediately
 		//TODO reconsider this string test
-		if (!visibleString.test(this.credentials.accessToken) || this.credentials.expires <= Date.now()) {
+		if (!rules.visibleString.test(this.credentials.accessToken) || this.credentials.expires <= Date.now()) {
 			await refresh(that);
 		}
 		//C if token is soon to expire, refresh in the background, return the existing token

@@ -1,4 +1,4 @@
-import {object, array} from '../validation/common-rules.js';
+import {rules} from '../validation/index.js';
 
 const compareDeeper = function (a, b, options) {
 	const {depth} = options;
@@ -60,7 +60,7 @@ export default function deepCompare(a, b, options = {}) {
 	if (compareFunction(a, b, options)) return true;
 
 	// compare properties
-	if (object.test(a) && object.test(b)) {
+	if (rules.object.test(a) && rules.object.test(b)) {
 		let result = true;
 
 		// selected keys
@@ -109,7 +109,7 @@ export function compareUnorderedArrays(a, b, options) {
 	//R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
 
 	// If a and b are arrays:
-	if (array.test(a) && array.test(b)) {
+	if (rules.array.test(a) && rules.array.test(b)) {
 		// Match if:
 		let result = true;
 		// All items of a exist in b.

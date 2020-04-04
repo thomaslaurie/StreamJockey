@@ -2,18 +2,14 @@
 //L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
 //L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
 
-
-import {
-	array as arrayRule, 
-	func as functionRule,
-} from '../validation/common-rules.js';
+import {rules} from '../validation/index.js';
 
 export default function (array, compare = (a, b) => {
 	//C low to high
 	return a - b;
 }) {
-	arrayRule.validate(array);
-	functionRule.validate(compare);
+	rules.array.validate(array);
+	rules.func.validate(compare);
 
 	//C Create new array where the original index is preserved.
 	const preservedArray = array.map((value, index) => ({value, index}));

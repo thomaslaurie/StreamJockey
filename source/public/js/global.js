@@ -91,16 +91,14 @@ import fclone from 'fclone';
 
 // INTERNAL
 import './polyfill.js'; // side effects
-import { 
-	define, 
-	test, 
-	wait,
+import {
+	define,
+	test,
 	replaceAll,
 	encodeProperties,
 	any,
 	pick,
 	asyncMap,
-	repeat,
 } from './utility/index.js';
 import {
 	fetch,

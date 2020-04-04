@@ -1,4 +1,4 @@
-import {commonRules} from './index.js';
+import {rules} from './validation/index.js';
 
 /**
  * Repeats a function until a condition is met or the call times-out or counts-out.
@@ -21,12 +21,12 @@ function repeat(func, options = {}) {
 		onCountout = (func, options, lastResult) => { throw new Error('Repeat function call counted out.'); },
 	} = options;
 
-	commonRules.func.test(func);
-	commonRules.func.test(until);
-	commonRules.nonNegativeNumber.test(timeout); // >= 0
-	commonRules.positiveNumber.test(countout);   // >= 1
-	commonRules.func.test(onTimeout);
-	commonRules.func.test(onCountout);
+	rules.func.test(func);
+	rules.func.test(until);
+	rules.nonNegativeNumber.test(timeout); // >= 0
+	rules.positiveNumber.test(countout);   // >= 1
+	rules.func.test(onTimeout);
+	rules.func.test(onCountout);
 
 	let result;
 	let counter = 0;
@@ -63,12 +63,12 @@ repeat.async = async function (func, options = {}) {
 		onCountout = (func, options, lastResult) => { throw new Error('Repeat function call counted out.'); },
 	} = options;
 
-	commonRules.func.test(func);
-	commonRules.func.test(until);
-	commonRules.nonNegativeNumber.test(timeout); // >= 0
-	commonRules.positiveNumber.test(countout);   // >= 1
-	commonRules.func.test(onTimeout);
-	commonRules.func.test(onCountout);
+	rules.func.test(func);
+	rules.func.test(until);
+	rules.nonNegativeNumber.test(timeout); // >= 0
+	rules.positiveNumber.test(countout);   // >= 1
+	rules.func.test(onTimeout);
+	rules.func.test(onCountout);
 
 	let result;
 	let counter = 0;

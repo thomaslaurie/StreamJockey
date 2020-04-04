@@ -1,6 +1,6 @@
 const ownKeys = function (object) {
 	/* //R//! Not using getKeysOf() here to avoid a circular dependency.
-		define.js > Rule.js > common-rules.js > keys-of.js > define.js
+		define.js > Rule.js > rules.js > keys-of.js > define.js
 		Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
 	*/
 	return [

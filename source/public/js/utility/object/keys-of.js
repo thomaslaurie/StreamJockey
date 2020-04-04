@@ -4,11 +4,11 @@
 
 //! Duplicated code in define.js to remove a circular dependency.
 
-import {
-	object as objectRule, 
-	func as functionRule,
-} from '../validation/common-rules.js';
 import flexValidate from '../validation/flex-validate.js';
+// Importing directly instead of from ../validation/rules/index.js to avoid circular reference.
+import object from '../validation/rules/objects/object.js';
+import {func}   from '../validation/rules/functions.js';
+const rules = {object, func};
 
 export function forKeysOf(object, optionsOrCallback = {}) {
 	// OPTIONS / VALIDATION
@@ -18,8 +18,8 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 			: optionsOrCallback
 	);
 
-	objectRule.validate(object);
-	objectRule.validate(options);
+	rules.object.validate(object);
+	rules.object.validate(options);
 	
 	const {
 		own = true,
@@ -34,7 +34,7 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 		callback = () => {},
 	} = options;
 
-	functionRule.validate(callback);
+	rules.func.validate(callback);
 
 
 	// OWN / INHERITED
@@ -81,15 +81,15 @@ export function getKeysOf(object, optionsOrFilter = {}) {
 			: optionsOrFilter
 	);
 
-	objectRule.validate(object);
-	objectRule.validate(options);
+	rules.object.validate(object);
+	rules.object.validate(options);
 	
 	const {
 		filter = (object, key) => true, 
 		...rest
 	} = options;
 
-	functionRule.validate(filter);
+	rules.func.validate(filter);
 
 
 	// ARRAY

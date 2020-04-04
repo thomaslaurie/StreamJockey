@@ -44,10 +44,8 @@ import {
 	encodeProperties,
 	one,
 	keyCode,
+	rules,
 } from '../public/js/utility/index.js';
-import {
-	visibleString,
-} from '../public/js/utility/validation/common-rules.js';
 import sj from './global-server.js';
 
 
@@ -270,7 +268,7 @@ Object.assign(sj.spotify, {
 
 		//C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 		//TODO reconsider this string test
-		if (!visibleString.test(refreshToken)) {
+		if (!rules.visibleString.test(refreshToken)) {
 			throw new sj.AuthRequired();
 		}
 

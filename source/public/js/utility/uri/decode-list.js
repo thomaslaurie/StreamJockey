@@ -1,5 +1,5 @@
 import decodeProperties from './decode-properties.js';
-import {integer, object} from '../validation/common-rules.js';
+import {rules} from '../validation/index.js';
 
 export default function (encoded) {
 	//C decodes a list of encoded objects with '-i' suffixed property keys
@@ -14,12 +14,12 @@ export default function (encoded) {
 
 		//C validate index
 		const objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
-		if (!integer.test(objectIndex)) { break }
+		if (!rules.integer.test(objectIndex)) { break }
 
 		//C get the real key
 		const key = indexedKeys[i].slice(0, delimiterIndex);
 
-		if (!object.test(list[objectIndex])) {
+		if (!rules.object.test(list[objectIndex])) {
 			//C if the obj doesn't exist yet, add it with the prop
 			list[objectIndex] = {
 				[key]: indexed[indexedKeys[i]],

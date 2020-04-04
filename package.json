@@ -6,7 +6,8 @@
 		"build:client": "npm run build -- --client-only",
 		"build:server": "npm run build -- --server-only",
 		"build:full": "npm run build -- --client=watch --server=refresh",
-		"test": "node source/node-utility/run-tests.js"
+		"test": "node source/node-utility/run-tests.js",
+		"circular": "npx madge --circular source/public/js/utility/index.js"
 	},
 	"dependencies": {
 		"bcryptjs": "^2.4.3",

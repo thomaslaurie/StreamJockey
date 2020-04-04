@@ -79,7 +79,7 @@
 import define from './object/define.js';
 import {getKeysOf} from './object/keys-of.js';
 import Rule from './validation/rule.js';
-import * as rules from './validation/common-rules.js';
+import {rules} from './validation/index.js';
 import { SymbolInterface } from './interface.js';
 
 // INTERFACE

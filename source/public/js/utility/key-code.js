@@ -1,21 +1,21 @@
 import {
 	Rule,
-	commonRules,
-} from './index.js';
+	rules,
+} from './validation/index.js';
 
 const packRule = new Rule({
 	validator(value) {
-		commonRules.object.validate(value);
-		commonRules.string.validate(value.key);
-		commonRules.nonNegativeInteger.validate(value.timestamp);
-		commonRules.nonNegativeInteger.validate(value.timeout);
+		rules.object.validate(value);
+		rules.string.validate(value.key);
+		rules.nonNegativeInteger.validate(value.timestamp);
+		rules.nonNegativeInteger.validate(value.timeout);
 	},
 });
 
 const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 export function create(length = 10) {
 	// Validate input.
-	commonRules.nonNegativeInteger.validate(length);
+	rules.nonNegativeInteger.validate(length);
 
 	// Create.
 	let key = '';
@@ -25,7 +25,7 @@ export function create(length = 10) {
 	}
 
 	// Validate output.
-	commonRules.string.validate(key);
+	rules.string.validate(key);
 
 	// Return.
 	return key;
@@ -35,8 +35,8 @@ const defaultTimeout = 300000; // 5 minutes
 const tryLimit = 1000;
 export function addTo(list, timeout = defaultTimeout) {
 	// Validate inputs.
-	commonRules.array.validate(list);
-	commonRules.nonNegativeInteger.validate(timeout);
+	rules.array.validate(list);
+	rules.nonNegativeInteger.validate(timeout);
 
 	// Create.
 	const key = repeat(() => create(), {
@@ -64,8 +64,8 @@ export function addTo(list, timeout = defaultTimeout) {
 // Checks if a list has a key. Cleans up timed-out keys.
 export function verify(list, key) {
 	// Validate inputs.
-	commonRules.array.validate(list);
-	commonRules.string.validate(key);
+	rules.array.validate(list);
+	rules.string.validate(key);
 
 	// Iterate over list.
 	for (let i = list.length - 1; i >= 0; i--) {

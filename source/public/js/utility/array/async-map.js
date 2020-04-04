@@ -6,15 +6,12 @@
 
 //TODO The semantics of this might not be correct - why would a mixed list of fulfilled and rejected values be useful? The rejected promises are also all caught so basic throws aren't useful. Maybe explicitly filtering out fulfillments from the thrown array would be better? To fix this would require going in and ensuring all uses work with this change.
 
-import {
-	array as arrayRule,
-	func as functionRule,
-} from '../validation/common-rules.js';
+import {rules} from '../validation/index.js';
 
 export default async function (array, callback) {
 	// Validate.
-	arrayRule.validate(array);
-	functionRule.validate(callback);
+	rules.array.validate(array);
+	rules.func.validate(callback);
 
 	// Wait for every promise to settle.
 	const promises = array.map((item, index, self) => callback(item, index, self));

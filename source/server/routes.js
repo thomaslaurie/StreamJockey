@@ -72,10 +72,8 @@ import send from 'koa-send'; //L https://github.com/koajs/send
 // INTERNAL
 import {
 	decodeList,
+	rules,
 } from '../public/js/utility/index.js';
-import {
-	populatedObject,
-} from '../public/js/utility/validation/common-rules.js';
 import sourcePath from '../node-utility/source-path.cjs';
 import { clientIndexFileName } from '../config/project-paths.js';
 import sj from './global-server.js';
@@ -286,7 +284,7 @@ export default function ({replaceIndex}) {
 		} 
 		
 		//C redirect if not logged in
-		if (!populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
+		if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
 			ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 			ctx.redirect('/login');
 			return;
