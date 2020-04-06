@@ -3034,8 +3034,15 @@ function boolCatch(f) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (function (input, min, max) {
-  if (min > max) throw `min: ${min} must not be greater than max: ${max}`;else if (input < min) return min;else if (input > max) return max;else return input;
+/* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (function (input, min = -Infinity, max = Infinity) {
+  // Throw if input is not defined, do not default to 0.
+  // Throw on NaN, because whether NaN is 'within' the bounds is implementation dependant on whether x>y or !(x<=y) is used for comparison. The consumer should not be expected to know which.
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(input);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(min);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(max);
+  if (min > max) throw new Error(`min: ${min} must not be greater than max: ${max}`);else if (input < min) return min;else if (input > max) return max;else return input;
 });
 ;
 
