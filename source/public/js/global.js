@@ -93,7 +93,6 @@ import fclone from 'fclone';
 import './polyfill.js'; // side effects
 import {
 	define,
-	test,
 	replaceAll,
 	encodeProperties,
 	any,
@@ -115,6 +114,24 @@ import * as constants from './constants.js';
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 const sj = {};
+
+sj.test = async function test(tests, origin) {
+	let failCount = 0;
+
+	for (const [name, test] of tests) {
+		if (!test) {
+			console.error(`${origin} - test failed: ${name}`);
+			failCount++;
+		}
+	}
+
+	if (failCount === 0) {
+		console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
+		return true;
+	} else {
+		return false;
+	}
+};
 
 // CONSTANTS
 define.constant(sj, constants);
@@ -834,7 +851,7 @@ sj.Base.test = async function () {
 	const c2 = new C();
 
 
-	await test([
+	await sj.test([
 		// INHERITANCE
 		['A prototype is sj.Base', 	Object.getPrototypeOf(A) === sj.Base],
 		['AA prototype is A', 		Object.getPrototypeOf(AA) === A],

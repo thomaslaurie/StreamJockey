@@ -19,4 +19,3 @@ export {Interface, SymbolInterface} from './interface.js';
 export *        as keyCode          from './key-code.js';
 export {default as reference}       from './reference.js';
 export {default as repeat}          from './repeat.js';
-export {default as test}            from './test.js';

@@ -1,11 +1,18 @@
-import test from './test.js';
+import test from 'ava';
 import boolCatch from './bool-catch.js';
 
-export default function boolCatchTest() {
-	test([
-		['any return passes', boolCatch(() => 'asdf')],
-		['false return passes', boolCatch(() => false)],
-		['any throw fails', !boolCatch(() => { throw 'asdf' })],
-		['true throw fails', !boolCatch(() => { throw true })],
-	], 'bool-catch');
-};
+test('any return passes', (t) => {
+	t.assert(boolCatch(() => 'asdf'));
+});
+
+test('false return passes', (t) => {
+	t.assert(boolCatch(() => false));
+});
+
+test('any throw fails', (t) => {
+	t.assert(!boolCatch(() => { throw 'asdf'; }));
+});
+
+test('true throw fails', (t) => {
+	t.assert(!boolCatch(() => { throw true; }));
+});

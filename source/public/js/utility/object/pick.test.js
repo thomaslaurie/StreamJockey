@@ -1,9 +1,7 @@
-import test from '../test.js';
+import test from 'ava';
 import pick from './pick.js';
 import deepCompare from './deep-compare.js';
 
-export default function () {
-	return test([
-		['simple', deepCompare(pick({a: 'foo', b: 'bar'}, ['a']), {a: 'foo'})],
-	], 'pick');
-};
+test('simple', (t) => {
+	t.assert(deepCompare(pick({a: 'foo', b: 'bar'}, ['a']), {a: 'foo'}));
+});

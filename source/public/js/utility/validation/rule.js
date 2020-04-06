@@ -1,4 +1,6 @@
 //TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
+//TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
+//TODO ensure that validate and validateCast both return values
 
 import define from '../object/define.js';
 import {formReferences, extractValues} from '../reference.js';

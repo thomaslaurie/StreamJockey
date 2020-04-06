@@ -260,7 +260,6 @@ import {
 	pick,
 	setTimer,
 	wait,
-	test,
 	one,
 	any,
 	repeat,
@@ -1261,7 +1260,7 @@ export default {
 			await user.remove();
 
 			//TODO add tests for convergent liveQueries
-			const passed = await test([
+			const passed = await sj.test([
 				...tests,
 			], 'liveQuery');
 

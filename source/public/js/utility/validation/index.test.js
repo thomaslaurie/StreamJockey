@@ -1,1 +1,0 @@
-export {default as ruleTest} from './rule.test.js';

@@ -123,15 +123,19 @@ dotenv__WEBPACK_IMPORTED_MODULE_0___default.a.config({
 /*!****************************************!*\
   !*** ./source/config/project-paths.js ***!
   \****************************************/
-/*! exports provided: clientIndexFileName */
+/*! exports provided: clientIndexFileName, defaultTestGlob, testSuffix */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientIndexFileName", function() { return clientIndexFileName; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultTestGlob", function() { return defaultTestGlob; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "testSuffix", function() { return testSuffix; });
 //G Put any commonly needed paths/filenames in here.
 //G Require sourcePath if needed.
 const clientIndexFileName = 'index.html';
+const defaultTestGlob = 'public/js/utility';
+const testSuffix = '.test.js';
 
 /***/ }),
 
@@ -352,7 +356,26 @@ __webpack_require__.r(__webpack_exports__);
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-const sj = {}; // CONSTANTS
+const sj = {};
+
+sj.test = async function test(tests, origin) {
+  let failCount = 0;
+
+  for (const [name, test] of tests) {
+    if (!test) {
+      console.error(`${origin} - test failed: ${name}`);
+      failCount++;
+    }
+  }
+
+  if (failCount === 0) {
+    console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
+    return true;
+  } else {
+    return false;
+  }
+}; // CONSTANTS
+
 
 _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_4__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
@@ -1083,7 +1106,7 @@ sj.Base.test = async function () {
     })
   });
   const c2 = new C();
-  await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"])([// INHERITANCE
+  await sj.test([// INHERITANCE
   ['A prototype is sj.Base', Object.getPrototypeOf(A) === sj.Base], ['AA prototype is A', Object.getPrototypeOf(AA) === A], ['AAAA prototype is AA', Object.getPrototypeOf(AAA) === AA], ['a isType sj.Base', sj.isType(a, sj.Base)], ['aa isType sj.Base', sj.isType(aa, sj.Base)], ['aaa isType sj.Base', sj.isType(aaa, sj.Base)], // SIBLINGS
   ['a !isType B', !sj.isType(a, B)], ['aa !isType AB', !sj.isType(aa, AB)], ['aaa !isType AAB', !sj.isType(aaa, AAB)], // COUSINS
   ['aa !isType BA', !sj.isType(aa, BA)], // INSTANCES
@@ -3596,7 +3619,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3684,9 +3707,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
-
 // NESTED
 
 
@@ -3703,7 +3723,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //TODO constants aren't exported, find an elegant way to do this.
-
 
 
 
@@ -4716,37 +4735,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/public/js/utility/test.js":
-/*!******************************************!*\
-  !*** ./source/public/js/utility/test.js ***!
-  \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return test; });
-async function test(tests, origin) {
-  let failCount = 0;
-
-  for (const [name, test] of tests) {
-    if (!test) {
-      console.error(`${origin} - test failed: ${name}`);
-      failCount++;
-    }
-  }
-
-  if (failCount === 0) {
-    console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
-    return true;
-  } else {
-    return false;
-  }
-}
-;
-
-/***/ }),
-
 /***/ "./source/public/js/utility/time/index.js":
 /*!************************************************!*\
   !*** ./source/public/js/utility/time/index.js ***!
@@ -5117,6 +5105,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../reference.js */ "./source/public/js/utility/reference.js");
 /* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../bool-catch.js */ "./source/public/js/utility/bool-catch.js");
 //TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
+//TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
+//TODO ensure that validate and validateCast both return values
 
 
 

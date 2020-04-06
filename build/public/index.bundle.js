@@ -40396,7 +40396,34 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-var sj = {}; // CONSTANTS
+var sj = {};
+
+sj.test = /*#__PURE__*/function () {
+  var _test = _asyncToGenerator(function* (tests, origin) {
+    var failCount = 0;
+
+    for (var [name, _test2] of tests) {
+      if (!_test2) {
+        console.error("".concat(origin, " - test failed: ").concat(name));
+        failCount++;
+      }
+    }
+
+    if (failCount === 0) {
+      console.log("%c".concat(origin, " - all tests passed"), 'background-color: #d0efd8');
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  function test(_x, _x2) {
+    return _test.apply(this, arguments);
+  }
+
+  return test;
+}(); // CONSTANTS
+
 
 _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_4__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
@@ -40733,7 +40760,7 @@ sj.request = /*#__PURE__*/function () {
     }
   });
 
-  return function (_x, _x2, _x3) {
+  return function (_x3, _x4, _x5) {
     return _ref.apply(this, arguments);
   };
 }(); // LIVE DATA
@@ -41146,7 +41173,7 @@ sj.Base.test = /*#__PURE__*/_asyncToGenerator(function* () {
     })
   });
   var c2 = new C();
-  yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["test"])([// INHERITANCE
+  yield sj.test([// INHERITANCE
   ['A prototype is sj.Base', Object.getPrototypeOf(A) === sj.Base], ['AA prototype is A', Object.getPrototypeOf(AA) === A], ['AAAA prototype is AA', Object.getPrototypeOf(AAA) === AA], ['a isType sj.Base', sj.isType(a, sj.Base)], ['aa isType sj.Base', sj.isType(aa, sj.Base)], ['aaa isType sj.Base', sj.isType(aaa, sj.Base)], // SIBLINGS
   ['a !isType B', !sj.isType(a, B)], ['aa !isType AB', !sj.isType(aa, AB)], ['aaa !isType AAB', !sj.isType(aaa, AAB)], // COUSINS
   ['aa !isType BA', !sj.isType(aa, BA)], // INSTANCES
@@ -41850,7 +41877,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x4) {
+          return function (_x6) {
             return _ref5.apply(this, arguments);
           };
         }();
@@ -41867,7 +41894,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x5) {
+          return function (_x7) {
             return _ref6.apply(this, arguments);
           };
         }();
@@ -41935,7 +41962,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x6) {
+          return function (_x8) {
             return _ref7.apply(this, arguments);
           };
         }();
@@ -41952,7 +41979,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x7) {
+          return function (_x9) {
             return _ref8.apply(this, arguments);
           };
         }();
@@ -44525,7 +44552,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             };
           }();
 
-          Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["test"])([//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+          test([//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
           //['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
           //['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
           //['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
@@ -44699,7 +44726,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         yield playlist.remove();
         yield user.remove(); //TODO add tests for convergent liveQueries
 
-        var passed = yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["test"])([...tests], 'liveQuery'); //C this refreshes the page until the test fails
+        var passed = yield _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].test([...tests], 'liveQuery'); //C this refreshes the page until the test fails
         //if (passed) document.location.reload();
       })();
     }
@@ -45631,7 +45658,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat, test */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -45719,9 +45746,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
 
-/* harmony import */ var _test_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./test.js */ "./source/public/js/utility/test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "test", function() { return _test_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
-
 // NESTED
 
 
@@ -45738,7 +45762,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //TODO constants aren't exported, find an elegant way to do this.
-
 
 
 
@@ -46794,49 +46817,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/public/js/utility/test.js":
-/*!******************************************!*\
-  !*** ./source/public/js/utility/test.js ***!
-  \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return test; });
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-function test(_x, _x2) {
-  return _test.apply(this, arguments);
-}
-
-function _test() {
-  _test = _asyncToGenerator(function* (tests, origin) {
-    var failCount = 0;
-
-    for (var [name, _test2] of tests) {
-      if (!_test2) {
-        console.error("".concat(origin, " - test failed: ").concat(name));
-        failCount++;
-      }
-    }
-
-    if (failCount === 0) {
-      console.log("%c".concat(origin, " - all tests passed"), 'background-color: #d0efd8');
-      return true;
-    } else {
-      return false;
-    }
-  });
-  return _test.apply(this, arguments);
-}
-
-;
-
-/***/ }),
-
 /***/ "./source/public/js/utility/time/index.js":
 /*!************************************************!*\
   !*** ./source/public/js/utility/time/index.js ***!
@@ -47235,6 +47215,8 @@ function _objectWithoutProperties(source, excluded) { if (source == null) return
 function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 //TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
+//TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
+//TODO ensure that validate and validateCast both return values
 
 
 

@@ -1,10 +1,10 @@
 // Simplified async wrapper for child_process.spawn
-
-import { spawn } from 'child_process';
+import chalk from 'chalk';
+import {spawn} from 'child_process';
 
 export default async function (command, options = {}) {
 	return new Promise((resolve, reject) => {
-		console.log(`${command}\n`);
+		console.log(chalk.black.bgWhite(`${command}\n`));
 		const childProcess = spawn(command, [], {
 			// 'pipe' doesn't work, not sure why.
 			stdio: [process.stdin, process.stdout, process.stderr],
