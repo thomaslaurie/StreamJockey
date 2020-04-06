@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "source\\public\\js\\utility"
 		}
 	],
 	"settings": {

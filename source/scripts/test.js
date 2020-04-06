@@ -10,18 +10,22 @@ const isFilePath = new RegExp(`${escapeRegExp(testSuffix)}$`);
 	const parser = await getModule('minimist', 'devDependencies');
 	// Get first non-option argument.
 	// It should be a source-relative directory or file path.
-	const {_: [path = defaultTestGlob]} = parser(process.argv.slice(2)); 
+	const {_: [path = defaultTestGlob], verbose} = parser(process.argv.slice(2), {
+		boolean: ['verbose'],
+		alias: {v: 'verbose'},
+	}); 
 
 	// Get the absolute path.
 	let fullPath = sourcePath(path);
-
 	// If the path doesn't have the testSuffix, consider it a directory and glob-match all test files within that directory.
 	if (!(isFilePath.test(fullPath))) {
 		fullPath += `/**/*${testSuffix}`;
 	}
 	
+	const verboseFlag = verbose ? '--verbose' : '';
+	
 	// Run tests with ava.
-	await asyncSpawn(`npx ava ${fullPath}`);
+	await asyncSpawn(`npx ava ${fullPath}  ${verboseFlag}`);
 })().catch((error) => {
 	if (error && error.code === 1 && error.signal === null) {
 		// Do nothing, error will be logged by ava.
