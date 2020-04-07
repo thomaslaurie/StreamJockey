@@ -45998,15 +45998,18 @@ class SymbolInterface extends VirtualInterface {
 /*!**********************************************!*\
   !*** ./source/public/js/utility/key-code.js ***!
   \**********************************************/
-/*! exports provided: create, addTo, verify */
+/*! exports provided: characters, create, addTo, verify */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "characters", function() { return characters; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addTo", function() { return addTo; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "verify", function() { return verify; });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
+
 
 var packRule = new _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
   validator(value) {
@@ -46038,14 +46041,15 @@ function create() {
 ;
 var defaultTimeout = 300000; // 5 minutes
 
-var tryLimit = 1000;
+var tryLimit = 1000; // Adds a new unique key to the list, returns a pack {key, timeout, timestamp}
+
 function addTo(list) {
   var timeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaultTimeout;
   // Validate inputs.
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(timeout); // Create.
 
-  var key = repeat(() => create(), {
+  var key = Object(_repeat_js__WEBPACK_IMPORTED_MODULE_1__["default"])(() => create(), {
     until: key => !list.includes(key),
     countout: tryLimit,
 
@@ -46078,7 +46082,7 @@ function verify(list, key) {
 
     packRule.validate(pack); // Determine if item has timed out.
 
-    var fresh = pack.timeout > Date.now;
+    var fresh = pack.timeout > Date.now();
 
     if (pack.key === key) {
       // If key matches,
