@@ -2,6 +2,7 @@ import {
 	Rule,
 	rules,
 } from './validation/index.js';
+import repeat from './repeat.js';
 
 const packRule = new Rule({
 	validator(value) {
@@ -12,7 +13,7 @@ const packRule = new Rule({
 	},
 });
 
-const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 export function create(length = 10) {
 	// Validate input.
 	rules.nonNegativeInteger.validate(length);
@@ -33,6 +34,7 @@ export function create(length = 10) {
 
 const defaultTimeout = 300000; // 5 minutes
 const tryLimit = 1000;
+// Adds a new unique key to the list, returns a pack {key, timeout, timestamp}
 export function addTo(list, timeout = defaultTimeout) {
 	// Validate inputs.
 	rules.array.validate(list);
@@ -75,7 +77,7 @@ export function verify(list, key) {
 		packRule.validate(pack);
 
 		// Determine if item has timed out.
-		const fresh = pack.timeout > Date.now;
+		const fresh = pack.timeout > Date.now();
 
 		if (pack.key === key) {
 			// If key matches,
