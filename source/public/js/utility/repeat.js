@@ -17,16 +17,16 @@ function repeat(func, options = {}) {
 		until      = (result) => false,
 		timeout    = Infinity,
 		countout   = Infinity,
-		onTimeout  = (func, options, lastResult) => { throw new Error('Repeat function call timed out.');   },
-		onCountout = (func, options, lastResult) => { throw new Error('Repeat function call counted out.'); },
+		onTimeout  = (lastResult) => { throw new Error('Repeat function call timed out.');   },
+		onCountout = (lastResult) => { throw new Error('Repeat function call counted out.'); },
 	} = options;
 
-	rules.func.test(func);
-	rules.func.test(until);
-	rules.nonNegativeNumber.test(timeout); // >= 0
-	rules.positiveNumber.test(countout);   // >= 1
-	rules.func.test(onTimeout);
-	rules.func.test(onCountout);
+	rules.func.validate(func);
+	rules.func.validate(until);
+	rules.nonNegativeNumber.validate(timeout); // >= 0
+	rules.positiveNumber.validate(countout);   // >= 1
+	rules.func.validate(onTimeout);
+	rules.func.validate(onCountout);
 
 	let result;
 	let counter = 0;
@@ -45,8 +45,14 @@ function repeat(func, options = {}) {
 		time = Date.now();
 		counter++;
 
-		if (time    >= timeLimit)  onTimeout(func, options, lastResult);
-		if (counter >= countLimit) onCountout(func, options, lastResult);
+		if (time    >= timeLimit)  {
+			onTimeout(result);
+			break;
+		}
+		if (counter >= countLimit) {
+			onCountout(result);
+			break;
+		}
 	}
 
 	return result;
@@ -59,16 +65,16 @@ repeat.async = async function (func, options = {}) {
 		until      = (result) => false, // Condition upon which the function will stop.
 		timeout    = Infinity,          // Number of milliseconds the function may repeat for.
 		countout   = Infinity,          // Number of times the function may execute.
-		onTimeout  = (func, options, lastResult) => { throw new Error('Repeat function call timed out.');   },
-		onCountout = (func, options, lastResult) => { throw new Error('Repeat function call counted out.'); },
+		onTimeout  = (lastResult) => { throw new Error('Repeat function call timed out.');   },
+		onCountout = (lastResult) => { throw new Error('Repeat function call counted out.'); },
 	} = options;
 
-	rules.func.test(func);
-	rules.func.test(until);
-	rules.nonNegativeNumber.test(timeout); // >= 0
-	rules.positiveNumber.test(countout);   // >= 1
-	rules.func.test(onTimeout);
-	rules.func.test(onCountout);
+	rules.func.validate(func);
+	rules.func.validate(until);
+	rules.nonNegativeNumber.validate(timeout); // >= 0
+	rules.positiveNumber.validate(countout);   // >= 1
+	rules.func.validate(onTimeout);
+	rules.func.validate(onCountout);
 
 	let result;
 	let counter = 0;
@@ -87,8 +93,14 @@ repeat.async = async function (func, options = {}) {
 		time = Date.now();
 		counter++;
 
-		if (time    >= timeLimit)  await onTimeout(func, options, lastResult);
-		if (counter >= countLimit) await onCountout(func, options, lastResult);
+		if (time    >= timeLimit)  {
+			await onTimeout(result);
+			break;
+		}
+		if (counter >= countLimit) {
+			await onCountout(result);
+			break;
+		}
 	}
 
 	return result;
