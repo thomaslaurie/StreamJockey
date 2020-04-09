@@ -44823,21 +44823,32 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 });
 
 function _ref() {
-  _ref = _asyncToGenerator(function* (array, callback) {
+  _ref = _asyncToGenerator(function* (array, mapFunction) {
     // Validate.
     _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(callback); // Wait for every promise to settle.
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(mapFunction); // Wait for every promise to settle.
 
-    var promises = array.map((item, index, self) => callback(item, index, self));
-    var outcomes = yield Promise.allSettled(promises); // Extract fulfillment and results.
+    var promises = array.map((item, index, self) => mapFunction(item, index, self));
+    var outcomes = yield Promise.allSettled(promises); // Extract results and fulfillment.
 
-    var allFulfilled = outcomes.every(outcome => outcome.status === 'fulfilled');
-    var results = outcomes.map(outcome => outcome.status === 'fulfilled' ? outcome.value : outcome.reason); // Return fulfilled results or reject mixed results.
+    var fulfilledResults = [];
+    var rejectedResults = [];
+    var allFulfilled = true;
+
+    for (var outcome of outcomes) {
+      if (outcome.status === 'fulfilled') {
+        fulfilledResults.push(outcome.value);
+      } else {
+        rejectedResults.push(outcome.reason);
+        allFulfilled = false;
+      }
+    } // Return fulfilled results or throw rejected results.
+
 
     if (allFulfilled) {
-      return results;
+      return fulfilledResults;
     } else {
-      throw results;
+      throw rejectedResults;
     }
   });
   return _ref.apply(this, arguments);

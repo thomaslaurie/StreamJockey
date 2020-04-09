@@ -8,27 +8,32 @@
 
 import {rules} from '../validation/index.js';
 
-export default async function (array, callback) {
+export default async function (array, mapFunction) {
 	// Validate.
 	rules.array.validate(array);
-	rules.func.validate(callback);
+	rules.func.validate(mapFunction);
 
 	// Wait for every promise to settle.
-	const promises = array.map((item, index, self) => callback(item, index, self));
+	const promises = array.map((item, index, self) => mapFunction(item, index, self));
 	const outcomes = await Promise.allSettled(promises);
 
-	// Extract fulfillment and results.
-	const allFulfilled = outcomes.every((outcome) => outcome.status === 'fulfilled');
-	const results = outcomes.map((outcome) => (
-		outcome.status === 'fulfilled' 
-			? outcome.value 
-			: outcome.reason
-	));
+	// Extract results and fulfillment.
+	const fulfilledResults = [];
+	const rejectedResults = [];
+	let allFulfilled = true;
+	for (const outcome of outcomes) {
+		if (outcome.status === 'fulfilled') {
+			fulfilledResults.push(outcome.value);
+		} else {
+			rejectedResults.push(outcome.reason);
+			allFulfilled = false;
+		}
+	}
 
-	// Return fulfilled results or reject mixed results.
+	// Return fulfilled results or throw rejected results.
 	if (allFulfilled) {
-		return results;
+		return fulfilledResults;
 	} else {
-		throw results;
+		throw rejectedResults;
 	}
 };

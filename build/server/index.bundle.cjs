@@ -2819,21 +2819,32 @@ __webpack_require__.r(__webpack_exports__);
 //! Can mutate the original array.
 //TODO The semantics of this might not be correct - why would a mixed list of fulfilled and rejected values be useful? The rejected promises are also all caught so basic throws aren't useful. Maybe explicitly filtering out fulfillments from the thrown array would be better? To fix this would require going in and ensuring all uses work with this change.
 
-/* harmony default export */ __webpack_exports__["default"] = (async function (array, callback) {
+/* harmony default export */ __webpack_exports__["default"] = (async function (array, mapFunction) {
   // Validate.
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(callback); // Wait for every promise to settle.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(mapFunction); // Wait for every promise to settle.
 
-  const promises = array.map((item, index, self) => callback(item, index, self));
-  const outcomes = await Promise.allSettled(promises); // Extract fulfillment and results.
+  const promises = array.map((item, index, self) => mapFunction(item, index, self));
+  const outcomes = await Promise.allSettled(promises); // Extract results and fulfillment.
 
-  const allFulfilled = outcomes.every(outcome => outcome.status === 'fulfilled');
-  const results = outcomes.map(outcome => outcome.status === 'fulfilled' ? outcome.value : outcome.reason); // Return fulfilled results or reject mixed results.
+  const fulfilledResults = [];
+  const rejectedResults = [];
+  let allFulfilled = true;
+
+  for (const outcome of outcomes) {
+    if (outcome.status === 'fulfilled') {
+      fulfilledResults.push(outcome.value);
+    } else {
+      rejectedResults.push(outcome.reason);
+      allFulfilled = false;
+    }
+  } // Return fulfilled results or throw rejected results.
+
 
   if (allFulfilled) {
-    return results;
+    return fulfilledResults;
   } else {
-    throw results;
+    throw rejectedResults;
   }
 });
 ;
