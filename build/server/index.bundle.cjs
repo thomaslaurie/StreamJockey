@@ -3626,7 +3626,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3657,6 +3657,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"]; });
 
@@ -4722,11 +4726,80 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/public/js/utility/string/indented-template.js":
+/*!**************************************************************!*\
+  !*** ./source/public/js/utility/string/indented-template.js ***!
+  \**************************************************************/
+/*! exports provided: tabIndented, spaceIndented */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return tabIndented; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return spaceIndented; });
+const tabIndented = (strings, ...expressions) => indented(strings, expressions, '	');
+const spaceIndented = (strings, ...expressions) => indented(strings, expressions, ' ');
+
+function indented(stringsFrozen, expressions, indentCharacter) {
+  let strings = [...stringsFrozen];
+  const firstIndex = 0;
+  const lastIndex = strings.length - 1; // If the template ends with a new-line character followed by zero or many indent characters, remove those characters.
+
+  strings[lastIndex] = strings[lastIndex].replace(new RegExp(`\n${indentCharacter}*$`), ''); // Match indents.
+
+  const indents = [];
+
+  for (const string of strings) {
+    /* Matches 0 or many indent characters.
+    	- Following a new-line. 
+    	- Preceding a non-indent, non-new-line character. 
+    		//R Ignores 'indent-only' lines.
+    	
+    	//R Don't follow start (^) or precede end ($), because otherwise indentation characters in single line strings and strings between variables will get matched.
+    */
+    const matches = string.match(new RegExp(`(?<=\n)(${indentCharacter}*)(?=[^${indentCharacter}\n])`, 'g'));
+    if (matches !== null) indents.push(...matches);
+  } // Get the smallest indent amount.
+
+
+  let smallestIndentAmount = Math.min(...indents.map(indent => indent.length));
+  if (smallestIndentAmount === Infinity) smallestIndentAmount = 0; // Remove smallest indent from all lines.
+
+  /* Matches the smallest indent.
+  	- Following a new line.
+  	//! Not required to precede a non-indent or non-new-line character. This ensures 'excessively-indented' and 'indent-only' lines can be matched and only have part of their indentation removed.
+  */
+
+  strings = strings.map(string => string.replace(new RegExp(`(?<=\n)(${indentCharacter}{${smallestIndentAmount}})`, 'g'), ''));
+  /* Remove leading newline if it exists.
+  	//R Must happen after removing indentation, because it is required to identify the first line's indentation.
+  	//R Must happen before construction, because otherwise a newline could be removed from a leading expression.	
+  */
+
+  strings[firstIndex] = strings[firstIndex].replace(new RegExp(`^\n`), '');
+  /* Construct template.
+  	//R Must happen after the indentation is removed, because expressions should be considered as using the 'adjusted' indentation.
+  */
+
+  let template = '';
+
+  for (let i = 0; i < strings.length; i++) {
+    template += strings[i];
+    if (expressions[i] !== undefined) template += expressions[i];
+  }
+
+  return template;
+}
+
+;
+
+/***/ }),
+
 /***/ "./source/public/js/utility/string/index.js":
 /*!**************************************************!*\
   !*** ./source/public/js/utility/string/index.js ***!
   \**************************************************/
-/*! exports provided: capitalizeFirstCharacter, escapeRegExp, replaceAll */
+/*! exports provided: capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4737,8 +4810,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./escape-reg-exp.js */ "./source/public/js/utility/string/escape-reg-exp.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _replace_all_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./replace-all.js */ "./source/public/js/utility/string/replace-all.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _indented_template_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./indented-template.js */ "./source/public/js/utility/string/indented-template.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
+
+/* harmony import */ var _replace_all_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./replace-all.js */ "./source/public/js/utility/string/replace-all.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
 
 
 
