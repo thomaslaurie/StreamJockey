@@ -46665,21 +46665,21 @@ function repeat(func) {
     until = result => false,
     timeout = Infinity,
     countout = Infinity,
-    onTimeout = (func, options, lastResult) => {
+    onTimeout = lastResult => {
       throw new Error('Repeat function call timed out.');
     },
-    onCountout = (func, options, lastResult) => {
+    onCountout = lastResult => {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(func);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(until);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.test(timeout); // >= 0
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.test(countout); // >= 1
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onTimeout);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onCountout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
   var result;
   var counter = 0;
   var time = Date.now();
@@ -46693,8 +46693,16 @@ function repeat(func) {
 
     time = Date.now();
     counter++;
-    if (time >= timeLimit) onTimeout(func, options, lastResult);
-    if (counter >= countLimit) onCountout(func, options, lastResult);
+
+    if (time >= timeLimit) {
+      onTimeout(result);
+      break;
+    }
+
+    if (counter >= countLimit) {
+      onCountout(result);
+      break;
+    }
   }
 
   return result;
@@ -46714,21 +46722,21 @@ repeat.async = /*#__PURE__*/function () {
       // Number of milliseconds the function may repeat for.
       countout = Infinity,
       // Number of times the function may execute.
-      onTimeout = (func, options, lastResult) => {
+      onTimeout = lastResult => {
         throw new Error('Repeat function call timed out.');
       },
-      onCountout = (func, options, lastResult) => {
+      onCountout = lastResult => {
         throw new Error('Repeat function call counted out.');
       }
     } = options;
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(func);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(until);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.test(timeout); // >= 0
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
 
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.test(countout); // >= 1
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
 
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onTimeout);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onCountout);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
     var result;
     var counter = 0;
     var time = Date.now();
@@ -46742,8 +46750,16 @@ repeat.async = /*#__PURE__*/function () {
 
       time = Date.now();
       counter++;
-      if (time >= timeLimit) yield onTimeout(func, options, lastResult);
-      if (counter >= countLimit) yield onCountout(func, options, lastResult);
+
+      if (time >= timeLimit) {
+        yield onTimeout(result);
+        break;
+      }
+
+      if (counter >= countLimit) {
+        yield onCountout(result);
+        break;
+      }
     }
 
     return result;

@@ -4588,21 +4588,21 @@ function repeat(func, options = {}) {
     until = result => false,
     timeout = Infinity,
     countout = Infinity,
-    onTimeout = (func, options, lastResult) => {
+    onTimeout = lastResult => {
       throw new Error('Repeat function call timed out.');
     },
-    onCountout = (func, options, lastResult) => {
+    onCountout = lastResult => {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(func);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(until);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.test(timeout); // >= 0
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.test(countout); // >= 1
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onTimeout);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onCountout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
   let result;
   let counter = 0;
   let time = Date.now();
@@ -4616,8 +4616,16 @@ function repeat(func, options = {}) {
 
     time = Date.now();
     counter++;
-    if (time >= timeLimit) onTimeout(func, options, lastResult);
-    if (counter >= countLimit) onCountout(func, options, lastResult);
+
+    if (time >= timeLimit) {
+      onTimeout(result);
+      break;
+    }
+
+    if (counter >= countLimit) {
+      onCountout(result);
+      break;
+    }
   }
 
   return result;
@@ -4635,21 +4643,21 @@ repeat.async = async function (func, options = {}) {
     // Number of milliseconds the function may repeat for.
     countout = Infinity,
     // Number of times the function may execute.
-    onTimeout = (func, options, lastResult) => {
+    onTimeout = lastResult => {
       throw new Error('Repeat function call timed out.');
     },
-    onCountout = (func, options, lastResult) => {
+    onCountout = lastResult => {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(func);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(until);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.test(timeout); // >= 0
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.test(countout); // >= 1
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
 
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onTimeout);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.test(onCountout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
   let result;
   let counter = 0;
   let time = Date.now();
@@ -4663,8 +4671,16 @@ repeat.async = async function (func, options = {}) {
 
     time = Date.now();
     counter++;
-    if (time >= timeLimit) await onTimeout(func, options, lastResult);
-    if (counter >= countLimit) await onCountout(func, options, lastResult);
+
+    if (time >= timeLimit) {
+      await onTimeout(result);
+      break;
+    }
+
+    if (counter >= countLimit) {
+      await onCountout(result);
+      break;
+    }
   }
 
   return result;
