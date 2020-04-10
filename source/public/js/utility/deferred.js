@@ -42,15 +42,19 @@ export default class Deferred extends Promise {
 			resolve: closure.resolve,
 			reject:  closure.reject,
 			// Ability to prevent promise from settling.
-			cancel() { closure.isCanceled = true; },
+			cancel() { 
+				closure.isCanceled = true; 
+				return this;
+			},
 			// Ability to set automatic rejection upon timeout.
-			timeout(duration, onTimeout = () => 'Deferred promise timed out.') {
+			timeout(duration, onTimeout = () => new Error('Deferred promise timed out.')) {
 				wait(duration).then(() => {
 					// Don't timeout if promise has settled.
 					if (closure.isPending) {
 						this.reject(onTimeout());
 					}
 				});
+				return this;
 			},
 		});
 	}

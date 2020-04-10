@@ -210,3 +210,33 @@ test('throws on invalid inputs', async (t) => {
 		});
 	});
 });
+test('previous result is passed to function', async (t) => {
+	t.plan(3);
+
+	const value1 = Symbol();
+	repeat((previousResult) => {
+		if (previousResult !== undefined) t.is(previousResult, value1);
+		return value1;
+	}, {
+		countout: 2,
+		onCountout() {},
+	});
+
+	const value2 = Symbol();
+	repeat.sync((previousResult) => {
+		if (previousResult !== undefined) t.is(previousResult, value2);
+		return value2;
+	}, {
+		countout: 2,
+		onCountout() {},
+	});
+
+	const value3 = Symbol();
+	await repeat.async(async (previousResult) => {
+		if (previousResult !== undefined) t.is(previousResult, value3);
+		return value3;
+	}, {
+		countout: 2,
+		onCountout() {},
+	});
+});

@@ -17,8 +17,8 @@ function repeat(func, options = {}) {
 		until      = (result) => false,
 		timeout    = Infinity,
 		countout   = Infinity,
-		onTimeout  = (lastResult) => { throw new Error('Repeat function call timed out.');   },
-		onCountout = (lastResult) => { throw new Error('Repeat function call counted out.'); },
+		onTimeout  = (result) => { throw new Error('Repeat function call timed out.');   },
+		onCountout = (result) => { throw new Error('Repeat function call counted out.'); },
 	} = options;
 
 	rules.func.validate(func);
@@ -36,7 +36,7 @@ function repeat(func, options = {}) {
 	const countLimit = Math.floor(countout);
 
 	while (true) {
-		result = func();
+		result = func(result);
 
 		//R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
 		if (until(result)) break;
@@ -65,8 +65,8 @@ repeat.async = async function (func, options = {}) {
 		until      = (result) => false, // Condition upon which the function will stop.
 		timeout    = Infinity,          // Number of milliseconds the function may repeat for.
 		countout   = Infinity,          // Number of times the function may execute.
-		onTimeout  = (lastResult) => { throw new Error('Repeat function call timed out.');   },
-		onCountout = (lastResult) => { throw new Error('Repeat function call counted out.'); },
+		onTimeout  = (result) => { throw new Error('Repeat function call timed out.');   },
+		onCountout = (result) => { throw new Error('Repeat function call counted out.'); },
 	} = options;
 
 	rules.func.validate(func);
@@ -84,7 +84,7 @@ repeat.async = async function (func, options = {}) {
 	const countLimit = Math.floor(countout);
 
 	while (true) {
-		result = await func();
+		result = await func(result);
 
 		//R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
 		if (await until(result)) break;
