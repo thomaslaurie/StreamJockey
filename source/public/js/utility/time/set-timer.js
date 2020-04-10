@@ -1,28 +1,31 @@
-//R setTimeout has a maximum delay of MAX_32_BIT_INTEGER past which the timeout will execute immediately.
-//G Use this timer instead to support longer timeouts.
+/* //! Differences from setTimeout:
+	Delay comes before callback.
+	Doesn't accept negative numbers or NaN for the delay.
+	Doesn't accept callback arguments. //G Wrap the callback in an arrow function instead.
+*/
 
+import {nonNegativeNumber, func} from '../validation/rules/index.js';
 import {MAX_32_BIT_INTEGER} from '../constants.js';
 
 /**
- * Executes a function after a delay time, similar to setTimeout.
+ * Executes a function after a delay time. 
+ * Supports times longer than 2147483647 milliseconds, unlike setTimeout.
  * 
- * @param  {number}   delay - Delay in milliseconds.
- * @param  {function} func  - Function executed after delay.
- * @param  {...any}   args  - Arguments passed to the function.
+ * @param  {number}   delay - Delay in milliseconds, or Infinity.
+ * @param  {function} callback  - Function executed after delay.
  * 
  * @returns {function}        Function that clears the timer.
  */
-export default function (delay, func, ...args) {
-	//TODO Add validation, maybe remove support for negative numbers and NaN as they don't semantically make sense.
+export default function (delay, callback) {
+	nonNegativeNumber.validate(delay);
+	func.validate(callback);
 
-	// If delay is 0, negative, or NaN (similar to setTimeout).
-	if (delay <= 0 || NaN) {
-		// Execute function immediately.
-		func(...args);
+	if (delay === 0) {
+		// Execute callback immediately.
+		callback();
 		// Return empty function, as an instantaneous timeout cannot be cleared.
 		return function () {};
 	}
-	// If delay is infinite.
 	if (delay === Infinity) {
 		// Never execute the function.
 		// Return empty function, as an infinite timeout is effectively cleared already.
@@ -50,7 +53,7 @@ export default function (delay, func, ...args) {
 		} else {
 			// Else, there are no chunks of overflowed time left:
 			// Set a timeout for the remaining time.
-			timeoutId = setTimeout(func, remainder, ...args);
+			timeoutId = setTimeout(callback, remainder);
 		}
 	})();
 

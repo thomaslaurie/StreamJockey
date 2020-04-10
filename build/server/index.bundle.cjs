@@ -4881,30 +4881,35 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../constants.js */ "./source/public/js/utility/constants.js");
-//R setTimeout has a maximum delay of MAX_32_BIT_INTEGER past which the timeout will execute immediately.
-//G Use this timer instead to support longer timeouts.
+/* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants.js */ "./source/public/js/utility/constants.js");
+/* //! Differences from setTimeout:
+	Delay comes before callback.
+	Doesn't accept negative numbers or NaN for the delay.
+	Doesn't accept callback arguments. //G Wrap the callback in an arrow function instead.
+*/
+
 
 /**
- * Executes a function after a delay time, similar to setTimeout.
+ * Executes a function after a delay time. 
+ * Supports times longer than 2147483647 milliseconds, unlike setTimeout.
  * 
- * @param  {number}   delay - Delay in milliseconds.
- * @param  {function} func  - Function executed after delay.
- * @param  {...any}   args  - Arguments passed to the function.
+ * @param  {number}   delay - Delay in milliseconds, or Infinity.
+ * @param  {function} callback  - Function executed after delay.
  * 
  * @returns {function}        Function that clears the timer.
  */
 
-/* harmony default export */ __webpack_exports__["default"] = (function (delay, func, ...args) {
-  //TODO Add validation, maybe remove support for negative numbers and NaN as they don't semantically make sense.
-  // If delay is 0, negative, or NaN (similar to setTimeout).
-  if (delay <= 0 || NaN) {
-    // Execute function immediately.
-    func(...args); // Return empty function, as an instantaneous timeout cannot be cleared.
+/* harmony default export */ __webpack_exports__["default"] = (function (delay, callback) {
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNegativeNumber"].validate(delay);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback);
+
+  if (delay === 0) {
+    // Execute callback immediately.
+    callback(); // Return empty function, as an instantaneous timeout cannot be cleared.
 
     return function () {};
-  } // If delay is infinite.
-
+  }
 
   if (delay === Infinity) {
     // Never execute the function.
@@ -4913,9 +4918,9 @@ __webpack_require__.r(__webpack_exports__);
   } // Remainder
 
 
-  const remainder = delay % _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_32_BIT_INTEGER"]; // Quotient
+  const remainder = delay % _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]; // Quotient
 
-  let overflowChunkCount = BigInt((delay - remainder) / _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_32_BIT_INTEGER"]); // Current timeout ID.
+  let overflowChunkCount = BigInt((delay - remainder) / _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]); // Current timeout ID.
 
   let timeoutId;
 
@@ -4929,11 +4934,11 @@ __webpack_require__.r(__webpack_exports__);
         overflowChunkCount--; // Evaluate the time state again.
 
         nestTimeout();
-      }, _constants_js__WEBPACK_IMPORTED_MODULE_0__["MAX_32_BIT_INTEGER"]);
+      }, _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]);
     } else {
       // Else, there are no chunks of overflowed time left:
       // Set a timeout for the remaining time.
-      timeoutId = setTimeout(func, remainder, ...args);
+      timeoutId = setTimeout(callback, remainder);
     }
   })();
 
