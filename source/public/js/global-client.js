@@ -48,6 +48,9 @@ import {
 	repeat,
 	rules,
 } from './utility/index.js';
+import {
+	runHTMLScript
+} from './browser-utility/index.js';
 import sj from './global.js';
 
 // EXTERNAL
@@ -78,24 +81,8 @@ sj.appName = 'StreamJockey';
 //  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
 //   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
 
-sj.serverLog = async function (message) {
+sj.serverLog = async function (message) { //TODO Unused
 	return await sj.request('POST', `${sj.API_URL}/log`, {message});
-};
-sj.loadScript = async function (url) {
-	//C dynamically loads a script from an external url, as would be done by a <script> element
-	//L modified from: https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#Dynamically_importing_scripts
-
-	const scriptElement = document.createElement('script');
-	const promise = new Deferred();
-
-	scriptElement.onerror = promise.reject;
-	scriptElement.onload = promise.resolve;
-	
-	//C adds script as child of <head>
-	document.head.appendChild(scriptElement);
-	scriptElement.src = url;
-
-	return await promise;
 };
 
 
@@ -1792,7 +1779,7 @@ sj.youtube = new sj.Source({
 
 		//C loads gapi into global scope 
 		//TODO is there any way to make this more module-like?
-		await sj.loadScript('https://apis.google.com/js/api.js');
+		await runHTMLScript('https://apis.google.com/js/api.js');
 		//C wait for gapi
 		await loaded;
 
@@ -1993,7 +1980,7 @@ sj.youtube = new sj.Source({
 		actions: {
 			async loadPlayer(context) {
 				//C load youtube iframe api
-				await sj.loadScript('https://www.youtube.com/iframe_api');
+				await runHTMLScript('https://www.youtube.com/iframe_api');
 
 				//TODO choose timeout
 				const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
