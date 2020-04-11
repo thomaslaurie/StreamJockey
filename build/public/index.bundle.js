@@ -845,7 +845,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _js_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/vuex.esm.browser.js */ "./source/public/js/vuex.esm.browser.js");
+/* harmony import */ var _js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/vendor/vuex.esm.browser.js */ "./source/public/js/vendor/vuex.esm.browser.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1065,7 +1065,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _js_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../js/vuex.esm.browser.js */ "./source/public/js/vuex.esm.browser.js");
+/* harmony import */ var _js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../js/vendor/vuex.esm.browser.js */ "./source/public/js/vendor/vuex.esm.browser.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1088,7 +1088,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     };
   },
 
-  computed: _objectSpread({}, Object(_js_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["mapState"])(['me'])),
+  computed: _objectSpread({}, Object(_js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["mapState"])(['me'])),
   methods: {
     submit() {
       var _this = this;
@@ -1655,7 +1655,7 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
- //import {mapState} from '../../../js/vuex.esm.browser.js'; 
+ //import {mapState} from '../../../js/vendor/vuex.esm.browser.js'; 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'login-form',
@@ -37666,8 +37666,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  // EXTERNAL
 
 
- //import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
-//import SpotifyWebApi from './spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
+ //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
+//import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -39191,7 +39191,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
             //! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
 
 
-            __webpack_require__.e(/*! import() | spotify-player */ "spotify-player").then(__webpack_require__.t.bind(null, /*! ./spotify-player.js */ "./source/public/js/spotify-player.js", 7));
+            __webpack_require__.e(/*! import() | spotify-player */ "spotify-player").then(__webpack_require__.t.bind(null, /*! ./vendor/spotify-player.js */ "./source/public/js/vendor/spotify-player.js", 7));
           });
           /* //OLD
           	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
@@ -42911,9 +42911,9 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vue.esm.browser.js */ "./source/public/js/vue.esm.browser.js");
-/* harmony import */ var _vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./vue-router.esm.browser.js */ "./source/public/js/vue-router.esm.browser.js");
-/* harmony import */ var _vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./vuex.esm.browser.js */ "./source/public/js/vuex.esm.browser.js");
+/* harmony import */ var _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vendor/vue.esm.browser.js */ "./source/public/js/vendor/vue.esm.browser.js");
+/* harmony import */ var _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./vendor/vue-router.esm.browser.js */ "./source/public/js/vendor/vue-router.esm.browser.js");
+/* harmony import */ var _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./vendor/vuex.esm.browser.js */ "./source/public/js/vendor/vuex.esm.browser.js");
 /* harmony import */ var socket_io_client__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! socket.io-client */ "./node_modules/socket.io-client/lib/index.js");
 /* harmony import */ var socket_io_client__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(socket_io_client__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _global_client_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./global-client.js */ "./source/public/js/global-client.js");
@@ -43082,14 +43082,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-// external
+// EXTERNAL
 //L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js
  //L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return)
 
  //L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
 
 
- // internal
+ // INTERNAL
 
 
  //  ██╗███╗   ██╗██╗████████╗
@@ -43101,11 +43101,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 // VUE
 //TODO vue dev suppressions
 
-_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.productionTip = false;
-_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.devtools = false;
-_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
-_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
-_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].mixin({
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.productionTip = false;
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.devtools = false;
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].mixin({
   //L global mixins: https://vuejs.org/v2/guide/mixins.html#Global-Mixin, so that sj does not have to be imported into every component
   //G to access mixin before component creation (ie inside data function), use this.$root.x instead of this.x
   data() {
@@ -43133,7 +43133,7 @@ _vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].mixin({
 
 
 
-var router = new _vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
+var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
   //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
   mode: 'history',
   routes: [{
@@ -43177,7 +43177,7 @@ var router = new _vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["defaul
     component: _vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
   }]
 });
-var store = new _vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Store({
+var store = new _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Store({
   modules: {
     liveData: _live_data_client_js__WEBPACK_IMPORTED_MODULE_5__["default"],
     //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
@@ -43195,7 +43195,7 @@ var store = new _vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Sto
   },
   getters: {}
 });
-var vm = new _vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+var vm = new _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   el: '#app',
   router,
   store,
@@ -48107,10 +48107,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/public/js/vue-router.esm.browser.js":
-/*!****************************************************!*\
-  !*** ./source/public/js/vue-router.esm.browser.js ***!
-  \****************************************************/
+/***/ "./source/public/js/vendor/vue-router.esm.browser.js":
+/*!***********************************************************!*\
+  !*** ./source/public/js/vendor/vue-router.esm.browser.js ***!
+  \***********************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -50668,10 +50668,10 @@ if (inBrowser && window.Vue) {
 
 /***/ }),
 
-/***/ "./source/public/js/vue.esm.browser.js":
-/*!*********************************************!*\
-  !*** ./source/public/js/vue.esm.browser.js ***!
-  \*********************************************/
+/***/ "./source/public/js/vendor/vue.esm.browser.js":
+/*!****************************************************!*\
+  !*** ./source/public/js/vendor/vue.esm.browser.js ***!
+  \****************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -62218,14 +62218,14 @@ function getOuterHTML(el) {
 
 Vue.compile = compileToFunctions;
 /* harmony default export */ __webpack_exports__["default"] = (Vue);
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../../../node_modules/timers-browserify/main.js */ "./node_modules/timers-browserify/main.js").setImmediate))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../../../../node_modules/timers-browserify/main.js */ "./node_modules/timers-browserify/main.js").setImmediate))
 
 /***/ }),
 
-/***/ "./source/public/js/vuex.esm.browser.js":
-/*!**********************************************!*\
-  !*** ./source/public/js/vuex.esm.browser.js ***!
-  \**********************************************/
+/***/ "./source/public/js/vendor/vuex.esm.browser.js":
+/*!*****************************************************!*\
+  !*** ./source/public/js/vendor/vuex.esm.browser.js ***!
+  \*****************************************************/
 /*! exports provided: default, Store, install, mapState, mapMutations, mapGetters, mapActions, createNamespacedHelpers */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

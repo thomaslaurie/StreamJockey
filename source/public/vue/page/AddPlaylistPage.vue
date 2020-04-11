@@ -2,7 +2,7 @@
 	import {
 		one,
 	} from '../../js/utility/index.js';
-    import VueX, {mapState} from '../../js/vuex.esm.browser.js'; 
+    import VueX, {mapState} from '../../js/vendor/vuex.esm.browser.js'; 
 
     export default {
         name: 'add-playlist-page',

@@ -1,5 +1,5 @@
 <script>
-    import {mapState} from '../../js/vuex.esm.browser.js'; 
+    import {mapState} from '../../js/vendor/vuex.esm.browser.js'; 
 
     export default {
         name: 'menu-bar',

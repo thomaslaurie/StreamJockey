@@ -145,17 +145,17 @@
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
-// external
+// EXTERNAL
 //L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js
-import Vue from './vue.esm.browser.js'; 
+import Vue from './vendor/vue.esm.browser.js'; 
 //L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return)
-import VueRouter from './vue-router.esm.browser.js';
+import VueRouter from './vendor/vue-router.esm.browser.js';
 //L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
-import VueX from './vuex.esm.browser.js'; 
+import VueX from './vendor/vuex.esm.browser.js'; 
 
 import SocketIO from 'socket.io-client';
 
-// internal
+// INTERNAL
 import sj from './global-client.js';
 import liveData from './live-data-client.js';
 

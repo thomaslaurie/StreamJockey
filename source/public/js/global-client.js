@@ -54,8 +54,8 @@ import sj from './global.js';
 import moment from 'moment';
 import he from 'he';
 
-//import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
-//import SpotifyWebApi from './spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
+//import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
+//import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -1396,7 +1396,7 @@ sj.spotify = new sj.Source({
 
 					//C dynamic import Spotify's SDK
 					//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
-					import(/* webpackChunkName: 'spotify-player' */ `./spotify-player.js`);
+					import(/* webpackChunkName: 'spotify-player' */ `./vendor/spotify-player.js`);
 				});
 
 				/* //OLD
