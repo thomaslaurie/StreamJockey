@@ -261,11 +261,9 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./polyfill.js */ "./source/public/js/polyfill.js");
-/* harmony import */ var _polyfill_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_polyfill_js__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
-/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -352,8 +350,6 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL
  // INTERNAL
 
- // side effects
-
 
 
  //  ██╗███╗   ██╗██╗████████╗
@@ -384,7 +380,7 @@ sj.test = async function test(tests, origin) {
 }; // CONSTANTS
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_4__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -536,7 +532,7 @@ sj.catchUnexpected = function (input) {
       //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
       error.reason = input.toString(); //C replace trace with actual trace (which has clickable URIs)
 
-      error.trace = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(input.stack, 'file:///', '');
+      error.trace = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(input.stack, 'file:///', '');
     } else if (sj.isType(input, sj.Base)) {
       error.reason = `unexpected ${input.constructorName}`;
     } else {
@@ -645,7 +641,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 
   if (method === 'GET') {
     if (sj.isType(body, Object)) {
-      url += `?${Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])(body)}`;
+      url += `?${Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"])(body)}`;
     }
 
     delete options.body;
@@ -666,7 +662,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
     }
   }
 
-  let result = await Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["fetch"])(url, options).catch(rejected => {
+  let result = await Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["fetch"])(url, options).catch(rejected => {
     //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
     //C catch network error
     //L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
@@ -710,7 +706,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
   };
 
   if (sj.isType(parsedResult, Array)) {
-    return await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(parsedResult, item => build(item));
+    return await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
   } else {
     return build(parsedResult);
   }
@@ -891,14 +887,14 @@ sj.Base = class Base {
       //C get stack
       const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
 
-      const stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+      const stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-      const stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+      const stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
 
       let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-      ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(ignore.join('|'), '.', '\.');
+      ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(ignore.join('|'), '.', '\.');
       const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-      const stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"])(stackTrace2, exp, '');
+      const stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace2, exp, '');
       return stackTrace0;
     }
   };
@@ -936,7 +932,7 @@ sj.Base = class Base {
     const composed = {}; //C assign all properties from options
 
     if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); //C or only assign properties declared in defaults
-    else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
+    else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
     //? is this preferable to simply using assign defined in places where it's needed?
 
     Object.keys(composed).forEach(key => {
@@ -1878,7 +1874,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
     return {
       fillError(error, fill) {
         //C replace placeholders
-        Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(fill).forEach((item, index) => {
+        Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(fill).forEach((item, index) => {
           const string = String(item);
           error.reason = error.reason.replace(`$${index}`, string);
           error.message = error.message.replace(`$${index}`, string);
@@ -2208,7 +2204,7 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
         Object.defineProperties(that.filters, {
           [key]: {
             get: function () {
-              return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(that, that.constructor.filters[key]);
+              return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, that.constructor.filters[key]);
             }
           }
         });
@@ -2705,7 +2701,7 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
-      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(accessory.options.query);
+      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(accessory.options.query);
     },
 
     defaults: {
@@ -2745,50 +2741,6 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
   })
 });
 /* harmony default export */ __webpack_exports__["default"] = (sj);
-
-/***/ }),
-
-/***/ "./source/public/js/polyfill.js":
-/*!**************************************!*\
-  !*** ./source/public/js/polyfill.js ***!
-  \**************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-if (Array.prototype.flat === undefined) {
-  //L https://github.com/jonathantneal/array-flat-polyfill
-  Object.defineProperties(Array.prototype, {
-    flat: {
-      configurable: true,
-      value: function flat() {
-        let depth = isNaN(arguments[0]) ? 1 : Number(arguments[0]);
-        const stack = Array.prototype.slice.call(this);
-        const result = [];
-
-        while (depth && stack.length) {
-          const next = stack.pop();
-
-          if (Object(next) instanceof Array) {
-            --depth;
-            Array.prototype.push.apply(stack, next);
-          } else {
-            result.unshift(next);
-          }
-        }
-
-        return result.concat(stack);
-      },
-      writable: true
-    },
-    flatMap: {
-      configurable: true,
-      value: function flatMap(callback) {
-        return Array.prototype.map.apply(this, arguments).flat();
-      },
-      writable: true
-    }
-  });
-}
 
 /***/ }),
 

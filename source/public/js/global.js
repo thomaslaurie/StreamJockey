@@ -90,7 +90,6 @@
 import fclone from 'fclone';
 
 // INTERNAL
-import './polyfill.js'; // side effects
 import {
 	define,
 	replaceAll,
