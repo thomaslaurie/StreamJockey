@@ -51,7 +51,6 @@ import {
 import sj from './global.js';
 
 // EXTERNAL
-import fclone from 'fclone';
 import moment from 'moment';
 import he from 'he';
 

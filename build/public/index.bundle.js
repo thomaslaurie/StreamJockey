@@ -37618,12 +37618,10 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
 /* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_3__);
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37668,7 +37666,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  // EXTERNAL
 
 
-
  //import './spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 //  ██╗███╗   ██╗██╗████████╗
@@ -37679,8 +37676,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 //C attach external libraries to sj so that they can be used where ever sj is imported
 
-_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_3___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he = he__WEBPACK_IMPORTED_MODULE_4___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_2___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].he = he__WEBPACK_IMPORTED_MODULE_3___default.a;
 _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].appName = 'StreamJockey'; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
@@ -44623,7 +44620,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           delete _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.placeholder;
         }); //await context.state.socket.test();
         //C module test
-        //await context.dispatch('test');
+        // await context.dispatch('test');
       })();
     },
 
@@ -44648,17 +44645,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               delay = delay * 1.25;
               return;
             }), {
-              until(result) {
-                //? When switching from while to until, this wasn't flipped because it seemed backwards before/
+              until() {
                 if (updated) {
                   updated = false;
-                  return true; //? maybe should be false
+                  return true;
                 } else {
-                  return false; //? maybe should be true
+                  return false;
                 }
               },
 
-              timeout: 2000
+              timeout: 2000,
+
+              onTimeout() {
+                throw new Error('LiveData update timed out.');
+              }
+
             });
           });
 
@@ -44727,8 +44728,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var removedBefore = 0;
         tests.push(['cachedEntityRefs length before', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore], ['cachedEntities length before', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore], ['lengthBefore', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore], ['noneAdded', onAddCount === addedBefore], ['noneEdited', onEditCount === editedBefore], ['noneRemoved', onRemoveCount === removedBefore]); // ADD
 
-        yield waitForUpdate();
-
         for (var i = 0; i < iterations; i++) {
           xTracks[i] = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track(_objectSpread({}, track, {
             position: undefined
@@ -44766,7 +44765,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         yield user.remove(); //TODO add tests for convergent liveQueries
 
         var passed = yield _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].test([...tests], 'liveQuery'); //C this refreshes the page until the test fails
-        //if (passed) document.location.reload();
+
+        if (passed) document.location.reload();
       })();
     }
 

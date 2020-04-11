@@ -1082,7 +1082,7 @@ export default {
 
 			
 			//C module test
-			//await context.dispatch('test');
+			// await context.dispatch('test');
 		},
 
 		async test(context) {
@@ -1092,7 +1092,7 @@ export default {
 			await wait(2000);
 
 			const tests = [];
-
+			
 			const uniqueName = () => `liveQuery${keyCode.create(7)}`;
 			const uniqueDuration = () => Math.round(Math.random()*100000);
 
@@ -1105,16 +1105,18 @@ export default {
 					delay = delay * 1.25;
 					return;
 				}, {
-					until(result) {
-						//? When switching from while to until, this wasn't flipped because it seemed backwards before/
+					until() {
 						if (updated) {
 							updated = false;
-							return true; //? maybe should be false
+							return true;
 						} else {
-							return false; //? maybe should be true
+							return false;
 						}
 					},
 					timeout: 2000,
+					onTimeout() {
+						throw new Error('LiveData update timed out.');
+					},
 				});
 			};
 
@@ -1193,7 +1195,6 @@ export default {
 			);		
 			
 			// ADD
-			await waitForUpdate();
 			for (let i = 0; i < iterations; i++) {
 				xTracks[i] = await new sj.Track({
 					...track, 
@@ -1265,7 +1266,7 @@ export default {
 			], 'liveQuery');
 
 			//C this refreshes the page until the test fails
-			//if (passed) document.location.reload();
+			if (passed) document.location.reload();
 		},
 	},
 };
