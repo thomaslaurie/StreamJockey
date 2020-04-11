@@ -446,39 +446,61 @@ sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
 		},
 		baseActions: {
 			async start(context, track) {
-				const {watch, dispatch, getters: {duration}} = context;
+				const {dispatch, getters, state} = context;
 				const timeBefore = Date.now();
-				const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
-					origin: 'sj.Playback.baseActions.start()',
-					reason: 'start state timed out',
-				}));
 
-				console.log(fclone(context), fclone(Object.getPrototypeOf(context)));
-				//console.log(fclone(context.watch));
+				/* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
+					const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+						origin: 'sj.Playback.baseActions.start()',
+						reason: 'start state timed out',
+					}));
 
-				const unwatch = watch(
-					//C pack desired state
-					({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
-					//C evaluate state conditions
-					({sourceId, isPlaying, progress}) => {
-						if (
-							//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-							sourceId === track.sourceId &&
-							isPlaying === true &&
-							progress <= (Date.now() - timeBefore) / duration
-						) {
-							deferred.resolve();
-						}
-					}, 
-					{deep: true, immediate: true}
-				);
+					const unwatch = context.watch(
+						//C pack desired state
+						({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
+						//C evaluate state conditions
+						({sourceId, isPlaying, progress}) => {
+							if (
+								//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+								sourceId === track.sourceId &&
+								isPlaying === true &&
+								progress <= (Date.now() - timeBefore) / duration
+							) {
+								deferred.resolve();
+							}
+						}, 
+						{deep: true, immediate: true}
+					);
+				*/
 
 				//C trigger api
 				await dispatch('baseStart', track);
 
-				//C wait for desired state
-				await deferred;
-				unwatch();
+				/* //TODO same here
+					//C wait for desired state
+					await deferred;
+					unwatch();
+				*/
+				//C Wait for the desired state.
+				await repeat.async(async () => {
+					await wait(100);
+					return {
+						sourceId:  getters.sourceId,
+						isPlaying: state.isPlaying,
+						progress:  state.progress,
+					};
+				},  {
+					until({sourceId, isPlaying, progress}) {
+						//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+						return (							
+							sourceId  === track.sourceId &&
+							isPlaying === true           &&
+							progress  <=  (Date.now() - timeBefore) / duration
+						);
+					},
+				});
+
+				console.log('reached');
 
 				return new sj.Success({
 					origin: 'sj.Playback.baseActions.start()',
@@ -1807,6 +1829,10 @@ sj.youtube = new sj.Source({
 		//C get apiKey and clientId stored on server
 		const {apiKey, clientId} = await sj.request('GET', `${sj.API_URL}/youtube/credentials`);
 
+		//TODO Create specific rules for each API key.
+		rules.string.validate(apiKey);
+		rules.string.validate(clientId);
+
 		//C loads and performs authorization, short version of the code commented out below
 		//R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
 		await gapi.client.init({
@@ -1847,15 +1873,39 @@ sj.youtube = new sj.Source({
 	async request(method, path, body) {
 		//C check that user is authorized (signedIn)
 		//TODO how do I check that the client library is loaded?
-		if (window.gapi === undefined || window.gapi.auth2 === undefined || !window.gapi.auth2.getAuthInstance().isSignedIn.get()) {
+		if (!window?.gapi?.auth2?.getAuthInstance?.()?.isSignedIn?.get?.()) {
 			await this.auth();
 		}
 
-		return await gapi.client.request({
-			method,
-			path: `/youtube/v3/${path}`,
-			params: body,
-		});
+		return await new Promise((resolve, reject) => {
+			// Wraps goog.Thenable which doesn't support the catch method.
+			gapi.client.request({
+				method,
+				path: `/youtube/v3/${path}`,
+				params: body,
+			}).then(resolve, reject);
+		}).catch((rejected) => {
+			if (
+				rejected?.code === 403 &&
+				rejected?.result?.error?.errors[0]?.message?.startsWith?.('Access Not Configured.')
+			) {
+				/* The key has probably been invalidated.
+					If the API is still enabled, try resetting the API by:
+						1. Deleting the API keys.
+						2. Disabling the API.
+						3. Re-enabling the API.
+						4. Creating new keys.
+					//L See here: https://stackoverflow.com/a/27491718
+				*/
+				throw new sj.Error({
+					reason: 'API key is invalid.',
+					message: 'YouTube credentials are invalid.',
+					content: rejected,
+				});
+			} else {
+				throw rejected;
+			}
+		}).catch(sj.propagate);
 	},
 
 	async search({
@@ -1958,6 +2008,7 @@ sj.youtube = new sj.Source({
 							width: '640',
 							height: '390',
 							//videoId: 'M71c1UVf-VE',
+							// host: 'https://www.youtube.com', //? doesn't seem to help
 							playerVars: {
 								controls: 0,
 								disablekb: 1,
@@ -1965,13 +2016,14 @@ sj.youtube = new sj.Source({
 								fs: 0,
 								iv_load_policy: 3,
 								modestbranding: 1,
-								//TODO origin: own domain
+								// origin: 'http://localhost:3000', //TODO extract as constant //? doesn't seem to help
 							},
 
 							//L https://developers.google.com/youtube/iframe_api_reference#Events
 							events: {
 								async onReady(event) {
-									await context.dispatch('checkPlayback');
+									//TODO handle error?
+									await context.dispatch('checkPlayback').catch(sj.propagate);
 									deferred.resolve(new sj.Success({
 										origin: 'sj.youtube loadPlayer()',
 										reason: 'youtube iframe player loaded',
@@ -1995,6 +2047,8 @@ sj.youtube = new sj.Source({
 			},
 
 			async checkPlayback(context) {
+				//TODO catch errors in here
+
 				const state = {};
 				const track = {};
 
@@ -2060,9 +2114,9 @@ sj.youtube = new sj.Source({
 			},
 
 
-			async baseStart({state: {player}}, {sourceId}) {
+			async baseStart({state: {player}, dispatch}, {sourceId}) {
 				player.loadVideoById({
-					videoId: track.sourceId,
+					videoId: sourceId,
 					//startSeconds
 					//endSeconds
 					//suggestedQuality

@@ -108,14 +108,21 @@
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dotenv */ "dotenv");
-/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dotenv__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
+/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! dotenv */ "dotenv");
+/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(dotenv__WEBPACK_IMPORTED_MODULE_1__);
 //! this needs to be in its own file (not at the top of index.js) because imports are hoisted, which causes dotenv.config() to run after any module that uses environment variables immediately, which makes them undefined
 //L https://stackoverflow.com/questions/42817339/es6-import-happening-before-env-import
 
-dotenv__WEBPACK_IMPORTED_MODULE_0___default.a.config({
-  path: './config/.env'
-}); //C relative to root apparently
+
+dotenv__WEBPACK_IMPORTED_MODULE_1___default.a.config({
+  path: _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('config/.env')
+}); //R The 'canary string' should be an environment variable that is committed to the repo that tests weather the passed environment variables are available and accurate. It should be identical to the CANARY environment variable.
+
+if (process.env.CANARY !== 'canaryString') {
+  throw new Error('Environment variables are not available.');
+}
 
 /***/ }),
 
@@ -3198,16 +3205,18 @@ class Deferred extends Promise {
       // Ability to prevent promise from settling.
       cancel() {
         closure.isCanceled = true;
+        return this;
       },
 
       // Ability to set automatic rejection upon timeout.
-      timeout(duration, onTimeout = () => 'Deferred promise timed out.') {
+      timeout(duration, onTimeout = () => new Error('Deferred promise timed out.')) {
         Object(_time_wait_js__WEBPACK_IMPORTED_MODULE_1__["default"])(duration).then(() => {
           // Don't timeout if promise has settled.
           if (closure.isPending) {
             this.reject(onTimeout());
           }
         });
+        return this;
       }
 
     });
@@ -4603,10 +4612,10 @@ function repeat(func, options = {}) {
     until = result => false,
     timeout = Infinity,
     countout = Infinity,
-    onTimeout = lastResult => {
+    onTimeout = result => {
       throw new Error('Repeat function call timed out.');
     },
-    onCountout = lastResult => {
+    onCountout = result => {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
@@ -4625,7 +4634,7 @@ function repeat(func, options = {}) {
   const countLimit = Math.floor(countout);
 
   while (true) {
-    result = func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+    result = func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
 
     if (until(result)) break; // Update 
 
@@ -4658,10 +4667,10 @@ repeat.async = async function (func, options = {}) {
     // Number of milliseconds the function may repeat for.
     countout = Infinity,
     // Number of times the function may execute.
-    onTimeout = lastResult => {
+    onTimeout = result => {
       throw new Error('Repeat function call timed out.');
     },
-    onCountout = lastResult => {
+    onCountout = result => {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
@@ -4680,7 +4689,7 @@ repeat.async = async function (func, options = {}) {
   const countLimit = Math.floor(countout);
 
   while (true) {
-    result = await func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+    result = await func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
 
     if (await until(result)) break; // Update 
 
@@ -6196,12 +6205,10 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube = new _global_
   name: 'youtube'
 });
 Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube, {
-  getCredentials: async function () {
-    return {
-      apiKey: process.env.YOUTUBE_API_KEY,
-      clientId: process.env.YOUTUBE_CLIENT_ID
-    };
-  }
+  getCredentials: async () => ({
+    apiKey: process.env.YOUTUBE_API_KEY,
+    clientId: process.env.YOUTUBE_CLIENT_ID
+  })
 });
 /* harmony default export */ __webpack_exports__["default"] = (auth);
 

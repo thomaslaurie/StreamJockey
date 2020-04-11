@@ -309,12 +309,10 @@ sj.youtube = new sj.Source({
 	name: 'youtube',
 });
 Object.assign(sj.youtube, {
-	getCredentials: async function () {
-		return {
-			apiKey: process.env.YOUTUBE_API_KEY,
-			clientId: process.env.YOUTUBE_CLIENT_ID,
-		};
-	},
+	getCredentials: async () => ({
+		apiKey: process.env.YOUTUBE_API_KEY,
+		clientId: process.env.YOUTUBE_CLIENT_ID,
+	}),
 });
 
 export default auth;

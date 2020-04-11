@@ -986,8 +986,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return _asyncToGenerator(function* () {
         console.log('%c---------', 'background-color: orange');
-        console.log('prevTrack', _this2.fclone(_this2.prevTrack));
-        console.log('nextTrack', _this2.fclone(_this2.nextTrack));
+        console.log('prevTrack', fclone__WEBPACK_IMPORTED_MODULE_0___default()(_this2.prevTrack));
+        console.log('nextTrack', fclone__WEBPACK_IMPORTED_MODULE_0___default()(_this2.nextTrack));
       })();
     },
 
@@ -38140,56 +38140,63 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback = _global_js__WEBPAC
       start(context, track) {
         return _asyncToGenerator(function* () {
           var {
-            watch,
             dispatch,
-            getters: {
-              duration
-            }
+            getters,
+            state
           } = context;
           var timeBefore = Date.now();
-          var deferred = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
-            origin: 'sj.Playback.baseActions.start()',
-            reason: 'start state timed out'
-          }));
-          console.log(fclone__WEBPACK_IMPORTED_MODULE_2___default()(context), fclone__WEBPACK_IMPORTED_MODULE_2___default()(Object.getPrototypeOf(context))); //console.log(fclone(context.watch));
+          /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
+          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+          		origin: 'sj.Playback.baseActions.start()',
+          		reason: 'start state timed out',
+          	}));
+          			const unwatch = context.watch(
+          		//C pack desired state
+          		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
+          		//C evaluate state conditions
+          		({sourceId, isPlaying, progress}) => {
+          			if (
+          				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+          				sourceId === track.sourceId &&
+          				isPlaying === true &&
+          				progress <= (Date.now() - timeBefore) / duration
+          			) {
+          				deferred.resolve();
+          			}
+          		}, 
+          		{deep: true, immediate: true}
+          	);
+          */
+          //C trigger api
 
-          var unwatch = watch( //C pack desired state
-          (_ref9, _ref10) => {
-            var {
-              state: {
+          yield dispatch('baseStart', track);
+          /* //TODO same here
+          	//C wait for desired state
+          	await deferred;
+          	unwatch();
+          */
+          //C Wait for the desired state.
+
+          yield _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+            yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(100);
+            return {
+              sourceId: getters.sourceId,
+              isPlaying: state.isPlaying,
+              progress: state.progress
+            };
+          }), {
+            until(_ref10) {
+              var {
+                sourceId,
                 isPlaying,
                 progress
-              }
-            } = _ref9;
-            var {
-              sourceId
-            } = _ref10;
-            return {
-              sourceId,
-              isPlaying,
-              progress
-            };
-          }, //C evaluate state conditions
-          (_ref11) => {
-            var {
-              sourceId,
-              isPlaying,
-              progress
-            } = _ref11;
-
-            if ( //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-            sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration) {
-              deferred.resolve();
+              } = _ref10;
+              //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+              return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
             }
-          }, {
-            deep: true,
-            immediate: true
-          }); //C trigger api
 
-          yield dispatch('baseStart', track); //C wait for desired state
-
-          yield deferred;
-          unwatch();
+          });
+          console.log('reached');
           return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start command completed'
@@ -38246,11 +38253,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback = _global_js__WEBPAC
         return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
       },
       //C state conditions for command resolution
-      isStarted: (state, _ref12) => {
+      isStarted: (state, _ref11) => {
         var {
           sourceId,
           duration
-        } = _ref12;
+        } = _ref11;
         return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration;
       } //TODO
       // isPaused:
@@ -38395,11 +38402,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
     // PLAYBACK FUNCTIONS
     //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
     // BASIC
-    start(_ref13, track) {
+    start(_ref12, track) {
       return _asyncToGenerator(function* () {
         var {
           dispatch
-        } = _ref13;
+        } = _ref12;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Start({
           source: track.source,
           //! uses track's source
@@ -38408,7 +38415,23 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
       })();
     },
 
-    pause(_ref14) {
+    pause(_ref13) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters: {
+            desiredSource: source
+          }
+        } = _ref13;
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
+          source,
+          //! other non-start basic playback functions just use the current desiredPlayback source
+          isPlaying: false
+        }));
+      })();
+    },
+
+    resume(_ref14) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
@@ -38418,13 +38441,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
         } = _ref14;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
-          //! other non-start basic playback functions just use the current desiredPlayback source
-          isPlaying: false
+          isPlaying: true
         }));
       })();
     },
 
-    resume(_ref15) {
+    seek(_ref15, progress) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
@@ -38432,21 +38454,6 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref15;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
-          source,
-          isPlaying: true
-        }));
-      })();
-    },
-
-    seek(_ref16, progress) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          }
-        } = _ref16;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Seek({
           source,
           progress
@@ -38454,14 +38461,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
       })();
     },
 
-    volume(_ref17, volume) {
+    volume(_ref16, volume) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
           getters: {
             desiredSource: source
           }
-        } = _ref17;
+        } = _ref16;
         //TODO volume should change volume on all sources
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Volume({
           source,
@@ -38471,7 +38478,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
     },
 
     // HIGHER LEVEL
-    toggle(_ref18) {
+    toggle(_ref17) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
@@ -38479,7 +38486,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playback.module = new _global
             desiredSource: source,
             desiredIsPlaying: isPlaying
           }
-        } = _ref18;
+        } = _ref17;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Toggle({
           source,
           isPlaying: !isPlaying
@@ -38666,12 +38673,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass({
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = /*#__PURE__*/function () {
-  var _ref19 = _asyncToGenerator(function* (user) {
+  var _ref18 = _asyncToGenerator(function* (user) {
     return yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/session"), new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
   });
 
   return function (_x6) {
-    return _ref19.apply(this, arguments);
+    return _ref18.apply(this, arguments);
   };
 }();
 
@@ -38792,7 +38799,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
       var that = _this16;
 
       var refresh = /*#__PURE__*/function () {
-        var _ref22 = _asyncToGenerator(function* (that) {
+        var _ref21 = _asyncToGenerator(function* (that) {
           var result = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].andResolve);
 
           if (_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].AuthRequired)) {
@@ -38808,7 +38815,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
         });
 
         return function refresh(_x7) {
-          return _ref22.apply(this, arguments);
+          return _ref21.apply(this, arguments);
         };
       }(); //C if client doesn't have token or if it has expired, refresh it immediately
       //TODO reconsider this string test
@@ -38827,13 +38834,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  search(_ref23) {
+  search(_ref22) {
     return _asyncToGenerator(function* () {
       var {
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref23;
+      } = _ref22;
       // VALIDATE
       _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonEmptyString.validate(term);
       _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonNegativeInteger.validate(startIndex);
@@ -38916,7 +38923,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
 
                 };
               }, player.awaitState = /*#__PURE__*/function () {
-                var _ref25 = _asyncToGenerator(function* (_ref24) {
+                var _ref24 = _asyncToGenerator(function* (_ref23) {
                   var _this17 = this;
 
                   var {
@@ -38925,13 +38932,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                     success = {},
                     error = {},
                     timeoutError = {}
-                  } = _ref24;
+                  } = _ref23;
                   return new Promise( /*#__PURE__*/function () {
-                    var _ref26 = _asyncToGenerator(function* (resolve, reject) {
+                    var _ref25 = _asyncToGenerator(function* (resolve, reject) {
                       var resolved = false; //C resolved boolean is used to prevent later announcements of response objects
 
                       var callback = /*#__PURE__*/function () {
-                        var _ref27 = _asyncToGenerator(function* (state) {
+                        var _ref26 = _asyncToGenerator(function* (state) {
                           if (!resolved && stateCondition(player.formatState(state))) {
                             //C remove listener
                             _this17.removeListener('player_state_changed', callback); //C update playback state
@@ -38946,7 +38953,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                         });
 
                         return function callback(_x12) {
-                          return _ref27.apply(this, arguments);
+                          return _ref26.apply(this, arguments);
                         };
                       }(); //C add the listener before the request is made, so that the event cannot be missed 
                       //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
@@ -38989,21 +38996,21 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                     });
 
                     return function (_x10, _x11) {
-                      return _ref26.apply(this, arguments);
+                      return _ref25.apply(this, arguments);
                     };
                   }());
                 });
 
                 return function (_x9) {
-                  return _ref25.apply(this, arguments);
+                  return _ref24.apply(this, arguments);
                 };
               }(), //C events
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
               player.on('ready', /*#__PURE__*/function () {
-                var _ref29 = _asyncToGenerator(function* (_ref28) {
+                var _ref28 = _asyncToGenerator(function* (_ref27) {
                   var {
                     device_id
-                  } = _ref28;
+                  } = _ref27;
                   //C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
                   //L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
                   //C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
@@ -39082,23 +39089,23 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                 });
 
                 return function (_x13) {
-                  return _ref29.apply(this, arguments);
+                  return _ref28.apply(this, arguments);
                 };
               }());
-              player.on('not_ready', (_ref31) => {
+              player.on('not_ready', (_ref30) => {
                 var {
                   device_id
-                } = _ref31;
+                } = _ref30;
                 //? don't know what to do here
                 console.error('not_ready', 'device_id:', device_id);
               }); //C errors
               //TODO make better handlers
               //L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 
-              player.on('initialization_error', (_ref32) => {
+              player.on('initialization_error', (_ref31) => {
                 var {
                   message
-                } = _ref32;
+                } = _ref31;
                 //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
                 reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
@@ -39107,10 +39114,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                   reason: message
                 }));
               });
-              player.on('authentication_error', (_ref33) => {
+              player.on('authentication_error', (_ref32) => {
                 var {
                   message
-                } = _ref33;
+                } = _ref32;
                 //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
                 reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
@@ -39119,10 +39126,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                   reason: message
                 }));
               });
-              player.on('account_error', (_ref34) => {
+              player.on('account_error', (_ref33) => {
                 var {
                   message
-                } = _ref34;
+                } = _ref33;
                 //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
                 reject(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                   log: true,
@@ -39137,10 +39144,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
                 context.dispatch('updatePlayback', state);
               });
-              player.on('playback_error', (_ref35) => {
+              player.on('playback_error', (_ref34) => {
                 var {
                   message
-                } = _ref35;
+                } = _ref34;
                 //TODO this should be a listener, and not resolve or reject
                 console.error('playback_error', message);
               }); //C connect player
@@ -39478,13 +39485,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      pause(_ref36) {
+      pause(_ref35) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref36;
+          } = _ref35;
           return yield player.awaitState({
             command: function () {
               var _command2 = _asyncToGenerator(function* () {
@@ -39512,13 +39519,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      resume(_ref37) {
+      resume(_ref36) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref37;
+          } = _ref36;
           return yield player.awaitState({
             command: function () {
               var _command3 = _asyncToGenerator(function* () {
@@ -39546,7 +39553,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      seek(_ref38, progress) {
+      seek(_ref37, progress) {
         return _asyncToGenerator(function* () {
           var {
             state,
@@ -39554,7 +39561,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
               player,
               track
             }
-          } = _ref38;
+          } = _ref37;
           var ms = progress * track.duration;
           var timeBeforeCall = Date.now();
           return yield player.awaitState({
@@ -39585,11 +39592,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      volume(_ref39, volume) {
+      volume(_ref38, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref39;
+          } = _ref38;
           return yield player.awaitState({
             command: function () {
               var _command5 = _asyncToGenerator(function* () {
@@ -39693,7 +39700,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
       var {
         apiKey,
         clientId
-      } = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/youtube/credentials")); //C loads and performs authorization, short version of the code commented out below
+      } = yield _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].API_URL, "/youtube/credentials")); //TODO Create specific rules for each API key.
+
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(apiKey);
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(clientId); //C loads and performs authorization, short version of the code commented out below
       //R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
 
       yield gapi.client.init({
@@ -39732,21 +39742,46 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
     var _this18 = this;
 
     return _asyncToGenerator(function* () {
+      var _window, _window$gapi, _window$gapi$auth, _window$gapi$auth$get, _window$gapi$auth$get2, _window$gapi$auth$get3, _window$gapi$auth$get4;
+
       //C check that user is authorized (signedIn)
       //TODO how do I check that the client library is loaded?
-      if (window.gapi === undefined || window.gapi.auth2 === undefined || !window.gapi.auth2.getAuthInstance().isSignedIn.get()) {
+      if (!((_window = window) === null || _window === void 0 ? void 0 : (_window$gapi = _window.gapi) === null || _window$gapi === void 0 ? void 0 : (_window$gapi$auth = _window$gapi.auth2) === null || _window$gapi$auth === void 0 ? void 0 : (_window$gapi$auth$get = _window$gapi$auth.getAuthInstance) === null || _window$gapi$auth$get === void 0 ? void 0 : (_window$gapi$auth$get2 = _window$gapi$auth$get.call(_window$gapi$auth)) === null || _window$gapi$auth$get2 === void 0 ? void 0 : (_window$gapi$auth$get3 = _window$gapi$auth$get2.isSignedIn) === null || _window$gapi$auth$get3 === void 0 ? void 0 : (_window$gapi$auth$get4 = _window$gapi$auth$get3.get) === null || _window$gapi$auth$get4 === void 0 ? void 0 : _window$gapi$auth$get4.call(_window$gapi$auth$get3))) {
         yield _this18.auth();
       }
 
-      return yield gapi.client.request({
-        method,
-        path: "/youtube/v3/".concat(path),
-        params: body
-      });
+      return yield new Promise((resolve, reject) => {
+        // Wraps goog.Thenable which doesn't support the catch method.
+        gapi.client.request({
+          method,
+          path: "/youtube/v3/".concat(path),
+          params: body
+        }).then(resolve, reject);
+      }).catch(rejected => {
+        var _rejected$result, _rejected$result$erro, _rejected$result$erro2, _rejected$result$erro3, _rejected$result$erro4;
+
+        if ((rejected === null || rejected === void 0 ? void 0 : rejected.code) === 403 && (rejected === null || rejected === void 0 ? void 0 : (_rejected$result = rejected.result) === null || _rejected$result === void 0 ? void 0 : (_rejected$result$erro = _rejected$result.error) === null || _rejected$result$erro === void 0 ? void 0 : (_rejected$result$erro2 = _rejected$result$erro.errors[0]) === null || _rejected$result$erro2 === void 0 ? void 0 : (_rejected$result$erro3 = _rejected$result$erro2.message) === null || _rejected$result$erro3 === void 0 ? void 0 : (_rejected$result$erro4 = _rejected$result$erro3.startsWith) === null || _rejected$result$erro4 === void 0 ? void 0 : _rejected$result$erro4.call(_rejected$result$erro3, 'Access Not Configured.'))) {
+          /* The key has probably been invalidated.
+          	If the API is still enabled, try resetting the API by:
+          		1. Deleting the API keys.
+          		2. Disabling the API.
+          		3. Re-enabling the API.
+          		4. Creating new keys.
+          	//L See here: https://stackoverflow.com/a/27491718
+          */
+          throw new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+            reason: 'API key is invalid.',
+            message: 'YouTube credentials are invalid.',
+            content: rejected
+          });
+        } else {
+          throw rejected;
+        }
+      }).catch(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
     })();
   },
 
-  search(_ref40) {
+  search(_ref39) {
     var _this19 = this;
 
     return _asyncToGenerator(function* () {
@@ -39754,7 +39789,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref40;
+      } = _ref39;
       // VALIDATE
       _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonEmptyString.validate(term);
       _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule2.nonNegativeInteger.validate(startIndex);
@@ -39817,14 +39852,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
 
         searchResults[index].contentDetails = item.contentDetails;
       });
-      return searchResults.map((_ref41) => {
+      return searchResults.map((_ref40) => {
         var {
           id: {
             videoId: id
           },
           snippet,
           contentDetails
-        } = _ref41;
+        } = _ref40;
         return new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track(_objectSpread({
           source: _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
@@ -39854,20 +39889,22 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
                 width: '640',
                 height: '390',
                 //videoId: 'M71c1UVf-VE',
+                // host: 'https://www.youtube.com', //? doesn't seem to help
                 playerVars: {
                   controls: 0,
                   disablekb: 1,
                   enablejsapi: 1,
                   fs: 0,
                   iv_load_policy: 3,
-                  modestbranding: 1 //TODO origin: own domain
+                  modestbranding: 1 // origin: 'http://localhost:3000', //TODO extract as constant //? doesn't seem to help
 
                 },
                 //L https://developers.google.com/youtube/iframe_api_reference#Events
                 events: {
                   onReady(event) {
                     return _asyncToGenerator(function* () {
-                      yield context.dispatch('checkPlayback');
+                      //TODO handle error?
+                      yield context.dispatch('checkPlayback').catch(_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
                       deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
                         origin: 'sj.youtube loadPlayer()',
                         reason: 'youtube iframe player loaded'
@@ -39900,6 +39937,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
         return _asyncToGenerator(function* () {
           var _context$state, _context$state$track, _context$state2, _context$state2$start;
 
+          //TODO catch errors in here
           var state = {};
           var track = {};
           var player = context.state.player;
@@ -39958,18 +39996,19 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
         })();
       },
 
-      baseStart(_ref42, _ref43) {
+      baseStart(_ref41, _ref42) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
-            }
-          } = _ref42;
+            },
+            dispatch
+          } = _ref41;
           var {
             sourceId
-          } = _ref43;
+          } = _ref42;
           player.loadVideoById({
-            videoId: track.sourceId //startSeconds
+            videoId: sourceId //startSeconds
             //endSeconds
             //suggestedQuality
 
@@ -39979,45 +40018,45 @@ _global_js__WEBPACK_IMPORTED_MODULE_1__["default"].youtube = new _global_js__WEB
 
       // async start(context, track) {
       // },
-      pause(_ref44) {
+      pause(_ref43) {
+        return _asyncToGenerator(function* () {
+          var {
+            state: {
+              player
+            }
+          } = _ref43;
+          player.pauseVideo(); //TODO return
+        })();
+      },
+
+      resume(_ref44) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
           } = _ref44;
-          player.pauseVideo(); //TODO return
+          player.playVideo(); //TODO return
         })();
       },
 
-      resume(_ref45) {
+      seek(_ref45, progress) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
           } = _ref45;
-          player.playVideo(); //TODO return
-        })();
-      },
-
-      seek(_ref46, progress) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            }
-          } = _ref46;
           var seconds = progress * track.duration * 0.001;
           player.seekTo(seconds, true); //TODO return
         })();
       },
 
-      volume(_ref47, volume) {
+      volume(_ref46, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref47;
+          } = _ref46;
           player.setVolume(volume * 100);
           player.unMute(); //TODO return
         })();
@@ -45215,17 +45254,19 @@ class Deferred extends Promise {
       // Ability to prevent promise from settling.
       cancel() {
         closure.isCanceled = true;
+        return this;
       },
 
       // Ability to set automatic rejection upon timeout.
       timeout(duration) {
-        var onTimeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : () => 'Deferred promise timed out.';
+        var onTimeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : () => new Error('Deferred promise timed out.');
         Object(_time_wait_js__WEBPACK_IMPORTED_MODULE_1__["default"])(duration).then(() => {
           // Don't timeout if promise has settled.
           if (closure.isPending) {
             this.reject(onTimeout());
           }
         });
+        return this;
       }
 
     });
@@ -46680,10 +46721,10 @@ function repeat(func) {
     until = result => false,
     timeout = Infinity,
     countout = Infinity,
-    onTimeout = lastResult => {
+    onTimeout = result => {
       throw new Error('Repeat function call timed out.');
     },
-    onCountout = lastResult => {
+    onCountout = result => {
       throw new Error('Repeat function call counted out.');
     }
   } = options;
@@ -46702,7 +46743,7 @@ function repeat(func) {
   var countLimit = Math.floor(countout);
 
   while (true) {
-    result = func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+    result = func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
 
     if (until(result)) break; // Update 
 
@@ -46737,10 +46778,10 @@ repeat.async = /*#__PURE__*/function () {
       // Number of milliseconds the function may repeat for.
       countout = Infinity,
       // Number of times the function may execute.
-      onTimeout = lastResult => {
+      onTimeout = result => {
         throw new Error('Repeat function call timed out.');
       },
-      onCountout = lastResult => {
+      onCountout = result => {
         throw new Error('Repeat function call counted out.');
       }
     } = options;
@@ -46759,7 +46800,7 @@ repeat.async = /*#__PURE__*/function () {
     var countLimit = Math.floor(countout);
 
     while (true) {
-      result = yield func(); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+      result = yield func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
 
       if (yield until(result)) break; // Update 
 

@@ -82,8 +82,8 @@
 			async test() {
 				console.log('%c---------', 'background-color: orange');
 				
-				console.log('prevTrack', this.fclone(this.prevTrack));
-				console.log('nextTrack', this.fclone(this.nextTrack));
+				console.log('prevTrack', fclone(this.prevTrack));
+				console.log('nextTrack', fclone(this.nextTrack));
 			},
 
 			// BUTTONS
