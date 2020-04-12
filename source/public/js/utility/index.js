@@ -15,7 +15,6 @@ export {default as DynamicClass}    from './dynamic-class.js';
 export {default as formatMs}        from './format-ms.js';
 export *        as constants        from './constants.js';
 //TODO constants aren't exported, find an elegant way to do this.
-export {Interface, SymbolInterface} from './interface.js'; 
 export *        as keyCode          from './key-code.js';
 export {default as reference}       from './reference.js';
 export {default as repeat}          from './repeat.js';

@@ -45282,7 +45282,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
 /* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/rule.js */ "./source/public/js/utility/validation/rule.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
+/* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./validation/interface.js */ "./source/public/js/utility/validation/interface.js");
 /* //R
 	CLASS COMPOSITION (
 		This module seem like it would work well with composition: 'class composition'.
@@ -45364,14 +45364,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
- // INTERFACE
-
-var dynamicClass = new _interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
-  intercept: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value),
-  instance: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value),
-  prototype: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value),
-  static: value => _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)
-}); // VALIDATION
+ // VALIDATION
 
 var customRules = {
   name: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
@@ -45392,7 +45385,7 @@ var customRules = {
   }),
   intercept: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!dynamicClass.validators[dynamicClass.intercept](value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
         throw new Error("'intercept' option must be a function, not a ".concat(typeof value));
       }
     }
@@ -45400,7 +45393,7 @@ var customRules = {
   }),
   instance: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!dynamicClass.validators[dynamicClass.instance](value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
         throw new Error("'instance' option must be a function, not a ".concat(typeof value));
       }
     }
@@ -45408,7 +45401,7 @@ var customRules = {
   }),
   prototype: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!dynamicClass.validators[dynamicClass.prototype](value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
         throw new Error("'prototype' option must be a function, not a ".concat(typeof value));
       }
     }
@@ -45416,7 +45409,7 @@ var customRules = {
   }),
   static: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!dynamicClass.validators[dynamicClass.static](value)) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
         throw new Error("'static' option must be a function, not a ".concat(typeof value));
       }
     }
@@ -45446,7 +45439,15 @@ var customRules = {
     }
 
   })
-}; // TRANSFER FUNCTIONS
+}; // INTERFACE
+
+var dynamicClass = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
+  //R Don't directly pass the customRule test, because Interfaces modify the function.
+  intercept: value => customRules.intercept.test(value),
+  instance: value => customRules.instance.test(value),
+  prototype: value => customRules.prototype.test(value),
+  static: value => customRules.static.test(value)
+}); // TRANSFER FUNCTIONS
 
 var baseTransfer = (properties, target, enumerableCondition) => {
   //TODO replace with forKeysOf()
@@ -45570,10 +45571,10 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             }
 
             // INTERCEPT
-            var interceptedArgs = Class[dynamicClass.intercept].call({}, ...args);
+            var interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args);
             super(...interceptedArgs); // INSTANCE
 
-            Class[dynamicClass.instance].call(this, ...interceptedArgs);
+            Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
           }
 
         }
@@ -45587,9 +45588,9 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             }
 
             // INTERCEPT
-            var interceptedArgs = Class[dynamicClass.intercept].call({}, ...args); // INSTANCE
+            var interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args); // INSTANCE
 
-            Class[dynamicClass.instance].call(this, ...interceptedArgs);
+            Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
           }
 
         }
@@ -45599,10 +45600,10 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
 
 
     _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenVariable(Class, {
-      [dynamicClass.intercept]: intercept,
-      [dynamicClass.instance]: instance,
-      [dynamicClass.prototype]: prototype,
-      [dynamicClass.static]: $static
+      [dynamicClass.keys.intercept]: intercept,
+      [dynamicClass.keys.instance]: instance,
+      [dynamicClass.keys.prototype]: prototype,
+      [dynamicClass.keys.static]: $static
     });
     /* //G//!
     	The 'duper' parameter should replace uses of 'super' in methods.
@@ -45614,11 +45615,11 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     //TODO consider not putting duper in an options container, I don't believe there should be any more arguments
     // PROTOTYPE
 
-    Class[dynamicClass.prototype].call(Class.prototype, {
+    Class[dynamicClass.keys.prototype].call(Class.prototype, {
       duper: Object.getPrototypeOf(Class.prototype)
     }); // STATIC
 
-    Class[dynamicClass.static].call(Class, {
+    Class[dynamicClass.keys.static].call(Class, {
       duper: Object.getPrototypeOf(Class)
     });
     return Class;
@@ -45647,17 +45648,17 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     if (intercept !== undefined) {
       customRules.intercept.validate(intercept); //C//! If the previous intercept function discarded arguments, it isn't possible to recover them in a subsequent intercept function.
 
-      Class[dynamicClass.intercept] = joinFunctions(Class[dynamicClass.intercept], intercept);
+      Class[dynamicClass.keys.intercept] = joinFunctions(Class[dynamicClass.keys.intercept], intercept);
     }
 
     if (instance !== undefined) {
       customRules.instance.validate(instance);
-      Class[dynamicClass.instance] = joinFunctions(Class[dynamicClass.instance], instance);
+      Class[dynamicClass.keys.instance] = joinFunctions(Class[dynamicClass.keys.instance], instance);
     }
 
     if (prototype !== undefined) {
       customRules.prototype.validate(prototype);
-      Class[dynamicClass.prototype] = joinFunctions(Class[dynamicClass.prototype], prototype); //C New prototype and static parts must be called immediately, as they are only called once. They get stored on the class for reference.
+      Class[dynamicClass.keys.prototype] = joinFunctions(Class[dynamicClass.keys.prototype], prototype); //C New prototype and static parts must be called immediately, as they are only called once. They get stored on the class for reference.
 
       prototype.call(Class.prototype, {
         duper: Object.getPrototypeOf(Class.prototype)
@@ -45666,7 +45667,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
 
     if ($static !== undefined) {
       customRules.static.validate($static);
-      Class[dynamicClass.static] = joinFunctions(Class[dynamicClass.static], $static);
+      Class[dynamicClass.keys.static] = joinFunctions(Class[dynamicClass.keys.static], $static);
       $static.call(Class, {
         duper: Object.getPrototypeOf(Class)
       });
@@ -45711,7 +45712,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*******************************************!*\
   !*** ./source/public/js/utility/index.js ***!
   \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexValidate, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, Interface, SymbolInterface, keyCode, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, DynamicClass, formatMs, constants, keyCode, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -45766,7 +45767,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexValidate", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["flexValidate"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["flexTest"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Interface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["SymbolInterface"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Rule"]; });
 
@@ -45790,18 +45795,13 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_12__; });
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["Interface"]; });
+/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./key-code.js */ "./source/public/js/utility/key-code.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_13__; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_13__["SymbolInterface"]; });
-
-/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./key-code.js */ "./source/public/js/utility/key-code.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_14__; });
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
-
-/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
 
 // NESTED
 
@@ -45824,221 +45824,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/interface.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/interface.js ***!
-  \***********************************************/
-/*! exports provided: VALIDATORS, IS_IMPLEMENTED_BY, ALL_VALID, ALL, ANY, exists, Interface, SymbolInterface */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "VALIDATORS", function() { return VALIDATORS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "IS_IMPLEMENTED_BY", function() { return IS_IMPLEMENTED_BY; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ALL_VALID", function() { return ALL_VALID; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ALL", function() { return ALL; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ANY", function() { return ANY; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "exists", function() { return exists; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return Interface; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return SymbolInterface; });
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
-/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/define.js */ "./source/public/js/utility/object/define.js");
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-//TODO make validator keys the string keys not the literal keys, easier to access
-//TODO implement poly-validate.
-
- // EXPORT CONSTANTS
-//TODO export these in a better way (maybe attach them to VirtualInterface as static properties).
-
-var VALIDATORS = Symbol('VALIDATORS');
-var IS_IMPLEMENTED_BY = Symbol('IS_IMPLEMENTED_BY');
-var ALL_VALID = 'all valid';
-var ALL = 'all';
-var ANY = 'any';
-var exists = function exists(object, key) {
-  return key in object;
-}; // PRIVATE UTILITIES
-
-function getValidatorKeys(validators) {
-  return Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(validators, {
-    own: true,
-    named: true,
-    symbol: true,
-    enumerable: true,
-    inherited: false,
-    nonEnumerable: false
-  });
-}
-
-;
-
-function validateValidator(validator, key) {
-  if (key === VALIDATORS || key === IS_IMPLEMENTED_BY) {
-    throw new Error("Using ".concat(key, " as a key is forbidden."));
-  }
-
-  if (typeof validator !== 'function') {
-    throw new Error("Interface property ".concat(key, " is not a validator function: ").concat(typeof validator));
-  }
-}
-
-;
-
-function freezeSpecialProperties(object) {
-  Object.defineProperties(object, {
-    validators: _objectSpread({}, Object.getOwnPropertyDescriptor(object, 'validators'), {
-      configurable: false
-    }),
-    isImplementedBy: _objectSpread({}, Object.getOwnPropertyDescriptor(object, 'isImplementedBy'), {
-      configurable: false
-    })
-  });
-}
-
-; // INHERITABLES
-
-function isImplementedBy(object) {
-  var strength = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ALL_VALID;
-
-  if (object === null || typeof object !== 'object') {
-    throw new Error("First argument is not an object: ".concat(object));
-  }
-
-  var validatorKeys = getValidatorKeys(this[VALIDATORS]);
-
-  var validate = key => {
-    var validator = this[VALIDATORS][key];
-
-    if (validator.length === 1) {
-      // Pass the value (invokes getter) if the validator has one parameter.
-      return validator(object[key]);
-    } else {
-      // Pass the object and key if the validator has any other number of parameters.
-      return validator(object, key);
-    }
-  };
-
-  if (strength === ALL_VALID) {
-    // all keys are valid on the object
-    return validatorKeys.every(key => validate(key));
-  } else if (strength === ALL) {
-    // all keys are present or valid on the object
-    return validatorKeys.every(key => exists(object, key) || validate(key));
-  } else if (strength === ANY) {
-    // at least one key is present or valid on the object
-    return validatorKeys.some(key => exists(object, key) || validate(key));
-  } else {
-    throw new Error("Strength argument must be ".concat(ALL_VALID, ", ").concat(ALL, ", or ").concat(ANY));
-  }
-}
-
-;
-
-class VirtualInterface {
-  constructor() {
-    var validators = {};
-    Object.defineProperties(this, {
-      validators: {
-        value: validators,
-        writable: false,
-        enumerable: false,
-        configurable: true
-      },
-      isImplementedBy: {
-        value: isImplementedBy,
-        writable: false,
-        enumerable: false,
-        configurable: true
-      }
-    }); // Special properties are also accessible from a symbol in-case their string key gets used as an interface key.
-
-    _object_define_js__WEBPACK_IMPORTED_MODULE_1__["default"].hiddenConstant(this, {
-      [VALIDATORS]: validators,
-      [IS_IMPLEMENTED_BY]: isImplementedBy
-    });
-  }
-
-}
-
-; // EXPORT CLASSES
-// Interface and SymbolInterface take a single validators parameter.
-// This validators object should have keys as the interface property names and values as the validator functions for those interface properties.
-// If a validator has 1 parameter, it will be passed a (value) argument, the evaluation of object[key].
-// If a validator has 2 (or any other number of parameters), it will be passed the (object, key) arguments.
-//G Use a validator with 2 parameters when the getter for object[key] should not be invoked during isImplementedBy().
-//! Be aware that default and rest parameters are not counted. 
-//G Manually re-define the validator.length property if a specific behavior is desired.
-//! The validator.length property will be set to non-configurable when it is passed in.
-
-class Interface extends VirtualInterface {
-  // Interface accepts both named and symbol keys. 
-  // The same keys must be used for implementations.
-  constructor(validators) {
-    super(validators);
-
-    for (var key of getValidatorKeys(validators)) {
-      var validator = validators[key];
-      validateValidator(validator, key); // Freeze the length property so that it can be relied upon to determine if the [value] or [object, key] parameters should be passed.
-
-      Object.defineProperty(validator, 'length', {
-        value: validator.length,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      }); // Store validators on instance.
-
-      _object_define_js__WEBPACK_IMPORTED_MODULE_1__["default"].constant(this[VALIDATORS], {
-        [key]: validator
-      });
-    }
-
-    freezeSpecialProperties(this);
-  }
-
-}
-;
-class SymbolInterface extends VirtualInterface {
-  // SymbolInterface creates symbols for ALL interface keys.
-  // Implementations must use the symbols as the property keys.
-  // This prevents name collision on implementations.
-  constructor(validators) {
-    super(validators);
-
-    for (var key of getValidatorKeys(validators)) {
-      var validator = validators[key];
-      validateValidator(validator, key);
-      Object.defineProperty(validator, 'length', {
-        value: validator.length,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      }); // Create substitute symbol key.
-
-      var symbol = Symbol(key); // Store symbol keys on instance under their original key so that they can be used for implementations: {[interface.key]: implementation}
-
-      _object_define_js__WEBPACK_IMPORTED_MODULE_1__["default"].constant(this, {
-        [key]: symbol
-      }); // Store validators on instance.
-
-      _object_define_js__WEBPACK_IMPORTED_MODULE_1__["default"].constant(this[VALIDATORS], {
-        [symbol]: validator
-      });
-    }
-
-    freezeSpecialProperties(this);
-  }
-
-}
-;
 
 /***/ }),
 
@@ -46494,14 +46279,16 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************************!*\
   !*** ./source/public/js/utility/object/keys-of.js ***!
   \****************************************************/
-/*! exports provided: forKeysOf, getKeysOf */
+/*! exports provided: forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return forKeysOf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return getKeysOf; });
-/* harmony import */ var _validation_flex_validate_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-validate.js */ "./source/public/js/utility/validation/flex-validate.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return forOwnKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return getOwnKeysOf; });
+/* harmony import */ var _validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-test.js */ "./source/public/js/utility/validation/flex-test.js");
 /* harmony import */ var _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/objects/object.js */ "./source/public/js/utility/validation/rules/objects/object.js");
 /* harmony import */ var _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../validation/rules/functions.js */ "./source/public/js/utility/validation/rules/functions.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -46602,13 +46389,33 @@ function getKeysOf(object) {
 
   forKeysOf(object, _objectSpread({
     callback(object, key) {
-      if (Object(_validation_flex_validate_js__WEBPACK_IMPORTED_MODULE_0__["default"])(filter, object, key)) {
+      if (Object(_validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__["default"])(filter, object, key)) {
         keys.push(key);
       }
     }
 
   }, rest));
   return keys;
+}
+;
+var own = {
+  own: true,
+  named: true,
+  symbol: true,
+  enumerable: true,
+  nonEnumerable: true,
+  inherited: false
+};
+function forOwnKeysOf(object, callback) {
+  return forKeysOf(object, _objectSpread({}, own, {
+    callback
+  }));
+}
+;
+function getOwnKeysOf(object, filter) {
+  return forKeysOf(object, _objectSpread({}, own, {
+    filter
+  }));
 }
 ;
 
@@ -47274,28 +47081,29 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/public/js/utility/validation/flex-validate.js":
-/*!**************************************************************!*\
-  !*** ./source/public/js/utility/validation/flex-validate.js ***!
-  \**************************************************************/
+/***/ "./source/public/js/utility/validation/flex-test.js":
+/*!**********************************************************!*\
+  !*** ./source/public/js/utility/validation/flex-test.js ***!
+  \**********************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return flexValidate; });
-// Executes validators that take either 1 (value) argument or 2 (object, key) arguments with either 1 or 2 arguments. 
-// If the validator takes 2 arguments but 2 arguments weren't passed, the first argument is simulated as an object property.
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return flexTest; });
+// Executes tests that take either 1 (value) argument or 2 (object, key) arguments with either 1 or 2 arguments. 
+// If the test takes 2 arguments but 2 arguments weren't passed, the first argument is simulated as an object property.
 //R Using (length === 2 else) rather than (length === 1 else) because otherwise if no arguments are passed undefined[undefined] won't work.
-function flexValidate(validator) {
+//TODO consider a one-time operation rather than a runtime function
+function flexTest(test) {
   for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     args[_key - 1] = arguments[_key];
   }
 
-  if (validator.length === 0) {
-    // Pass no arguments if validator takes none.
-    return validator();
-  } else if (validator.length === 1) {
+  if (test.length === 0) {
+    // Pass no arguments if test takes none.
+    return test();
+  } else if (test.length === 1) {
     var value;
 
     if (args.length === 0) {
@@ -47305,11 +47113,11 @@ function flexValidate(validator) {
     } else if (args.length === 2) {
       value = args[0][args[1]];
     } else {
-      throw new Error("".concat(args.length, " arguments not supported for validators with 1 parameter."));
+      throw new Error("".concat(args.length, " arguments not supported for tests with 1 parameter."));
     }
 
-    return validator(value);
-  } else if (validator.length === 2) {
+    return test(value);
+  } else if (test.length === 2) {
     var object;
     var key;
 
@@ -47317,17 +47125,17 @@ function flexValidate(validator) {
       object = args[0];
       key = args[1];
     } else {
-      throw new Error("".concat(args.length, " arguments not supported for validators with 2 parameters."));
+      throw new Error("".concat(args.length, " arguments not supported for tests with 2 parameters."));
     }
 
-    return validator(object, key);
+    return test(object, key);
     /* //OLD Value to property simulation.
     	object = Object.create(null);
     	key = Symbol('simulated key');
     	object[key] = value;
     */
   } else {
-    throw new Error("Validators with ".concat(validator.length, " arguments are not supported."));
+    throw new Error("Tests with ".concat(test.length, " arguments are not supported."));
   }
 }
 ;
@@ -47338,23 +47146,188 @@ function flexValidate(validator) {
 /*!******************************************************!*\
   !*** ./source/public/js/utility/validation/index.js ***!
   \******************************************************/
-/*! exports provided: rules, flexValidate, Rule */
+/*! exports provided: rules, flexTest, Interface, SymbolInterface, Rule */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _rules_index_js__WEBPACK_IMPORTED_MODULE_0__; });
-/* harmony import */ var _flex_validate_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flex-validate.js */ "./source/public/js/utility/validation/flex-validate.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexValidate", function() { return _flex_validate_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flex-test.js */ "./source/public/js/utility/validation/flex-test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _flex_test_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/validation/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["Interface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["SymbolInterface"]; });
+
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/public/js/utility/validation/rule.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
 
 
 
 
+
+
+/***/ }),
+
+/***/ "./source/public/js/utility/validation/interface.js":
+/*!**********************************************************!*\
+  !*** ./source/public/js/utility/validation/interface.js ***!
+  \**********************************************************/
+/*! exports provided: Interface, SymbolInterface */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return Interface; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return SymbolInterface; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../object/define.js */ "./source/public/js/utility/object/define.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
+/* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./flex-test.js */ "./source/public/js/utility/validation/flex-test.js");
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/public/js/utility/validation/rule.js");
+/* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
+
+
+
+
+
+
+class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
+  constructor(packs) {
+    var keys = {};
+    var tests = {};
+
+    var _loop = function _loop(key, subKey, test) {
+      _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["func"].validate(test); // Store subKeys on instance under their original key so that they can be used for implementations: {[interface.keys.<key>]: implementation}
+
+      keys[key] = subKey; // Freeze the test length property so that it can be relied upon to determine if the [value] or [object, key] parameters should be passed.
+
+      Object.defineProperty(test, 'length', {
+        value: test.length,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      }); // Store tests on instance, also under their original key.
+      // Convert tests to use two arguments.
+      //R Converting the tests here preserves the benefit of being able to pass single-argument value tests while also knowing that the stored tests always take two arguments.
+
+      tests[key] = (o, k) => {
+        return Object(_flex_test_js__WEBPACK_IMPORTED_MODULE_2__["default"])(test, o, k);
+      };
+    };
+
+    for (var [key, subKey, test] of packs) {
+      _loop(key, subKey, test);
+    }
+
+    Object.freeze(keys);
+    Object.freeze(tests); // Create an pass validator to Rule constructor.
+
+    super({
+      validator(object) {
+        _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(object);
+        Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(this.tests, (tests, key) => {
+          var test = this.tests[key];
+          var subKey = this.keys[key];
+
+          if (!test(object, subKey)) {
+            throw new Error("Object does not fully implement interface. ".concat(key, " failed its test."));
+          }
+
+          ;
+        });
+        /* //OLD
+        	//R Unnecessarily complicated for a feature that can probably just be permanently set to 'validate'.
+        	if (precision === 'validate') {
+        		// Validate all keys on object.
+        		return testKeys.every((key) => (
+        			validate(key)
+        		));
+        	} else if (precision === 'all') {
+        		// All keys are present (or valid).
+        		return testKeys.every((key) => (
+        			exists(object, key) ||
+        			validate(key)
+        		));
+        	} else if (precision === 'any') {
+        		// Any key is present (or valid).
+        		return testKeys.some((key) => (
+        			exists(object, key) ||
+        			validate(key)
+        		));
+        	} else {
+        		throw new Error(`Precision argument must be 'validate', 'all', or 'any'`);
+        	}
+        */
+      } //! Do not define a caster for interfaces, they should not be cast.
+
+
+    });
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      keys,
+      tests
+    });
+  } // Minimal test to ensure interface property exists in object.
+
+
+  static exists(object, key) {
+    return key in object;
+  }
+
+}
+
+;
+/*
+	Interface and SymbolInterface take a single tests object.
+
+	This tests object should have keys as the interface property names and values as the validator functions for those interface properties.
+
+	Tests have two signatures: (value) and (object, key). 
+	When they are stored on the interface.tests object, both signatures will be wrapped in a function with a (object, key) signature.
+	
+	//G Use tests with the (object, key) signature when the getter for object[key] should not be invoked during validation of the interface.
+	//! Be aware that default and rest parameters are not counted. 
+	//G Manually re-define the validator.length property if a specific behavior is desired.
+	//! The validator.length property will be set to non-configurable when it is passed in.
+
+*/
+
+class Interface extends VirtualInterface {
+  // Interface accepts both named and symbol keys. 
+  // The same keys must be used for implementations.
+  constructor(tests) {
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(tests);
+    var packs = [];
+    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(tests, (tests, key) => {
+      var subKey = key;
+      var test = tests[key];
+      packs.push([key, subKey, test]);
+    });
+    super(packs);
+  }
+
+}
+;
+class SymbolInterface extends VirtualInterface {
+  // SymbolInterface creates substitute symbols for ALL interface keys.
+  // Implementations must use the substituted symbols as the property keys.
+  // This prevents name collision on implementations.
+  constructor(tests) {
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(tests);
+    var packs = [];
+    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(tests, (tests, key) => {
+      var subKey = Symbol(key); // Create a symbol subKey instead.
+
+      var test = tests[key];
+      packs.push([key, subKey, test]);
+    });
+    super(packs);
+  }
+
+}
+;
 
 /***/ }),
 

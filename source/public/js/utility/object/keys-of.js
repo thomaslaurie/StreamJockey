@@ -4,7 +4,7 @@
 
 //! Duplicated code in define.js to remove a circular dependency.
 
-import flexValidate from '../validation/flex-validate.js';
+import flexTest from '../validation/flex-test.js';
 // Importing directly instead of from ../validation/rules/index.js to avoid circular reference.
 import object from '../validation/rules/objects/object.js';
 import {func}   from '../validation/rules/functions.js';
@@ -72,7 +72,6 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 		}
 	}
 };
-
 export function getKeysOf(object, optionsOrFilter = {}) {
 	// OPTIONS / VALIDATION
 	const options = (
@@ -101,7 +100,7 @@ export function getKeysOf(object, optionsOrFilter = {}) {
 	// FILTER
 	forKeysOf(object, {
 		callback(object, key) {
-			if (flexValidate(filter, object, key)) {
+			if (flexTest(filter, object, key)) {
 				keys.push(key);
 			}
 		},
@@ -109,4 +108,20 @@ export function getKeysOf(object, optionsOrFilter = {}) {
 	});
 
 	return keys;
+};
+
+const own = {
+	own:           true,
+	named:         true,
+	symbol:        true,
+	enumerable:    true,
+	nonEnumerable: true,
+
+	inherited:     false,
+};
+export function forOwnKeysOf(object, callback) {
+	return forKeysOf(object, {...own, callback});
+};
+export function getOwnKeysOf(object, filter) {
+	return forKeysOf(object, {...own, filter});
 };

@@ -80,15 +80,7 @@ import define from './object/define.js';
 import {getKeysOf} from './object/keys-of.js';
 import Rule from './validation/rule.js';
 import {rules} from './validation/index.js';
-import { SymbolInterface } from './interface.js';
-
-// INTERFACE
-const dynamicClass = new SymbolInterface({
-	intercept: (value) => rules.func.test(value),
-	instance:  (value) => rules.func.test(value),
-	prototype: (value) => rules.func.test(value),
-	static:    (value) => rules.func.test(value),
-});
+import {SymbolInterface} from './validation/interface.js';
 
 // VALIDATION
 const customRules = {
@@ -108,28 +100,28 @@ const customRules = {
 	}),
 	intercept: new Rule({
 		validator(value) {
-			if (!dynamicClass.validators[dynamicClass.intercept](value)) {
+			if (!rules.func.test(value)) {
 				throw new Error(`'intercept' option must be a function, not a ${typeof value}`);
 			}
 		},
 	}),
 	instance: new Rule({
 		validator(value) {
-			if (!dynamicClass.validators[dynamicClass.instance](value)) {
+			if (!rules.func.test(value)) {
 				throw new Error(`'instance' option must be a function, not a ${typeof value}`);
 			}
 		},
 	}),
 	prototype: new Rule({
 		validator(value) {
-			if (!dynamicClass.validators[dynamicClass.prototype](value)) {
+			if (!rules.func.test(value)) {
 				throw new Error(`'prototype' option must be a function, not a ${typeof value}`);
 			}
 		},
 	}),
 	static: new Rule({
 		validator(value) {
-			if (!dynamicClass.validators[dynamicClass.static](value)) {
+			if (!rules.func.test(value)) {
 				throw new Error(`'static' option must be a function, not a ${typeof value}`);
 			}
 		},
@@ -156,6 +148,15 @@ const customRules = {
 		},
 	}),
 };
+
+// INTERFACE
+const dynamicClass = new SymbolInterface({
+	//R Don't directly pass the customRule test, because Interfaces modify the function.
+	intercept: (value) => customRules.intercept.test(value),
+	instance:  (value) => customRules.instance.test(value),
+	prototype: (value) => customRules.prototype.test(value),
+	static:    (value) => customRules.static.test(value),
+});
 
 // TRANSFER FUNCTIONS
 const baseTransfer = (properties, target, enumerableCondition) => {
@@ -257,9 +258,9 @@ define.constant(dynamicClass, {
 		customRules.name.validate(name);
 		if (isChild) customRules.extends.validate(Parent);
 		customRules.intercept.validate(intercept);
-		customRules.instance .validate(instance);
+		customRules.instance.validate(instance);
 		customRules.prototype.validate(prototype);
-		customRules.static   .validate($static);
+		customRules.static .validate($static);
 
 		// DEFINITION
 		//R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
@@ -270,22 +271,22 @@ define.constant(dynamicClass, {
 			Class = {[name]: class extends Parent {
 				constructor(...args) {
 					// INTERCEPT
-					const interceptedArgs = Class[dynamicClass.intercept].call({}, ...args);
+					const interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args);
 
 					super(...interceptedArgs);
 
 					// INSTANCE
-					Class[dynamicClass.instance].call(this, ...interceptedArgs);
+					Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
 				}
 			}}[name];
 		} else {
 			Class = {[name]: class {
 				constructor(...args) {
 					// INTERCEPT
-					const interceptedArgs = Class[dynamicClass.intercept].call({}, ...args);
+					const interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args);
 
 					// INSTANCE
-					Class[dynamicClass.instance].call(this, ...interceptedArgs);
+					Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
 				}
 			}}[name];
 		}
@@ -293,10 +294,10 @@ define.constant(dynamicClass, {
 		// STORE PARTS
 		//R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
 		define.hiddenVariable(Class, {
-			[dynamicClass.intercept]: intercept,
-			[dynamicClass.instance]:  instance,
-			[dynamicClass.prototype]: prototype,
-			[dynamicClass.static]:    $static,
+			[dynamicClass.keys.intercept]: intercept,
+			[dynamicClass.keys.instance]:  instance,
+			[dynamicClass.keys.prototype]: prototype,
+			[dynamicClass.keys.static]:    $static,
 		});
 
 		/* //G//!
@@ -310,9 +311,9 @@ define.constant(dynamicClass, {
 		*/
 		//TODO consider not putting duper in an options container, I don't believe there should be any more arguments
 		// PROTOTYPE
-		Class[dynamicClass.prototype].call(Class.prototype, {duper: Object.getPrototypeOf(Class.prototype)});
+		Class[dynamicClass.keys.prototype].call(Class.prototype, {duper: Object.getPrototypeOf(Class.prototype)});
 		// STATIC
-		Class[dynamicClass.static].call(Class, {duper: Object.getPrototypeOf(Class)});
+		Class[dynamicClass.keys.static].call(Class, {duper: Object.getPrototypeOf(Class)});
 
 		return Class;
 	},
@@ -336,21 +337,21 @@ define.constant(dynamicClass, {
 		if (intercept !== undefined) {
 			customRules.intercept.validate(intercept);
 			//C//! If the previous intercept function discarded arguments, it isn't possible to recover them in a subsequent intercept function.
-			Class[dynamicClass.intercept] = joinFunctions(Class[dynamicClass.intercept], intercept);
+			Class[dynamicClass.keys.intercept] = joinFunctions(Class[dynamicClass.keys.intercept], intercept);
 		}
 		if (instance  !== undefined) {
 			customRules.instance.validate(instance);
-			Class[dynamicClass.instance] = joinFunctions(Class[dynamicClass.instance], instance);
+			Class[dynamicClass.keys.instance] = joinFunctions(Class[dynamicClass.keys.instance], instance);
 		}
 		if (prototype !== undefined) {
 			customRules.prototype.validate(prototype);
-			Class[dynamicClass.prototype] = joinFunctions(Class[dynamicClass.prototype], prototype);
+			Class[dynamicClass.keys.prototype] = joinFunctions(Class[dynamicClass.keys.prototype], prototype);
 			//C New prototype and static parts must be called immediately, as they are only called once. They get stored on the class for reference.
 			prototype.call(Class.prototype, {duper: Object.getPrototypeOf(Class.prototype)});
 		}
 		if ($static   !== undefined) {
 			customRules.static.validate($static);
-			Class[dynamicClass.static]    = joinFunctions(Class[dynamicClass.static],    $static);
+			Class[dynamicClass.keys.static]    = joinFunctions(Class[dynamicClass.keys.static],    $static);
 			$static.call(Class, {duper: Object.getPrototypeOf(Class)})
 		}
 	},

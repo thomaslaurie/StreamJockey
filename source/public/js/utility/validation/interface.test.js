@@ -3,18 +3,15 @@
 import test from 'ava';
 import { 
 	Interface, 
-	SymbolInterface, 
-	exists, 
-	ALL, 
-	ANY,
+	SymbolInterface,
 } from './interface.js';
 
 test('complete interface', (t) => {
 	t.assert((new Interface({
-		jump: exists,
-		swim: exists,
-		fly:  exists,
-	})).isImplementedBy({
+		jump: Interface.exists,
+		swim: Interface.exists,
+		fly:  Interface.exists,
+	})).test({
 		jump: 'jump',
 		swim: 'swim',
 		fly:  'fly',
@@ -23,10 +20,10 @@ test('complete interface', (t) => {
 
 test('incomplete interface', (t) => {
 	t.assert(!(new Interface({
-		jump: exists,
-		swim: exists,
-		fly:  exists,
-	})).isImplementedBy({
+		jump: Interface.exists,
+		swim: Interface.exists,
+		fly:  Interface.exists,
+	})).test({
 		jump: 'jump',
 		swim: 'swim',
 	}));
@@ -34,22 +31,22 @@ test('incomplete interface', (t) => {
 
 test('exists succeeds', (t) => {
 	t.assert((new Interface({
-		foo: exists,
-	})).isImplementedBy({
+		foo: Interface.exists,
+	})).test({
 		foo: undefined,
 	}));
 });
 
 test('exists fails', (t) => {
 	t.assert(!(new Interface({
-		foo: exists,
-	})).isImplementedBy({}));
+		foo: Interface.exists,
+	})).test({}));
 });
 
 test('validator succeeds', (t) => {
 	t.assert((new Interface({
 		foo: (o, k) => o[k] === 'foo',
-	})).isImplementedBy({
+	})).test({
 		foo: 'foo',
 	}));
 });
@@ -57,7 +54,7 @@ test('validator succeeds', (t) => {
 test('validator fails', (t) => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === 'foo',
-	})).isImplementedBy({
+	})).test({
 		foo: 'bar',
 	}));
 });
@@ -65,13 +62,13 @@ test('validator fails', (t) => {
 test('full undefined succeeds', (t) => {
 	t.assert((new Interface({
 		foo: (o, k) => o[k] === undefined,
-	})).isImplementedBy({}));
+	})).test({}));
 });
 
 test('full undefined fails', (t) => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === undefined,
-	})).isImplementedBy({
+	})).test({
 		foo: 'foo',
 	}));
 });
@@ -80,7 +77,7 @@ test('partial undefined succeeds', (t) => {
 	t.assert((new Interface({
 		foo: (o, k) => o[k] === undefined,
 		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
+	})).test({
 		bar: 'bar',
 	}));
 });
@@ -89,7 +86,7 @@ test('partial undefined fails', (t) => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === undefined,
 		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
+	})).test({
 		foo: 'foo',
 		bar: 'bar',
 	}));
@@ -98,13 +95,13 @@ test('partial undefined fails', (t) => {
 test('full undeclared succeeds', (t) => {
 	t.assert((new Interface({
 		foo: (o, k) => !(k in o),
-	})).isImplementedBy({}));
+	})).test({}));
 });
 
 test('full declared fails', (t) => {
 	t.assert(!(new Interface({
 		foo: (o, k) => !(k in o),
-	})).isImplementedBy({
+	})).test({
 		foo: undefined,
 	}));
 });
@@ -113,7 +110,7 @@ test('partial undeclared succeeds', (t) => {
 	t.assert((new Interface({
 		foo: (o, k) => !(k in o),
 		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
+	})).test({
 		bar: 'bar',
 	}));
 });
@@ -122,52 +119,33 @@ test('partial undeclared fails', (t) => {
 	t.assert(!(new Interface({
 		foo: (o, k) => !(k in o),
 		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
+	})).test({
 		foo: undefined,
 		bar: 'bar',
 	}));
-});
-
-test('all succeeds', (t) => {
-	t.assert((new Interface({
-		foo: (o, k) => o[k] === 'foo',
-		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
-		foo: 'bar',
-		bar: 'foo',
-	}, ALL));
 });
 
 test('all fails', (t) => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === 'foo',
 		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
+	})).test({
 		foo: 'bar',
-	}, ALL));
-});
-
-test('any succeeds', (t) => {
-	t.assert((new Interface({
-		foo: (o, k) => o[k] === 'foo',
-		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
-		foo: 'bar',
-	}, ANY));
+	}, 'all'));
 });
 
 test('any fails', (t) => {
 	t.assert(!(new Interface({
 		foo: (o, k) => o[k] === 'foo',
 		bar: (o, k) => o[k] === 'bar',
-	})).isImplementedBy({
+	})).test({
 		baz: 'baz',
-	}, ANY));
+	}, 'any'));
 });
 
 test('empty', (t) => {
 	t.assert((new Interface({
-	})).isImplementedBy({
+	})).test({
 	}));
 });
 
@@ -178,13 +156,35 @@ test.beforeEach((t) => {
 });
 
 test('SymbolInterface by value succeeds', (t) => {
-	t.assert(t.context.symbolInterface.isImplementedBy({
-		[t.context.symbolInterface.foo]: 'foo',
+	t.assert(t.context.symbolInterface.test({
+		[t.context.symbolInterface.keys.foo]: 'foo',
 	}));
 });
 
 test('SymbolInterface by key fails', (t) => {
-	t.assert(!t.context.symbolInterface.isImplementedBy({
+	t.assert(!t.context.symbolInterface.test({
 		foo: 'foo',
 	}));
 });
+
+
+/* //OLD
+	test('all succeeds', (t) => {
+		t.assert((new Interface({
+			foo: (o, k) => o[k] === 'foo',
+			bar: (o, k) => o[k] === 'bar',
+		})).test({
+			foo: 'bar',
+			bar: 'foo',
+		}, 'all'));
+	});
+
+	test('any succeeds', (t) => {
+		t.assert((new Interface({
+			foo: (o, k) => o[k] === 'foo',
+			bar: (o, k) => o[k] === 'bar',
+		})).test({
+			foo: 'bar',
+		}, 'any'));
+	});
+*/
