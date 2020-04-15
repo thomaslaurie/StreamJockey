@@ -32,7 +32,7 @@
 
 				// INSTANCE
 				const transfers = this.constructor[iface.instance].call(this, ...interceptedArgs);
-				this.constructor[iface.transferToInstance](transfers, this);
+				this.constructor[iface.instanceTransfer](transfers, this);
 			}}[name];
 
 			if (isChild) {
@@ -76,14 +76,98 @@
 	)
 */
 
+//TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
+
 import define from './object/define.js';
-import {getKeysOf} from './object/keys-of.js';
+import {forOwnKeysOf} from './object/keys-of.js';
 import Rule from './validation/rule.js';
 import {rules} from './validation/index.js';
-import {SymbolInterface} from './validation/interface.js';
+import {Interface, SymbolInterface} from './validation/interface.js';
 
 // VALIDATION
-const customRules = {
+const customRules = {};
+define.constant(customRules, {
+	layers: new Rule({
+		validator(value) {
+			rules.array.validate(value);
+	
+			let currentExtends;
+			for (const layer of value) {
+				customRules.layer.validate(layer);
+	
+				// If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
+				if (
+					layer.extends !== undefined && 
+					currentExtends !== undefined
+				) {
+					
+					if (
+						layer.extends === currentExtends || 
+						currentExtends.isPrototypeOf(layer.extends)
+					) {
+						currentExtends = layer.extends;
+					} else {
+						//TODO write test
+						throw new Error('Dynamic Class layer cannot extend a class that is not equal to or the descendant of a class extended by a higher layer.');
+					}
+				}
+			}
+		},
+		caster(reference) {
+			// Undefined defaults to empty array.
+			if (reference.value === undefined) reference.value = [];
+			// Cast all items in array to layers.
+			if (reference.value instanceof Array) {
+
+				reference.value = reference.value.map((layer) => {
+					return customRules.layer.validateCast(layer)[0];
+				});
+			}
+			// Else cannot cast non-undefined, non-arrays.
+		},
+	}),
+	layer: new Interface({
+		//R Wrap the test functions to ensure that they doesn't get modified.
+		extends:   (value) => customRules.extends.validate(value),
+		intercept: (value) => customRules.intercept.test(value),
+		instance:  (value) => customRules.instance.test(value),
+		prototype: (value) => customRules.prototype.test(value),
+		static:    (value) => customRules.static.test(value),
+	}, {
+		caster(reference) {
+			// Undefined defaults to empty object.
+			if (reference.value === undefined) reference.value = {};
+			// Set defaults for undefined properties.
+			if (rules.object.test(reference.value)) {
+				const {
+					extends: e,
+	
+					//G Any changes to 'this' inside intercept() cannot impact the true instance.
+					intercept = () => ([]),
+					instance  = () => ({}),
+					prototype = () => ({}),
+					static: s = () => ({}),
+	
+					//R Passing an existing class is not supported because it won't aid augmentation and static properties on the class would interfere with the part defaults.
+					//R Object literals for the prototype and static options are not supported because it would allow mutation of the part functions. It's also more consistent to require all parts to be functions.
+
+					// Ensure other //! enumerable properties are preserved.
+					...rest
+				} = reference.value;
+	
+				// Replace with new object.
+				reference.value = {
+					extends: e,
+					intercept,
+					instance,
+					prototype,
+					static: s,
+					...rest,
+				};
+			}
+			// Else, not possible to cast non-undefined, non-object to layer.
+		},
+	}),
 	name: new Rule({
 		validator(value) {
 			if (!rules.string.test(value)) {
@@ -91,10 +175,13 @@ const customRules = {
 			}
 		},
 	}),
+
+	//! These must use the same keys that are expected on a layer object.
 	extends: new Rule({
 		validator(value) {
-			if (!rules.constructor.test(value)) {
-				throw new Error(`'extends' option must be a constructor, not a ${typeof value}`);
+			// Must be undefined or a constructor.
+			if (!(value === undefined || rules.constructor.test(value))) {
+				throw new Error(`'extends' option must be undefined or a constructor, not a ${typeof value}`);
 			}
 		},
 	}),
@@ -126,141 +213,78 @@ const customRules = {
 			}
 		},
 	}),
-	transferToInstance: new Rule({
+
+	instanceTransfer: new Rule({
 		validator(value) {
 			if (!rules.func.test(value)) {
-				throw new Error(`'transferToInstance' option must be a function, not a ${typeof value}`);
+				throw new Error(`'instanceTransfer' option must be a function, not a ${typeof value}`);
 			}
 		},
 	}),
-	transferToPrototype: new Rule({
+	prototypeTransfer: new Rule({
 		validator(value) {
 			if (!rules.func.test(value)) {
-				throw new Error(`'transferToPrototype' option must be a function, not a ${typeof value}`);
+				throw new Error(`'prototypeTransfer' option must be a function, not a ${typeof value}`);
 			}
 		},
 	}),
-	transferToStatic: new Rule({
+	staticTransfer: new Rule({
 		validator(value) {
 			if (!rules.func.test(value)) {
-				throw new Error(`'transferToStatic' option must be a function, not a ${typeof value}`);
+				throw new Error(`'staticTransfer' option must be a function, not a ${typeof value}`);
 			}
 		},
 	}),
+});
+
+// UTILITY FUNCTIONS
+function processArguments(arg0 = '', ...args) {
+	let name;
+	let layers;
+
+	if (rules.string.test(arg0)) {
+		// If first argument is a string, consider it the name.
+		name = arg0;
+		layers = [...args];
+	} else {
+		// Else consider it a layer.
+		name = ''; // Native function and class' 'name' property defaults to an empty string.
+		layers = [arg0, ...args];
+	}
+
+	return {
+		name: customRules.name.validate(name)[0],
+		layers: customRules.layers.validateCast(layers)[0],
+	};
 };
+function getParent(layers) {
+	// Returns the last defined 'extends' property.
+	for (let i = layers.length - 1; i >= 0; i--) {
+		const Parent = layers[i].extends;
+		if (Parent !== undefined) return Parent;
+	}
+	return undefined;
+};
+
 
 // INTERFACE
 const dynamicClass = new SymbolInterface({
-	//R Don't directly pass the customRule test, because Interfaces modify the function.
-	intercept: (value) => customRules.intercept.test(value),
-	instance:  (value) => customRules.instance.test(value),
-	prototype: (value) => customRules.prototype.test(value),
-	static:    (value) => customRules.static.test(value),
+	layers: (value) => customRules.layers.test(value),
 });
 
-// TRANSFER FUNCTIONS
-const baseTransfer = (properties, target, enumerableCondition) => {
-	//TODO replace with forKeysOf()
-	for (const key of getKeysOf(properties, {
-		own:           true,
-		named:         true,
-		symbol:        true,
-		enumerable:    true,
-		nonEnumerable: true,
-
-		inherited:     false,
-	})) {
-		const descriptor = Object.getOwnPropertyDescriptor(properties, key);
-
-		/* force descriptors
-			writable:     true (for data descriptors),
-			configurable: true,
-			enumerable:   conditional (
-				instance value     = enumerable    - [[Define]] semantics of the class fields proposal, same as assignment
-				instance function  = enumerable    - ? deferred to value, same as assignment
-				instance accessor  = enumerable    - ? deferred to value/function, same as object literal
-
-				prototype value    = nonEnumerable - ? deferred to method/accessor
-				prototype function = nonEnumerable - class method
-				prototype accessor = nonEnumerable - class accessor
-
-				static value       = enumerable    - static class field of the class fields proposal
-				static function    = nonEnumerable - static class method
-				static accessor    = nonEnumerable - static accessor
-			)
-		*/
-		if (descriptor.writable === false) descriptor.writable = true;
-		descriptor.configurable = true;
-		descriptor.enumerable = enumerableCondition(descriptor);
-
-		Object.defineProperty(target, key, descriptor);
-	}
-};
-const defaultTransferToInstance  = (properties, target) => baseTransfer(properties, target, () => true);
-const defaultTransferToPrototype = (properties, target) => baseTransfer(properties, target, () => false);
-const defaultTransferToStatic    = (properties, target) => baseTransfer(properties, target, (descriptor) => {
-	return (descriptor.writable !== undefined && typeof descriptor.value !== 'function');
-});
-const wrapParts = function (parts) {
-	for (const [key, transferKey, defaultTransfer] of [
-		['instance',  'transferToInstance',  defaultTransferToInstance],
-		['prototype', 'transferToPrototype', defaultTransferToPrototype],
-		['static',    'transferToStatic',    defaultTransferToStatic],
-	]) {
-		//C If a part is defined,
-		if (parts[key] !== undefined) {
-			if (parts[transferKey] === undefined) {
-				parts[transferKey] = defaultTransfer;
-			}
-
-			//C validate it and it's transfer function,
-			customRules[key]        .validate(parts[key]);
-			customRules[transferKey].validate(parts[transferKey]);
-
-			//C then wrap.
-			const coreFunction = parts[key];
-			const transferFunction = parts[transferKey];
-			parts[key] = function (...args) {
-				const transfers = coreFunction.call(this, ...args);
-				transferFunction(transfers, this);
-			};
-		}
-	}
-};
-
-// UTILITY
-function joinFunctions(oldFunction, newFunction) {
-	return function (...args) {
-		oldFunction.call(this, ...args);
-		newFunction.call(this, ...args);
-	};
-};
-
-// FACTORY
+// FACTORIES
+// Stored directly on the dynamicClass interface for ease of access.
 define.constant(dynamicClass, {
-	baseCreate({
-		//C function and class default 'name' property is an empty string.
-		name = '',
-		extends: Parent,
-
-		//G Any changes to 'this' inside intercept() cannot impact the true instance.
-		intercept       = () => ([]),
-		instance        = () => ({}),
-		prototype       = () => ({}),
-		static: $static = () => ({}),
-
-		//R Passing an existing class is not supported because it won't aid augmentation and static properties on the class would interfere with the part defaults.
-		//R Object literals for the prototype and static options are not supported because it would allow mutation of the part functions. It's also more consistent to require all parts to be functions.
-	} = {}) {
+	baseCreate(...args) {
+		const {name, layers} = processArguments(...args);
+		const Parent = getParent(layers);
 		const isChild = Parent !== undefined;
 
-		// VALIDATION
-		customRules.name.validate(name);
-		if (isChild) customRules.extends.validate(Parent);
-		customRules.intercept.validate(intercept);
-		customRules.instance.validate(instance);
-		customRules.prototype.validate(prototype);
-		customRules.static .validate($static);
+		// Freeze the layers so that they cannot be further modified.
+		//G If augmentation is desired it should be done non-destructively by adding to the layers array.
+		for (const layer of layers) {
+			Object.freeze(layer);
+		}
 
 		// DEFINITION
 		//R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
@@ -270,23 +294,43 @@ define.constant(dynamicClass, {
 		if (isChild) {
 			Class = {[name]: class extends Parent {
 				constructor(...args) {
+					const layers = Class[dynamicClass.keys.layers];
+
 					// INTERCEPT
-					const interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args);
+					let interceptedArgs = args;
+					// Iterate over layer.intercept in reverse order.
+					for (let i = layers.length - 1; i > 0; i--) {
+						// Call with null as this to throw on any object-like operations on this.
+						// Update interceptedArgs with each call so they can be fed into each other.
+						interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+					}
 
 					super(...interceptedArgs);
 
 					// INSTANCE
-					Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
+					for (const layer of layers) {
+						layer.instance.call(this, ...interceptedArgs);
+					}
 				}
 			}}[name];
 		} else {
 			Class = {[name]: class {
 				constructor(...args) {
+					const layers = Class[dynamicClass.keys.layers];
+
 					// INTERCEPT
-					const interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args);
+					let interceptedArgs = args;
+					// Iterate over layer.intercept in reverse order.
+					for (let i = layers.length - 1; i > 0; i--) {
+						// Call with null as this to throw on any object-like operations on this.
+						// Update interceptedArgs with each call so they can be fed into each other.
+						interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+					}
 
 					// INSTANCE
-					Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
+					for (const layer of layers) {
+						layer.instance.call(this, ...interceptedArgs);
+					}
 				}
 			}}[name];
 		}
@@ -294,10 +338,7 @@ define.constant(dynamicClass, {
 		// STORE PARTS
 		//R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
 		define.hiddenVariable(Class, {
-			[dynamicClass.keys.intercept]: intercept,
-			[dynamicClass.keys.instance]:  instance,
-			[dynamicClass.keys.prototype]: prototype,
-			[dynamicClass.keys.static]:    $static,
+			[dynamicClass.keys.layers]: layers,
 		});
 
 		/* //G//!
@@ -310,54 +351,155 @@ define.constant(dynamicClass, {
 			If a dynamic behavior is desired, use Object.getPrototypeOf(Object.getPrototypeOf(this)); instead.
 		*/
 		//TODO consider not putting duper in an options container, I don't believe there should be any more arguments
-		// PROTOTYPE
-		Class[dynamicClass.keys.prototype].call(Class.prototype, {duper: Object.getPrototypeOf(Class.prototype)});
-		// STATIC
-		Class[dynamicClass.keys.static].call(Class, {duper: Object.getPrototypeOf(Class)});
-
+		for (const layer of layers) {
+			// PROTOTYPE
+			layer.prototype.call(Class.prototype, {duper: Object.getPrototypeOf(Class.prototype)});
+			// STATIC
+			layer.static.call(Class, {duper: Object.getPrototypeOf(Class)});
+		}
+		
 		return Class;
 	},
-	create(parts = {}) {
-		//G If custom transfer functions are desired, create a container object and spread it over the parts.
-		wrapParts(parts);
-		return dynamicClass.baseCreate(parts);
-	},
-
 	/* //R
 		The augmentation function exists for two main reasons:
 		It brings any closure setup back inside to the single function call.
 		It removes the risk of implementing the augmentation wrong (say by forgetting to use a closure and instead referencing the class that is being mutated, this would cause a recursive function).
+
+		//! If a layers' intercept function discards arguments, layers above it won't be able to recover them.
+		//G The safest way is to always return the same signature.
 	*/
-	baseAugment(Class, {
-		intercept,
-		instance,
-		prototype,
-		static: $static,
-	} = {}) {
-		if (intercept !== undefined) {
-			customRules.intercept.validate(intercept);
-			//C//! If the previous intercept function discarded arguments, it isn't possible to recover them in a subsequent intercept function.
-			Class[dynamicClass.keys.intercept] = joinFunctions(Class[dynamicClass.keys.intercept], intercept);
+	baseAugment(Class, ...args) {
+		const currentParent = Object.getPrototypeOf(Class);
+
+		const [newLayers] = customRules.layers.validateCast(args);
+		const newLayersParent = getParent(newLayers);
+
+		// Ensure new layers do not extend a different class.
+		if (!(newLayersParent === undefined || newLayersParent === currentParent)) {
+			throw new Error('Cannot augment class to extend another class.')
 		}
-		if (instance  !== undefined) {
-			customRules.instance.validate(instance);
-			Class[dynamicClass.keys.instance] = joinFunctions(Class[dynamicClass.keys.instance], instance);
+
+		// New prototype and static parts must be called immediately, as they are only called once when the class is created.
+		//! There is a chance that the class may have been modified between creation and augmentation, avoid doing this as it could create inconsistencies when augmenting.
+		for (const newLayer of newLayers) {
+			// PROTOTYPE
+			newLayer.prototype.call(Class.prototype, {duper: Object.getPrototypeOf(Class.prototype)});
+			// STATIC
+			newLayer.static.call(Class, {duper: Object.getPrototypeOf(Class)});
 		}
-		if (prototype !== undefined) {
-			customRules.prototype.validate(prototype);
-			Class[dynamicClass.keys.prototype] = joinFunctions(Class[dynamicClass.keys.prototype], prototype);
-			//C New prototype and static parts must be called immediately, as they are only called once. They get stored on the class for reference.
-			prototype.call(Class.prototype, {duper: Object.getPrototypeOf(Class.prototype)});
-		}
-		if ($static   !== undefined) {
-			customRules.static.validate($static);
-			Class[dynamicClass.keys.static]    = joinFunctions(Class[dynamicClass.keys.static],    $static);
-			$static.call(Class, {duper: Object.getPrototypeOf(Class)})
-		}
+
+		Class[dynamicClass.keys.layers].push(...newLayers);
 	},
-	augment(Class, parts = {}) {
-		wrapParts(parts);
-		return dynamicClass.baseAugment(Class, parts);
+});
+
+// SHORT-HAND WRAPPERS
+function wrapParts(layers, keyWrapperPairs) {
+	const [newLayers] = customRules.layers.validateCast(layers);
+
+	return newLayers.map((layer) => {
+		// Clone the layer to avoid mutation.
+		const newLayer = {...layer};
+
+		for (const [key, wrapper] of keyWrapperPairs) {
+			// Create a closure for the layer part.
+			const part = newLayer[key];
+
+			// Validate layer part and wrapper.
+			customRules[key].validate(part);
+			rules.func.validate(wrapper);
+
+			// Replace the part.
+			newLayer[key] = function (...args) {
+				return wrapper.call(this, part, ...args);
+			};
+		}
+
+		// Replace the layer.
+		return newLayer;
+	});
+};
+
+function baseVanillaShorthandWrapper(part, enumerableCondition, ...args) {
+	const transfers = part.call(this, ...args);
+
+	forOwnKeysOf(transfers, (transfers, key) => {
+		const descriptor = Object.getOwnPropertyDescriptor(transfers, key);
+
+		/* force descriptors
+			writable:     true (data descriptors) - fresh assignment
+			configurable: true                    - fresh assignment
+			enumerable:   conditional (
+				instance value:     enumerable    - fresh assignment, 
+														[[Define]] semantics of the class fields proposal
+				instance function:  enumerable    ~ object literal declaration (both functions and methods),
+														same as instance value
+				instance accessor:  enumerable    ~ object literal declaration
+														same as instance value
+
+				prototype value:    nonEnumerable ~ same as method and accessor
+				prototype function: nonEnumerable - class method
+				prototype accessor: nonEnumerable - class accessor
+
+				static value:       enumerable    - static class field of the class fields proposal
+				static function:    nonEnumerable - static class method
+				static accessor:    nonEnumerable - static accessor
+			)
+		*/
+		if (descriptor.writable === false) descriptor.writable = true;
+		descriptor.configurable = true;
+		descriptor.enumerable = enumerableCondition(descriptor);
+
+		Object.defineProperty(this, key, descriptor);
+	});
+};
+
+function instanceVanillaShorthandWrapper(part, ...args) {
+	return baseVanillaShorthandWrapper.call(
+		this,
+		part,
+		() => true,
+		...args
+	);
+};
+function prototypeVanillaShorthandWrapper(part, ...args) {
+	return baseVanillaShorthandWrapper.call(
+		this,
+		part,
+		() => false,
+		...args
+	);
+};
+function staticVanillaShorthandWrapper(part, ...args) {
+	return baseVanillaShorthandWrapper.call(
+		this,
+		part,
+		(descriptor) => (descriptor.writable !== undefined && typeof descriptor.value !== 'function'),
+		...args
+	);
+};
+
+function applyVanillaShorthandWrappers(layer) {
+	return wrapParts(layer, [
+		['instance',  instanceVanillaShorthandWrapper], 
+		['prototype', prototypeVanillaShorthandWrapper],
+		['static',    staticVanillaShorthandWrapper], 
+	]);
+};
+
+// SHORT-HAND FACTORIES
+define.constant(dynamicClass, {
+	/* Enables the use of shorthand return objects for layer parts.
+		//R These functions use 'vanilla' shorthands, which try to stay as close to the native class behavior as possible. This is so that converting between vanilla classes and dynamic classes is as easy as possible.
+		//G If a different set of shorthands are desired, create new functions that mutate the layers array similar to the applyVanillaShorthandWrappers function.
+	*/
+	create(...args) {
+		const {name, layers} = processArguments(...args);
+		const wrappedLayers = applyVanillaShorthandWrappers(layers);
+		return dynamicClass.baseCreate(name, ...wrappedLayers);
+	},
+	augment(Class, ...layers) {
+		const wrappedLayers = applyVanillaShorthandWrappers(layers);
+		return dynamicClass.baseAugment(Class, ...wrappedLayers);
 	},
 });
 

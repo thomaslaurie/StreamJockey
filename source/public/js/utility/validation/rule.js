@@ -2,6 +2,9 @@
 //TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
 //TODO ensure that validate and validateCast both return values
 
+
+//TODO rename to .validate(), .test(), .cast(), .testCast()
+
 import define from '../object/define.js';
 import {formReferences, extractValues} from '../reference.js';
 import boolCatch from '../bool-catch.js';
@@ -53,6 +56,7 @@ export class Rule {
 			define.constant(this, {
 				validate(...args) {
 					this.validator(...args);
+					return args;
 				},
 				test(...args) {
 					return boolCatch(() => this.validate(...args));
@@ -62,6 +66,7 @@ export class Rule {
 			define.constant(this, {
 				async validate(...args) {
 					await this.validator(...args);
+					return args;
 				},
 				async test(...args) {
 					return boolCatch(async () => await this.validate(...args));

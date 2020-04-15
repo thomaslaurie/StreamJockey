@@ -45283,6 +45283,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/rule.js */ "./source/public/js/utility/validation/rule.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
 /* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./validation/interface.js */ "./source/public/js/utility/validation/interface.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
 /* //R
 	CLASS COMPOSITION (
 		This module seem like it would work well with composition: 'class composition'.
@@ -45317,7 +45327,7 @@ __webpack_require__.r(__webpack_exports__);
 
 				// INSTANCE
 				const transfers = this.constructor[iface.instance].call(this, ...interceptedArgs);
-				this.constructor[iface.transferToInstance](transfers, this);
+				this.constructor[iface.instanceTransfer](transfers, this);
 			}}[name];
 
 			if (isChild) {
@@ -45360,13 +45370,84 @@ __webpack_require__.r(__webpack_exports__);
 		});
 	)
 */
+//TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
 
 
 
 
  // VALIDATION
 
-var customRules = {
+var customRules = {};
+_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, {
+  layers: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(value);
+      var currentExtends;
+
+      for (var _layer of value) {
+        customRules.layer.validate(_layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
+
+        if (_layer.extends !== undefined && currentExtends !== undefined) {
+          if (_layer.extends === currentExtends || currentExtends.isPrototypeOf(_layer.extends)) {
+            currentExtends = _layer.extends;
+          } else {
+            //TODO write test
+            throw new Error('Dynamic Class layer cannot extend a class that is not equal to or the descendant of a class extended by a higher layer.');
+          }
+        }
+      }
+    },
+
+    caster(reference) {
+      // Undefined defaults to empty array.
+      if (reference.value === undefined) reference.value = []; // Cast all items in array to layers.
+
+      if (reference.value instanceof Array) {
+        reference.value = reference.value.map(layer => {
+          return customRules.layer.validateCast(layer)[0];
+        });
+      } // Else cannot cast non-undefined, non-arrays.
+
+    }
+
+  }),
+  layer: new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["Interface"]({
+    //R Wrap the test functions to ensure that they doesn't get modified.
+    extends: value => customRules.extends.validate(value),
+    intercept: value => customRules.intercept.test(value),
+    instance: value => customRules.instance.test(value),
+    prototype: value => customRules.prototype.test(value),
+    static: value => customRules.static.test(value)
+  }, {
+    caster(reference) {
+      // Undefined defaults to empty object.
+      if (reference.value === undefined) reference.value = {}; // Set defaults for undefined properties.
+
+      if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(reference.value)) {
+        var _reference$value = reference.value,
+            {
+          extends: e,
+          //G Any changes to 'this' inside intercept() cannot impact the true instance.
+          intercept = () => [],
+          instance = () => ({}),
+          prototype = () => ({}),
+          static: s = () => ({})
+        } = _reference$value,
+            rest = _objectWithoutProperties(_reference$value, ["extends", "intercept", "instance", "prototype", "static"]); // Replace with new object.
+
+
+        reference.value = _objectSpread({
+          extends: e,
+          intercept,
+          instance,
+          prototype,
+          static: s
+        }, rest);
+      } // Else, not possible to cast non-undefined, non-object to layer.
+
+    }
+
+  }),
   name: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
       if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(value)) {
@@ -45375,10 +45456,12 @@ var customRules = {
     }
 
   }),
+  //! These must use the same keys that are expected on a layer object.
   extends: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].constructor.test(value)) {
-        throw new Error("'extends' option must be a constructor, not a ".concat(typeof value));
+      // Must be undefined or a constructor.
+      if (!(value === undefined || _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].constructor.test(value))) {
+        throw new Error("'extends' option must be undefined or a constructor, not a ".concat(typeof value));
       }
     }
 
@@ -45415,150 +45498,94 @@ var customRules = {
     }
 
   }),
-  transferToInstance: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+  instanceTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
       if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'transferToInstance' option must be a function, not a ".concat(typeof value));
+        throw new Error("'instanceTransfer' option must be a function, not a ".concat(typeof value));
       }
     }
 
   }),
-  transferToPrototype: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+  prototypeTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
       if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'transferToPrototype' option must be a function, not a ".concat(typeof value));
+        throw new Error("'prototypeTransfer' option must be a function, not a ".concat(typeof value));
       }
     }
 
   }),
-  transferToStatic: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+  staticTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
     validator(value) {
       if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'transferToStatic' option must be a function, not a ".concat(typeof value));
+        throw new Error("'staticTransfer' option must be a function, not a ".concat(typeof value));
       }
     }
 
   })
-}; // INTERFACE
+}); // UTILITY FUNCTIONS
 
-var dynamicClass = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
-  //R Don't directly pass the customRule test, because Interfaces modify the function.
-  intercept: value => customRules.intercept.test(value),
-  instance: value => customRules.instance.test(value),
-  prototype: value => customRules.prototype.test(value),
-  static: value => customRules.static.test(value)
-}); // TRANSFER FUNCTIONS
+function processArguments() {
+  var arg0 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  var name;
+  var layers;
 
-var baseTransfer = (properties, target, enumerableCondition) => {
-  //TODO replace with forKeysOf()
-  for (var key of Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(properties, {
-    own: true,
-    named: true,
-    symbol: true,
-    enumerable: true,
-    nonEnumerable: true,
-    inherited: false
-  })) {
-    var descriptor = Object.getOwnPropertyDescriptor(properties, key);
-    /* force descriptors
-    	writable:     true (for data descriptors),
-    	configurable: true,
-    	enumerable:   conditional (
-    		instance value     = enumerable    - [[Define]] semantics of the class fields proposal, same as assignment
-    		instance function  = enumerable    - ? deferred to value, same as assignment
-    		instance accessor  = enumerable    - ? deferred to value/function, same as object literal
-    				prototype value    = nonEnumerable - ? deferred to method/accessor
-    		prototype function = nonEnumerable - class method
-    		prototype accessor = nonEnumerable - class accessor
-    				static value       = enumerable    - static class field of the class fields proposal
-    		static function    = nonEnumerable - static class method
-    		static accessor    = nonEnumerable - static accessor
-    	)
-    */
-
-    if (descriptor.writable === false) descriptor.writable = true;
-    descriptor.configurable = true;
-    descriptor.enumerable = enumerableCondition(descriptor);
-    Object.defineProperty(target, key, descriptor);
+  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
   }
-};
 
-var defaultTransferToInstance = (properties, target) => baseTransfer(properties, target, () => true);
+  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(arg0)) {
+    // If first argument is a string, consider it the name.
+    name = arg0;
+    layers = [...args];
+  } else {
+    // Else consider it a layer.
+    name = ''; // Native function and class' 'name' property defaults to an empty string.
 
-var defaultTransferToPrototype = (properties, target) => baseTransfer(properties, target, () => false);
-
-var defaultTransferToStatic = (properties, target) => baseTransfer(properties, target, descriptor => {
-  return descriptor.writable !== undefined && typeof descriptor.value !== 'function';
-});
-
-var wrapParts = function wrapParts(parts) {
-  for (var [key, transferKey, defaultTransfer] of [['instance', 'transferToInstance', defaultTransferToInstance], ['prototype', 'transferToPrototype', defaultTransferToPrototype], ['static', 'transferToStatic', defaultTransferToStatic]]) {
-    //C If a part is defined,
-    if (parts[key] !== undefined) {
-      (function () {
-        if (parts[transferKey] === undefined) {
-          parts[transferKey] = defaultTransfer;
-        } //C validate it and it's transfer function,
-
-
-        customRules[key].validate(parts[key]);
-        customRules[transferKey].validate(parts[transferKey]); //C then wrap.
-
-        var coreFunction = parts[key];
-        var transferFunction = parts[transferKey];
-
-        parts[key] = function () {
-          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-          }
-
-          var transfers = coreFunction.call(this, ...args);
-          transferFunction(transfers, this);
-        };
-      })();
-    }
+    layers = [arg0, ...args];
   }
-}; // UTILITY
 
-
-function joinFunctions(oldFunction, newFunction) {
-  return function () {
-    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
-    }
-
-    oldFunction.call(this, ...args);
-    newFunction.call(this, ...args);
+  return {
+    name: customRules.name.validate(name)[0],
+    layers: customRules.layers.validateCast(layers)[0]
   };
 }
 
-; // FACTORY
+;
+
+function getParent(layers) {
+  // Returns the last defined 'extends' property.
+  for (var i = layers.length - 1; i >= 0; i--) {
+    var Parent = layers[i].extends;
+    if (Parent !== undefined) return Parent;
+  }
+
+  return undefined;
+}
+
+; // INTERFACE
+
+var dynamicClass = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
+  layers: value => customRules.layers.test(value)
+}); // FACTORIES
+// Stored directly on the dynamicClass interface for ease of access.
 
 _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
   baseCreate() {
     var {
-      //C function and class default 'name' property is an empty string.
-      name = '',
-      extends: Parent,
-      //G Any changes to 'this' inside intercept() cannot impact the true instance.
-      intercept = () => [],
-      instance = () => ({}),
-      prototype = () => ({}),
-      static: $static = () => ({}) //R Passing an existing class is not supported because it won't aid augmentation and static properties on the class would interfere with the part defaults.
-      //R Object literals for the prototype and static options are not supported because it would allow mutation of the part functions. It's also more consistent to require all parts to be functions.
+      name,
+      layers
+    } = processArguments(...arguments);
+    var Parent = getParent(layers);
+    var isChild = Parent !== undefined; // Freeze the layers so that they cannot be further modified.
+    //G If augmentation is desired it should be done non-destructively by adding to the layers array.
 
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var isChild = Parent !== undefined; // VALIDATION
-
-    customRules.name.validate(name);
-    if (isChild) customRules.extends.validate(Parent);
-    customRules.intercept.validate(intercept);
-    customRules.instance.validate(instance);
-    customRules.prototype.validate(prototype);
-    customRules.static.validate($static); // DEFINITION
+    for (var _layer2 of layers) {
+      Object.freeze(_layer2);
+    } // DEFINITION
     //R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
     //R This ensures that no undiscovered differences slip by.
     //R Definition still had to be duplicated because optional extension and super calls don't seem possible.
+
 
     var Class;
 
@@ -45566,15 +45593,25 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
       Class = {
         [name]: class extends Parent {
           constructor() {
-            for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-              args[_key3] = arguments[_key3];
+            var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
+
+            for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+              args[_key2] = arguments[_key2];
             }
 
-            // INTERCEPT
-            var interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args);
+            var interceptedArgs = args; // Iterate over layer.intercept in reverse order.
+
+            for (var i = layers.length - 1; i > 0; i--) {
+              // Call with null as this to throw on any object-like operations on this.
+              // Update interceptedArgs with each call so they can be fed into each other.
+              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+            }
+
             super(...interceptedArgs); // INSTANCE
 
-            Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
+            for (var _layer3 of layers) {
+              _layer3.instance.call(this, ...interceptedArgs);
+            }
           }
 
         }
@@ -45583,14 +45620,24 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
       Class = {
         [name]: class {
           constructor() {
-            for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-              args[_key4] = arguments[_key4];
+            var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
+
+            for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+              args[_key3] = arguments[_key3];
             }
 
-            // INTERCEPT
-            var interceptedArgs = Class[dynamicClass.keys.intercept].call({}, ...args); // INSTANCE
+            var interceptedArgs = args; // Iterate over layer.intercept in reverse order.
 
-            Class[dynamicClass.keys.instance].call(this, ...interceptedArgs);
+            for (var i = layers.length - 1; i > 0; i--) {
+              // Call with null as this to throw on any object-like operations on this.
+              // Update interceptedArgs with each call so they can be fed into each other.
+              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+            } // INSTANCE
+
+
+            for (var _layer4 of layers) {
+              _layer4.instance.call(this, ...interceptedArgs);
+            }
           }
 
         }
@@ -45600,10 +45647,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
 
 
     _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenVariable(Class, {
-      [dynamicClass.keys.intercept]: intercept,
-      [dynamicClass.keys.instance]: instance,
-      [dynamicClass.keys.prototype]: prototype,
-      [dynamicClass.keys.static]: $static
+      [dynamicClass.keys.layers]: layers
     });
     /* //G//!
     	The 'duper' parameter should replace uses of 'super' in methods.
@@ -45613,71 +45657,188 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     			If a dynamic behavior is desired, use Object.getPrototypeOf(Object.getPrototypeOf(this)); instead.
     */
     //TODO consider not putting duper in an options container, I don't believe there should be any more arguments
-    // PROTOTYPE
 
-    Class[dynamicClass.keys.prototype].call(Class.prototype, {
-      duper: Object.getPrototypeOf(Class.prototype)
-    }); // STATIC
+    for (var _layer5 of layers) {
+      // PROTOTYPE
+      _layer5.prototype.call(Class.prototype, {
+        duper: Object.getPrototypeOf(Class.prototype)
+      }); // STATIC
 
-    Class[dynamicClass.keys.static].call(Class, {
-      duper: Object.getPrototypeOf(Class)
-    });
+
+      _layer5.static.call(Class, {
+        duper: Object.getPrototypeOf(Class)
+      });
+    }
+
     return Class;
-  },
-
-  create() {
-    var parts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    //G If custom transfer functions are desired, create a container object and spread it over the parts.
-    wrapParts(parts);
-    return dynamicClass.baseCreate(parts);
   },
 
   /* //R
   	The augmentation function exists for two main reasons:
   	It brings any closure setup back inside to the single function call.
   	It removes the risk of implementing the augmentation wrong (say by forgetting to use a closure and instead referencing the class that is being mutated, this would cause a recursive function).
+  
+  	//! If a layers' intercept function discards arguments, layers above it won't be able to recover them.
+  	//G The safest way is to always return the same signature.
   */
   baseAugment(Class) {
-    var {
-      intercept,
-      instance,
-      prototype,
-      static: $static
-    } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var currentParent = Object.getPrototypeOf(Class);
 
-    if (intercept !== undefined) {
-      customRules.intercept.validate(intercept); //C//! If the previous intercept function discarded arguments, it isn't possible to recover them in a subsequent intercept function.
-
-      Class[dynamicClass.keys.intercept] = joinFunctions(Class[dynamicClass.keys.intercept], intercept);
+    for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+      args[_key4 - 1] = arguments[_key4];
     }
 
-    if (instance !== undefined) {
-      customRules.instance.validate(instance);
-      Class[dynamicClass.keys.instance] = joinFunctions(Class[dynamicClass.keys.instance], instance);
-    }
+    var [newLayers] = customRules.layers.validateCast(args);
+    var newLayersParent = getParent(newLayers); // Ensure new layers do not extend a different class.
 
-    if (prototype !== undefined) {
-      customRules.prototype.validate(prototype);
-      Class[dynamicClass.keys.prototype] = joinFunctions(Class[dynamicClass.keys.prototype], prototype); //C New prototype and static parts must be called immediately, as they are only called once. They get stored on the class for reference.
+    if (!(newLayersParent === undefined || newLayersParent === currentParent)) {
+      throw new Error('Cannot augment class to extend another class.');
+    } // New prototype and static parts must be called immediately, as they are only called once when the class is created.
+    //! There is a chance that the class may have been modified between creation and augmentation, avoid doing this as it could create inconsistencies when augmenting.
 
-      prototype.call(Class.prototype, {
+
+    for (var newLayer of newLayers) {
+      // PROTOTYPE
+      newLayer.prototype.call(Class.prototype, {
         duper: Object.getPrototypeOf(Class.prototype)
-      });
-    }
+      }); // STATIC
 
-    if ($static !== undefined) {
-      customRules.static.validate($static);
-      Class[dynamicClass.keys.static] = joinFunctions(Class[dynamicClass.keys.static], $static);
-      $static.call(Class, {
+      newLayer.static.call(Class, {
         duper: Object.getPrototypeOf(Class)
       });
     }
+
+    Class[dynamicClass.keys.layers].push(...newLayers);
+  }
+
+}); // SHORT-HAND WRAPPERS
+
+function wrapParts(layers, keyWrapperPairs) {
+  var [newLayers] = customRules.layers.validateCast(layers);
+  return newLayers.map(layer => {
+    // Clone the layer to avoid mutation.
+    var newLayer = _objectSpread({}, layer);
+
+    var _loop = function _loop(key, wrapper) {
+      // Create a closure for the layer part.
+      var part = newLayer[key]; // Validate layer part and wrapper.
+
+      customRules[key].validate(part);
+      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(wrapper); // Replace the part.
+
+      newLayer[key] = function () {
+        for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+          args[_key5] = arguments[_key5];
+        }
+
+        return wrapper.call(this, part, ...args);
+      };
+    };
+
+    for (var [key, wrapper] of keyWrapperPairs) {
+      _loop(key, wrapper);
+    } // Replace the layer.
+
+
+    return newLayer;
+  });
+}
+
+;
+
+function baseVanillaShorthandWrapper(part, enumerableCondition) {
+  for (var _len6 = arguments.length, args = new Array(_len6 > 2 ? _len6 - 2 : 0), _key6 = 2; _key6 < _len6; _key6++) {
+    args[_key6 - 2] = arguments[_key6];
+  }
+
+  var transfers = part.call(this, ...args);
+  Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
+    var descriptor = Object.getOwnPropertyDescriptor(transfers, key);
+    /* force descriptors
+    	writable:     true (data descriptors) - fresh assignment
+    	configurable: true                    - fresh assignment
+    	enumerable:   conditional (
+    		instance value:     enumerable    - fresh assignment, 
+    												[[Define]] semantics of the class fields proposal
+    		instance function:  enumerable    ~ object literal declaration (both functions and methods),
+    												same as instance value
+    		instance accessor:  enumerable    ~ object literal declaration
+    												same as instance value
+    				prototype value:    nonEnumerable ~ same as method and accessor
+    		prototype function: nonEnumerable - class method
+    		prototype accessor: nonEnumerable - class accessor
+    				static value:       enumerable    - static class field of the class fields proposal
+    		static function:    nonEnumerable - static class method
+    		static accessor:    nonEnumerable - static accessor
+    	)
+    */
+
+    if (descriptor.writable === false) descriptor.writable = true;
+    descriptor.configurable = true;
+    descriptor.enumerable = enumerableCondition(descriptor);
+    Object.defineProperty(this, key, descriptor);
+  });
+}
+
+;
+
+function instanceVanillaShorthandWrapper(part) {
+  for (var _len7 = arguments.length, args = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
+    args[_key7 - 1] = arguments[_key7];
+  }
+
+  return baseVanillaShorthandWrapper.call(this, part, () => true, ...args);
+}
+
+;
+
+function prototypeVanillaShorthandWrapper(part) {
+  for (var _len8 = arguments.length, args = new Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
+    args[_key8 - 1] = arguments[_key8];
+  }
+
+  return baseVanillaShorthandWrapper.call(this, part, () => false, ...args);
+}
+
+;
+
+function staticVanillaShorthandWrapper(part) {
+  for (var _len9 = arguments.length, args = new Array(_len9 > 1 ? _len9 - 1 : 0), _key9 = 1; _key9 < _len9; _key9++) {
+    args[_key9 - 1] = arguments[_key9];
+  }
+
+  return baseVanillaShorthandWrapper.call(this, part, descriptor => descriptor.writable !== undefined && typeof descriptor.value !== 'function', ...args);
+}
+
+;
+
+function applyVanillaShorthandWrappers(layer) {
+  return wrapParts(layer, [['instance', instanceVanillaShorthandWrapper], ['prototype', prototypeVanillaShorthandWrapper], ['static', staticVanillaShorthandWrapper]]);
+}
+
+; // SHORT-HAND FACTORIES
+
+_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
+  /* Enables the use of shorthand return objects for layer parts.
+  	//R These functions use 'vanilla' shorthands, which try to stay as close to the native class behavior as possible. This is so that converting between vanilla classes and dynamic classes is as easy as possible.
+  	//G If a different set of shorthands are desired, create new functions that mutate the layers array similar to the applyVanillaShorthandWrappers function.
+  */
+  create() {
+    var {
+      name,
+      layers
+    } = processArguments(...arguments);
+    var wrappedLayers = applyVanillaShorthandWrappers(layers);
+    return dynamicClass.baseCreate(name, ...wrappedLayers);
   },
 
   augment(Class) {
-    var parts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    wrapParts(parts);
-    return dynamicClass.baseAugment(Class, parts);
+    for (var _len10 = arguments.length, layers = new Array(_len10 > 1 ? _len10 - 1 : 0), _key10 = 1; _key10 < _len10; _key10++) {
+      layers[_key10 - 1] = arguments[_key10];
+    }
+
+    var wrappedLayers = applyVanillaShorthandWrappers(layers);
+    return dynamicClass.baseAugment(Class, ...wrappedLayers);
   }
 
 });
@@ -46235,7 +46396,7 @@ var ownKeys = function ownKeys(object) {
 
   identity(target, properties) {
     for (var key of ownKeys(properties)) {
-      Object.defineProperty(target, key, Object.getOwnPropertyKey(properties, key));
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(properties, key));
     }
 
     return target;
@@ -47188,6 +47349,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./flex-test.js */ "./source/public/js/utility/validation/flex-test.js");
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/public/js/utility/validation/rule.js");
 /* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -47196,6 +47363,13 @@ __webpack_require__.r(__webpack_exports__);
 
 class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
   constructor(packs) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    // Throw if a validator option is passed.
+    if ('validator' in options) {
+      throw new Error('Interface options cannot include a validator, as it will be overwritten with a generated validator for interfaces.');
+    }
+
     var keys = {};
     var tests = {};
 
@@ -47225,7 +47399,8 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
     Object.freeze(keys);
     Object.freeze(tests); // Create an pass validator to Rule constructor.
 
-    super({
+    super(_objectSpread({}, options, {
+      // Use a custom validator for interfaces.
       validator(object) {
         _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(object);
         Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(this.tests, (tests, key) => {
@@ -47233,7 +47408,7 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
           var subKey = this.keys[key];
 
           if (!test(object, subKey)) {
-            throw new Error("Object does not fully implement interface. ".concat(key, " failed its test."));
+            throw new Error("Object does not fully implement interface. Object: ".concat(JSON.stringify(object), ", Key: ").concat(key, ", SubKey: ").concat(subKey));
           }
 
           ;
@@ -47261,10 +47436,9 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
         		throw new Error(`Precision argument must be 'validate', 'all', or 'any'`);
         	}
         */
-      } //! Do not define a caster for interfaces, they should not be cast.
+      }
 
-
-    });
+    }));
     _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
       keys,
       tests
@@ -47297,15 +47471,15 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
 class Interface extends VirtualInterface {
   // Interface accepts both named and symbol keys. 
   // The same keys must be used for implementations.
-  constructor(tests) {
-    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(tests);
+  constructor(properties, options) {
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
     var packs = [];
-    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(tests, (tests, key) => {
+    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
       var subKey = key;
-      var test = tests[key];
+      var test = properties[key];
       packs.push([key, subKey, test]);
     });
-    super(packs);
+    super(packs, options);
   }
 
 }
@@ -47314,16 +47488,16 @@ class SymbolInterface extends VirtualInterface {
   // SymbolInterface creates substitute symbols for ALL interface keys.
   // Implementations must use the substituted symbols as the property keys.
   // This prevents name collision on implementations.
-  constructor(tests) {
-    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(tests);
+  constructor(properties, options) {
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
     var packs = [];
-    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(tests, (tests, key) => {
+    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
       var subKey = Symbol(key); // Create a symbol subKey instead.
 
-      var test = tests[key];
+      var test = properties[key];
       packs.push([key, subKey, test]);
     });
-    super(packs);
+    super(packs, options);
   }
 
 }
@@ -47355,6 +47529,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 //TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
 //TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
 //TODO ensure that validate and validateCast both return values
+//TODO rename to .validate(), .test(), .cast(), .testCast()
 
 
 
@@ -47403,12 +47578,17 @@ class Rule {
     if (validatorIsSynchronous) {
       _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
         validate() {
-          this.validator(...arguments);
+          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          this.validator(...args);
+          return args;
         },
 
         test() {
-          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
+          for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args[_key2] = arguments[_key2];
           }
 
           return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validate(...args));
@@ -47422,7 +47602,12 @@ class Rule {
               _this = this;
 
           return _asyncToGenerator(function* () {
-            yield _this.validator(..._arguments);
+            for (var _len3 = _arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+              args[_key3] = _arguments[_key3];
+            }
+
+            yield _this.validator(...args);
+            return args;
           })();
         },
 
@@ -47431,8 +47616,8 @@ class Rule {
               _this2 = this;
 
           return _asyncToGenerator(function* () {
-            for (var _len2 = _arguments2.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-              args[_key2] = _arguments2[_key2];
+            for (var _len4 = _arguments2.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+              args[_key4] = _arguments2[_key4];
             }
 
             return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])( /*#__PURE__*/_asyncToGenerator(function* () {
@@ -47447,8 +47632,8 @@ class Rule {
     if (validatorIsSynchronous && casterIsSynchronous) {
       _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
         validateCast() {
-          for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
+          for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+            args[_key5] = arguments[_key5];
           }
 
           // If call is the entry-point, will convert values to reference-values. If call is nested, nothing will change.
@@ -47465,8 +47650,8 @@ class Rule {
         },
 
         testCast() {
-          for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            args[_key4] = arguments[_key4];
+          for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+            args[_key6] = arguments[_key6];
           }
 
           return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validateCast(...args));
@@ -47480,8 +47665,8 @@ class Rule {
               _this3 = this;
 
           return _asyncToGenerator(function* () {
-            for (var _len5 = _arguments3.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-              args[_key5] = _arguments3[_key5];
+            for (var _len7 = _arguments3.length, args = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+              args[_key7] = _arguments3[_key7];
             }
 
             var references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
@@ -47501,8 +47686,8 @@ class Rule {
               _this4 = this;
 
           return _asyncToGenerator(function* () {
-            for (var _len6 = _arguments4.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-              args[_key6] = _arguments4[_key6];
+            for (var _len8 = _arguments4.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+              args[_key8] = _arguments4[_key8];
             }
 
             return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])( /*#__PURE__*/_asyncToGenerator(function* () {

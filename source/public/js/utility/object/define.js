@@ -119,7 +119,7 @@ export default {
 
 	identity(target, properties) {
 		for(const key of ownKeys(properties)) {
-			Object.defineProperty(target, key, Object.getOwnPropertyKey(properties, key));
+			Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(properties, key));
 		}
 		return target;
 	},

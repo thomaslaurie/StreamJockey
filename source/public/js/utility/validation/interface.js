@@ -5,7 +5,12 @@ import Rule           from './rule.js';
 import * as rules     from './rules/index.js';
 
 class VirtualInterface extends Rule {
-	constructor(packs) {
+	constructor(packs, options = {}) {
+		// Throw if a validator option is passed.
+		if ('validator' in options) {
+			throw new Error('Interface options cannot include a validator, as it will be overwritten with a generated validator for interfaces.');
+		}
+
 		const keys  = {};
 		const tests = {};
 
@@ -36,6 +41,9 @@ class VirtualInterface extends Rule {
 
 		// Create an pass validator to Rule constructor.
 		super({
+			// Pass other rule options to Rule.
+			...options,
+			// Use a custom validator for interfaces.
 			validator(object) {
 				rules.object.validate(object);
 	
@@ -44,7 +52,7 @@ class VirtualInterface extends Rule {
 					const subKey = this.keys[key];
 	
 					if (!test(object, subKey)) {
-						throw new Error(`Object does not fully implement interface. ${key} failed its test.`)
+						throw new Error(`Object does not fully implement interface. Object: ${JSON.stringify(object)}, Key: ${key}, SubKey: ${subKey}`);
 					};
 				});
 				
@@ -72,7 +80,6 @@ class VirtualInterface extends Rule {
 					}
 				*/
 			},
-			//! Do not define a caster for interfaces, they should not be cast.
 		});
 
 		define.constant(this, {
@@ -104,17 +111,17 @@ class VirtualInterface extends Rule {
 export class Interface extends VirtualInterface {
 	// Interface accepts both named and symbol keys. 
 	// The same keys must be used for implementations.
-	constructor(tests) {
-		rules.object.validate(tests);
+	constructor(properties, options) {
+		rules.object.validate(properties);
 
 		const packs = [];
-		forOwnKeysOf(tests, (tests, key) => {
+		forOwnKeysOf(properties, (properties, key) => {
 			const subKey = key;
-			const test = tests[key];
+			const test = properties[key];
 			packs.push([key, subKey, test]);
 		});
 
-		super(packs);
+		super(packs, options);
 	}
 };
 
@@ -122,16 +129,16 @@ export class SymbolInterface extends VirtualInterface {
 	// SymbolInterface creates substitute symbols for ALL interface keys.
 	// Implementations must use the substituted symbols as the property keys.
 	// This prevents name collision on implementations.
-	constructor(tests) {
-		rules.object.validate(tests);
+	constructor(properties, options) {
+		rules.object.validate(properties);
 
 		const packs = [];
-		forOwnKeysOf(tests, (tests, key) => {
+		forOwnKeysOf(properties, (properties, key) => {
 			const subKey = Symbol(key); // Create a symbol subKey instead.
-			const test = tests[key];
+			const test = properties[key];
 			packs.push([key, subKey, test]);
 		});
 
-		super(packs);
+		super(packs, options);
 	}
 };

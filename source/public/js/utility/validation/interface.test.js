@@ -167,6 +167,19 @@ test('SymbolInterface by key fails', (t) => {
 	}));
 });
 
+test('throws validator option', (t) => {
+	t.throws(() => {
+		new Interface({}, {validator: () => {}});
+	});
+});
+test('options are passed to Rule constructor', (t) => {
+	const caster = () => {};
+	const foo = new Interface({}, {caster});
+	t.is(foo.caster, caster);
+});
+
+
+
 
 /* //OLD
 	test('all succeeds', (t) => {

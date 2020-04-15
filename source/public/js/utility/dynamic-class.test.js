@@ -1,3 +1,6 @@
+//TODO test layers
+//TODO test first argument layer / name
+
 import test from 'ava';
 import dynamicClass from './dynamic-class.js';
 import deepCompare  from './object/deep-compare.js';
@@ -9,8 +12,7 @@ const ClassA = class ClassA {
 };
 const ClassB = class ClassB extends ClassA {
 };
-const DynamicA = dynamicClass.create({
-	name: 'DynamicA',
+const DynamicA = dynamicClass.create('DynamicA', {
 	prototype: () => ({
 		test: Symbol(),
 	}),
@@ -18,8 +20,7 @@ const DynamicA = dynamicClass.create({
 		test: Symbol(),
 	}),
 });
-const DynamicB = dynamicClass.create({
-	name: 'DynamicB',
+const DynamicB = dynamicClass.create('DynamicB', {
 	extends: DynamicA,
 	prototype: ({duper}) => ({
 		getSuperTest() {
@@ -40,8 +41,7 @@ const ClassBX = class ClassBX extends DynamicA {
 		return super.test;
 	}
 };
-const DynamicBX = dynamicClass.create({
-	name: 'DynamicBX',
+const DynamicBX = dynamicClass.create('DynamicBX', {
 	extends: ClassA,
 });
 
@@ -91,8 +91,8 @@ test('root.prototype.constructor configurable', (t) => {
 
 // CHILD LINKS
 test('child prototype', (t) => {
-	t.assert(Object.getPrototypeOf(ClassB)  === Object.getPrototypeOf(DynamicBX));
-	t.assert(Object.getPrototypeOf(ClassBX) === Object.getPrototypeOf(DynamicB));
+	t.is(Object.getPrototypeOf(ClassB), Object.getPrototypeOf(DynamicBX));
+	t.is(Object.getPrototypeOf(ClassBX), Object.getPrototypeOf(DynamicB));
 });
 test('child.constructor', (t) => {
 	t.assert(ClassB.constructor === DynamicB.constructor);
@@ -178,8 +178,7 @@ const ClassD = class ClassD {
 ClassD.prototype.protoValue = protoValue;
 ClassD.staticValue = staticValue;
 
-const DynamicD = dynamicClass.create({
-	name: 'DynamicD',
+const DynamicD = dynamicClass.create('DynamicD', {
 	instance() {
 		this.instanceValue = instanceValue;
 		this.instanceFunc = instanceFunc;
@@ -237,124 +236,125 @@ const DynamicD = dynamicClass.create({
 		};
 	},
 });
-const DynamicCustomD = dynamicClass.create({
-	name: 'DynamicCustomD',
-	instance() {
-		this.instanceValue = instanceValue;
-		this.instanceFunc = instanceFunc;
-		Object.defineProperty(this, 'instanceAccessor', {
-			get() {
-				return instanceAccessorResult;
-			}
-		});
-		return {
-			instanceValueShort: instanceValue,
-			instanceFuncShort: instanceFunc,
-			get instanceAccessorShort() {
-				return instanceAccessorResult;
-			},
-		};
-	},
-	prototype() {
-		this.protoValue = protoValue;
-		this.protoFunc = function () {
-			return protoFuncResult;
-		};
-		Object.defineProperty(this, 'protoAccessor', {
-			get() {
-				return protoAccessorResult;
-			}
-		});
-		return {
-			protoValueShort: protoValue,
-			protoFuncShort() {
+/* //OLD
+	const DynamicCustomD = dynamicClass.create('DynamicCustomD', {
+		instance() {
+			this.instanceValue = instanceValue;
+			this.instanceFunc = instanceFunc;
+			Object.defineProperty(this, 'instanceAccessor', {
+				get() {
+					return instanceAccessorResult;
+				}
+			});
+			return {
+				instanceValueShort: instanceValue,
+				instanceFuncShort: instanceFunc,
+				get instanceAccessorShort() {
+					return instanceAccessorResult;
+				},
+			};
+		},
+		prototype() {
+			this.protoValue = protoValue;
+			this.protoFunc = function () {
 				return protoFuncResult;
-			},
-			get protoAccessorShort() {
-				return protoAccessorResult;
-			},
-		};
-	},
-	static() {
-		this.staticValue = staticValue;
-		this.staticFunc = function () {
-			return staticFuncResult;
-		};
-		Object.defineProperty(this, 'staticAccessor', {
-			get() {
-				return staticAccessorResult;
-			}
-		});
-		return {
-			staticValueShort: staticValue,
-			staticFuncShort() {
+			};
+			Object.defineProperty(this, 'protoAccessor', {
+				get() {
+					return protoAccessorResult;
+				}
+			});
+			return {
+				protoValueShort: protoValue,
+				protoFuncShort() {
+					return protoFuncResult;
+				},
+				get protoAccessorShort() {
+					return protoAccessorResult;
+				},
+			};
+		},
+		static() {
+			this.staticValue = staticValue;
+			this.staticFunc = function () {
 				return staticFuncResult;
-			},
-			get staticAccessorShort() {
-				return staticAccessorResult;
-			},
-		};
-	},
-	// enumerable, configurable are opposite the defaults
-	transferToInstance(properties, target) {
-		//TODO replace with forKeysOf()
-		for (const key of getKeysOf(properties, {
-			own:           true,
-			named:         true,
-			symbol:        true,
-			enumerable:    true,
-			nonEnumerable: true,
-	
-			inherited:     false,
-		})) {
-			const descriptor = Object.getOwnPropertyDescriptor(properties, key);
-
-			Object.defineProperty(target, key, {
-				...descriptor,
-				enumerable: false,
-				configurable: false,
+			};
+			Object.defineProperty(this, 'staticAccessor', {
+				get() {
+					return staticAccessorResult;
+				}
 			});
-		}
-	},
-	transferToPrototype(properties, target) {
-		for (const key of getKeysOf(properties, {
-			own:           true,
-			named:         true,
-			symbol:        true,
-			enumerable:    true,
-			nonEnumerable: true,
-	
-			inherited:     false,
-		})) {
-			const descriptor = Object.getOwnPropertyDescriptor(properties, key);
+			return {
+				staticValueShort: staticValue,
+				staticFuncShort() {
+					return staticFuncResult;
+				},
+				get staticAccessorShort() {
+					return staticAccessorResult;
+				},
+			};
+		},
+		// enumerable, configurable are opposite the defaults
+		instanceTransfer(properties, target) {
+			//TODO replace with forKeysOf()
+			for (const key of getKeysOf(properties, {
+				own:           true,
+				named:         true,
+				symbol:        true,
+				enumerable:    true,
+				nonEnumerable: true,
+		
+				inherited:     false,
+			})) {
+				const descriptor = Object.getOwnPropertyDescriptor(properties, key);
 
-			Object.defineProperty(target, key, {
-				...descriptor,
-				enumerable: true,
-				configurable: false,
-			});
-		}
-	},
-	transferToStatic(properties, target) {
-		for (const key of getKeysOf(properties, {
-			own:           true,
-			named:         true,
-			symbol:        true,
-			enumerable:    true,
-			nonEnumerable: true,
-	
-			inherited:     false,
-		})) {
-			const descriptor = Object.getOwnPropertyDescriptor(properties, key);
+				Object.defineProperty(target, key, {
+					...descriptor,
+					enumerable: false,
+					configurable: false,
+				});
+			}
+		},
+		prototypeTransfer(properties, target) {
+			for (const key of getKeysOf(properties, {
+				own:           true,
+				named:         true,
+				symbol:        true,
+				enumerable:    true,
+				nonEnumerable: true,
+		
+				inherited:     false,
+			})) {
+				const descriptor = Object.getOwnPropertyDescriptor(properties, key);
 
-			Object.defineProperty(target, key, {
-				...descriptor,
-				enumerable: (descriptor.writable === undefined || typeof properties[key] === 'function'),
-				configurable: false,
-			});
-		}
-	},
-});
+				Object.defineProperty(target, key, {
+					...descriptor,
+					enumerable: true,
+					configurable: false,
+				});
+			}
+		},
+		staticTransfer(properties, target) {
+			for (const key of getKeysOf(properties, {
+				own:           true,
+				named:         true,
+				symbol:        true,
+				enumerable:    true,
+				nonEnumerable: true,
+		
+				inherited:     false,
+			})) {
+				const descriptor = Object.getOwnPropertyDescriptor(properties, key);
+
+				Object.defineProperty(target, key, {
+					...descriptor,
+					enumerable: (descriptor.writable === undefined || typeof properties[key] === 'function'),
+					configurable: false,
+				});
+			}
+		},
+	});
+*/
 
 // INSTANCE
 const IVS = Object.getOwnPropertyDescriptor((new DynamicD()), 'instanceValueShort');
@@ -364,9 +364,11 @@ const IF  = Object.getOwnPropertyDescriptor((new ClassD()),   'instanceFunc');
 const IAS = Object.getOwnPropertyDescriptor((new DynamicD()), 'instanceAccessorShort');
 // no equivalent class instance accessor
 
-const IVC = Object.getOwnPropertyDescriptor((new DynamicCustomD()), 'instanceValueShort');
-const IFC = Object.getOwnPropertyDescriptor((new DynamicCustomD()), 'instanceFuncShort');
-const IAC = Object.getOwnPropertyDescriptor((new DynamicCustomD()), 'instanceAccessorShort');
+/* //OLD
+	const IVC = Object.getOwnPropertyDescriptor((new DynamicCustomD()), 'instanceValueShort');
+	const IFC = Object.getOwnPropertyDescriptor((new DynamicCustomD()), 'instanceFuncShort');
+	const IAC = Object.getOwnPropertyDescriptor((new DynamicCustomD()), 'instanceAccessorShort');
+*/
 
 // ASSIGNMENT
 test('instance value assignment', (t) => {
@@ -423,25 +425,27 @@ test('instance accessor short descriptor', (t) => {
 	);
 });
 
-// CUSTOM DESCRIPTORS
-test('instance value custom descriptor', (t) => {
-	t.assert(
-		IVC.enumerable   !== IV.enumerable &&
-		IVC.configurable !== IV.configurable
-	);
-});
-test('instance func custom descriptor', (t) => {
-	t.assert(
-		IFC.enumerable   !== IF.enumerable &&
-		IFC.configurable !== IF.configurable
-	);
-});
-test('instance accessor custom descriptor', (t) => {
-	t.assert(
-		IAC.enumerable   !== true &&
-		IAC.configurable !== true
-	);
-});
+/* //OLD
+	// CUSTOM DESCRIPTORS
+	test.skip('instance value custom descriptor', (t) => {
+		t.assert(
+			IVC.enumerable   !== IV.enumerable &&
+			IVC.configurable !== IV.configurable
+		);
+	});
+	test.skip('instance func custom descriptor', (t) => {
+		t.assert(
+			IFC.enumerable   !== IF.enumerable &&
+			IFC.configurable !== IF.configurable
+		);
+	});
+	test.skip('instance accessor custom descriptor', (t) => {
+		t.assert(
+			IAC.enumerable   !== true &&
+			IAC.configurable !== true
+		);
+	});
+*/
 
 // PROTOTYPE
 const PVS = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicD())), 'protoValueShort');
@@ -451,9 +455,11 @@ const PF  = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new ClassD())
 const PAS = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicD())), 'protoAccessorShort');
 const PA  = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new ClassD())),   'protoAccessor');
 
-const PVC = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicCustomD())), 'protoValueShort');
-const PFC = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicCustomD())), 'protoFuncShort');
-const PAC = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicCustomD())), 'protoAccessorShort');
+/* //OLD
+	const PVC = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicCustomD())), 'protoValueShort');
+	const PFC = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicCustomD())), 'protoFuncShort');
+	const PAC = Object.getOwnPropertyDescriptor(Object.getPrototypeOf((new DynamicCustomD())), 'protoAccessorShort');
+*/
 
 // ASSIGNMENT
 test('prototype value assignment', (t) => {
@@ -497,25 +503,27 @@ test('prototype accessor short descriptor', (t) => {
 	);
 });
 
-// CUSTOM DESCRIPTORS
-test('prototype value custom descriptor', (t) => {
-	t.assert(
-		PVC.enumerable   !== false &&
-		PVC.configurable !== true
-	);
-});
-test('prototype func custom descriptor', (t) => {
-	t.assert(
-		PFC.enumerable   !== PF.enumerable &&
-		PFC.configurable !== PF.configurable
-	);
-});
-test('prototype accessor custom descriptor', (t) => {
-	t.assert(
-		PAC.enumerable   !== PA.enumerable &&
-		PAC.configurable !== PA.configurable
-	);
-});
+/* //OLD	
+	// CUSTOM DESCRIPTORS
+	test.skip('prototype value custom descriptor', (t) => {
+		t.assert(
+			PVC.enumerable   !== false &&
+			PVC.configurable !== true
+		);
+	});
+	test.skip('prototype func custom descriptor', (t) => {
+		t.assert(
+			PFC.enumerable   !== PF.enumerable &&
+			PFC.configurable !== PF.configurable
+		);
+	});
+	test.skip('prototype accessor custom descriptor', (t) => {
+		t.assert(
+			PAC.enumerable   !== PA.enumerable &&
+			PAC.configurable !== PA.configurable
+		);
+	});
+*/
 
 // STATIC
 const SVS = Object.getOwnPropertyDescriptor(DynamicD, 'staticValueShort');
@@ -525,9 +533,11 @@ const SF  = Object.getOwnPropertyDescriptor(ClassD,   'staticFunc');
 const SAS = Object.getOwnPropertyDescriptor(DynamicD, 'staticAccessorShort');
 const SA  = Object.getOwnPropertyDescriptor(ClassD,   'staticAccessor');
 
-const SVC = Object.getOwnPropertyDescriptor(DynamicCustomD, 'staticValueShort');
-const SFC = Object.getOwnPropertyDescriptor(DynamicCustomD, 'staticFuncShort');
-const SAC = Object.getOwnPropertyDescriptor(DynamicCustomD, 'staticAccessorShort');
+/* //OLD
+	const SVC = Object.getOwnPropertyDescriptor(DynamicCustomD, 'staticValueShort');
+	const SFC = Object.getOwnPropertyDescriptor(DynamicCustomD, 'staticFuncShort');
+	const SAC = Object.getOwnPropertyDescriptor(DynamicCustomD, 'staticAccessorShort');
+*/
 
 // ASSIGNMENT
 test('static value assignment', (t) => {
@@ -571,25 +581,27 @@ test('static accessor short descriptor', (t) => {
 	);
 });
 
-// CUSTOM DESCRIPTORS
-test('static value custom descriptor', (t) => {
-	t.assert(
-		SVC.enumerable   !== SV.enumerable &&
-		SVC.configurable !== SV.configurable
-	);
-});
-test('static func custom descriptor', (t) => {
-	t.assert(
-		SFC.enumerable   !== SF.enumerable &&
-		SFC.configurable !== SF.configurable
-	);
-});
-test('static accessor custom descriptor', (t) => {
-	t.assert(
-		SAC.enumerable   !== SA.enumerable &&
-		SAC.configurable !== SA.configurable
-	);
-});
+/* //OLD
+	// CUSTOM DESCRIPTORS
+	test.skip('static value custom descriptor', (t) => {
+		t.assert(
+			SVC.enumerable   !== SV.enumerable &&
+			SVC.configurable !== SV.configurable
+		);
+	});
+	test.skip('static func custom descriptor', (t) => {
+		t.assert(
+			SFC.enumerable   !== SF.enumerable &&
+			SFC.configurable !== SF.configurable
+		);
+	});
+	test.skip('static accessor custom descriptor', (t) => {
+		t.assert(
+			SAC.enumerable   !== SA.enumerable &&
+			SAC.configurable !== SA.configurable
+		);
+	});
+*/
 
 // CALLABLE
 const ClassNotCallable = class ClassE {};
@@ -619,7 +631,7 @@ test('no intercept this', (t) => {
 
 // NAME
 const name = '?uhjko8uyhjko98u';
-const Named = dynamicClass.create({name});
+const Named = dynamicClass.create(name);
 const EmptyNamed = dynamicClass.create();
 test('dynamic name', (t) => {
 	t.assert(Named.name === name);
