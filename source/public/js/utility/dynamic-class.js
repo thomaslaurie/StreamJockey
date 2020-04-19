@@ -143,7 +143,7 @@ define.constant(customRules, {
 					extends: e,
 	
 					//G Any changes to 'this' inside intercept() cannot impact the true instance.
-					intercept = () => ([]),
+					intercept = (...args) => ([...args]),
 					instance  = () => ({}),
 					prototype = () => ({}),
 					static: s = () => ({}),
@@ -302,7 +302,7 @@ define.constant(dynamicClass, {
 					for (let i = layers.length - 1; i > 0; i--) {
 						// Call with null as this to throw on any object-like operations on this.
 						// Update interceptedArgs with each call so they can be fed into each other.
-						interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+						interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
 					}
 
 					super(...interceptedArgs);
@@ -324,7 +324,7 @@ define.constant(dynamicClass, {
 					for (let i = layers.length - 1; i > 0; i--) {
 						// Call with null as this to throw on any object-like operations on this.
 						// Update interceptedArgs with each call so they can be fed into each other.
-						interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+						interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
 					}
 
 					// INSTANCE
@@ -389,6 +389,8 @@ define.constant(dynamicClass, {
 		}
 
 		Class[dynamicClass.keys.layers].push(...newLayers);
+
+		return Class;
 	},
 });
 
@@ -420,7 +422,7 @@ function wrapParts(layers, keyWrapperPairs) {
 };
 
 function baseVanillaShorthandWrapper(part, enumerableCondition, ...args) {
-	const transfers = part.call(this, ...args);
+	const transfers = part.call(this, ...args) ?? {};
 
 	forOwnKeysOf(transfers, (transfers, key) => {
 		const descriptor = Object.getOwnPropertyDescriptor(transfers, key);

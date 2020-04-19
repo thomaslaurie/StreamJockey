@@ -45384,12 +45384,12 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, 
       _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(value);
       var currentExtends;
 
-      for (var _layer of value) {
-        customRules.layer.validate(_layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
+      for (var layer of value) {
+        customRules.layer.validate(layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
 
-        if (_layer.extends !== undefined && currentExtends !== undefined) {
-          if (_layer.extends === currentExtends || currentExtends.isPrototypeOf(_layer.extends)) {
-            currentExtends = _layer.extends;
+        if (layer.extends !== undefined && currentExtends !== undefined) {
+          if (layer.extends === currentExtends || currentExtends.isPrototypeOf(layer.extends)) {
+            currentExtends = layer.extends;
           } else {
             //TODO write test
             throw new Error('Dynamic Class layer cannot extend a class that is not equal to or the descendant of a class extended by a higher layer.');
@@ -45428,7 +45428,13 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, 
             {
           extends: e,
           //G Any changes to 'this' inside intercept() cannot impact the true instance.
-          intercept = () => [],
+          intercept = function () {
+            for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+              args[_key] = arguments[_key];
+            }
+
+            return [...args];
+          },
           instance = () => ({}),
           prototype = () => ({}),
           static: s = () => ({})
@@ -45529,8 +45535,8 @@ function processArguments() {
   var name;
   var layers;
 
-  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
+  for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+    args[_key2 - 1] = arguments[_key2];
   }
 
   if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(arg0)) {
@@ -45579,8 +45585,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     var isChild = Parent !== undefined; // Freeze the layers so that they cannot be further modified.
     //G If augmentation is desired it should be done non-destructively by adding to the layers array.
 
-    for (var _layer2 of layers) {
-      Object.freeze(_layer2);
+    for (var layer of layers) {
+      Object.freeze(layer);
     } // DEFINITION
     //R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
     //R This ensures that no undiscovered differences slip by.
@@ -45595,8 +45601,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
           constructor() {
             var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
 
-            for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-              args[_key2] = arguments[_key2];
+            for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+              args[_key3] = arguments[_key3];
             }
 
             var interceptedArgs = args; // Iterate over layer.intercept in reverse order.
@@ -45604,13 +45610,13 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (var i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             }
 
             super(...interceptedArgs); // INSTANCE
 
-            for (var _layer3 of layers) {
-              _layer3.instance.call(this, ...interceptedArgs);
+            for (var _layer of layers) {
+              _layer.instance.call(this, ...interceptedArgs);
             }
           }
 
@@ -45622,8 +45628,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
           constructor() {
             var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
 
-            for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-              args[_key3] = arguments[_key3];
+            for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+              args[_key4] = arguments[_key4];
             }
 
             var interceptedArgs = args; // Iterate over layer.intercept in reverse order.
@@ -45631,12 +45637,12 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (var i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             } // INSTANCE
 
 
-            for (var _layer4 of layers) {
-              _layer4.instance.call(this, ...interceptedArgs);
+            for (var _layer2 of layers) {
+              _layer2.instance.call(this, ...interceptedArgs);
             }
           }
 
@@ -45658,14 +45664,14 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     */
     //TODO consider not putting duper in an options container, I don't believe there should be any more arguments
 
-    for (var _layer5 of layers) {
+    for (var _layer3 of layers) {
       // PROTOTYPE
-      _layer5.prototype.call(Class.prototype, {
+      _layer3.prototype.call(Class.prototype, {
         duper: Object.getPrototypeOf(Class.prototype)
       }); // STATIC
 
 
-      _layer5.static.call(Class, {
+      _layer3.static.call(Class, {
         duper: Object.getPrototypeOf(Class)
       });
     }
@@ -45684,8 +45690,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
   baseAugment(Class) {
     var currentParent = Object.getPrototypeOf(Class);
 
-    for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-      args[_key4 - 1] = arguments[_key4];
+    for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+      args[_key5 - 1] = arguments[_key5];
     }
 
     var [newLayers] = customRules.layers.validateCast(args);
@@ -45709,6 +45715,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     }
 
     Class[dynamicClass.keys.layers].push(...newLayers);
+    return Class;
   }
 
 }); // SHORT-HAND WRAPPERS
@@ -45727,8 +45734,8 @@ function wrapParts(layers, keyWrapperPairs) {
       _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(wrapper); // Replace the part.
 
       newLayer[key] = function () {
-        for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-          args[_key5] = arguments[_key5];
+        for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+          args[_key6] = arguments[_key6];
         }
 
         return wrapper.call(this, part, ...args);
@@ -45747,11 +45754,13 @@ function wrapParts(layers, keyWrapperPairs) {
 ;
 
 function baseVanillaShorthandWrapper(part, enumerableCondition) {
-  for (var _len6 = arguments.length, args = new Array(_len6 > 2 ? _len6 - 2 : 0), _key6 = 2; _key6 < _len6; _key6++) {
-    args[_key6 - 2] = arguments[_key6];
+  var _part$call;
+
+  for (var _len7 = arguments.length, args = new Array(_len7 > 2 ? _len7 - 2 : 0), _key7 = 2; _key7 < _len7; _key7++) {
+    args[_key7 - 2] = arguments[_key7];
   }
 
-  var transfers = part.call(this, ...args);
+  var transfers = (_part$call = part.call(this, ...args)) !== null && _part$call !== void 0 ? _part$call : {};
   Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
     var descriptor = Object.getOwnPropertyDescriptor(transfers, key);
     /* force descriptors
@@ -45783,8 +45792,8 @@ function baseVanillaShorthandWrapper(part, enumerableCondition) {
 ;
 
 function instanceVanillaShorthandWrapper(part) {
-  for (var _len7 = arguments.length, args = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
-    args[_key7 - 1] = arguments[_key7];
+  for (var _len8 = arguments.length, args = new Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
+    args[_key8 - 1] = arguments[_key8];
   }
 
   return baseVanillaShorthandWrapper.call(this, part, () => true, ...args);
@@ -45793,8 +45802,8 @@ function instanceVanillaShorthandWrapper(part) {
 ;
 
 function prototypeVanillaShorthandWrapper(part) {
-  for (var _len8 = arguments.length, args = new Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
-    args[_key8 - 1] = arguments[_key8];
+  for (var _len9 = arguments.length, args = new Array(_len9 > 1 ? _len9 - 1 : 0), _key9 = 1; _key9 < _len9; _key9++) {
+    args[_key9 - 1] = arguments[_key9];
   }
 
   return baseVanillaShorthandWrapper.call(this, part, () => false, ...args);
@@ -45803,8 +45812,8 @@ function prototypeVanillaShorthandWrapper(part) {
 ;
 
 function staticVanillaShorthandWrapper(part) {
-  for (var _len9 = arguments.length, args = new Array(_len9 > 1 ? _len9 - 1 : 0), _key9 = 1; _key9 < _len9; _key9++) {
-    args[_key9 - 1] = arguments[_key9];
+  for (var _len10 = arguments.length, args = new Array(_len10 > 1 ? _len10 - 1 : 0), _key10 = 1; _key10 < _len10; _key10++) {
+    args[_key10 - 1] = arguments[_key10];
   }
 
   return baseVanillaShorthandWrapper.call(this, part, descriptor => descriptor.writable !== undefined && typeof descriptor.value !== 'function', ...args);
@@ -45833,8 +45842,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
   },
 
   augment(Class) {
-    for (var _len10 = arguments.length, layers = new Array(_len10 > 1 ? _len10 - 1 : 0), _key10 = 1; _key10 < _len10; _key10++) {
-      layers[_key10 - 1] = arguments[_key10];
+    for (var _len11 = arguments.length, layers = new Array(_len11 > 1 ? _len11 - 1 : 0), _key11 = 1; _key11 < _len11; _key11++) {
+      layers[_key11 - 1] = arguments[_key11];
     }
 
     var wrappedLayers = applyVanillaShorthandWrappers(layers);

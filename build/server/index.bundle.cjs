@@ -3327,7 +3327,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, 
         const {
           extends: e,
           //G Any changes to 'this' inside intercept() cannot impact the true instance.
-          intercept = () => [],
+          intercept = (...args) => [...args],
           instance = () => ({}),
           prototype = () => ({}),
           static: s = () => ({}),
@@ -3497,7 +3497,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (let i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             }
 
             super(...interceptedArgs); // INSTANCE
@@ -3520,7 +3520,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (let i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             } // INSTANCE
 
 
@@ -3592,6 +3592,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     }
 
     Class[dynamicClass.keys.layers].push(...newLayers);
+    return Class;
   }
 
 }); // SHORT-HAND WRAPPERS
@@ -3623,7 +3624,9 @@ function wrapParts(layers, keyWrapperPairs) {
 ;
 
 function baseVanillaShorthandWrapper(part, enumerableCondition, ...args) {
-  const transfers = part.call(this, ...args);
+  var _part$call;
+
+  const transfers = (_part$call = part.call(this, ...args)) !== null && _part$call !== void 0 ? _part$call : {};
   Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
     const descriptor = Object.getOwnPropertyDescriptor(transfers, key);
     /* force descriptors
