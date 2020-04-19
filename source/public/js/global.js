@@ -105,6 +105,13 @@ import * as constants from './constants.js';
 
 
 
+import Credentials from './credentials.js';
+
+import Source from './source.base.js';
+
+
+
+
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -159,7 +166,7 @@ sj.isType = function (input, type) {
 	//TODO also go back and fix the sj validation class of number, int, floats with this too
 	//TODO see if this can be even more cleanly structured
 	//TODO consider allowing the user of builtin objects
-	//TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I dont think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
+	//TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I don't think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
 	
 	/*	//R
 		created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Base types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
@@ -298,12 +305,13 @@ sj.catchUnexpected = function (input) {
 };
 sj.propagate = function (input, overwrite) {
 	//C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
+	// RESULT CHECK
 	if (!sj.isType(input, sj.Error)) { //C wrap any non-sj errors, let sj.Errors flow through
 		input = sj.catchUnexpected(input);
 	}
 	if (sj.isType(overwrite, Object)) { //C overwrite properties (for example making a more specific message)
 		Object.assign(input, overwrite);
-		//OLD this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
+		//OLD this would recreate the trace, don't want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
 	}
 	throw input;
 
@@ -439,6 +447,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 	//C rebuild and throw if error
 	let build = function (item) {
 		item = sj.rebuild(item);
+		// RESULT CHECK
 		if (sj.isType(item, sj.Error)) {
 			throw item;
 		}
@@ -1334,7 +1343,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
 				return result;
 			}
 		*/
-		/* //OLD, new check ruleset was created in global-server.js
+		/* //OLD, new check rule-set was created in global-server.js
 			static async checkRuleSet(ruleSet) {
 				//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
 				return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
@@ -1715,6 +1724,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
 				this.fillError(targetError, fill);
 	
 				//C if ErrorList
+				// RESULT CHECK
 				if (sj.isType(targetError, sj.ErrorList)) {
 					//C fill each item
 					for (const listError of targetError.content) {
@@ -1977,27 +1987,9 @@ sj.Warn = sj.Base.makeClass('Warn', sj.Success, {
 	}),
 });
 
-sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
-	constructorParts: parent => ({
-		//TODO allowUnknown: true,
 
-		defaults: {
-			//TODO this part should only be server-side 
-			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-			authRequestTimestamp: 0,
-			authRequestTimeout: 300000, //C default 5 minutes
-			authRequestURL: '',
-			authCode: Symbol(),
-			
-			accessToken: Symbol(),
-			expires: 0,
-			refreshToken: Symbol(),
-			refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-			
-			scopes: [],
-		},
-	}),
+define.variable(sj, {
+	Credentials,
 });
 
 
@@ -2067,6 +2059,7 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
 
 			tableToEntity(tableName) {
 				const Entity = this.children.find(child => child.table === tableName);
+				// RESULT CHECK
 				if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
 					origin: 'sj.Entity.tableToEntity()',
 					reason: `table is not recognized: ${tableName}`,
@@ -2467,34 +2460,8 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
 	},
 });
 
-sj.Source = sj.Base.makeClass('Source', sj.Base, {
-	constructorParts: parent => ({
-		defaults: {
-			// NEW
-			name: undefined, //! source.name is a unique identifier
-			nullPrefix: '',
-			idPrefix: '',
-			
-			credentials: new sj.Credentials(),
-	
-			//TODO this should only be server-side
-			api: {},
-			scopes: [],
-			authRequestManually: true,
-			makeAuthRequestURL: function () {},
-		},
-		afterInitialize(accessory) {
-			//C add source to static source list: sj.Source.instances
-			this.constructor.instances.push(this);
-		},
-	}),
-	
-	staticProperties: parent => ({
-		instances: [],
-		find(name) {
-			return this.instances.find(instance => instance.name === name);
-		},
-	}),
+define.variable(sj, {
+	Source,
 });
 
 // LIVE DATA

@@ -37612,6 +37612,55 @@ var URL_HEADER = Object.freeze({
 
 /***/ }),
 
+/***/ "./source/public/js/credentials.js":
+/*!*****************************************!*\
+  !*** ./source/public/js/credentials.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('Credentials', {
+  instance: function instance() {
+    var {
+      //TODO this part should only be server-side 
+      //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
+      //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+      authRequestKey = Symbol(),
+      authRequestTimestamp = 0,
+      //C default 5 minutes
+      authRequestTimeout = 300000,
+      authRequestURL = '',
+      authCode = Symbol(),
+      accessToken = Symbol(),
+      expires = 0,
+      refreshToken = Symbol(),
+      //C 1 minute 
+      //TODO figure out what the expiry time is for these apis and change this to a more useful value
+      refreshBuffer = 60000,
+      scopes = []
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    return {
+      //TODO allowUnknown: true, //?
+      authRequestKey,
+      authRequestTimestamp,
+      authRequestTimeout,
+      authRequestURL,
+      authCode,
+      accessToken,
+      expires,
+      refreshToken,
+      refreshBuffer,
+      scopes
+    };
+  }
+}));
+
+/***/ }),
+
 /***/ "./source/public/js/derived-utility/fetch.js":
 /*!***************************************************!*\
   !*** ./source/public/js/derived-utility/fetch.js ***!
@@ -37675,10 +37724,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
 /* harmony import */ var _browser_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./browser-utility/index.js */ "./source/public/js/browser-utility/index.js");
 /* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _source_client_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./source.client.js */ "./source/public/js/source.client.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./playback.js */ "./source/public/js/playback.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_6__);
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37721,6 +37772,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // INTERNAL
 
 
+
+
  // EXTERNAL
 
 
@@ -37734,8 +37787,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 //C attach external libraries to sj so that they can be used where ever sj is imported
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_3___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he = he__WEBPACK_IMPORTED_MODULE_4___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_5___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he = he__WEBPACK_IMPORTED_MODULE_6___default.a;
 _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].appName = 'StreamJockey'; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
 //  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
 //  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
@@ -38134,178 +38187,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_
   })
 }); // PLAYBACK
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Playback', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base, {
-  constructorParts(parent) {
-    return {
-      defaults: {
-        // NEW
-        state: undefined,
-        actions: undefined,
-        mutations: undefined,
-        getters: undefined,
-        modules: undefined
-      },
-
-      afterInitialize() {
-        //C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
-        //C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
-        this.state = _objectSpread({}, this.constructor.baseState, {}, this.state);
-        this.actions = _objectSpread({}, this.constructor.baseActions, {}, this.actions);
-        this.mutations = _objectSpread({}, this.constructor.baseMutations, {}, this.mutations);
-        this.baseGetters = _objectSpread({}, this.constructor.baseGetters, {}, this.getters);
-        this.baseModules = _objectSpread({}, this.constructor.baseModules, {}, this.getters);
-      }
-
-    };
-  },
-
-  staticProperties: parent => ({
-    requestTimeout: 5000,
-    baseState: {
-      source: null,
-      player: null,
-      track: null,
-      isPlaying: false,
-      progress: 0,
-      volume: 1,
-      //G all state properties should be updated at the same time
-      timestamp: Date.now(),
-      //R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
-      startingTrack: null
-    },
-    baseActions: {
-      start(context, track) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters,
-            state
-          } = context;
-          var timeBefore = Date.now();
-          /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
-          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
-          		origin: 'sj.Playback.baseActions.start()',
-          		reason: 'start state timed out',
-          	}));
-          			const unwatch = context.watch(
-          		//C pack desired state
-          		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
-          		//C evaluate state conditions
-          		({sourceId, isPlaying, progress}) => {
-          			if (
-          				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-          				sourceId === track.sourceId &&
-          				isPlaying === true &&
-          				progress <= (Date.now() - timeBefore) / duration
-          			) {
-          				deferred.resolve();
-          			}
-          		}, 
-          		{deep: true, immediate: true}
-          	);
-          */
-          //C trigger api
-
-          yield dispatch('baseStart', track);
-          /* //TODO same here
-          	//C wait for desired state
-          	await deferred;
-          	unwatch();
-          */
-          //C Wait for the desired state.
-
-          yield _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-            yield Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(100);
-            return {
-              sourceId: getters.sourceId,
-              isPlaying: state.isPlaying,
-              progress: state.progress
-            };
-          }), {
-            until(_ref9) {
-              var {
-                sourceId,
-                isPlaying,
-                progress
-              } = _ref9;
-              //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-              return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
-            }
-
-          });
-          console.log('reached');
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
-            origin: 'sj.Playback.baseActions.start()',
-            reason: 'start command completed'
-          });
-        })();
-      }
-      /* //OLD
-      	async preserveLocalMetadata(context, track) {
-      		if (!sj.isType(track, sj.Track)) throw new sj.Error({
-      			origin: 'preserveLocalMetadata()',
-      			reason: 'track is not an sj.Track',
-      		});
-      				//C default local metadata as foreign track
-      		let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
-      			obj[key] = null;
-      			return obj;
-      		}, {});
-      				//C set local as current or starting track if matching
-      		if (sj.isType(context.state.track, Object) && 
-      		track.sourceId === context.state.track.sourceId)			local = context.state.track;
-      		else if (sj.isType(context.state.startingTrack, Object) && 
-      		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
-      				//C return new track with localMetadata properties replaced
-      		return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
-      	},
-      */
-
-
-    },
-    baseMutations: {
-      setState(state, values) {
-        Object.assign(state, values);
-      },
-
-      setStartingTrack(state, track) {
-        state.startingTrack = track;
-      },
-
-      removeStartingTrack(state, track) {
-        state.startingTrack = null;
-      }
-
-    },
-    baseGetters: {
-      //C safe getters for track properties
-      sourceId: state => {
-        var _state$track;
-
-        return state === null || state === void 0 ? void 0 : (_state$track = state.track) === null || _state$track === void 0 ? void 0 : _state$track.sourceId;
-      },
-      duration: state => {
-        var _state$track2;
-
-        return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
-      },
-      //C state conditions for command resolution
-      isStarted: (state, _ref10) => {
-        var {
-          sourceId,
-          duration
-        } = _ref10;
-        return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration;
-      } //TODO
-      // isPaused:
-      // isResumed:
-      // isSeeked:
-      // isVolumed:
-
-    },
-    baseModules: {}
-  })
-});
+_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _playback_js__WEBPACK_IMPORTED_MODULE_4__["default"];
 _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback({
   //G main playback module for app
   modules: {},
@@ -38439,11 +38321,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     // PLAYBACK FUNCTIONS
     //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
     // BASIC
-    start(_ref11, track) {
+    start(_ref8, track) {
       return _asyncToGenerator(function* () {
         var {
           dispatch
-        } = _ref11;
+        } = _ref8;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start({
           source: track.source,
           //! uses track's source
@@ -38452,14 +38334,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
       })();
     },
 
-    pause(_ref12) {
+    pause(_ref9) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
           getters: {
             desiredSource: source
           }
-        } = _ref12;
+        } = _ref9;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
           source,
           //! other non-start basic playback functions just use the current desiredPlayback source
@@ -38468,14 +38350,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
       })();
     },
 
-    resume(_ref13) {
+    resume(_ref10) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
           getters: {
             desiredSource: source
           }
-        } = _ref13;
+        } = _ref10;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
           source,
           isPlaying: true
@@ -38483,14 +38365,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
       })();
     },
 
-    seek(_ref14, progress) {
+    seek(_ref11, progress) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
           getters: {
             desiredSource: source
           }
-        } = _ref14;
+        } = _ref11;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek({
           source,
           progress
@@ -38498,14 +38380,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
       })();
     },
 
-    volume(_ref15, volume) {
+    volume(_ref12, volume) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
           getters: {
             desiredSource: source
           }
-        } = _ref15;
+        } = _ref12;
         //TODO volume should change volume on all sources
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume({
           source,
@@ -38515,7 +38397,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     },
 
     // HIGHER LEVEL
-    toggle(_ref16) {
+    toggle(_ref13) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
@@ -38523,7 +38405,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredSource: source,
             desiredIsPlaying: isPlaying
           }
-        } = _ref16;
+        } = _ref13;
         return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
           source,
           isPlaying: !isPlaying
@@ -38675,34 +38557,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
   }
 }); // SOURCE
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
-  constructorParts(parent) {
-    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.afterInitialize;
-    return {
-      defaults: {
-        //TODO change these off undefined
-        auth: undefined,
-        request: undefined,
-        getAccessToken: undefined,
-        search: undefined,
-        player: undefined,
-        loadPlayer: undefined,
-        playback: undefined
-      },
-
-      afterInitialize() {
-        oldAfterInitialize.call(this);
-        this.playback.state.source = this; //C push own playback module to main playback modules
-
-        _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
-          namespaced: true
-        });
-      }
-
-    };
-  }
-
-}); //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
+_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source = _source_client_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
 //  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
 //  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
 //  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
@@ -38710,12 +38565,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = /*#__PURE__*/function () {
-  var _ref17 = _asyncToGenerator(function* (user) {
+  var _ref14 = _asyncToGenerator(function* (user) {
     return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/session"), new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
   });
 
   return function (_x5) {
-    return _ref17.apply(this, arguments);
+    return _ref14.apply(this, arguments);
   };
 }();
 
@@ -38836,8 +38691,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
       var that = _this16;
 
       var refresh = /*#__PURE__*/function () {
-        var _ref20 = _asyncToGenerator(function* (that) {
-          var result = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].andResolve);
+        var _ref17 = _asyncToGenerator(function* (that) {
+          var result = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].andResolve); // RESULT CHECK
 
           if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].AuthRequired)) {
             //C call auth() if server doesn't have a refresh token
@@ -38852,7 +38707,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         });
 
         return function refresh(_x6) {
-          return _ref20.apply(this, arguments);
+          return _ref17.apply(this, arguments);
         };
       }(); //C if client doesn't have token or if it has expired, refresh it immediately
       //TODO reconsider this string test
@@ -38871,13 +38726,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  search(_ref21) {
+  search(_ref18) {
     return _asyncToGenerator(function* () {
       var {
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref21;
+      } = _ref18;
       // VALIDATE
       _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonEmptyString.validate(term);
       _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonNegativeInteger.validate(startIndex);
@@ -38960,7 +38815,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
                 };
               }, player.awaitState = /*#__PURE__*/function () {
-                var _ref23 = _asyncToGenerator(function* (_ref22) {
+                var _ref20 = _asyncToGenerator(function* (_ref19) {
                   var _this17 = this;
 
                   var {
@@ -38969,13 +38824,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     success = {},
                     error = {},
                     timeoutError = {}
-                  } = _ref22;
+                  } = _ref19;
                   return new Promise( /*#__PURE__*/function () {
-                    var _ref24 = _asyncToGenerator(function* (resolve, reject) {
+                    var _ref21 = _asyncToGenerator(function* (resolve, reject) {
                       var resolved = false; //C resolved boolean is used to prevent later announcements of response objects
 
                       var callback = /*#__PURE__*/function () {
-                        var _ref25 = _asyncToGenerator(function* (state) {
+                        var _ref22 = _asyncToGenerator(function* (state) {
                           if (!resolved && stateCondition(player.formatState(state))) {
                             //C remove listener
                             _this17.removeListener('player_state_changed', callback); //C update playback state
@@ -38990,7 +38845,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                         });
 
                         return function callback(_x11) {
-                          return _ref25.apply(this, arguments);
+                          return _ref22.apply(this, arguments);
                         };
                       }(); //C add the listener before the request is made, so that the event cannot be missed 
                       //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
@@ -39033,21 +38888,21 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     });
 
                     return function (_x9, _x10) {
-                      return _ref24.apply(this, arguments);
+                      return _ref21.apply(this, arguments);
                     };
                   }());
                 });
 
                 return function (_x8) {
-                  return _ref23.apply(this, arguments);
+                  return _ref20.apply(this, arguments);
                 };
               }(), //C events
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
               player.on('ready', /*#__PURE__*/function () {
-                var _ref27 = _asyncToGenerator(function* (_ref26) {
+                var _ref24 = _asyncToGenerator(function* (_ref23) {
                   var {
                     device_id
-                  } = _ref26;
+                  } = _ref23;
                   //C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
                   //L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
                   //C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
@@ -39126,23 +38981,23 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                 });
 
                 return function (_x12) {
-                  return _ref27.apply(this, arguments);
+                  return _ref24.apply(this, arguments);
                 };
               }());
-              player.on('not_ready', (_ref29) => {
+              player.on('not_ready', (_ref26) => {
                 var {
                   device_id
-                } = _ref29;
+                } = _ref26;
                 //? don't know what to do here
                 console.error('not_ready', 'device_id:', device_id);
               }); //C errors
               //TODO make better handlers
               //L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 
-              player.on('initialization_error', (_ref30) => {
+              player.on('initialization_error', (_ref27) => {
                 var {
                   message
-                } = _ref30;
+                } = _ref27;
                 //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
                 reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
                   log: true,
@@ -39151,10 +39006,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                   reason: message
                 }));
               });
-              player.on('authentication_error', (_ref31) => {
+              player.on('authentication_error', (_ref28) => {
                 var {
                   message
-                } = _ref31;
+                } = _ref28;
                 //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
                 reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
                   log: true,
@@ -39163,10 +39018,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                   reason: message
                 }));
               });
-              player.on('account_error', (_ref32) => {
+              player.on('account_error', (_ref29) => {
                 var {
                   message
-                } = _ref32;
+                } = _ref29;
                 //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
                 reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
                   log: true,
@@ -39181,10 +39036,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
                 context.dispatch('updatePlayback', state);
               });
-              player.on('playback_error', (_ref33) => {
+              player.on('playback_error', (_ref30) => {
                 var {
                   message
-                } = _ref33;
+                } = _ref30;
                 //TODO this should be a listener, and not resolve or reject
                 console.error('playback_error', message);
               }); //C connect player
@@ -39421,10 +39276,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
           /* //R
           	when formattingState and checkState are executed, the track only gets metadata from the api and therefore looses it's playlistId, position, and other custom metadata, how to preserve this data so it can be used to know the currently playing track, playlist, and next/prev tracks
-          			my issue right now is where to store the app-generated metadata
-          			because, I want the individual source playbacks to also be able to react to external changes
-          			maybe just a simple if statement - if the track changes when not commanded to do so by the app, then a foreign track is being played, play history should still be recorded fine, but no playlist in the app would show a track as 'playing', unless the same foreign track is being displayed (like in search results, though this would mean that search results shouldn't be played sequentially in a playlist, which isn't really a necessary behavior) (a foreign track could simply be indicated by a null playlist id)
-          			so the playlistId/position should hang out on the track until it is either replaced by a new track with its own playlistId/position or wiped out by a track with no playlistId/position
+          				my issue right now is where to store the app-generated metadata
+          				because, I want the individual source playbacks to also be able to react to external changes
+          				maybe just a simple if statement - if the track changes when not commanded to do so by the app, then a foreign track is being played, play history should still be recorded fine, but no playlist in the app would show a track as 'playing', unless the same foreign track is being displayed (like in search results, though this would mean that search results shouldn't be played sequentially in a playlist, which isn't really a necessary behavior) (a foreign track could simply be indicated by a null playlist id)
+          				so the playlistId/position should hang out on the track until it is either replaced by a new track with its own playlistId/position or wiped out by a track with no playlistId/position
           		//? are playlistId and position mutually required? is there a situation where playlistId or position would exist on their own? I don't think so
           */
           //C formats given state and adds volume from getVolume() to it, commits to state
@@ -39522,13 +39377,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      pause(_ref34) {
+      pause(_ref31) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref34;
+          } = _ref31;
           return yield player.awaitState({
             command: function () {
               var _command2 = _asyncToGenerator(function* () {
@@ -39556,13 +39411,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      resume(_ref35) {
+      resume(_ref32) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref35;
+          } = _ref32;
           return yield player.awaitState({
             command: function () {
               var _command3 = _asyncToGenerator(function* () {
@@ -39590,7 +39445,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      seek(_ref36, progress) {
+      seek(_ref33, progress) {
         return _asyncToGenerator(function* () {
           var {
             state,
@@ -39598,7 +39453,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
               player,
               track
             }
-          } = _ref36;
+          } = _ref33;
           var ms = progress * track.duration;
           var timeBeforeCall = Date.now();
           return yield player.awaitState({
@@ -39629,11 +39484,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      volume(_ref37, volume) {
+      volume(_ref34, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref37;
+          } = _ref34;
           return yield player.awaitState({
             command: function () {
               var _command5 = _asyncToGenerator(function* () {
@@ -39818,7 +39673,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
     })();
   },
 
-  search(_ref38) {
+  search(_ref35) {
     var _this19 = this;
 
     return _asyncToGenerator(function* () {
@@ -39826,7 +39681,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref38;
+      } = _ref35;
       // VALIDATE
       _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonEmptyString.validate(term);
       _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonNegativeInteger.validate(startIndex);
@@ -39889,14 +39744,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
 
         searchResults[index].contentDetails = item.contentDetails;
       });
-      return searchResults.map((_ref39) => {
+      return searchResults.map((_ref36) => {
         var {
           id: {
             videoId: id
           },
           snippet,
           contentDetails
-        } = _ref39;
+        } = _ref36;
         return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track(_objectSpread({
           source: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
@@ -40033,17 +39888,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
         })();
       },
 
-      baseStart(_ref40, _ref41) {
+      baseStart(_ref37, _ref38) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             },
             dispatch
-          } = _ref40;
+          } = _ref37;
           var {
             sourceId
-          } = _ref41;
+          } = _ref38;
           player.loadVideoById({
             videoId: sourceId //startSeconds
             //endSeconds
@@ -40055,45 +39910,45 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
 
       // async start(context, track) {
       // },
-      pause(_ref42) {
+      pause(_ref39) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref42;
+          } = _ref39;
           player.pauseVideo(); //TODO return
         })();
       },
 
-      resume(_ref43) {
+      resume(_ref40) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref43;
+          } = _ref40;
           player.playVideo(); //TODO return
         })();
       },
 
-      seek(_ref44, progress) {
+      seek(_ref41, progress) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref44;
+          } = _ref41;
           var seconds = progress * track.duration * 0.001;
           player.seekTo(seconds, true); //TODO return
         })();
       },
 
-      volume(_ref45, volume) {
+      volume(_ref42, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref45;
+          } = _ref42;
           player.setVolume(volume * 100);
           player.unMute(); //TODO return
         })();
@@ -40359,6 +40214,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
 /* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _credentials_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./credentials.js */ "./source/public/js/credentials.js");
+/* harmony import */ var _source_base_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./source.base.js */ "./source/public/js/source.base.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -40461,6 +40318,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -40517,7 +40376,7 @@ sj.isType = function (input, type) {
   //TODO also go back and fix the sj validation class of number, int, floats with this too
   //TODO see if this can be even more cleanly structured
   //TODO consider allowing the user of builtin objects
-  //TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I dont think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
+  //TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I don't think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
 
   /*	//R
   	created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Base types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
@@ -40665,6 +40524,7 @@ sj.catchUnexpected = function (input) {
 
 sj.propagate = function (input, overwrite) {
   //C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
+  // RESULT CHECK
   if (!sj.isType(input, sj.Error)) {
     //C wrap any non-sj errors, let sj.Errors flow through
     input = sj.catchUnexpected(input);
@@ -40672,7 +40532,7 @@ sj.propagate = function (input, overwrite) {
 
   if (sj.isType(overwrite, Object)) {
     //C overwrite properties (for example making a more specific message)
-    Object.assign(input, overwrite); //OLD this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
+    Object.assign(input, overwrite); //OLD this would recreate the trace, don't want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
   }
 
   throw input; //TODO //? why not just use Object.assign(input) instead?
@@ -40816,7 +40676,7 @@ sj.request = /*#__PURE__*/function () {
 
 
     var build = function build(item) {
-      item = sj.rebuild(item);
+      item = sj.rebuild(item); // RESULT CHECK
 
       if (sj.isType(item, sj.Error)) {
         throw item;
@@ -41679,7 +41539,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
     	}
     */
 
-    /* //OLD, new check ruleset was created in global-server.js
+    /* //OLD, new check rule-set was created in global-server.js
     	static async checkRuleSet(ruleSet) {
     		//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
     		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
@@ -42087,6 +41947,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
+        // RESULT CHECK
 
         if (sj.isType(targetError, sj.ErrorList)) {
           //C fill each item
@@ -42367,27 +42228,8 @@ sj.Warn = sj.Base.makeClass('Warn', sj.Success, {
     }
   })
 });
-sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
-  constructorParts: parent => ({
-    //TODO allowUnknown: true,
-    defaults: {
-      //TODO this part should only be server-side 
-      //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-      authRequestKey: Symbol(),
-      //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-      authRequestTimestamp: 0,
-      authRequestTimeout: 300000,
-      //C default 5 minutes
-      authRequestURL: '',
-      authCode: Symbol(),
-      accessToken: Symbol(),
-      expires: 0,
-      refreshToken: Symbol(),
-      refreshBuffer: 60000,
-      //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-      scopes: []
-    }
-  })
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].variable(sj, {
+  Credentials: _credentials_js__WEBPACK_IMPORTED_MODULE_4__["default"]
 }); // ENTITIES
 
 sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
@@ -42453,7 +42295,8 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
       },
 
       tableToEntity(tableName) {
-        var Entity = this.children.find(child => child.table === tableName);
+        var Entity = this.children.find(child => child.table === tableName); // RESULT CHECK
+
         if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
           origin: 'sj.Entity.tableToEntity()',
           reason: "table is not recognized: ".concat(tableName),
@@ -42821,36 +42664,8 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
   }
 
 });
-sj.Source = sj.Base.makeClass('Source', sj.Base, {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      name: undefined,
-      //! source.name is a unique identifier
-      nullPrefix: '',
-      idPrefix: '',
-      credentials: new sj.Credentials(),
-      //TODO this should only be server-side
-      api: {},
-      scopes: [],
-      authRequestManually: true,
-      makeAuthRequestURL: function makeAuthRequestURL() {}
-    },
-
-    afterInitialize(accessory) {
-      //C add source to static source list: sj.Source.instances
-      this.constructor.instances.push(this);
-    }
-
-  }),
-  staticProperties: parent => ({
-    instances: [],
-
-    find(name) {
-      return this.instances.find(instance => instance.name === name);
-    }
-
-  })
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].variable(sj, {
+  Source: _source_base_js__WEBPACK_IMPORTED_MODULE_5__["default"]
 }); // LIVE DATA
 
 sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
@@ -44315,7 +44130,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table: table.Entity.table,
             query
           }, result => {
-            clearTimer();
+            clearTimer(); // RESULT CHECK
+
             if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error)) reject(result);else resolve(result);
           });
         }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
@@ -44339,7 +44155,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table: table.Entity.table,
             query
           }, result => {
-            clearTimer();
+            clearTimer(); // RESULT CHECK
+
             if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error)) reject(result);else resolve(result);
           });
         }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
@@ -44473,6 +44290,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               //C subscribe
               var subscribeResult = yield new Promise((resolve, reject) => {
                 context.state.socket.emit('subscribe', queryPack, result => {
+                  // RESULT-CHECK
                   if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success)) {
                     resolve(result);
                   } else {
@@ -44502,6 +44320,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
               var unsubscribeResult = yield new Promise((resolve, reject) => {
                 context.state.socket.emit('unsubscribe', queryPack, result => {
+                  // RESULT CHECK
                   if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success)) {
                     resolve(result);
                   } else {
@@ -44808,6 +44627,268 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
   }
 });
+
+/***/ }),
+
+/***/ "./source/public/js/playback.js":
+/*!**************************************!*\
+  !*** ./source/public/js/playback.js ***!
+  \**************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["dynamicClass"].create('Playback', {
+  instance(_ref) {
+    var {
+      // NEW
+      state,
+      actions,
+      mutations,
+      getters,
+      modules
+    } = _ref;
+    //C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
+    //C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
+    return {
+      state: _objectSpread({}, this.constructor.baseState, {}, state),
+      actions: _objectSpread({}, this.constructor.baseActions, {}, actions),
+      mutation: _objectSpread({}, this.constructor.baseMutations, {}, mutations),
+      baseGetters: _objectSpread({}, this.constructor.baseGetters, {}, getters),
+      baseModules: _objectSpread({}, this.constructor.baseModules, {}, modules)
+    };
+  },
+
+  static: () => ({
+    requestTimeout: 5000,
+    baseState: {
+      source: null,
+      player: null,
+      track: null,
+      isPlaying: false,
+      progress: 0,
+      volume: 1,
+      //G all state properties should be updated at the same time
+      timestamp: Date.now(),
+      //R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
+      startingTrack: null
+    },
+    baseActions: {
+      start(context, track) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            getters,
+            state
+          } = context;
+          var timeBefore = Date.now();
+          /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
+          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+          		origin: 'sj.Playback.baseActions.start()',
+          		reason: 'start state timed out',
+          	}));
+          			const unwatch = context.watch(
+          		//C pack desired state
+          		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
+          		//C evaluate state conditions
+          		({sourceId, isPlaying, progress}) => {
+          			if (
+          				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+          				sourceId === track.sourceId &&
+          				isPlaying === true &&
+          				progress <= (Date.now() - timeBefore) / duration
+          			) {
+          				deferred.resolve();
+          			}
+          		}, 
+          		{deep: true, immediate: true}
+          	);
+          */
+          //C trigger api
+
+          yield dispatch('baseStart', track);
+          /* //TODO same here
+          	//C wait for desired state
+          	await deferred;
+          	unwatch();
+          */
+          //C Wait for the desired state.
+
+          yield repeat.async( /*#__PURE__*/_asyncToGenerator(function* () {
+            yield wait(100);
+            return {
+              sourceId: getters.sourceId,
+              isPlaying: state.isPlaying,
+              progress: state.progress
+            };
+          }), {
+            until(_ref3) {
+              var {
+                sourceId,
+                isPlaying,
+                progress
+              } = _ref3;
+              //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+              return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
+            }
+
+          }); // console.log('reached');
+          // return new sj.Success({
+          // 	origin: 'sj.Playback.baseActions.start()',
+          // 	reason: 'start command completed',
+          // });
+        })();
+      }
+      /* //OLD
+      	async preserveLocalMetadata(context, track) {
+      		if (!sj.isType(track, sj.Track)) throw new sj.Error({
+      			origin: 'preserveLocalMetadata()',
+      			reason: 'track is not an sj.Track',
+      		});
+      				//C default local metadata as foreign track
+      		let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
+      			obj[key] = null;
+      			return obj;
+      		}, {});
+      				//C set local as current or starting track if matching
+      		if (sj.isType(context.state.track, Object) && 
+      		track.sourceId === context.state.track.sourceId)			local = context.state.track;
+      		else if (sj.isType(context.state.startingTrack, Object) && 
+      		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
+      				//C return new track with localMetadata properties replaced
+      		return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
+      	},
+      */
+
+
+    },
+    baseMutations: {
+      setState(state, values) {
+        Object.assign(state, values);
+      },
+
+      setStartingTrack(state, track) {
+        state.startingTrack = track;
+      },
+
+      removeStartingTrack(state, track) {
+        state.startingTrack = null;
+      }
+
+    },
+    baseGetters: {
+      //C safe getters for track properties
+      sourceId: state => {
+        var _state$track;
+
+        return state === null || state === void 0 ? void 0 : (_state$track = state.track) === null || _state$track === void 0 ? void 0 : _state$track.sourceId;
+      },
+      duration: state => {
+        var _state$track2;
+
+        return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
+      },
+      //C state conditions for command resolution
+      isStarted: (state, _ref4) => {
+        var {
+          sourceId,
+          duration
+        } = _ref4;
+        return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration;
+      } //TODO
+      // isPaused:
+      // isResumed:
+      // isSeeked:
+      // isVolumed:
+
+    },
+    baseModules: {}
+  })
+}));
+
+/***/ }),
+
+/***/ "./source/public/js/source.base.js":
+/*!*****************************************!*\
+  !*** ./source/public/js/source.base.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _credentials_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./credentials.js */ "./source/public/js/credentials.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('Source', {
+  instance() {
+    var {
+      //TODO validate everything, don't allow nothing to be passed
+      name,
+      nullPrefix = '',
+      idPrefix = '',
+      credentials = new _credentials_js__WEBPACK_IMPORTED_MODULE_1__["default"](),
+      //TODO import
+      api = {},
+      scopes = [],
+      authRequestManually = true,
+      makeAuthRequestURL = function () {} //! This is intentionally an instance function.
+
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      name,
+      //TODO validate that this name is unique
+      nullPrefix,
+      idPrefix,
+      //TODO check if these are really constant
+      credentials,
+      api,
+      scopes,
+      authRequestManually,
+      makeAuthRequestURL
+    }); // Add source to static list so that all sources can be iterated.
+
+    this.constructor.instances.push(this);
+  },
+
+  static: () => ({
+    //TODO Create 'push' instance function that ensures an instance with the same name / (UID) has not been added.
+    instances: [],
+
+    find(name) {
+      return this.instances.find(instance => instance.name === name);
+    }
+
+  })
+})); //TODO Ensure that nothing from sj.Base is used. / Replace
+// (log, code, type, origin, message, reason, content, etc.)
+
+/***/ }),
+
+/***/ "./source/public/js/source.client.js":
+/*!*******************************************!*\
+  !*** ./source/public/js/source.client.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, exports) {
+
+throw new Error("Module build failed (from ./node_modules/babel-loader/lib/index.js):\nSyntaxError: C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\source\\public\\js\\source.client.js: Identifier 'Playback' has already been declared (8:6)\n\n\u001b[0m \u001b[90m  6 | \u001b[39m\u001b[36mimport\u001b[39m \u001b[33mPlayback\u001b[39m from \u001b[32m'./playback.js'\u001b[39m\u001b[33m;\u001b[39m\u001b[0m\n\u001b[0m \u001b[90m  7 | \u001b[39m\u001b[0m\n\u001b[0m\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m  8 | \u001b[39m\u001b[36mconst\u001b[39m \u001b[33mPlayback\u001b[39m \u001b[33m=\u001b[39m dynamicClass\u001b[33m.\u001b[39maugment(\u001b[33mSource\u001b[39m\u001b[33m,\u001b[39m {\u001b[0m\n\u001b[0m \u001b[90m    | \u001b[39m      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\u001b[0m\n\u001b[0m \u001b[90m  9 | \u001b[39m\tinstance({\u001b[0m\n\u001b[0m \u001b[90m 10 | \u001b[39m\t\t\u001b[90m//TODO create strict defaults\u001b[39m\u001b[0m\n\u001b[0m \u001b[90m 11 | \u001b[39m\t\tauth\u001b[33m,\u001b[39m\u001b[0m\n    at Parser._raise (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:742:17)\n    at Parser.raiseWithData (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:735:17)\n    at Parser.raise (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:729:17)\n    at ScopeHandler.checkRedeclarationInScope (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:4769:12)\n    at ScopeHandler.declareName (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:4735:12)\n    at Parser.checkLVal (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:9207:22)\n    at Parser.parseVarId (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11759:10)\n    at Parser.parseVar (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11734:12)\n    at Parser.parseVarStatement (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11549:10)\n    at Parser.parseStatementContent (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11148:21)\n    at Parser.parseStatement (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11081:17)\n    at Parser.parseBlockOrModuleBlockBody (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11655:25)\n    at Parser.parseBlockBody (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11642:10)\n    at Parser.parseTopLevel (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:11012:10)\n    at Parser.parse (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:12628:10)\n    at parse (C:\\Users\\Thomas\\Documents\\Personal-Work\\StreamJockey.git\\node_modules\\@babel\\parser\\lib\\index.js:12679:38)");
 
 /***/ }),
 
@@ -45384,12 +45465,12 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, 
       _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(value);
       var currentExtends;
 
-      for (var _layer of value) {
-        customRules.layer.validate(_layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
+      for (var layer of value) {
+        customRules.layer.validate(layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
 
-        if (_layer.extends !== undefined && currentExtends !== undefined) {
-          if (_layer.extends === currentExtends || currentExtends.isPrototypeOf(_layer.extends)) {
-            currentExtends = _layer.extends;
+        if (layer.extends !== undefined && currentExtends !== undefined) {
+          if (layer.extends === currentExtends || currentExtends.isPrototypeOf(layer.extends)) {
+            currentExtends = layer.extends;
           } else {
             //TODO write test
             throw new Error('Dynamic Class layer cannot extend a class that is not equal to or the descendant of a class extended by a higher layer.');
@@ -45428,7 +45509,13 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, 
             {
           extends: e,
           //G Any changes to 'this' inside intercept() cannot impact the true instance.
-          intercept = () => [],
+          intercept = function () {
+            for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+              args[_key] = arguments[_key];
+            }
+
+            return [...args];
+          },
           instance = () => ({}),
           prototype = () => ({}),
           static: s = () => ({})
@@ -45529,8 +45616,8 @@ function processArguments() {
   var name;
   var layers;
 
-  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
+  for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+    args[_key2 - 1] = arguments[_key2];
   }
 
   if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(arg0)) {
@@ -45579,8 +45666,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     var isChild = Parent !== undefined; // Freeze the layers so that they cannot be further modified.
     //G If augmentation is desired it should be done non-destructively by adding to the layers array.
 
-    for (var _layer2 of layers) {
-      Object.freeze(_layer2);
+    for (var layer of layers) {
+      Object.freeze(layer);
     } // DEFINITION
     //R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
     //R This ensures that no undiscovered differences slip by.
@@ -45595,8 +45682,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
           constructor() {
             var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
 
-            for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-              args[_key2] = arguments[_key2];
+            for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+              args[_key3] = arguments[_key3];
             }
 
             var interceptedArgs = args; // Iterate over layer.intercept in reverse order.
@@ -45604,13 +45691,13 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (var i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             }
 
             super(...interceptedArgs); // INSTANCE
 
-            for (var _layer3 of layers) {
-              _layer3.instance.call(this, ...interceptedArgs);
+            for (var _layer of layers) {
+              _layer.instance.call(this, ...interceptedArgs);
             }
           }
 
@@ -45622,8 +45709,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
           constructor() {
             var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
 
-            for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-              args[_key3] = arguments[_key3];
+            for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+              args[_key4] = arguments[_key4];
             }
 
             var interceptedArgs = args; // Iterate over layer.intercept in reverse order.
@@ -45631,12 +45718,12 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (var i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             } // INSTANCE
 
 
-            for (var _layer4 of layers) {
-              _layer4.instance.call(this, ...interceptedArgs);
+            for (var _layer2 of layers) {
+              _layer2.instance.call(this, ...interceptedArgs);
             }
           }
 
@@ -45658,14 +45745,14 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     */
     //TODO consider not putting duper in an options container, I don't believe there should be any more arguments
 
-    for (var _layer5 of layers) {
+    for (var _layer3 of layers) {
       // PROTOTYPE
-      _layer5.prototype.call(Class.prototype, {
+      _layer3.prototype.call(Class.prototype, {
         duper: Object.getPrototypeOf(Class.prototype)
       }); // STATIC
 
 
-      _layer5.static.call(Class, {
+      _layer3.static.call(Class, {
         duper: Object.getPrototypeOf(Class)
       });
     }
@@ -45684,8 +45771,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
   baseAugment(Class) {
     var currentParent = Object.getPrototypeOf(Class);
 
-    for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-      args[_key4 - 1] = arguments[_key4];
+    for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+      args[_key5 - 1] = arguments[_key5];
     }
 
     var [newLayers] = customRules.layers.validateCast(args);
@@ -45709,6 +45796,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     }
 
     Class[dynamicClass.keys.layers].push(...newLayers);
+    return Class;
   }
 
 }); // SHORT-HAND WRAPPERS
@@ -45727,8 +45815,8 @@ function wrapParts(layers, keyWrapperPairs) {
       _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(wrapper); // Replace the part.
 
       newLayer[key] = function () {
-        for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-          args[_key5] = arguments[_key5];
+        for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+          args[_key6] = arguments[_key6];
         }
 
         return wrapper.call(this, part, ...args);
@@ -45747,11 +45835,13 @@ function wrapParts(layers, keyWrapperPairs) {
 ;
 
 function baseVanillaShorthandWrapper(part, enumerableCondition) {
-  for (var _len6 = arguments.length, args = new Array(_len6 > 2 ? _len6 - 2 : 0), _key6 = 2; _key6 < _len6; _key6++) {
-    args[_key6 - 2] = arguments[_key6];
+  var _part$call;
+
+  for (var _len7 = arguments.length, args = new Array(_len7 > 2 ? _len7 - 2 : 0), _key7 = 2; _key7 < _len7; _key7++) {
+    args[_key7 - 2] = arguments[_key7];
   }
 
-  var transfers = part.call(this, ...args);
+  var transfers = (_part$call = part.call(this, ...args)) !== null && _part$call !== void 0 ? _part$call : {};
   Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
     var descriptor = Object.getOwnPropertyDescriptor(transfers, key);
     /* force descriptors
@@ -45783,8 +45873,8 @@ function baseVanillaShorthandWrapper(part, enumerableCondition) {
 ;
 
 function instanceVanillaShorthandWrapper(part) {
-  for (var _len7 = arguments.length, args = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
-    args[_key7 - 1] = arguments[_key7];
+  for (var _len8 = arguments.length, args = new Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
+    args[_key8 - 1] = arguments[_key8];
   }
 
   return baseVanillaShorthandWrapper.call(this, part, () => true, ...args);
@@ -45793,8 +45883,8 @@ function instanceVanillaShorthandWrapper(part) {
 ;
 
 function prototypeVanillaShorthandWrapper(part) {
-  for (var _len8 = arguments.length, args = new Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
-    args[_key8 - 1] = arguments[_key8];
+  for (var _len9 = arguments.length, args = new Array(_len9 > 1 ? _len9 - 1 : 0), _key9 = 1; _key9 < _len9; _key9++) {
+    args[_key9 - 1] = arguments[_key9];
   }
 
   return baseVanillaShorthandWrapper.call(this, part, () => false, ...args);
@@ -45803,8 +45893,8 @@ function prototypeVanillaShorthandWrapper(part) {
 ;
 
 function staticVanillaShorthandWrapper(part) {
-  for (var _len9 = arguments.length, args = new Array(_len9 > 1 ? _len9 - 1 : 0), _key9 = 1; _key9 < _len9; _key9++) {
-    args[_key9 - 1] = arguments[_key9];
+  for (var _len10 = arguments.length, args = new Array(_len10 > 1 ? _len10 - 1 : 0), _key10 = 1; _key10 < _len10; _key10++) {
+    args[_key10 - 1] = arguments[_key10];
   }
 
   return baseVanillaShorthandWrapper.call(this, part, descriptor => descriptor.writable !== undefined && typeof descriptor.value !== 'function', ...args);
@@ -45833,8 +45923,8 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
   },
 
   augment(Class) {
-    for (var _len10 = arguments.length, layers = new Array(_len10 > 1 ? _len10 - 1 : 0), _key10 = 1; _key10 < _len10; _key10++) {
-      layers[_key10 - 1] = arguments[_key10];
+    for (var _len11 = arguments.length, layers = new Array(_len11 > 1 ? _len11 - 1 : 0), _key11 = 1; _key11 < _len11; _key11++) {
+      layers[_key11 - 1] = arguments[_key11];
     }
 
     var wrappedLayers = applyVanillaShorthandWrappers(layers);

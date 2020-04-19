@@ -13,6 +13,7 @@ import fclone from 'fclone';
 import deepCompare, {compareUnorderedArrays} from '../public/js/utility/object/deep-compare.js';
 //! depends on the common global.js not the global-server.js because global-server.js uses this module
 import sj from '../public/js/global.js';
+import Subscription from './subscription.server.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -27,13 +28,7 @@ import sj from '../public/js/global.js';
 
 //TODO this may be unrelated but it seems the liveQueries here are also piling up
 
-sj.Subscription.augmentClass({
-	constructorParts: parent => ({
-		defaults: {
-			user: null,
-		},
-	}),
-});
+sj.Subscription = Subscription;
 
 export default {
 	app: null,

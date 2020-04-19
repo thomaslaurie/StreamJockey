@@ -930,14 +930,6 @@ sj.Entity.augmentClass({
 	},
 });
 
-sj.Source.augmentClass({
-	constructorProperties: parent => ({
-		defaults: {
-			serverTestProp: null,
-		},
-	}),
-});
-
 //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
 //  ██║   ██║███████╗█████╗  ██████╔╝

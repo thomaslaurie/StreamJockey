@@ -837,6 +837,7 @@ export default {
 
 				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
+					// RESULT CHECK
 					if (sj.isType(result, sj.Error)) reject(result);
 					else resolve(result);
 				});
@@ -853,6 +854,7 @@ export default {
 
 				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
+					// RESULT CHECK
 					if (sj.isType(result, sj.Error)) reject(result);
 					else resolve(result);
 				});
@@ -957,6 +959,7 @@ export default {
 					//C subscribe
 					let subscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('subscribe', queryPack, result => {
+							// RESULT-CHECK
 							if (sj.isType(result, sj.Success)) {
 								resolve(result);
 							} else {
@@ -989,6 +992,7 @@ export default {
 					//C unsubscribe
 					let unsubscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('unsubscribe', queryPack, result => {
+							// RESULT CHECK
 							if (sj.isType(result, sj.Success)) {
 								resolve(result);
 							} else {

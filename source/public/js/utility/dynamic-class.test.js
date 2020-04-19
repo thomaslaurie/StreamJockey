@@ -1,5 +1,9 @@
 //TODO test layers
 //TODO test first argument layer / name
+//TODO test that augment returns the class
+//TODO test that a shorthand part function may return undefined, //TODO figure out what to do with non-undefined, non-objects
+//TODO it seems that there is no test for the constructor calls of these classes (ie. errors thrown in the constructor weren't noticed until an implementation happened)
+//TODO test that intercept arguments pass through (they previously were getting wiped out by the default intercept function)
 
 import test from 'ava';
 import dynamicClass from './dynamic-class.js';

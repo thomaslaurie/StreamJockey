@@ -52,6 +52,8 @@ import {
 	runHTMLScript
 } from './browser-utility/index.js';
 import sj from './global.js';
+import Source from './source.client.js';
+import Playback from './playback.js';
 
 // EXTERNAL
 import moment from 'moment';
@@ -389,538 +391,10 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Command, {
 });
 
 // PLAYBACK
-sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
-	constructorParts(parent) { return {
-		defaults: {
-			// NEW
-			state: undefined,
-			actions: undefined,
-			mutations: undefined,
-			getters: undefined,
-			modules: undefined,
-		},
-		afterInitialize() {
-			//C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
-			//C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
-
-
-			this.state			= {...this.constructor.baseState, ...this.state};
-			this.actions		= {...this.constructor.baseActions, ...this.actions};
-			this.mutations		= {...this.constructor.baseMutations, ...this.mutations};
-			this.baseGetters	= {...this.constructor.baseGetters, ...this.getters};
-			this.baseModules	= {...this.constructor.baseModules, ...this.getters};
-		},
-	}; },
-	staticProperties: parent => ({
-		requestTimeout: 5000,
-
-		baseState: {
-			source: null,
-			player: null,
-
-			track: null,
-			isPlaying: false,
-			progress: 0,
-			volume: 1,
-
-			//G all state properties should be updated at the same time
-			timestamp: Date.now(),
-
-
-			//R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
-			startingTrack: null,
-		},
-		baseActions: {
-			async start(context, track) {
-				const {dispatch, getters, state} = context;
-				const timeBefore = Date.now();
-
-				/* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
-					const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
-						origin: 'sj.Playback.baseActions.start()',
-						reason: 'start state timed out',
-					}));
-
-					const unwatch = context.watch(
-						//C pack desired state
-						({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
-						//C evaluate state conditions
-						({sourceId, isPlaying, progress}) => {
-							if (
-								//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-								sourceId === track.sourceId &&
-								isPlaying === true &&
-								progress <= (Date.now() - timeBefore) / duration
-							) {
-								deferred.resolve();
-							}
-						}, 
-						{deep: true, immediate: true}
-					);
-				*/
-
-				//C trigger api
-				await dispatch('baseStart', track);
-
-				/* //TODO same here
-					//C wait for desired state
-					await deferred;
-					unwatch();
-				*/
-				//C Wait for the desired state.
-				await repeat.async(async () => {
-					await wait(100);
-					return {
-						sourceId:  getters.sourceId,
-						isPlaying: state.isPlaying,
-						progress:  state.progress,
-					};
-				},  {
-					until({sourceId, isPlaying, progress}) {
-						//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-						return (							
-							sourceId  === track.sourceId &&
-							isPlaying === true           &&
-							progress  <=  (Date.now() - timeBefore) / duration
-						);
-					},
-				});
-
-				console.log('reached');
-
-				return new sj.Success({
-					origin: 'sj.Playback.baseActions.start()',
-					reason: 'start command completed',
-				});
-			},
-
-			/* //OLD
-				async preserveLocalMetadata(context, track) {
-					if (!sj.isType(track, sj.Track)) throw new sj.Error({
-						origin: 'preserveLocalMetadata()',
-						reason: 'track is not an sj.Track',
-					});
-
-					//C default local metadata as foreign track
-					let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
-						obj[key] = null;
-						return obj;
-					}, {});
-
-					//C set local as current or starting track if matching
-					if (sj.isType(context.state.track, Object) && 
-					track.sourceId === context.state.track.sourceId)			local = context.state.track;
-					else if (sj.isType(context.state.startingTrack, Object) && 
-					track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
-
-					//C return new track with localMetadata properties replaced
-					return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
-				},
-			*/
-		},
-		baseMutations: {
-			setState(state, values) {
-				Object.assign(state, values);
-			},
-			setStartingTrack(state, track) {
-				state.startingTrack = track;
-			},
-			removeStartingTrack(state, track) {
-				state.startingTrack = null;
-			},
-		},
-		baseGetters: {
-			//C safe getters for track properties
-			sourceId: (state) => state?.track?.sourceId,
-			duration: (state) => state?.track?.duration,
-
-			//C state conditions for command resolution
-			isStarted:	(state, {sourceId, duration}) => (id, timeBefore) => (
-				sourceId === id &&
-				state.isPlaying === true &&
-				state.progress <= (Date.now() - timeBefore) / duration
-			),
-
-			//TODO
-			// isPaused:
-			// isResumed:
-			// isSeeked:
-			// isVolumed:
-		},
-		baseModules: {
-		},
-	}),
-});
-sj.Playback.module = new sj.Playback({
-	//G main playback module for app
-	modules: {},
-
-	state: {
-		// CLOCK 
-		//C basically a reactive Date.now(), so far just used for updating playback progress
-		clock: Date.now(),
-		clockIntervalId: null,
-
-		// QUEUE
-		/* //R Old Queue Thought Process
-				//  //R
-			// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
-			// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
-			// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
-			// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
-			// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
-			// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
-
-			TODO checkPlaybackState every command just like before, find a better way
-				// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
-				// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-
-			Command Failure Handling 
-				// 	!!! old, meant for individual command types
-
-				// send command, change pendingCommand to true, wait
-				// 	if success: change pendingCommand to false
-				// 		if queuedCommand exists: change command to queuedCommand, clear queued command, repeat...
-				// 		else: nothing
-				// 	if failure: 
-				// 		if queuedCommand exists: change pendingCommand to false, change command to queuedCommand, clear queued command, repeat... // pendingCommands aren't desired if queuedCommands exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
-				// 		else: trigger auto-retry process
-				// 			if success: repeat...
-				// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
-		*/
-		commandQueue: [],
-		sentCommand: null,
-
-		// PLAYBACK STATE
-		//C source is used to select the proper playback state for actualPlayback
-		source: null,
-
-		// LOCAL TRACKS
-		currentTrackSubscription: null,
-		startingTrackSubscription: null,
-	},
-	actions: {
-		// CLOCK
-		async startClock(context) {
-			await context.dispatch('stopClock');
-			const id = setInterval(() => context.commit('updateClock'), 100); //C clock refresh rate
-			context.commit('setClockIntervalId', id);
-		},
-		async stopClock(context) {
-			clearInterval(context.state.clockIntervalId);
-			context.commit('setClockIntervalId', null);
-		},
-
-		// QUEUE
-		//TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
-		async pushCommand(context, command) {
-			//C Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
-
-			let push = true;
-
-			//C remove redundant commands if necessary
-			const compact = function (i) {
-				if (i >= 0) {
-					//R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
-					if (command.collapseCondition(context.state.commandQueue[i])) {
-						//C if last otherCommand collapses, this command gets pushed
-						push = true;
-						//C store otherCommand on this command
-						command.collapsedCommands.unshift(context.state.commandQueue[i]);
-						//C remove otherCommand
-						context.commit('removeQueuedCommand', i);
-						//C analyze next otherCommand
-						compact(i-1);
-					} else if (command.annihilateCondition(context.state.commandQueue[i])) {
-						//C if last otherCommand annihilates, this command doesn't get pushed
-						push = false;
-						command.collapsedCommands.unshift(context.state.commandQueue[i]);
-						context.commit('removeQueuedCommand', i);
-						compact(i-1);
-					} else {
-						//C if otherCommand does not collapse or annihilate, escape
-						return;
-					}
-				}
-			};
-			compact(context.state.commandQueue.length-1);
-
-			if (( //C if there is a sent command and identical to the sent command,
-				context.state.sentCommand !== null && 
-				command.identicalCondition(context.state.sentCommand)
-			) || ( //C or if there isn't a sent command and identical to the actual playback
-				context.state.sentCommand === null && 
-				command.identicalCondition(context.getters.actualPlayback)
-			)) push === false; //C don't push
-			
-			//C route command resolve/reject to this result promise
-			const resultPromise = new Promise((resolve, reject) => {
-				command.resolve = resolve;
-				command.reject = reject;
-			});
-
-			//C push command to the queue or resolve it (because it has been collapsed)
-			if (push) context.commit('pushQueuedCommand', command);
-			else command.fullResolve(new sj.Success({
-				origin: 'pushCommand()',
-				reason: 'command was annihilated',
-			}));
-			
-			//C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
-			context.dispatch('nextCommand');
-
-			//C await for the command to resolve
-			return await resultPromise;
-		},
-		async nextCommand(context) {
-			//C don't do anything if another command is still processing or if no queued commands exist
-			if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return;
-
-			//C move the command from the queue to sent
-			context.commit('setSentCommand', context.state.commandQueue[0]);
-			context.commit('removeQueuedCommand', 0);
-
-			//C trigger and resolve the command
-			await context.state.sentCommand.trigger(context).then(
-				resolved => context.state.sentCommand.fullResolve(resolved),
-				rejected => context.state.sentCommand.fullReject(rejected),
-			);
-
-			//C mark the sent command as finished
-			context.commit('removeSentCommand');
-			//C send next command //! do not await, this just restarts the nextCommand cycle
-			context.dispatch('nextCommand');
-		},
-
-		// PLAYBACK FUNCTIONS
-		//G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
-		// BASIC
-		async start({dispatch}, track) {
-			return await dispatch('pushCommand', new sj.Start({
-				source: track.source, //! uses track's source
-				track,
-			}));
-		},
-		async pause({dispatch, getters: {desiredSource: source}}) {
-			return await dispatch('pushCommand', new sj.Toggle({
-				source, //! other non-start basic playback functions just use the current desiredPlayback source
-				isPlaying: false,
-			}));
-		},
-		async resume({dispatch, getters: {desiredSource: source}}) {
-			return await dispatch('pushCommand', new sj.Toggle({
-				source,
-				isPlaying: true,
-			}));
-		},
-		async seek({dispatch, getters: {desiredSource: source}}, progress) {
-			return await dispatch('pushCommand', new sj.Seek({
-				source,
-				progress,
-			}));
-		},
-		async volume({dispatch, getters: {desiredSource: source}}, volume) {
-			//TODO volume should change volume on all sources
-			return await dispatch('pushCommand', new sj.Volume({
-				source,
-				volume,
-			}));
-		},
-		// HIGHER LEVEL
-		async toggle({dispatch, getters: {desiredSource: source, desiredIsPlaying: isPlaying}}) {
-			return await dispatch('pushCommand', new sj.Toggle({
-				source,
-				isPlaying: !isPlaying,
-			}));
-		},
-	},
-	mutations: {
-		// CLOCK
-		updateClock(state) {
-			state.clock = Date.now();
-		},
-		setClockIntervalId(state, id) {
-			state.clockIntervalId = id;
-		},
-
-		// QUEUE
-		pushQueuedCommand(state, command) {
-			state.commandQueue.push(command);
-		},
-		removeQueuedCommand(state, index) {
-			state.commandQueue.splice(index, 1);
-		},
-		setSentCommand(state, command) {
-			state.sentCommand = command;
-		},
-		removeSentCommand(state) {
-			state.sentCommand = null;
-		},
-
-		// PLAYBACK STATE
-		setSource(state, source) {
-			state.source = source;
-		},
-
-		// LOCAL TRACKS
-		setCurrentTrackSubscription(state, subscription) {
-			state.currentTrackSubscription = subscription;
-		},
-		setStartingTrackSubscription(state, subscription) {
-			state.startingTrackSubscription = subscription;
-		},
-	},
-	getters: {
-		/*
-			// PLAYBACK STATE
-			actualPlayback(state, getters) {
-				//C return null playback state if no source
-				if (state.source === null) return {...sj.Playback.baseState};
-
-				//C get the source state
-				const sourceState = state[state.source.name];
-
-				//C use inferredProgress or regular progress depending on isPlaying
-				//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
-				if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
-				else return sourceState;
-			},		
-			inferredProgress(state) {
-				if (state.source === null) return -1;
-				//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
-				const sourceState = state[state.source.name];
-				const elapsedTime = state.clock - sourceState.timestamp;
-				const elapsedProgress = elapsedTime / sourceState.track.duration;
-				return clamp(sourceState.progress + elapsedProgress, 0, 1);
-			},
-			desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
-				//! this will update x-times per second when playing as the track progress is constantly updating
-				return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
-			},
-		*/
-
-		// ACTUAL
-		sourceOrBase:		(state, getters) => key => {
-			if (state.source === null) return sj.Playback.baseState[key];
-			else return state[state.source.name][key];
-		},
-		
-		actualSource:		(state, getters) => {
-			return state.source;
-		},
-		actualTrack:		(state, getters, rootState, rootGetters) => {
-			const sourceOrBaseTrack = getters.sourceOrBase('track');
-			if (sj.isType(sourceOrBaseTrack, sj.Track)) {
-				//C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-				if (sj.isType(getters.currentTrack, sj.Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-				if (sj.isType(getters.startingTrack, sj.Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
-			}
-			
-			return sourceOrBaseTrack;
-		},
-		actualIsPlaying:	(state, getters) => getters.sourceOrBase('isPlaying'),
-		actualProgress:		(state, getters) => {
-			let progress = getters.sourceOrBase('progress');
-
-			if (
-				sj.isType(state.source, Object) && 
-				sj.isType(state[state.source.name], Object) &&
-				sj.isType(state[state.source.name].track, Object) && 
-				state[state.source.name].isPlaying
-			) {
-				//C if playing, return inferred progress
-				const elapsedTime = state.clock - state[state.source.name].timestamp;
-				const elapsedProgress = elapsedTime / state[state.source.name].track.duration;
-				progress = clamp(state[state.source.name].progress + elapsedProgress, 0, 1);
-			}
-
-			return progress;
-		},
-		actualVolume:		(state, getters) => getters.sourceOrBase('volume'),
-
-		actualPlayback:		(state, getters) => ({
-			//! this will update as fast as progress does
-			source:		getters.actualSource,
-			track:		getters.actualTrack,
-			isPlaying:	getters.actualIsPlaying,
-			progress:	getters.actualProgress,
-			volume:		getters.actualVolume,
-		}),
-
-
-		// DESIRED
-		flattenPlayback: (state, getters) => key => {
-			//C value starts as the actualValue
-			let value = getters[`actual${capitalizeFirstCharacter(key)}`];
-			//C then if defined, sentCommand
-			if (sj.isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key];
-			//C then if defined, each queuedCommand
-			for (const queuedCommand of state.commandQueue) {
-				if (queuedCommand[key] !== undefined) value = queuedCommand[key];
-			}
-
-			return value;
-		},
-
-		desiredSource: 		(state, getters) => getters.flattenPlayback('source'),
-		desiredTrack:		(state, getters) => getters.flattenPlayback('track'),
-		desiredIsPlaying:	(state, getters) => getters.flattenPlayback('isPlaying'),
-		desiredProgress:	(state, getters) => getters.flattenPlayback('progress'),
-		desiredVolume:		(state, getters) => getters.flattenPlayback('volume'),
-		
-		desiredPlayback: (state, getters) => ({
-			source:		getters.actualSource,
-			track:		getters.desiredTrack,
-			isPlaying:	getters.desiredIsPlaying,
-			progress:	getters.desiredProgress,
-			volume:		getters.desiredVolume,
-		}),
-
-
-		// LOCAL TRACKS
-		currentTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.currentTrackSubscription, sj.Subscription)) return one(rootGetters.getLiveData(state.currentTrackSubscription));
-			else return null;
-		},
-		startingTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.startingTrackSubscription, sj.Subscription)) return one(rootGetters.getLiveData(state.startingTrackSubscription));
-			else return null;
-		},
-	},
-});
+sj.Playback = Playback;
 
 // SOURCE
-sj.Source.augmentClass({
-	constructorParts(parent) {
-		const oldAfterInitialize = sj.Source.afterInitialize;
-
-		return {
-			defaults: {
-				//TODO change these off undefined
-				auth: undefined,
-				request: undefined,
-				getAccessToken: undefined,
-
-				search: undefined,
-	
-				player: undefined,
-				loadPlayer: undefined,
-				playback: undefined,
-			},
-			afterInitialize() {
-				oldAfterInitialize.call(this);
-
-				this.playback.state.source = this;
-	
-				//C push own playback module to main playback modules
-				sj.Playback.module.modules[this.name] = {
-					...this.playback,
-					namespaced: true,
-				};
-			},
-		};
-	},
-});
+sj.Source = Source;
 
 
 //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
@@ -1051,6 +525,7 @@ sj.spotify = new sj.Source({
 		let that = this;
 		let refresh = async function (that) {
 			let result = await sj.request('GET', `${sj.API_URL}/spotify/refreshToken`).catch(sj.andResolve);
+			// RESULT CHECK
 			if (sj.isType(result, sj.AuthRequired)) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
@@ -1164,7 +639,7 @@ sj.spotify = new sj.Source({
 						}) {
 							return new Promise(async (resolve, reject) => {
 								let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
-
+	
 								const callback = async state => {
 									if (!resolved && stateCondition(player.formatState(state))) {
 										//C remove listener
@@ -1177,7 +652,7 @@ sj.spotify = new sj.Source({
 										resolved = true;
 									}
 								};
-
+	
 								//C add the listener before the request is made, so that the event cannot be missed 
 								//! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
 								this.addListener('player_state_changed', callback);
@@ -1191,7 +666,7 @@ sj.spotify = new sj.Source({
 										resolved = true;
 									}
 								});
-
+	
 								//C if playback is already in the proper state, resolve but don't update
 								//! this check is required because in this case spotify wont trigger a 'player_state_changed' event
 								await context.dispatch('checkPlayback');
@@ -1210,13 +685,13 @@ sj.spotify = new sj.Source({
 								}
 							});
 						},
-
+	
 						//C events
 						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
 						player.on('ready', async ({device_id}) => {
 							//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
 							//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-
+	
 							//C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
 							const iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
 							if (iframe) {
@@ -1225,11 +700,11 @@ sj.spotify = new sj.Source({
 								iframe.style.top = '-1000px';
 								iframe.style.left = '-1000px';
 							}
-
+	
 							//C set the player as ready 
 							//! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
 							context.commit('setState', {player});
-
+	
 							//C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 							await sj.spotify.request('PUT', 'me/player', {
 								device_ids: [device_id],
@@ -1243,7 +718,7 @@ sj.spotify = new sj.Source({
 									content: rejected,
 								}));
 							});
-
+	
 							//C wait for device to transfer
 							//TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
 							
@@ -1264,7 +739,7 @@ sj.spotify = new sj.Source({
 										//reason: JSON.parse(error.response).error.message,
 										content: rejected,
 									}));
-
+	
 									return {device: {id: device_id}}; //C break the loop after rejecting
 								});
 							}, {
@@ -1279,13 +754,13 @@ sj.spotify = new sj.Source({
 								},
 								timeout: sj.Playback.requestTimeout * 2,
 							});
-
+	
 							//C check playback state //? this was commented out earlier and after pause, was this causing issues?
 							await context.dispatch('checkPlayback');
-
+	
 							//C ensure that playback is not playing
 							await context.dispatch('pause');
-
+	
 							resolve(new sj.Success({
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player loaded',
@@ -1380,12 +855,12 @@ sj.spotify = new sj.Source({
 							}
 						*/
 					};
-
+	
 					//C dynamic import Spotify's SDK
 					//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
 					import(/* webpackChunkName: 'spotify-player' */ `./vendor/spotify-player.js`);
 				});
-
+	
 				/* //OLD
 					// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
 					// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
@@ -1565,25 +1040,25 @@ sj.spotify = new sj.Source({
 					});
 				*/
 			},
-
+	
 			
 			//C spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
 			async updatePlayback(context, state) {
 				//C formats and commits playback state
-
+	
 				/* //R
 					when formattingState and checkState are executed, the track only gets metadata from the api and therefore looses it's playlistId, position, and other custom metadata, how to preserve this data so it can be used to know the currently playing track, playlist, and next/prev tracks
-
+	
 					my issue right now is where to store the app-generated metadata
-
+	
 					because, I want the individual source playbacks to also be able to react to external changes
-
+	
 					maybe just a simple if statement - if the track changes when not commanded to do so by the app, then a foreign track is being played, play history should still be recorded fine, but no playlist in the app would show a track as 'playing', unless the same foreign track is being displayed (like in search results, though this would mean that search results shouldn't be played sequentially in a playlist, which isn't really a necessary behavior) (a foreign track could simply be indicated by a null playlist id)
-
+	
 					so the playlistId/position should hang out on the track until it is either replaced by a new track with its own playlistId/position or wiped out by a track with no playlistId/position
 						//? are playlistId and position mutually required? is there a situation where playlistId or position would exist on their own? I don't think so
 				*/
-
+	
 				//C formats given state and adds volume from getVolume() to it, commits to state
 				const formattedState = context.state.player.formatState(state);
 				//C these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
@@ -1608,7 +1083,7 @@ sj.spotify = new sj.Source({
 			},
 			async checkPlayback(context) {
 				//C retrieves playback from api and updates it
-
+	
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
 				const state = await context.state.player.getCurrentState().catch(rejected => {
 					throw new sj.Error({
@@ -1620,7 +1095,7 @@ sj.spotify = new sj.Source({
 						content: rejected,
 					});
 				});
-
+	
 				await context.dispatch('updatePlayback', state);
 				return new sj.Success({
 					origin: 'spotify module command - checkPlayback()',
@@ -1631,7 +1106,7 @@ sj.spotify = new sj.Source({
 			
 			//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
 			//G should resolve only when the playback command is applied
-
+	
 			// PLAYBACK COMMANDS
 			//G must handle redundant requests (eg. pause when already paused)
 			//G must only resolve when the playback state is actually applied (not just on command acknowledgement)
@@ -1686,7 +1161,7 @@ sj.spotify = new sj.Source({
 					command: async () => await player.resume(),
 					stateCondition: state => state.isPlaying === true,
 					success: {
-
+	
 					},
 					error: {
 						//code: JSON.parse(rejected.response).error.status,
@@ -1702,13 +1177,13 @@ sj.spotify = new sj.Source({
 			async seek({state, state: {player, track}}, progress) {
 				const ms = progress * track.duration;
 				const timeBeforeCall = Date.now();
-
+	
 				return await player.awaitState({
 					command: async () => await player.seek(ms),
 					//C state.position must be greater than the set position but less than the difference in time it took to call and resolve
 					stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
 					success: {
-
+	
 					},
 					error: {
 						//code: JSON.parse(rejected.response).error.status,
@@ -1726,7 +1201,7 @@ sj.spotify = new sj.Source({
 					command: async () => await player.setVolume(volume),
 					stateCondition: state => state.volume === volume,
 					success: {
-
+	
 					},
 					error: {
 						//code: JSON.parse(rejected.response).error.status,

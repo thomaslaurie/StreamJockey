@@ -215,6 +215,52 @@ const URL_HEADER = Object.freeze({
 
 /***/ }),
 
+/***/ "./source/public/js/credentials.js":
+/*!*****************************************!*\
+  !*** ./source/public/js/credentials.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('Credentials', {
+  instance: ({
+    //TODO this part should only be server-side 
+    //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
+    //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+    authRequestKey = Symbol(),
+    authRequestTimestamp = 0,
+    //C default 5 minutes
+    authRequestTimeout = 300000,
+    authRequestURL = '',
+    authCode = Symbol(),
+    accessToken = Symbol(),
+    expires = 0,
+    refreshToken = Symbol(),
+    //C 1 minute 
+    //TODO figure out what the expiry time is for these apis and change this to a more useful value
+    refreshBuffer = 60000,
+    scopes = []
+  } = {}) => ({
+    //TODO allowUnknown: true, //?
+    authRequestKey,
+    authRequestTimestamp,
+    authRequestTimeout,
+    authRequestURL,
+    authCode,
+    accessToken,
+    expires,
+    refreshToken,
+    refreshBuffer,
+    scopes
+  })
+}));
+
+/***/ }),
+
 /***/ "./source/public/js/derived-utility/fetch.js":
 /*!***************************************************!*\
   !*** ./source/public/js/derived-utility/fetch.js ***!
@@ -264,6 +310,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
 /* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _credentials_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./credentials.js */ "./source/public/js/credentials.js");
+/* harmony import */ var _source_base_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./source.base.js */ "./source/public/js/source.base.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -352,6 +400,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -400,7 +450,7 @@ sj.isType = function (input, type) {
   //TODO also go back and fix the sj validation class of number, int, floats with this too
   //TODO see if this can be even more cleanly structured
   //TODO consider allowing the user of builtin objects
-  //TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I dont think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
+  //TODO make a list of reserved strings as identifiers (problem is for using a variable as the type to compare to, if it lands on any of these reserved words it wont match typeof type but the reserved meaning) //? actually I don't think this is needed because 'typeof type' is never used, type is only matching by value or its identifier
 
   /*	//R
   	created new typeOf function - there are two use cases: (minimal, similar to typeof keyword but fixes null & NaN) (extended, fleshes out sj.Base types etc.), both are probably needed but they cant exist at the same time - instead do something like isType(input, 'type') which can then be used to check many-to-one matches unlike a string comparison (x === 'y'), this will distance this function from typeof (which is a good thing)
@@ -548,6 +598,7 @@ sj.catchUnexpected = function (input) {
 
 sj.propagate = function (input, overwrite) {
   //C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
+  // RESULT CHECK
   if (!sj.isType(input, sj.Error)) {
     //C wrap any non-sj errors, let sj.Errors flow through
     input = sj.catchUnexpected(input);
@@ -555,7 +606,7 @@ sj.propagate = function (input, overwrite) {
 
   if (sj.isType(overwrite, Object)) {
     //C overwrite properties (for example making a more specific message)
-    Object.assign(input, overwrite); //OLD this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
+    Object.assign(input, overwrite); //OLD this would recreate the trace, don't want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
   }
 
   throw input; //TODO //? why not just use Object.assign(input) instead?
@@ -696,7 +747,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 
 
   let build = function (item) {
-    item = sj.rebuild(item);
+    item = sj.rebuild(item); // RESULT CHECK
 
     if (sj.isType(item, sj.Error)) {
       throw item;
@@ -1520,7 +1571,7 @@ sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
     	}
     */
 
-    /* //OLD, new check ruleset was created in global-server.js
+    /* //OLD, new check rule-set was created in global-server.js
     	static async checkRuleSet(ruleSet) {
     		//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
     		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
@@ -1889,6 +1940,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
+        // RESULT CHECK
 
         if (sj.isType(targetError, sj.ErrorList)) {
           //C fill each item
@@ -2171,27 +2223,8 @@ sj.Warn = sj.Base.makeClass('Warn', sj.Success, {
     }
   })
 });
-sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
-  constructorParts: parent => ({
-    //TODO allowUnknown: true,
-    defaults: {
-      //TODO this part should only be server-side 
-      //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-      authRequestKey: Symbol(),
-      //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-      authRequestTimestamp: 0,
-      authRequestTimeout: 300000,
-      //C default 5 minutes
-      authRequestURL: '',
-      authCode: Symbol(),
-      accessToken: Symbol(),
-      expires: 0,
-      refreshToken: Symbol(),
-      refreshBuffer: 60000,
-      //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-      scopes: []
-    }
-  })
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].variable(sj, {
+  Credentials: _credentials_js__WEBPACK_IMPORTED_MODULE_4__["default"]
 }); // ENTITIES
 
 sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
@@ -2259,7 +2292,8 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
       },
 
       tableToEntity(tableName) {
-        const Entity = this.children.find(child => child.table === tableName);
+        const Entity = this.children.find(child => child.table === tableName); // RESULT CHECK
+
         if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
           origin: 'sj.Entity.tableToEntity()',
           reason: `table is not recognized: ${tableName}`,
@@ -2627,36 +2661,8 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
   }
 
 });
-sj.Source = sj.Base.makeClass('Source', sj.Base, {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      name: undefined,
-      //! source.name is a unique identifier
-      nullPrefix: '',
-      idPrefix: '',
-      credentials: new sj.Credentials(),
-      //TODO this should only be server-side
-      api: {},
-      scopes: [],
-      authRequestManually: true,
-      makeAuthRequestURL: function () {}
-    },
-
-    afterInitialize(accessory) {
-      //C add source to static source list: sj.Source.instances
-      this.constructor.instances.push(this);
-    }
-
-  }),
-  staticProperties: parent => ({
-    instances: [],
-
-    find(name) {
-      return this.instances.find(instance => instance.name === name);
-    }
-
-  })
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].variable(sj, {
+  Source: _source_base_js__WEBPACK_IMPORTED_MODULE_5__["default"]
 }); // LIVE DATA
 
 sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
@@ -2741,6 +2747,63 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
   })
 });
 /* harmony default export */ __webpack_exports__["default"] = (sj);
+
+/***/ }),
+
+/***/ "./source/public/js/source.base.js":
+/*!*****************************************!*\
+  !*** ./source/public/js/source.base.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _credentials_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./credentials.js */ "./source/public/js/credentials.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('Source', {
+  instance({
+    //TODO validate everything, don't allow nothing to be passed
+    name,
+    nullPrefix = '',
+    idPrefix = '',
+    credentials = new _credentials_js__WEBPACK_IMPORTED_MODULE_1__["default"](),
+    //TODO import
+    api = {},
+    scopes = [],
+    authRequestManually = true,
+    makeAuthRequestURL = function () {} //! This is intentionally an instance function.
+
+  } = {}) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      name,
+      //TODO validate that this name is unique
+      nullPrefix,
+      idPrefix,
+      //TODO check if these are really constant
+      credentials,
+      api,
+      scopes,
+      authRequestManually,
+      makeAuthRequestURL
+    }); // Add source to static list so that all sources can be iterated.
+
+    this.constructor.instances.push(this);
+  },
+
+  static: () => ({
+    //TODO Create 'push' instance function that ensures an instance with the same name / (UID) has not been added.
+    instances: [],
+
+    find(name) {
+      return this.instances.find(instance => instance.name === name);
+    }
+
+  })
+})); //TODO Ensure that nothing from sj.Base is used. / Replace
+// (log, code, type, origin, message, reason, content, etc.)
 
 /***/ }),
 
@@ -3327,7 +3390,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, 
         const {
           extends: e,
           //G Any changes to 'this' inside intercept() cannot impact the true instance.
-          intercept = () => [],
+          intercept = (...args) => [...args],
           instance = () => ({}),
           prototype = () => ({}),
           static: s = () => ({}),
@@ -3497,7 +3560,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (let i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             }
 
             super(...interceptedArgs); // INSTANCE
@@ -3520,7 +3583,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
             for (let i = layers.length - 1; i > 0; i--) {
               // Call with null as this to throw on any object-like operations on this.
               // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layer.intercept.call(null, ...interceptedArgs);
+              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
             } // INSTANCE
 
 
@@ -3592,6 +3655,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     }
 
     Class[dynamicClass.keys.layers].push(...newLayers);
+    return Class;
   }
 
 }); // SHORT-HAND WRAPPERS
@@ -3623,7 +3687,9 @@ function wrapParts(layers, keyWrapperPairs) {
 ;
 
 function baseVanillaShorthandWrapper(part, enumerableCondition, ...args) {
-  const transfers = part.call(this, ...args);
+  var _part$call;
+
+  const transfers = (_part$call = part.call(this, ...args)) !== null && _part$call !== void 0 ? _part$call : {};
   Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
     const descriptor = Object.getOwnPropertyDescriptor(transfers, key);
     /* force descriptors
@@ -7257,13 +7323,6 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
     };
   }
 
-});
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
-  constructorProperties: parent => ({
-    defaults: {
-      serverTestProp: null
-    }
-  })
 }); //  ██╗   ██╗███████╗███████╗██████╗ 
 //  ██║   ██║██╔════╝██╔════╝██╔══██╗
 //  ██║   ██║███████╗█████╗  ██████╔╝
