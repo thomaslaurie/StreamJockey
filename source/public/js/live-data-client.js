@@ -264,8 +264,8 @@ import {
 	any,
 	repeat,
 	keyCode,
-} from './utility/index.js';
-import deepCompare, {compareUnorderedArrays} from './utility/object/deep-compare.js';
+} from '../../shared/utility/index.js';
+import deepCompare, {compareUnorderedArrays} from '../../shared/utility/object/deep-compare.js';
 import sj from './global-client.js';
 
 

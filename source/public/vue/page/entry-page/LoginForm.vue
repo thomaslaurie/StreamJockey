@@ -1,7 +1,7 @@
 <script>
 	import {
 		one,
-	} from '../../../js/utility/index.js';
+	} from '../../../../shared/utility/index.js';
     //import {mapState} from '../../../js/vendor/vuex.esm.browser.js'; 
 
     export default {

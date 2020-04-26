@@ -141,7 +141,7 @@ __webpack_require__.r(__webpack_exports__);
 //G Put any commonly needed paths/filenames in here.
 //G Require sourcePath if needed.
 const clientIndexFileName = 'index.html';
-const defaultTestGlob = 'public/js/utility';
+const defaultTestGlob = 'shared/utility';
 const testSuffix = '.test.js';
 
 /***/ }),
@@ -261,7 +261,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
@@ -380,7 +380,7 @@ sj.test = async function test(tests, origin) {
 }; // CONSTANTS
 
 
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -532,7 +532,7 @@ sj.catchUnexpected = function (input) {
       //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
       error.reason = input.toString(); //C replace trace with actual trace (which has clickable URIs)
 
-      error.trace = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(input.stack, 'file:///', '');
+      error.trace = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(input.stack, 'file:///', '');
     } else if (sj.isType(input, sj.Base)) {
       error.reason = `unexpected ${input.constructorName}`;
     } else {
@@ -641,7 +641,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
 
   if (method === 'GET') {
     if (sj.isType(body, Object)) {
-      url += `?${Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"])(body)}`;
+      url += `?${Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"])(body)}`;
     }
 
     delete options.body;
@@ -706,7 +706,7 @@ sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
   };
 
   if (sj.isType(parsedResult, Array)) {
-    return await Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
+    return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
   } else {
     return build(parsedResult);
   }
@@ -887,14 +887,14 @@ sj.Base = class Base {
       //C get stack
       const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
 
-      const stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+      const stackTrace1 = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-      const stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+      const stackTrace2 = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
 
       let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-      ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(ignore.join('|'), '.', '\.');
+      ignore = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(ignore.join('|'), '.', '\.');
       const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-      const stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace2, exp, '');
+      const stackTrace3 = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace2, exp, '');
       return stackTrace0;
     }
   };
@@ -932,7 +932,7 @@ sj.Base = class Base {
     const composed = {}; //C assign all properties from options
 
     if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); //C or only assign properties declared in defaults
-    else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
+    else Object.assign(composed, extendedDefaults, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
     //? is this preferable to simply using assign defined in places where it's needed?
 
     Object.keys(composed).forEach(key => {
@@ -1874,7 +1874,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
     return {
       fillError(error, fill) {
         //C replace placeholders
-        Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(fill).forEach((item, index) => {
+        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(fill).forEach((item, index) => {
           const string = String(item);
           error.reason = error.reason.replace(`$${index}`, string);
           error.message = error.message.replace(`$${index}`, string);
@@ -2204,7 +2204,7 @@ sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
         Object.defineProperties(that.filters, {
           [key]: {
             get: function () {
-              return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, that.constructor.filters[key]);
+              return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, that.constructor.filters[key]);
             }
           }
         });
@@ -2701,7 +2701,7 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
-      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(accessory.options.query);
+      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(accessory.options.query);
     },
 
     defaults: {
@@ -2744,3240 +2744,6 @@ sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
 
 /***/ }),
 
-/***/ "./source/public/js/utility/array/any.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/array/any.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
-// Wraps a value in an array. If the value is already an array, its items get spread into a fresh one.
-
-/* harmony default export */ __webpack_exports__["default"] = (function (value) {
-  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? [...value] : [value];
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/array/async-map.js":
-/*!*****************************************************!*\
-  !*** ./source/public/js/utility/array/async-map.js ***!
-  \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
-// Executes an async function for each item in an array.
-// When all async functions are settled, returns an array of results if all are fulfilled, but throws the array of results if any reject.
-//G Callback takes same argument order as Array.map callback.
-//! Can mutate the original array.
-//TODO The semantics of this might not be correct - why would a mixed list of fulfilled and rejected values be useful? The rejected promises are also all caught so basic throws aren't useful. Maybe explicitly filtering out fulfillments from the thrown array would be better? To fix this would require going in and ensuring all uses work with this change.
-
-/* harmony default export */ __webpack_exports__["default"] = (async function (array, mapFunction) {
-  // Validate.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(mapFunction); // Wait for every promise to settle.
-
-  const promises = array.map((item, index, self) => mapFunction(item, index, self));
-  const outcomes = await Promise.allSettled(promises); // Extract results and fulfillment.
-
-  const fulfilledResults = [];
-  const rejectedResults = [];
-  let allFulfilled = true;
-
-  for (const outcome of outcomes) {
-    if (outcome.status === 'fulfilled') {
-      fulfilledResults.push(outcome.value);
-    } else {
-      rejectedResults.push(outcome.reason);
-      allFulfilled = false;
-    }
-  } // Return fulfilled results or throw rejected results.
-
-
-  if (allFulfilled) {
-    return fulfilledResults;
-  } else {
-    throw rejectedResults;
-  }
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/array/dynamic-sort.js":
-/*!********************************************************!*\
-  !*** ./source/public/js/utility/array/dynamic-sort.js ***!
-  \********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./stable-sort.js */ "./source/public/js/utility/array/stable-sort.js");
-//TODO add validation
-//TODO consider replacing typechecks with a 'comparable' rule.
-
-/* harmony default export */ __webpack_exports__["default"] = (function (list, ascending, prop) {
-  //C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
-  //C ascending will flip the list into descending if false
-  if (ascending) {
-    ascending = 1;
-  } else {
-    ascending = -1;
-  }
-
-  let compare;
-
-  if (typeof prop === 'string') {
-    //C if prop is defined, compare props
-    if (list.every(item => typeof item[prop] === 'number' || typeof item[prop] === 'boolean')) {
-      //C if values are numbers or boolean, do number compare
-      compare = function (a, b) {
-        return (a[prop] - b[prop]) * ascending;
-      };
-    } else {
-      //C if values are strings, other, or mixed, do a string conversion and string compare
-      compare = function (a, b) {
-        //C convert to strings
-        let as = a[prop] + '';
-        let bs = b[prop] + ''; //C string compare
-        //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
-
-        return as.localeCompare(bs, 'en', {
-          sensitivity: 'base'
-        }) * ascending;
-      };
-    }
-  } else {
-    //C if no prop is defined, compare values
-    //! this is the exact same as above, just without the property
-    if (list.every(item => typeof item === 'number' || typeof item === 'boolean')) {
-      compare = function (a, b) {
-        return (a - b) * ascending;
-      };
-    } else {
-      compare = function (a, b) {
-        let as = a + '';
-        let bs = b + '';
-        return as.localeCompare(bs, 'en', {
-          sensitivity: 'base'
-        }) * ascending;
-      };
-    }
-  }
-
-  return Object(_stable_sort_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list, compare);
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/array/index.js":
-/*!*************************************************!*\
-  !*** ./source/public/js/utility/array/index.js ***!
-  \*************************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./any.js */ "./source/public/js/utility/array/any.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _any_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _async_map_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./async-map.js */ "./source/public/js/utility/array/async-map.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _async_map_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dynamic-sort.js */ "./source/public/js/utility/array/dynamic-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
-/* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./one.js */ "./source/public/js/utility/array/one.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./stable-sort.js */ "./source/public/js/utility/array/stable-sort.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/array/one.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/array/one.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
-// Returns the first item of an array, or the value otherwise.
-//G If exactly one item is required, instead of undefined, use a validator.
-
-/* harmony default export */ __webpack_exports__["default"] = (function (value) {
-  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? value[0] : value;
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/array/stable-sort.js":
-/*!*******************************************************!*\
-  !*** ./source/public/js/utility/array/stable-sort.js ***!
-  \*******************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
-//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
-//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
-//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
-
-/* harmony default export */ __webpack_exports__["default"] = (function (array, compare = (a, b) => {
-  //C low to high
-  return a - b;
-}) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); //C Create new array where the original index is preserved.
-
-  const preservedArray = array.map((value, index) => ({
-    value,
-    index
-  }));
-
-  const stableCompare = (a, b) => {
-    const order = compare(a.value, b.value); //C If equal, sort based on original order, otherwise sort normally.
-
-    return order === 0 ? a.index - b.index : order;
-  };
-
-  preservedArray.sort(stableCompare); //C Overwrite original array with sorted values.
-
-  for (let i = 0; i < array.length; i++) {
-    array[i] = preservedArray[i].value;
-  }
-
-  return array;
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/bool-catch.js":
-/*!************************************************!*\
-  !*** ./source/public/js/utility/bool-catch.js ***!
-  \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return boolCatch; });
-function boolCatch(f) {
-  try {
-    f();
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/clamp.js":
-/*!*******************************************!*\
-  !*** ./source/public/js/utility/clamp.js ***!
-  \*******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
-
-/* harmony default export */ __webpack_exports__["default"] = (function (input, min = -Infinity, max = Infinity) {
-  // Throw if input is not defined, do not default to 0.
-  // Throw on NaN, because whether NaN is 'within' the bounds is implementation dependant on whether x>y or !(x<=y) is used for comparison. The consumer should not be expected to know which.
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(input);
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(min);
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(max);
-  if (min > max) throw new Error(`min: ${min} must not be greater than max: ${max}`);else if (input < min) return min;else if (input > max) return max;else return input;
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/combinations.js":
-/*!**************************************************!*\
-  !*** ./source/public/js/utility/combinations.js ***!
-  \**************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return combinations; });
-function combinations(optionsObject) {
-  //C takes an options object with a set of own properties whose value is an array of all possible values for that property
-  //C returns an array of objects with all combinations of those property values
-  //C ensure optionsObject is an object
-  if (optionsObject === null || typeof optionsObject !== 'object') {
-    throw new Error('Options object is not an object.');
-  } //C get all own property keys
-
-
-  const keys = [];
-  keys.push(...Object.getOwnPropertyNames(optionsObject));
-  keys.push(...Object.getOwnPropertySymbols(optionsObject)); //C ensure all own properties are iterable
-
-  for (const key of keys) {
-    if (!(optionsObject[key] instanceof Array)) {
-      throw new Error(`Property options for ${key} is not iterable.`);
-    }
-  }
-
-  const combinations = [];
-  const combination = {}; //C return empty array if no own keys
-
-  if (keys.length <= 0) return combinations; //C start with the first property
-
-  const nest = function (index = 0) {
-    const key = keys[index];
-    const options = optionsObject[key]; //C for each option
-
-    for (const option of options) {
-      //C set the option
-      combination[key] = option;
-
-      if (index < keys.length - 1) {
-        //C move to the next property
-        nest(index + 1);
-      } else {
-        //C or if at last property, save the combination
-        combinations.push({ ...combination
-        });
-      }
-    }
-  };
-
-  nest();
-  return combinations;
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/constants.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/constants.js ***!
-  \***********************************************/
-/*! exports provided: MAX_32_BIT_INTEGER */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_32_BIT_INTEGER", function() { return MAX_32_BIT_INTEGER; });
-const MAX_32_BIT_INTEGER = 2147483647;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/deferred.js":
-/*!**********************************************!*\
-  !*** ./source/public/js/utility/deferred.js ***!
-  \**********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Deferred; });
-/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/public/js/utility/object/define.js");
-/* harmony import */ var _time_wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./time/wait.js */ "./source/public/js/utility/time/wait.js");
-// Custom promise that can be resolve, rejected, and cancelled outside its executor.
-// May be called without an executor, upon which it will never resolve.
-
-
-class Deferred extends Promise {
-  constructor(executor = () => {}) {
-    //R Closures are used here instead of instance variables because instance variables don't exist before super is called. This is required because this super call is being intercepted to tap into the resolve/reject calls.
-    const closure = {
-      isPending: true,
-      // If closure.isCanceled is true, instance.resolve() / instance.reject() are prevented from actually resolving/rejecting the promise.
-      //R Cancel is useful specifically for deferred promises to ensure that they cannot be fulfilled/rejected in the future.
-      isCanceled: false
-    };
-
-    const interceptedExecutor = (resolve, reject) => {
-      closure.resolve = function (resolved) {
-        if (!closure.isCanceled) {
-          closure.isPending = false;
-          resolve(resolved);
-        }
-      };
-
-      closure.reject = function (rejected) {
-        if (!closure.isCanceled) {
-          closure.isPending = false;
-          reject(rejected);
-        }
-      };
-
-      return executor(resolve, reject);
-    };
-
-    super(interceptedExecutor); // INSTANCE VARIABLES
-
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].getter(this, {
-      // Read-only access to closure.isPending and closure.isCanceled.
-      get isPending() {
-        return closure.isPending;
-      },
-
-      get isCanceled() {
-        return closure.isCanceled;
-      }
-
-    });
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-      // Access to resolve/reject functions.
-      resolve: closure.resolve,
-      reject: closure.reject,
-
-      // Ability to prevent promise from settling.
-      cancel() {
-        closure.isCanceled = true;
-        return this;
-      },
-
-      // Ability to set automatic rejection upon timeout.
-      timeout(duration, onTimeout = () => new Error('Deferred promise timed out.')) {
-        Object(_time_wait_js__WEBPACK_IMPORTED_MODULE_1__["default"])(duration).then(() => {
-          // Don't timeout if promise has settled.
-          if (closure.isPending) {
-            this.reject(onTimeout());
-          }
-        });
-        return this;
-      }
-
-    });
-  }
-
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/dynamic-class.js":
-/*!***************************************************!*\
-  !*** ./source/public/js/utility/dynamic-class.js ***!
-  \***************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/public/js/utility/object/define.js");
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
-/* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
-/* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./validation/interface.js */ "./source/public/js/utility/validation/interface.js");
-/* //R
-	CLASS COMPOSITION (
-		This module seem like it would work well with composition: 'class composition'.
-		Use for shallow but present class structures.
-	)
-
-	CLASS V FUNCTION DIFFERENCES (
-		//L https://medium.com/beginners-guide-to-mobile-web-development/super-and-extends-in-javascript-es6-understanding-the-tough-parts-6120372d3420
-		//L Native classes are actually different: see classtraphobic
-
-		class             <---> function
-		super(...args);   <---> Parent.call(this, ...args);
-
-		if child:
-		_                 <---> prototype of Class is Parent.
-		_                 <---> Class           has a non-writable, non-enumerable, non-configurable prototype property that is an object with its prototype as Parent.prototype.
-		_                 <---> Class.prototype has a non-writable, non-enumerable, non-configurable constructor property that points to Class.
-		if not child:
-		_                 <---> Class.prototype must have it's writable attribute changed from true to false.
-
-		not reproducible:
-		this before super <---> All interactions except direct references to this can be trapped with a Proxy.
-		Class() cannot be called directly <---> Cannot reproduce this behaviour without wrapping the Class itself in a proxy.
-
-		FUNCTIONAL IMPLEMENTATION (
-			const Class = {[name]: function (...args) {
-				// INTERCEPT
-				const interceptedArgs = this.constructor[iface.intercept].call(proxy, ...args);
-
-				// EXTEND
-				if (isChild) Parent.call(this, ...interceptedArgs);
-
-				// INSTANCE
-				const transfers = this.constructor[iface.instance].call(this, ...interceptedArgs);
-				this.constructor[iface.instanceTransfer](transfers, this);
-			}}[name];
-
-			if (isChild) {
-				// Set prototype.
-				Object.setPrototypeOf(Class, Parent);
-				// Set Class.prototype to a new object that inherits from Parent.prototype and set writable, enumerable, configurable as false.
-				define.hiddenConstant(Class, {prototype: Object.create(Parent.prototype)});
-				// Give Class.prototype a constant constructor property.
-				define.hiddenConstant(Class.prototype, {constructor: Class});
-			} else {
-				// Set Class.prototype to itself and set writable to false. function prototypes are writable but Class prototypes are not.
-				define.hiddenConstant(Class, {prototype: Class.prototype});
-			}
-		)
-	)
-
-	//OLD INTERCEPT PROXY (
-		Removed this from intercept.call(proxy, ...args); because Proxy cannot be as easily poly-filled as classes can.
-
-		This is also more consistent: referencing this in any way will work, but not actually point to this. Instead of throwing an error in all cases except when it is directly referenced.
-
-		const throwOnThisReference = function () {
-			throw new ReferenceError(`Cannot use 'this' keyword in intercept.`);
-		};
-		const proxy = new Proxy({}, {
-			// all possible traps
-			getPrototypeOf:           throwOnThisReference,
-			setPrototypeOf:           throwOnThisReference,
-			isExtensible:             throwOnThisReference,
-			preventExtensions:        throwOnThisReference,
-			getOwnPropertyDescriptor: throwOnThisReference,
-			defineProperty:           throwOnThisReference,
-			has:                      throwOnThisReference,
-			get:                      throwOnThisReference,
-			set:                      throwOnThisReference,
-			deleteProperty:           throwOnThisReference,
-			ownKeys:                  throwOnThisReference,
-			apply:                    throwOnThisReference,
-			construct:                throwOnThisReference,
-		});
-	)
-*/
-//TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
-
-
-
-
- // VALIDATION
-
-const customRules = {};
-_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, {
-  layers: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(value);
-      let currentExtends;
-
-      for (const layer of value) {
-        customRules.layer.validate(layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
-
-        if (layer.extends !== undefined && currentExtends !== undefined) {
-          if (layer.extends === currentExtends || currentExtends.isPrototypeOf(layer.extends)) {
-            currentExtends = layer.extends;
-          } else {
-            //TODO write test
-            throw new Error('Dynamic Class layer cannot extend a class that is not equal to or the descendant of a class extended by a higher layer.');
-          }
-        }
-      }
-    },
-
-    caster(reference) {
-      // Undefined defaults to empty array.
-      if (reference.value === undefined) reference.value = []; // Cast all items in array to layers.
-
-      if (reference.value instanceof Array) {
-        reference.value = reference.value.map(layer => {
-          return customRules.layer.validateCast(layer)[0];
-        });
-      } // Else cannot cast non-undefined, non-arrays.
-
-    }
-
-  }),
-  layer: new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["Interface"]({
-    //R Wrap the test functions to ensure that they doesn't get modified.
-    extends: value => customRules.extends.validate(value),
-    intercept: value => customRules.intercept.test(value),
-    instance: value => customRules.instance.test(value),
-    prototype: value => customRules.prototype.test(value),
-    static: value => customRules.static.test(value)
-  }, {
-    caster(reference) {
-      // Undefined defaults to empty object.
-      if (reference.value === undefined) reference.value = {}; // Set defaults for undefined properties.
-
-      if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(reference.value)) {
-        const {
-          extends: e,
-          //G Any changes to 'this' inside intercept() cannot impact the true instance.
-          intercept = (...args) => [...args],
-          instance = () => ({}),
-          prototype = () => ({}),
-          static: s = () => ({}),
-          //R Passing an existing class is not supported because it won't aid augmentation and static properties on the class would interfere with the part defaults.
-          //R Object literals for the prototype and static options are not supported because it would allow mutation of the part functions. It's also more consistent to require all parts to be functions.
-          // Ensure other //! enumerable properties are preserved.
-          ...rest
-        } = reference.value; // Replace with new object.
-
-        reference.value = {
-          extends: e,
-          intercept,
-          instance,
-          prototype,
-          static: s,
-          ...rest
-        };
-      } // Else, not possible to cast non-undefined, non-object to layer.
-
-    }
-
-  }),
-  name: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(value)) {
-        throw new Error(`'name' option must be a string, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  //! These must use the same keys that are expected on a layer object.
-  extends: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      // Must be undefined or a constructor.
-      if (!(value === undefined || _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].constructor.test(value))) {
-        throw new Error(`'extends' option must be undefined or a constructor, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  intercept: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error(`'intercept' option must be a function, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  instance: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error(`'instance' option must be a function, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  prototype: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error(`'prototype' option must be a function, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  static: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error(`'static' option must be a function, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  instanceTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error(`'instanceTransfer' option must be a function, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  prototypeTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error(`'prototypeTransfer' option must be a function, not a ${typeof value}`);
-      }
-    }
-
-  }),
-  staticTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error(`'staticTransfer' option must be a function, not a ${typeof value}`);
-      }
-    }
-
-  })
-}); // UTILITY FUNCTIONS
-
-function processArguments(arg0 = '', ...args) {
-  let name;
-  let layers;
-
-  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(arg0)) {
-    // If first argument is a string, consider it the name.
-    name = arg0;
-    layers = [...args];
-  } else {
-    // Else consider it a layer.
-    name = ''; // Native function and class' 'name' property defaults to an empty string.
-
-    layers = [arg0, ...args];
-  }
-
-  return {
-    name: customRules.name.validate(name)[0],
-    layers: customRules.layers.validateCast(layers)[0]
-  };
-}
-
-;
-
-function getParent(layers) {
-  // Returns the last defined 'extends' property.
-  for (let i = layers.length - 1; i >= 0; i--) {
-    const Parent = layers[i].extends;
-    if (Parent !== undefined) return Parent;
-  }
-
-  return undefined;
-}
-
-; // INTERFACE
-
-const dynamicClass = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
-  layers: value => customRules.layers.test(value)
-}); // FACTORIES
-// Stored directly on the dynamicClass interface for ease of access.
-
-_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
-  baseCreate(...args) {
-    const {
-      name,
-      layers
-    } = processArguments(...args);
-    const Parent = getParent(layers);
-    const isChild = Parent !== undefined; // Freeze the layers so that they cannot be further modified.
-    //G If augmentation is desired it should be done non-destructively by adding to the layers array.
-
-    for (const layer of layers) {
-      Object.freeze(layer);
-    } // DEFINITION
-    //R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
-    //R This ensures that no undiscovered differences slip by.
-    //R Definition still had to be duplicated because optional extension and super calls don't seem possible.
-
-
-    let Class;
-
-    if (isChild) {
-      Class = {
-        [name]: class extends Parent {
-          constructor(...args) {
-            const layers = Class[dynamicClass.keys.layers]; // INTERCEPT
-
-            let interceptedArgs = args; // Iterate over layer.intercept in reverse order.
-
-            for (let i = layers.length - 1; i > 0; i--) {
-              // Call with null as this to throw on any object-like operations on this.
-              // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
-            }
-
-            super(...interceptedArgs); // INSTANCE
-
-            for (const layer of layers) {
-              layer.instance.call(this, ...interceptedArgs);
-            }
-          }
-
-        }
-      }[name];
-    } else {
-      Class = {
-        [name]: class {
-          constructor(...args) {
-            const layers = Class[dynamicClass.keys.layers]; // INTERCEPT
-
-            let interceptedArgs = args; // Iterate over layer.intercept in reverse order.
-
-            for (let i = layers.length - 1; i > 0; i--) {
-              // Call with null as this to throw on any object-like operations on this.
-              // Update interceptedArgs with each call so they can be fed into each other.
-              interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
-            } // INSTANCE
-
-
-            for (const layer of layers) {
-              layer.instance.call(this, ...interceptedArgs);
-            }
-          }
-
-        }
-      }[name];
-    } // STORE PARTS
-    //R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
-
-
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenVariable(Class, {
-      [dynamicClass.keys.layers]: layers
-    });
-    /* //G//!
-    	The 'duper' parameter should replace uses of 'super' in methods.
-    	Unlike 'super', 'duper' can also be used on regular functions.
-    			Because 'duper' is a closure, it is a valid replacement for 'super' because they both are not dynamic. 
-    	The object that they reference does not change even if the method assigned on a different object.
-    			If a dynamic behavior is desired, use Object.getPrototypeOf(Object.getPrototypeOf(this)); instead.
-    */
-    //TODO consider not putting duper in an options container, I don't believe there should be any more arguments
-
-    for (const layer of layers) {
-      // PROTOTYPE
-      layer.prototype.call(Class.prototype, {
-        duper: Object.getPrototypeOf(Class.prototype)
-      }); // STATIC
-
-      layer.static.call(Class, {
-        duper: Object.getPrototypeOf(Class)
-      });
-    }
-
-    return Class;
-  },
-
-  /* //R
-  	The augmentation function exists for two main reasons:
-  	It brings any closure setup back inside to the single function call.
-  	It removes the risk of implementing the augmentation wrong (say by forgetting to use a closure and instead referencing the class that is being mutated, this would cause a recursive function).
-  
-  	//! If a layers' intercept function discards arguments, layers above it won't be able to recover them.
-  	//G The safest way is to always return the same signature.
-  */
-  baseAugment(Class, ...args) {
-    const currentParent = Object.getPrototypeOf(Class);
-    const [newLayers] = customRules.layers.validateCast(args);
-    const newLayersParent = getParent(newLayers); // Ensure new layers do not extend a different class.
-
-    if (!(newLayersParent === undefined || newLayersParent === currentParent)) {
-      throw new Error('Cannot augment class to extend another class.');
-    } // New prototype and static parts must be called immediately, as they are only called once when the class is created.
-    //! There is a chance that the class may have been modified between creation and augmentation, avoid doing this as it could create inconsistencies when augmenting.
-
-
-    for (const newLayer of newLayers) {
-      // PROTOTYPE
-      newLayer.prototype.call(Class.prototype, {
-        duper: Object.getPrototypeOf(Class.prototype)
-      }); // STATIC
-
-      newLayer.static.call(Class, {
-        duper: Object.getPrototypeOf(Class)
-      });
-    }
-
-    Class[dynamicClass.keys.layers].push(...newLayers);
-    return Class;
-  }
-
-}); // SHORT-HAND WRAPPERS
-
-function wrapParts(layers, keyWrapperPairs) {
-  const [newLayers] = customRules.layers.validateCast(layers);
-  return newLayers.map(layer => {
-    // Clone the layer to avoid mutation.
-    const newLayer = { ...layer
-    };
-
-    for (const [key, wrapper] of keyWrapperPairs) {
-      // Create a closure for the layer part.
-      const part = newLayer[key]; // Validate layer part and wrapper.
-
-      customRules[key].validate(part);
-      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(wrapper); // Replace the part.
-
-      newLayer[key] = function (...args) {
-        return wrapper.call(this, part, ...args);
-      };
-    } // Replace the layer.
-
-
-    return newLayer;
-  });
-}
-
-;
-
-function baseVanillaShorthandWrapper(part, enumerableCondition, ...args) {
-  var _part$call;
-
-  const transfers = (_part$call = part.call(this, ...args)) !== null && _part$call !== void 0 ? _part$call : {};
-  Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
-    const descriptor = Object.getOwnPropertyDescriptor(transfers, key);
-    /* force descriptors
-    	writable:     true (data descriptors) - fresh assignment
-    	configurable: true                    - fresh assignment
-    	enumerable:   conditional (
-    		instance value:     enumerable    - fresh assignment, 
-    												[[Define]] semantics of the class fields proposal
-    		instance function:  enumerable    ~ object literal declaration (both functions and methods),
-    												same as instance value
-    		instance accessor:  enumerable    ~ object literal declaration
-    												same as instance value
-    				prototype value:    nonEnumerable ~ same as method and accessor
-    		prototype function: nonEnumerable - class method
-    		prototype accessor: nonEnumerable - class accessor
-    				static value:       enumerable    - static class field of the class fields proposal
-    		static function:    nonEnumerable - static class method
-    		static accessor:    nonEnumerable - static accessor
-    	)
-    */
-
-    if (descriptor.writable === false) descriptor.writable = true;
-    descriptor.configurable = true;
-    descriptor.enumerable = enumerableCondition(descriptor);
-    Object.defineProperty(this, key, descriptor);
-  });
-}
-
-;
-
-function instanceVanillaShorthandWrapper(part, ...args) {
-  return baseVanillaShorthandWrapper.call(this, part, () => true, ...args);
-}
-
-;
-
-function prototypeVanillaShorthandWrapper(part, ...args) {
-  return baseVanillaShorthandWrapper.call(this, part, () => false, ...args);
-}
-
-;
-
-function staticVanillaShorthandWrapper(part, ...args) {
-  return baseVanillaShorthandWrapper.call(this, part, descriptor => descriptor.writable !== undefined && typeof descriptor.value !== 'function', ...args);
-}
-
-;
-
-function applyVanillaShorthandWrappers(layer) {
-  return wrapParts(layer, [['instance', instanceVanillaShorthandWrapper], ['prototype', prototypeVanillaShorthandWrapper], ['static', staticVanillaShorthandWrapper]]);
-}
-
-; // SHORT-HAND FACTORIES
-
-_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
-  /* Enables the use of shorthand return objects for layer parts.
-  	//R These functions use 'vanilla' shorthands, which try to stay as close to the native class behavior as possible. This is so that converting between vanilla classes and dynamic classes is as easy as possible.
-  	//G If a different set of shorthands are desired, create new functions that mutate the layers array similar to the applyVanillaShorthandWrappers function.
-  */
-  create(...args) {
-    const {
-      name,
-      layers
-    } = processArguments(...args);
-    const wrappedLayers = applyVanillaShorthandWrappers(layers);
-    return dynamicClass.baseCreate(name, ...wrappedLayers);
-  },
-
-  augment(Class, ...layers) {
-    const wrappedLayers = applyVanillaShorthandWrappers(layers);
-    return dynamicClass.baseAugment(Class, ...wrappedLayers);
-  }
-
-});
-/* harmony default export */ __webpack_exports__["default"] = (dynamicClass);
-
-/***/ }),
-
-/***/ "./source/public/js/utility/format-ms.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/format-ms.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-//TODO Unused
-//TODO Format hours, days, etc.
-/* harmony default export */ __webpack_exports__["default"] = (function (ms) {
-  // extract
-  var minutes = Math.floor(ms / 60000);
-  var seconds = Math.ceil(ms % 60000); // format
-
-  seconds = ('0' + seconds).slice(-2); // returns ...0:00 format rounded up to the nearest second
-
-  return minutes + ':' + seconds;
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/index.js":
-/*!*******************************************!*\
-  !*** ./source/public/js/utility/index.js ***!
-  \*******************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, dynamicClass, formatMs, constants, keyCode, reference, repeat */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _array_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./array/index.js */ "./source/public/js/utility/array/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicSort"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"]; });
-
-/* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/index.js */ "./source/public/js/utility/object/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["deepCompare"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["define"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"]; });
-
-/* harmony import */ var _string_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./string/index.js */ "./source/public/js/utility/string/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"]; });
-
-/* harmony import */ var _time_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./time/index.js */ "./source/public/js/utility/time/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["setTimer"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"]; });
-
-/* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./uri/index.js */ "./source/public/js/utility/uri/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeProperties"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeProperties"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeList"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"]; });
-
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["flexTest"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Interface"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["SymbolInterface"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Rule"]; });
-
-/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./bool-catch.js */ "./source/public/js/utility/bool-catch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
-
-/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./clamp.js */ "./source/public/js/utility/clamp.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
-/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combinations.js */ "./source/public/js/utility/combinations.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
-
-/* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./deferred.js */ "./source/public/js/utility/deferred.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
-
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/public/js/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
-
-/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./format-ms.js */ "./source/public/js/utility/format-ms.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
-
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/utility/constants.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_12__; });
-/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./key-code.js */ "./source/public/js/utility/key-code.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_13__; });
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/public/js/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
-
-/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
-
-// NESTED
-
-
-
-
-
- // LOCAL
-
-
-
-
-
-
-
-
- //TODO constants aren't exported, find an elegant way to do this.
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/key-code.js":
-/*!**********************************************!*\
-  !*** ./source/public/js/utility/key-code.js ***!
-  \**********************************************/
-/*! exports provided: characters, create, addTo, verify */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "characters", function() { return characters; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addTo", function() { return addTo; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "verify", function() { return verify; });
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
-/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./repeat.js */ "./source/public/js/utility/repeat.js");
-
-
-const packRule = new _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
-  validator(value) {
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(value);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(value.key);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timestamp);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timeout);
-  }
-
-});
-const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-function create(length = 10) {
-  // Validate input.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(length); // Create.
-
-  let key = '';
-
-  for (let i = 0; i < length; i++) {
-    const index = Math.floor(Math.random() * characters.length);
-    key += characters.charAt(index);
-  } // Validate output.
-
-
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Return.
-
-  return key;
-}
-;
-const defaultTimeout = 300000; // 5 minutes
-
-const tryLimit = 1000; // Adds a new unique key to the list, returns a pack {key, timeout, timestamp}
-
-function addTo(list, timeout = defaultTimeout) {
-  // Validate inputs.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(timeout); // Create.
-
-  const key = Object(_repeat_js__WEBPACK_IMPORTED_MODULE_1__["default"])(() => create(), {
-    until: key => !list.includes(key),
-    countout: tryLimit,
-
-    onCountout() {
-      throw new Error(`Failed to add key to list, took over ${tryLimit} tries.`);
-    }
-
-  });
-  const timestamp = Date.now();
-  const pack = {
-    key,
-    timestamp,
-    timeout: timestamp + timeout
-  }; // Validate output.
-
-  packRule.validate(pack); // Return.
-
-  list.push(pack);
-  return pack;
-}
-; // Checks if a list has a key. Cleans up timed-out keys.
-
-function verify(list, key) {
-  // Validate inputs.
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Iterate over list.
-
-  for (let i = list.length - 1; i >= 0; i--) {
-    const pack = list[i]; // Validate items in the list.
-
-    packRule.validate(pack); // Determine if item has timed out.
-
-    const fresh = pack.timeout > Date.now();
-
-    if (pack.key === key) {
-      // If key matches,
-      if (fresh) {
-        // and it hasn't timed out, remove the pack from the list and return it,
-        return list.splice(i, 1)[0];
-      } else {
-        // else throw a timeout error.
-        throw new Error('Key timed out.');
-      }
-    } else {
-      // Remove non-matching packs if they've timed out.
-      if (!fresh) {
-        list.splice(i, 1);
-      }
-    }
-  } // If the key isn't found, throw an error.
-
-
-  throw new Error('Invalid key.');
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/object/deep-compare.js":
-/*!*********************************************************!*\
-  !*** ./source/public/js/utility/object/deep-compare.js ***!
-  \*********************************************************/
-/*! exports provided: defaultOptions, default, compareUnorderedArrays */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultOptions", function() { return defaultOptions; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return deepCompare; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compareUnorderedArrays", function() { return compareUnorderedArrays; });
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
-
-
-const compareDeeper = function (a, b, options) {
-  const {
-    depth
-  } = options;
-  return deepCompare(a, b, { ...options,
-    depth: depth - 1
-  });
-};
-
-const logDifferenceFunction = function (key, aValue, bValue) {
-  console.log(`deepCompare property difference - ${key}: ${aValue}, ${bValue}`);
-};
-
-const defaultOptions = {
-  //C 0 based, will call depth+1 layers of comparisons
-  depth: 1,
-  //C used for custom comparisons (like un-ordered lists)
-  //! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
-  compareFunction: compareUnorderedArrays = (a, b) => a === b,
-  //C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
-  //C used for custom key selection (inherited, enumerable, symbol, etc.)
-  selectFunction: Object.keys,
-  //C true:  compare selected key-values on x to the same key-values anywhere on y
-  //C false: compare selected key-values on x to the same key-values selected on y
-  anywhere: false,
-  //C true:  compares a against b 
-  //C false: compares a against b and b against a
-  //? what if subsetting needs to stop a specific depth?
-  //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
-  subset: false,
-  //C compare result for values that are too deep
-  resultIfTooDeep: false,
-  logDifference: false
-};
-function deepCompare(a, b, options = {}) {
-  const {
-    depth,
-    compareFunction,
-    selectFunction,
-    anywhere,
-    subset,
-    resultIfTooDeep,
-    logDifference
-  } = { ...defaultOptions,
-    ...options
-  }; // limit to depth
-
-  if (depth < 0) return resultIfTooDeep; // compare values
-
-  if (compareFunction(a, b, options)) return true; // compare properties
-
-  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(b)) {
-    let result = true; // selected keys
-
-    const aSelectedKeys = selectFunction(a);
-    const bSelectedKeys = selectFunction(b); //C compare all selected key-values of a to the same (any or selected) key-value of b
-
-    for (const key of aSelectedKeys) {
-      const aValue = a[key];
-      const bValue = anywhere || bSelectedKeys.includes(key) ? b[key] : undefined;
-
-      if (!compareDeeper(aValue, bValue, options)) {
-        result = false;
-        if (logDifference) logDifferenceFunction(key, aValue, bValue);
-      }
-    }
-
-    if (!subset) {
-      //C compare remaining selected key-values of b to the same (any or non-existent) key-value of a
-      //C compare 
-      //R prevents shared selected keys from being compared twice
-      for (const key of bSelectedKeys) {
-        if (!aSelectedKeys.includes(key)) {
-          //C exclude shared selected keys
-          //C no need to check for the same selected key in a, they have been excluded
-          const aValue = anywhere ? a[key] : undefined;
-          const bValue = b[key]; //! value order is not flipped, this would cause the subset to go both ways
-
-          if (!compareDeeper(aValue, bValue, options)) {
-            result = false;
-            if (logDifference) logDifferenceFunction(key, aValue, bValue);
-          }
-        }
-      }
-    }
-
-    return result;
-  }
-
-  return false;
-}
-; // COMPARE FUNCTIONS
-
-function compareUnorderedArrays(a, b, options) {
-  //R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
-  // If a and b are arrays:
-  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(b)) {
-    // Match if:
-    let result = true; // All items of a exist in b.
-
-    if (a.some(item => !b.includes(item))) result = false; // And if not a subset comparison.
-
-    if (!subset) {
-      // All items of b exist in a.
-      if (b.some(item => !a.includes(item))) result = false;
-    }
-
-    return result;
-  } else {
-    // Use the default compare function.
-    return defaultOptions.compareFunction(a, b, options);
-  }
-}
-; //L diagrams: https://www.figma.com/file/57kSw6SaPX3qJUSdzMpfJo/Object-Property-Locations-Comparison?node-id=0%3A1
-
-/* differences from original
-	renamed to 'deepCompare'
-	deep option removed
-	depth decreased by 1 (depth 0 now compares a, b; depth 1 compares a.foo, b.foo, and so on)
-	top-level NaN equality removed
-	renamed matchIfTooDeep to resultIfTooDeep
-	renamed matchIfSubset to subset
-	no-longer compares against b keys from anywhere by default, set anywhere: true, otherwise just compares against same selection from b
-*/
-
-/***/ }),
-
-/***/ "./source/public/js/utility/object/define.js":
-/*!***************************************************!*\
-  !*** ./source/public/js/utility/object/define.js ***!
-  \***************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-const ownKeys = function (object) {
-  /* //R//! Not using getKeysOf() here to avoid a circular dependency.
-  	define.js > Rule.js > rules.js > keys-of.js > define.js
-  	Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
-  */
-  return [...Object.getOwnPropertyNames(object), ...Object.getOwnPropertySymbols(object)];
-}; //C define is a container for less verbose versions of Object.defineProperty()
-//G if modifications are required, write a different define function
-
-/* //R
-	Initially thought it would be useful to have configurable (loose) constants and non-configurable variables. However:
-
-	{writable: true, configurable: false} (permanent variable)
-	These don't function as desired, because even when configurable is set to false, writable can be changed from true to false.
-	//L https://stackoverflow.com/questions/52892105/why-configurablefalse-allows-to-change-writable-flag-but-doesnt-for-enumerable
-
-	{writable: false, configurable: true} (loose constant)
-	These don't really have a use-case and only existed to form a clean pair with permanent variables, and therefore have also been excluded.
-*/
-
-
-/* harmony default export */ __webpack_exports__["default"] = ({
-  constant(target, properties) {
-    for (const key of ownKeys(properties)) {
-      Object.defineProperty(target, key, {
-        value: properties[key],
-        writable: false,
-        enumerable: true,
-        configurable: false
-      });
-    }
-
-    return target;
-  },
-
-  variable(target, properties) {
-    for (const key of ownKeys(properties)) {
-      Object.defineProperty(target, key, {
-        value: properties[key],
-        writable: true,
-        enumerable: true,
-        configurable: true
-      });
-    }
-
-    return target;
-  },
-
-  hiddenConstant(target, properties) {
-    for (const key of ownKeys(properties)) {
-      Object.defineProperty(target, key, {
-        value: properties[key],
-        writable: false,
-        enumerable: false,
-        configurable: false
-      });
-    }
-
-    return target;
-  },
-
-  hiddenVariable(target, properties) {
-    for (const key of ownKeys(properties)) {
-      Object.defineProperty(target, key, {
-        value: properties[key],
-        writable: true,
-        enumerable: false,
-        configurable: true
-      });
-    }
-
-    return target;
-  },
-
-  getter(target, properties) {
-    for (const key of ownKeys(properties)) {
-      // enforce getter, strip setter
-      const {
-        get
-      } = Object.getOwnPropertyDescriptor(properties, key);
-      if (typeof get !== 'function') throw new Error('getter property is missing a getter function');
-      Object.defineProperty(target, key, {
-        get,
-        enumerable: true,
-        configurable: false
-      });
-    }
-
-    return target;
-  },
-
-  setter(target, properties) {
-    for (const key of ownKeys(properties)) {
-      // enforce setter, strip getter
-      const {
-        set
-      } = Object.getOwnPropertyDescriptor(properties, key);
-      if (typeof set !== 'function') throw new Error('setter property is missing a setter function');
-      Object.defineProperty(target, key, {
-        set,
-        enumerable: true,
-        configurable: false
-      });
-    }
-
-    return target;
-  },
-
-  accessor(target, properties) {
-    for (const key of ownKeys(properties)) {
-      // enforce getter and setter
-      const {
-        get,
-        set
-      } = Object.getOwnPropertyDescriptor(properties, key);
-      const noGetter = typeof get !== 'function';
-      const noSetter = typeof set !== 'function';
-
-      if (noGetter || noSetter) {
-        throw new Error(`accessor property ${key} is missing a ${noGetter ? 'getter' : ''} ${noGetter && noSetter ? 'and' : ''} ${noSetter ? 'setter' : ''} function`);
-      }
-
-      Object.defineProperty(target, key, {
-        get,
-        set,
-        enumerable: true,
-        configurable: false
-      });
-    }
-
-    return target;
-  },
-
-  identity(target, properties) {
-    for (const key of ownKeys(properties)) {
-      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(properties, key));
-    }
-
-    return target;
-  }
-
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/object/index.js":
-/*!**************************************************!*\
-  !*** ./source/public/js/utility/object/index.js ***!
-  \**************************************************/
-/*! exports provided: deepCompare, define, forKeysOf, getKeysOf, pick */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./deep-compare.js */ "./source/public/js/utility/object/deep-compare.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./define.js */ "./source/public/js/utility/object/define.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony import */ var _keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./keys-of.js */ "./source/public/js/utility/object/keys-of.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_2__["forKeysOf"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"]; });
-
-/* harmony import */ var _pick_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./pick.js */ "./source/public/js/utility/object/pick.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _pick_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/object/keys-of.js":
-/*!****************************************************!*\
-  !*** ./source/public/js/utility/object/keys-of.js ***!
-  \****************************************************/
-/*! exports provided: forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return forKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return getKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return forOwnKeysOf; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return getOwnKeysOf; });
-/* harmony import */ var _validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-test.js */ "./source/public/js/utility/validation/flex-test.js");
-/* harmony import */ var _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/objects/object.js */ "./source/public/js/utility/validation/rules/objects/object.js");
-/* harmony import */ var _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../validation/rules/functions.js */ "./source/public/js/utility/validation/rules/functions.js");
-// forKeysOf calls a function for all keys of an object that match the specified attributes.
-// getKeysOf returns an array of  all keys of an object that match the specified attributes and filter.
-// Attributes default to own, named, enumerable keys. This is the same as Object.keys().
-//! Duplicated code in define.js to remove a circular dependency.
- // Importing directly instead of from ../validation/rules/index.js to avoid circular reference.
-
-
-
-const rules = {
-  object: _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"],
-  func: _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__["func"]
-};
-function forKeysOf(object, optionsOrCallback = {}) {
-  // OPTIONS / VALIDATION
-  const options = typeof optionsOrCallback === 'function' ? {
-    callback: optionsOrCallback
-  } : optionsOrCallback;
-  rules.object.validate(object);
-  rules.object.validate(options);
-  const {
-    own = true,
-    inherited = false,
-    named = true,
-    symbol = false,
-    enumerable = true,
-    nonEnumerable = false,
-    callback = () => {}
-  } = options;
-  rules.func.validate(callback); // OWN / INHERITED
-
-  const chain = [];
-  if (own) chain.push(object);
-
-  if (inherited) {
-    let target = Object.getPrototypeOf(object);
-
-    while (target !== null) {
-      chain.push(target);
-      target = Object.getPrototypeOf(target);
-    }
-  }
-
-  const visitedKeys = [];
-
-  for (const target of chain) {
-    const targetKeys = []; // NAMED / SYMBOL
-
-    if (named) targetKeys.push(...Object.getOwnPropertyNames(target));
-    if (symbol) targetKeys.push(...Object.getOwnPropertySymbols(target));
-
-    for (const targetKey of targetKeys) {
-      // ENUMERABLE / NON-ENUMERABLE
-      const isEnumerable = Object.prototype.propertyIsEnumerable.call(target, targetKey);
-      const keyMatchesAttributes = enumerable && isEnumerable || nonEnumerable && !isEnumerable; // UNIQUE
-
-      if (keyMatchesAttributes && !visitedKeys.includes(targetKey)) {
-        // Don't iterate over the same key more than once.
-        visitedKeys.push(targetKey); // Execute callback.
-
-        callback(target, targetKey);
-      }
-    }
-  }
-}
-;
-function getKeysOf(object, optionsOrFilter = {}) {
-  // OPTIONS / VALIDATION
-  const options = typeof optionsOrFilter === 'function' ? {
-    filter: optionsOrFilter
-  } : optionsOrFilter;
-  rules.object.validate(object);
-  rules.object.validate(options);
-  const {
-    filter = (object, key) => true,
-    ...rest
-  } = options;
-  rules.func.validate(filter); // ARRAY
-
-  const keys = []; // undefined & null return empty array
-
-  if (object == null) return keys; // FILTER
-
-  forKeysOf(object, {
-    callback(object, key) {
-      if (Object(_validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__["default"])(filter, object, key)) {
-        keys.push(key);
-      }
-    },
-
-    ...rest
-  });
-  return keys;
-}
-;
-const own = {
-  own: true,
-  named: true,
-  symbol: true,
-  enumerable: true,
-  nonEnumerable: true,
-  inherited: false
-};
-function forOwnKeysOf(object, callback) {
-  return forKeysOf(object, { ...own,
-    callback
-  });
-}
-;
-function getOwnKeysOf(object, filter) {
-  return forKeysOf(object, { ...own,
-    filter
-  });
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/object/pick.js":
-/*!*************************************************!*\
-  !*** ./source/public/js/utility/object/pick.js ***!
-  \*************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
-// Copies all non-undefined properties of an object onto a new object.
-//! Invokes getters.
-//! Does not copy descriptors.
-//! Copies inherited properties directly onto the new object.
-//R Why not use destructuring?
-//R It wouldn't be possible to store a preset list of properties to pick.
-
-/* harmony default export */ __webpack_exports__["default"] = (function (oldObject, keys) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(oldObject);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys);
-  const newObject = {};
-
-  for (const key of keys) {
-    const value = oldObject[key];
-    if (value !== undefined) newObject[key] = value;
-  }
-
-  return newObject;
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/reference.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/reference.js ***!
-  \***********************************************/
-/*! exports provided: Reference, default, formReferences, extractValues */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Reference", function() { return Reference; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formReferences", function() { return formReferences; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extractValues", function() { return extractValues; });
-class Reference {
-  constructor(value) {
-    this.value = value;
-    Object.seal(this);
-  }
-
-}
-;
-/* harmony default export */ __webpack_exports__["default"] = (Reference);
-function formReferences(values) {
-  return values.map(item => item instanceof Reference ? item : new Reference(item));
-}
-;
-function extractValues(references) {
-  return references.map(item => item instanceof Reference ? item.value : item);
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/repeat.js":
-/*!********************************************!*\
-  !*** ./source/public/js/utility/repeat.js ***!
-  \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/public/js/utility/validation/index.js");
-
-/**
- * Repeats a function until a condition is met or the call times-out or counts-out.
- * Guaranteed to call the function at least once.
- * 
- * @param {Function} func               - Function to repeat.
- * @param {Object}   options
- * @param {Function} options.until      - Condition upon which the function will stop.
- * @param {number}   options.timeout    - Number of milliseconds the function may repeat for.
- * @param {number}   options.countout   - Number of times the function may execute.
- * @param {Function} options.onTimeout  - Called when repeat times out.
- * @param {Function} options.onCountout - Called when repeat counts out.
- */
-
-function repeat(func, options = {}) {
-  const {
-    until = result => false,
-    timeout = Infinity,
-    countout = Infinity,
-    onTimeout = result => {
-      throw new Error('Repeat function call timed out.');
-    },
-    onCountout = result => {
-      throw new Error('Repeat function call counted out.');
-    }
-  } = options;
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
-
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
-
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
-  let result;
-  let counter = 0;
-  let time = Date.now();
-  const timeLimit = time + timeout;
-  const countLimit = Math.floor(countout);
-
-  while (true) {
-    result = func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
-
-    if (until(result)) break; // Update 
-
-    time = Date.now();
-    counter++;
-
-    if (time >= timeLimit) {
-      onTimeout(result);
-      break;
-    }
-
-    if (counter >= countLimit) {
-      onCountout(result);
-      break;
-    }
-  }
-
-  return result;
-}
-
-; // Async Variation
-
-repeat.sync = repeat;
-
-repeat.async = async function (func, options = {}) {
-  const {
-    until = result => false,
-    // Condition upon which the function will stop.
-    timeout = Infinity,
-    // Number of milliseconds the function may repeat for.
-    countout = Infinity,
-    // Number of times the function may execute.
-    onTimeout = result => {
-      throw new Error('Repeat function call timed out.');
-    },
-    onCountout = result => {
-      throw new Error('Repeat function call counted out.');
-    }
-  } = options;
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
-
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
-
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
-  let result;
-  let counter = 0;
-  let time = Date.now();
-  const timeLimit = time + timeout;
-  const countLimit = Math.floor(countout);
-
-  while (true) {
-    result = await func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
-
-    if (await until(result)) break; // Update 
-
-    time = Date.now();
-    counter++;
-
-    if (time >= timeLimit) {
-      await onTimeout(result);
-      break;
-    }
-
-    if (counter >= countLimit) {
-      await onCountout(result);
-      break;
-    }
-  }
-
-  return result;
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (repeat);
-
-/***/ }),
-
-/***/ "./source/public/js/utility/string/capitalize-first-character.js":
-/*!***********************************************************************!*\
-  !*** ./source/public/js/utility/string/capitalize-first-character.js ***!
-  \***********************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (function (string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/string/escape-reg-exp.js":
-/*!***********************************************************!*\
-  !*** ./source/public/js/utility/string/escape-reg-exp.js ***!
-  \***********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (function (string) {
-  //L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/string/indented-template.js":
-/*!**************************************************************!*\
-  !*** ./source/public/js/utility/string/indented-template.js ***!
-  \**************************************************************/
-/*! exports provided: tabIndented, spaceIndented */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return tabIndented; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return spaceIndented; });
-const tabIndented = (strings, ...expressions) => indented(strings, expressions, '	');
-const spaceIndented = (strings, ...expressions) => indented(strings, expressions, ' ');
-
-function indented(stringsFrozen, expressions, indentCharacter) {
-  let strings = [...stringsFrozen];
-  const firstIndex = 0;
-  const lastIndex = strings.length - 1; // If the template ends with a new-line character followed by zero or many indent characters, remove those characters.
-
-  strings[lastIndex] = strings[lastIndex].replace(new RegExp(`\n${indentCharacter}*$`), ''); // Match indents.
-
-  const indents = [];
-
-  for (const string of strings) {
-    /* Matches 0 or many indent characters.
-    	- Following a new-line. 
-    	- Preceding a non-indent, non-new-line character. 
-    		//R Ignores 'indent-only' lines.
-    	
-    	//R Don't follow start (^) or precede end ($), because otherwise indentation characters in single line strings and strings between variables will get matched.
-    */
-    const matches = string.match(new RegExp(`(?<=\n)(${indentCharacter}*)(?=[^${indentCharacter}\n])`, 'g'));
-    if (matches !== null) indents.push(...matches);
-  } // Get the smallest indent amount.
-
-
-  let smallestIndentAmount = Math.min(...indents.map(indent => indent.length));
-  if (smallestIndentAmount === Infinity) smallestIndentAmount = 0; // Remove smallest indent from all lines.
-
-  /* Matches the smallest indent.
-  	- Following a new line.
-  	//! Not required to precede a non-indent or non-new-line character. This ensures 'excessively-indented' and 'indent-only' lines can be matched and only have part of their indentation removed.
-  */
-
-  strings = strings.map(string => string.replace(new RegExp(`(?<=\n)(${indentCharacter}{${smallestIndentAmount}})`, 'g'), ''));
-  /* Remove leading newline if it exists.
-  	//R Must happen after removing indentation, because it is required to identify the first line's indentation.
-  	//R Must happen before construction, because otherwise a newline could be removed from a leading expression.	
-  */
-
-  strings[firstIndex] = strings[firstIndex].replace(new RegExp(`^\n`), '');
-  /* Construct template.
-  	//R Must happen after the indentation is removed, because expressions should be considered as using the 'adjusted' indentation.
-  */
-
-  let template = '';
-
-  for (let i = 0; i < strings.length; i++) {
-    template += strings[i];
-    if (expressions[i] !== undefined) template += expressions[i];
-  }
-
-  return template;
-}
-
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/string/index.js":
-/*!**************************************************!*\
-  !*** ./source/public/js/utility/string/index.js ***!
-  \**************************************************/
-/*! exports provided: capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./capitalize-first-character.js */ "./source/public/js/utility/string/capitalize-first-character.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./escape-reg-exp.js */ "./source/public/js/utility/string/escape-reg-exp.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony import */ var _indented_template_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./indented-template.js */ "./source/public/js/utility/string/indented-template.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
-
-/* harmony import */ var _replace_all_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./replace-all.js */ "./source/public/js/utility/string/replace-all.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/string/replace-all.js":
-/*!********************************************************!*\
-  !*** ./source/public/js/utility/string/replace-all.js ***!
-  \********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (function (input, search, replace) {
-  return input.split(search).join(replace);
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/time/index.js":
-/*!************************************************!*\
-  !*** ./source/public/js/utility/time/index.js ***!
-  \************************************************/
-/*! exports provided: setTimer, wait */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _set_timer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./set-timer.js */ "./source/public/js/utility/time/set-timer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _set_timer_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./wait.js */ "./source/public/js/utility/time/wait.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/time/set-timer.js":
-/*!****************************************************!*\
-  !*** ./source/public/js/utility/time/set-timer.js ***!
-  \****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants.js */ "./source/public/js/utility/constants.js");
-/* //! Differences from setTimeout:
-	Delay comes before callback.
-	Doesn't accept negative numbers or NaN for the delay.
-	Doesn't accept callback arguments. //G Wrap the callback in an arrow function instead.
-*/
-
-
-/**
- * Executes a function after a delay time. 
- * Supports times longer than 2147483647 milliseconds, unlike setTimeout.
- * 
- * @param  {number}   delay - Delay in milliseconds, or Infinity.
- * @param  {function} callback  - Function executed after delay.
- * 
- * @returns {function}        Function that clears the timer.
- */
-
-/* harmony default export */ __webpack_exports__["default"] = (function (delay, callback) {
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNegativeNumber"].validate(delay);
-  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback);
-
-  if (delay === 0) {
-    // Execute callback immediately.
-    callback(); // Return empty function, as an instantaneous timeout cannot be cleared.
-
-    return function () {};
-  }
-
-  if (delay === Infinity) {
-    // Never execute the function.
-    // Return empty function, as an infinite timeout is effectively cleared already.
-    return function () {};
-  } // Remainder
-
-
-  const remainder = delay % _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]; // Quotient
-
-  let overflowChunkCount = BigInt((delay - remainder) / _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]); // Current timeout ID.
-
-  let timeoutId;
-
-  (function nestTimeout() {
-    if (overflowChunkCount > 0) {
-      // If there are chunks of overflowed time left:
-      // Set a timeout for the full chunk of time.
-      timeoutId = setTimeout(() => {
-        // Upon finishing:
-        // Mark the time chunk as 'finished' by reducing the count.
-        overflowChunkCount--; // Evaluate the time state again.
-
-        nestTimeout();
-      }, _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]);
-    } else {
-      // Else, there are no chunks of overflowed time left:
-      // Set a timeout for the remaining time.
-      timeoutId = setTimeout(callback, remainder);
-    }
-  })();
-
-  return function () {
-    clearTimeout(timeoutId);
-  };
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/time/wait.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/time/wait.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _set_timer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./set-timer.js */ "./source/public/js/utility/time/set-timer.js");
-//G Used for basic async waiting.
-//! Cannot be canceled.
-
-/**
- * Asynchronously waits a period of time, then resolves.
- * 
- * @param {number} duration - Time to wait, in milliseconds.
- * 
- * @returns {Promise} Promise that resolves after wait duration.
- */
-
-/* harmony default export */ __webpack_exports__["default"] = (async function (duration) {
-  return new Promise(resolve => {
-    Object(_set_timer_js__WEBPACK_IMPORTED_MODULE_0__["default"])(duration, () => {
-      resolve();
-    });
-  });
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/uri/decode-list.js":
-/*!*****************************************************!*\
-  !*** ./source/public/js/utility/uri/decode-list.js ***!
-  \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./decode-properties.js */ "./source/public/js/utility/uri/decode-properties.js");
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/index.js */ "./source/public/js/utility/validation/index.js");
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function (encoded) {
-  //C decodes a list of encoded objects with '-i' suffixed property keys
-  //! any key not matching the format will be discarded
-  const indexed = Object(_decode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"])(encoded);
-  const list = [];
-  const indexedKeys = Object.keys(indexed);
-
-  for (let i = 0; i < indexedKeys.length; i++) {
-    //C validate delimiter
-    const delimiterIndex = indexedKeys[i].lastIndexOf('-');
-
-    if (delimiterIndex < 0) {
-      break;
-    } //C validate index
-
-
-    const objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
-
-    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(objectIndex)) {
-      break;
-    } //C get the real key
-
-
-    const key = indexedKeys[i].slice(0, delimiterIndex);
-
-    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(list[objectIndex])) {
-      //C if the obj doesn't exist yet, add it with the prop
-      list[objectIndex] = {
-        [key]: indexed[indexedKeys[i]]
-      };
-    } else {
-      //C otherwise add the prop to the existing object
-      list[objectIndex][key] = indexed[indexedKeys[i]];
-    }
-  }
-
-  return list;
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/uri/decode-properties.js":
-/*!***********************************************************!*\
-  !*** ./source/public/js/utility/uri/decode-properties.js ***!
-  \***********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-// Decodes every value as a string.
-/* harmony default export */ __webpack_exports__["default"] = (function (encodedString) {
-  const keyValuePairs = encodedString.split('&');
-  const object = {};
-  keyValuePairs.forEach(keyValuePair => {
-    const [key, value] = keyValuePair.split('=');
-    object[decodeURIComponent(key)] = decodeURIComponent(value);
-  });
-  return object;
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/uri/encode-list.js":
-/*!*****************************************************!*\
-  !*** ./source/public/js/utility/uri/encode-list.js ***!
-  \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _array_any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../array/any.js */ "./source/public/js/utility/array/any.js");
-/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode-properties.js */ "./source/public/js/utility/uri/encode-properties.js");
-
-
-/* harmony default export */ __webpack_exports__["default"] = (function (list) {
-  //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
-  //! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
-  const indexed = {};
-  Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {
-    Object.keys(object).forEach(key => {
-      indexed[`${key}-${index}`] = object[key];
-    });
-  });
-  return Object(_encode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"])(indexed);
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/uri/encode-properties.js":
-/*!***********************************************************!*\
-  !*** ./source/public/js/utility/uri/encode-properties.js ***!
-  \***********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-// Encodes values as strings, objects as [object Object] and arrays as comma delimited strings.
-/* harmony default export */ __webpack_exports__["default"] = (function (object) {
-  return Object.keys(object).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(object[key])}`).join('&');
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/uri/index.js":
-/*!***********************************************!*\
-  !*** ./source/public/js/utility/uri/index.js ***!
-  \***********************************************/
-/*! exports provided: encodeProperties, decodeProperties, encodeList, decodeList */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./encode-properties.js */ "./source/public/js/utility/uri/encode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./decode-properties.js */ "./source/public/js/utility/uri/decode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./encode-list.js */ "./source/public/js/utility/uri/encode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
-/* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./decode-list.js */ "./source/public/js/utility/uri/decode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/flex-test.js":
-/*!**********************************************************!*\
-  !*** ./source/public/js/utility/validation/flex-test.js ***!
-  \**********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return flexTest; });
-// Executes tests that take either 1 (value) argument or 2 (object, key) arguments with either 1 or 2 arguments. 
-// If the test takes 2 arguments but 2 arguments weren't passed, the first argument is simulated as an object property.
-//R Using (length === 2 else) rather than (length === 1 else) because otherwise if no arguments are passed undefined[undefined] won't work.
-//TODO consider a one-time operation rather than a runtime function
-function flexTest(test, ...args) {
-  if (test.length === 0) {
-    // Pass no arguments if test takes none.
-    return test();
-  } else if (test.length === 1) {
-    let value;
-
-    if (args.length === 0) {
-      value = undefined;
-    } else if (args.length === 1) {
-      value = args[0];
-    } else if (args.length === 2) {
-      value = args[0][args[1]];
-    } else {
-      throw new Error(`${args.length} arguments not supported for tests with 1 parameter.`);
-    }
-
-    return test(value);
-  } else if (test.length === 2) {
-    let object;
-    let key;
-
-    if (args.length === 2) {
-      object = args[0];
-      key = args[1];
-    } else {
-      throw new Error(`${args.length} arguments not supported for tests with 2 parameters.`);
-    }
-
-    return test(object, key);
-    /* //OLD Value to property simulation.
-    	object = Object.create(null);
-    	key = Symbol('simulated key');
-    	object[key] = value;
-    */
-  } else {
-    throw new Error(`Tests with ${test.length} arguments are not supported.`);
-  }
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/index.js":
-/*!******************************************************!*\
-  !*** ./source/public/js/utility/validation/index.js ***!
-  \******************************************************/
-/*! exports provided: rules, flexTest, Interface, SymbolInterface, Rule */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _rules_index_js__WEBPACK_IMPORTED_MODULE_0__; });
-/* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flex-test.js */ "./source/public/js/utility/validation/flex-test.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _flex_test_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./interface.js */ "./source/public/js/utility/validation/interface.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["Interface"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["SymbolInterface"]; });
-
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
-
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/interface.js":
-/*!**********************************************************!*\
-  !*** ./source/public/js/utility/validation/interface.js ***!
-  \**********************************************************/
-/*! exports provided: Interface, SymbolInterface */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return Interface; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return SymbolInterface; });
-/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../object/define.js */ "./source/public/js/utility/object/define.js");
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
-/* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./flex-test.js */ "./source/public/js/utility/validation/flex-test.js");
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./rules/index.js */ "./source/public/js/utility/validation/rules/index.js");
-
-
-
-
-
-
-class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
-  constructor(packs, options = {}) {
-    // Throw if a validator option is passed.
-    if ('validator' in options) {
-      throw new Error('Interface options cannot include a validator, as it will be overwritten with a generated validator for interfaces.');
-    }
-
-    const keys = {};
-    const tests = {};
-
-    for (const [key, subKey, test] of packs) {
-      _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["func"].validate(test); // Store subKeys on instance under their original key so that they can be used for implementations: {[interface.keys.<key>]: implementation}
-
-      keys[key] = subKey; // Freeze the test length property so that it can be relied upon to determine if the [value] or [object, key] parameters should be passed.
-
-      Object.defineProperty(test, 'length', {
-        value: test.length,
-        writable: false,
-        enumerable: false,
-        configurable: false
-      }); // Store tests on instance, also under their original key.
-      // Convert tests to use two arguments.
-      //R Converting the tests here preserves the benefit of being able to pass single-argument value tests while also knowing that the stored tests always take two arguments.
-
-      tests[key] = (o, k) => {
-        return Object(_flex_test_js__WEBPACK_IMPORTED_MODULE_2__["default"])(test, o, k);
-      };
-    }
-
-    Object.freeze(keys);
-    Object.freeze(tests); // Create an pass validator to Rule constructor.
-
-    super({ // Pass other rule options to Rule.
-      ...options,
-
-      // Use a custom validator for interfaces.
-      validator(object) {
-        _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(object);
-        Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(this.tests, (tests, key) => {
-          const test = this.tests[key];
-          const subKey = this.keys[key];
-
-          if (!test(object, subKey)) {
-            throw new Error(`Object does not fully implement interface. Object: ${JSON.stringify(object)}, Key: ${key}, SubKey: ${subKey}`);
-          }
-
-          ;
-        });
-        /* //OLD
-        	//R Unnecessarily complicated for a feature that can probably just be permanently set to 'validate'.
-        	if (precision === 'validate') {
-        		// Validate all keys on object.
-        		return testKeys.every((key) => (
-        			validate(key)
-        		));
-        	} else if (precision === 'all') {
-        		// All keys are present (or valid).
-        		return testKeys.every((key) => (
-        			exists(object, key) ||
-        			validate(key)
-        		));
-        	} else if (precision === 'any') {
-        		// Any key is present (or valid).
-        		return testKeys.some((key) => (
-        			exists(object, key) ||
-        			validate(key)
-        		));
-        	} else {
-        		throw new Error(`Precision argument must be 'validate', 'all', or 'any'`);
-        	}
-        */
-      }
-
-    });
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-      keys,
-      tests
-    });
-  } // Minimal test to ensure interface property exists in object.
-
-
-  static exists(object, key) {
-    return key in object;
-  }
-
-}
-
-;
-/*
-	Interface and SymbolInterface take a single tests object.
-
-	This tests object should have keys as the interface property names and values as the validator functions for those interface properties.
-
-	Tests have two signatures: (value) and (object, key). 
-	When they are stored on the interface.tests object, both signatures will be wrapped in a function with a (object, key) signature.
-	
-	//G Use tests with the (object, key) signature when the getter for object[key] should not be invoked during validation of the interface.
-	//! Be aware that default and rest parameters are not counted. 
-	//G Manually re-define the validator.length property if a specific behavior is desired.
-	//! The validator.length property will be set to non-configurable when it is passed in.
-
-*/
-
-class Interface extends VirtualInterface {
-  // Interface accepts both named and symbol keys. 
-  // The same keys must be used for implementations.
-  constructor(properties, options) {
-    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
-    const packs = [];
-    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
-      const subKey = key;
-      const test = properties[key];
-      packs.push([key, subKey, test]);
-    });
-    super(packs, options);
-  }
-
-}
-;
-class SymbolInterface extends VirtualInterface {
-  // SymbolInterface creates substitute symbols for ALL interface keys.
-  // Implementations must use the substituted symbols as the property keys.
-  // This prevents name collision on implementations.
-  constructor(properties, options) {
-    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
-    const packs = [];
-    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
-      const subKey = Symbol(key); // Create a symbol subKey instead.
-
-      const test = properties[key];
-      packs.push([key, subKey, test]);
-    });
-    super(packs, options);
-  }
-
-}
-;
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rule.js":
-/*!*****************************************************!*\
-  !*** ./source/public/js/utility/validation/rule.js ***!
-  \*****************************************************/
-/*! exports provided: Rule, default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return Rule; });
-/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../object/define.js */ "./source/public/js/utility/object/define.js");
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../reference.js */ "./source/public/js/utility/reference.js");
-/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../bool-catch.js */ "./source/public/js/utility/bool-catch.js");
-//TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
-//TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
-//TODO ensure that validate and validateCast both return values
-//TODO rename to .validate(), .test(), .cast(), .testCast()
-
-
-
-class Rule {
-  constructor({
-    /* //G 
-    	Should do nothing on success, throw on failure.
-    	Should have one or many sequential and/or parallel conditions.
-    	May be sync or async.
-    	
-    	If using other rules' validators, use validate() and pass the same arguments.
-    */
-    validator = function () {
-      throw new Error('A validator has not been created for this rule.');
-    },
-
-    /* //G
-    	Receives Reference instances as its arguments.
-    	Should modify Reference instance 'value' property on success, throw on failure.
-    	Should have one or many sequential mutations.
-    	May be sync or async.
-    	//! Caster does not implicitly exclude redundant casts. Ie, for a symbol rule, if x is already a symbol, the caster for the symbol will still execute and throw a type error as symbols cannot be converted to strings. Must include a redundancy check for rules that require it.
-    			If using other rules' casters, use validateCast() and pass the same References.
-    	Do not pass reference.value and do not set any reference.value as the result of a validateCast(), the nested caster will mutate the passed arguments directly.
-    			//! If the References are mutated or passed incorrectly validateCast() may not have the correct value to validate could throw incorrect errors for upstream values: '4' validateCasted to an odd number would fail as 'not a number' instead of 'not odd'.
-    */
-    caster = function () {},
-    //R Indexed reasons, placeholder reasons, etc. should not be used, its too complicated. Just create sub-rules for each failure type or store custom, identifiable errors directly on the rule by including more option properties.
-    ...rest
-  }) {
-    const errors = [];
-    if (typeof validator !== 'function') errors.push('validator is not a function');
-    if (typeof caster !== 'function') errors.push('caster is not a function');
-    if (errors.length > 0) throw new Error(errors.join(' and ')); // store
-
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].identity(this, rest);
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-      validator,
-      caster
-    }); // false when x.constructor.name === 'AsyncFunction'
-
-    const validatorIsSynchronous = this.validator.constructor.name === 'Function';
-    const casterIsSynchronous = this.caster.constructor.name === 'Function';
-
-    if (validatorIsSynchronous) {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        validate(...args) {
-          this.validator(...args);
-          return args;
-        },
-
-        test(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validate(...args));
-        }
-
-      });
-    } else {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        async validate(...args) {
-          await this.validator(...args);
-          return args;
-        },
-
-        async test(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => await this.validate(...args));
-        }
-
-      });
-    }
-
-    if (validatorIsSynchronous && casterIsSynchronous) {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        validateCast(...args) {
-          // If call is the entry-point, will convert values to reference-values. If call is nested, nothing will change.
-          const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
-
-          try {
-            this.caster(...references);
-          } catch (e) {} // Suppress casting errors, just get as far as possible.
-
-
-          const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
-          this.validate(...values);
-          return values;
-        },
-
-        testCast(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validateCast(...args));
-        }
-
-      });
-    } else {
-      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        async validateCast(...args) {
-          const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
-
-          try {
-            await this.caster(...references);
-          } catch (e) {}
-
-          const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
-          await this.validate(...values);
-          return values;
-        },
-
-        async testCast(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => await this.validateCast(...args));
-        }
-
-      });
-    }
-  }
-
-}
-;
-/* harmony default export */ __webpack_exports__["default"] = (Rule);
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/arrays.js":
-/*!*************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/arrays.js ***!
-  \*************************************************************/
-/*! exports provided: array */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
-
-const array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  //L Why not instanceof? - http://web.mit.edu/jwalden/www/isArray.html
-  //TODO Doesn't this then apply to all classes? Should all classes use validators like this or just use instanceof?
-  validator(value) {
-    if (!Array.isArray(value)) {
-      throw new Error('Value is not an array.');
-    }
-  }
-
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/constructor.js":
-/*!******************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/constructor.js ***!
-  \******************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
-
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    try {
-      const Test = class extends value {};
-    } catch (e) {
-      throw new Error('Value is not a constructor.');
-    }
-  }
-
-}));
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/functions.js":
-/*!****************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/functions.js ***!
-  \****************************************************************/
-/*! exports provided: func */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "func", function() { return func; });
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
-//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
-// sync func
-// async func
-
-const func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    if (typeof value !== 'function') throw new Error('Value is not a function.');
-  }
-
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/index.js":
-/*!************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/index.js ***!
-  \************************************************************/
-/*! exports provided: object, populatedObject, array, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./objects/index.js */ "./source/public/js/utility/validation/rules/objects/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["populatedObject"]; });
-
-/* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./arrays.js */ "./source/public/js/utility/validation/rules/arrays.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"]; });
-
-/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constructor.js */ "./source/public/js/utility/validation/rules/constructor.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
-
-/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./functions.js */ "./source/public/js/utility/validation/rules/functions.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_3__["func"]; });
-
-/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./key.js */ "./source/public/js/utility/validation/rules/key.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
-
-/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./numbers.js */ "./source/public/js/utility/validation/rules/numbers.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["number"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNaNNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["integer"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeNumber"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeInteger"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveInteger"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveInteger"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeInteger"]; });
-
-/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./strings.js */ "./source/public/js/utility/validation/rules/strings.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["string"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["trimmedString"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["visibleString"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["populatedString"]; });
-
-/* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./symbol.js */ "./source/public/js/utility/validation/rules/symbol.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
-
-//G Include anything here that is possible to implement incorrectly, even for basic types.
-//R Rules for basic types are also useful for custom casting, errors, and consistency.
-
-
-
-
-
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/key.js":
-/*!**********************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/key.js ***!
-  \**********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
-
-
-
-const keyify = function (value) {
-  // Create a null object with only one property.
-  const nullObject = Object.create(null);
-  nullObject[value] = true; // Find that only property's key.
-
-  const [keyifiedValue] = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(nullObject, {
-    own: true,
-    named: true,
-    symbol: true,
-    enumerable: true,
-    nonEnumerable: false,
-    inherited: false
-  });
-  return keyifiedValue;
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  // Keys that won't be cast / have already been cast as a result of being used as a property key.
-  //! Does not include numbers, those get cast to strings.
-  validator(value) {
-    const keyifiedValue = keyify(value);
-
-    if (value !== keyifiedValue) {
-      throw 'Value is not keyified.';
-    }
-  },
-
-  caster(reference) {
-    reference.value = keyify(reference.value);
-  }
-
-}));
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/numbers.js":
-/*!**************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/numbers.js ***!
-  \**************************************************************/
-/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "number", function() { return number; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return nonNaNNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return integer; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return nonNegativeNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return nonPositiveNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return positiveNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return negativeNumber; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return nonNegativeInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return nonPositiveInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
-
-const number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    if (typeof value !== 'number') {
-      throw new Error('Value is not a number.');
-    }
-  },
-
-  caster(reference) {
-    // Parse strings for floats.
-    const n = Number.parseFloat(reference.value); // But do not cast non-numbers to NaN.
-
-    if (!Number.isNaN(n)) reference.value = n;
-  }
-
-});
-const nonNaNNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-
-    if (Number.isNaN(value)) {
-      throw new Error('Number is NaN.');
-    }
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-const integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (!Number.isInteger(value)) throw new Error('Number is not an integet.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference);
-    reference.value = Number.parseInt(reference.value);
-  }
-
-}); //! Defining 0 as neither positive or negative.
-//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
-
-const nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value < 0) throw new Error('Number is negative.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-const nonPositiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value > 0) throw new Error('Number is positive.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-const positiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value <= 0) throw new Error('Number is not positive.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-const negativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    number.validate(value);
-    if (value >= 0) throw new Error('Number is not negative.');
-  },
-
-  caster(reference) {
-    number.validateCast(reference); // Cannot cast any further than a number.
-  }
-
-});
-const nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    nonNegativeNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    nonNegativeNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-});
-const nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    nonPositiveNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    nonPositiveNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-});
-const positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    positiveNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    positiveNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-});
-const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    negativeNumber.validate(value);
-    integer.validate(value);
-  },
-
-  caster(reference) {
-    negativeNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
-  }
-
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/objects/index.js":
-/*!********************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/objects/index.js ***!
-  \********************************************************************/
-/*! exports provided: object, populatedObject */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object.js */ "./source/public/js/utility/validation/rules/objects/object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _object_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-/* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./populated-object.js */ "./source/public/js/utility/validation/rules/objects/populated-object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
-
-
-
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/objects/object.js":
-/*!*********************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/objects/object.js ***!
-  \*********************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/public/js/utility/validation/rule.js");
-
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  //L https://stackoverflow.com/a/22482737
-  validator(value) {
-    if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
-      throw new Error('Value is not an object.');
-    }
-  }
-
-}));
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/objects/populated-object.js":
-/*!*******************************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/objects/populated-object.js ***!
-  \*******************************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object.js */ "./source/public/js/utility/validation/rules/objects/object.js");
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/keys-of.js */ "./source/public/js/utility/object/keys-of.js");
-
-
-
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    _object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
-
-    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(value, {
-      own: true,
-      enumerable: true,
-      nonEnumerable: true,
-      named: true,
-      symbol: true,
-      inherited: false
-    }).length === 0) {
-      throw new Error('Object is not populated.');
-    }
-  }
-
-}));
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/strings.js":
-/*!**************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/strings.js ***!
-  \**************************************************************/
-/*! exports provided: string, trimmedString, visibleString, populatedString */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return visibleString; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return populatedString; });
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
-
-const string = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    if (typeof value !== 'string') {
-      throw new Error('Value is not a string.');
-    }
-  },
-
-  caster(reference) {
-    // Stringify if able to.
-    if (typeof reference.value === 'object') {
-      try {
-        reference.value = JSON.stringify(reference.value);
-      } catch (e) {}
-    }
-
-    reference.value = String(reference.value);
-  }
-
-});
-const trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    string.validate(value); //TODO Create a thorough test for this.
-    //TODO See https://en.wikipedia.org/wiki/Whitespace_character
-    //! If this gets changed, ensure the caster .trim() function is updated too.
-    //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
-
-    if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) {
-      throw new Error('String has leading and/or trailing whitespace.');
-    }
-  },
-
-  caster(reference) {
-    string.validateCast(reference);
-    reference.value = reference.value.trim();
-  }
-
-});
-const visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    string.validate(value);
-
-    if (trimmedString.validateCast(value) === '') {
-      throw 'String is not visible.';
-    }
-  },
-
-  caster(reference) {
-    string.validateCast(reference); // Cannot cast any further than a string.
-  }
-
-});
-const populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    string.validate(value);
-
-    if (value === '') {
-      throw 'String is not populated.';
-    }
-  },
-
-  caster(reference) {
-    string.validateCast(reference); // Cannot cast any further than a string.
-  }
-
-});
-
-/***/ }),
-
-/***/ "./source/public/js/utility/validation/rules/symbol.js":
-/*!*************************************************************!*\
-  !*** ./source/public/js/utility/validation/rules/symbol.js ***!
-  \*************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/public/js/utility/validation/rule.js");
-/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./strings.js */ "./source/public/js/utility/validation/rules/strings.js");
-
-
-/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  validator(value) {
-    //L If transpiling to ES5, an additional check is required: https://stackoverflow.com/questions/46479169/check-if-value-is-a-symbol-in-javascript
-    if (typeof value !== 'symbol') {
-      throw new Error('Value is not a symbol.');
-    }
-  },
-
-  caster(reference) {
-    // Non-symbol values cast as the stringified description of a new symbol.
-    if (!this.validate(reference.value)) {
-      // Symbol(x) cannot convert symbols to strings, but String(x) in string.validateCast() can.
-      _strings_js__WEBPACK_IMPORTED_MODULE_1__["string"].validateCast(reference.value);
-      reference.value = Symbol(reference.value);
-    }
-  }
-
-}));
-
-/***/ }),
-
 /***/ "./source/server/auth.js":
 /*!*******************************!*\
   !*** ./source/server/auth.js ***!
@@ -5991,7 +2757,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
@@ -6052,11 +2818,11 @@ auth.requestTimeout = 300000; //C 5 minutes
 auth.requestKeys = [];
 
 auth.addRequestKey = async function () {
-  return await _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].addTo(this.requestKeys, this.requestTimeout);
+  return await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].addTo(this.requestKeys, this.requestTimeout);
 };
 
 auth.checkRequestKey = async function (key) {
-  let pack = await _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].verify(this.requestKeys, key);
+  let pack = await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].verify(this.requestKeys, key);
   return {
     authRequestKey: pack.key,
     authRequestTimestamp: pack.timestamp
@@ -6182,7 +2948,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
         resolve(result);
       }); //C setup timeout
 
-      Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
+      Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
         reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
           log: true,
           origin: 'sj.spotify.endAuthRequest()',
@@ -6198,7 +2964,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     let timestamp = Date.now(); //C exchange the auth code for tokens
     //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
       grant_type: 'authorization_code',
       code: credentials.authCode,
       redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
@@ -6233,16 +2999,16 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
     let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
-    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
-    if (!_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
       throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].AuthRequired();
     } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
     let timestamp = Date.now();
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
       client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -6365,7 +3131,7 @@ const schema = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../public/js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _public_js_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
 /* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
 /* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
@@ -6937,7 +3703,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         reason: `cannot call CRUD method directly on sj.Entity`
       }); //C cast as array
 
-      const entities = Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
+      const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
 
       const isGetMimic = methodName === 'getMimic'; //C store getMimic
 
@@ -6949,9 +3715,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C prepare
+        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C prepare
 
-        const preparedEntities = await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C accommodate
+        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C accommodate
 
         const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate) : []; //C map
 
@@ -6962,15 +3728,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         const inputAfter = isGetMimic ? inputMapped : [];
 
         if (!isGetMimic) {
-          await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
+          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             if (methodName !== 'remove') inputAfter.push(...after);
           }).catch(rejected => {
             throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
@@ -6984,10 +3750,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         const influencedAfter = [];
 
         if (!isGet) {
-          await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedAfter.push(...after);
           }).catch(rejected => {
             throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
@@ -7001,18 +3767,18 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate));
+        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate));
       }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
-      const shookGet = after.map(list => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+      const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
       const timestamp = Date.now(); //C if get, don't notify
 
       if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
       else if (isGetMimic) return shookGet[1]; //C shake for return
 
-      const shook = after.map(list => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
+      const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
       const built = shook.map(list => list.map(entity => new this(entity)));
       return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({ ...this[methodName + 'Success'](),
@@ -7032,7 +3798,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
     this.validate = async function (entity, methodName) {
       const validated = {};
-      await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
+      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
         const prop = this.schema[key]; //C catches
 
         if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule)) {
@@ -7318,7 +4084,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentCla
 _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass({
   prototypeProperties(parent) {
     this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
-      return await this.constructor.order(db, Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
+      return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
     };
   },
 
@@ -7412,7 +4178,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
         const influencedTracks = [];
         const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
 
-        await Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
+        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
             if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(playlistId, 'integer')) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
               origin: 'sj.Track.order()',
@@ -7528,10 +4294,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
             }
           }); //C sort
 
-          Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
 
-          Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-          Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
           //console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
           //console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
           //console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
@@ -7910,7 +4676,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/utility/object/deep-compare.js */ "./source/public/js/utility/object/deep-compare.js");
+/* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
@@ -8016,8 +4782,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
   },
 
   findLiveQuery(table, query) {
-    return table.liveQueries.find(liveQuery => Object(_public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(query, liveQuery.query, {
-      compareFunction: _public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"]
+    return table.liveQueries.find(liveQuery => Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(query, liveQuery.query, {
+      compareFunction: _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"]
     }));
   },
 
@@ -8128,8 +4894,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
       for (const entity of entities) {
         //C if any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new
         //R query is an array of object queries, must iterate each then subset match, or else nothing will match because query switches from superset to subset
-        if (liveQuery.query.some(part => Object(_public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(part, entity, {
-          compareFunction: _public_js_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"],
+        if (liveQuery.query.some(part => Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(part, entity, {
+          compareFunction: _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"],
           subset: true,
           resultIfTooDeep: true
         })) && timestamp > liveQuery.timestamp) {
@@ -8198,7 +4964,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var koa_router__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa_router__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-send */ "koa-send");
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_send__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../public/js/utility/index.js */ "./source/public/js/utility/index.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
 /* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
@@ -8376,7 +5142,7 @@ __webpack_require__.r(__webpack_exports__);
   .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.get(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
@@ -8385,7 +5151,7 @@ __webpack_require__.r(__webpack_exports__);
   .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.get(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
@@ -8394,7 +5160,7 @@ __webpack_require__.r(__webpack_exports__);
   .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.get(Object(_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.get(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
@@ -8441,7 +5207,7 @@ __webpack_require__.r(__webpack_exports__);
     } //C redirect if not logged in
 
 
-    if (!_public_js_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
       //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 
@@ -8467,6 +5233,3387 @@ __webpack_require__.r(__webpack_exports__);
   return router;
 });
 ;
+
+/***/ }),
+
+/***/ "./source/shared/utility/array/any.js":
+/*!********************************************!*\
+  !*** ./source/shared/utility/array/any.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+// Wraps a value in an array. If the value is already an array, its items get spread into a fresh one.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? [...value] : [value];
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/array/async-map.js":
+/*!**************************************************!*\
+  !*** ./source/shared/utility/array/async-map.js ***!
+  \**************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+// Executes an async function for each item in an array.
+// When all async functions are settled, returns an array of results if all are fulfilled, but throws the array of results if any reject.
+//G Callback takes same argument order as Array.map callback.
+//! Can mutate the original array.
+//TODO The semantics of this might not be correct - why would a mixed list of fulfilled and rejected values be useful? The rejected promises are also all caught so basic throws aren't useful. Maybe explicitly filtering out fulfillments from the thrown array would be better? To fix this would require going in and ensuring all uses work with this change.
+
+/* harmony default export */ __webpack_exports__["default"] = (async function (array, mapFunction) {
+  // Validate.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(mapFunction); // Wait for every promise to settle.
+
+  const promises = array.map((item, index, self) => mapFunction(item, index, self));
+  const outcomes = await Promise.allSettled(promises); // Extract results and fulfillment.
+
+  const fulfilledResults = [];
+  const rejectedResults = [];
+  let allFulfilled = true;
+
+  for (const outcome of outcomes) {
+    if (outcome.status === 'fulfilled') {
+      fulfilledResults.push(outcome.value);
+    } else {
+      rejectedResults.push(outcome.reason);
+      allFulfilled = false;
+    }
+  } // Return fulfilled results or throw rejected results.
+
+
+  if (allFulfilled) {
+    return fulfilledResults;
+  } else {
+    throw rejectedResults;
+  }
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/array/dynamic-sort.js":
+/*!*****************************************************!*\
+  !*** ./source/shared/utility/array/dynamic-sort.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./stable-sort.js */ "./source/shared/utility/array/stable-sort.js");
+//TODO add validation
+//TODO consider replacing typechecks with a 'comparable' rule.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (list, ascending, prop) {
+  //C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
+  //C ascending will flip the list into descending if false
+  if (ascending) {
+    ascending = 1;
+  } else {
+    ascending = -1;
+  }
+
+  let compare;
+
+  if (typeof prop === 'string') {
+    //C if prop is defined, compare props
+    if (list.every(item => typeof item[prop] === 'number' || typeof item[prop] === 'boolean')) {
+      //C if values are numbers or boolean, do number compare
+      compare = function (a, b) {
+        return (a[prop] - b[prop]) * ascending;
+      };
+    } else {
+      //C if values are strings, other, or mixed, do a string conversion and string compare
+      compare = function (a, b) {
+        //C convert to strings
+        let as = a[prop] + '';
+        let bs = b[prop] + ''; //C string compare
+        //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
+
+        return as.localeCompare(bs, 'en', {
+          sensitivity: 'base'
+        }) * ascending;
+      };
+    }
+  } else {
+    //C if no prop is defined, compare values
+    //! this is the exact same as above, just without the property
+    if (list.every(item => typeof item === 'number' || typeof item === 'boolean')) {
+      compare = function (a, b) {
+        return (a - b) * ascending;
+      };
+    } else {
+      compare = function (a, b) {
+        let as = a + '';
+        let bs = b + '';
+        return as.localeCompare(bs, 'en', {
+          sensitivity: 'base'
+        }) * ascending;
+      };
+    }
+  }
+
+  return Object(_stable_sort_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list, compare);
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/array/index.js":
+/*!**********************************************!*\
+  !*** ./source/shared/utility/array/index.js ***!
+  \**********************************************/
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./any.js */ "./source/shared/utility/array/any.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _any_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _async_map_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./async-map.js */ "./source/shared/utility/array/async-map.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _async_map_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dynamic-sort.js */ "./source/shared/utility/array/dynamic-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _dynamic_sort_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _one_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./one.js */ "./source/shared/utility/array/one.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _one_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./stable-sort.js */ "./source/shared/utility/array/stable-sort.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _stable_sort_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/array/one.js":
+/*!********************************************!*\
+  !*** ./source/shared/utility/array/one.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+// Returns the first item of an array, or the value otherwise.
+//G If exactly one item is required, instead of undefined, use a validator.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+  return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? value[0] : value;
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/array/stable-sort.js":
+/*!****************************************************!*\
+  !*** ./source/shared/utility/array/stable-sort.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+//L https://stackoverflow.com/questions/1063007/how-to-sort-an-array-of-integers-correctly
+//L https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+//L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
+
+/* harmony default export */ __webpack_exports__["default"] = (function (array, compare = (a, b) => {
+  //C low to high
+  return a - b;
+}) {
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); //C Create new array where the original index is preserved.
+
+  const preservedArray = array.map((value, index) => ({
+    value,
+    index
+  }));
+
+  const stableCompare = (a, b) => {
+    const order = compare(a.value, b.value); //C If equal, sort based on original order, otherwise sort normally.
+
+    return order === 0 ? a.index - b.index : order;
+  };
+
+  preservedArray.sort(stableCompare); //C Overwrite original array with sorted values.
+
+  for (let i = 0; i < array.length; i++) {
+    array[i] = preservedArray[i].value;
+  }
+
+  return array;
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/bool-catch.js":
+/*!*********************************************!*\
+  !*** ./source/shared/utility/bool-catch.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return boolCatch; });
+function boolCatch(f) {
+  try {
+    f();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/clamp.js":
+/*!****************************************!*\
+  !*** ./source/shared/utility/clamp.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/rules/index.js */ "./source/shared/utility/validation/rules/index.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (function (input, min = -Infinity, max = Infinity) {
+  // Throw if input is not defined, do not default to 0.
+  // Throw on NaN, because whether NaN is 'within' the bounds is implementation dependant on whether x>y or !(x<=y) is used for comparison. The consumer should not be expected to know which.
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(input);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(min);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNaNNumber"].validate(max);
+  if (min > max) throw new Error(`min: ${min} must not be greater than max: ${max}`);else if (input < min) return min;else if (input > max) return max;else return input;
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/combinations.js":
+/*!***********************************************!*\
+  !*** ./source/shared/utility/combinations.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return combinations; });
+function combinations(optionsObject) {
+  //C takes an options object with a set of own properties whose value is an array of all possible values for that property
+  //C returns an array of objects with all combinations of those property values
+  //C ensure optionsObject is an object
+  if (optionsObject === null || typeof optionsObject !== 'object') {
+    throw new Error('Options object is not an object.');
+  } //C get all own property keys
+
+
+  const keys = [];
+  keys.push(...Object.getOwnPropertyNames(optionsObject));
+  keys.push(...Object.getOwnPropertySymbols(optionsObject)); //C ensure all own properties are iterable
+
+  for (const key of keys) {
+    if (!(optionsObject[key] instanceof Array)) {
+      throw new Error(`Property options for ${key} is not iterable.`);
+    }
+  }
+
+  const combinations = [];
+  const combination = {}; //C return empty array if no own keys
+
+  if (keys.length <= 0) return combinations; //C start with the first property
+
+  const nest = function (index = 0) {
+    const key = keys[index];
+    const options = optionsObject[key]; //C for each option
+
+    for (const option of options) {
+      //C set the option
+      combination[key] = option;
+
+      if (index < keys.length - 1) {
+        //C move to the next property
+        nest(index + 1);
+      } else {
+        //C or if at last property, save the combination
+        combinations.push({ ...combination
+        });
+      }
+    }
+  };
+
+  nest();
+  return combinations;
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/constants.js":
+/*!********************************************!*\
+  !*** ./source/shared/utility/constants.js ***!
+  \********************************************/
+/*! exports provided: MAX_32_BIT_INTEGER */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_32_BIT_INTEGER", function() { return MAX_32_BIT_INTEGER; });
+const MAX_32_BIT_INTEGER = 2147483647;
+
+/***/ }),
+
+/***/ "./source/shared/utility/deferred.js":
+/*!*******************************************!*\
+  !*** ./source/shared/utility/deferred.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Deferred; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
+/* harmony import */ var _time_wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./time/wait.js */ "./source/shared/utility/time/wait.js");
+// Custom promise that can be resolve, rejected, and cancelled outside its executor.
+// May be called without an executor, upon which it will never resolve.
+
+
+class Deferred extends Promise {
+  constructor(executor = () => {}) {
+    //R Closures are used here instead of instance variables because instance variables don't exist before super is called. This is required because this super call is being intercepted to tap into the resolve/reject calls.
+    const closure = {
+      isPending: true,
+      // If closure.isCanceled is true, instance.resolve() / instance.reject() are prevented from actually resolving/rejecting the promise.
+      //R Cancel is useful specifically for deferred promises to ensure that they cannot be fulfilled/rejected in the future.
+      isCanceled: false
+    };
+
+    const interceptedExecutor = (resolve, reject) => {
+      closure.resolve = function (resolved) {
+        if (!closure.isCanceled) {
+          closure.isPending = false;
+          resolve(resolved);
+        }
+      };
+
+      closure.reject = function (rejected) {
+        if (!closure.isCanceled) {
+          closure.isPending = false;
+          reject(rejected);
+        }
+      };
+
+      return executor(resolve, reject);
+    };
+
+    super(interceptedExecutor); // INSTANCE VARIABLES
+
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].getter(this, {
+      // Read-only access to closure.isPending and closure.isCanceled.
+      get isPending() {
+        return closure.isPending;
+      },
+
+      get isCanceled() {
+        return closure.isCanceled;
+      }
+
+    });
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      // Access to resolve/reject functions.
+      resolve: closure.resolve,
+      reject: closure.reject,
+
+      // Ability to prevent promise from settling.
+      cancel() {
+        closure.isCanceled = true;
+        return this;
+      },
+
+      // Ability to set automatic rejection upon timeout.
+      timeout(duration, onTimeout = () => new Error('Deferred promise timed out.')) {
+        Object(_time_wait_js__WEBPACK_IMPORTED_MODULE_1__["default"])(duration).then(() => {
+          // Don't timeout if promise has settled.
+          if (closure.isPending) {
+            this.reject(onTimeout());
+          }
+        });
+        return this;
+      }
+
+    });
+  }
+
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/dynamic-class.js":
+/*!************************************************!*\
+  !*** ./source/shared/utility/dynamic-class.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+/* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
+/* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
+/* //R
+	CLASS COMPOSITION (
+		This module seem like it would work well with composition: 'class composition'.
+		Use for shallow but present class structures.
+	)
+
+	CLASS V FUNCTION DIFFERENCES (
+		//L https://medium.com/beginners-guide-to-mobile-web-development/super-and-extends-in-javascript-es6-understanding-the-tough-parts-6120372d3420
+		//L Native classes are actually different: see classtraphobic
+
+		class             <---> function
+		super(...args);   <---> Parent.call(this, ...args);
+
+		if child:
+		_                 <---> prototype of Class is Parent.
+		_                 <---> Class           has a non-writable, non-enumerable, non-configurable prototype property that is an object with its prototype as Parent.prototype.
+		_                 <---> Class.prototype has a non-writable, non-enumerable, non-configurable constructor property that points to Class.
+		if not child:
+		_                 <---> Class.prototype must have it's writable attribute changed from true to false.
+
+		not reproducible:
+		this before super <---> All interactions except direct references to this can be trapped with a Proxy.
+		Class() cannot be called directly <---> Cannot reproduce this behaviour without wrapping the Class itself in a proxy.
+
+		FUNCTIONAL IMPLEMENTATION (
+			const Class = {[name]: function (...args) {
+				// INTERCEPT
+				const interceptedArgs = this.constructor[iface.intercept].call(proxy, ...args);
+
+				// EXTEND
+				if (isChild) Parent.call(this, ...interceptedArgs);
+
+				// INSTANCE
+				const transfers = this.constructor[iface.instance].call(this, ...interceptedArgs);
+				this.constructor[iface.instanceTransfer](transfers, this);
+			}}[name];
+
+			if (isChild) {
+				// Set prototype.
+				Object.setPrototypeOf(Class, Parent);
+				// Set Class.prototype to a new object that inherits from Parent.prototype and set writable, enumerable, configurable as false.
+				define.hiddenConstant(Class, {prototype: Object.create(Parent.prototype)});
+				// Give Class.prototype a constant constructor property.
+				define.hiddenConstant(Class.prototype, {constructor: Class});
+			} else {
+				// Set Class.prototype to itself and set writable to false. function prototypes are writable but Class prototypes are not.
+				define.hiddenConstant(Class, {prototype: Class.prototype});
+			}
+		)
+	)
+
+	//OLD INTERCEPT PROXY (
+		Removed this from intercept.call(proxy, ...args); because Proxy cannot be as easily poly-filled as classes can.
+
+		This is also more consistent: referencing this in any way will work, but not actually point to this. Instead of throwing an error in all cases except when it is directly referenced.
+
+		const throwOnThisReference = function () {
+			throw new ReferenceError(`Cannot use 'this' keyword in intercept.`);
+		};
+		const proxy = new Proxy({}, {
+			// all possible traps
+			getPrototypeOf:           throwOnThisReference,
+			setPrototypeOf:           throwOnThisReference,
+			isExtensible:             throwOnThisReference,
+			preventExtensions:        throwOnThisReference,
+			getOwnPropertyDescriptor: throwOnThisReference,
+			defineProperty:           throwOnThisReference,
+			has:                      throwOnThisReference,
+			get:                      throwOnThisReference,
+			set:                      throwOnThisReference,
+			deleteProperty:           throwOnThisReference,
+			ownKeys:                  throwOnThisReference,
+			apply:                    throwOnThisReference,
+			construct:                throwOnThisReference,
+		});
+	)
+
+	INTERCEPT
+		Main issue is that the arguments used by the instance function may be different than the arguments passed to super.
+		Would have to create a 'filter' function for super.
+		The problem with that is its interaction with the layer system isn't clear.
+		At the same time, I can't think of a reason why multiple intercept layers would want to modify the interceptedArgs output (other than to change the incoming signature).
+		This problem seems to be created by having '3' phases, '2' in/out phases works but 3 doesn't.
+		Maybe just only use the signature of the top-most layer? But then what happens if a lower layer changes the subclass?
+		Actually I think the right solution is to use the filter functions in forward order.
+		The original implementation is actually incorrect: a lower layer could have a different sub-class with a different signature, of which the higher layers know nothing about and would pass the wrong super signature. - It would have made more sense to have the intercept going in forward order too. (But then the signature wouldn't be able to be changed).
+		Basically, both the input signature and the parent class need to be augment-able, which requires the lowest layer to be the respective first and last thing to touch these parts. Which requires an in/out system.
+
+		There doesn't need to be an 'in' step for the instance parts, because subclasses should follow the substitution principle, and anything done by a sub-class should be compatible with the super class.
+		Also higher layers should not be concerned with creating incompatibilities with lower layers, because the lower layers should have 'knowledge' of the higher layers.
+
+
+		Ok, so the intercept phase needs an input/output layer ordering. But every other phase (instance, prototype, static) only needs an output layer ordering due because sub-classes and layers should obey the substitution principle: anything that happened to the class upstream (due to inserted subclassing, layer logic, etc.) should be fully compatible with the downstream, higher layers.
+		! The reason the input phase is different, is because class signatures do not have to obey this substitution principle. Which means that lower layers have to accommodate the assumptions (input signature, output signature) of higher layers.
+
+		TODO trying to find a way to make this more elegant
+
+		Split everything into single files so that dependencies are clear.
+		Rewrite with new syntax.
+
+		Start with parts with 0 dependencies, then work up. (Doing it the other way around didn't work.)
+
+		Get rid of wrapper objects, they're too cumbersome and cause too many dependencies.
+
+
+		3 things to pass:
+		input arguments for next layer
+			input arguments for the next layer default to the layers own input arguments, but could be changed if for example the lower layer modifies the class' signature
+		arguments to super
+			arguments to super default to the input arguments for the next layer (if at the top), 
+		scope variables to instance function
+			scope variables default to the input arguments for the next layer
+			scope variables should only be available within the layer
+			the use case for this is passing one modified value to the superclass, but keeping the original argument and passing it to the instance initializer
+
+		arguments to super only applies to highest layer,
+		extends only applies to the lowest layer (with conditions)
+		one problem: if a lower layer changes the extends class, the highest class has no knowledge, in this case the signatures may not match (unless the signatures follow the substitution principle, ie using a superclass signature for a subclass.... no actually, this is the reverse)
+			maybe, the super arguments could be a function, that works in the forward direction, they take the arguments to be passed to super (from a possible higher layer, or self), but they also have a closure to the current intercept function, (Ie is defined in the return), that way the super arguments can be passed back down and modified according to the extends class appropriately
+				actually, what if the instance function is defined in the return, that would create the closure, but it would be less aligned
+
+		outputArguments
+		superArguments
+		scopeVariables / closureVariables / instance function with inherent closure
+
+
+		CURRENT PLAN
+
+		INTERCEPT FUNCTION
+			has 'input arguments'
+			returns an object with:
+				'output arguments' array
+					which are passed to a higher layer
+						so that different layer signatures can be supported
+						the lower layers must accommodate (or have knowledge of) higher layers
+					is basically the return of the intercept function, but is put alongside other functions because they need closures
+					if no higher layer exists, these get passed to the same layer's 'super arguments'
+					defaults to the 'input arguments'
+				'super arguments' function
+					which takes the output of higher layer's 'super arguments' function
+					and passes its output to lower layer's 'super arguments' function
+					if no lower layer exists, the output is passed to super
+					if no higher layer exists, it gets passed the 'output arguments'
+					defaults to returning what ever it was passed
+				'instance arguments' array
+					which are passed to the same layer's instance function
+						used as 'scope' variables, to store variables that aren't used by higher layers or super, but the instance
+					defaults to the 'input arguments'
+*/
+//TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
+
+
+
+
+ // VALIDATION
+
+const customRules = {};
+_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, {
+  layers: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(value);
+      let currentExtends;
+
+      for (const layer of value) {
+        customRules.layer.validate(layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
+
+        if (layer.extends !== undefined && currentExtends !== undefined) {
+          if (layer.extends === currentExtends || currentExtends.isPrototypeOf(layer.extends)) {
+            currentExtends = layer.extends;
+          } else {
+            //TODO write test
+            throw new Error('Dynamic Class layer cannot extend a class that is not equal to or the descendant of a class extended by a higher layer.');
+          }
+        }
+      }
+    },
+
+    caster(reference) {
+      // Undefined defaults to empty array.
+      if (reference.value === undefined) reference.value = []; // Cast all items in array to layers.
+
+      if (reference.value instanceof Array) {
+        reference.value = reference.value.map(layer => {
+          return customRules.layer.validateCast(layer)[0];
+        });
+      } // Else cannot cast non-undefined, non-arrays.
+
+    }
+
+  }),
+  layer: new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["Interface"]({
+    //R Wrap the test functions to ensure that they doesn't get modified.
+    extends: value => customRules.extends.validate(value),
+    intercept: value => customRules.intercept.test(value),
+    instance: value => customRules.instance.test(value),
+    prototype: value => customRules.prototype.test(value),
+    static: value => customRules.static.test(value)
+  }, {
+    caster(reference) {
+      // Undefined defaults to empty object.
+      if (reference.value === undefined) reference.value = {}; // Set defaults for undefined properties.
+
+      if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(reference.value)) {
+        const {
+          extends: e,
+          intercept = () => {},
+          instance = () => {},
+          prototype = () => {},
+          static: s = () => {},
+          //R Passing an existing class is not supported because it won't aid augmentation and static properties on the class would interfere with the part defaults.
+          //R Object literals for the prototype and static options are not supported because it would allow mutation of the part functions. It's also more consistent to require all parts to be functions.
+          // Ensure other //! enumerable properties are preserved.
+          ...rest
+        } = reference.value; // Replace with new object.
+
+        reference.value = {
+          extends: e,
+          intercept,
+          instance,
+          prototype,
+          static: s,
+          ...rest
+        };
+      } // Else, not possible to cast non-undefined, non-object to layer.
+
+    }
+
+  }),
+  name: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(value)) {
+        throw new Error(`'name' option must be a string, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  //! These must use the same keys that are expected on a layer object.
+  extends: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      // Must be undefined or a constructor.
+      if (!(value === undefined || _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].constructor.test(value))) {
+        throw new Error(`'extends' option must be undefined or a constructor, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  intercept: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
+        throw new Error(`'intercept' option must be a function, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  instance: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
+        throw new Error(`'instance' option must be a function, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  prototype: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
+        throw new Error(`'prototype' option must be a function, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  static: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
+        throw new Error(`'static' option must be a function, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  instanceTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
+        throw new Error(`'instanceTransfer' option must be a function, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  prototypeTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
+        throw new Error(`'prototypeTransfer' option must be a function, not a ${typeof value}`);
+      }
+    }
+
+  }),
+  staticTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
+    validator(value) {
+      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
+        throw new Error(`'staticTransfer' option must be a function, not a ${typeof value}`);
+      }
+    }
+
+  })
+}); // UTILITY FUNCTIONS
+
+function processArguments(arg0 = '', ...args) {
+  let name;
+  let layers;
+
+  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(arg0)) {
+    // If first argument is a string, consider it the name.
+    name = arg0;
+    layers = [...args];
+  } else {
+    // Else consider it a layer.
+    name = ''; // Native function and class' 'name' property defaults to an empty string.
+
+    layers = [arg0, ...args];
+  }
+
+  return {
+    name: customRules.name.validate(name)[0],
+    layers: customRules.layers.validateCast(layers)[0]
+  };
+}
+
+;
+
+function getParent(layers) {
+  // Returns the last defined 'extends' property.
+  for (let i = layers.length - 1; i >= 0; i--) {
+    const Parent = layers[i].extends;
+    if (Parent !== undefined) return Parent;
+  }
+
+  return undefined;
+}
+
+;
+
+function doIntercept(args, layers) {
+  // Store:
+  // Current intercept arguments for intercept chaining.
+  let nextArgs = args; // All super arguments getters for later iteration. They will be evaluated in the super chain.
+
+  const getSuperArgsList = []; // All instance arguments for later iteration.
+
+  const instanceArgsList = []; // Loop backwards over intercept functions.
+
+  for (let i = layers.length - 1; i >= 0; i--) {
+    var _layers$i$intercept$c;
+
+    const currentArguments = nextArgs; // Call with null as this to throw on any object-like operations on this.
+
+    const result = (_layers$i$intercept$c = layers[i].intercept.call(null, ...currentArguments)) !== null && _layers$i$intercept$c !== void 0 ? _layers$i$intercept$c : {};
+    let {
+      //R All functions will be passed their default return. That way defaults can be easily extended, and all three options are more similar.
+      nextArguments = (...args) => args,
+      superArguments = (...args) => args,
+      instanceArguments = (...args) => args,
+      ...rest
+    } = result; // Validate return object.
+
+    const restKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getOwnKeysOf"])(rest);
+
+    if (restKeys.length !== 0) {
+      throw new Error(`Intercept function has extra return properties: [${restKeys.join(', ')}], this is probably a mistake.`);
+    } // Transform array shorthands into functions.
+
+
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(nextArguments)) {
+      const shorthand = nextArguments;
+
+      nextArguments = () => shorthand;
+    }
+
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(superArguments)) {
+      const shorthand = superArguments;
+
+      superArguments = () => shorthand;
+    }
+
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(instanceArguments)) {
+      const shorthand = instanceArguments;
+
+      instanceArguments = () => shorthand;
+    } // Validate
+
+
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(nextArguments);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(superArguments);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(instanceArguments); // Store
+
+    nextArgs = _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(nextArguments(...currentArguments))[0];
+    getSuperArgsList[i] = superArguments;
+    instanceArgsList[i] = _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(instanceArguments(...currentArguments))[0];
+  } // Return for use by super-chain and instance function iteration.
+
+
+  return {
+    nextArgs,
+    getSuperArgsList,
+    instanceArgsList
+  };
+}
+
+;
+
+function doInstance(layers, instanceArgsList) {
+  // Loop forwards over instance functions.
+  for (let i = 0; i < layers.length; i++) {
+    // Pass the instance inputs from the respective intercept function.
+    layers[i].instance.call(this, ...instanceArgsList[i]);
+  }
+}
+
+; // INTERFACE
+
+const dynamicClass = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
+  layers: value => customRules.layers.test(value)
+}); // FACTORIES
+// Stored directly on the dynamicClass interface for ease of access.
+
+_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
+  baseCreate(...args) {
+    const {
+      name,
+      layers
+    } = processArguments(...args);
+    const Parent = getParent(layers);
+    const isChild = Parent !== undefined; // Freeze the layers so that they cannot be further modified.
+    //G If augmentation is desired it should be done non-destructively by adding to the layers array.
+
+    for (const layer of layers) {
+      Object.freeze(layer);
+    } // DEFINITION
+    //R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
+    //R This ensures that no undiscovered differences slip by.
+    //R Definition still had to be duplicated because optional extension and super calls don't seem possible.
+
+
+    let Class;
+
+    if (isChild) {
+      Class = {
+        [name]: class extends Parent {
+          constructor(...args) {
+            const layers = Class[dynamicClass.keys.layers]; // INTERCEPT
+
+            const {
+              nextArgs,
+              getSuperArgsList,
+              instanceArgsList
+            } = doIntercept.call(null, args, layers); // SUPER
+            // Once all layers have intercepted, pass the nextArguments (from the highest layer) to its getSuperArguments function.
+
+            let superArguments = nextArgs; // Loop forwards over getSuperArguments functions.
+
+            for (let i = 0; i < layers.length; i++) {
+              const currentSuperArguments = superArguments; // Set the next superArguments
+
+              superArguments = _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(getSuperArgsList[i](...currentSuperArguments))[0];
+            }
+
+            super(...superArguments); // INSTANCE
+
+            doInstance.call(this, layers, instanceArgsList);
+          }
+
+        }
+      }[name];
+    } else {
+      Class = {
+        [name]: class {
+          constructor(...args) {
+            const layers = Class[dynamicClass.keys.layers]; // INTERCEPT
+
+            const {
+              instanceArgsList
+            } = doIntercept.call(null, args, layers); // INSTANCE
+
+            doInstance.call(this, layers, instanceArgsList);
+          }
+
+        }
+      }[name];
+    } // STORE PARTS
+    //R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
+
+
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenVariable(Class, {
+      [dynamicClass.keys.layers]: layers
+    });
+    /* //G//!
+    	The 'duper' parameter should replace uses of 'super' in methods.
+    	Unlike 'super', 'duper' can also be used on regular functions.
+    			Because 'duper' is a closure, it is a valid replacement for 'super' because they both are not dynamic. 
+    	The object that they reference does not change even if the method assigned on a different object.
+    			If a dynamic behavior is desired, use Object.getPrototypeOf(Object.getPrototypeOf(this)); instead.
+    */
+    //TODO consider not putting duper in an options container, I don't believe there should be any more arguments
+
+    for (const layer of layers) {
+      // PROTOTYPE
+      layer.prototype.call(Class.prototype, {
+        duper: Object.getPrototypeOf(Class.prototype)
+      }); // STATIC
+
+      layer.static.call(Class, {
+        duper: Object.getPrototypeOf(Class)
+      });
+    }
+
+    return Class;
+  },
+
+  /* //R
+  	The augmentation function exists for two main reasons:
+  	It brings any closure setup back inside to the single function call.
+  	It removes the risk of implementing the augmentation wrong (say by forgetting to use a closure and instead referencing the class that is being mutated, this would cause a recursive function).
+  
+  	//! If a layers' intercept function discards arguments, layers above it won't be able to recover them.
+  	//G The safest way is to always return the same signature.
+  */
+  baseAugment(Class, ...args) {
+    const currentParent = Object.getPrototypeOf(Class);
+    const [newLayers] = customRules.layers.validateCast(args);
+    const newLayersParent = getParent(newLayers); // Ensure new layers do not extend a different class.
+
+    if (!(newLayersParent === undefined || newLayersParent === currentParent)) {
+      throw new Error('Cannot augment class to extend another class.');
+    } // New prototype and static parts must be called immediately, as they are only called once when the class is created.
+    //! There is a chance that the class may have been modified between creation and augmentation, avoid doing this as it could create inconsistencies when augmenting.
+
+
+    for (const newLayer of newLayers) {
+      // PROTOTYPE
+      newLayer.prototype.call(Class.prototype, {
+        duper: Object.getPrototypeOf(Class.prototype)
+      }); // STATIC
+
+      newLayer.static.call(Class, {
+        duper: Object.getPrototypeOf(Class)
+      });
+    }
+
+    Class[dynamicClass.keys.layers].push(...newLayers);
+    return Class;
+  }
+
+}); // SHORT-HAND WRAPPERS
+
+function wrapParts(layers, keyWrapperPairs) {
+  const [newLayers] = customRules.layers.validateCast(layers);
+  return newLayers.map(layer => {
+    // Clone the layer to avoid mutation.
+    const newLayer = { ...layer
+    };
+
+    for (const [key, wrapper] of keyWrapperPairs) {
+      // Create a closure for the layer part.
+      const part = newLayer[key]; // Validate layer part and wrapper.
+
+      customRules[key].validate(part);
+      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(wrapper); // Replace the part.
+
+      newLayer[key] = function (...args) {
+        return wrapper.call(this, part, ...args);
+      };
+    } // Replace the layer.
+
+
+    return newLayer;
+  });
+}
+
+;
+
+function baseVanillaShorthandWrapper(part, enumerableCondition, ...args) {
+  var _part$call;
+
+  const transfers = (_part$call = part.call(this, ...args)) !== null && _part$call !== void 0 ? _part$call : {};
+  Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
+    const descriptor = Object.getOwnPropertyDescriptor(transfers, key);
+    /* force descriptors
+    	writable:     true (data descriptors) - fresh assignment
+    	configurable: true                    - fresh assignment
+    	enumerable:   conditional (
+    		instance value:     enumerable    - fresh assignment, 
+    												[[Define]] semantics of the class fields proposal
+    		instance function:  enumerable    ~ object literal declaration (both functions and methods),
+    												same as instance value
+    		instance accessor:  enumerable    ~ object literal declaration
+    												same as instance value
+    				prototype value:    nonEnumerable ~ same as method and accessor
+    		prototype function: nonEnumerable - class method
+    		prototype accessor: nonEnumerable - class accessor
+    				static value:       enumerable    - static class field of the class fields proposal
+    		static function:    nonEnumerable - static class method
+    		static accessor:    nonEnumerable - static accessor
+    	)
+    */
+
+    if (descriptor.writable === false) descriptor.writable = true;
+    descriptor.configurable = true;
+    descriptor.enumerable = enumerableCondition(descriptor);
+    Object.defineProperty(this, key, descriptor);
+  });
+}
+
+;
+
+function instanceVanillaShorthandWrapper(part, ...args) {
+  return baseVanillaShorthandWrapper.call(this, part, () => true, ...args);
+}
+
+;
+
+function prototypeVanillaShorthandWrapper(part, ...args) {
+  return baseVanillaShorthandWrapper.call(this, part, () => false, ...args);
+}
+
+;
+
+function staticVanillaShorthandWrapper(part, ...args) {
+  return baseVanillaShorthandWrapper.call(this, part, descriptor => descriptor.writable !== undefined && typeof descriptor.value !== 'function', ...args);
+}
+
+;
+
+function applyVanillaShorthandWrappers(layer) {
+  return wrapParts(layer, [['instance', instanceVanillaShorthandWrapper], ['prototype', prototypeVanillaShorthandWrapper], ['static', staticVanillaShorthandWrapper]]);
+}
+
+; // SHORT-HAND FACTORIES
+
+_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
+  /* Enables the use of shorthand return objects for layer parts.
+  	//R These functions use 'vanilla' shorthands, which try to stay as close to the native class behavior as possible. This is so that converting between vanilla classes and dynamic classes is as easy as possible.
+  	//G If a different set of shorthands are desired, create new functions that mutate the layers array similar to the applyVanillaShorthandWrappers function.
+  */
+  create(...args) {
+    const {
+      name,
+      layers
+    } = processArguments(...args);
+    const wrappedLayers = applyVanillaShorthandWrappers(layers);
+    return dynamicClass.baseCreate(name, ...wrappedLayers);
+  },
+
+  augment(Class, ...layers) {
+    const wrappedLayers = applyVanillaShorthandWrappers(layers);
+    return dynamicClass.baseAugment(Class, ...wrappedLayers);
+  }
+
+});
+/* harmony default export */ __webpack_exports__["default"] = (dynamicClass);
+
+/***/ }),
+
+/***/ "./source/shared/utility/format-ms.js":
+/*!********************************************!*\
+  !*** ./source/shared/utility/format-ms.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//TODO Unused
+//TODO Format hours, days, etc.
+/* harmony default export */ __webpack_exports__["default"] = (function (ms) {
+  // extract
+  var minutes = Math.floor(ms / 60000);
+  var seconds = Math.ceil(ms % 60000); // format
+
+  seconds = ('0' + seconds).slice(-2); // returns ...0:00 format rounded up to the nearest second
+
+  return minutes + ':' + seconds;
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/index.js":
+/*!****************************************!*\
+  !*** ./source/shared/utility/index.js ***!
+  \****************************************/
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, dynamicClass, formatMs, constants, keyCode, reference, repeat */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _array_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./array/index.js */ "./source/shared/utility/array/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "any", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "asyncMap", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicSort"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "one", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stableSort", function() { return _array_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"]; });
+
+/* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/index.js */ "./source/shared/utility/object/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["deepCompare"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["define"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["forKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _object_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"]; });
+
+/* harmony import */ var _string_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./string/index.js */ "./source/shared/utility/string/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _string_index_js__WEBPACK_IMPORTED_MODULE_2__["replaceAll"]; });
+
+/* harmony import */ var _time_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./time/index.js */ "./source/shared/utility/time/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["setTimer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"]; });
+
+/* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./uri/index.js */ "./source/shared/utility/uri/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeProperties"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeProperties"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeList"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"]; });
+
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["flexTest"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Interface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["SymbolInterface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _validation_index_js__WEBPACK_IMPORTED_MODULE_5__["Rule"]; });
+
+/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./bool-catch.js */ "./source/shared/utility/bool-catch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolCatch", function() { return _bool_catch_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+
+/* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./clamp.js */ "./source/shared/utility/clamp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combinations.js */ "./source/shared/utility/combinations.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+/* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./deferred.js */ "./source/shared/utility/deferred.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+
+/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/shared/utility/dynamic-class.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./format-ms.js */ "./source/shared/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
+
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/shared/utility/constants.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_12__; });
+/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./key-code.js */ "./source/shared/utility/key-code.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_13__; });
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/shared/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+
+// NESTED
+
+
+
+
+
+ // LOCAL
+
+
+
+
+
+
+
+
+ //TODO constants aren't exported, find an elegant way to do this.
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/key-code.js":
+/*!*******************************************!*\
+  !*** ./source/shared/utility/key-code.js ***!
+  \*******************************************/
+/*! exports provided: characters, create, addTo, verify */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "characters", function() { return characters; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "create", function() { return create; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addTo", function() { return addTo; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "verify", function() { return verify; });
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
+
+
+const packRule = new _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(value);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(value.key);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timestamp);
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value.timeout);
+  }
+
+});
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+function create(length = 10) {
+  // Validate input.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(length); // Create.
+
+  let key = '';
+
+  for (let i = 0; i < length; i++) {
+    const index = Math.floor(Math.random() * characters.length);
+    key += characters.charAt(index);
+  } // Validate output.
+
+
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Return.
+
+  return key;
+}
+;
+const defaultTimeout = 300000; // 5 minutes
+
+const tryLimit = 1000; // Adds a new unique key to the list, returns a pack {key, timeout, timestamp}
+
+function addTo(list, timeout = defaultTimeout) {
+  // Validate inputs.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(timeout); // Create.
+
+  const key = Object(_repeat_js__WEBPACK_IMPORTED_MODULE_1__["default"])(() => create(), {
+    until: key => !list.includes(key),
+    countout: tryLimit,
+
+    onCountout() {
+      throw new Error(`Failed to add key to list, took over ${tryLimit} tries.`);
+    }
+
+  });
+  const timestamp = Date.now();
+  const pack = {
+    key,
+    timestamp,
+    timeout: timestamp + timeout
+  }; // Validate output.
+
+  packRule.validate(pack); // Return.
+
+  list.push(pack);
+  return pack;
+}
+; // Checks if a list has a key. Cleans up timed-out keys.
+
+function verify(list, key) {
+  // Validate inputs.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(list);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(key); // Iterate over list.
+
+  for (let i = list.length - 1; i >= 0; i--) {
+    const pack = list[i]; // Validate items in the list.
+
+    packRule.validate(pack); // Determine if item has timed out.
+
+    const fresh = pack.timeout > Date.now();
+
+    if (pack.key === key) {
+      // If key matches,
+      if (fresh) {
+        // and it hasn't timed out, remove the pack from the list and return it,
+        return list.splice(i, 1)[0];
+      } else {
+        // else throw a timeout error.
+        throw new Error('Key timed out.');
+      }
+    } else {
+      // Remove non-matching packs if they've timed out.
+      if (!fresh) {
+        list.splice(i, 1);
+      }
+    }
+  } // If the key isn't found, throw an error.
+
+
+  throw new Error('Invalid key.');
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/object/deep-compare.js":
+/*!******************************************************!*\
+  !*** ./source/shared/utility/object/deep-compare.js ***!
+  \******************************************************/
+/*! exports provided: defaultOptions, default, compareUnorderedArrays */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultOptions", function() { return defaultOptions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return deepCompare; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compareUnorderedArrays", function() { return compareUnorderedArrays; });
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+
+
+const compareDeeper = function (a, b, options) {
+  const {
+    depth
+  } = options;
+  return deepCompare(a, b, { ...options,
+    depth: depth - 1
+  });
+};
+
+const logDifferenceFunction = function (key, aValue, bValue) {
+  console.log(`deepCompare property difference - ${key}: ${aValue}, ${bValue}`);
+};
+
+const defaultOptions = {
+  //C 0 based, will call depth+1 layers of comparisons
+  depth: 1,
+  //C used for custom comparisons (like un-ordered lists)
+  //! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
+  compareFunction: compareUnorderedArrays = (a, b) => a === b,
+  //C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
+  //C used for custom key selection (inherited, enumerable, symbol, etc.)
+  selectFunction: Object.keys,
+  //C true:  compare selected key-values on x to the same key-values anywhere on y
+  //C false: compare selected key-values on x to the same key-values selected on y
+  anywhere: false,
+  //C true:  compares a against b 
+  //C false: compares a against b and b against a
+  //? what if subsetting needs to stop a specific depth?
+  //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
+  subset: false,
+  //C compare result for values that are too deep
+  resultIfTooDeep: false,
+  logDifference: false
+};
+function deepCompare(a, b, options = {}) {
+  const {
+    depth,
+    compareFunction,
+    selectFunction,
+    anywhere,
+    subset,
+    resultIfTooDeep,
+    logDifference
+  } = { ...defaultOptions,
+    ...options
+  }; // limit to depth
+
+  if (depth < 0) return resultIfTooDeep; // compare values
+
+  if (compareFunction(a, b, options)) return true; // compare properties
+
+  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(b)) {
+    let result = true; // selected keys
+
+    const aSelectedKeys = selectFunction(a);
+    const bSelectedKeys = selectFunction(b); //C compare all selected key-values of a to the same (any or selected) key-value of b
+
+    for (const key of aSelectedKeys) {
+      const aValue = a[key];
+      const bValue = anywhere || bSelectedKeys.includes(key) ? b[key] : undefined;
+
+      if (!compareDeeper(aValue, bValue, options)) {
+        result = false;
+        if (logDifference) logDifferenceFunction(key, aValue, bValue);
+      }
+    }
+
+    if (!subset) {
+      //C compare remaining selected key-values of b to the same (any or non-existent) key-value of a
+      //C compare 
+      //R prevents shared selected keys from being compared twice
+      for (const key of bSelectedKeys) {
+        if (!aSelectedKeys.includes(key)) {
+          //C exclude shared selected keys
+          //C no need to check for the same selected key in a, they have been excluded
+          const aValue = anywhere ? a[key] : undefined;
+          const bValue = b[key]; //! value order is not flipped, this would cause the subset to go both ways
+
+          if (!compareDeeper(aValue, bValue, options)) {
+            result = false;
+            if (logDifference) logDifferenceFunction(key, aValue, bValue);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  return false;
+}
+; // COMPARE FUNCTIONS
+
+function compareUnorderedArrays(a, b, options) {
+  //R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
+  // If a and b are arrays:
+  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(b)) {
+    // Match if:
+    let result = true; // All items of a exist in b.
+
+    if (a.some(item => !b.includes(item))) result = false; // And if not a subset comparison.
+
+    if (!subset) {
+      // All items of b exist in a.
+      if (b.some(item => !a.includes(item))) result = false;
+    }
+
+    return result;
+  } else {
+    // Use the default compare function.
+    return defaultOptions.compareFunction(a, b, options);
+  }
+}
+; //L diagrams: https://www.figma.com/file/57kSw6SaPX3qJUSdzMpfJo/Object-Property-Locations-Comparison?node-id=0%3A1
+
+/* differences from original
+	renamed to 'deepCompare'
+	deep option removed
+	depth decreased by 1 (depth 0 now compares a, b; depth 1 compares a.foo, b.foo, and so on)
+	top-level NaN equality removed
+	renamed matchIfTooDeep to resultIfTooDeep
+	renamed matchIfSubset to subset
+	no-longer compares against b keys from anywhere by default, set anywhere: true, otherwise just compares against same selection from b
+*/
+
+/***/ }),
+
+/***/ "./source/shared/utility/object/define.js":
+/*!************************************************!*\
+  !*** ./source/shared/utility/object/define.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const ownKeys = function (object) {
+  /* //R//! Not using getKeysOf() here to avoid a circular dependency.
+  	define.js > Rule.js > rules.js > keys-of.js > define.js
+  	Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
+  */
+  return [...Object.getOwnPropertyNames(object), ...Object.getOwnPropertySymbols(object)];
+}; //C define is a container for less verbose versions of Object.defineProperty()
+//G if modifications are required, write a different define function
+
+/* //R
+	Initially thought it would be useful to have configurable (loose) constants and non-configurable variables. However:
+
+	{writable: true, configurable: false} (permanent variable)
+	These don't function as desired, because even when configurable is set to false, writable can be changed from true to false.
+	//L https://stackoverflow.com/questions/52892105/why-configurablefalse-allows-to-change-writable-flag-but-doesnt-for-enumerable
+
+	{writable: false, configurable: true} (loose constant)
+	These don't really have a use-case and only existed to form a clean pair with permanent variables, and therefore have also been excluded.
+*/
+
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  constant(target, properties) {
+    for (const key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: false,
+        enumerable: true,
+        configurable: false
+      });
+    }
+
+    return target;
+  },
+
+  variable(target, properties) {
+    for (const key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: true,
+        enumerable: true,
+        configurable: true
+      });
+    }
+
+    return target;
+  },
+
+  hiddenConstant(target, properties) {
+    for (const key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: false,
+        enumerable: false,
+        configurable: false
+      });
+    }
+
+    return target;
+  },
+
+  hiddenVariable(target, properties) {
+    for (const key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+
+    return target;
+  },
+
+  getter(target, properties) {
+    for (const key of ownKeys(properties)) {
+      // enforce getter, strip setter
+      const {
+        get
+      } = Object.getOwnPropertyDescriptor(properties, key);
+      if (typeof get !== 'function') throw new Error('getter property is missing a getter function');
+      Object.defineProperty(target, key, {
+        get,
+        enumerable: true,
+        configurable: false
+      });
+    }
+
+    return target;
+  },
+
+  setter(target, properties) {
+    for (const key of ownKeys(properties)) {
+      // enforce setter, strip getter
+      const {
+        set
+      } = Object.getOwnPropertyDescriptor(properties, key);
+      if (typeof set !== 'function') throw new Error('setter property is missing a setter function');
+      Object.defineProperty(target, key, {
+        set,
+        enumerable: true,
+        configurable: false
+      });
+    }
+
+    return target;
+  },
+
+  accessor(target, properties) {
+    for (const key of ownKeys(properties)) {
+      // enforce getter and setter
+      const {
+        get,
+        set
+      } = Object.getOwnPropertyDescriptor(properties, key);
+      const noGetter = typeof get !== 'function';
+      const noSetter = typeof set !== 'function';
+
+      if (noGetter || noSetter) {
+        throw new Error(`accessor property ${key} is missing a ${noGetter ? 'getter' : ''} ${noGetter && noSetter ? 'and' : ''} ${noSetter ? 'setter' : ''} function`);
+      }
+
+      Object.defineProperty(target, key, {
+        get,
+        set,
+        enumerable: true,
+        configurable: false
+      });
+    }
+
+    return target;
+  },
+
+  identity(target, properties) {
+    for (const key of ownKeys(properties)) {
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(properties, key));
+    }
+
+    return target;
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/object/index.js":
+/*!***********************************************!*\
+  !*** ./source/shared/utility/object/index.js ***!
+  \***********************************************/
+/*! exports provided: deepCompare, define, forKeysOf, getKeysOf, pick */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _deep_compare_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deepCompare", function() { return _deep_compare_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _define_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./define.js */ "./source/shared/utility/object/define.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "define", function() { return _define_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./keys-of.js */ "./source/shared/utility/object/keys-of.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_2__["forKeysOf"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return _keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"]; });
+
+/* harmony import */ var _pick_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./pick.js */ "./source/shared/utility/object/pick.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "pick", function() { return _pick_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/object/keys-of.js":
+/*!*************************************************!*\
+  !*** ./source/shared/utility/object/keys-of.js ***!
+  \*************************************************/
+/*! exports provided: forKeysOf, getKeysOf, forOwnKeysOf, getOwnKeysOf */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forKeysOf", function() { return forKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getKeysOf", function() { return getKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "forOwnKeysOf", function() { return forOwnKeysOf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOwnKeysOf", function() { return getOwnKeysOf; });
+/* harmony import */ var _validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/flex-test.js */ "./source/shared/utility/validation/flex-test.js");
+/* harmony import */ var _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/objects/object.js */ "./source/shared/utility/validation/rules/objects/object.js");
+/* harmony import */ var _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../validation/rules/functions.js */ "./source/shared/utility/validation/rules/functions.js");
+// forKeysOf calls a function for all keys of an object that match the specified attributes.
+// getKeysOf returns an array of  all keys of an object that match the specified attributes and filter.
+// Attributes default to own, named, enumerable keys. This is the same as Object.keys().
+//! Duplicated code in define.js to remove a circular dependency.
+ // Importing directly instead of from ../validation/rules/index.js to avoid circular reference.
+
+
+
+const rules = {
+  object: _validation_rules_objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+  func: _validation_rules_functions_js__WEBPACK_IMPORTED_MODULE_2__["func"]
+};
+function forKeysOf(object, optionsOrCallback = {}) {
+  // OPTIONS / VALIDATION
+  const options = typeof optionsOrCallback === 'function' ? {
+    callback: optionsOrCallback
+  } : optionsOrCallback;
+  rules.object.validate(object);
+  rules.object.validate(options);
+  const {
+    own = true,
+    inherited = false,
+    named = true,
+    symbol = false,
+    enumerable = true,
+    nonEnumerable = false,
+    callback = () => {}
+  } = options;
+  rules.func.validate(callback); // OWN / INHERITED
+
+  const chain = [];
+  if (own) chain.push(object);
+
+  if (inherited) {
+    let target = Object.getPrototypeOf(object);
+
+    while (target !== null) {
+      chain.push(target);
+      target = Object.getPrototypeOf(target);
+    }
+  }
+
+  const visitedKeys = [];
+
+  for (const target of chain) {
+    const targetKeys = []; // NAMED / SYMBOL
+
+    if (named) targetKeys.push(...Object.getOwnPropertyNames(target));
+    if (symbol) targetKeys.push(...Object.getOwnPropertySymbols(target));
+
+    for (const targetKey of targetKeys) {
+      // ENUMERABLE / NON-ENUMERABLE
+      const isEnumerable = Object.prototype.propertyIsEnumerable.call(target, targetKey);
+      const keyMatchesAttributes = enumerable && isEnumerable || nonEnumerable && !isEnumerable; // UNIQUE
+
+      if (keyMatchesAttributes && !visitedKeys.includes(targetKey)) {
+        // Don't iterate over the same key more than once.
+        visitedKeys.push(targetKey); // Execute callback.
+
+        callback(target, targetKey);
+      }
+    }
+  }
+}
+;
+function getKeysOf(object, optionsOrFilter = {}) {
+  // OPTIONS / VALIDATION
+  const options = typeof optionsOrFilter === 'function' ? {
+    filter: optionsOrFilter
+  } : optionsOrFilter;
+  rules.object.validate(object);
+  rules.object.validate(options);
+  const {
+    filter = (object, key) => true,
+    ...rest
+  } = options;
+  rules.func.validate(filter); // ARRAY
+
+  const keys = []; // undefined & null return empty array
+
+  if (object == null) return keys; // FILTER
+
+  forKeysOf(object, {
+    callback(object, key) {
+      if (Object(_validation_flex_test_js__WEBPACK_IMPORTED_MODULE_0__["default"])(filter, object, key)) {
+        keys.push(key);
+      }
+    },
+
+    ...rest
+  });
+  return keys;
+}
+;
+const own = {
+  own: true,
+  named: true,
+  symbol: true,
+  enumerable: true,
+  nonEnumerable: true,
+  inherited: false
+};
+function forOwnKeysOf(object, callback) {
+  return forKeysOf(object, { ...own,
+    callback
+  });
+}
+;
+function getOwnKeysOf(object, filter) {
+  return getKeysOf(object, { ...own,
+    filter
+  });
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/object/pick.js":
+/*!**********************************************!*\
+  !*** ./source/shared/utility/object/pick.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+// Copies all non-undefined properties of an object onto a new object.
+//! Invokes getters.
+//! Does not copy descriptors.
+//! Copies inherited properties directly onto the new object.
+//R Why not use destructuring?
+//R It wouldn't be possible to store a preset list of properties to pick.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (oldObject, keys) {
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(oldObject);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys);
+  const newObject = {};
+
+  for (const key of keys) {
+    const value = oldObject[key];
+    if (value !== undefined) newObject[key] = value;
+  }
+
+  return newObject;
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/reference.js":
+/*!********************************************!*\
+  !*** ./source/shared/utility/reference.js ***!
+  \********************************************/
+/*! exports provided: Reference, default, formReferences, extractValues */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Reference", function() { return Reference; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formReferences", function() { return formReferences; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extractValues", function() { return extractValues; });
+class Reference {
+  constructor(value) {
+    this.value = value;
+    Object.seal(this);
+  }
+
+}
+;
+/* harmony default export */ __webpack_exports__["default"] = (Reference);
+function formReferences(values) {
+  return values.map(item => item instanceof Reference ? item : new Reference(item));
+}
+;
+function extractValues(references) {
+  return references.map(item => item instanceof Reference ? item.value : item);
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/repeat.js":
+/*!*****************************************!*\
+  !*** ./source/shared/utility/repeat.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
+
+/**
+ * Repeats a function until a condition is met or the call times-out or counts-out.
+ * Guaranteed to call the function at least once.
+ * 
+ * @param {Function} func               - Function to repeat.
+ * @param {Object}   options
+ * @param {Function} options.until      - Condition upon which the function will stop.
+ * @param {number}   options.timeout    - Number of milliseconds the function may repeat for.
+ * @param {number}   options.countout   - Number of times the function may execute.
+ * @param {Function} options.onTimeout  - Called when repeat times out.
+ * @param {Function} options.onCountout - Called when repeat counts out.
+ */
+
+function repeat(func, options = {}) {
+  const {
+    until = result => false,
+    timeout = Infinity,
+    countout = Infinity,
+    onTimeout = result => {
+      throw new Error('Repeat function call timed out.');
+    },
+    onCountout = result => {
+      throw new Error('Repeat function call counted out.');
+    }
+  } = options;
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
+
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
+
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
+  let result;
+  let counter = 0;
+  let time = Date.now();
+  const timeLimit = time + timeout;
+  const countLimit = Math.floor(countout);
+
+  while (true) {
+    result = func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+
+    if (until(result)) break; // Update 
+
+    time = Date.now();
+    counter++;
+
+    if (time >= timeLimit) {
+      onTimeout(result);
+      break;
+    }
+
+    if (counter >= countLimit) {
+      onCountout(result);
+      break;
+    }
+  }
+
+  return result;
+}
+
+; // Async Variation
+
+repeat.sync = repeat;
+
+repeat.async = async function (func, options = {}) {
+  const {
+    until = result => false,
+    // Condition upon which the function will stop.
+    timeout = Infinity,
+    // Number of milliseconds the function may repeat for.
+    countout = Infinity,
+    // Number of times the function may execute.
+    onTimeout = result => {
+      throw new Error('Repeat function call timed out.');
+    },
+    onCountout = result => {
+      throw new Error('Repeat function call counted out.');
+    }
+  } = options;
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(func);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(until);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeNumber.validate(timeout); // >= 0
+
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveNumber.validate(countout); // >= 1
+
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onTimeout);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(onCountout);
+  let result;
+  let counter = 0;
+  let time = Date.now();
+  const timeLimit = time + timeout;
+  const countLimit = Math.floor(countout);
+
+  while (true) {
+    result = await func(result); //R Evaluating until(result) after function instead of as the while condition because it wouldn't make sense to evaluate 'until' before the function has run. This way the function is guaranteed to run at least once.
+
+    if (await until(result)) break; // Update 
+
+    time = Date.now();
+    counter++;
+
+    if (time >= timeLimit) {
+      await onTimeout(result);
+      break;
+    }
+
+    if (counter >= countLimit) {
+      await onCountout(result);
+      break;
+    }
+  }
+
+  return result;
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (repeat);
+
+/***/ }),
+
+/***/ "./source/shared/utility/string/capitalize-first-character.js":
+/*!********************************************************************!*\
+  !*** ./source/shared/utility/string/capitalize-first-character.js ***!
+  \********************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/string/escape-reg-exp.js":
+/*!********************************************************!*\
+  !*** ./source/shared/utility/string/escape-reg-exp.js ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (string) {
+  //L from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Escaping
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/string/indented-template.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/string/indented-template.js ***!
+  \***********************************************************/
+/*! exports provided: tabIndented, spaceIndented */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return tabIndented; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return spaceIndented; });
+const tabIndented = (strings, ...expressions) => indented(strings, expressions, '	');
+const spaceIndented = (strings, ...expressions) => indented(strings, expressions, ' ');
+
+function indented(stringsFrozen, expressions, indentCharacter) {
+  let strings = [...stringsFrozen];
+  const firstIndex = 0;
+  const lastIndex = strings.length - 1; // If the template ends with a new-line character followed by zero or many indent characters, remove those characters.
+
+  strings[lastIndex] = strings[lastIndex].replace(new RegExp(`\n${indentCharacter}*$`), ''); // Match indents.
+
+  const indents = [];
+
+  for (const string of strings) {
+    /* Matches 0 or many indent characters.
+    	- Following a new-line. 
+    	- Preceding a non-indent, non-new-line character. 
+    		//R Ignores 'indent-only' lines.
+    	
+    	//R Don't follow start (^) or precede end ($), because otherwise indentation characters in single line strings and strings between variables will get matched.
+    */
+    const matches = string.match(new RegExp(`(?<=\n)(${indentCharacter}*)(?=[^${indentCharacter}\n])`, 'g'));
+    if (matches !== null) indents.push(...matches);
+  } // Get the smallest indent amount.
+
+
+  let smallestIndentAmount = Math.min(...indents.map(indent => indent.length));
+  if (smallestIndentAmount === Infinity) smallestIndentAmount = 0; // Remove smallest indent from all lines.
+
+  /* Matches the smallest indent.
+  	- Following a new line.
+  	//! Not required to precede a non-indent or non-new-line character. This ensures 'excessively-indented' and 'indent-only' lines can be matched and only have part of their indentation removed.
+  */
+
+  strings = strings.map(string => string.replace(new RegExp(`(?<=\n)(${indentCharacter}{${smallestIndentAmount}})`, 'g'), ''));
+  /* Remove leading newline if it exists.
+  	//R Must happen after removing indentation, because it is required to identify the first line's indentation.
+  	//R Must happen before construction, because otherwise a newline could be removed from a leading expression.	
+  */
+
+  strings[firstIndex] = strings[firstIndex].replace(new RegExp(`^\n`), '');
+  /* Construct template.
+  	//R Must happen after the indentation is removed, because expressions should be considered as using the 'adjusted' indentation.
+  */
+
+  let template = '';
+
+  for (let i = 0; i < strings.length; i++) {
+    template += strings[i];
+    if (expressions[i] !== undefined) template += expressions[i];
+  }
+
+  return template;
+}
+
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/string/index.js":
+/*!***********************************************!*\
+  !*** ./source/shared/utility/string/index.js ***!
+  \***********************************************/
+/*! exports provided: capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./capitalize-first-character.js */ "./source/shared/utility/string/capitalize-first-character.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "capitalizeFirstCharacter", function() { return _capitalize_first_character_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./escape-reg-exp.js */ "./source/shared/utility/string/escape-reg-exp.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "escapeRegExp", function() { return _escape_reg_exp_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _indented_template_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./indented-template.js */ "./source/shared/utility/string/indented-template.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["spaceIndented"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return _indented_template_js__WEBPACK_IMPORTED_MODULE_2__["tabIndented"]; });
+
+/* harmony import */ var _replace_all_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./replace-all.js */ "./source/shared/utility/string/replace-all.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "replaceAll", function() { return _replace_all_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/string/replace-all.js":
+/*!*****************************************************!*\
+  !*** ./source/shared/utility/string/replace-all.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (function (input, search, replace) {
+  return input.split(search).join(replace);
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/time/index.js":
+/*!*********************************************!*\
+  !*** ./source/shared/utility/time/index.js ***!
+  \*********************************************/
+/*! exports provided: setTimer, wait */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _set_timer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./set-timer.js */ "./source/shared/utility/time/set-timer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setTimer", function() { return _set_timer_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _wait_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./wait.js */ "./source/shared/utility/time/wait.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _wait_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/time/set-timer.js":
+/*!*************************************************!*\
+  !*** ./source/shared/utility/time/set-timer.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/index.js */ "./source/shared/utility/validation/rules/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../constants.js */ "./source/shared/utility/constants.js");
+/* //! Differences from setTimeout:
+	Delay comes before callback.
+	Doesn't accept negative numbers or NaN for the delay.
+	Doesn't accept callback arguments. //G Wrap the callback in an arrow function instead.
+*/
+
+
+/**
+ * Executes a function after a delay time. 
+ * Supports times longer than 2147483647 milliseconds, unlike setTimeout.
+ * 
+ * @param  {number}   delay - Delay in milliseconds, or Infinity.
+ * @param  {function} callback  - Function executed after delay.
+ * 
+ * @returns {function}        Function that clears the timer.
+ */
+
+/* harmony default export */ __webpack_exports__["default"] = (function (delay, callback) {
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["nonNegativeNumber"].validate(delay);
+  _validation_rules_index_js__WEBPACK_IMPORTED_MODULE_0__["func"].validate(callback);
+
+  if (delay === 0) {
+    // Execute callback immediately.
+    callback(); // Return empty function, as an instantaneous timeout cannot be cleared.
+
+    return function () {};
+  }
+
+  if (delay === Infinity) {
+    // Never execute the function.
+    // Return empty function, as an infinite timeout is effectively cleared already.
+    return function () {};
+  } // Remainder
+
+
+  const remainder = delay % _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]; // Quotient
+
+  let overflowChunkCount = BigInt((delay - remainder) / _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]); // Current timeout ID.
+
+  let timeoutId;
+
+  (function nestTimeout() {
+    if (overflowChunkCount > 0) {
+      // If there are chunks of overflowed time left:
+      // Set a timeout for the full chunk of time.
+      timeoutId = setTimeout(() => {
+        // Upon finishing:
+        // Mark the time chunk as 'finished' by reducing the count.
+        overflowChunkCount--; // Evaluate the time state again.
+
+        nestTimeout();
+      }, _constants_js__WEBPACK_IMPORTED_MODULE_1__["MAX_32_BIT_INTEGER"]);
+    } else {
+      // Else, there are no chunks of overflowed time left:
+      // Set a timeout for the remaining time.
+      timeoutId = setTimeout(callback, remainder);
+    }
+  })();
+
+  return function () {
+    clearTimeout(timeoutId);
+  };
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/time/wait.js":
+/*!********************************************!*\
+  !*** ./source/shared/utility/time/wait.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _set_timer_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./set-timer.js */ "./source/shared/utility/time/set-timer.js");
+//G Used for basic async waiting.
+//! Cannot be canceled.
+
+/**
+ * Asynchronously waits a period of time, then resolves.
+ * 
+ * @param {number} duration - Time to wait, in milliseconds.
+ * 
+ * @returns {Promise} Promise that resolves after wait duration.
+ */
+
+/* harmony default export */ __webpack_exports__["default"] = (async function (duration) {
+  return new Promise(resolve => {
+    Object(_set_timer_js__WEBPACK_IMPORTED_MODULE_0__["default"])(duration, () => {
+      resolve();
+    });
+  });
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/uri/decode-list.js":
+/*!**************************************************!*\
+  !*** ./source/shared/utility/uri/decode-list.js ***!
+  \**************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (encoded) {
+  //C decodes a list of encoded objects with '-i' suffixed property keys
+  //! any key not matching the format will be discarded
+  const indexed = Object(_decode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"])(encoded);
+  const list = [];
+  const indexedKeys = Object.keys(indexed);
+
+  for (let i = 0; i < indexedKeys.length; i++) {
+    //C validate delimiter
+    const delimiterIndex = indexedKeys[i].lastIndexOf('-');
+
+    if (delimiterIndex < 0) {
+      break;
+    } //C validate index
+
+
+    const objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
+
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(objectIndex)) {
+      break;
+    } //C get the real key
+
+
+    const key = indexedKeys[i].slice(0, delimiterIndex);
+
+    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(list[objectIndex])) {
+      //C if the obj doesn't exist yet, add it with the prop
+      list[objectIndex] = {
+        [key]: indexed[indexedKeys[i]]
+      };
+    } else {
+      //C otherwise add the prop to the existing object
+      list[objectIndex][key] = indexed[indexedKeys[i]];
+    }
+  }
+
+  return list;
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/uri/decode-properties.js":
+/*!********************************************************!*\
+  !*** ./source/shared/utility/uri/decode-properties.js ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// Decodes every value as a string.
+/* harmony default export */ __webpack_exports__["default"] = (function (encodedString) {
+  const keyValuePairs = encodedString.split('&');
+  const object = {};
+  keyValuePairs.forEach(keyValuePair => {
+    const [key, value] = keyValuePair.split('=');
+    object[decodeURIComponent(key)] = decodeURIComponent(value);
+  });
+  return object;
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/uri/encode-list.js":
+/*!**************************************************!*\
+  !*** ./source/shared/utility/uri/encode-list.js ***!
+  \**************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _array_any_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../array/any.js */ "./source/shared/utility/array/any.js");
+/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (list) {
+  //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
+  //! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
+  const indexed = {};
+  Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {
+    Object.keys(object).forEach(key => {
+      indexed[`${key}-${index}`] = object[key];
+    });
+  });
+  return Object(_encode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"])(indexed);
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/uri/encode-properties.js":
+/*!********************************************************!*\
+  !*** ./source/shared/utility/uri/encode-properties.js ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// Encodes values as strings, objects as [object Object] and arrays as comma delimited strings.
+/* harmony default export */ __webpack_exports__["default"] = (function (object) {
+  return Object.keys(object).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(object[key])}`).join('&');
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/uri/index.js":
+/*!********************************************!*\
+  !*** ./source/shared/utility/uri/index.js ***!
+  \********************************************/
+/*! exports provided: encodeProperties, decodeProperties, encodeList, decodeList */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./encode-list.js */ "./source/shared/utility/uri/encode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./decode-list.js */ "./source/shared/utility/uri/decode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/flex-test.js":
+/*!*******************************************************!*\
+  !*** ./source/shared/utility/validation/flex-test.js ***!
+  \*******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return flexTest; });
+// Executes tests that take either 1 (value) argument or 2 (object, key) arguments with either 1 or 2 arguments. 
+// If the test takes 2 arguments but 2 arguments weren't passed, the first argument is simulated as an object property.
+//R Using (length === 2 else) rather than (length === 1 else) because otherwise if no arguments are passed undefined[undefined] won't work.
+//TODO consider a one-time operation rather than a runtime function
+function flexTest(test, ...args) {
+  if (test.length === 0) {
+    // Pass no arguments if test takes none.
+    return test();
+  } else if (test.length === 1) {
+    let value;
+
+    if (args.length === 0) {
+      value = undefined;
+    } else if (args.length === 1) {
+      value = args[0];
+    } else if (args.length === 2) {
+      value = args[0][args[1]];
+    } else {
+      throw new Error(`${args.length} arguments not supported for tests with 1 parameter.`);
+    }
+
+    return test(value);
+  } else if (test.length === 2) {
+    let object;
+    let key;
+
+    if (args.length === 2) {
+      object = args[0];
+      key = args[1];
+    } else {
+      throw new Error(`${args.length} arguments not supported for tests with 2 parameters.`);
+    }
+
+    return test(object, key);
+    /* //OLD Value to property simulation.
+    	object = Object.create(null);
+    	key = Symbol('simulated key');
+    	object[key] = value;
+    */
+  } else {
+    throw new Error(`Tests with ${test.length} arguments are not supported.`);
+  }
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/index.js":
+/*!***************************************************!*\
+  !*** ./source/shared/utility/validation/index.js ***!
+  \***************************************************/
+/*! exports provided: rules, flexTest, Interface, SymbolInterface, Rule */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rules/index.js */ "./source/shared/utility/validation/rules/index.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "rules", function() { return _rules_index_js__WEBPACK_IMPORTED_MODULE_0__; });
+/* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flex-test.js */ "./source/shared/utility/validation/flex-test.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "flexTest", function() { return _flex_test_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _interface_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./interface.js */ "./source/shared/utility/validation/interface.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["Interface"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return _interface_js__WEBPACK_IMPORTED_MODULE_2__["SymbolInterface"]; });
+
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/interface.js":
+/*!*******************************************************!*\
+  !*** ./source/shared/utility/validation/interface.js ***!
+  \*******************************************************/
+/*! exports provided: Interface, SymbolInterface */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Interface", function() { return Interface; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SymbolInterface", function() { return SymbolInterface; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../object/define.js */ "./source/shared/utility/object/define.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+/* harmony import */ var _flex_test_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./flex-test.js */ "./source/shared/utility/validation/flex-test.js");
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _rules_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./rules/index.js */ "./source/shared/utility/validation/rules/index.js");
+
+
+
+
+
+
+class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
+  constructor(packs, options = {}) {
+    // Throw if a validator option is passed.
+    if ('validator' in options) {
+      throw new Error('Interface options cannot include a validator, as it will be overwritten with a generated validator for interfaces.');
+    }
+
+    const keys = {};
+    const tests = {};
+
+    for (const [key, subKey, test] of packs) {
+      _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["func"].validate(test); // Store subKeys on instance under their original key so that they can be used for implementations: {[interface.keys.<key>]: implementation}
+
+      keys[key] = subKey; // Freeze the test length property so that it can be relied upon to determine if the [value] or [object, key] parameters should be passed.
+
+      Object.defineProperty(test, 'length', {
+        value: test.length,
+        writable: false,
+        enumerable: false,
+        configurable: false
+      }); // Store tests on instance, also under their original key.
+      // Convert tests to use two arguments.
+      //R Converting the tests here preserves the benefit of being able to pass single-argument value tests while also knowing that the stored tests always take two arguments.
+
+      tests[key] = (o, k) => {
+        return Object(_flex_test_js__WEBPACK_IMPORTED_MODULE_2__["default"])(test, o, k);
+      };
+    }
+
+    Object.freeze(keys);
+    Object.freeze(tests); // Create an pass validator to Rule constructor.
+
+    super({ // Pass other rule options to Rule.
+      ...options,
+
+      // Use a custom validator for interfaces.
+      validator(object) {
+        _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(object);
+        Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(this.tests, (tests, key) => {
+          const test = this.tests[key];
+          const subKey = this.keys[key];
+
+          if (!test(object, subKey)) {
+            throw new Error(`Object does not fully implement interface. Object: ${JSON.stringify(object)}, Key: ${key}, SubKey: ${subKey}`);
+          }
+
+          ;
+        });
+        /* //OLD
+        	//R Unnecessarily complicated for a feature that can probably just be permanently set to 'validate'.
+        	if (precision === 'validate') {
+        		// Validate all keys on object.
+        		return testKeys.every((key) => (
+        			validate(key)
+        		));
+        	} else if (precision === 'all') {
+        		// All keys are present (or valid).
+        		return testKeys.every((key) => (
+        			exists(object, key) ||
+        			validate(key)
+        		));
+        	} else if (precision === 'any') {
+        		// Any key is present (or valid).
+        		return testKeys.some((key) => (
+        			exists(object, key) ||
+        			validate(key)
+        		));
+        	} else {
+        		throw new Error(`Precision argument must be 'validate', 'all', or 'any'`);
+        	}
+        */
+      }
+
+    });
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      keys,
+      tests
+    });
+  } // Minimal test to ensure interface property exists in object.
+
+
+  static exists(object, key) {
+    return key in object;
+  }
+
+}
+
+;
+/*
+	Interface and SymbolInterface take a single tests object.
+
+	This tests object should have keys as the interface property names and values as the validator functions for those interface properties.
+
+	Tests have two signatures: (value) and (object, key). 
+	When they are stored on the interface.tests object, both signatures will be wrapped in a function with a (object, key) signature.
+	
+	//G Use tests with the (object, key) signature when the getter for object[key] should not be invoked during validation of the interface.
+	//! Be aware that default and rest parameters are not counted. 
+	//G Manually re-define the validator.length property if a specific behavior is desired.
+	//! The validator.length property will be set to non-configurable when it is passed in.
+
+*/
+
+class Interface extends VirtualInterface {
+  // Interface accepts both named and symbol keys. 
+  // The same keys must be used for implementations.
+  constructor(properties, options) {
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
+    const packs = [];
+    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
+      const subKey = key;
+      const test = properties[key];
+      packs.push([key, subKey, test]);
+    });
+    super(packs, options);
+  }
+
+}
+;
+class SymbolInterface extends VirtualInterface {
+  // SymbolInterface creates substitute symbols for ALL interface keys.
+  // Implementations must use the substituted symbols as the property keys.
+  // This prevents name collision on implementations.
+  constructor(properties, options) {
+    _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
+    const packs = [];
+    Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(properties, (properties, key) => {
+      const subKey = Symbol(key); // Create a symbol subKey instead.
+
+      const test = properties[key];
+      packs.push([key, subKey, test]);
+    });
+    super(packs, options);
+  }
+
+}
+;
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rule.js":
+/*!**************************************************!*\
+  !*** ./source/shared/utility/validation/rule.js ***!
+  \**************************************************/
+/*! exports provided: Rule, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Rule", function() { return Rule; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../object/define.js */ "./source/shared/utility/object/define.js");
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../reference.js */ "./source/shared/utility/reference.js");
+/* harmony import */ var _bool_catch_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../bool-catch.js */ "./source/shared/utility/bool-catch.js");
+//TODO consider changing the method name 'validateCast' it is not intuitive that this is the main casting function and that it returns a value. That or make validate return the passed values.
+//TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
+//TODO ensure that validate and validateCast both return values
+//TODO rename to .validate(), .test(), .cast(), .testCast()
+
+
+
+class Rule {
+  constructor({
+    /* //G 
+    	Should do nothing on success, throw on failure.
+    	Should have one or many sequential and/or parallel conditions.
+    	May be sync or async.
+    	
+    	If using other rules' validators, use validate() and pass the same arguments.
+    */
+    validator = function () {
+      throw new Error('A validator has not been created for this rule.');
+    },
+
+    /* //G
+    	Receives Reference instances as its arguments.
+    	Should modify Reference instance 'value' property on success, throw on failure.
+    	Should have one or many sequential mutations.
+    	May be sync or async.
+    	//! Caster does not implicitly exclude redundant casts. Ie, for a symbol rule, if x is already a symbol, the caster for the symbol will still execute and throw a type error as symbols cannot be converted to strings. Must include a redundancy check for rules that require it.
+    			If using other rules' casters, use validateCast() and pass the same References.
+    	Do not pass reference.value and do not set any reference.value as the result of a validateCast(), the nested caster will mutate the passed arguments directly.
+    			//! If the References are mutated or passed incorrectly validateCast() may not have the correct value to validate could throw incorrect errors for upstream values: '4' validateCasted to an odd number would fail as 'not a number' instead of 'not odd'.
+    */
+    caster = function () {},
+    //R Indexed reasons, placeholder reasons, etc. should not be used, its too complicated. Just create sub-rules for each failure type or store custom, identifiable errors directly on the rule by including more option properties.
+    ...rest
+  }) {
+    const errors = [];
+    if (typeof validator !== 'function') errors.push('validator is not a function');
+    if (typeof caster !== 'function') errors.push('caster is not a function');
+    if (errors.length > 0) throw new Error(errors.join(' and ')); // store
+
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].identity(this, rest);
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      validator,
+      caster
+    }); // false when x.constructor.name === 'AsyncFunction'
+
+    const validatorIsSynchronous = this.validator.constructor.name === 'Function';
+    const casterIsSynchronous = this.caster.constructor.name === 'Function';
+
+    if (validatorIsSynchronous) {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+        validate(...args) {
+          this.validator(...args);
+          return args;
+        },
+
+        test(...args) {
+          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validate(...args));
+        }
+
+      });
+    } else {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+        async validate(...args) {
+          await this.validator(...args);
+          return args;
+        },
+
+        async test(...args) {
+          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => await this.validate(...args));
+        }
+
+      });
+    }
+
+    if (validatorIsSynchronous && casterIsSynchronous) {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+        validateCast(...args) {
+          // If call is the entry-point, will convert values to reference-values. If call is nested, nothing will change.
+          const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
+
+          try {
+            this.caster(...references);
+          } catch (e) {} // Suppress casting errors, just get as far as possible.
+
+
+          const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
+          this.validate(...values);
+          return values;
+        },
+
+        testCast(...args) {
+          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validateCast(...args));
+        }
+
+      });
+    } else {
+      _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+        async validateCast(...args) {
+          const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
+
+          try {
+            await this.caster(...references);
+          } catch (e) {}
+
+          const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
+          await this.validate(...values);
+          return values;
+        },
+
+        async testCast(...args) {
+          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => await this.validateCast(...args));
+        }
+
+      });
+    }
+  }
+
+}
+;
+/* harmony default export */ __webpack_exports__["default"] = (Rule);
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/arrays.js":
+/*!**********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/arrays.js ***!
+  \**********************************************************/
+/*! exports provided: array */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "array", function() { return array; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+
+const array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  //L Why not instanceof? - http://web.mit.edu/jwalden/www/isArray.html
+  //TODO Doesn't this then apply to all classes? Should all classes use validators like this or just use instanceof?
+  validator(value) {
+    if (!Array.isArray(value)) {
+      throw new Error('Value is not an array.');
+    }
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/constructor.js":
+/*!***************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/constructor.js ***!
+  \***************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    try {
+      const Test = class extends value {};
+    } catch (e) {
+      throw new Error('Value is not a constructor.');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/functions.js":
+/*!*************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/functions.js ***!
+  \*************************************************************/
+/*! exports provided: func */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "func", function() { return func; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+//L Doesn't seem proper to distinguish async vs sync functions: https://stackoverflow.com/questions/38508420/how-to-know-if-a-function-is-async, async operations can handle sync function returns
+// sync func
+// async func
+
+const func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'function') throw new Error('Value is not a function.');
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/index.js":
+/*!*********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/index.js ***!
+  \*********************************************************/
+/*! exports provided: object, populatedObject, array, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["populatedObject"]; });
+
+/* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"]; });
+
+/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/constructor.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_3__["func"]; });
+
+/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["number"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNaNNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["integer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeInteger"]; });
+
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["string"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["trimmedString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["visibleString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["populatedString"]; });
+
+/* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./symbol.js */ "./source/shared/utility/validation/rules/symbol.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+//G Include anything here that is possible to implement incorrectly, even for basic types.
+//R Rules for basic types are also useful for custom casting, errors, and consistency.
+
+
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/key.js":
+/*!*******************************************************!*\
+  !*** ./source/shared/utility/validation/rules/key.js ***!
+  \*******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+
+
+
+const keyify = function (value) {
+  // Create a null object with only one property.
+  const nullObject = Object.create(null);
+  nullObject[value] = true; // Find that only property's key.
+
+  const [keyifiedValue] = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(nullObject, {
+    own: true,
+    named: true,
+    symbol: true,
+    enumerable: true,
+    nonEnumerable: false,
+    inherited: false
+  });
+  return keyifiedValue;
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  // Keys that won't be cast / have already been cast as a result of being used as a property key.
+  //! Does not include numbers, those get cast to strings.
+  validator(value) {
+    const keyifiedValue = keyify(value);
+
+    if (value !== keyifiedValue) {
+      throw 'Value is not keyified.';
+    }
+  },
+
+  caster(reference) {
+    reference.value = keyify(reference.value);
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/numbers.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/numbers.js ***!
+  \***********************************************************/
+/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "number", function() { return number; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return nonNaNNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return integer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return nonNegativeNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return nonPositiveNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return positiveNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return negativeNumber; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return nonNegativeInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return nonPositiveInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+
+const number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'number') {
+      throw new Error('Value is not a number.');
+    }
+  },
+
+  caster(reference) {
+    // Parse strings for floats.
+    const n = Number.parseFloat(reference.value); // But do not cast non-numbers to NaN.
+
+    if (!Number.isNaN(n)) reference.value = n;
+  }
+
+});
+const nonNaNNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+
+    if (Number.isNaN(value)) {
+      throw new Error('Number is NaN.');
+    }
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+const integer = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (!Number.isInteger(value)) throw new Error('Number is not an integet.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference);
+    reference.value = Number.parseInt(reference.value);
+  }
+
+}); //! Defining 0 as neither positive or negative.
+//L Don't worry about NaN: https://stackoverflow.com/a/26982925 (//!but be careful about negating comparisons)
+
+const nonNegativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value < 0) throw new Error('Number is negative.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+const nonPositiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value > 0) throw new Error('Number is positive.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+const positiveNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value <= 0) throw new Error('Number is not positive.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+const negativeNumber = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    number.validate(value);
+    if (value >= 0) throw new Error('Number is not negative.');
+  },
+
+  caster(reference) {
+    number.validateCast(reference); // Cannot cast any further than a number.
+  }
+
+});
+const nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    nonNegativeNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    nonNegativeNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+const nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    nonPositiveNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    nonPositiveNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+const positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    positiveNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    positiveNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    negativeNumber.validate(value);
+    integer.validate(value);
+  },
+
+  caster(reference) {
+    negativeNumber.validateCast(reference.value);
+    integer.validateCast(reference.value);
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/objects/index.js":
+/*!*****************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/objects/index.js ***!
+  \*****************************************************************/
+/*! exports provided: object, populatedObject */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _object_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./populated-object.js */ "./source/shared/utility/validation/rules/objects/populated-object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/objects/object.js":
+/*!******************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/objects/object.js ***!
+  \******************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  //L https://stackoverflow.com/a/22482737
+  validator(value) {
+    if (value === null || !(typeof value === 'object' || typeof value === 'function')) {
+      throw new Error('Value is not an object.');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/objects/populated-object.js":
+/*!****************************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/objects/populated-object.js ***!
+  \****************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    _object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
+
+    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(value, {
+      own: true,
+      enumerable: true,
+      nonEnumerable: true,
+      named: true,
+      symbol: true,
+      inherited: false
+    }).length === 0) {
+      throw new Error('Object is not populated.');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/strings.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/strings.js ***!
+  \***********************************************************/
+/*! exports provided: string, trimmedString, visibleString, populatedString */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return visibleString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return populatedString; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+
+const string = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'string') {
+      throw new Error('Value is not a string.');
+    }
+  },
+
+  caster(reference) {
+    // Stringify if able to.
+    if (typeof reference.value === 'object') {
+      try {
+        reference.value = JSON.stringify(reference.value);
+      } catch (e) {}
+    }
+
+    reference.value = String(reference.value);
+  }
+
+});
+const trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value); //TODO Create a thorough test for this.
+    //TODO See https://en.wikipedia.org/wiki/Whitespace_character
+    //! If this gets changed, ensure the caster .trim() function is updated too.
+    //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
+
+    if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) {
+      throw new Error('String has leading and/or trailing whitespace.');
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference);
+    reference.value = reference.value.trim();
+  }
+
+});
+const visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value);
+
+    if (trimmedString.validateCast(value) === '') {
+      throw 'String is not visible.';
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference); // Cannot cast any further than a string.
+  }
+
+});
+const populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value);
+
+    if (value === '') {
+      throw 'String is not populated.';
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference); // Cannot cast any further than a string.
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/symbol.js":
+/*!**********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/symbol.js ***!
+  \**********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    //L If transpiling to ES5, an additional check is required: https://stackoverflow.com/questions/46479169/check-if-value-is-a-symbol-in-javascript
+    if (typeof value !== 'symbol') {
+      throw new Error('Value is not a symbol.');
+    }
+  },
+
+  caster(reference) {
+    // Non-symbol values cast as the stringified description of a new symbol.
+    if (!this.validate(reference.value)) {
+      // Symbol(x) cannot convert symbols to strings, but String(x) in string.validateCast() can.
+      _strings_js__WEBPACK_IMPORTED_MODULE_1__["string"].validateCast(reference.value);
+      reference.value = Symbol(reference.value);
+    }
+  }
+
+}));
 
 /***/ }),
 

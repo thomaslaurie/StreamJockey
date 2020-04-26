@@ -47,7 +47,7 @@ import {
 	any,
 	repeat,
 	rules,
-} from './utility/index.js';
+} from '../../shared/utility/index.js';
 import {
 	runHTMLScript
 } from './browser-utility/index.js';

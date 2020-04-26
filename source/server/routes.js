@@ -73,7 +73,7 @@ import send from 'koa-send'; //L https://github.com/koajs/send
 import {
 	decodeList,
 	rules,
-} from '../public/js/utility/index.js';
+} from '../shared/utility/index.js';
 import sourcePath from '../node-utility/source-path.cjs';
 import { clientIndexFileName } from '../config/project-paths.js';
 import sj from './global-server.js';

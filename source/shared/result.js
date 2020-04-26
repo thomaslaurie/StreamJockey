@@ -6,7 +6,7 @@ import {
 	dynamicClass,
 	define,
 	Rule,
-} from '../public/js/utility/index.js';
+} from '../shared/utility/index.js';
 
 const statusRule = new Rule({
 	validator(value) {

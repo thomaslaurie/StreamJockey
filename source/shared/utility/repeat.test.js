@@ -72,7 +72,7 @@ test('function runs for specified count', async (t) => {
 		onCountout() {},
 	});
 });
-test('function runs for specified time', async (t) => {
+test('function runs for specified time', async (t) => { //! Flakey
 	const timeout = 500;
 
 	let startTime1 = null;
@@ -107,7 +107,7 @@ test('function runs for specified time', async (t) => {
 	}, {
 		timeout,
 		onTimeout(lastTime) {
-			t.assert(lastTime - startTime3 <= timeout);
+			t.assert(lastTime - startTime3 <= timeout); //! Flakey
 		},
 	});
 });

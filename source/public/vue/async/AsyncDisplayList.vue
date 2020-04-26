@@ -2,7 +2,7 @@
 	import {
 		dynamicSort,
 		any,
-	} from '../../js/utility/index.js';
+	} from '../../../shared/utility/index.js';
     import AsyncDisplay from './AsyncDisplay.vue';
 
     export default {

@@ -2,7 +2,7 @@ import {
 	dynamicClass,
 	define,
 	rules,
-} from '../public/js/utility/index.js';
+} from '../shared/utility/index.js';
 
 export default dynamicClass.create('CustomError', {
 	extends: Error,

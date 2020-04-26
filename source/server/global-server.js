@@ -104,7 +104,7 @@ import {
 	stableSort,
 	asyncMap,
 	any,
-} from '../public/js/utility/index.js';
+} from '../shared/utility/index.js';
 import {
 	fetch,
 } from '../public/js/derived-utility/index.js';

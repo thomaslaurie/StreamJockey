@@ -10,7 +10,7 @@ import http from 'http'; //TODO consider changing to the https module?
 import fclone from 'fclone';
 
 // INTERNAL
-import deepCompare, {compareUnorderedArrays} from '../public/js/utility/object/deep-compare.js';
+import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 //! depends on the common global.js not the global-server.js because global-server.js uses this module
 import sj from '../public/js/global.js';
 

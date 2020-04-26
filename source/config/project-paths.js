@@ -2,5 +2,5 @@
 //G Require sourcePath if needed.
 
 export const clientIndexFileName  = 'index.html';
-export const defaultTestGlob = 'public/js/utility';
+export const defaultTestGlob = 'shared/utility';
 export const testSuffix = '.test.js';

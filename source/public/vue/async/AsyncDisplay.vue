@@ -8,7 +8,7 @@
 		Deferred,
 		one,
 		any,
-	} from '../../js/utility/index.js';
+	} from '../../../shared/utility/index.js';
 
 	import AsyncSwitch from './AsyncSwitch.vue';
 	

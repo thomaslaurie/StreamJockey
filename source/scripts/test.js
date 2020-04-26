@@ -1,7 +1,7 @@
 import getModule  from '../node-utility/get-module.js';
 import asyncSpawn from '../node-utility/async-spawn.js';
 import sourcePath from '../node-utility/source-path.cjs';
-import escapeRegExp from '../public/js/utility/string/escape-reg-exp.js';
+import escapeRegExp from '../shared/utility/string/escape-reg-exp.js';
 import {defaultTestGlob, testSuffix} from '../config/project-paths.js';
 
 const isFilePath = new RegExp(`${escapeRegExp(testSuffix)}$`);

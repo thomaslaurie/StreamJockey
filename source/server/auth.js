@@ -45,7 +45,7 @@ import {
 	one,
 	keyCode,
 	rules,
-} from '../public/js/utility/index.js';
+} from '../shared/utility/index.js';
 import sj from './global-server.js';
 
 

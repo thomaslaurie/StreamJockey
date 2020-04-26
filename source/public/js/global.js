@@ -97,7 +97,7 @@ import {
 	any,
 	pick,
 	asyncMap,
-} from './utility/index.js';
+} from '../../shared/utility/index.js';
 import {
 	fetch,
 } from './derived-utility/index.js';

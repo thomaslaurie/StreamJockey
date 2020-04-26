@@ -2,7 +2,7 @@
 	import {
 		one,
 		keyCode,
-	} from '../../js/utility/index.js';
+	} from '../../../shared/utility/index.js';
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 
 	//C for use of sj inside validator function

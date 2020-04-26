@@ -1,7 +1,7 @@
 <script>
 	import {
 		any,
-	} from '../../js/utility/index.js';
+	} from '../../../shared/utility/index.js';
 	
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
