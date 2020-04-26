@@ -1,15 +1,7 @@
-//TODO test layers
-//TODO test first argument layer / name
-//TODO test that augment returns the class
-//TODO test that a shorthand part function may return undefined, //TODO figure out what to do with non-undefined, non-objects
-//TODO it seems that there is no test for the constructor calls of these classes (ie. errors thrown in the constructor weren't noticed until an implementation happened)
-//TODO test that intercept arguments pass through (they previously were getting wiped out by the default intercept function)
-
 import test from 'ava';
 import dynamicClass from './dynamic-class.js';
 import deepCompare  from './object/deep-compare.js';
 import boolCatch    from './bool-catch.js';
-import {getKeysOf}  from './object/keys-of.js';
 
 // LINKS
 const ClassA = class ClassA {
@@ -141,10 +133,10 @@ test('child.prototype.constructor configurable', (t) => {
 
 // SUPER INTERACTION
 test('prototype duper works', (t) => {
-	t.assert((new DynamicB()).getSuperTest() === (new ClassBX()).getSuperTest());
+	t.is((new DynamicB()).getSuperTest(), (new ClassBX()).getSuperTest());
 });
 test('static duper works', (t) => {
-	t.assert(DynamicB.getSuperTest() === ClassBX.getSuperTest());
+	t.is(DynamicB.getSuperTest(), ClassBX.getSuperTest());
 });
 
 // DIRECT & SHORTHAND ASSIGNMENT
@@ -376,22 +368,22 @@ const IAS = Object.getOwnPropertyDescriptor((new DynamicD()), 'instanceAccessorS
 
 // ASSIGNMENT
 test('instance value assignment', (t) => {
-	t.assert((new DynamicD()).instanceValue         === (new ClassD()).instanceValue);
+	t.is((new DynamicD()).instanceValue, (new ClassD()).instanceValue);
 });
 test('instance value short assignment', (t) => {
-	t.assert((new DynamicD()).instanceValueShort    === (new ClassD()).instanceValue);
+	t.is((new DynamicD()).instanceValueShort, (new ClassD()).instanceValue);
 });
 test('instance func assignment', (t) => {
-	t.assert((new DynamicD()).instanceFunc          === (new ClassD()).instanceFunc);
+	t.is((new DynamicD()).instanceFunc, (new ClassD()).instanceFunc);
 });
 test('instance func short assignment', (t) => {
-	t.assert((new DynamicD()).instanceFuncShort     === (new ClassD()).instanceFunc);
+	t.is((new DynamicD()).instanceFuncShort, (new ClassD()).instanceFunc);
 });
 test('instance accessor assignment', (t) => {
-	t.assert((new DynamicD()).instanceAccessor      === (new ClassD()).instanceAccessor);
+	t.is((new DynamicD()).instanceAccessor, (new ClassD()).instanceAccessor);
 });
 test('instance accessor short assignment', (t) => {
-	t.assert((new DynamicD()).instanceAccessorShort === (new ClassD()).instanceAccessor);
+	t.is((new DynamicD()).instanceAccessorShort, (new ClassD()).instanceAccessor);
 });
 
 // DEFAULT DESCRIPTORS
@@ -623,14 +615,16 @@ test('class is not directly callable', (t) => {
 // INTERCEPT THIS
 const InterceptThis = dynamicClass.create({
 	intercept() {
-		return [this];
+		return {
+			instanceArguments: [this],
+		};
 	},
 	instance(that) {
 		return {that};
 	},
 });
 test('no intercept this', (t) => {
-	t.assert((new InterceptThis()).that !== InterceptThis);
+	t.not((new InterceptThis()).that, InterceptThis);
 });
 
 // NAME
@@ -642,4 +636,222 @@ test('dynamic name', (t) => {
 });
 test('empty name', (t) => {
 	t.assert(EmptyNamed.name === '');
+});
+test('first argument is layer', (t) => {
+	const value = Symbol();
+	const Class = dynamicClass.create({
+		instance: () => ({
+			value,
+		}),
+	});
+	const instance = new Class();
+	t.is(instance.value, value);
+	t.is(instance.constructor.name, '');
+});
+
+// AUGMENT
+test('augment returns class', (t) => {
+	const Class = dynamicClass.create();
+	const Augmented = dynamicClass.augment(Class);
+	t.is(Augmented, Class);
+});
+
+// INTERCEPT
+test('intercept default super arguments', (t) => {
+	const SuperClass = class {
+		constructor (foo, bar) {
+			this.foo = foo;
+			this.bar = bar;
+		}
+	};
+
+	const Class = dynamicClass.create({
+		extends: SuperClass,
+	});
+
+	const instance = new Class('foo', 'bar');
+
+	t.is(instance.foo, 'foo');
+	t.is(instance.bar, 'bar');
+});
+test('intercept modified super arguments', (t) => {
+	const SuperClass = class {
+		constructor (foo, bar) {
+			this.foo = foo;
+			this.bar = bar;
+		}
+	};
+
+	const Class = dynamicClass.create({
+		extends: SuperClass,
+		intercept: () => ({
+			superArguments: () => ['baz', 'baz'],
+		}),
+	});
+
+	const instance = new Class('foo', 'bar');
+
+	t.is(instance.foo, 'baz');
+	t.is(instance.bar, 'baz');
+});
+test('intercept modified super arguments shorthand', (t) => {
+	const SuperClass = class {
+		constructor (foo, bar) {
+			this.foo = foo;
+			this.bar = bar;
+		}
+	};
+
+	const Class = dynamicClass.create({
+		extends: SuperClass,
+		intercept: () => ({
+			superArguments: ['baz', 'baz'],
+		}),
+	});
+
+	const instance = new Class('foo', 'bar');
+
+	t.is(instance.foo, 'baz');
+	t.is(instance.bar, 'baz');
+});
+test('higher layer default arguments', (t) => {
+	t.plan(2);
+
+	const Class = dynamicClass.create({
+		intercept(foo, bar) {
+			t.is(foo, 'foo');
+			t.is(bar, 'bar');
+		},
+	}, {
+		intercept() {
+			return {};
+		},
+	});
+
+	new Class('foo', 'bar');
+});
+test('higher layer modified arguments', (t) => {
+	t.plan(2);
+
+	const Class = dynamicClass.create({
+		intercept(foo, bar) {
+			t.is(foo, 'baz');
+			t.is(bar, 'baz');
+		},
+	}, {
+		intercept() {
+			return {
+				nextArguments: () => ['baz', 'baz'],
+			};
+		},
+	});
+
+	new Class('foo', 'bar');
+});
+test('higher layer modified arguments shorthand', (t) => {
+	t.plan(2);
+
+	const Class = dynamicClass.create({
+		intercept(foo, bar) {
+			t.is(foo, 'baz');
+			t.is(bar, 'baz');
+		},
+	}, {
+		intercept() {
+			return {
+				nextArguments: ['baz', 'baz'],
+			};
+		},
+	});
+
+	new Class('foo', 'bar');
+});
+test('instance default arguments', (t) => {
+	const Class = dynamicClass.create({
+		instance: (foo, bar) => ({
+			foo,
+			bar,
+		}),
+	});
+
+	const instance = new Class('foo', 'bar');
+
+	t.is(instance.foo, 'foo');
+	t.is(instance.bar, 'bar');
+});
+test('instance modified arguments', (t) => {
+	const Class = dynamicClass.create({
+		intercept: () => ({
+			instanceArguments: () => ['baz', 'baz'],
+		}),
+		instance: (foo, bar) => ({
+			foo,
+			bar,
+		}),
+	});
+
+	const instance = new Class('foo', 'bar');
+
+	t.is(instance.foo, 'baz');
+	t.is(instance.bar, 'baz');
+});
+test('instance modified arguments shorthand', (t) => {
+	const Class = dynamicClass.create({
+		intercept: () => ({
+			instanceArguments: ['baz', 'baz'],
+		}),
+		instance: (foo, bar) => ({
+			foo,
+			bar,
+		}),
+	});
+
+	const instance = new Class('foo', 'bar');
+
+	t.is(instance.foo, 'baz');
+	t.is(instance.bar, 'baz');
+});
+
+test('extra intercept options are thrown', (t) => {
+	t.throws(() => {
+		const Class = dynamicClass.create({
+			intercept: () => ({
+				notAValidOption: 'foo',
+			}),
+		});
+
+		new Class();
+	});
+});
+
+// LAYERS
+test('right number of layers are iterated through', (t) => {
+	let interceptCount = 0;
+	let instanceCount  = 0;
+	let prototypeCount = 0;
+	let staticCount    = 0;
+
+	const Class = dynamicClass.create({
+		intercept() { interceptCount++; },
+		instance()  { instanceCount++;  },
+		prototype() { prototypeCount++; },
+		static()    { staticCount++;    },
+	}, {
+		intercept() { interceptCount++; },
+		instance()  { instanceCount++;  },
+		prototype() { prototypeCount++; },
+		static()    { staticCount++;    },
+	}, {
+		intercept() { interceptCount++; },
+		instance()  { instanceCount++;  },
+		prototype() { prototypeCount++; },
+		static()    { staticCount++;    },
+	});
+
+	new Class();
+
+	t.is(interceptCount, 3);
+	t.is(instanceCount,  3);
+	t.is(prototypeCount, 3);
+	t.is(staticCount,    3);
 });

@@ -123,5 +123,5 @@ export function forOwnKeysOf(object, callback) {
 	return forKeysOf(object, {...own, callback});
 };
 export function getOwnKeysOf(object, filter) {
-	return forKeysOf(object, {...own, filter});
+	return getKeysOf(object, {...own, filter});
 };

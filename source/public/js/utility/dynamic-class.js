@@ -79,7 +79,7 @@
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
 
 import define from './object/define.js';
-import {forOwnKeysOf} from './object/keys-of.js';
+import {forOwnKeysOf, getOwnKeysOf} from './object/keys-of.js';
 import Rule from './validation/rule.js';
 import {rules} from './validation/index.js';
 import {Interface, SymbolInterface} from './validation/interface.js';
@@ -142,11 +142,10 @@ define.constant(customRules, {
 				const {
 					extends: e,
 	
-					//G Any changes to 'this' inside intercept() cannot impact the true instance.
-					intercept = (...args) => ([...args]),
-					instance  = () => ({}),
-					prototype = () => ({}),
-					static: s = () => ({}),
+					intercept = () => {},
+					instance  = () => {},
+					prototype = () => {},
+					static: s = () => {},
 	
 					//R Passing an existing class is not supported because it won't aid augmentation and static properties on the class would interfere with the part defaults.
 					//R Object literals for the prototype and static options are not supported because it would allow mutation of the part functions. It's also more consistent to require all parts to be functions.
@@ -265,7 +264,74 @@ function getParent(layers) {
 	}
 	return undefined;
 };
+function doIntercept(args, layers) {
+	// Store:
+	// Current intercept arguments for intercept chaining.
+	let nextArgs = args;
+	// All super arguments getters for later iteration. They will be evaluated in the super chain.
+	const getSuperArgsList = [];
+	// All instance arguments for later iteration.
+	const instanceArgsList = [];
 
+	// Loop backwards over intercept functions.
+	for (let i = layers.length - 1; i >= 0; i--) {
+		const currentArguments = nextArgs;
+
+		// Call with null as this to throw on any object-like operations on this.
+		const result = layers[i].intercept.call(null, ...currentArguments) ?? {};
+		let {
+			//R All functions will be passed their default return. That way defaults can be easily extended, and all three options are more similar.
+			nextArguments     = (...args) => args,
+			superArguments    = (...args) => args,
+			instanceArguments = (...args) => args,
+			...rest
+		} = result;
+
+		// Validate return object.
+		const restKeys = getOwnKeysOf(rest);
+		if (restKeys.length !== 0) {
+			throw new Error(`Intercept function has extra return properties: [${restKeys.join(', ')}], this is probably a mistake.`);
+		}
+
+		// Transform array shorthands into functions.
+		if (!rules.func.test(nextArguments)) {
+			const shorthand = nextArguments;
+			nextArguments = () => shorthand;
+		}
+		if (!rules.func.test(superArguments))    {
+			const shorthand = superArguments;
+			superArguments = () => shorthand;
+		}
+		if (!rules.func.test(instanceArguments)) {
+			const shorthand = instanceArguments;
+			instanceArguments = () => shorthand;
+		}
+
+		// Validate
+		rules.func.validate(nextArguments);
+		rules.func.validate(superArguments);
+		rules.func.validate(instanceArguments);
+
+		// Store
+		nextArgs = rules.array.validate(nextArguments(...currentArguments))[0];
+		getSuperArgsList[i] = superArguments;
+		instanceArgsList[i] = rules.array.validate(instanceArguments(...currentArguments))[0];
+	}
+
+	// Return for use by super-chain and instance function iteration.
+	return {
+		nextArgs,
+		getSuperArgsList,
+		instanceArgsList,
+	};
+};
+function doInstance(layers, instanceArgsList) {
+	// Loop forwards over instance functions.
+	for (let i = 0; i < layers.length; i++) {
+		// Pass the instance inputs from the respective intercept function.
+		layers[i].instance.call(this, ...instanceArgsList[i]);
+	}
+};
 
 // INTERFACE
 const dynamicClass = new SymbolInterface({
@@ -296,21 +362,110 @@ define.constant(dynamicClass, {
 				constructor(...args) {
 					const layers = Class[dynamicClass.keys.layers];
 
+					/* //R Thought process.
+						Main issue is that the arguments used by the instance function may be different than the arguments passed to super.
+						Would have to create a 'filter' function for super.
+						The problem with that is its interaction with the layer system isn't clear.
+						At the same time, I can't think of a reason why multiple intercept layers would want to modify the interceptedArgs output (other than to change the incoming signature).
+						This problem seems to be created by having '3' phases, '2' in/out phases works but 3 doesn't.
+						Maybe just only use the signature of the top-most layer? But then what happens if a lower layer changes the subclass?
+						Actually I think the right solution is to use the filter functions in forward order.
+						The original implementation is actually incorrect: a lower layer could have a different sub-class with a different signature, of which the higher layers know nothing about and would pass the wrong super signature. - It would have made more sense to have the intercept going in forward order too. (But then the signature wouldn't be able to be changed).
+						Basically, both the input signature and the parent class need to be augment-able, which requires the lowest layer to be the respective first and last thing to touch these parts. Which requires an in/out system.
+
+						There doesn't need to be an 'in' step for the instance parts, because subclasses should follow the substitution principle, and anything done by a sub-class should be compatible with the super class.
+						Also higher layers should not be concerned with creating incompatibilities with lower layers, because the lower layers should have 'knowledge' of the higher layers.
+
+
+						Ok, so the intercept phase needs an input/output layer ordering. But every other phase (instance, prototype, static) only needs an output layer ordering due because sub-classes and layers should obey the substitution principle: anything that happened to the class upstream (due to inserted subclassing, layer logic, etc.) should be fully compatible with the downstream, higher layers.
+						! The reason the input phase is different, is because class signatures do not have to obey this substitution principle. Which means that lower layers have to accommodate the assumptions (input signature, output signature) of higher layers.
+
+						TODO trying to find a way to make this more elegant
+
+						Split everything into single files so that dependencies are clear.
+						Rewrite with new syntax.
+
+						Start with parts with 0 dependencies, then work up. (Doing it the other way around didn't work.)
+
+						Get rid of wrapper objects, they're too cumbersome and cause too many dependencies.
+
+
+
+						// // OLD
+						// * dont replace anything past sj.Success / sj.Error, these are heavily ingraned into the client-server communication system and would be hard to replace because of sj.Base and sj.rebuild. Just focus on completely extracting sections, and then rewrite the core when its the only thing left. 
+
+					
+
+					
+						3 things to pass:
+						input arguments for next layer
+							input arguments for the next layer default to the layers own input arguments, but could be changed if for example the lower layer modifies the class' signature
+						arguments to super
+							arguments to super default to the input arguments for the next layer (if at the top), 
+						scope variables to instance function
+							scope variables default to the input arguments for the next layer
+							scope variables should only be available within the layer
+							the use case for this is passing one modified value to the superclass, but keeping the original argument and passing it to the instance initializer
+
+						arguments to super only applies to highest layer,
+						extends only applies to the lowest layer (with conditions)
+						one problem: if a lower layer changes the extends class, the highest class has no knowledge, in this case the signatures may not match (unless the signatures follow the substitution principle, ie using a superclass signature for a subclass.... no actually, this is the reverse)
+							maybe, the super arguments could be a function, that works in the forward direction, they take the arguments to be passed to super (from a possible higher layer, or self), but they also have a closure to the current intercept function, (Ie is defined in the return), that way the super arguments can be passed back down and modified according to the extends class appropriately
+								actually, what if the instance function is defined in the return, that would create the closure, but it would be less aligned
+
+						outputArguments
+						superArguments
+						scopeVariables / closureVariables / instance function with inherent closure
+					
+
+						CURRENT PLAN
+
+						INTERCEPT FUNCTION
+							has 'input arguments'
+							returns an object with:
+								'output arguments' array
+									which are passed to a higher layer
+										so that different layer signatures can be supported
+										the lower layers must accommodate (or have knowledge of) higher layers
+									is basically the return of the intercept function, but is put alongside other functions because they need closures
+									if no higher layer exists, these get passed to the same layer's 'super arguments'
+									defaults to the 'input arguments'
+								'super arguments' function
+									which takes the output of higher layer's 'super arguments' function
+									and passes its output to lower layer's 'super arguments' function
+									if no lower layer exists, the output is passed to super
+									if no higher layer exists, it gets passed the 'output arguments'
+									defaults to returning what ever it was passed
+								'instance arguments' array
+									which are passed to the same layer's instance function
+										used as 'scope' variables, to store variables that aren't used by higher layers or super, but the instance
+									defaults to the 'input arguments'
+					*/
+					
 					// INTERCEPT
-					let interceptedArgs = args;
-					// Iterate over layer.intercept in reverse order.
-					for (let i = layers.length - 1; i > 0; i--) {
-						// Call with null as this to throw on any object-like operations on this.
-						// Update interceptedArgs with each call so they can be fed into each other.
-						interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
+					const {
+						nextArgs, 
+						getSuperArgsList,
+						instanceArgsList,
+					} = doIntercept.call(null, args, layers);
+
+					// SUPER
+					// Once all layers have intercepted, pass the nextArguments (from the highest layer) to its getSuperArguments function.
+					let superArguments = nextArgs;
+
+					// Loop forwards over getSuperArguments functions.
+					for (let i = 0; i < layers.length; i++) {
+						const currentSuperArguments = superArguments;
+						// Set the next superArguments
+						superArguments = rules.array.validate(
+							getSuperArgsList[i](...currentSuperArguments),
+						)[0];
 					}
 
-					super(...interceptedArgs);
+					super(...superArguments);
 
 					// INSTANCE
-					for (const layer of layers) {
-						layer.instance.call(this, ...interceptedArgs);
-					}
+					doInstance.call(this, layers, instanceArgsList);
 				}
 			}}[name];
 		} else {
@@ -319,18 +474,10 @@ define.constant(dynamicClass, {
 					const layers = Class[dynamicClass.keys.layers];
 
 					// INTERCEPT
-					let interceptedArgs = args;
-					// Iterate over layer.intercept in reverse order.
-					for (let i = layers.length - 1; i > 0; i--) {
-						// Call with null as this to throw on any object-like operations on this.
-						// Update interceptedArgs with each call so they can be fed into each other.
-						interceptedArgs = layers[i].intercept.call(null, ...interceptedArgs);
-					}
+					const {instanceArgsList} = doIntercept.call(null, args, layers);
 
 					// INSTANCE
-					for (const layer of layers) {
-						layer.instance.call(this, ...interceptedArgs);
-					}
+					doInstance.call(this, layers, instanceArgsList);
 				}
 			}}[name];
 		}
