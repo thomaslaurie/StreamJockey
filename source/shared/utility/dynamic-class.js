@@ -476,7 +476,7 @@ define.constant(dynamicClass, {
 
 		// STORE PARTS
 		//R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
-		define.hiddenVariable(Class, {
+		define.hiddenProperty(Class, {
 			[dynamicClass.keys.layers]: layers,
 		});
 

@@ -17,7 +17,7 @@ test('cannot redefine constant', (t) => {
 });
 
 // VARIABLE
-define.variable(object, {v: 'v'});
+define.property(object, {v: 'v'});
 test('can set variable', (t) => {
 	t.notThrows(() => {
 		object.v = 'not v';
@@ -61,11 +61,54 @@ test('accessor has setter', (t) => {
 });
 
 // MULTIPLES
-define.variable(object, {
+define.property(object, {
 	one: 'one',
 	two: 'two',
 	three: 'three',
 });
 test('handles multiples', (t) => {
 	t.assert('one' in object && 'two' in object && 'three' in object);
+});
+
+test('validated variable throws on invalid', (t) => {
+	const obj = {};
+	define.validatedVariable(obj, {
+		foo: {
+			value: 'foo',
+			validator: (value) => {
+				if (typeof value !== 'string') throw new Error(); 
+			},
+		},
+	});
+	t.throws(() => {
+		obj.foo = 4;
+	});
+});
+test('validated variable succeeds on valid', (t) => {
+	const obj = {};
+	define.validatedVariable(obj, {
+		foo: {
+			value: 'foo',
+			validator: (value) => typeof value === 'string',
+		},
+	});
+	t.notThrows(() => {
+		obj.foo = '4';
+	});
+});
+test('validated variable is defined, not set', (t) => {
+	t.plan(1);
+	const obj = new Proxy({}, {
+		set() {
+			t.pass();
+			return true;
+		},
+	});
+	define.validatedVariable(obj, {
+		foo: {
+			value: 'foo',
+			validator: (value) => typeof value === 'string',
+		},
+	});
+	obj.foo = 'some string';
 });

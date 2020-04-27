@@ -1,8 +1,11 @@
+/* //! Duplicated functionality avoid circular dependencies:
+	keys-of.js,
+	../validation/rules/objects/object.js,
+	../validation/rules/functions.js,
+*/
+
 const ownKeys = function (object) {
-	/* //R//! Not using getKeysOf() here to avoid a circular dependency.
-		define.js > Rule.js > rules.js > keys-of.js > define.js
-		Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
-	*/
+	//! Duplicated from keys-of.js
 	return [
 		...Object.getOwnPropertyNames(object),
 		...Object.getOwnPropertySymbols(object),
@@ -23,6 +26,7 @@ const ownKeys = function (object) {
 */
 
 export default {
+	// Guaranteed to be constant.
 	constant(target, properties) {
 		for (const key of ownKeys(properties)) {
 			Object.defineProperty(target, key, {
@@ -34,7 +38,8 @@ export default {
 		}
 		return target;
 	},
-	variable(target, properties) {
+	// Same as object property assignment. //! Can be set to {writable: false}
+	property(target, properties) {
 		for (const key of ownKeys(properties)) {
 			Object.defineProperty(target, key, {
 				value: properties[key],
@@ -45,7 +50,20 @@ export default {
 		}
 		return target;
 	},
+	// Guaranteed to be variable. //! Has an accessor-descriptor.
+	variable(target, properties) { 
+		for (const key of ownKeys(properties)) {
+			let closureValue = properties[key];
+			Object.defineProperty(target, key, {
+				get() { return closureValue; },
+				set(value) { closureValue = value; },
+				enumerable:   true,
+				configurable: false,
+			});
+		}
+	},
 
+	// Non-enumerable versions.
 	hiddenConstant(target, properties) {
 		for (const key of ownKeys(properties)) {
 			Object.defineProperty(target, key, {
@@ -57,7 +75,7 @@ export default {
 		}
 		return target;
 	},
-	hiddenVariable(target, properties) {
+	hiddenProperty(target, properties) {
 		for (const key of ownKeys(properties)) {
 			Object.defineProperty(target, key, {
 				value: properties[key],
@@ -67,6 +85,17 @@ export default {
 			});
 		}
 		return target;
+	},
+	hiddenVariable(target, properties) {
+		for (const key of ownKeys(properties)) {
+			let closureValue = properties[key];
+			Object.defineProperty(target, key, {
+				get() { return closureValue; },
+				set(value) { closureValue = value; },
+				enumerable:   false,
+				configurable: false,
+			});
+		}
 	},
 
 	getter(target, properties) {
@@ -122,5 +151,41 @@ export default {
 			Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(properties, key));
 		}
 		return target;
+	},
+
+	validatedVariable(target, properties) {
+		//? It doesn't seem possible to modify this variable's descriptor to writable: false, because its not a data property. Wouldn't this make it even more variable-like than a variable it self? Maybe consider this approach for a 'guaranteed variable'? Then consider renaming define.variable to define.property.
+
+		for (const key of ownKeys(properties)) {
+			const config = properties[key];
+			//! Duplicated from ../validation/rules/objects/object.js
+			if (config === null || !(typeof config === 'object' || typeof config === 'function')) {
+				throw new Error('Config is not an object.');
+			}
+			const validator = config.validator;
+			//! Duplicated from ../validation/rules/functions.js
+			if (typeof validator !== 'function') {
+				throw new Error('Validator is not a function.');
+			}
+
+			// Create a closure value for the accessor.
+			let closureValue = config.value;
+
+			// Validate the initial value.
+			//R Without the setter because these functions use 'define' semantics.
+			validator(closureValue);
+
+			Object.defineProperty(target, key, {
+				get() {
+					return closureValue;
+				},
+				set(value) {
+					validator(value);
+					closureValue = value;
+				},
+				enumerable: true,
+				configurable: false,
+			});
+		}
 	},
 };

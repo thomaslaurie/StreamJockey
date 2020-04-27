@@ -5,6 +5,8 @@
 
 //TODO rename to .validate(), .test(), .cast(), .testCast()
 
+//TODO consider duplicating define here, so that define can use rules
+
 import define from '../object/define.js';
 import {formReferences, extractValues} from '../reference.js';
 import boolCatch from '../bool-catch.js';
