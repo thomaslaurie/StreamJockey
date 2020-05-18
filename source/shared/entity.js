@@ -1,4 +1,6 @@
-sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
+import Base from './base.js';
+
+sj.Entity = Base.makeClass('Entity', sj.Success, {
 	constructorParts: parent => ({
 		afterInitialize(accessory) {
 			const that = this; //? is this necessary?

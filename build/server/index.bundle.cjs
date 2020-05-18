@@ -229,8 +229,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _shared_base_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/base.js */ "./source/shared/base.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -319,6 +320,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -347,7 +349,7 @@ sj.test = async function test(tests, origin) {
 }; // CONSTANTS
 
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_4__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -423,7 +425,7 @@ sj.isType = function (input, type) {
     let tempInput = input;
     let tempType = type;
 
-    if ((input instanceof sj.Base || typeof input.constructorName === 'string' && (() => {
+    if ((input instanceof _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"] || typeof input.constructorName === 'string' && (() => {
       //C input or input.constructorName is an instance of a constructible
       let Target = sj[input.constructorName];
 
@@ -481,41 +483,7 @@ sj.isType = function (input, type) {
 }; // ERROR
 
 
-sj.catchUnexpected = function (input) {
-  //! this is only used in propagate
-  //C determines type of input, creates, announces, and returns a proper sj.Error object
-  //C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
-  var error = new sj.Error({
-    log: false,
-    origin: 'sj.catchUnexpected()',
-    message: 'an unexpected error ocurred',
-    content: input
-  });
-
-  if (sj.isType(input, null)) {
-    error.reason = 'unexpected null';
-  } else if (sj.isType(input, Object)) {
-    if (input instanceof Error) {
-      //C this is going to catch the majority of unexpected inputs
-      //! JSON.stringify() does not work on native Error objects as they have no enumerable properties therefore these cannot be passed between client & server,so when catching a native Error object properly convert it to a string with Error.toString() then save that in reason
-      //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
-      error.reason = input.toString(); //C replace trace with actual trace (which has clickable URIs)
-
-      error.trace = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(input.stack, 'file:///', '');
-    } else if (sj.isType(input, sj.Base)) {
-      error.reason = `unexpected ${input.constructorName}`;
-    } else {
-      error.reason = 'unexpected object';
-    }
-  } else {
-    error.reason = `unexpected ${typeof input}`;
-  }
-
-  error.announce();
-  return error;
-};
-
-sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"];
+sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"];
 
 sj.andResolve = function (rejected) {
   //C resolves/returns any errors thrown by sj.propagate()
@@ -567,376 +535,10 @@ sj.Subscriptions = function () {
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-
-/* //R Thought Process
-	//R Initially only static methods and variables I decided to define outside the class because static variables requires the use of a getter, which felt hacky.
-	//R But when I needed to augment the constructor of a class I ran into problems, so I decided to define classes like this - with an anonymous function being called on a minimal class. It makes the location of instance methods, instance variables, static methods, and static variables more clear. It also makes augmenting (not extending) a class easier (specifically the defaults), this is important for divergent client and server classes.
-	//R finally I found that I was repeating some parts of this anonymous function like const parent = Object.getPrototypeOf(this); and return this;, so I decided to make a factory function for all descendants of sj.Base, and a similar augmentation function, this was also done partly so that defaults, instanceMethods, and statics can be laid out with similar hierarchy.
-*/
-//C manually create sj.Base
-//TODO - consider changing all the constructorParts into functions (like static/prototypeProperties) that return an object to be assigned, (I think this may help with the defaults reference issue), but that also still can execute code. Maybe when this is done, then these parts can be brought up to the top level because they will now have their own closure context to process in
+// ERROR
 
 
-sj.Base = class Base {
-  constructor(options) {
-    //! defaults are retrieved in the function via the static this.constructor.defaults property
-    this.constructor.construct.call(this, options);
-  }
-
-};
-(function () {
-  //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
-  //TODO consider deep defaults
-  this.makeClass = function (name, parent, {
-    //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
-    //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
-    constructorParts = parent => ({}),
-    //G instance methods
-    prototypeProperties = parent => ({}),
-    //G static properties & methods
-    staticProperties = parent => ({})
-  }) {
-    //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
-    // VALIDATE
-    if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
-
-    if (!(parent === sj.Base || parent.prototype instanceof sj.Base)) throw 'sj.Base.makeClass() - cannot make class, parent is not of type sj.Base'; //C dynamically create class using inferred function names
-    //L https://stackoverflow.com/questions/33605775/es6-dynamic-class-names/33611096\
-    //G sj.Base descendants pass new static constructorParts to extend from their parent's constructorParts rather than having an extended constructor
-    //C the allows sj.Base.construct() to only be called once, which simplifies their 'on create' functionality
-
-    const MadeClass = {
-      [name]: class extends parent {
-        constructor(options) {
-          super(options);
-        }
-
-      }
-    }[name]; // ASSIGN
-    //C use .call to set 'this' as MadeClass, pass parent for ease of use and to avoid repeating Object.getPrototypeOf(this)
-    //C undefined properties won't be passed, and parent's will be used when looked up
-    //! ensure each part is only called once, as they may also have alternative assignment methods (such as on create functionality and getter/setter assignment)
-    //! staticProperties is assigned before constructorParts so that constructorParts will take priority if there are collisions
-
-    Object.assign(MadeClass, staticProperties.call(MadeClass, parent));
-    /* //R thoughts on defaults
-    	//R my first thought was to have default values that are undefined to be undeclared as well, so that properties the properties won't show up and will be more useful when overwriting another
-    	//R I wanted to mimic this behavior with instance options - however, this would be inconsistent when using the spread operator, as it functions like Object.assign
-    	//R however I'm now realizing that this would be more consistent and clear
-    	//R I thought about doing three different 'defaults' objects, invisible (wont be declared if undefined, ie default undefined), normal, and 'fixed'(?), ones that cannot be changed by options
-    	//R but this doesn't seem right, for invisible: when making a new object I should really stay away from using the literal undefined value, and any spread operators used will still function as expected, for fixed, these can just be defaults as they are, because I really shouldn't be overwriting them with options anyways, and they can always be changed later anyways
-    */
-
-    Object.assign(MadeClass, {
-      //C constructorParts defaults
-      //! these require empty defaults because of how construct() works - they are composed together rather than inheriting from the parent
-      beforeInitialize() {},
-
-      afterInitialize() {},
-
-      defaults: {} //! allowUnknown DOES inherit from the parent and should not have a default to avoid overwriting the parent's true value with an undefined value defaulted to false
-
-    }, constructorParts.call(MadeClass, parent)); //C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
-
-    Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent)); //? shouldn't the this reference be the parent.prototype?
-
-    return MadeClass;
-  };
-
-  this.augmentClass = function ({
-    constructorParts = parent => ({}),
-    prototypeProperties = parent => ({}),
-    staticProperties = parent => ({})
-  }) {
-    //C add or overwrite existing properties with new ones
-    //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
-    //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
-    //! make sure each part is ony called once (see makeClass)
-    const parent = Object.getPrototypeOf(this);
-    Object.assign(this, staticProperties.call(this, parent)); //C don't overwrite defaults, assign them too
-
-    const constructorPartsResult = constructorParts.call(this, parent);
-
-    if (sj.isType(constructorPartsResult, Object)) {
-      //! Object.assign can handle undefined, but destructuring can't which is why constructorPartsResult needs to be checked
-      const {
-        defaults = {},
-        ...rest
-      } = constructorPartsResult;
-      Object.assign(this, rest);
-      Object.assign(this.defaults, defaults);
-    }
-
-    Object.assign(this.prototype, prototypeProperties.call(this.prototype, parent.prototype));
-  };
-
-  this.defaults = {
-    // debug
-    log: false,
-    // info
-    code: 200,
-    type: 'Ok',
-    origin: '',
-    trace: '',
-    //sj.trace(), //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
-    // content
-    message: '',
-    reason: '',
-    content: {}
-  };
-  this.allowUnknown = false;
-
-  this.afterInitialize = function (accessory) {};
-
-  this.beforeInitialize = function (accessory) {};
-
-  this.trace = function () {
-    try {
-      throw Error('');
-    } catch (e) {
-      //TODO figure out how to properly display newlines as strings inside objects
-      //C get stack
-      const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
-
-      const stackTrace1 = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-
-      const stackTrace2 = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
-
-      let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-      ignore = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(ignore.join('|'), '.', '\.');
-      const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-      const stackTrace3 = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["replaceAll"])(stackTrace2, exp, '');
-      return stackTrace0;
-    }
-  };
-
-  this.prototype.announce = function () {
-    //R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-    if (sj.isType(this, sj.Error)) {
-      console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-    } else if (sj.isType(this, sj.Warn)) {
-      console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
-    } else {
-      console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //
-    }
-  };
-
-  this.construct = function (options = {}) {
-    const accessory = {
-      options
-    }; //C get prototype chain
-
-    const chain = [this.constructor]; //C push the prototype of the last item in the chain until sj.Base is reached
-
-    while (chain[chain.length - 1] !== sj.Base) chain.push(Object.getPrototypeOf(chain[chain.length - 1])); //C call ancestor's and own beforeInitialize() in descending order
-
-
-    for (let i = chain.length - 1; i >= 0; i--) chain[i].beforeInitialize.call(this, accessory); //C store constructor.name on this instance as constructorName so that it can be stringified and rebuilt
-
-
-    this.constructorName = this.constructor.name; //C assign the ancestor's and own defaults in descending order
-
-    const extendedDefaults = {};
-
-    for (let i = chain.length - 1; i >= 0; i--) Object.assign(extendedDefaults, chain[i].defaults);
-
-    const composed = {}; //C assign all properties from options
-
-    if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); //C or only assign properties declared in defaults
-    else Object.assign(composed, extendedDefaults, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
-    //? is this preferable to simply using assign defined in places where it's needed?
-
-    Object.keys(composed).forEach(key => {
-      if (composed[key] !== undefined) this[key] = composed[key];
-    }); //C call ancestor's and own afterInitialize in order
-
-    for (let i = chain.length - 1; i >= 0; i--) chain[i].afterInitialize.call(this, accessory);
-
-    if (this.log) this.announce();
-  };
-}).call(sj.Base);
-
-sj.Base.test = async function () {
-  let calledConstructorParts = false;
-  let calledBeforeInitialize = false;
-  let calledAfterInitialize = false;
-  let calledPrototypeProperties = false;
-  let calledStaticProperties = false;
-  let calledExtraFunction = false;
-  const A = sj.Base.makeClass('A', sj.Base, {
-    //C testing options functions and properties
-    constructorParts(parent) {
-      calledConstructorParts = true;
-      return {
-        beforeInitialize() {
-          calledBeforeInitialize = true;
-          this.beforeFoo = Symbol();
-        },
-
-        defaults: {
-          defaultFoo: Symbol(),
-          passedFoo: 'passed as not default',
-          undefinedFoo: undefined,
-          undefinedOptionFoo: 'passed as undefined' // undeclaredFoo is not declared
-
-        },
-
-        afterInitialize() {
-          calledAfterInitialize = true;
-          this.afterFoo = Symbol();
-        }
-
-      };
-    },
-
-    prototypeProperties(parent) {
-      calledPrototypeProperties = true;
-      return {
-        prototypeFoo: Symbol()
-      };
-    },
-
-    staticProperties(parent) {
-      calledStaticProperties = true;
-      return {
-        staticFoo: Symbol()
-      };
-    },
-
-    extraFunction() {
-      calledExtraFunction = true;
-    }
-
-  });
-  const a = new A({
-    passedFoo: Symbol(),
-    undefinedOptionFoo: undefined
-  });
-  const a2 = new A({
-    passedFoo: Symbol()
-  });
-  const AA = sj.Base.makeClass('AA', A, {
-    //C testing property inheritance and extension
-    constructorParts: parent => ({
-      beforeInitialize() {
-        this.beforeFoo2 = Symbol();
-      },
-
-      defaults: {
-        defaultFoo2: Symbol()
-      },
-
-      afterInitialize() {
-        this.afterFoo2 = Symbol();
-      }
-
-    }),
-    prototypeProperties: parent => ({
-      prototypeFoo2: Symbol()
-    }),
-    staticProperties: parent => ({
-      staticFoo2: Symbol()
-    })
-  });
-  const aa = new AA();
-  const AAA = sj.Base.makeClass('AAA', AA, {});
-  const aaa = new AAA();
-  const AAB = sj.Base.makeClass('AAB', AA, {});
-  const aab = new AAB();
-  const AB = sj.Base.makeClass('AB', A, {
-    //C testing child overwrites
-    constructorParts: parent => ({
-      beforeInitialize() {
-        this.beforeFoo = Symbol();
-      },
-
-      defaults: {
-        defaultFoo: Symbol()
-      },
-
-      afterInitialize() {
-        this.afterFoo = Symbol();
-      }
-
-    }),
-    prototypeProperties: parent => ({
-      prototypeFoo: Symbol()
-    }),
-    staticProperties: parent => ({
-      staticFoo: Symbol()
-    })
-  });
-  const ab = new AB();
-  const B = sj.Base.makeClass('B', sj.Base, {});
-  const b = new B();
-  const BA = sj.Base.makeClass('BA', B, {});
-  const ba = new BA();
-  const BB = sj.Base.makeClass('BB', B, {});
-  const bb = new BB();
-  const C = sj.Base.makeClass('C', sj.Base, {
-    //C testing augmented properties
-    constructorParts: parent => ({
-      beforeInitialize() {
-        this.beforeBar = Symbol();
-      },
-
-      defaults: {
-        defaultBar: Symbol()
-      },
-
-      afterInitialize() {
-        this.afterBar = Symbol();
-      }
-
-    }),
-    prototypeProperties: parent => ({
-      prototypeBar: Symbol()
-    }),
-    staticProperties: parent => ({
-      staticBar: Symbol()
-    })
-  });
-  const c = new C();
-  C.augmentClass({
-    constructorParts: parent => ({
-      beforeInitialize() {
-        this.beforeBar = Symbol();
-      },
-
-      defaults: {
-        defaultBar: Symbol()
-      },
-
-      afterInitialize() {
-        this.afterBar = Symbol();
-      }
-
-    }),
-    prototypeProperties: parent => ({
-      prototypeBar: Symbol()
-    }),
-    staticProperties: parent => ({
-      staticBar: Symbol()
-    })
-  });
-  const c2 = new C();
-  await sj.test([// INHERITANCE
-  ['A prototype is sj.Base', Object.getPrototypeOf(A) === sj.Base], ['AA prototype is A', Object.getPrototypeOf(AA) === A], ['AAAA prototype is AA', Object.getPrototypeOf(AAA) === AA], ['a isType sj.Base', sj.isType(a, sj.Base)], ['aa isType sj.Base', sj.isType(aa, sj.Base)], ['aaa isType sj.Base', sj.isType(aaa, sj.Base)], // SIBLINGS
-  ['a !isType B', !sj.isType(a, B)], ['aa !isType AB', !sj.isType(aa, AB)], ['aaa !isType AAB', !sj.isType(aaa, AAB)], // COUSINS
-  ['aa !isType BA', !sj.isType(aa, BA)], // INSTANCES
-  ['a.constructor === A', a.constructor === A], ['aa.constructor === AA', aa.constructor === AA], ['aaa.constructor === AAA', aaa.constructor === AAA], // MAKE CLASS FUNCTIONS
-  ['called constructorParts', calledConstructorParts], ['called beforeInitialize', calledBeforeInitialize], ['called afterInitialize', calledAfterInitialize], ['called prototypeProperties', calledPrototypeProperties], ['called staticProperties', calledStaticProperties], ['did not call extraFunction', !calledExtraFunction], // PROPERTIES EXIST
-  ['a before property', a.hasOwnProperty('beforeFoo')], ['a default property', a.hasOwnProperty('defaultFoo')], ['a after property', a.hasOwnProperty('afterFoo')], ['A.prototype property', Object.getPrototypeOf(a).hasOwnProperty('prototypeFoo')], ['A static property', A.hasOwnProperty('staticFoo')], // PROPERTY INHERITANCE
-  //! before and after will generate new instances, even if function is inherited
-  ['aa.beforeFoo === a.beforeFoo', aa.beforeFoo !== undefined && aa.beforeFoo !== a.beforeFoo], ['aa.defaultFoo === a.defaultFoo', aa.defaultFoo === a.defaultFoo], ['aa.afterFoo === a.afterFoo', aa.defaultFoo !== undefined && aa.afterFoo !== a.afterFoo], ['AA.prototype foo === A.prototype foo', AA.prototype.prototypeFoo === A.prototype.prototypeFoo], ['AA static foo === A static foo', AA.staticFoo === A.staticFoo], // PROPERTY EXTENSION
-  ['aa.beforeFoo2 exists', aa.afterFoo2 !== undefined && aa.afterFoo2 !== aa.afterFoo], ['aa.defaultFoo2 exists', aa.defaultFoo2 !== undefined && aa.defaultFoo2 !== aa.defaultFoo], ['aa.afterFoo2 exists', aa.afterFoo2 !== undefined && aa.beforeFoo2 !== aa.beforeFoo], ['AA.prototype foo2 exists', AA.prototype.prototypeFoo2 !== undefined && AA.prototype.prototypeFoo2 !== AA.prototype.prototypeFoo], ['AA static foo2 exists', AA.staticFoo2 !== undefined && AA.staticFoo2 !== AA.staticFoo], // PROPERTY OVERWRITE
-  ['ab.beforeFoo exists and !== a.beforeFoo', ab.beforeFoo !== undefined && ab.beforeFoo !== a.beforeFoo], ['ab.defaultFoo exists and !== a.defaultFoo', ab.defaultFoo !== undefined && ab.defaultFoo !== a.defaultFoo], ['ab.afterFoo exists and !== a.afterFoo', ab.afterFoo !== undefined && ab.afterFoo !== a.afterFoo], ['AB.prototype foo exists !== B.prototype foo', AB.prototype.prototypeFoo !== undefined && AB.prototype.prototypeFoo !== A.prototype.prototypeFoo], ['AB static foo exists !== A static foo', AB.staticFoo !== undefined && AB.staticFoo !== A.staticFoo], // AUGMENT CLASS
-  ['c2.beforeBar exists and !== c.beforeBar', c2.beforeBar !== undefined && c2.beforeBar !== c.beforeBar], ['c2.defaultBar exists and !== c.defaultBar', c2.defaultBar !== undefined && c2.defaultBar !== c.defaultBar], ['c2.afterBar exists and !== c.afterBar', c2.afterBar !== undefined && c2.afterBar !== c.afterBar], ['c.constructor.prototype === c2.constructor.prototype', Object.getPrototypeOf(c) === Object.getPrototypeOf(c2)], ['c.constructor === c2.constructor', c.constructor === c2.constructor], // PASSED OPTIONS
-  ['a.passedFoo !== a2.passedFoo', a.passedFoo !== a2.passedFoo], ['undefined default', !a.hasOwnProperty('undefinedFoo')], ['undeclared default', !a.hasOwnProperty('undeclaredFoo')], ['undefined option', !a.hasOwnProperty('undefinedFoo')]], 'sj.Base Classes');
-}; // ERROR
-
-
-sj.Error = sj.Base.makeClass('Error', sj.Base, {
+sj.Error = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Error', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     defaults: {
       // OVERWRITE
@@ -947,7 +549,7 @@ sj.Error = sj.Base.makeClass('Error', sj.Base, {
     }
   })
 });
-sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
+sj.ErrorList = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('ErrorList', sj.Error, {
   constructorParts: parent => ({
     //C wrapper for an array with one or more errors
     defaults: {
@@ -958,7 +560,7 @@ sj.ErrorList = sj.Base.makeClass('ErrorList', sj.Error, {
   })
 }); // CUSTOM ERROR
 
-sj.SilentError = sj.Base.makeClass('SilentError', sj.Error, {
+sj.SilentError = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('SilentError', sj.Error, {
   constructorParts: parent => ({
     defaults: {
       // OVERWRITE
@@ -966,7 +568,7 @@ sj.SilentError = sj.Base.makeClass('SilentError', sj.Error, {
     }
   })
 });
-sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
+sj.AuthRequired = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('AuthRequired', sj.Error, {
   //C used to communicate to client that the server does not have the required tokens and that the client must authorize
   constructorParts: parent => ({
     defaults: {
@@ -975,7 +577,7 @@ sj.AuthRequired = sj.Base.makeClass('AuthRequired', sj.Error, {
     }
   })
 });
-sj.Unreachable = sj.Base.makeClass('Unreachable', sj.Error, {
+sj.Unreachable = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Unreachable', sj.Error, {
   //C used to indicate an unreachable place in the code
   constructorParts: parent => ({
     defaults: {
@@ -983,7 +585,7 @@ sj.Unreachable = sj.Base.makeClass('Unreachable', sj.Error, {
     }
   })
 });
-sj.Timeout = sj.Base.makeClass('Timeout', sj.Error, {
+sj.Timeout = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Timeout', sj.Error, {
   //C used to indicate a timed-out function
   constructorParts: parent => ({
     defaults: {
@@ -992,7 +594,7 @@ sj.Timeout = sj.Base.makeClass('Timeout', sj.Error, {
   })
 }); // RULE
 
-sj.Rule = sj.Base.makeClass('Rule', sj.Base, {
+sj.Rule = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   //G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
   constructorParts: parent => ({
     //G//! 'this' refers to the static class inside constructorParts(), however 'this' refers to the instance inside before/afterInitialize()
@@ -1524,7 +1126,7 @@ sj.Rule.augmentClass({
     })
   })
 });
-sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
+sj.Rule2 = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule2', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       if (typeof accessory.options.baseValidate !== 'function' || typeof accessory.options.baseCast !== 'function') throw new sj.Error({
@@ -1956,7 +1558,7 @@ sj.Rule2.augmentClass({
   })
 }); // SUCCESS //C success and error objects are returned from functions (mostly async ones)
 
-sj.Success = sj.Base.makeClass('Success', sj.Base, {
+sj.Success = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Success', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     defaults: {
       // NEW
@@ -1964,7 +1566,7 @@ sj.Success = sj.Base.makeClass('Success', sj.Base, {
     }
   })
 });
-sj.SuccessList = sj.Base.makeClass('SuccessList', sj.Success, {
+sj.SuccessList = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('SuccessList', sj.Success, {
   constructorParts: parent => ({
     //C wrapper for an array of successful items
     defaults: {
@@ -1974,7 +1576,7 @@ sj.SuccessList = sj.Base.makeClass('SuccessList', sj.Success, {
     }
   })
 });
-sj.Warn = sj.Base.makeClass('Warn', sj.Success, {
+sj.Warn = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Warn', sj.Success, {
   constructorParts: parent => ({
     defaults: {
       // OVERWRITE
@@ -1982,7 +1584,7 @@ sj.Warn = sj.Base.makeClass('Warn', sj.Success, {
     }
   })
 });
-sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
+sj.Credentials = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Credentials', sj.Success, {
   constructorParts: parent => ({
     //TODO allowUnknown: true,
     defaults: {
@@ -2005,7 +1607,7 @@ sj.Credentials = sj.Base.makeClass('Credentials', sj.Success, {
   })
 }); // ENTITIES
 
-sj.Entity = sj.Base.makeClass('Entity', sj.Success, {
+sj.Entity = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Entity', sj.Success, {
   constructorParts: parent => ({
     afterInitialize(accessory) {
       const that = this; //? is this necessary?
@@ -2105,7 +1707,7 @@ const auto = {
   out: true,
   check: 0
 };
-sj.User = sj.Base.makeClass('User', sj.Entity, {
+sj.User = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('User', sj.Entity, {
   constructorParts: parent => ({
     defaults: {
       // NEW
@@ -2209,7 +1811,7 @@ sj.User = sj.Base.makeClass('User', sj.Entity, {
   }
 
 });
-sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
+sj.Playlist = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Playlist', sj.Entity, {
   constructorParts: parent => ({
     defaults: {
       // OVERWRITE
@@ -2306,7 +1908,7 @@ sj.Playlist = sj.Base.makeClass('Playlist', sj.Entity, {
   }
 
 });
-sj.Track = sj.Base.makeClass('Track', sj.Entity, {
+sj.Track = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Track', sj.Entity, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //C find existing source by track.source.name and set it as the reference
@@ -2438,7 +2040,7 @@ sj.Track = sj.Base.makeClass('Track', sj.Entity, {
   }
 
 });
-sj.Source = sj.Base.makeClass('Source', sj.Base, {
+sj.Source = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Source', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     defaults: {
       // NEW
@@ -2482,7 +2084,7 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
   })
 }); // LIVE DATA
 
-sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
+sj.LiveTable = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('LiveTable', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     defaults: {
       Entity: undefined
@@ -2505,7 +2107,7 @@ sj.LiveTable = sj.Base.makeClass('LiveTable', sj.Base, {
 
   })
 });
-sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
+sj.CachedEntity = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('CachedEntity', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     defaults: {
       table: undefined,
@@ -2521,7 +2123,7 @@ sj.CachedEntity = sj.Base.makeClass('CachedEntity', sj.Base, {
 
   })
 });
-sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
+sj.LiveQuery = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('LiveQuery', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(accessory.options.query);
@@ -2542,7 +2144,7 @@ sj.LiveQuery = sj.Base.makeClass('LiveQuery', sj.Base, {
 
   })
 });
-sj.Subscription = sj.Base.makeClass('Subscription', sj.Base, {
+sj.Subscription = _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Subscription', _shared_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   //? should this inherit from sj.Success since it will be returned from a function>
   constructorParts: parent => ({
     defaults: {
@@ -4509,6 +4111,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
+/* harmony import */ var _shared_base_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/base.js */ "./source/shared/base.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -4521,6 +4124,7 @@ __webpack_require__.r(__webpack_exports__);
  // INTERNAL
 
  //! depends on the common global.js not the global-server.js because global-server.js uses this module
+
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -4570,7 +4174,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
         console.log('DISCONNECT', socket.id);
         await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.disconnect(socket.id).catch(rejected => {
           //TODO handle better
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(rejected, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Base)) rejected.announce();else console.error('subscription disconnect error:', rejected);
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(rejected, _shared_base_js__WEBPACK_IMPORTED_MODULE_4__["default"])) rejected.announce();else console.error('subscription disconnect error:', rejected);
         }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
         if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User)) socket.session.user.socketId = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.defaults.socketId;
@@ -5089,6 +4693,210 @@ __webpack_require__.r(__webpack_exports__);
   return router;
 });
 ;
+
+/***/ }),
+
+/***/ "./source/shared/base.js":
+/*!*******************************!*\
+  !*** ./source/shared/base.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+//TODO Refactor this out.
+//R Common ancestors are bad because they create very tightly coupled code.
+
+/* //R Thought Process
+	//R Initially only static methods and variables I decided to define outside the class because static variables requires the use of a getter, which felt hacky.
+	//R But when I needed to augment the constructor of a class I ran into problems, so I decided to define classes like this - with an anonymous function being called on a minimal class. It makes the location of instance methods, instance variables, static methods, and static variables more clear. It also makes augmenting (not extending) a class easier (specifically the defaults), this is important for divergent client and server classes.
+	//R finally I found that I was repeating some parts of this anonymous function like const parent = Object.getPrototypeOf(this); and return this;, so I decided to make a factory function for all descendants of sj.Base, and a similar augmentation function, this was also done partly so that defaults, instanceMethods, and statics can be laid out with similar hierarchy.
+*/
+//C manually create sj.Base
+//TODO - consider changing all the constructorParts into functions (like static/prototypeProperties) that return an object to be assigned, (I think this may help with the defaults reference issue), but that also still can execute code. Maybe when this is done, then these parts can be brought up to the top level because they will now have their own closure context to process in
+
+
+class Base {
+  constructor(options) {
+    //! defaults are retrieved in the function via the static this.constructor.defaults property
+    this.constructor.construct.call(this, options);
+  }
+
+} //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
+//TODO consider deep defaults
+
+
+Base.makeClass = function (name, parent, {
+  //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
+  //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
+  constructorParts = parent => ({}),
+  //G instance methods
+  prototypeProperties = parent => ({}),
+  //G static properties & methods
+  staticProperties = parent => ({})
+}) {
+  //C creates a descendant class of Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
+  // VALIDATE
+  if (!(typeof name === 'string')) throw 'Base.makeClass() - cannot make class, name is not a string'; //! don't convert Base to this here, it will break ChildClass.makeClass({'X', Base, {...}})
+
+  if (!(parent === Base || parent.prototype instanceof Base)) throw 'Base.makeClass() - cannot make class, parent is not of type Base'; //C dynamically create class using inferred function names
+  //L https://stackoverflow.com/questions/33605775/es6-dynamic-class-names/33611096\
+  //G Base descendants pass new static constructorParts to extend from their parent's constructorParts rather than having an extended constructor
+  //C the allows Base.construct() to only be called once, which simplifies their 'on create' functionality
+
+  const MadeClass = {
+    [name]: class extends parent {
+      constructor(options) {
+        super(options);
+      }
+
+    }
+  }[name]; // ASSIGN
+  //C use .call to set 'this' as MadeClass, pass parent for ease of use and to avoid repeating Object.getPrototypeOf(this)
+  //C undefined properties won't be passed, and parent's will be used when looked up
+  //! ensure each part is only called once, as they may also have alternative assignment methods (such as on create functionality and getter/setter assignment)
+  //! staticProperties is assigned before constructorParts so that constructorParts will take priority if there are collisions
+
+  Object.assign(MadeClass, staticProperties.call(MadeClass, parent));
+  /* //R thoughts on defaults
+  	//R my first thought was to have default values that are undefined to be undeclared as well, so that properties the properties won't show up and will be more useful when overwriting another
+  	//R I wanted to mimic this behavior with instance options - however, this would be inconsistent when using the spread operator, as it functions like Object.assign
+  	//R however I'm now realizing that this would be more consistent and clear
+  	//R I thought about doing three different 'defaults' objects, invisible (wont be declared if undefined, ie default undefined), normal, and 'fixed'(?), ones that cannot be changed by options
+  	//R but this doesn't seem right, for invisible: when making a new object I should really stay away from using the literal undefined value, and any spread operators used will still function as expected, for fixed, these can just be defaults as they are, because I really shouldn't be overwriting them with options anyways, and they can always be changed later anyways
+  */
+
+  Object.assign(MadeClass, {
+    //C constructorParts defaults
+    //! these require empty defaults because of how construct() works - they are composed together rather than inheriting from the parent
+    beforeInitialize() {},
+
+    afterInitialize() {},
+
+    defaults: {} //! allowUnknown DOES inherit from the parent and should not have a default to avoid overwriting the parent's true value with an undefined value defaulted to false
+
+  }, constructorParts.call(MadeClass, parent)); //C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
+
+  Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent)); //? shouldn't the this reference be the parent.prototype?
+
+  return MadeClass;
+};
+
+Base.augmentClass = function ({
+  constructorParts = parent => ({}),
+  prototypeProperties = parent => ({}),
+  staticProperties = parent => ({})
+}) {
+  //C add or overwrite existing properties with new ones
+  //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
+  //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
+  //! make sure each part is ony called once (see makeClass)
+  const parent = Object.getPrototypeOf(this);
+  Object.assign(this, staticProperties.call(this, parent)); //C don't overwrite defaults, assign them too
+
+  const constructorPartsResult = constructorParts.call(this, parent);
+
+  if (constructorPartsResult instanceof Object) {
+    //! Object.assign can handle undefined, but destructuring can't which is why constructorPartsResult needs to be checked
+    const {
+      defaults = {},
+      ...rest
+    } = constructorPartsResult;
+    Object.assign(this, rest);
+    Object.assign(this.defaults, defaults);
+  }
+
+  Object.assign(this.prototype, prototypeProperties.call(this.prototype, parent.prototype));
+};
+
+Base.defaults = {
+  // debug
+  log: false,
+  // info
+  code: 200,
+  type: 'Ok',
+  origin: '',
+  trace: '',
+  // //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
+  // content
+  message: '',
+  reason: '',
+  content: {}
+};
+Base.allowUnknown = false;
+
+Base.afterInitialize = function (accessory) {};
+
+Base.beforeInitialize = function (accessory) {};
+
+Base.trace = function () {
+  try {
+    throw Error('');
+  } catch (e) {
+    //TODO figure out how to properly display newlines as strings inside objects
+    //C get stack
+    const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
+
+    const stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+
+    const stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+
+    let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
+    ignore = replaceAll(ignore.join('|'), '.', '\.');
+    const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
+    const stackTrace3 = replaceAll(stackTrace2, exp, '');
+    return stackTrace0;
+  }
+};
+
+Base.prototype.announce = function () {//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
+  //TODO
+  // if (this instanceof Error) {
+  // 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
+  // } else if (this instanceof sj.Warn) {
+  // 	console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
+  // } else {
+  // 	console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //
+  // }
+};
+
+Base.construct = function (options = {}) {
+  const accessory = {
+    options
+  }; //C get prototype chain
+
+  const chain = [this.constructor]; //C push the prototype of the last item in the chain until Base is reached
+
+  while (chain[chain.length - 1] !== Base) chain.push(Object.getPrototypeOf(chain[chain.length - 1])); //C call ancestor's and own beforeInitialize() in descending order
+
+
+  for (let i = chain.length - 1; i >= 0; i--) chain[i].beforeInitialize.call(this, accessory); //C store constructor.name on this instance as constructorName so that it can be stringified and rebuilt
+
+
+  this.constructorName = this.constructor.name; //C assign the ancestor's and own defaults in descending order
+
+  const extendedDefaults = {};
+
+  for (let i = chain.length - 1; i >= 0; i--) Object.assign(extendedDefaults, chain[i].defaults);
+
+  const composed = {}; //C assign all properties from options
+
+  if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); //C or only assign properties declared in defaults
+  else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
+  //? is this preferable to simply using assign defined in places where it's needed?
+
+  Object.keys(composed).forEach(key => {
+    if (composed[key] !== undefined) this[key] = composed[key];
+  }); //C call ancestor's and own afterInitialize in order
+
+  for (let i = chain.length - 1; i >= 0; i--) chain[i].afterInitialize.call(this, accessory);
+
+  if (this.log) this.announce();
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Base);
 
 /***/ }),
 

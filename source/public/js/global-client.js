@@ -61,6 +61,7 @@ import {
 import sj from './global.js';
 import request from '../../shared/request.js';
 import serverRequest from './server-request.js';
+import Base from '../../shared/base.js';
 
 
 
@@ -144,7 +145,7 @@ sj.Entity.augmentClass({
 //G tightly integrated with VueX
 //TODO consider a stop command? it would stop all sources and set the current source back to null
 //TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
-sj.Command = sj.Base.makeClass('Command', sj.Base, {
+sj.Command = Base.makeClass('Command', Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a source
@@ -217,7 +218,7 @@ sj.Command = sj.Base.makeClass('Command', sj.Base, {
 		},
 	}),
 });
-sj.Start = sj.Base.makeClass('Start', sj.Command, {
+sj.Start = Base.makeClass('Start', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a track
@@ -278,7 +279,7 @@ sj.Start = sj.Base.makeClass('Start', sj.Command, {
 		},
 	}),
 });
-sj.Toggle = sj.Base.makeClass('Toggle', sj.Command, {
+sj.Toggle = Base.makeClass('Toggle', sj.Command, {
 	//? pause command might not have a desired progress?
 	//TODO toggle resume seems to be broken, maybe because of CORS?
 	// "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
@@ -325,7 +326,7 @@ sj.Toggle = sj.Base.makeClass('Toggle', sj.Command, {
 		},
 	}),
 });
-sj.Seek = sj.Base.makeClass('Seek', sj.Command, {
+sj.Seek = Base.makeClass('Seek', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G progress must be manually set between 0 and 1\
@@ -355,7 +356,7 @@ sj.Seek = sj.Base.makeClass('Seek', sj.Command, {
 		},
 	}),
 });
-sj.Volume = sj.Base.makeClass('Volume', sj.Command, {
+sj.Volume = Base.makeClass('Volume', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G volume must be manually set between 0 and 1
@@ -390,7 +391,7 @@ sj.Volume = sj.Base.makeClass('Volume', sj.Command, {
 });
 
 // PLAYBACK
-sj.Playback = sj.Base.makeClass('Playback', sj.Base, {
+sj.Playback = Base.makeClass('Playback', Base, {
 	constructorParts(parent) { return {
 		defaults: {
 			// NEW

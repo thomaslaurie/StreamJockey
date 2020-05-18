@@ -13,6 +13,7 @@ import fclone from 'fclone';
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 //! depends on the common global.js not the global-server.js because global-server.js uses this module
 import sj from '../public/js/global.js';
+import Base from '../shared/base.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -72,7 +73,7 @@ export default {
 
 				await sj.liveData.disconnect(socket.id).catch(rejected => { 
 					//TODO handle better
-					if (sj.isType(rejected, sj.Base)) rejected.announce();
+					if (sj.isType(rejected, Base)) rejected.announce();
 					else console.error('subscription disconnect error:', rejected);
 				});
 				
