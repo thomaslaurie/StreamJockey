@@ -193,7 +193,7 @@ module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePath
 /*!***************************************!*\
   !*** ./source/public/js/constants.js ***!
   \***************************************/
-/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER */
+/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -202,6 +202,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "API_URL", function() { return API_URL; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GET_BODY", function() { return GET_BODY; });
 const SERVER_URL = `http://localhost:3000`;
 const API_URL = `${SERVER_URL}/api`;
 const JSON_HEADER = Object.freeze({
@@ -212,41 +213,7 @@ const URL_HEADER = Object.freeze({
   'Accept': 'application/json',
   'Content-Type': 'application/x-www-form-urlencoded'
 });
-
-/***/ }),
-
-/***/ "./source/public/js/derived-utility/fetch.js":
-/*!***************************************************!*\
-  !*** ./source/public/js/derived-utility/fetch.js ***!
-  \***************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-// Dynamically imports fetch from 'node-fetch' if it is not available.
-/* harmony default export */ __webpack_exports__["default"] = (async function (...args) {
-  // Must use typeof because it won't throw a reference error. https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
-  // Fetch requires
-  if (typeof fetch === 'undefined') return Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(null, /*! node-fetch */ "node-fetch", 7)).then(m => m.default(...args));else return fetch(...args);
-});
-;
-
-/***/ }),
-
-/***/ "./source/public/js/derived-utility/index.js":
-/*!***************************************************!*\
-  !*** ./source/public/js/derived-utility/index.js ***!
-  \***************************************************/
-/*! exports provided: fetch */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/public/js/derived-utility/fetch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-
+const GET_BODY = encodeURIComponent('body');
 
 /***/ }),
 
@@ -262,7 +229,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
@@ -463,7 +430,8 @@ sj.isType = function (input, type) {
       if (typeof Target === 'function') {
         tempInput = new Target({
           log: false
-        });
+        }); //! This is absolutely wrong, as it assumes all arguments are optional. (Caused issue where the playback argument was required for sj.Sources).
+
         return true;
       }
 
@@ -514,6 +482,7 @@ sj.isType = function (input, type) {
 
 
 sj.catchUnexpected = function (input) {
+  //! this is only used in propagate
   //C determines type of input, creates, announces, and returns a proper sj.Error object
   //C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
   var error = new sj.Error({
@@ -546,21 +515,7 @@ sj.catchUnexpected = function (input) {
   return error;
 };
 
-sj.propagate = function (input, overwrite) {
-  //C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
-  if (!sj.isType(input, sj.Error)) {
-    //C wrap any non-sj errors, let sj.Errors flow through
-    input = sj.catchUnexpected(input);
-  }
-
-  if (sj.isType(overwrite, Object)) {
-    //C overwrite properties (for example making a more specific message)
-    Object.assign(input, overwrite); //OLD this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
-  }
-
-  throw input; //TODO //? why not just use Object.assign(input) instead?
-  //TODO better yet, why not just use a spread operator at the top?
-};
+sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"];
 
 sj.andResolve = function (rejected) {
   //C resolves/returns any errors thrown by sj.propagate()
@@ -624,92 +579,6 @@ sj.rebuild = function (input, strict) {
   }
 
   return rebuilt;
-};
-
-sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
-  /* //! use UPPERCASE HTTP methods...
-  	//! ...because in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't
-  	//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
-  	//L https://github.com/whatwg/fetch/issues/50
-  	//L https://github.com/github/fetch/pull/243
-  */
-  let options = {
-    method,
-    headers,
-    body
-  };
-
-  if (method === 'GET') {
-    if (sj.isType(body, Object)) {
-      url += `?${Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"])(body)}`;
-    }
-
-    delete options.body;
-  }
-
-  if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) {
-    //C stringify body
-    try {
-      options.body = JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(options.body));
-    } catch (e) {
-      //C catch stringify error (should be a cyclic reference)
-      throw new sj.Error({
-        origin: 'request()',
-        message: 'could not send request',
-        reason: e.message,
-        content: options.body
-      });
-    }
-  }
-
-  let result = await Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["fetch"])(url, options).catch(rejected => {
-    //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-    //C catch network error
-    //L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-    //TODO properly parse
-    throw sj.propagate(rejected);
-  }); //TODO sort out the codes and parsing below
-  //C catch ok, no content code
-
-  if (result.status === 204) {
-    return new sj.Success({
-      origin: 'sj.request()',
-      code: '204',
-      message: 'success',
-      reason: 'request successful, no content returned'
-    });
-  } //C parse via fetch .json()
-  //L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
-
-
-  let raw = await result.clone().text();
-  let parsedResult = await result.clone().json().catch(rejected => {
-    throw sj.propagate(rejected, {
-      content: raw
-    });
-  }); //C catch non-ok status codes
-
-  if (!result.ok) {
-    //TODO properly parse
-    throw sj.propagate(parsedResult);
-  } //C rebuild and throw if error
-
-
-  let build = function (item) {
-    item = sj.rebuild(item);
-
-    if (sj.isType(item, sj.Error)) {
-      throw item;
-    }
-
-    return item;
-  };
-
-  if (sj.isType(parsedResult, Array)) {
-    return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
-  } else {
-    return build(parsedResult);
-  }
 }; // LIVE DATA
 
 
@@ -2633,6 +2502,7 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
       // NEW
       name: undefined,
       //! source.name is a unique identifier
+      register: false,
       nullPrefix: '',
       idPrefix: '',
       credentials: new sj.Credentials(),
@@ -2645,12 +2515,23 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 
     afterInitialize(accessory) {
       //C add source to static source list: sj.Source.instances
-      this.constructor.instances.push(this);
+      //R Must be manually declared to register, as otherwise, temporary initializations get added and cause issue.
+      if (this.register) this.constructor.register(this);
     }
 
   }),
   staticProperties: parent => ({
     instances: [],
+
+    register(source) {
+      if (!(source instanceof this)) {
+        throw new InternalError({
+          message: 'A non-Source was registered.'
+        });
+      }
+
+      this.instances.push(source);
+    },
 
     find(name) {
       return this.instances.find(instance => instance.name === name);
@@ -2758,7 +2639,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
+/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/request.js */ "./source/shared/request.js");
+/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2794,6 +2676,7 @@ __webpack_require__.r(__webpack_exports__);
 
  //L https://github.com/thelinmichael/spotify-web-api-node
 // INTERNAL
+
 
 
  //  ██╗███╗   ██╗██╗████████╗
@@ -2837,8 +2720,9 @@ auth.checkRequestKey = async function (key) {
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 
 
-_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify = new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Source({
+_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
   name: 'spotify',
+  register: true,
   api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default.a({
     //C create api object and set credentials in constructor
     clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -2866,8 +2750,8 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify = new _global_
   authRequestManually: true,
   makeAuthRequestURL: function (key) {
     //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(this.api._credentials.redirectUri, String)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.redirectUri, String)) {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         origin: 'spotify.makeAuthRequestURL()',
         message: 'one or more api credentials are missing or of the wrong type',
@@ -2884,10 +2768,10 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify = new _global_
   }
 }); //TODO make any property available for sj.Source
 
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify, {
+Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify, {
   startAuthRequest: async function () {
     let pack = await auth.addRequestKey();
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       authRequestKey: pack.key,
       authRequestTimestamp: pack.timestamp,
       authRequestTimeout: pack.timeout,
@@ -2910,8 +2794,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
     await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query.code, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.code, undefined)) {
+      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -2921,8 +2805,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     } //C ensure that spotify didn't send an error
 
 
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query.error, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.error, undefined)) {
+      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -2932,7 +2816,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     } //C send the event and credentials for endAuthRequest() to pick up
 
 
-    emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       //? sj.success here?
       authRequestKey: query.state,
       //? is this needed anymore?
@@ -2949,7 +2833,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
       }); //C setup timeout
 
       Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
-        reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
           log: true,
           origin: 'sj.spotify.endAuthRequest()',
           message: 'request timeout'
@@ -2964,16 +2848,19 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     let timestamp = Date.now(); //C exchange the auth code for tokens
     //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
-      grant_type: 'authorization_code',
-      code: credentials.authCode,
-      redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-      //C only used for validation, no need to make a second redirect handler
-      client_id: process.env.SPOTIFY_CLIENT_ID,
-      client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+    let result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_3__["default"])('POST', 'https://accounts.spotify.com/api/token', {
+      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+        grant_type: 'authorization_code',
+        code: credentials.authCode,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        //C only used for validation, no need to make a second redirect handler
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
-    }), _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].URL_HEADER).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+      }),
+      headers: _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER
+    }).catch(rejected => {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token exchange failed',
@@ -2982,13 +2869,13 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
     }); //C store refresh token in database
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
-    await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.edit({
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
+    await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
     }).then(resolved => {}); //C repack and return
 
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       accessToken: result.access_token,
       expires: timestamp + result.expires_in,
       //refreshToken: result.refresh_token,
@@ -2998,23 +2885,26 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
   },
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content);
-    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
+    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].AuthRequired();
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].AuthRequired();
     } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
     let timestamp = Date.now();
-    let result = await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].request('POST', 'https://accounts.spotify.com/api/token', Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: process.env.SPOTIFY_CLIENT_ID,
-      client_secret: process.env.SPOTIFY_CLIENT_SECRET
-    }), _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].URL_HEADER).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    let result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_3__["default"])('POST', 'https://accounts.spotify.com/api/token', {
+      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET
+      }),
+      headers: _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER
+    }).catch(rejected => {
+      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token refresh failed',
@@ -3022,27 +2912,28 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
       });
     }); //C if a new refresh token was sent
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result.refresh_token, 'string')) {
+    if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result.refresh_token, 'string')) {
       //? better validation?
       //C store it
-      await _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.edit({
+      await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
     } //C send only the accessToken and the expiry time
 
 
-    return new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Credentials({
+    return new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Credentials({
       origin: 'sj.spotify.refreshToken()',
       accessToken: result.access_token,
       expires: timestamp + result.expires_in
     });
   }
 });
-_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube = new _global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].Source({
-  name: 'youtube'
+_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
+  name: 'youtube',
+  register: true
 });
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].youtube, {
+Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube, {
   getCredentials: async () => ({
     apiKey: process.env.YOUTUBE_API_KEY,
     clientId: process.env.YOUTUBE_CLIENT_ID
@@ -3132,12 +3023,11 @@ const schema = {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _public_js_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
-/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_4__);
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -3236,7 +3126,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
  // EXTERNAL
 // import fetch from 'node-fetch'; //C global.js uses fetch
 
@@ -3245,9 +3134,9 @@ __webpack_require__.r(__webpack_exports__);
 
 function isEmpty(input) {
   //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-  return !(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'boolean') || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
+  return !(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'boolean') || _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
   //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-  _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'object') && Object.keys(input).length > 0 || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'array') && input.length > 0);
+  _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'object') && Object.keys(input).length > 0 || _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'array') && input.length > 0);
 }
 
 ; //  ██╗███╗   ██╗██╗████████╗
@@ -3260,10 +3149,10 @@ function isEmpty(input) {
 
 const saltRounds = 10; // DATABASE
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db = _db_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //C for use of db with globals so that db doesn't have to be imported twice
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //C for use of db with globals so that db doesn't have to be imported twice
 // LIVE DATA
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_4__["default"]; //  ██╗   ██╗████████╗██╗██╗     
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //  ██╗   ██╗████████╗██╗██╗     
 //  ██║   ██║╚══██╔══╝██║██║     
 //  ██║   ██║   ██║   ██║██║     
 //  ██║   ██║   ██║   ██║██║     
@@ -3301,7 +3190,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
   	};
   */
   // initialize
-  return _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db.tx(async function (t) {
+  return _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db.tx(async function (t) {
     // TODO this will not alter tables if they do already exist (save this for migration)
     // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
     // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
@@ -3316,7 +3205,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
 
 
     return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-      throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         log: true,
         origin: 'schema initialization',
         message: 'database error',
@@ -3335,7 +3224,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
 				"email" text CONSTRAINT "users_email_key" UNIQUE,
 				"spotifyRefreshToken" text
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: true,
           origin: 'users table initialization',
           message: 'database error',
@@ -3352,7 +3241,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
                 SELECT id, name, email 
                 FROM "sj"."users"
             ;`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: true,
           origin: 'users_self initialization',
           message: 'database error',
@@ -3367,7 +3256,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
                 SELECT id, name
                 FROM "sj"."users"
             ;`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: true,
           origin: 'users_public initialization',
           message: 'database error',
@@ -3389,7 +3278,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
                 
                 CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: true,
           origin: 'playlists table initialization',
           message: 'database error',
@@ -3412,7 +3301,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
 
                 CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: true,
           origin: 'tracks table initialization',
           message: 'database error',
@@ -3423,13 +3312,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
         });
       });
     }).catch(rejected => {
-      throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
+      throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(rejected);
     });
   }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(rejected);
   });
 })().then(resolved => {
-  new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+  new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
     origin: 'initialize database',
     message: 'database initialized'
   });
@@ -3437,7 +3326,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
   console.log(rejected);
 });
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError = function (pgError, sjError) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError = function (pgError, sjError) {
   //TODO any validation needed here?
   //TODO consider separating insertion checks into Conditions so multiple parameters are checked
   //TODO add targets and cssClasses to each violation case too
@@ -3485,7 +3374,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError 
   return sjError;
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //C this shouldn't insert anything
     return `("id") SELECT 0 WHERE 0 = 1`;
@@ -3505,11 +3394,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues = funct
     placeholders = placeholders.join(', ');
     placeholders = `(${placeholders})`; //? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
 
-    return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
+    return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
   }
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
     //C return a false clause
@@ -3519,15 +3408,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere = functi
     let pairs = [];
     pairs = Object.keys(mappedEntity).map(key => {
       //C wrap array in another array so that pgp doesn't think its values are for separate placeholders
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
+      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
     }); //C join with ' AND '
 
     return pairs.join(' AND ');
   }
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
     //C don't make any change
@@ -3537,8 +3426,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function
     let pairs = []; //C pair as formatted string
 
     pairs = Object.keys(mappedEntity).map(key => {
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input);
+      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input);
     }); //C join with ', '
 
     return pairs.join(', ');
@@ -3552,24 +3441,24 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function
 // CRUD
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = async function (db, ctx, user) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = async function (db, ctx, user) {
   //C validate
-  user.name = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
-  user.password = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  user.name = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content);
+  user.password = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
   //C get password
 
   let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
     return resolved.password;
   }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
       log: false,
       origin: 'login()',
       message: 'could not login, database error'
     }));
   }); //C check password
 
-  let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_5___default.a.compare(user.password, existingPassword).catch(rejected => {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+  let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_4___default.a.compare(user.password, existingPassword).catch(rejected => {
+    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
       log: true,
       origin: 'login()',
       message: 'server error',
@@ -3581,7 +3470,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = asy
   });
 
   if (!isMatch) {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
       log: true,
       origin: 'login()',
       message: 'incorrect password',
@@ -3592,40 +3481,40 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = asy
 
 
   user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
       log: false,
       origin: 'login()',
       message: 'could not login, database error'
     }));
   });
-  ctx.session.user = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User(user);
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+  ctx.session.user = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User(user);
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
     origin: 'login()',
     message: 'user logged in',
     content: ctx.session.user
   });
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get = async function (ctx) {
-  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn(ctx);
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.get = async function (ctx) {
+  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn(ctx);
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
     origin: 'getMe()',
     content: ctx.session.user
   });
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = async function (ctx) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.logout = async function (ctx) {
   delete ctx.session.user;
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
     origin: 'logout()',
     message: 'user logged out'
   });
 }; // UTIL
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async function (ctx) {
-  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user.id, 'integer')) {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn = async function (ctx) {
+  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(ctx.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(ctx.session.user.id, 'integer')) {
+    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
       log: true,
       origin: 'isLoggedIn()',
       code: 403,
@@ -3638,9 +3527,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async 
   } //C redundancy check to make sure id is right format
 
 
-  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule.id.check(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
+  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule.id.check(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
 
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
     origin: 'isLoggedIn()',
     message: 'user is logged in'
   });
@@ -3652,7 +3541,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async 
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
   prototypeProperties: parent => ({
     async add(db) {
       return await this.constructor.add(this, db);
@@ -3674,23 +3563,23 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
   staticProperties(parent) {
     // CRUD METHODS
-    this.add = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+    this.add = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
       return await this.frame(db, query, 'add');
     };
 
-    this.get = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+    this.get = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
       return await this.frame(db, query, 'get');
     };
 
-    this.edit = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+    this.edit = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
       return await this.frame(db, query, 'edit');
     };
 
-    this.remove = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+    this.remove = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
       return await this.frame(db, query, 'remove');
     };
 
-    this.getMimic = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+    this.getMimic = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
       //C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.liveData.notify()
       return await this.frame(db, query, 'getMimic');
     }; // FRAME
@@ -3698,7 +3587,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
     this.frame = async function (db, anyEntities, methodName) {
       //C catch sj.Entity
-      if (this === _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (this === _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
         origin: 'sj.Entity.[CRUD]',
         reason: `cannot call CRUD method directly on sj.Entity`
       }); //C cast as array
@@ -3715,11 +3604,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C prepare
+        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C prepare
 
-        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C accommodate
+        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C accommodate
 
-        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate) : []; //C map
+        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate) : []; //C map
 
         const inputMapped = this.mapColumns(preparedEntities);
         const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
@@ -3731,15 +3620,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
           await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
             if (methodName !== 'remove') inputAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -3751,12 +3640,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
         if (!isGet) {
           await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
             influencedAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({ ...this[methodName + 'Error'](),
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -3767,21 +3656,21 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate));
-      }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
+        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate));
+      }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
       const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
       const timestamp = Date.now(); //C if get, don't notify
 
-      if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
+      if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
       else if (isGetMimic) return shookGet[1]; //C shake for return
 
       const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
       const built = shook.map(list => list.map(entity => new this(entity)));
-      return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({ ...this[methodName + 'Success'](),
+      return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({ ...this[methodName + 'Success'](),
         //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
         content: built[1],
         timestamp
@@ -3801,9 +3690,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
       await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
         const prop = this.schema[key]; //C catches
 
-        if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule)) {
+        if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule)) {
           // sj.Rule
-          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
             log: true,
             origin: 'sj.Entity.validate()',
             message: 'validation error',
@@ -3816,17 +3705,17 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         if (prop[methodName].check && !isEmpty(entity[key]) || prop[methodName].check === 2) {
           //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
           const checked = await prop.rule.check(entity[key], entity[prop.against]);
-          validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content(checked);
+          validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content(checked);
           return checked;
         } else {
           //C don't pack into validated
-          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'sj.Entity.validate()',
             message: `optional ${key} is empty, skipped validation`
           });
         }
       }).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({
           origin: 'sj.Entity.validate()',
           message: 'one or more issues with properties',
           reason: 'validating properties returned one or more errors',
@@ -3854,7 +3743,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         let mappedEntity = {};
         Object.keys(entity).forEach(key => {
           //C for each property
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key], Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key].columnName, String)) {
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(this.schema[key], Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(this.schema[key].columnName, String)) {
             //C if schema has property 
             mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
           } else {
@@ -3874,7 +3763,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
           //C for each columnName
           let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
 
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(key, String)) {
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(key, String)) {
             //C set entity[key] as value of mappedEntity[columnName]
             entity[key] = mappedEntity[columnName];
           } else {
@@ -3889,7 +3778,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
     this.queryOrder = `ORDER BY "id" ASC`; //C executes SQL queries
 
     this.addQuery = async function (t, mappedEntity) {
-      let values = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+      let values = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
       //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
       let row = await t.one(`
@@ -3897,7 +3786,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: false,
           origin: `sj.${this.name}.add()`,
           message: `could not add ${this.name}s`
@@ -3907,14 +3796,14 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
     };
 
     this.getQuery = async function (t, mappedEntity) {
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere(mappedEntity);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere(mappedEntity);
       let rows = await t.any(`
 				SELECT * 
 				FROM "sj"."${this.table}" 
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: false,
           origin: `sj.${this.name}.get()`,
           message: `could not get ${this.name}s`
@@ -3928,8 +3817,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         id,
         ...mappedEntitySet
       } = mappedEntity;
-      let set = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet(mappedEntitySet);
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere({
+      let set = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet(mappedEntitySet);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere({
         id
       });
       let row = await t.one(`
@@ -3938,7 +3827,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: false,
           origin: `sj.${this.name}.edit()`,
           message: `could not edit ${this.names}`
@@ -3948,13 +3837,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
     };
 
     this.removeQuery = async function (t, mappedEntity) {
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere(mappedEntity);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere(mappedEntity);
       let row = await t.one(`
 				DELETE FROM "sj"."${this.table}" 
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: false,
           origin: `sj.${this.name}.remove()`,
           message: `could not remove ${this.names}s`
@@ -4027,7 +3916,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
   }
 
 });
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass({
   constructorProperties: parent => ({
     defaults: {
       serverTestProp: null
@@ -4040,15 +3929,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.augmentClass({
   staticProperties(parent) {
     // CRUD
     this.addPrepare = this.editPrepare = async function (t, user) {
       let newUser = Object.assign([], user); //C hash password
       //TODO might be a vulnerability here with this string check
 
-      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_5___default.a.hash(newUser.password, saltRounds).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_4___default.a.hash(newUser.password, saltRounds).catch(rejected => {
+        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: true,
           origin: 'sj.User.add()',
           message: 'failed to add user',
@@ -4069,7 +3958,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.augmentClass({
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playlist.augmentClass({
   staticProperties: parent => ({
     // CRUD
     queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
@@ -4081,9 +3970,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentCla
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass({
   prototypeProperties(parent) {
-    this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+    this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
       return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
     };
   },
@@ -4093,7 +3982,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
     this.addBefore = this.getBefore = this.editBefore = this.removeBefore = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source, Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source.name, String) ? entity.source.name : undefined;
+        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(entity.source, Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(entity.source.name, String) ? entity.source.name : undefined;
       });
       return newEntities;
     };
@@ -4104,10 +3993,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
         id: Symbol()
       };
 
-      if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newTrack.position, 'integer')) {
-        let existingTracks = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.get({
+      if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(newTrack.position, 'integer')) {
+        let existingTracks = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.get({
           playlistId: newTrack.playlistId
-        }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
+        }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content);
         newTrack.position = existingTracks.length;
       }
 
@@ -4128,7 +4017,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
       //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
       //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
       await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
           log: false,
           origin: 'sj.Track.move()',
           message: 'could not order tracks, database error',
@@ -4136,13 +4025,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
           cssClass: 'notifyError'
         }));
       });
-      return await this.order(t, tracks).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+      return await this.order(t, tracks).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
     };
 
     this.addAfter = this.getAfter = this.editAfter = this.deleteAfter = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances.find(source => source.name === entity.source);
+        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances.find(source => source.name === entity.source);
       });
       return newEntities;
     }; // UTIL
@@ -4166,7 +4055,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
       inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
       if (inputTracks.length === 0) {
-        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({
+        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({
           origin: 'sj.Track.order()',
           message: 'track positions did not need to be set'
         });
@@ -4180,11 +4069,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
 
         await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(playlistId, 'integer')) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(playlistId, 'integer')) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               origin: 'sj.Track.order()',
               reason: `playlistId is not an integer: ${playlistId}`
             });
-            if (!Array.isArray(existingTracks)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+            if (!Array.isArray(existingTracks)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               origin: 'sj.Track.order()',
               reason: `existingTracks is not an array: ${existingTracks}`
             }); //C stores playlist in playlists if not already stored
@@ -4212,11 +4101,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
           const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; //C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
           //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
-          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`
+          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`
+					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = (
@@ -4226,7 +4115,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
 						)
 					`, track.id);
           const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
               log: false,
               origin: 'sj.Track.order()',
               message: 'could not move tracks'
@@ -4240,7 +4129,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
             delete t.playlistId;
           });
 
-          if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) {
+          if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) {
             //C if not switching playlists
             //C group by action
             currentPlaylistStored['inputsTo' + action].push(track);
@@ -4252,7 +4141,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
 							FROM "sj"."tracks" 
 							WHERE "playlistId" = $1
 						`, track.playlistId).catch(rejected => {
-              throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+              throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
                 log: false,
                 origin: 'sj.Track.order()',
                 message: 'could not move tracks'
@@ -4267,12 +4156,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
             anotherPlaylistStored.inputsToAdd.push(track);
           }
 
-          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
             origin: 'sj.Track.order()',
             message: "retrieved track's playlist"
           });
         }).catch(rejected => {
-          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].ErrorList({
+          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({
             origin: 'sj.Track.order() - movingTracks iterator',
             message: `could not retrieve some track's playlist`,
             content: rejected
@@ -4289,7 +4178,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
           playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
 
           playlist.inputsToPosition.forEach(trackToPosition => {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(trackToPosition.position, Number)) {
+            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(trackToPosition.position, Number)) {
               trackToPosition.position === Infinity;
             }
           }); //C sort
@@ -4360,7 +4249,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
             delete inputTrack.position;
           }
         });
-        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({
+        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({
           origin: 'sj.Track.order()',
           message: 'influenced tracks calculated',
           content: influencedTracks
@@ -4417,7 +4306,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
 
 /***/ }),
 
@@ -4700,6 +4589,7 @@ __webpack_require__.r(__webpack_exports__);
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
 //TODO this may be unrelated but it seems the liveQueries here are also piling up
+//TODO It seems like many subscriptions are being called but not as many un-subscriptions.
 
 _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmentClass({
   constructorParts: parent => ({
@@ -4970,6 +4860,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
 /* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 /* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
+/* harmony import */ var _public_js_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../public/js/constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -5021,6 +4914,9 @@ __webpack_require__.r(__webpack_exports__);
 	consider using a separate router for source-api requests (sourceRouter)
 
 	error converting sj.Track() to JSON because of circular reference
+
+	Create lint rule to not call next() without await: await next().
+		This was causing requests to return early and 404 all the time.
 */
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
@@ -5042,7 +4938,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
  // side-effects
-//  ██╗███╗   ██╗██╗████████╗
+
+
+
+ //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
 //  ██║██║╚██╗██║██║   ██║   
@@ -5103,8 +5002,21 @@ __webpack_require__.r(__webpack_exports__);
   */
   // server-side data & processing requests
 
-  apiRouter.post('/log', async (ctx, next) => {
-    console.log('CLIENT LOG:', ctx.request.body.message);
+  apiRouter.get('/*', async (ctx, next) => {
+    // Set GET request bodies as the parsed body parameter (if it exists).
+    const queryBody = ctx.request.query[_public_js_constants_js__WEBPACK_IMPORTED_MODULE_9__["GET_BODY"]];
+
+    try {
+      ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
+      await next();
+    } catch (error) {
+      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["ParseError"]({
+        message: error.message,
+        userMessage: 'Request failed due to an internal error.',
+        input: queryBody
+      });
+    }
+  }).post('/log', async (ctx, next) => {
     ctx.response.body = new _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Success({
       origin: 'routes.js /log POST',
       message: 'received client log message'
@@ -5128,7 +5040,8 @@ __webpack_require__.r(__webpack_exports__);
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.refreshToken(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).get('/youtube/credentials', async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].youtube.getCredentials().catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }) // session
+  }) //---------- session is failing with 404 not found
+  // session
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
@@ -5138,11 +5051,12 @@ __webpack_require__.r(__webpack_exports__);
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.get(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).delete('/session', async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.logout(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }) // user
+  }) //TODO condense this
+  // user
   .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.get(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
@@ -5151,7 +5065,7 @@ __webpack_require__.r(__webpack_exports__);
   .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.get(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
@@ -5160,7 +5074,7 @@ __webpack_require__.r(__webpack_exports__);
   .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.get(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeList"])(ctx.querystring)).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
@@ -5231,6 +5145,435 @@ __webpack_require__.r(__webpack_exports__);
     ctx.body = ctx.body + '.all /* reached'; //G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
   });
   return router;
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/derived-utility/fetch.js":
+/*!************************************************!*\
+  !*** ./source/shared/derived-utility/fetch.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// Dynamically imports fetch from 'node-fetch' if it is not available.
+/* harmony default export */ __webpack_exports__["default"] = (async function (...args) {
+  // Must use typeof because it won't throw a reference error. https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
+  // Fetch requires
+  if (typeof fetch === 'undefined') return Promise.resolve(/*! import() */).then(__webpack_require__.t.bind(null, /*! node-fetch */ "node-fetch", 7)).then(m => m.default(...args));else return fetch(...args);
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/derived-utility/index.js":
+/*!************************************************!*\
+  !*** ./source/shared/derived-utility/index.js ***!
+  \************************************************/
+/*! exports provided: fetch, safeStringify, urlRule */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/shared/derived-utility/fetch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "safeStringify", function() { return _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./url.js */ "./source/shared/derived-utility/url.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "urlRule", function() { return _url_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/derived-utility/safe-stringify.js":
+/*!*********************************************************!*\
+  !*** ./source/shared/derived-utility/safe-stringify.js ***!
+  \*********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
+//TODO//L Consider: https://www.npmjs.com/package/safe-stable-stringify
+//TODO//L Consider: https://www.npmjs.com/package/flatted <--- preserves circular JSON
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+  return JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(value));
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/derived-utility/url.js":
+/*!**********************************************!*\
+  !*** ./source/shared/derived-utility/url.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_validation_rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/validation/rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var valid_url__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! valid-url */ "valid-url");
+/* harmony import */ var valid_url__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(valid_url__WEBPACK_IMPORTED_MODULE_1__);
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_validation_rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (valid_url__WEBPACK_IMPORTED_MODULE_1___default.a.isWebUri(value) === undefined) {
+      throw new Error('Value is not a valid URL');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/custom-error.js":
+/*!**********************************************!*\
+  !*** ./source/shared/errors/custom-error.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('CustomError', {
+  extends: Error,
+  // Extract message from options and pass it properly to Error.
+  intercept: ({
+    message
+  } = {}) => ({
+    superArguments: [message]
+  }),
+
+  instance({
+    // User-readable message.
+    // Alternative to the native Error class' 'message' property which should not be exposed to the user by default.
+    //!//G sj.Error.message -> CustomError.userMessage, sj.Error.reason => CustomError.message
+    userMessage = ''
+  } = {}) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+      reason: {
+        value: userMessage,
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string)
+      }
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/http-error.js":
+/*!********************************************!*\
+  !*** ./source/shared/errors/http-error.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('HTTPError', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+
+  instance({
+    code = 400,
+    // HTTPS Response Status Code
+    type = 'Bad Request' // Human-readable code name.
+
+  } = {}) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+      code: {
+        value: code,
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer)
+      },
+      type: {
+        value: type,
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string)
+      }
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/index.js":
+/*!***************************************!*\
+  !*** ./source/shared/errors/index.js ***!
+  \***************************************/
+/*! exports provided: CustomError, HTTPError, InternalError, ParseError, UnexpectedValueThrown */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CustomError", function() { return _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _http_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./http-error.js */ "./source/shared/errors/http-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "HTTPError", function() { return _http_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/errors/internal-error.js":
+/*!************************************************!*\
+  !*** ./source/shared/errors/internal-error.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+// Used for errors that are caused by internal mistakes in the code. 
+// ie. Not the user's fault.
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('InternalError', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+  intercept: ({
+    userMessage = 'An internal error has occurred',
+    ...rest
+  }) => ({
+    nextArguments: {
+      userMessage,
+      ...rest
+    }
+  })
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/parse-error.js":
+/*!*********************************************!*\
+  !*** ./source/shared/errors/parse-error.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('ParseError', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+
+  instance({
+    input
+  } = {}) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      input
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/unexpected-value-thrown.js":
+/*!*********************************************************!*\
+  !*** ./source/shared/errors/unexpected-value-thrown.js ***!
+  \*********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('UnexpectedValueThrown', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+
+  instance({
+    value // The value that was thrown.
+
+  } = {}) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      value
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/propagate.js":
+/*!************************************!*\
+  !*** ./source/shared/propagate.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./derived-utility/safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+/* harmony import */ var _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+// Takes an input (which was thrown), re-throws it if its already an Error, otherwise wraps it in an error instance and throws that.
+//G Use in the final .catch() of a Promise chain to handle any unexpected values or errors thrown.
+//! Be aware of JSON.stringify()'s interaction with Error instances and non-enumerable properties:
+//L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value, overwriteOptions) {
+  if (value instanceof Error) {
+    throw value;
+  } else {
+    throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
+      message: `An unexpected value has been thrown: ${Object(_derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value)}`,
+      userMessage: 'An unexpected error has occurred.',
+      ...overwriteOptions,
+      value
+    });
+  }
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/request.js":
+/*!**********************************!*\
+  !*** ./source/shared/request.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/shared/derived-utility/index.js");
+/* harmony import */ var _propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _errors_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./errors/index.js */ "./source/shared/errors/index.js");
+// Wrapper for the fetch function.
+// Has better validations for inputs.
+// Has an extra queryParameters option that can be used to add query parameters to the URL.
+// Has an extra JSONBody option that can be used to stringify an input and use it as the body.
+// Interprets the fetch API's return values.
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (async function (method, URL, {
+  // Custom
+  queryParameters,
+  JSONBody,
+  // Fetch
+  headers = _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["constants"].JSON_HEADER,
+  body,
+  ...rest
+}) {
+  /* //!//G use UPPERCASE HTTP methods.
+  	In the fetch API, 'PATCH' is case-sensitive where GET, POST, DELETE aren't
+  	//L Its absurd, but apparently intentional: 
+  	//L https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
+  	//L https://github.com/whatwg/fetch/issues/50
+  	//L https://github.com/github/fetch/pull/243
+  */
+  // Transform jsonBody to body string.
+  if (JSONBody !== undefined) {
+    if (body !== undefined) throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["InternalError"]({
+      message: 'Request may not use both a string body and a JSONBody.'
+    });
+    body = Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["safeStringify"])(JSONBody);
+  } // Encode and append queryParameters to the URL.
+
+
+  if (queryParameters !== undefined) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].queryParameters.validate(queryParameters);
+    const encodedParameters = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeProperties"])(queryParameters);
+    URL = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["appendQueryParameters"])(URL, encodedParameters);
+  } // VALIDATION
+
+
+  _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(method);
+  _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["urlRule"].validate(URL);
+  _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].headers.validate(headers);
+  if (body !== undefined) _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].body.validate(body); // Check that rest doesn't have any unused options.
+
+  for (const key of Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(rest, {
+    own: true,
+    named: true,
+    enumerable: true,
+    inherited: false,
+    symbol: false,
+    nonEnumerable: false
+  })) {
+    if (![//L From: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+    // Except 'method', 'headers', 'body'.
+    'mode', 'credentials', 'cache', 'redirect', 'referrer', 'referrerPolicy', 'integrity', 'keepalive', 'signal'].includes(key)) {
+      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["InternalError"]({
+        message: `Request has an unused option ${key}. This is a mistake.`,
+        userMessage: 'Request failed due to an internal error.'
+      });
+    }
+  } //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+  //L When fetch throws: https://www.tjvantoll.com/2015/09/13/fetch-and-errors
+
+
+  const result = await Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["fetch"])(URL, { ...rest,
+    method,
+    headers,
+    body
+  }).catch(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]); //TODO Add custom handlers for fetch errors.
+  // Return undefined if request was successful with no content returned.
+
+  if (result.status === 204) return; //TODO Consider adding custom handlers for other return types.
+  // Extract raw and parsed results.
+  //L fetch parsing: https://developer.mozilla.org/en-US/docs/Web/API/Body/json
+
+  const rawResult = await result.clone().text().catch(rejected => {
+    // Record the raw result for easier debugging.
+    throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
+      message: 'Failed to parse fetch response as raw text.',
+      userMessage: 'Request failed.',
+      value: {
+        error: rejected,
+        rawResult
+      }
+    });
+  }); // Throw non-ok status codes.
+
+  if (!result.ok) throw Object(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rawResult); //TODO consider custom handlers for http errors (ie 404s etc.);
+  // If the parse fails, throw an error containing the raw result.
+
+  const parsedResult = await result.clone().json().catch(() => Object(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rawResult));
+  return parsedResult;
 });
 ;
 
@@ -5574,13 +5917,25 @@ function combinations(optionsObject) {
 /*!********************************************!*\
   !*** ./source/shared/utility/constants.js ***!
   \********************************************/
-/*! exports provided: MAX_32_BIT_INTEGER */
+/*! exports provided: MAX_32_BIT_INTEGER, MAX_URL_LENGTH, JSON_HEADER, URL_HEADER */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_32_BIT_INTEGER", function() { return MAX_32_BIT_INTEGER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_URL_LENGTH", function() { return MAX_URL_LENGTH; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
 const MAX_32_BIT_INTEGER = 2147483647;
+const MAX_URL_LENGTH = 2047;
+const JSON_HEADER = Object.freeze({
+  'Accept': 'application/json',
+  'Content-Type': 'application/json'
+});
+const URL_HEADER = Object.freeze({
+  'Accept': 'application/json',
+  'Content-Type': 'application/x-www-form-urlencoded'
+});
 
 /***/ }),
 
@@ -5835,6 +6190,7 @@ __webpack_require__.r(__webpack_exports__);
 					defaults to the 'input arguments'
 */
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
+//TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
 
 
 
@@ -6174,7 +6530,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     //R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
 
 
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenVariable(Class, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenProperty(Class, {
       [dynamicClass.keys.layers]: layers
     });
     /* //G//!
@@ -6371,7 +6727,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, dynamicClass, formatMs, constants, keyCode, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, dynamicClass, formatMs, constants, keyCode, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -6415,6 +6771,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"]; });
 
 /* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./uri/index.js */ "./source/shared/utility/uri/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "appendQueryParameters", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["appendQueryParameters"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeProperties"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeProperties"]; });
@@ -6749,11 +7107,13 @@ function compareUnorderedArrays(a, b, options) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* //! Duplicated functionality avoid circular dependencies:
+	keys-of.js,
+	../validation/rules/objects/object.js,
+	../validation/rules/functions.js,
+*/
 const ownKeys = function (object) {
-  /* //R//! Not using getKeysOf() here to avoid a circular dependency.
-  	define.js > Rule.js > rules.js > keys-of.js > define.js
-  	Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
-  */
+  //! Duplicated from keys-of.js
   return [...Object.getOwnPropertyNames(object), ...Object.getOwnPropertySymbols(object)];
 }; //C define is a container for less verbose versions of Object.defineProperty()
 //G if modifications are required, write a different define function
@@ -6771,6 +7131,7 @@ const ownKeys = function (object) {
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
+  // Guaranteed to be constant.
   constant(target, properties) {
     for (const key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
@@ -6784,7 +7145,8 @@ const ownKeys = function (object) {
     return target;
   },
 
-  variable(target, properties) {
+  // Same as object property assignment. //! Can be set to {writable: false}
+  property(target, properties) {
     for (const key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
         value: properties[key],
@@ -6797,6 +7159,26 @@ const ownKeys = function (object) {
     return target;
   },
 
+  // Guaranteed to be variable. //! Has an accessor-descriptor.
+  variable(target, properties) {
+    for (const key of ownKeys(properties)) {
+      let closureValue = properties[key];
+      Object.defineProperty(target, key, {
+        get() {
+          return closureValue;
+        },
+
+        set(value) {
+          closureValue = value;
+        },
+
+        enumerable: true,
+        configurable: false
+      });
+    }
+  },
+
+  // Non-enumerable versions.
   hiddenConstant(target, properties) {
     for (const key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
@@ -6810,7 +7192,7 @@ const ownKeys = function (object) {
     return target;
   },
 
-  hiddenVariable(target, properties) {
+  hiddenProperty(target, properties) {
     for (const key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
         value: properties[key],
@@ -6821,6 +7203,24 @@ const ownKeys = function (object) {
     }
 
     return target;
+  },
+
+  hiddenVariable(target, properties) {
+    for (const key of ownKeys(properties)) {
+      let closureValue = properties[key];
+      Object.defineProperty(target, key, {
+        get() {
+          return closureValue;
+        },
+
+        set(value) {
+          closureValue = value;
+        },
+
+        enumerable: false,
+        configurable: false
+      });
+    }
   },
 
   getter(target, properties) {
@@ -6888,6 +7288,42 @@ const ownKeys = function (object) {
     }
 
     return target;
+  },
+
+  validatedVariable(target, properties) {
+    //? It doesn't seem possible to modify this variable's descriptor to writable: false, because its not a data property. Wouldn't this make it even more variable-like than a variable it self? Maybe consider this approach for a 'guaranteed variable'? Then consider renaming define.variable to define.property.
+    for (const key of ownKeys(properties)) {
+      const config = properties[key]; //! Duplicated from ../validation/rules/objects/object.js
+
+      if (config === null || !(typeof config === 'object' || typeof config === 'function')) {
+        throw new Error('Config is not an object.');
+      }
+
+      const validator = config.validator; //! Duplicated from ../validation/rules/functions.js
+
+      if (typeof validator !== 'function') {
+        throw new Error('Validator is not a function.');
+      } // Create a closure value for the accessor.
+
+
+      let closureValue = config.value; // Validate the initial value.
+      //R Without the setter because these functions use 'define' semantics.
+
+      validator(closureValue);
+      Object.defineProperty(target, key, {
+        get() {
+          return closureValue;
+        },
+
+        set(value) {
+          validator(value);
+          closureValue = value;
+        },
+
+        enumerable: true,
+        configurable: false
+      });
+    }
   }
 
 });
@@ -7076,7 +7512,8 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ __webpack_exports__["default"] = (function (oldObject, keys) {
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(oldObject);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys); //R Keys can be anything, and will be converted to the proper format.
+
   const newObject = {};
 
   for (const key of keys) {
@@ -7530,6 +7967,33 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/shared/utility/uri/append-query-parameters.js":
+/*!**************************************************************!*\
+  !*** ./source/shared/utility/uri/append-query-parameters.js ***!
+  \**************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../index.js */ "./source/shared/utility/index.js");
+// Appends more query parameters to a URL that may or may not already have query parameters.
+//TODO Consider fully validating.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (url, ...queryParameters) {
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(url);
+
+  for (const queryParameter of queryParameters) {
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(queryParameter);
+  }
+
+  const appendCharacter = url.includes('?') ? '&' : '?';
+  return `${url}${appendCharacter}${queryParameters.join('&')}`;
+});
+;
+
+/***/ }),
+
 /***/ "./source/shared/utility/uri/decode-list.js":
 /*!**************************************************!*\
   !*** ./source/shared/utility/uri/decode-list.js ***!
@@ -7657,22 +8121,26 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************************!*\
   !*** ./source/shared/utility/uri/index.js ***!
   \********************************************/
-/*! exports provided: encodeProperties, decodeProperties, encodeList, decodeList */
+/*! exports provided: appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _append_query_parameters_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./append-query-parameters.js */ "./source/shared/utility/uri/append-query-parameters.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "appendQueryParameters", function() { return _append_query_parameters_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./encode-list.js */ "./source/shared/utility/uri/encode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./decode-list.js */ "./source/shared/utility/uri/decode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./encode-list.js */ "./source/shared/utility/uri/encode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./decode-list.js */ "./source/shared/utility/uri/decode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
 
 
 
@@ -7947,6 +8415,7 @@ __webpack_require__.r(__webpack_exports__);
 //TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
 //TODO ensure that validate and validateCast both return values
 //TODO rename to .validate(), .test(), .cast(), .testCast()
+//TODO consider duplicating define here, so that define can use rules
 
 
 
@@ -8091,6 +8560,32 @@ const array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
 /***/ }),
 
+/***/ "./source/shared/utility/validation/rules/boolean.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/boolean.js ***!
+  \***********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'boolean') {
+      throw new Error('Value is not a boolean.');
+    }
+  },
+
+  caster(reference) {
+    reference.value = !!reference.value;
+  }
+
+}));
+
+/***/ }),
+
 /***/ "./source/shared/utility/validation/rules/constructor.js":
 /*!***************************************************************!*\
   !*** ./source/shared/utility/validation/rules/constructor.js ***!
@@ -8139,69 +8634,223 @@ const func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
 /***/ }),
 
-/***/ "./source/shared/utility/validation/rules/index.js":
-/*!*********************************************************!*\
-  !*** ./source/shared/utility/validation/rules/index.js ***!
-  \*********************************************************/
-/*! exports provided: object, populatedObject, array, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
+/***/ "./source/shared/utility/validation/rules/http/body.js":
+/*!*************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/body.js ***!
+  \*************************************************************/
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"]; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["populatedObject"]; });
 
-/* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"]; });
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (!_strings_js__WEBPACK_IMPORTED_MODULE_1__["string"].test(value)) {
+      throw new Error('Request body is not a string.');
+    }
+  }
 
-/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/constructor.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+}));
 
-/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_3__["func"]; });
+/***/ }),
 
-/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/***/ "./source/shared/utility/validation/rules/http/headers.js":
+/*!****************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/headers.js ***!
+  \****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["number"]; });
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../objects/object.js */ "./source/shared/utility/validation/rules/objects/object.js");
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
+/* //TODO This isn't 100% complete:
+	Are non-enumerable / symbol properties used?
+	Are all strings compatible 'ByteString's?
+*/
+//R Not using the native Header interface here because it doesn't validate header names or values.
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNaNNumber"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["integer"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeNumber"]; });
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    _objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveNumber"]; });
+    for (const key in value) {
+      const headerValue = value[key]; // Header value must be a string.
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveNumber"]; });
+      _strings_js__WEBPACK_IMPORTED_MODULE_2__["string"].validate(headerValue); // Header name must not be forbidden.
+      //L Forbidden header names: https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeNumber"]; });
+      if (key.startsWith('Proxy-')) {
+        throw new Error(`The HTTP header ${key} is invalid because it starts with 'Proxy-'`);
+      }
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeInteger"]; });
+      if (key.startsWith('Sec-')) {
+        throw new Error(`The HTTP header ${key} is invalid because it starts with 'Sec-'`);
+      }
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveInteger"]; });
+      for (const forbiddenName of ['Accept-Charset', 'Accept-Encoding', 'Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Connection', 'Content-Length', 'Cookie', 'Cookie2', 'Date', 'DNT', 'Expect', 'Feature-Policy', 'Host', 'Keep-Alive', 'Origin', 'Referer', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'Via']) {
+        if (key === forbiddenName) {
+          throw new Error(`The HTTP header ${key} is forbidden.`);
+        }
+      }
+    }
+  }
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveInteger"]; });
+}));
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeInteger"]; });
+/***/ }),
 
-/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["string"]; });
+/***/ "./source/shared/utility/validation/rules/http/index.js":
+/*!**************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/index.js ***!
+  \**************************************************************/
+/*! exports provided: body, headers, queryParameters */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["trimmedString"]; });
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _body_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./body.js */ "./source/shared/utility/validation/rules/http/body.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "body", function() { return _body_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["visibleString"]; });
+/* harmony import */ var _headers_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./headers.js */ "./source/shared/utility/validation/rules/http/headers.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "headers", function() { return _headers_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["populatedString"]; });
+/* harmony import */ var _query_parameters_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./query-parameters.js */ "./source/shared/utility/validation/rules/http/query-parameters.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "queryParameters", function() { return _query_parameters_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./symbol.js */ "./source/shared/utility/validation/rules/symbol.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/http/query-parameters.js":
+/*!*************************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/query-parameters.js ***!
+  \*************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../index.js */ "./source/shared/utility/validation/rules/index.js");
+/* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/index.js */ "./source/shared/utility/object/index.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (!_index_js__WEBPACK_IMPORTED_MODULE_1__["object"].test(value)) {
+      throw new Error('Query parameters is not an object.');
+    }
+
+    Object(_object_index_js__WEBPACK_IMPORTED_MODULE_2__["forKeysOf"])(value, {
+      own: true,
+      named: true,
+      enumerable: true,
+      inherited: false,
+      symbol: false,
+      nonEnumerable: false,
+
+      callback(obj, key) {
+        const parameterValue = obj[key];
+
+        if (!(_index_js__WEBPACK_IMPORTED_MODULE_1__["string"].test(parameterValue) || _index_js__WEBPACK_IMPORTED_MODULE_1__["number"].test(parameterValue) || _index_js__WEBPACK_IMPORTED_MODULE_1__["boolean"].test(parameterValue))) {
+          throw new Error(`Query parameter '${key}' is not a string, number, or boolean.`);
+        }
+      }
+
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/index.js":
+/*!*********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/index.js ***!
+  \*********************************************************/
+/*! exports provided: body, headers, queryParameters, object, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _http_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./http/index.js */ "./source/shared/utility/validation/rules/http/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "body", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["body"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "headers", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["headers"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "queryParameters", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["queryParameters"]; });
+
+/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["object"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["populatedObject"]; });
+
+/* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_2__["array"]; });
+
+/* harmony import */ var _boolean_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./boolean.js */ "./source/shared/utility/validation/rules/boolean.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolean", function() { return _boolean_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/constructor.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_5__["func"]; });
+
+/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+
+/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["number"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNaNNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["integer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNegativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonPositiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNegativeInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonPositiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeInteger"]; });
+
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["string"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["trimmedString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["visibleString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["populatedString"]; });
+
+/* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./symbol.js */ "./source/shared/utility/validation/rules/symbol.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
 //G Include anything here that is possible to implement incorrectly, even for basic types.
 //R Rules for basic types are also useful for custom casting, errors, and consistency.
+
+
 
 
 
@@ -8812,6 +9461,17 @@ module.exports = require("socket.io");
 /***/ (function(module, exports) {
 
 module.exports = require("spotify-web-api-node");
+
+/***/ }),
+
+/***/ "valid-url":
+/*!****************************!*\
+  !*** external "valid-url" ***!
+  \****************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = require("valid-url");
 
 /***/ })
 

@@ -105,9 +105,6 @@ import {
 	asyncMap,
 	any,
 } from '../shared/utility/index.js';
-import {
-	fetch,
-} from '../public/js/derived-utility/index.js';
 import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
 import liveData from './live-data-server.js';

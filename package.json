@@ -15,6 +15,7 @@
 		"chalk": "^4.0.0",
 		"dotenv": "^6.0.0",
 		"fclone": "^1.0.11",
+		"flatted": "^2.0.2",
 		"he": "^1.2.0",
 		"koa": "^2.5.1",
 		"koa-bodyparser": "^4.2.1",
@@ -28,7 +29,8 @@
 		"sass-loader": "^8.0.2",
 		"socket.io": "^2.3.0",
 		"source-map-support": "^0.5.16",
-		"spotify-web-api-node": "^4.0.0"
+		"spotify-web-api-node": "^4.0.0",
+		"valid-url": "^1.0.9"
 	},
 	"devDependencies": {
 		"@ava/babel": "^1.0.1",

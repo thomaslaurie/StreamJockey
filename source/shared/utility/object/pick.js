@@ -10,7 +10,7 @@ import {rules} from '../validation/index.js';
 
 export default function (oldObject, keys) {
 	rules.object.validate(oldObject);
-	rules.array.validate(keys);
+	rules.array.validate(keys); //R Keys can be anything, and will be converted to the proper format.
 
 	const newObject = {};
 	for (const key of keys) {

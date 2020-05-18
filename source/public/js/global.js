@@ -93,14 +93,10 @@ import fclone from 'fclone';
 import {
 	define,
 	replaceAll,
-	encodeProperties,
 	any,
 	pick,
-	asyncMap,
 } from '../../shared/utility/index.js';
-import {
-	fetch,
-} from './derived-utility/index.js';
+import propagate from '../../shared/propagate.js';
 import * as constants from './constants.js';
 
 
@@ -215,7 +211,7 @@ sj.isType = function (input, type) {
 			//C input or input.constructorName is an instance of a constructible
 			let Target = sj[input.constructorName];
 			if (typeof Target === 'function') {
-				tempInput = new Target({log: false});
+				tempInput = new Target({log: false}); //! This is absolutely wrong, as it assumes all arguments are optional. (Caused issue where the playback argument was required for sj.Sources).
 				return true;
 			}
 			return false;
@@ -261,7 +257,7 @@ sj.isType = function (input, type) {
 };
 
 // ERROR
-sj.catchUnexpected = function (input) {
+sj.catchUnexpected = function (input) { //! this is only used in propagate
 	//C determines type of input, creates, announces, and returns a proper sj.Error object
 	//C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
 	
@@ -296,20 +292,7 @@ sj.catchUnexpected = function (input) {
 	error.announce();
 	return error;
 };
-sj.propagate = function (input, overwrite) {
-	//C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
-	if (!sj.isType(input, sj.Error)) { //C wrap any non-sj errors, let sj.Errors flow through
-		input = sj.catchUnexpected(input);
-	}
-	if (sj.isType(overwrite, Object)) { //C overwrite properties (for example making a more specific message)
-		Object.assign(input, overwrite);
-		//OLD this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
-	}
-	throw input;
-
-	//TODO //? why not just use Object.assign(input) instead?
-	//TODO better yet, why not just use a spread operator at the top?
-};
+sj.propagate = propagate;
 sj.andResolve = function (rejected) {
 	//C resolves/returns any errors thrown by sj.propagate()
 	//G someAsyncFunction().catch(sj.andResolve);
@@ -368,87 +351,6 @@ sj.rebuild = function (input, strict) {
 	}
 
 	return rebuilt;
-};
-sj.request = async function (method, url, body, headers = sj.JSON_HEADER) {
-	/* //! use UPPERCASE HTTP methods...
-		//! ...because in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't
-		//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
-		//L https://github.com/whatwg/fetch/issues/50
-		//L https://github.com/github/fetch/pull/243
-	*/
-
-	let options = {
-		method,
-		headers,
-		body,
-	};
-	if (method === 'GET') {
-		if (sj.isType(body, Object)) {
-			url += `?${encodeProperties(body)}`;
-		}
-		delete options.body;
-	} 
-	if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) { //C stringify body
-		try {
-			options.body = JSON.stringify(fclone(options.body));
-		} catch (e) {
-			//C catch stringify error (should be a cyclic reference)
-			throw new sj.Error({
-				origin: 'request()',
-				message: 'could not send request',
-				reason: e.message,
-				content: options.body,
-			});
-		}
-	}
-
-	let result = await fetch(url, options).catch(rejected => { //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-		//C catch network error
-		//L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-		//TODO properly parse
-		throw sj.propagate(rejected);
-	});
-	
-
-	//TODO sort out the codes and parsing below
-
-	//C catch ok, no content code
-	if (result.status === 204) {
-		return new sj.Success({
-			origin: 'sj.request()',
-			code: '204',
-			message: 'success',
-			reason: 'request successful, no content returned',
-		});
-	}
-
-
-	//C parse via fetch .json()
-	//L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
-	let raw = await result.clone().text();
-	let parsedResult = await result.clone().json().catch(rejected => {
-		throw sj.propagate(rejected, {content: raw});
-	});
-
-	//C catch non-ok status codes
-	if (!result.ok) {
-		//TODO properly parse
-		throw sj.propagate(parsedResult);
-	}
-
-	//C rebuild and throw if error
-	let build = function (item) {
-		item = sj.rebuild(item);
-		if (sj.isType(item, sj.Error)) {
-			throw item;
-		}
-		return item;
-	}
-	if (sj.isType(parsedResult, Array)) {
-		return await asyncMap(parsedResult, item => build(item));
-	} else {
-		return build(parsedResult);
-	}
 };
 
 // LIVE DATA
@@ -661,6 +563,7 @@ sj.Base = class Base {
 	};
 
 	this.construct = function (options = {}) {
+
 		const accessory = {options};
 
 		//C get prototype chain
@@ -2472,6 +2375,7 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 		defaults: {
 			// NEW
 			name: undefined, //! source.name is a unique identifier
+			register: false,
 			nullPrefix: '',
 			idPrefix: '',
 			
@@ -2485,12 +2389,21 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 		},
 		afterInitialize(accessory) {
 			//C add source to static source list: sj.Source.instances
-			this.constructor.instances.push(this);
+			//R Must be manually declared to register, as otherwise, temporary initializations get added and cause issue.
+			if (this.register) this.constructor.register(this);
 		},
 	}),
 	
-	staticProperties: parent => ({
+	staticProperties: (parent) => ({
 		instances: [],
+		register(source) {
+			if (!(source instanceof this)) {
+				throw new InternalError({
+					message: 'A non-Source was registered.',
+				});
+			}
+			this.instances.push(source);
+		},
 		find(name) {
 			return this.instances.find(instance => instance.name === name);
 		},

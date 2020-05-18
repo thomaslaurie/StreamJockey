@@ -16,9 +16,12 @@
         methods: {
             async submit() {
                 let result = await this.sj.session.login(this).catch(rejected => {
-                    //TODO handle error
-                    console.error(rejected);
-                });
+					//TODO handle error
+					throw rejected;
+                    // console.error(rejected); //TODO//! If the login is invalid or the quest fails for some reason, this would've still continue to the home page.
+				});
+				
+				
                 
                 //let me = one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
                 //this.$store.commit('setMe', me);

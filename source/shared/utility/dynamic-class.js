@@ -149,6 +149,7 @@
 */
 
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
+//TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
 
 import define from './object/define.js';
 import {forOwnKeysOf, getOwnKeysOf} from './object/keys-of.js';

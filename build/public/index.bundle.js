@@ -1675,7 +1675,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(function* () {
         var result = yield _this.sj.session.login(_this).catch(rejected => {
           //TODO handle error
-          console.error(rejected);
+          throw rejected; // console.error(rejected); //TODO//! If the login is invalid or the quest fails for some reason, this would've still continue to the home page.
         }); //let me = one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
         //this.$store.commit('setMe', me);
 
@@ -34514,6 +34514,160 @@ function toArray(list, index) {
 
 /***/ }),
 
+/***/ "./node_modules/valid-url/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/valid-url/index.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(module) {(function (module) {
+  'use strict';
+
+  module.exports.is_uri = is_iri;
+  module.exports.is_http_uri = is_http_iri;
+  module.exports.is_https_uri = is_https_iri;
+  module.exports.is_web_uri = is_web_iri; // Create aliases
+
+  module.exports.isUri = is_iri;
+  module.exports.isHttpUri = is_http_iri;
+  module.exports.isHttpsUri = is_https_iri;
+  module.exports.isWebUri = is_web_iri; // private function
+  // internal URI spitter method - direct from RFC 3986
+
+  var splitUri = function splitUri(uri) {
+    var splitted = uri.match(/(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/);
+    return splitted;
+  };
+
+  function is_iri(value) {
+    if (!value) {
+      return;
+    } // check for illegal characters
+
+
+    if (/[^a-z0-9\:\/\?\#\[\]\@\!\$\&\'\(\)\*\+\,\;\=\.\-\_\~\%]/i.test(value)) return; // check for hex escapes that aren't complete
+
+    if (/%[^0-9a-f]/i.test(value)) return;
+    if (/%[0-9a-f](:?[^0-9a-f]|$)/i.test(value)) return;
+    var splitted = [];
+    var scheme = '';
+    var authority = '';
+    var path = '';
+    var query = '';
+    var fragment = '';
+    var out = ''; // from RFC 3986
+
+    splitted = splitUri(value);
+    scheme = splitted[1];
+    authority = splitted[2];
+    path = splitted[3];
+    query = splitted[4];
+    fragment = splitted[5]; // scheme and path are required, though the path can be empty
+
+    if (!(scheme && scheme.length && path.length >= 0)) return; // if authority is present, the path must be empty or begin with a /
+
+    if (authority && authority.length) {
+      if (!(path.length === 0 || /^\//.test(path))) return;
+    } else {
+      // if authority is not present, the path must not start with //
+      if (/^\/\//.test(path)) return;
+    } // scheme must begin with a letter, then consist of letters, digits, +, ., or -
+
+
+    if (!/^[a-z][a-z0-9\+\-\.]*$/.test(scheme.toLowerCase())) return; // re-assemble the URL per section 5.3 in RFC 3986
+
+    out += scheme + ':';
+
+    if (authority && authority.length) {
+      out += '//' + authority;
+    }
+
+    out += path;
+
+    if (query && query.length) {
+      out += '?' + query;
+    }
+
+    if (fragment && fragment.length) {
+      out += '#' + fragment;
+    }
+
+    return out;
+  }
+
+  function is_http_iri(value, allowHttps) {
+    if (!is_iri(value)) {
+      return;
+    }
+
+    var splitted = [];
+    var scheme = '';
+    var authority = '';
+    var path = '';
+    var port = '';
+    var query = '';
+    var fragment = '';
+    var out = ''; // from RFC 3986
+
+    splitted = splitUri(value);
+    scheme = splitted[1];
+    authority = splitted[2];
+    path = splitted[3];
+    query = splitted[4];
+    fragment = splitted[5];
+    if (!scheme) return;
+
+    if (allowHttps) {
+      if (scheme.toLowerCase() != 'https') return;
+    } else {
+      if (scheme.toLowerCase() != 'http') return;
+    } // fully-qualified URIs must have an authority section that is
+    // a valid host
+
+
+    if (!authority) {
+      return;
+    } // enable port component
+
+
+    if (/:(\d+)$/.test(authority)) {
+      port = authority.match(/:(\d+)$/)[0];
+      authority = authority.replace(/:\d+$/, '');
+    }
+
+    out += scheme + ':';
+    out += '//' + authority;
+
+    if (port) {
+      out += port;
+    }
+
+    out += path;
+
+    if (query && query.length) {
+      out += '?' + query;
+    }
+
+    if (fragment && fragment.length) {
+      out += '#' + fragment;
+    }
+
+    return out;
+  }
+
+  function is_https_iri(value) {
+    return is_http_iri(value, true);
+  }
+
+  function is_web_iri(value) {
+    return is_http_iri(value) || is_https_iri(value);
+  }
+})(module);
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/module.js */ "./node_modules/webpack/buildin/module.js")(module)))
+
+/***/ }),
+
 /***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./source/public/vue/async/AsyncDelay.vue?vue&type=template&id=2583dae3&":
 /*!*************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./source/public/vue/async/AsyncDelay.vue?vue&type=template&id=2583dae3& ***!
@@ -37590,7 +37744,7 @@ function _ref() {
 /*!***************************************!*\
   !*** ./source/public/js/constants.js ***!
   \***************************************/
-/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER */
+/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -37599,6 +37753,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "API_URL", function() { return API_URL; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GET_BODY", function() { return GET_BODY; });
 var SERVER_URL = "http://localhost:3000";
 var API_URL = "".concat(SERVER_URL, "/api");
 var JSON_HEADER = Object.freeze({
@@ -37609,57 +37764,7 @@ var URL_HEADER = Object.freeze({
   'Accept': 'application/json',
   'Content-Type': 'application/x-www-form-urlencoded'
 });
-
-/***/ }),
-
-/***/ "./source/public/js/derived-utility/fetch.js":
-/*!***************************************************!*\
-  !*** ./source/public/js/derived-utility/fetch.js ***!
-  \***************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-// Dynamically imports fetch from 'node-fetch' if it is not available.
-/* harmony default export */ __webpack_exports__["default"] = (function () {
-  return _ref.apply(this, arguments);
-});
-
-function _ref() {
-  _ref = _asyncToGenerator(function* () {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    // Must use typeof because it won't throw a reference error. https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
-    // Fetch requires
-    if (typeof fetch === 'undefined') return __webpack_require__.e(/*! import() */ 0).then(__webpack_require__.t.bind(null, /*! node-fetch */ "./node_modules/node-fetch/browser.js", 7)).then(m => m.default(...args));else return fetch(...args);
-  });
-  return _ref.apply(this, arguments);
-}
-
-;
-
-/***/ }),
-
-/***/ "./source/public/js/derived-utility/index.js":
-/*!***************************************************!*\
-  !*** ./source/public/js/derived-utility/index.js ***!
-  \***************************************************/
-/*! exports provided: fetch */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/public/js/derived-utility/fetch.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
-
-
+var GET_BODY = encodeURIComponent('body');
 
 /***/ }),
 
@@ -37672,13 +37777,16 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _browser_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./browser-utility/index.js */ "./source/public/js/browser-utility/index.js");
-/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
-/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
-/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
+/* harmony import */ var moment__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(moment__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
+/* harmony import */ var he__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/derived-utility/index.js */ "./source/shared/derived-utility/index.js");
+/* harmony import */ var _browser_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./browser-utility/index.js */ "./source/public/js/browser-utility/index.js");
+/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
+/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
+/* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./server-request.js */ "./source/public/js/server-request.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37718,10 +37826,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 // BUILT-IN
-// INTERNAL
+// EXTERNAL
+
+ // INTERNAL
 
 
- // EXTERNAL
+
+
 
 
  //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -37734,27 +37845,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 //C attach external libraries to sj so that they can be used where ever sj is imported
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_3___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he = he__WEBPACK_IMPORTED_MODULE_4___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].appName = 'StreamJockey'; //  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].serverLog = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator(function* (message) {
-    //TODO Unused
-    return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/log"), {
-      message
-    });
-  });
-
-  return function (_x) {
-    return _ref.apply(this, arguments);
-  };
-}(); //   ██████╗██╗      █████╗ ███████╗███████╗
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_0___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].he = he__WEBPACK_IMPORTED_MODULE_1___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].appName = 'StreamJockey'; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -37762,8 +37855,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].serverLog = /*#__PURE__*/func
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 // ENTITY CRUD METHODS
 
-
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Entity.augmentClass({
   prototypeProperties: parent => ({
     add() {
       var _this = this;
@@ -37804,7 +37896,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this5.table), Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this5.filters.addIn)));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
       })();
     },
 
@@ -37812,7 +37904,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this6.table, "?").concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeList"])(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this6.filters.getIn)))));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
       })();
     },
 
@@ -37820,7 +37912,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this7 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('PATCH', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this7.table), Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this7.filters.editIn)));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
       })();
     },
 
@@ -37828,7 +37920,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
       var _this8 = this;
 
       return _asyncToGenerator(function* () {
-        return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/").concat(_this8.table), Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(q, _this8.filters.removeIn)));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
       })();
     }
 
@@ -37841,16 +37933,19 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
 //TODO consider a stop command? it would stop all sources and set the current source back to null
 //TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Command', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base, {
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base.makeClass('Command', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a source
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source)) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
-        origin: 'sj.Command.beforeInitialize()',
-        message: 'no source is active to receive this command',
-        reason: "sj.Command instance.source must be an sj.Source: ".concat(accessory.options.source),
-        content: accessory.options.source
-      });
+      //TODO The non-instance source casting actually seems necessary here for some reason.
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source)) {
+        throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+          origin: 'sj.Command.beforeInitialize()',
+          message: 'no source is active to receive this command',
+          reason: "sj.Command instance.source must be an sj.Source: ".concat(accessory.options.source),
+          content: accessory.options.source
+        });
+      }
     },
 
     defaults: {
@@ -37863,7 +37958,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
       this.fullResolve = function (success) {
         //C resolve collapsed commands
         this.collapsedCommands.forEach(collapsedCommand => {
-          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37875,7 +37970,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
       this.fullReject = function (error) {
         //C//! RESOLVE collapsed commands
         this.collapsedCommands.forEach(a => {
-          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37885,14 +37980,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
           origin: 'sj.Command.resolve()',
           reason: 'command.resolve called but it has not been given a resolve function'
         });
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
           origin: 'sj.Command.reject()',
           reason: 'command.reject called but it has not been given a reject function'
         });
@@ -37903,7 +37998,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
       //C otherCommand must be an sj.Command, and have the same playback-state properties
-      return _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command) && otherCommand.source === this.source;
+      return _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command) && otherCommand.source === this.source;
     },
 
     collapseCondition(otherCommand) {
@@ -37924,11 +38019,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command = _global_js__WEBPACK
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base.makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a track
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track)) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track)) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
         origin: 'sj.Start.beforeInitialize()',
         reason: 'sj.Start instance.track must be an sj.Track',
         content: accessory.options.track
@@ -37943,14 +38038,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_I
   }),
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track) //C catch non-sj.Tracks
+      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track) //C catch non-sj.Tracks
       && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
       && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
     },
 
     collapseCondition(otherCommand) {
       //C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek;
     },
 
     trigger(context) {
@@ -37959,19 +38054,19 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_I
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this10, context); //C pause all
 
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances, /*#__PURE__*/function () {
-          var _ref2 = _asyncToGenerator(function* (source) {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.instances, /*#__PURE__*/function () {
+          var _ref = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
           });
 
-          return function (_x2) {
-            return _ref2.apply(this, arguments);
+          return function (_x) {
+            return _ref.apply(this, arguments);
           };
         }()); //C change startingTrackSubscription to subscription of the new track
 
         context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
           subscription: context.state.startingTrackSubscription,
-          Entity: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track,
+          Entity: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track,
           query: {
             id: _this10.track.id
           },
@@ -37993,15 +38088,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start = _global_js__WEBPACK_I
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base.makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
   //? pause command might not have a desired progress?
+  //TODO toggle resume seems to be broken, maybe because of CORS?
+  // "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
   constructorParts: parent => ({
-    beforeInitialize(_ref3) {
+    beforeInitialize(_ref2) {
       var {
         options
-      } = _ref3;
+      } = _ref2;
       //G isPlaying must be manually set to true or false
-      if (options.isPlaying !== true && options.isPlaying !== false) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (options.isPlaying !== true && options.isPlaying !== false) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
         origin: 'sj.Toggle',
         reason: "Toggle isPlaying must be true or false: ".concat(options.isPlaying),
         content: options.isPlaying
@@ -38028,8 +38125,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_
 
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this11, context);
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances, /*#__PURE__*/function () {
-          var _ref4 = _asyncToGenerator(function* (source) {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.instances, /*#__PURE__*/function () {
+          var _ref3 = _asyncToGenerator(function* (source) {
             if (_this11.isPlaying && source === _this11.source) {
               //C resume target if resuming
               yield context.dispatch("".concat(source.name, "/resume"));
@@ -38039,8 +38136,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_
             }
           });
 
-          return function (_x3) {
-            return _ref4.apply(this, arguments);
+          return function (_x2) {
+            return _ref3.apply(this, arguments);
           };
         }());
       })();
@@ -38048,14 +38145,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle = _global_js__WEBPACK_
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base.makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
   constructorParts: parent => ({
-    beforeInitialize(_ref5) {
+    beforeInitialize(_ref4) {
       var {
         options
-      } = _ref5;
+      } = _ref4;
       //G progress must be manually set between 0 and 1\
-      if (options.progress < 0 || 1 < options.progress) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (options.progress < 0 || 1 < options.progress) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
         origin: 'sj.Seek.trigger()',
         reason: "seek progress is not a number between 0 and 1: ".concat(options.progress),
         content: options.progress
@@ -38072,7 +38169,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek = _global_js__WEBPACK_IM
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek;
     },
 
     trigger(context) {
@@ -38086,14 +38183,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek = _global_js__WEBPACK_IM
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base.makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
   constructorParts: parent => ({
-    beforeInitialize(_ref6) {
+    beforeInitialize(_ref5) {
       var {
         options
-      } = _ref6;
+      } = _ref5;
       //G volume must be manually set between 0 and 1
-      if (options.volume < 0 || 1 < options.volume) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (options.volume < 0 || 1 < options.volume) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
         origin: 'sj.Volume.trigger()',
         reason: "volume is not a number between 0 and 1: ".concat(options.volume),
         content: options.volume
@@ -38110,7 +38207,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume;
     },
 
     trigger(context) {
@@ -38119,13 +38216,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this13, context); //C adjust volume on all sources
 
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances, /*#__PURE__*/function () {
-          var _ref7 = _asyncToGenerator(function* (source) {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.instances, /*#__PURE__*/function () {
+          var _ref6 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this13.volume);
           });
 
-          return function (_x4) {
-            return _ref7.apply(this, arguments);
+          return function (_x3) {
+            return _ref6.apply(this, arguments);
           };
         }());
       })();
@@ -38134,7 +38231,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume = _global_js__WEBPACK_
   })
 }); // PLAYBACK
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base.makeClass('Playback', _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Base, {
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base.makeClass('Playback', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Base, {
   constructorParts(parent) {
     return {
       defaults: {
@@ -38214,27 +38311,27 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPAC
           */
           //C Wait for the desired state.
 
-          yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(100);
+          yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(100);
             return {
               sourceId: getters.sourceId,
               isPlaying: state.isPlaying,
               progress: state.progress
             };
           }), {
-            until(_ref9) {
+            until(_ref8) {
               var {
                 sourceId,
                 isPlaying,
                 progress
-              } = _ref9;
+              } = _ref8;
               //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
               return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
             }
 
           });
           console.log('reached');
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start command completed'
           });
@@ -38290,11 +38387,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPAC
         return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
       },
       //C state conditions for command resolution
-      isStarted: (state, _ref10) => {
+      isStarted: (state, _ref9) => {
         var {
           sourceId,
           duration
-        } = _ref10;
+        } = _ref9;
         return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration;
       } //TODO
       // isPaused:
@@ -38306,7 +38403,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback = _global_js__WEBPAC
     baseModules: {}
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback({
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback({
   //G main playback module for app
   modules: {},
   state: {
@@ -38409,7 +38506,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
           command.reject = reject;
         }); //C push command to the queue or resolve it (because it has been collapsed)
 
-        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
           origin: 'pushCommand()',
           reason: 'command was annihilated'
         })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
@@ -38439,12 +38536,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     // PLAYBACK FUNCTIONS
     //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
     // BASIC
-    start(_ref11, track) {
+    start(_ref10, track) {
       return _asyncToGenerator(function* () {
         var {
           dispatch
-        } = _ref11;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Start({
+        } = _ref10;
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start({
           source: track.source,
           //! uses track's source
           track
@@ -38452,15 +38549,15 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
       })();
     },
 
-    pause(_ref12) {
+    pause(_ref11) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
           getters: {
             desiredSource: source
           }
-        } = _ref12;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
+        } = _ref11;
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle({
           source,
           //! other non-start basic playback functions just use the current desiredPlayback source
           isPlaying: false
@@ -38468,7 +38565,22 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
       })();
     },
 
-    resume(_ref13) {
+    resume(_ref12) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters: {
+            desiredSource: source
+          }
+        } = _ref12;
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle({
+          source,
+          isPlaying: true
+        }));
+      })();
+    },
+
+    seek(_ref13, progress) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
@@ -38476,14 +38588,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref13;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek({
           source,
-          isPlaying: true
+          progress
         }));
       })();
     },
 
-    seek(_ref14, progress) {
+    volume(_ref14, volume) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
@@ -38491,23 +38603,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref14;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Seek({
-          source,
-          progress
-        }));
-      })();
-    },
-
-    volume(_ref15, volume) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          }
-        } = _ref15;
         //TODO volume should change volume on all sources
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Volume({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume({
           source,
           volume
         }));
@@ -38515,7 +38612,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     },
 
     // HIGHER LEVEL
-    toggle(_ref16) {
+    toggle(_ref15) {
       return _asyncToGenerator(function* () {
         var {
           dispatch,
@@ -38523,8 +38620,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
             desiredSource: source,
             desiredIsPlaying: isPlaying
           }
-        } = _ref16;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Toggle({
+        } = _ref15;
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle({
           source,
           isPlaying: !isPlaying
         }));
@@ -38602,7 +38699,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     */
     // ACTUAL
     sourceOrBase: (state, getters) => key => {
-      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.baseState[key];else return state[state.source.name][key];
+      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.baseState[key];else return state[state.source.name][key];
     },
     actualSource: (state, getters) => {
       return state.source;
@@ -38610,10 +38707,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     actualTrack: (state, getters, rootState, rootGetters) => {
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track)) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track)) {
         //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-        if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -38622,11 +38719,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     actualProgress: (state, getters) => {
       var progress = getters.sourceOrBase('progress');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
         //C if playing, return inferred progress
         var elapsedTime = state.clock - state[state.source.name].timestamp;
         var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
-        progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
+        progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
       }
 
       return progress;
@@ -38643,9 +38740,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     // DESIRED
     flattenPlayback: (state, getters) => key => {
       //C value starts as the actualValue
-      var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
+      var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
+      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
 
       for (var queuedCommand of state.commandQueue) {
         if (queuedCommand[key] !== undefined) value = queuedCommand[key];
@@ -38667,17 +38764,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module = new _global
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
     }
   }
 }); // SOURCE
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.augmentClass({
   constructorParts(parent) {
-    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.afterInitialize;
+    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.afterInitialize;
     return {
       defaults: {
         //TODO change these off undefined
@@ -38691,10 +38788,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
       },
 
       afterInitialize() {
-        oldAfterInitialize.call(this);
-        this.playback.state.source = this; //C push own playback module to main playback modules
+        var _this$playback;
 
-        _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
+        oldAfterInitialize.call(this); //TODO Temporary workaround because isType() doesn't handle required arguments properly.
+
+        var state = this === null || this === void 0 ? void 0 : (_this$playback = this.playback) === null || _this$playback === void 0 ? void 0 : _this$playback.state;
+        if (state != null) state.source = this; //C push own playback module to main playback modules
+
+        _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
           namespaced: true
         });
       }
@@ -38709,21 +38810,21 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
 //  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = /*#__PURE__*/function () {
-  var _ref17 = _asyncToGenerator(function* (user) {
-    return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/session"), new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.login = /*#__PURE__*/function () {
+  var _ref16 = _asyncToGenerator(function* (user) {
+    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', 'session', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
   });
 
-  return function (_x5) {
-    return _ref17.apply(this, arguments);
+  return function (_x4) {
+    return _ref16.apply(this, arguments);
   };
 }();
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/session"));
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', 'session');
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('DELETE', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/session")); //TODO reconnect socket subscriptions to update subscriber info
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('DELETE', 'session'); //TODO reconnect socket subscriptions to update subscriber info
 }); //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
@@ -38741,9 +38842,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = /*#__PURE__*
 */
 // global source objects
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
+  register: true,
 
   //? where is this being called?
   auth() {
@@ -38758,23 +38860,24 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
       	//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
       
       */
+      //TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
       //C request url
-      var requestCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/authRequestStart")); //C open spotify auth request window
+      var requestCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', 'spotify/authRequestStart'); //C open spotify auth request window
       //L https://www.w3schools.com/jsref/met_win_open.asp
 
       var authWindow = window.open(requestCredentials.authRequestURL); //C listen for response from spotify
       //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 
-      var authCredentials = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/authRequestEnd"), requestCredentials); //C automatically close window when data is received
+      var authCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', 'spotify/authRequestEnd', requestCredentials); //C automatically close window when data is received
 
       authWindow.close(); //C exchange auth code for tokens
 
-      var tokens = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('POST', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/exchangeToken"), authCredentials);
+      var tokens = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', 'spotify/exchangeToken', authCredentials);
       _this14.credentials.accessToken = tokens.accessToken;
       _this14.credentials.expires = tokens.accessToken;
       _this14.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
-      return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+      return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
         origin: 'sj.spotify.auth()',
         message: 'authorized spotify'
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
@@ -38808,19 +38911,30 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  request(method, path, body) {
+  request(method, path, content) {
     var _this15 = this;
 
     return _asyncToGenerator(function* () {
-      //C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
-      var urlPrefix = 'https://api.spotify.com/v1';
-      var token = yield _this15.getAccessToken();
+      // request() wrapper specifically fro spotify-web-api requests.
+      // Automatically gets the accessToken and applies the correct header and URL prefix.
+      // URL
+      var prefix = 'https://api.spotify.com/v1';
+      var url = "".concat(prefix, "/").concat(path); // OPTIONS
 
-      var header = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].JSON_HEADER, {
+      var options = {}; // BODY
+
+      if (method === 'GET') {
+        options.queryParameters = content;
+      } else {
+        options.JSONBody = content;
+      } // HEADER
+
+
+      var token = yield _this15.getAccessToken();
+      options.headers = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].JSON_HEADER, {
         Authorization: "Bearer ".concat(token)
       });
-
-      return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request(method, "".concat(urlPrefix, "/").concat(path), body, header);
+      return yield Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])(method, url, options);
     })();
   },
 
@@ -38836,14 +38950,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
       var that = _this16;
 
       var refresh = /*#__PURE__*/function () {
-        var _ref20 = _asyncToGenerator(function* (that) {
-          var result = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/spotify/refreshToken")).catch(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].andResolve);
+        var _ref19 = _asyncToGenerator(function* (that) {
+          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', "spotify/refreshToken").catch(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].andResolve);
 
-          if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].AuthRequired)) {
+          if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].AuthRequired)) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
-          } else if (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error)) {
-            throw _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(result);
+          } else if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error)) {
+            throw _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].propagate(result);
           } else {
             //C assign sj.spotify.credentials
             that.credentials.accessToken = result.accessToken;
@@ -38851,14 +38965,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
           }
         });
 
-        return function refresh(_x6) {
-          return _ref20.apply(this, arguments);
+        return function refresh(_x5) {
+          return _ref19.apply(this, arguments);
         };
       }(); //C if client doesn't have token or if it has expired, refresh it immediately
       //TODO reconsider this string test
 
 
-      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].visibleString.test(_this16.credentials.accessToken) || _this16.credentials.expires <= Date.now()) {
+      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(_this16.credentials.accessToken) || _this16.credentials.expires <= Date.now()) {
         yield refresh(that);
       } //C if token is soon to expire, refresh in the background, return the existing token
 
@@ -38871,18 +38985,18 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  search(_ref21) {
+  search(_ref20) {
     return _asyncToGenerator(function* () {
       var {
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref21;
+      } = _ref20;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.positiveInteger.validate(amount);
-      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('GET', 'search', {
+      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.positiveInteger.validate(amount);
+      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.request('GET', 'search', {
         q: term,
         type: 'track',
         market: 'from_token',
@@ -38904,8 +39018,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
       });
       return result.tracks.items.map(track => {
-        return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
+        return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify,
           sourceId: track.id,
           name: track.name,
           duration: track.duration_ms,
@@ -38916,7 +39030,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback({
     //G source-specific playback should be the basic playback functions that connects this app to the source's api
     actions: {
       loadPlayer(context) {
@@ -38926,14 +39040,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
             window.onSpotifyWebPlaybackSDKReady = function () {
               var player = new window.Spotify.Player({
                 //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-                name: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].appName,
+                name: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].appName,
                 getOAuthToken: function () {
                   var _getOAuthToken = _asyncToGenerator(function* (callback) {
-                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.getAccessToken();
+                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.getAccessToken();
                     callback(token);
                   });
 
-                  function getOAuthToken(_x7) {
+                  function getOAuthToken(_x6) {
                     return _getOAuthToken.apply(this, arguments);
                   }
 
@@ -38943,11 +39057,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
               });
               player.formatState = function (state) {
                 //TODO state could be anything from the callback, better validate it somehow
-                if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(state, Object)) return {};
+                if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state, Object)) return {};
                 var t = state.track_window.current_track;
                 return {
-                  track: new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track({
-                    source: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify,
+                  track: new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track({
+                    source: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify,
                     sourceId: t.id,
                     name: t.name,
                     duration: t.duration_ms,
@@ -38960,7 +39074,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
                 };
               }, player.awaitState = /*#__PURE__*/function () {
-                var _ref23 = _asyncToGenerator(function* (_ref22) {
+                var _ref22 = _asyncToGenerator(function* (_ref21) {
                   var _this17 = this;
 
                   var {
@@ -38969,13 +39083,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     success = {},
                     error = {},
                     timeoutError = {}
-                  } = _ref22;
+                  } = _ref21;
                   return new Promise( /*#__PURE__*/function () {
-                    var _ref24 = _asyncToGenerator(function* (resolve, reject) {
+                    var _ref23 = _asyncToGenerator(function* (resolve, reject) {
                       var resolved = false; //C resolved boolean is used to prevent later announcements of response objects
 
                       var callback = /*#__PURE__*/function () {
-                        var _ref25 = _asyncToGenerator(function* (state) {
+                        var _ref24 = _asyncToGenerator(function* (state) {
                           if (!resolved && stateCondition(player.formatState(state))) {
                             //C remove listener
                             _this17.removeListener('player_state_changed', callback); //C update playback state
@@ -38983,14 +39097,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
                             yield context.dispatch('updatePlayback', state); //C resolve
 
-                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success(success)); //C prevent other exit points from executing their code
+                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success(success)); //C prevent other exit points from executing their code
 
                             resolved = true;
                           }
                         });
 
-                        return function callback(_x11) {
-                          return _ref25.apply(this, arguments);
+                        return function callback(_x10) {
+                          return _ref24.apply(this, arguments);
                         };
                       }(); //C add the listener before the request is made, so that the event cannot be missed 
                       //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
@@ -39004,7 +39118,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                         if (!resolved) {
                           _this17.removeListener('player_state_changed', callback);
 
-                          reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error(_objectSpread({}, error, {
+                          reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error(_objectSpread({}, error, {
                             content: rejected
                           })));
                           resolved = true;
@@ -39017,37 +39131,37 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                       if (!resolved && stateCondition(context.state)) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success(success));
+                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success(success));
                         resolved = true;
                       } //C if timed out, reject
 
 
-                      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout);
+                      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout);
 
                       if (!resolved) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Timeout(timeoutError));
+                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Timeout(timeoutError));
                         resolved = true;
                       }
                     });
 
-                    return function (_x9, _x10) {
-                      return _ref24.apply(this, arguments);
+                    return function (_x8, _x9) {
+                      return _ref23.apply(this, arguments);
                     };
                   }());
                 });
 
-                return function (_x8) {
-                  return _ref23.apply(this, arguments);
+                return function (_x7) {
+                  return _ref22.apply(this, arguments);
                 };
               }(), //C events
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
               player.on('ready', /*#__PURE__*/function () {
-                var _ref27 = _asyncToGenerator(function* (_ref26) {
+                var _ref26 = _asyncToGenerator(function* (_ref25) {
                   var {
                     device_id
-                  } = _ref26;
+                  } = _ref25;
                   //C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
                   //L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
                   //C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
@@ -39066,12 +39180,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     player
                   }); //C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 
-                  yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('PUT', 'me/player', {
+                  yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.request('PUT', 'me/player', {
                     device_ids: [device_id],
                     play: false // keeps current playback state
 
                   }).catch(rejected => {
-                    reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                    reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
                       //code: JSON.parse(error.response).error.status,
                       origin: 'spotify.loadPlayer()',
                       message: 'spotify player could not be loaded',
@@ -39083,16 +39197,16 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                   //C starting delay
 
                   var delay = 100;
-                  yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+                  yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
                     //C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
                     //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
                     //C timeout is doubled here to work better with the doubling delay time.
                     //C using an object wrapper for the delay argument so that it can be modified between iterations
-                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(delay);
+                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(delay);
                     delay = delay * 2; //C double the delay each time
 
-                    return yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify.request('Get', 'me/player').catch(rejected => {
-                      reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                    return yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.request('Get', 'me/player').catch(rejected => {
+                      reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
                         //code: JSON.parse(error.response).error.status,
                         origin: 'spotify.loadPlayer()',
                         message: 'spotify player could not be loaded',
@@ -39109,66 +39223,66 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                     until(result) {
                       //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
                       //C this is fine, it just means that it's not ready, so just catch anything.
-                      return _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(result.device, Object) && result.device.id === device_id;
+                      return _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result.device, Object) && result.device.id === device_id;
                     },
 
-                    timeout: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout * 2
+                    timeout: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout * 2
                   }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
 
                   yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
 
                   yield context.dispatch('pause');
-                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
                     origin: 'spotify.loadPlayer()',
                     message: 'spotify player loaded',
                     content: player
                   }));
                 });
 
-                return function (_x12) {
-                  return _ref27.apply(this, arguments);
+                return function (_x11) {
+                  return _ref26.apply(this, arguments);
                 };
               }());
-              player.on('not_ready', (_ref29) => {
+              player.on('not_ready', (_ref28) => {
                 var {
                   device_id
-                } = _ref29;
+                } = _ref28;
                 //? don't know what to do here
                 console.error('not_ready', 'device_id:', device_id);
               }); //C errors
               //TODO make better handlers
               //L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 
-              player.on('initialization_error', (_ref30) => {
+              player.on('initialization_error', (_ref29) => {
                 var {
                   message
-                } = _ref30;
+                } = _ref29;
                 //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an initialization error',
                   reason: message
                 }));
               });
-              player.on('authentication_error', (_ref31) => {
+              player.on('authentication_error', (_ref30) => {
                 var {
                   message
-                } = _ref31;
+                } = _ref30;
                 //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an authentication error',
                   reason: message
                 }));
               });
-              player.on('account_error', (_ref32) => {
+              player.on('account_error', (_ref31) => {
                 var {
                   message
-                } = _ref32;
+                } = _ref31;
                 //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'this account does not have a valid Spotify Premium subscription',
@@ -39181,10 +39295,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
                 context.dispatch('updatePlayback', state);
               });
-              player.on('playback_error', (_ref33) => {
+              player.on('playback_error', (_ref32) => {
                 var {
                   message
-                } = _ref33;
+                } = _ref32;
                 //TODO this should be a listener, and not resolve or reject
                 console.error('playback_error', message);
               }); //C connect player
@@ -39193,13 +39307,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
                 //C 'returns a promise with a boolean for whether or not the connection was successful'
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
                 //! do not resolve here, the player will trigger the 'ready' event when its truly ready
-                if (!resolved) reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+                if (!resolved) reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
                   reason: 'spotify.connect() failed'
                 }));
               }, rejected => {
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Unreachable({
+                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Unreachable({
                   //C a rejection shouldn't be possible here
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
@@ -39448,7 +39562,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
 
 
           context.commit('setState', newState);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
             origin: 'spotify module command - updatePlayback()',
             message: 'spotify playback updated',
             content: newState
@@ -39461,7 +39575,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
           //C retrieves playback from api and updates it
           //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
           var state = yield context.state.player.getCurrentState().catch(rejected => {
-            throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+            throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
               log: true,
               //code: JSON.parse(rejected.response).error.status,
               origin: 'spotify.checkPlayback()',
@@ -39471,7 +39585,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
             });
           });
           yield context.dispatch('updatePlayback', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
             origin: 'spotify module command - checkPlayback()',
             message: 'spotify playback checked',
             content: context.state
@@ -39517,18 +39631,18 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
             }
           }); //TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
 
-          yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(1000);
+          yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(1000);
           return result;
         })();
       },
 
-      pause(_ref34) {
+      pause(_ref33) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref34;
+          } = _ref33;
           return yield player.awaitState({
             command: function () {
               var _command2 = _asyncToGenerator(function* () {
@@ -39556,13 +39670,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      resume(_ref35) {
+      resume(_ref34) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref35;
+          } = _ref34;
           return yield player.awaitState({
             command: function () {
               var _command3 = _asyncToGenerator(function* () {
@@ -39590,7 +39704,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      seek(_ref36, progress) {
+      seek(_ref35, progress) {
         return _asyncToGenerator(function* () {
           var {
             state,
@@ -39598,7 +39712,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
               player,
               track
             }
-          } = _ref36;
+          } = _ref35;
           var ms = progress * track.duration;
           var timeBeforeCall = Date.now();
           return yield player.awaitState({
@@ -39629,11 +39743,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
         })();
       },
 
-      volume(_ref37, volume) {
+      volume(_ref36, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref37;
+          } = _ref36;
           return yield player.awaitState({
             command: function () {
               var _command5 = _asyncToGenerator(function* () {
@@ -39664,8 +39778,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].spotify = new _global_js__WEB
     }
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source({
   name: 'youtube',
+  register: true,
   idPrefix: 'https://www.youtube.com/watch?v=',
   nullPrefix: 'https://www.youtube.com/watch',
 
@@ -39678,7 +39793,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
-      var loaded = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      var loaded = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
         log: false,
         origin: 'sj.youtube.auth()',
         reason: 'gapi loading timed out'
@@ -39700,7 +39815,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       }); //C loads gapi into global scope 
       //TODO is there any way to make this more module-like?
 
-      yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["runHTMLScript"])('https://apis.google.com/js/api.js'); //C wait for gapi
+      yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["runHTMLScript"])('https://apis.google.com/js/api.js'); //C wait for gapi
 
       yield loaded; //C remove the watcher
 
@@ -39737,10 +39852,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       var {
         apiKey,
         clientId
-      } = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].request('GET', "".concat(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].API_URL, "/youtube/credentials")); //TODO Create specific rules for each API key.
+      } = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', "youtube/credentials"); //TODO Create specific rules for each API key.
 
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(apiKey);
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(clientId); //C loads and performs authorization, short version of the code commented out below
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate(apiKey);
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate(clientId); //C loads and performs authorization, short version of the code commented out below
       //R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
 
       yield gapi.client.init({
@@ -39775,7 +39890,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
     })();
   },
 
-  request(method, path, body) {
+  request(method, path, content) {
     var _this18 = this;
 
     return _asyncToGenerator(function* () {
@@ -39792,7 +39907,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
         gapi.client.request({
           method,
           path: "/youtube/v3/".concat(path),
-          params: body
+          params: content
         }).then(resolve, reject);
       }).catch(rejected => {
         var _rejected$result, _rejected$result$erro, _rejected$result$erro2, _rejected$result$erro3, _rejected$result$erro4;
@@ -39806,7 +39921,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
           		4. Creating new keys.
           	//L See here: https://stackoverflow.com/a/27491718
           */
-          throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+          throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
             reason: 'API key is invalid.',
             message: 'YouTube credentials are invalid.',
             content: rejected
@@ -39814,11 +39929,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
         } else {
           throw rejected;
         }
-      }).catch(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+      }).catch(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].propagate);
     })();
   },
 
-  search(_ref38) {
+  search(_ref37) {
     var _this19 = this;
 
     return _asyncToGenerator(function* () {
@@ -39826,11 +39941,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref38;
+      } = _ref37;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
+      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
       //! this will drive api quotas up fast if the startIndex or amount are high (n*50)
       //!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
 
@@ -39847,7 +39962,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       var pageToken = null;
 
       while (allPageResults.length < startIndex + amount && limit > 0) {
-        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.request('GET', 'search', _objectSpread({
+        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.request('GET', 'search', _objectSpread({
           //L https://developers.google.com/youtube/v3/docs/search/list#parameters
           part: 'snippet',
           type: 'video',
@@ -39865,14 +39980,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       var searchResults = allPageResults.slice(startIndex, startIndex + amount); //C videoResults must also be searched because the contentDetails part is not available for the search request
       //L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
 
-      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.request('GET', 'videos', {
+      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.request('GET', 'videos', {
         //L https://developers.google.com/youtube/v3/docs/videos/list
         //C join the results ids
         id: searchResults.map(item => item.id.videoId).join(','),
         //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
         part: 'contentDetails'
       });
-      if (searchResults.length !== videoResult.result.items.length) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+      if (searchResults.length !== videoResult.result.items.length) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
         origin: 'youtube.search()',
         reason: 'search result length not equal to video result length',
         content: {
@@ -39882,39 +39997,39 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
       });
       videoResult.result.items.forEach((item, index) => {
         //C ensure that ids line up
-        if (searchResults[index].id.videoId !== item.id) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+        if (searchResults[index].id.videoId !== item.id) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
           origin: 'youtube.search()',
           reason: "search and video results at ".concat(index, " do not have the same id")
         }); //C append contentDetails part to the search results
 
         searchResults[index].contentDetails = item.contentDetails;
       });
-      return searchResults.map((_ref39) => {
+      return searchResults.map((_ref38) => {
         var {
           id: {
             videoId: id
           },
           snippet,
           contentDetails
-        } = _ref39;
-        return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track(_objectSpread({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube,
+        } = _ref38;
+        return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track(_objectSpread({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
           sourceId: id,
-          link: _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.idPrefix + id
+          link: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.idPrefix + id
         }, _this19.formatSnippet(snippet), {}, _this19.formatContentDetails(contentDetails)));
       });
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback({
     actions: {
       loadPlayer(context) {
         return _asyncToGenerator(function* () {
           //C load youtube iframe api
-          yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["runHTMLScript"])('https://www.youtube.com/iframe_api'); //TODO choose timeout
+          yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["runHTMLScript"])('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
-          var deferred = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+          var deferred = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
             origin: 'sj.youtube loadPlayer()',
             reason: 'youtube iframe player load timed out'
           }));
@@ -39941,8 +40056,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
                   onReady(event) {
                     return _asyncToGenerator(function* () {
                       //TODO handle error?
-                      yield context.dispatch('checkPlayback').catch(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
-                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+                      yield context.dispatch('checkPlayback').catch(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].propagate);
+                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
                         origin: 'sj.youtube loadPlayer()',
                         reason: 'youtube iframe player loaded'
                       }));
@@ -39981,7 +40096,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
           track.link = player.getVideoUrl(); //C remove the idPrefix or nullPrefix from youtube urls
           //! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 
-          track.sourceId = track.link.replace(new RegExp("".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.idPrefix), "|").concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.nullPrefix))), '');
+          track.sourceId = track.link.replace(new RegExp("".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.idPrefix), "|").concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.nullPrefix))), '');
           var playerDuration = player.getDuration(); //! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
           //C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
 
@@ -40011,21 +40126,21 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
             track.name = context.state.startingTrack.name;
             track.artists = [...context.state.startingTrack.artists];
           } else {
-            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.request('GET', 'videos', {
+            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.request('GET', 'videos', {
               id: track.sourceId,
               part: 'snippet'
             });
 
             if (video.result.items.length === 1) {
-              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatSnippet(video.result.items[0].snippet);
+              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatSnippet(video.result.items[0].snippet);
               track.name = formattedSnippet.name;
               track.artists = formattedSnippet.artists;
             }
           }
 
-          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track(track);
+          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track(track);
           context.commit('setState', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
             origin: 'youtube module action - checkPlayback()',
             message: 'youtube playback updated',
             content: state
@@ -40033,17 +40148,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
         })();
       },
 
-      baseStart(_ref40, _ref41) {
+      baseStart(_ref39, _ref40) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             },
             dispatch
-          } = _ref40;
+          } = _ref39;
           var {
             sourceId
-          } = _ref41;
+          } = _ref40;
           player.loadVideoById({
             videoId: sourceId //startSeconds
             //endSeconds
@@ -40055,45 +40170,45 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
 
       // async start(context, track) {
       // },
-      pause(_ref42) {
+      pause(_ref41) {
+        return _asyncToGenerator(function* () {
+          var {
+            state: {
+              player
+            }
+          } = _ref41;
+          player.pauseVideo(); //TODO return
+        })();
+      },
+
+      resume(_ref42) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
           } = _ref42;
-          player.pauseVideo(); //TODO return
+          player.playVideo(); //TODO return
         })();
       },
 
-      resume(_ref43) {
+      seek(_ref43, progress) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
           } = _ref43;
-          player.playVideo(); //TODO return
-        })();
-      },
-
-      seek(_ref44, progress) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            }
-          } = _ref44;
           var seconds = progress * track.duration * 0.001;
           player.seekTo(seconds, true); //TODO return
         })();
       },
 
-      volume(_ref45, volume) {
+      volume(_ref44, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref45;
+          } = _ref44;
           player.setVolume(volume * 100);
           player.unMute(); //TODO return
         })();
@@ -40103,13 +40218,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube = new _global_js__WEB
   })
 }); //TODO move inside
 
-_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatContentDetails = function (contentDetails) {
+_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails = function (contentDetails) {
   var pack = {};
-  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].moment.ISO_8601).asMilliseconds();
+  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].moment.ISO_8601).asMilliseconds();
   return pack;
-}, _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatSnippet = function (snippet) {
+}, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatSnippet = function (snippet) {
   var pack = {};
-  if (!_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(snippet, Object)) throw new _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Error({
+  if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(snippet, Object)) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
     origin: 'sj.youtube.formatSnippet()',
     reason: 'snippet is not an object'
   }); //C assuming title format of 'Artist - Title'
@@ -40134,8 +40249,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatContentDetails 
   //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
 
 
-  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he.decode(artist));
-  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].he.decode(pack.name);
+  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].he.decode(artist));
+  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].he.decode(pack.name);
   return pack;
 }; //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
 //  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
@@ -40341,7 +40456,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_2__["default"].youtube.formatContentDetails 
 	};
 */
 
-/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
 
 /***/ }),
 
@@ -40357,7 +40472,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/public/js/derived-utility/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -40580,7 +40695,8 @@ sj.isType = function (input, type) {
       if (typeof Target === 'function') {
         tempInput = new Target({
           log: false
-        });
+        }); //! This is absolutely wrong, as it assumes all arguments are optional. (Caused issue where the playback argument was required for sj.Sources).
+
         return true;
       }
 
@@ -40631,6 +40747,7 @@ sj.isType = function (input, type) {
 
 
 sj.catchUnexpected = function (input) {
+  //! this is only used in propagate
   //C determines type of input, creates, announces, and returns a proper sj.Error object
   //C use in the final Promise.catch() to handle any unexpected variables or errors that haven't been caught yet
   var error = new sj.Error({
@@ -40663,21 +40780,7 @@ sj.catchUnexpected = function (input) {
   return error;
 };
 
-sj.propagate = function (input, overwrite) {
-  //C wraps bare data caught by sj.catchUnexpected(), optionally overwrites properties
-  if (!sj.isType(input, sj.Error)) {
-    //C wrap any non-sj errors, let sj.Errors flow through
-    input = sj.catchUnexpected(input);
-  }
-
-  if (sj.isType(overwrite, Object)) {
-    //C overwrite properties (for example making a more specific message)
-    Object.assign(input, overwrite); //OLD this would recreate the trace, dont want to do this input = new input.constructor({...input, log: false, ...overwrite}); //C re-stuff, but don't announce again
-  }
-
-  throw input; //TODO //? why not just use Object.assign(input) instead?
-  //TODO better yet, why not just use a spread operator at the top?
-};
+sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"];
 
 sj.andResolve = function (rejected) {
   //C resolves/returns any errors thrown by sj.propagate()
@@ -40741,101 +40844,7 @@ sj.rebuild = function (input, strict) {
   }
 
   return rebuilt;
-};
-
-sj.request = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator(function* (method, url, body) {
-    var headers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : sj.JSON_HEADER;
-
-    /* //! use UPPERCASE HTTP methods...
-    	//! ...because in the fetch api 'PATCH' is case-sensitive where get, post, delete aren't
-    	//L its absurd, but apparently intentional: https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
-    	//L https://github.com/whatwg/fetch/issues/50
-    	//L https://github.com/github/fetch/pull/243
-    */
-    var options = {
-      method,
-      headers,
-      body
-    };
-
-    if (method === 'GET') {
-      if (sj.isType(body, Object)) {
-        url += "?".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"])(body));
-      }
-
-      delete options.body;
-    }
-
-    if (sj.isType(options.body, Object) || sj.isType(options.body, Array)) {
-      //C stringify body
-      try {
-        options.body = JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(options.body));
-      } catch (e) {
-        //C catch stringify error (should be a cyclic reference)
-        throw new sj.Error({
-          origin: 'request()',
-          message: 'could not send request',
-          reason: e.message,
-          content: options.body
-        });
-      }
-    }
-
-    var result = yield Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["fetch"])(url, options).catch(rejected => {
-      //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
-      //C catch network error
-      //L when fetch errors: https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-      //TODO properly parse
-      throw sj.propagate(rejected);
-    }); //TODO sort out the codes and parsing below
-    //C catch ok, no content code
-
-    if (result.status === 204) {
-      return new sj.Success({
-        origin: 'sj.request()',
-        code: '204',
-        message: 'success',
-        reason: 'request successful, no content returned'
-      });
-    } //C parse via fetch .json()
-    //L https://developer.mozilla.org/en-US/docs/Web/API/Body/json
-
-
-    var raw = yield result.clone().text();
-    var parsedResult = yield result.clone().json().catch(rejected => {
-      throw sj.propagate(rejected, {
-        content: raw
-      });
-    }); //C catch non-ok status codes
-
-    if (!result.ok) {
-      //TODO properly parse
-      throw sj.propagate(parsedResult);
-    } //C rebuild and throw if error
-
-
-    var build = function build(item) {
-      item = sj.rebuild(item);
-
-      if (sj.isType(item, sj.Error)) {
-        throw item;
-      }
-
-      return item;
-    };
-
-    if (sj.isType(parsedResult, Array)) {
-      return yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(parsedResult, item => build(item));
-    } else {
-      return build(parsedResult);
-    }
-  });
-
-  return function (_x3, _x4, _x5) {
-    return _ref.apply(this, arguments);
-  };
-}(); // LIVE DATA
+}; // LIVE DATA
 
 
 sj.Subscriptions = function () {
@@ -40891,7 +40900,7 @@ sj.Base = class Base {
 (function () {
   //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
   //TODO consider deep defaults
-  this.makeClass = function (name, parent, _ref2) {
+  this.makeClass = function (name, parent, _ref) {
     var {
       //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
       //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
@@ -40900,7 +40909,7 @@ sj.Base = class Base {
       prototypeProperties = parent => ({}),
       //G static properties & methods
       staticProperties = parent => ({})
-    } = _ref2;
+    } = _ref;
     //C creates a descendant class of sj.Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
     // VALIDATE
     if (!sj.isType(name, String)) throw 'sj.Base.makeClass() - cannot make class, name is not a string'; //! don't convert sj.Base to this here, it will break ChildClass.makeClass({'X', sj.Base, {...}})
@@ -40948,12 +40957,12 @@ sj.Base = class Base {
     return MadeClass;
   };
 
-  this.augmentClass = function (_ref3) {
+  this.augmentClass = function (_ref2) {
     var {
       constructorParts = parent => ({}),
       prototypeProperties = parent => ({}),
       staticProperties = parent => ({})
-    } = _ref3;
+    } = _ref2;
     //C add or overwrite existing properties with new ones
     //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
     //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
@@ -41938,7 +41947,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validate = /*#__PURE__*/function () {
-          var _ref5 = _asyncToGenerator(function* (value) {
+          var _ref4 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -41949,13 +41958,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x6) {
-            return _ref5.apply(this, arguments);
+          return function (_x3) {
+            return _ref4.apply(this, arguments);
           };
         }();
 
         this.check = /*#__PURE__*/function () {
-          var _ref6 = _asyncToGenerator(function* (value) {
+          var _ref5 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -41966,8 +41975,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x7) {
-            return _ref6.apply(this, arguments);
+          return function (_x4) {
+            return _ref5.apply(this, arguments);
           };
         }();
       }
@@ -42017,7 +42026,7 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         };
       } else {
         this.validateCast = /*#__PURE__*/function () {
-          var _ref7 = _asyncToGenerator(function* (value) {
+          var _ref6 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
             accessory.castValue = value;
 
@@ -42034,13 +42043,13 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x8) {
-            return _ref7.apply(this, arguments);
+          return function (_x5) {
+            return _ref6.apply(this, arguments);
           };
         }();
 
         this.checkCast = /*#__PURE__*/function () {
-          var _ref8 = _asyncToGenerator(function* (value) {
+          var _ref7 = _asyncToGenerator(function* (value) {
             var accessory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
             try {
@@ -42051,8 +42060,8 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
             }
           });
 
-          return function (_x9) {
-            return _ref8.apply(this, arguments);
+          return function (_x6) {
+            return _ref7.apply(this, arguments);
           };
         }();
       }
@@ -42078,12 +42087,12 @@ sj.Rule2 = sj.Base.makeClass('Rule2', sj.Base, {
         });
       },
 
-      processError(targetError, _ref9) {
+      processError(targetError, _ref8) {
         var {
           fill = this.fill,
           error,
           origin
-        } = _ref9;
+        } = _ref8;
         //C may receive custom fill, error, and origin fields from accessory at call invocation
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
@@ -42827,6 +42836,7 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
       // NEW
       name: undefined,
       //! source.name is a unique identifier
+      register: false,
       nullPrefix: '',
       idPrefix: '',
       credentials: new sj.Credentials(),
@@ -42839,12 +42849,23 @@ sj.Source = sj.Base.makeClass('Source', sj.Base, {
 
     afterInitialize(accessory) {
       //C add source to static source list: sj.Source.instances
-      this.constructor.instances.push(this);
+      //R Must be manually declared to register, as otherwise, temporary initializations get added and cause issue.
+      if (this.register) this.constructor.register(this);
     }
 
   }),
   staticProperties: parent => ({
     instances: [],
+
+    register(source) {
+      if (!(source instanceof this)) {
+        throw new InternalError({
+          message: 'A non-Source was registered.'
+        });
+      }
+
+      this.instances.push(source);
+    },
 
     find(name) {
       return this.instances.find(instance => instance.name === name);
@@ -44808,6 +44829,89 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
   }
 });
+
+/***/ }),
+
+/***/ "./source/public/js/server-request.js":
+/*!********************************************!*\
+  !*** ./source/public/js/server-request.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/derived-utility/index.js */ "./source/shared/derived-utility/index.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
+/* harmony import */ var _shared_derived_utility_url_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/derived-utility/url.js */ "./source/shared/derived-utility/url.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+// Encodes all request bodies as Flatted JSON.
+// GET requests use a reserved query parameter whereas all other requests use the body.
+
+/* //R
+	Using JSON for all server requests so that primitive types can be preserved.
+	This also applies to GET requests for consistency.
+*/
+// INTERNAL
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (_x, _x2, _x3) {
+  return _ref.apply(this, arguments);
+});
+
+function _ref() {
+  _ref = _asyncToGenerator(function* (method, url, body) {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(url); // Turn relative URL into absolute URL.
+
+    url = new URL(url, "".concat(_constants_js__WEBPACK_IMPORTED_MODULE_3__["API_URL"], "/")).toString();
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(method);
+    _shared_derived_utility_url_js__WEBPACK_IMPORTED_MODULE_5__["default"].validate(url); // Body will be stringified and is allowed to be anything.
+
+    var JSONBody; // For GET requests with a body, put the body in a query parameter.
+
+    if (method === 'GET' && body !== undefined) {
+      // Ensure the URL doesn't contain the reserved query parameter.
+      if (new RegExp("[?&]".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["escapeRegExp"])(_constants_js__WEBPACK_IMPORTED_MODULE_3__["GET_BODY"]))).test(url)) {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["HTTPError"]({
+          message: "Server request URL cannot use the query parameter '".concat(_constants_js__WEBPACK_IMPORTED_MODULE_3__["GET_BODY"], "' as it is reserved.")
+        });
+      } // Encode as flatted JSON.
+
+
+      var flattedBody = encodeURIComponent(Object(_shared_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["safeStringify"])(body));
+      url = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["appendQueryParameters"])(url, "".concat(_constants_js__WEBPACK_IMPORTED_MODULE_3__["GET_BODY"], "=").concat(flattedBody)); // Leave actualBody as undefined so that nothing is sent with the GET request.
+    } else {
+      // Otherwise put the body in the body.
+      JSONBody = body;
+    } // Ensure URL length is reasonable.
+
+
+    if (url.length > _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["constants"].MAX_URL_LENGTH) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["HTTPError"]({
+        message: "HTTP request URL has ".concat(url.length, " characters. This is longer than the recommended maximum of ").concat(MAX_URL_LENGTH, " and may not be supported in some contexts.")
+      });
+    } // Always use the JSON_HEADER for server requests.
+
+
+    return Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_4__["default"])(method, url, {
+      JSONBody,
+      headers: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["constants"].JSON_HEADER
+    });
+  });
+  return _ref.apply(this, arguments);
+}
+
+;
 
 /***/ }),
 
@@ -62342,6 +62446,501 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/shared/derived-utility/fetch.js":
+/*!************************************************!*\
+  !*** ./source/shared/derived-utility/fetch.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+// Dynamically imports fetch from 'node-fetch' if it is not available.
+/* harmony default export */ __webpack_exports__["default"] = (function () {
+  return _ref.apply(this, arguments);
+});
+
+function _ref() {
+  _ref = _asyncToGenerator(function* () {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    // Must use typeof because it won't throw a reference error. https://stackoverflow.com/questions/5113374/javascript-check-if-variable-exists-is-defined-initialized
+    // Fetch requires
+    if (typeof fetch === 'undefined') return __webpack_require__.e(/*! import() */ 0).then(__webpack_require__.t.bind(null, /*! node-fetch */ "./node_modules/node-fetch/browser.js", 7)).then(m => m.default(...args));else return fetch(...args);
+  });
+  return _ref.apply(this, arguments);
+}
+
+;
+
+/***/ }),
+
+/***/ "./source/shared/derived-utility/index.js":
+/*!************************************************!*\
+  !*** ./source/shared/derived-utility/index.js ***!
+  \************************************************/
+/*! exports provided: fetch, safeStringify, urlRule */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/shared/derived-utility/fetch.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "safeStringify", function() { return _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./url.js */ "./source/shared/derived-utility/url.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "urlRule", function() { return _url_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/derived-utility/safe-stringify.js":
+/*!*********************************************************!*\
+  !*** ./source/shared/derived-utility/safe-stringify.js ***!
+  \*********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
+/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
+//TODO//L Consider: https://www.npmjs.com/package/safe-stable-stringify
+//TODO//L Consider: https://www.npmjs.com/package/flatted <--- preserves circular JSON
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+  return JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(value));
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/derived-utility/url.js":
+/*!**********************************************!*\
+  !*** ./source/shared/derived-utility/url.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_validation_rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/validation/rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var valid_url__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! valid-url */ "./node_modules/valid-url/index.js");
+/* harmony import */ var valid_url__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(valid_url__WEBPACK_IMPORTED_MODULE_1__);
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_validation_rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (valid_url__WEBPACK_IMPORTED_MODULE_1___default.a.isWebUri(value) === undefined) {
+      throw new Error('Value is not a valid URL');
+    }
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/custom-error.js":
+/*!**********************************************!*\
+  !*** ./source/shared/errors/custom-error.js ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('CustomError', {
+  extends: Error,
+  // Extract message from options and pass it properly to Error.
+  intercept: function intercept() {
+    var {
+      message
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    return {
+      superArguments: [message]
+    };
+  },
+
+  instance() {
+    var {
+      // User-readable message.
+      // Alternative to the native Error class' 'message' property which should not be exposed to the user by default.
+      //!//G sj.Error.message -> CustomError.userMessage, sj.Error.reason => CustomError.message
+      userMessage = ''
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+      reason: {
+        value: userMessage,
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string)
+      }
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/http-error.js":
+/*!********************************************!*\
+  !*** ./source/shared/errors/http-error.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('HTTPError', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+
+  instance() {
+    var {
+      code = 400,
+      // HTTPS Response Status Code
+      type = 'Bad Request' // Human-readable code name.
+
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+      code: {
+        value: code,
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer)
+      },
+      type: {
+        value: type,
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string)
+      }
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/index.js":
+/*!***************************************!*\
+  !*** ./source/shared/errors/index.js ***!
+  \***************************************/
+/*! exports provided: CustomError, HTTPError, InternalError, ParseError, UnexpectedValueThrown */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CustomError", function() { return _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _http_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./http-error.js */ "./source/shared/errors/http-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "HTTPError", function() { return _http_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/errors/internal-error.js":
+/*!************************************************!*\
+  !*** ./source/shared/errors/internal-error.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+// Used for errors that are caused by internal mistakes in the code. 
+// ie. Not the user's fault.
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('InternalError', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+  intercept: (_ref) => {
+    var {
+      userMessage = 'An internal error has occurred'
+    } = _ref,
+        rest = _objectWithoutProperties(_ref, ["userMessage"]);
+
+    return {
+      nextArguments: _objectSpread({
+        userMessage
+      }, rest)
+    };
+  }
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/parse-error.js":
+/*!*********************************************!*\
+  !*** ./source/shared/errors/parse-error.js ***!
+  \*********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('ParseError', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+
+  instance() {
+    var {
+      input
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      input
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/errors/unexpected-value-thrown.js":
+/*!*********************************************************!*\
+  !*** ./source/shared/errors/unexpected-value-thrown.js ***!
+  \*********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('UnexpectedValueThrown', {
+  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+
+  instance() {
+    var {
+      value // The value that was thrown.
+
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      value
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/propagate.js":
+/*!************************************!*\
+  !*** ./source/shared/propagate.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./derived-utility/safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+/* harmony import */ var _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// Takes an input (which was thrown), re-throws it if its already an Error, otherwise wraps it in an error instance and throws that.
+//G Use in the final .catch() of a Promise chain to handle any unexpected values or errors thrown.
+//! Be aware of JSON.stringify()'s interaction with Error instances and non-enumerable properties:
+//L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (value, overwriteOptions) {
+  if (value instanceof Error) {
+    throw value;
+  } else {
+    throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__["default"](_objectSpread({
+      message: "An unexpected value has been thrown: ".concat(Object(_derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value)),
+      userMessage: 'An unexpected error has occurred.'
+    }, overwriteOptions, {
+      value
+    }));
+  }
+});
+;
+
+/***/ }),
+
+/***/ "./source/shared/request.js":
+/*!**********************************!*\
+  !*** ./source/shared/request.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./derived-utility/index.js */ "./source/shared/derived-utility/index.js");
+/* harmony import */ var _propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _errors_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./errors/index.js */ "./source/shared/errors/index.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+// Wrapper for the fetch function.
+// Has better validations for inputs.
+// Has an extra queryParameters option that can be used to add query parameters to the URL.
+// Has an extra JSONBody option that can be used to stringify an input and use it as the body.
+// Interprets the fetch API's return values.
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (function (_x, _x2, _x3) {
+  return _ref2.apply(this, arguments);
+});
+
+function _ref2() {
+  _ref2 = _asyncToGenerator(function* (method, URL, _ref) {
+    var {
+      // Custom
+      queryParameters,
+      JSONBody,
+      // Fetch
+      headers = _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["constants"].JSON_HEADER,
+      body
+    } = _ref,
+        rest = _objectWithoutProperties(_ref, ["queryParameters", "JSONBody", "headers", "body"]);
+
+    /* //!//G use UPPERCASE HTTP methods.
+    	In the fetch API, 'PATCH' is case-sensitive where GET, POST, DELETE aren't
+    	//L Its absurd, but apparently intentional: 
+    	//L https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
+    	//L https://github.com/whatwg/fetch/issues/50
+    	//L https://github.com/github/fetch/pull/243
+    */
+    // Transform jsonBody to body string.
+    if (JSONBody !== undefined) {
+      if (body !== undefined) throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["InternalError"]({
+        message: 'Request may not use both a string body and a JSONBody.'
+      });
+      body = Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["safeStringify"])(JSONBody);
+    } // Encode and append queryParameters to the URL.
+
+
+    if (queryParameters !== undefined) {
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].queryParameters.validate(queryParameters);
+      var encodedParameters = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["encodeProperties"])(queryParameters);
+      URL = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["appendQueryParameters"])(URL, encodedParameters);
+    } // VALIDATION
+
+
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(method);
+    _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["urlRule"].validate(URL);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].headers.validate(headers);
+    if (body !== undefined) _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].body.validate(body); // Check that rest doesn't have any unused options.
+
+    for (var key of Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(rest, {
+      own: true,
+      named: true,
+      enumerable: true,
+      inherited: false,
+      symbol: false,
+      nonEnumerable: false
+    })) {
+      if (![//L From: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch
+      // Except 'method', 'headers', 'body'.
+      'mode', 'credentials', 'cache', 'redirect', 'referrer', 'referrerPolicy', 'integrity', 'keepalive', 'signal'].includes(key)) {
+        throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["InternalError"]({
+          message: "Request has an unused option ".concat(key, ". This is a mistake."),
+          userMessage: 'Request failed due to an internal error.'
+        });
+      }
+    } //L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+    //L When fetch throws: https://www.tjvantoll.com/2015/09/13/fetch-and-errors
+
+
+    var result = yield Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["fetch"])(URL, _objectSpread({}, rest, {
+      method,
+      headers,
+      body
+    })).catch(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]); //TODO Add custom handlers for fetch errors.
+    // Return undefined if request was successful with no content returned.
+
+    if (result.status === 204) return; //TODO Consider adding custom handlers for other return types.
+    // Extract raw and parsed results.
+    //L fetch parsing: https://developer.mozilla.org/en-US/docs/Web/API/Body/json
+
+    var rawResult = yield result.clone().text().catch(rejected => {
+      // Record the raw result for easier debugging.
+      throw new _errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
+        message: 'Failed to parse fetch response as raw text.',
+        userMessage: 'Request failed.',
+        value: {
+          error: rejected,
+          rawResult
+        }
+      });
+    }); // Throw non-ok status codes.
+
+    if (!result.ok) throw Object(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rawResult); //TODO consider custom handlers for http errors (ie 404s etc.);
+    // If the parse fails, throw an error containing the raw result.
+
+    var parsedResult = yield result.clone().json().catch(() => Object(_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rawResult));
+    return parsedResult;
+  });
+  return _ref2.apply(this, arguments);
+}
+
+;
+
+/***/ }),
+
 /***/ "./source/shared/utility/array/any.js":
 /*!********************************************!*\
   !*** ./source/shared/utility/array/any.js ***!
@@ -62701,13 +63300,25 @@ function combinations(optionsObject) {
 /*!********************************************!*\
   !*** ./source/shared/utility/constants.js ***!
   \********************************************/
-/*! exports provided: MAX_32_BIT_INTEGER */
+/*! exports provided: MAX_32_BIT_INTEGER, MAX_URL_LENGTH, JSON_HEADER, URL_HEADER */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_32_BIT_INTEGER", function() { return MAX_32_BIT_INTEGER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MAX_URL_LENGTH", function() { return MAX_URL_LENGTH; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
 var MAX_32_BIT_INTEGER = 2147483647;
+var MAX_URL_LENGTH = 2047;
+var JSON_HEADER = Object.freeze({
+  'Accept': 'application/json',
+  'Content-Type': 'application/json'
+});
+var URL_HEADER = Object.freeze({
+  'Accept': 'application/json',
+  'Content-Type': 'application/x-www-form-urlencoded'
+});
 
 /***/ }),
 
@@ -62974,6 +63585,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 					defaults to the 'input arguments'
 */
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
+//TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
 
 
 
@@ -63350,7 +63962,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     //R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
 
 
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenVariable(Class, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenProperty(Class, {
       [dynamicClass.keys.layers]: layers
     });
     /* //G//!
@@ -63580,7 +64192,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, dynamicClass, formatMs, constants, keyCode, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, dynamicClass, formatMs, constants, keyCode, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -63624,6 +64236,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "wait", function() { return _time_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"]; });
 
 /* harmony import */ var _uri_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./uri/index.js */ "./source/shared/utility/uri/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "appendQueryParameters", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["appendQueryParameters"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["encodeProperties"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _uri_index_js__WEBPACK_IMPORTED_MODULE_4__["decodeProperties"]; });
@@ -63968,11 +64582,13 @@ function compareUnorderedArrays(a, b, options) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* //! Duplicated functionality avoid circular dependencies:
+	keys-of.js,
+	../validation/rules/objects/object.js,
+	../validation/rules/functions.js,
+*/
 var ownKeys = function ownKeys(object) {
-  /* //R//! Not using getKeysOf() here to avoid a circular dependency.
-  	define.js > Rule.js > rules.js > keys-of.js > define.js
-  	Out of these dependencies, keys-of.js > define.js seemed the simplest to duplicate.
-  */
+  //! Duplicated from keys-of.js
   return [...Object.getOwnPropertyNames(object), ...Object.getOwnPropertySymbols(object)];
 }; //C define is a container for less verbose versions of Object.defineProperty()
 //G if modifications are required, write a different define function
@@ -63990,6 +64606,7 @@ var ownKeys = function ownKeys(object) {
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
+  // Guaranteed to be constant.
   constant(target, properties) {
     for (var key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
@@ -64003,7 +64620,8 @@ var ownKeys = function ownKeys(object) {
     return target;
   },
 
-  variable(target, properties) {
+  // Same as object property assignment. //! Can be set to {writable: false}
+  property(target, properties) {
     for (var key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
         value: properties[key],
@@ -64016,6 +64634,30 @@ var ownKeys = function ownKeys(object) {
     return target;
   },
 
+  // Guaranteed to be variable. //! Has an accessor-descriptor.
+  variable(target, properties) {
+    var _loop = function _loop(key) {
+      var closureValue = properties[key];
+      Object.defineProperty(target, key, {
+        get() {
+          return closureValue;
+        },
+
+        set(value) {
+          closureValue = value;
+        },
+
+        enumerable: true,
+        configurable: false
+      });
+    };
+
+    for (var key of ownKeys(properties)) {
+      _loop(key);
+    }
+  },
+
+  // Non-enumerable versions.
   hiddenConstant(target, properties) {
     for (var key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
@@ -64029,7 +64671,7 @@ var ownKeys = function ownKeys(object) {
     return target;
   },
 
-  hiddenVariable(target, properties) {
+  hiddenProperty(target, properties) {
     for (var key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
         value: properties[key],
@@ -64040,6 +64682,28 @@ var ownKeys = function ownKeys(object) {
     }
 
     return target;
+  },
+
+  hiddenVariable(target, properties) {
+    var _loop2 = function _loop2(key) {
+      var closureValue = properties[key];
+      Object.defineProperty(target, key, {
+        get() {
+          return closureValue;
+        },
+
+        set(value) {
+          closureValue = value;
+        },
+
+        enumerable: false,
+        configurable: false
+      });
+    };
+
+    for (var key of ownKeys(properties)) {
+      _loop2(key);
+    }
   },
 
   getter(target, properties) {
@@ -64107,6 +64771,46 @@ var ownKeys = function ownKeys(object) {
     }
 
     return target;
+  },
+
+  validatedVariable(target, properties) {
+    var _loop3 = function _loop3(key) {
+      var config = properties[key]; //! Duplicated from ../validation/rules/objects/object.js
+
+      if (config === null || !(typeof config === 'object' || typeof config === 'function')) {
+        throw new Error('Config is not an object.');
+      }
+
+      var validator = config.validator; //! Duplicated from ../validation/rules/functions.js
+
+      if (typeof validator !== 'function') {
+        throw new Error('Validator is not a function.');
+      } // Create a closure value for the accessor.
+
+
+      var closureValue = config.value; // Validate the initial value.
+      //R Without the setter because these functions use 'define' semantics.
+
+      validator(closureValue);
+      Object.defineProperty(target, key, {
+        get() {
+          return closureValue;
+        },
+
+        set(value) {
+          validator(value);
+          closureValue = value;
+        },
+
+        enumerable: true,
+        configurable: false
+      });
+    };
+
+    //? It doesn't seem possible to modify this variable's descriptor to writable: false, because its not a data property. Wouldn't this make it even more variable-like than a variable it self? Maybe consider this approach for a 'guaranteed variable'? Then consider renaming define.variable to define.property.
+    for (var key of ownKeys(properties)) {
+      _loop3(key);
+    }
   }
 
 });
@@ -64308,7 +65012,8 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ __webpack_exports__["default"] = (function (oldObject, keys) {
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(oldObject);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys);
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys); //R Keys can be anything, and will be converted to the proper format.
+
   var newObject = {};
 
   for (var key of keys) {
@@ -64798,6 +65503,37 @@ function _ref() {
 
 /***/ }),
 
+/***/ "./source/shared/utility/uri/append-query-parameters.js":
+/*!**************************************************************!*\
+  !*** ./source/shared/utility/uri/append-query-parameters.js ***!
+  \**************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../index.js */ "./source/shared/utility/index.js");
+// Appends more query parameters to a URL that may or may not already have query parameters.
+//TODO Consider fully validating.
+
+/* harmony default export */ __webpack_exports__["default"] = (function (url) {
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(url);
+
+  for (var _len = arguments.length, queryParameters = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    queryParameters[_key - 1] = arguments[_key];
+  }
+
+  for (var queryParameter of queryParameters) {
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(queryParameter);
+  }
+
+  var appendCharacter = url.includes('?') ? '&' : '?';
+  return "".concat(url).concat(appendCharacter).concat(queryParameters.join('&'));
+});
+;
+
+/***/ }),
+
 /***/ "./source/shared/utility/uri/decode-list.js":
 /*!**************************************************!*\
   !*** ./source/shared/utility/uri/decode-list.js ***!
@@ -64925,22 +65661,26 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************************!*\
   !*** ./source/shared/utility/uri/index.js ***!
   \********************************************/
-/*! exports provided: encodeProperties, decodeProperties, encodeList, decodeList */
+/*! exports provided: appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _append_query_parameters_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./append-query-parameters.js */ "./source/shared/utility/uri/append-query-parameters.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "appendQueryParameters", function() { return _append_query_parameters_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode-properties.js */ "./source/shared/utility/uri/encode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeProperties", function() { return _encode_properties_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./encode-list.js */ "./source/shared/utility/uri/encode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _decode_properties_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./decode-properties.js */ "./source/shared/utility/uri/decode-properties.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeProperties", function() { return _decode_properties_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./decode-list.js */ "./source/shared/utility/uri/decode-list.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _encode_list_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./encode-list.js */ "./source/shared/utility/uri/encode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "encodeList", function() { return _encode_list_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _decode_list_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./decode-list.js */ "./source/shared/utility/uri/decode-list.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "decodeList", function() { return _decode_list_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
 
 
 
@@ -65237,6 +65977,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 //TODO consider adding the cast modifier onto the end of the validate/test functions like: rule.validate.cast() and rule.test.cast()
 //TODO ensure that validate and validateCast both return values
 //TODO rename to .validate(), .test(), .cast(), .testCast()
+//TODO consider duplicating define here, so that define can use rules
 
 
 
@@ -65438,6 +66179,32 @@ var array = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
 /***/ }),
 
+/***/ "./source/shared/utility/validation/rules/boolean.js":
+/*!***********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/boolean.js ***!
+  \***********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (typeof value !== 'boolean') {
+      throw new Error('Value is not a boolean.');
+    }
+  },
+
+  caster(reference) {
+    reference.value = !!reference.value;
+  }
+
+}));
+
+/***/ }),
+
 /***/ "./source/shared/utility/validation/rules/constructor.js":
 /*!***************************************************************!*\
   !*** ./source/shared/utility/validation/rules/constructor.js ***!
@@ -65486,69 +66253,223 @@ var func = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
 /***/ }),
 
-/***/ "./source/shared/utility/validation/rules/index.js":
-/*!*********************************************************!*\
-  !*** ./source/shared/utility/validation/rules/index.js ***!
-  \*********************************************************/
-/*! exports provided: object, populatedObject, array, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
+/***/ "./source/shared/utility/validation/rules/http/body.js":
+/*!*************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/body.js ***!
+  \*************************************************************/
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"]; });
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_0__["populatedObject"]; });
 
-/* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"]; });
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (!_strings_js__WEBPACK_IMPORTED_MODULE_1__["string"].test(value)) {
+      throw new Error('Request body is not a string.');
+    }
+  }
 
-/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/constructor.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+}));
 
-/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_3__["func"]; });
+/***/ }),
 
-/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/***/ "./source/shared/utility/validation/rules/http/headers.js":
+/*!****************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/headers.js ***!
+  \****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["number"]; });
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _objects_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../objects/object.js */ "./source/shared/utility/validation/rules/objects/object.js");
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
+/* //TODO This isn't 100% complete:
+	Are non-enumerable / symbol properties used?
+	Are all strings compatible 'ByteString's?
+*/
+//R Not using the native Header interface here because it doesn't validate header names or values.
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNaNNumber"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["integer"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeNumber"]; });
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    _objects_object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveNumber"]; });
+    for (var key in value) {
+      var headerValue = value[key]; // Header value must be a string.
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveNumber"]; });
+      _strings_js__WEBPACK_IMPORTED_MODULE_2__["string"].validate(headerValue); // Header name must not be forbidden.
+      //L Forbidden header names: https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeNumber"]; });
+      if (key.startsWith('Proxy-')) {
+        throw new Error("The HTTP header ".concat(key, " is invalid because it starts with 'Proxy-'"));
+      }
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonNegativeInteger"]; });
+      if (key.startsWith('Sec-')) {
+        throw new Error("The HTTP header ".concat(key, " is invalid because it starts with 'Sec-'"));
+      }
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["nonPositiveInteger"]; });
+      for (var forbiddenName of ['Accept-Charset', 'Accept-Encoding', 'Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Connection', 'Content-Length', 'Cookie', 'Cookie2', 'Date', 'DNT', 'Expect', 'Feature-Policy', 'Host', 'Keep-Alive', 'Origin', 'Referer', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'Via']) {
+        if (key === forbiddenName) {
+          throw new Error("The HTTP header ".concat(key, " is forbidden."));
+        }
+      }
+    }
+  }
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["positiveInteger"]; });
+}));
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_5__["negativeInteger"]; });
+/***/ }),
 
-/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["string"]; });
+/***/ "./source/shared/utility/validation/rules/http/index.js":
+/*!**************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/index.js ***!
+  \**************************************************************/
+/*! exports provided: body, headers, queryParameters */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["trimmedString"]; });
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _body_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./body.js */ "./source/shared/utility/validation/rules/http/body.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "body", function() { return _body_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["visibleString"]; });
+/* harmony import */ var _headers_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./headers.js */ "./source/shared/utility/validation/rules/http/headers.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "headers", function() { return _headers_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_6__["populatedString"]; });
+/* harmony import */ var _query_parameters_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./query-parameters.js */ "./source/shared/utility/validation/rules/http/query-parameters.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "queryParameters", function() { return _query_parameters_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./symbol.js */ "./source/shared/utility/validation/rules/symbol.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/http/query-parameters.js":
+/*!*************************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/http/query-parameters.js ***!
+  \*************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../index.js */ "./source/shared/utility/validation/rules/index.js");
+/* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/index.js */ "./source/shared/utility/object/index.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (!_index_js__WEBPACK_IMPORTED_MODULE_1__["object"].test(value)) {
+      throw new Error('Query parameters is not an object.');
+    }
+
+    Object(_object_index_js__WEBPACK_IMPORTED_MODULE_2__["forKeysOf"])(value, {
+      own: true,
+      named: true,
+      enumerable: true,
+      inherited: false,
+      symbol: false,
+      nonEnumerable: false,
+
+      callback(obj, key) {
+        var parameterValue = obj[key];
+
+        if (!(_index_js__WEBPACK_IMPORTED_MODULE_1__["string"].test(parameterValue) || _index_js__WEBPACK_IMPORTED_MODULE_1__["number"].test(parameterValue) || _index_js__WEBPACK_IMPORTED_MODULE_1__["boolean"].test(parameterValue))) {
+          throw new Error("Query parameter '".concat(key, "' is not a string, number, or boolean."));
+        }
+      }
+
+    });
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/utility/validation/rules/index.js":
+/*!*********************************************************!*\
+  !*** ./source/shared/utility/validation/rules/index.js ***!
+  \*********************************************************/
+/*! exports provided: body, headers, queryParameters, object, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _http_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./http/index.js */ "./source/shared/utility/validation/rules/http/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "body", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["body"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "headers", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["headers"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "queryParameters", function() { return _http_index_js__WEBPACK_IMPORTED_MODULE_0__["queryParameters"]; });
+
+/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["object"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["populatedObject"]; });
+
+/* harmony import */ var _arrays_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "array", function() { return _arrays_js__WEBPACK_IMPORTED_MODULE_2__["array"]; });
+
+/* harmony import */ var _boolean_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./boolean.js */ "./source/shared/utility/validation/rules/boolean.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "boolean", function() { return _boolean_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _constructor_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constructor.js */ "./source/shared/utility/validation/rules/constructor.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "constructor", function() { return _constructor_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _functions_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./functions.js */ "./source/shared/utility/validation/rules/functions.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "func", function() { return _functions_js__WEBPACK_IMPORTED_MODULE_5__["func"]; });
+
+/* harmony import */ var _key_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./key.js */ "./source/shared/utility/validation/rules/key.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "key", function() { return _key_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+
+/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "number", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["number"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNaNNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNaNNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "integer", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["integer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNegativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonPositiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeNumber", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeNumber"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonNegativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonNegativeInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["nonPositiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeInteger"]; });
+
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["string"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["trimmedString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["visibleString"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["populatedString"]; });
+
+/* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./symbol.js */ "./source/shared/utility/validation/rules/symbol.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "symbol", function() { return _symbol_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
 //G Include anything here that is possible to implement incorrectly, even for basic types.
 //R Rules for basic types are also useful for custom casting, errors, and consistency.
+
+
 
 
 

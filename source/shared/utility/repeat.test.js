@@ -72,7 +72,7 @@ test('function runs for specified count', async (t) => {
 		onCountout() {},
 	});
 });
-test('function runs for specified time', async (t) => { //! Flakey
+test('function runs for specified time', async (t) => { //! Flakey, x2
 	const timeout = 500;
 
 	let startTime1 = null;

@@ -51,6 +51,9 @@
 	consider using a separate router for source-api requests (sourceRouter)
 
 	error converting sj.Track() to JSON because of circular reference
+
+	Create lint rule to not call next() without await: await next().
+		This was causing requests to return early and 404 all the time.
 */
 
 
@@ -71,13 +74,21 @@ import send from 'koa-send'; //L https://github.com/koajs/send
 
 // INTERNAL
 import {
-	decodeList,
 	rules,
 } from '../shared/utility/index.js';
 import sourcePath from '../node-utility/source-path.cjs';
-import { clientIndexFileName } from '../config/project-paths.js';
+import {
+	clientIndexFileName,
+} from '../config/project-paths.js';
 import sj from './global-server.js';
 import auth from './auth.js'; // side-effects
+import {
+	GET_BODY,
+} from '../public/js/constants.js';
+import propagate from '../shared/propagate.js';
+import {
+	ParseError,
+} from '../shared/errors/index.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -143,8 +154,22 @@ export default function ({replaceIndex}) {
 	*/
 	// server-side data & processing requests
 	apiRouter
+	.get('/*', async (ctx, next) => {
+		// Set GET request bodies as the parsed body parameter (if it exists).
+		const queryBody = ctx.request.query[GET_BODY];
+		try {
+			ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
+			await next();
+		} catch (error) {
+			ctx.response.body = new ParseError({
+				message: error.message,
+				userMessage: 'Request failed due to an internal error.',
+				input: queryBody,
+			});
+		}
+	})
+
 	.post('/log', async (ctx, next) => {
-		console.log('CLIENT LOG:', ctx.request.body.message);
 		ctx.response.body = new sj.Success({
 			origin: 'routes.js /log POST',
 			message: 'received client log message',
@@ -176,7 +201,7 @@ export default function ({replaceIndex}) {
 		ctx.response.body = await sj.youtube.getCredentials().catch(sj.andResolve);
 	})
 
-
+	//---------- session is failing with 404 not found
 	// session
 	//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 	//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
@@ -192,12 +217,13 @@ export default function ({replaceIndex}) {
 	})
 
 
+	//TODO condense this
 	// user
 	.post(`/${sj.User.table}`, async (ctx, next) => {
 		ctx.response.body = await sj.User.add(ctx.request.body).catch(sj.andResolve);
 	})
 	.get(`/${sj.User.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.User.get(decodeList(ctx.querystring)).catch(sj.andResolve);
+		ctx.response.body = await sj.User.get(ctx.request.body).catch(sj.andResolve);
 	})
 	.patch(`/${sj.User.table}`, async (ctx, next) => {
 		ctx.response.body = await sj.User.edit(ctx.request.body).catch(sj.andResolve);
@@ -211,7 +237,7 @@ export default function ({replaceIndex}) {
 		ctx.response.body = await sj.Playlist.add(ctx.request.body).catch(sj.andResolve);
 	})
 	.get(`/${sj.Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Playlist.get(decodeList(ctx.querystring)).catch(sj.andResolve);
+		ctx.response.body = await sj.Playlist.get(ctx.request.body).catch(sj.andResolve);
 	})
 	.patch(`/${sj.Playlist.table}`, async (ctx, next) => {
 		ctx.response.body = await sj.Playlist.edit(ctx.request.body).catch(sj.andResolve);
@@ -225,7 +251,7 @@ export default function ({replaceIndex}) {
 		ctx.response.body = await sj.Track.add(ctx.request.body).catch(sj.andResolve);
 	})
 	.get(`/${sj.Track.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Track.get(decodeList(ctx.querystring)).catch(sj.andResolve);
+		ctx.response.body = await sj.Track.get(ctx.request.body).catch(sj.andResolve);
 	})
 	.patch(`/${sj.Track.table}`, async (ctx, next) => {
 		ctx.response.body = await sj.Track.edit(ctx.request.body).catch(sj.andResolve);

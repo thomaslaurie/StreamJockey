@@ -46,6 +46,7 @@ import {
 	keyCode,
 	rules,
 } from '../shared/utility/index.js';
+import request from '../shared/request.js';
 import sj from './global-server.js';
 
 
@@ -91,6 +92,7 @@ auth.checkRequestKey = async function (key) {
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 sj.spotify = new sj.Source({
 	name: 'spotify',
+	register: true,
     api: new SpotifyWebApi({
         //C create api object and set credentials in constructor
         clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -229,15 +231,18 @@ Object.assign(sj.spotify, {
 		let timestamp = Date.now();
 		//C exchange the auth code for tokens
 		//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-		let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', encodeProperties({
-			grant_type: 'authorization_code',
-			code: credentials.authCode,
-			redirect_uri: process.env.SPOTIFY_REDIRECT_URI, //C only used for validation, no need to make a second redirect handler
-
-			client_id: process.env.SPOTIFY_CLIENT_ID,
-			client_secret: process.env.SPOTIFY_CLIENT_SECRET,
-			// alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
-		}), sj.URL_HEADER).catch(rejected => {
+		let result = await request('POST', 'https://accounts.spotify.com/api/token', {
+			body: encodeProperties({
+				grant_type: 'authorization_code',
+				code: credentials.authCode,
+				redirect_uri: process.env.SPOTIFY_REDIRECT_URI, //C only used for validation, no need to make a second redirect handler
+	
+				client_id: process.env.SPOTIFY_CLIENT_ID,
+				client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+				// alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+			}),
+			headers: sj.URL_HEADER,
+		}).catch(rejected => {
 			throw new sj.Error({
 				log: true,
 				message: 'failed to authorize spotify',
@@ -274,13 +279,16 @@ Object.assign(sj.spotify, {
 
 		//C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 		let timestamp = Date.now();
-		let result = await sj.request('POST', 'https://accounts.spotify.com/api/token', encodeProperties({
-			grant_type: 'refresh_token',
-			refresh_token: refreshToken,
-			
-			client_id: process.env.SPOTIFY_CLIENT_ID,
-			client_secret: process.env.SPOTIFY_CLIENT_SECRET,
-		}), sj.URL_HEADER).catch(rejected => {
+		let result = await request('POST', 'https://accounts.spotify.com/api/token', {
+			body: encodeProperties({
+				grant_type: 'refresh_token',
+				refresh_token: refreshToken,
+				
+				client_id: process.env.SPOTIFY_CLIENT_ID,
+				client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+			}), 
+			headers: sj.URL_HEADER,
+		}).catch(rejected => {
 			throw new sj.Error({
 				log: true,
 				message: 'failed to authorize spotify',
@@ -307,6 +315,7 @@ Object.assign(sj.spotify, {
 
 sj.youtube = new sj.Source({
 	name: 'youtube',
+	register: true,
 });
 Object.assign(sj.youtube, {
 	getCredentials: async () => ({

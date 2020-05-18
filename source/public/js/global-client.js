@@ -33,6 +33,10 @@
 
 // BUILT-IN
 
+// EXTERNAL
+import moment from 'moment';
+import he from 'he';
+
 // INTERNAL
 import { 
 	clamp, 
@@ -42,20 +46,23 @@ import {
 	asyncMap,
 	wait,
 	Deferred,
-	encodeList,
 	one,
 	any,
 	repeat,
 	rules,
+	appendQueryParameters,
 } from '../../shared/utility/index.js';
 import {
-	runHTMLScript
+	safeStringify,
+} from '../../shared/derived-utility/index.js';
+import {
+	runHTMLScript,
 } from './browser-utility/index.js';
 import sj from './global.js';
+import request from '../../shared/request.js';
+import serverRequest from './server-request.js';
 
-// EXTERNAL
-import moment from 'moment';
-import he from 'he';
+
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
@@ -72,18 +79,6 @@ import he from 'he';
 sj.moment = moment;
 sj.he = he;
 sj.appName = 'StreamJockey';
-
-
-//  ██╗   ██╗████████╗██╗██╗     ██╗████████╗██╗   ██╗
-//  ██║   ██║╚══██╔══╝██║██║     ██║╚══██╔══╝╚██╗ ██╔╝
-//  ██║   ██║   ██║   ██║██║     ██║   ██║    ╚████╔╝ 
-//  ██║   ██║   ██║   ██║██║     ██║   ██║     ╚██╔╝  
-//  ╚██████╔╝   ██║   ██║███████╗██║   ██║      ██║   
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝╚═╝   ╚═╝      ╚═╝   
-
-sj.serverLog = async function (message) { //TODO Unused
-	return await sj.request('POST', `${sj.API_URL}/log`, {message});
-};
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -111,29 +106,30 @@ sj.Entity.augmentClass({
 	}),
 	staticProperties: parent => ({
 		async add(query) {
-			return await sj.request(
-				'POST', 
-				`${sj.API_URL}/${this.table}`, 
-				any(query).map((q) => pick(q, this.filters.addIn))
+			return await serverRequest(
+				'POST',
+				this.table,
+				any(query).map((q) => pick(q, this.filters.addIn)),
 			);
 		},
 		async get(query) {
-			return await sj.request(
-				'GET', 
-				`${sj.API_URL}/${this.table}?${encodeList(any(query).map((q) => pick(q, this.filters.getIn)))}`
+			return await serverRequest(
+				'GET',
+				this.table,
+				any(query).map((q) => pick(q, this.filters.getIn)),
 			);
 		},
 		async edit(query) {
-			return await sj.request(
+			return await serverRequest(
 				'PATCH', 
-				`${sj.API_URL}/${this.table}`, 
+				this.table,
 				any(query).map((q) => pick(q, this.filters.editIn))
 			);
 		},
 		async remove(query) {
-			return await sj.request(
+			return await serverRequest(
 				'DELETE', 
-				`${sj.API_URL}/${this.table}`, 
+				this.table,
 				any(query).map((q) => pick(q,  this.filters.removeIn))
 			);
 		},
@@ -152,12 +148,15 @@ sj.Command = sj.Base.makeClass('Command', sj.Base, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a source
-			if (!sj.isType(accessory.options.source, sj.Source)) throw new sj.Error({
-				origin: 'sj.Command.beforeInitialize()',
-				message: 'no source is active to receive this command',
-				reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
-				content: accessory.options.source,
-			});
+			//TODO The non-instance source casting actually seems necessary here for some reason.
+			if (!sj.isType(accessory.options.source, sj.Source)) {
+				throw new sj.Error({
+					origin: 'sj.Command.beforeInitialize()',
+					message: 'no source is active to receive this command',
+					reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
+					content: accessory.options.source,
+				});
+			}
 		},
 		defaults: {
 			source: undefined,
@@ -281,6 +280,8 @@ sj.Start = sj.Base.makeClass('Start', sj.Command, {
 });
 sj.Toggle = sj.Base.makeClass('Toggle', sj.Command, {
 	//? pause command might not have a desired progress?
+	//TODO toggle resume seems to be broken, maybe because of CORS?
+	// "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G isPlaying must be manually set to true or false
@@ -910,7 +911,9 @@ sj.Source.augmentClass({
 			afterInitialize() {
 				oldAfterInitialize.call(this);
 
-				this.playback.state.source = this;
+				//TODO Temporary workaround because isType() doesn't handle required arguments properly.
+				const state = this?.playback?.state;
+				if (state != null) state.source = this;
 	
 				//C push own playback module to main playback modules
 				sj.Playback.module.modules[this.name] = {
@@ -931,14 +934,14 @@ sj.Source.augmentClass({
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 sj.session.login = async function (user) {
-	return await sj.request('POST', `${sj.API_URL}/session`, new sj.User(user));
+	return await serverRequest('POST', 'session', new sj.User(user));
 	//TODO reconnect socket subscriptions to update subscriber info
 };
 sj.session.get = async function () {
-    return await sj.request('GET', `${sj.API_URL}/session`);
+    return await serverRequest('GET', 'session');
 };
 sj.session.logout = async function () {
-	return await sj.request('DELETE', `${sj.API_URL}/session`);
+	return await serverRequest('DELETE', 'session');
 	//TODO reconnect socket subscriptions to update subscriber info
 };
 
@@ -963,6 +966,7 @@ sj.session.logout = async function () {
 sj.spotify = new sj.Source({
 	//TODO make apiReady and playerReady checks
 	name: 'spotify',
+	register: true,
 	
 	
 	//? where is this being called?
@@ -974,9 +978,10 @@ sj.spotify = new sj.Source({
 			//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
 	
 		*/
+		//TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
 	
 		//C request url
-		const requestCredentials = await sj.request('GET', `${sj.API_URL}/spotify/authRequestStart`);
+		const requestCredentials = await serverRequest('GET', 'spotify/authRequestStart');
 	
 		//C open spotify auth request window
 		//L https://www.w3schools.com/jsref/met_win_open.asp
@@ -984,13 +989,13 @@ sj.spotify = new sj.Source({
 	
 		//C listen for response from spotify
 		//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-		const authCredentials = await sj.request('POST', `${sj.API_URL}/spotify/authRequestEnd`, requestCredentials);
+		const authCredentials = await serverRequest('POST', 'spotify/authRequestEnd', requestCredentials);
 	
 		//C automatically close window when data is received
 		authWindow.close();
 	
 		//C exchange auth code for tokens
-		const tokens = await sj.request('POST', `${sj.API_URL}/spotify/exchangeToken`, authCredentials);
+		const tokens = await serverRequest('POST', 'spotify/exchangeToken', authCredentials);
 		this.credentials.accessToken = tokens.accessToken;
 		this.credentials.expires = tokens.accessToken;
 		this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
@@ -1029,16 +1034,32 @@ sj.spotify = new sj.Source({
 			});
 		*/
 	},
-	async request(method, path, body) {
-		//C wrapper for sj.request() meant for spotify-web-api requests, automatically gets the accessToken and applies the correct header, and url prefix
-		let urlPrefix = 'https://api.spotify.com/v1';
-		let token = await this.getAccessToken();
-		let header = {
+	async request(method, path, content) {
+		// request() wrapper specifically fro spotify-web-api requests.
+		// Automatically gets the accessToken and applies the correct header and URL prefix.
+
+		// URL
+		const prefix = 'https://api.spotify.com/v1';
+		const url = `${prefix}/${path}`;
+
+		// OPTIONS
+		const options = {};
+
+		// BODY
+		if (method === 'GET') {
+			options.queryParameters = content;
+		} else {
+			options.JSONBody = content;
+		}
+
+		// HEADER
+		const token = await this.getAccessToken();
+		options.headers = {
 			...sj.JSON_HEADER,
 			Authorization: `Bearer ${token}`,
 		};
-	
-		return await sj.request(method, `${urlPrefix}/${path}`, body, header);
+
+		return await request(method, url, options);
 	},
 	//? this is specific to spotify, maybe move this once optional options are implemented into classes
 	async getAccessToken() {
@@ -1050,7 +1071,7 @@ sj.spotify = new sj.Source({
 		//C refresh
 		let that = this;
 		let refresh = async function (that) {
-			let result = await sj.request('GET', `${sj.API_URL}/spotify/refreshToken`).catch(sj.andResolve);
+			let result = await serverRequest('GET', `spotify/refreshToken`).catch(sj.andResolve);
 			if (sj.isType(result, sj.AuthRequired)) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
@@ -1744,6 +1765,7 @@ sj.spotify = new sj.Source({
 });
 sj.youtube = new sj.Source({
 	name: 'youtube',
+	register: true,
 	idPrefix:	'https://www.youtube.com/watch?v=',
 	nullPrefix:	'https://www.youtube.com/watch',
 	
@@ -1813,7 +1835,7 @@ sj.youtube = new sj.Source({
 		});
 
 		//C get apiKey and clientId stored on server
-		const {apiKey, clientId} = await sj.request('GET', `${sj.API_URL}/youtube/credentials`);
+		const {apiKey, clientId} = await serverRequest('GET', `youtube/credentials`);
 
 		//TODO Create specific rules for each API key.
 		rules.string.validate(apiKey);
@@ -1856,7 +1878,7 @@ sj.youtube = new sj.Source({
 			await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
 		*/
 	},
-	async request(method, path, body) {
+	async request(method, path, content) {
 		//C check that user is authorized (signedIn)
 		//TODO how do I check that the client library is loaded?
 		if (!window?.gapi?.auth2?.getAuthInstance?.()?.isSignedIn?.get?.()) {
@@ -1868,7 +1890,7 @@ sj.youtube = new sj.Source({
 			gapi.client.request({
 				method,
 				path: `/youtube/v3/${path}`,
-				params: body,
+				params: content,
 			}).then(resolve, reject);
 		}).catch((rejected) => {
 			if (

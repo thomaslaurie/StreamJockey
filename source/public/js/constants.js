@@ -8,3 +8,4 @@ export const URL_HEADER = Object.freeze({
 	'Accept': 'application/json',
 	'Content-Type': 'application/x-www-form-urlencoded',
 });
+export const GET_BODY = encodeURIComponent('body');

@@ -27,6 +27,8 @@ import sj from '../public/js/global.js';
 
 //TODO this may be unrelated but it seems the liveQueries here are also piling up
 
+//TODO It seems like many subscriptions are being called but not as many un-subscriptions.
+
 sj.Subscription.augmentClass({
 	constructorParts: parent => ({
 		defaults: {
