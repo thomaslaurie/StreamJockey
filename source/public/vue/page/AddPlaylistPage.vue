@@ -24,7 +24,7 @@
 				}).then(this.sj.content).then(one).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
-                })
+				});
                 this.$router.push(`/playlist/${playlist.id}`);
             },
         },

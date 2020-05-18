@@ -309,50 +309,6 @@ sj.content = function (resolved) {
 	return resolved.content;
 };
 
-// HTTP
-sj.rebuild = function (input, strict) {
-	//C turns a bare object back into its custom class if it has a valid constructorName property
-
-	if (sj.isType(input, String)) { //C parse if string
-		try {
-			input = JSON.parse(input);
-		} catch (e) {
-			return new sj.Error({
-				log: true,
-				origin: 'sj.rebuild()',
-				message: 'failed to recreate object',
-				reason: e,
-				content: input,
-			});
-		}
-	}
-	if (!sj.isType(input, Object)) { //C throw if not object
-		return new sj.Error({
-			log: true,
-			origin: 'sj.rebuild()',
-			message: 'failed to recreate object',
-			reason: 'data is not an object',
-			content: input,
-		});
-	}
-
-
-	let rebuilt = input;
-	if (sj.isType(input, sj.Base)) { //C rebuild if possible
-		rebuilt = new sj[input.constructorName](input);
-	} else if (strict) { //C throw if not possible and strict
-		return new sj.Error({
-			log: true,
-			origin: 'sj.rebuild()',
-			message: 'failed to recreate object',
-			reason: 'object is not a valid sj.Base',
-			content: input,
-		});
-	}
-
-	return rebuilt;
-};
-
 // LIVE DATA
 sj.Subscriptions = function () {
 	//C creates an array for each Entity type
@@ -508,19 +464,9 @@ sj.Base = class Base {
 		content: {},
 	};
 	this.allowUnknown = false;
-	this.beforeInitialize = function (accessory) {
-		//C rebuild content if is of type sj.Base
-		//!//G all classes are responsible for rebuilding their other properties if they are also sj.Base class instances
-		if (sj.isType(accessory.options.content, sj.Base)) {
-			accessory.options.content = sj.rebuild(accessory.options.content);
-		} else if (sj.isType(accessory.options.content, Array)) {
-			accessory.options.content.forEach((item, i, list) => {
-				if (sj.isType(item, sj.Base)) list[i] = sj.rebuild(item);
-			});
-		}
-	};
 	this.afterInitialize = function (accessory) {
 	};
+	this.beforeInitialize = function (accessory) {};
 
 	this.trace = function () {
 		try {

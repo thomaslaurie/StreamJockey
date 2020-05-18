@@ -113,19 +113,9 @@ class Base{
 		content: {},
 	};
 	this.allowUnknown = false;
-	this.beforeInitialize = function (accessory) {
-		//C rebuild content if is of type Base
-		//!//G all classes are responsible for rebuilding their other properties if they are also Base class instances
-		if (accessory.options.content instanceof Base) {
-			accessory.options.content = sj.rebuild(accessory.options.content);
-		} else if (accessory.options.content instanceof Array) {
-			accessory.options.content.forEach((item, i, list) => {
-				if (item instanceof Base) list[i] = sj.rebuild(item);
-			});
-		}
-	};
 	this.afterInitialize = function (accessory) {
 	};
+	this.beforeInitialize = function (accessory) {};
 
 	this.trace = function () {
 		try {
