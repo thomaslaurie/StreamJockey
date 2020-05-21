@@ -92,13 +92,16 @@ import fclone from 'fclone';
 // INTERNAL
 import {
 	define,
-	replaceAll,
 	any,
 	pick,
 } from '../../shared/utility/index.js';
-import Base from '../../shared/base.js';
+import Base from '../../shared/legacy-classes/base.js';
 import propagate from '../../shared/propagate.js';
 import * as constants from './constants.js';
+import {
+	Err,
+	ErrorList,
+} from '../../shared/legacy-classes/error.js';
 
 
 
@@ -315,26 +318,9 @@ sj.Subscriptions = function () {
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
 
 // ERROR
-sj.Error = Base.makeClass('Error', Base, {
-	constructorParts: parent => ({
-		defaults: {
-			// OVERWRITE
-			log: true, //TODO remove log: true from errors
-			code: 400,
-			type: 'Bad Request',
-		},
-	}),
-});
-sj.ErrorList = Base.makeClass('ErrorList', sj.Error, {
-	constructorParts: parent => ({
-		//C wrapper for an array with one or more errors
-		defaults: {
-			// OVERWRITE
-			reason: 'one or more errors occurred with items',
-			content: [],
-		},
-	}),
-});
+sj.Error = Err;
+sj.ErrorList = ErrorList;
+
 // CUSTOM ERROR
 sj.SilentError = Base.makeClass('SilentError', sj.Error, {
 	constructorParts: parent => ({

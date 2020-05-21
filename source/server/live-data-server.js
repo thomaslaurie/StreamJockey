@@ -13,7 +13,7 @@ import fclone from 'fclone';
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 //! depends on the common global.js not the global-server.js because global-server.js uses this module
 import sj from '../public/js/global.js';
-import Base from '../shared/base.js';
+import Base from '../shared/legacy-classes/base.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗

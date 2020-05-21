@@ -11,7 +11,7 @@
 
 import {
 	pick,
-} from './utility/index.js';
+} from '../utility/index.js';
 
 class Base {
 	constructor(options) {

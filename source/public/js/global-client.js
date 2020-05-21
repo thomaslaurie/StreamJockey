@@ -61,7 +61,7 @@ import {
 import sj from './global.js';
 import request from '../../shared/request.js';
 import serverRequest from './server-request.js';
-import Base from '../../shared/base.js';
+import Base from '../../shared/legacy-classes/base.js';
 
 
 
