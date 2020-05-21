@@ -541,41 +541,12 @@ sj.Subscriptions = function () {
 
 
 sj.Error = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"];
-sj.ErrorList = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]; // CUSTOM ERROR
+sj.ErrorList = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]; // CUSTOM ERRORS
 
-sj.SilentError = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('SilentError', sj.Error, {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      log: false
-    }
-  })
-});
-sj.AuthRequired = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('AuthRequired', sj.Error, {
-  //C used to communicate to client that the server does not have the required tokens and that the client must authorize
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      message: 'authorization required'
-    }
-  })
-});
-sj.Unreachable = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Unreachable', sj.Error, {
-  //C used to indicate an unreachable place in the code
-  constructorParts: parent => ({
-    defaults: {
-      message: 'code reached a place that should be unreachable'
-    }
-  })
-});
-sj.Timeout = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Timeout', sj.Error, {
-  //C used to indicate a timed-out function
-  constructorParts: parent => ({
-    defaults: {
-      message: 'request timed out'
-    }
-  })
-}); // RULE
+sj.SilentError = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"];
+sj.AuthRequired = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["AuthRequired"];
+sj.Unreachable = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Unreachable"];
+sj.Timeout = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Timeout"]; // RULE
 
 sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   //G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
@@ -5171,13 +5142,17 @@ Base.construct = function (options = {}) {
 /*!***********************************************!*\
   !*** ./source/shared/legacy-classes/error.js ***!
   \***********************************************/
-/*! exports provided: Err, ErrorList */
+/*! exports provided: Err, ErrorList, SilentError, AuthRequired, Unreachable, Timeout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Err", function() { return Err; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ErrorList", function() { return ErrorList; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SilentError", function() { return SilentError; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AuthRequired", function() { return AuthRequired; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Unreachable", function() { return Unreachable; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Timeout", function() { return Timeout; });
 /* harmony import */ var _base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.js */ "./source/shared/legacy-classes/base.js");
 
 const Err = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Error', _base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
@@ -5198,6 +5173,40 @@ const ErrorList = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Er
       // OVERWRITE
       reason: 'one or more errors occurred with items',
       content: []
+    }
+  })
+}); // CUSTOM ERROR
+
+const SilentError = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('SilentError', Err, {
+  constructorParts: parent => ({
+    defaults: {
+      // OVERWRITE
+      log: false
+    }
+  })
+});
+const AuthRequired = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('AuthRequired', Err, {
+  //C used to communicate to client that the server does not have the required tokens and that the client must authorize
+  constructorParts: parent => ({
+    defaults: {
+      // OVERWRITE
+      message: 'authorization required'
+    }
+  })
+});
+const Unreachable = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Unreachable', Err, {
+  //C used to indicate an unreachable place in the code
+  constructorParts: parent => ({
+    defaults: {
+      message: 'code reached a place that should be unreachable'
+    }
+  })
+});
+const Timeout = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Timeout', Err, {
+  //C used to indicate a timed-out function
+  constructorParts: parent => ({
+    defaults: {
+      message: 'request timed out'
     }
   })
 });

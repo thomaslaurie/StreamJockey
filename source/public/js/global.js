@@ -101,6 +101,10 @@ import * as constants from './constants.js';
 import {
 	Err,
 	ErrorList,
+	SilentError,
+	AuthRequired,
+	Unreachable,
+	Timeout,
 } from '../../shared/legacy-classes/error.js';
 
 
@@ -321,40 +325,11 @@ sj.Subscriptions = function () {
 sj.Error = Err;
 sj.ErrorList = ErrorList;
 
-// CUSTOM ERROR
-sj.SilentError = Base.makeClass('SilentError', sj.Error, {
-	constructorParts: parent => ({
-		defaults: {
-			// OVERWRITE
-			log: false,
-		},
-	}),
-});
-sj.AuthRequired = Base.makeClass('AuthRequired', sj.Error, {
-	//C used to communicate to client that the server does not have the required tokens and that the client must authorize
-	constructorParts: parent => ({
-		defaults: {
-			// OVERWRITE
-			message: 'authorization required',
-		},
-	}),
-});
-sj.Unreachable = Base.makeClass('Unreachable', sj.Error, {
-	//C used to indicate an unreachable place in the code
-	constructorParts: parent => ({
-		defaults: {
-			message: 'code reached a place that should be unreachable',
-		},	
-	}),
-});
-sj.Timeout = Base.makeClass('Timeout', sj.Error, {
-	//C used to indicate a timed-out function
-	constructorParts: parent => ({
-		defaults: {
-			message: 'request timed out',
-		},
-	}),
-});
+// CUSTOM ERRORS
+sj.SilentError = SilentError;
+sj.AuthRequired = AuthRequired;
+sj.Unreachable = Unreachable;
+sj.Timeout = Timeout;
 
 
 // RULE
