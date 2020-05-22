@@ -103,6 +103,11 @@ import {
 	ErrorList,
 	SilentError,
 } from '../../shared/legacy-classes/error.js';
+import {
+	Success,
+	Warn,
+	Credentials,
+} from '../../shared/legacy-classes/success.js';
 
 
 
@@ -299,7 +304,7 @@ sj.Subscriptions = function () {
 	//G wrapper objects vs bare return
 		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive Err
 		more complex functions (async, error-able, client-server transfer) should wrap their result:
-			sj.Success / sj.SuccessList
+			Success / SuccessList
 				wraps empty content, arrays of other objects, misc content
 				or is a descendant item object
 			or a Err / ErrList
@@ -369,7 +374,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			//C check against each datatype
 			for (let i = 0; i < this.dataTypes.length; i++) {
 				if (sj.isType(value, this.dataTypes[i])) {
-					return new sj.Success({
+					return new Success({
 						origin: `${this.origin}.checkType()`,
 						message: 'validated data type',
 						content: value,
@@ -381,7 +386,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 					let parsed = Number.parseFloat(value);
 					if (this.dataTypes[i] === 'number' && !Number.isNaN(parsed) 
 					|| this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
-						return new sj.Success({
+						return new Success({
 							origin: `${this.origin}.checkType()`,
 							message: 'validated data type',
 							content: parsed,
@@ -425,7 +430,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 				}
 			}
 
-			return new sj.Success({
+			return new Success({
 				origin: `${this.origin}.checkSize()`,
 				content: value,
 			});
@@ -460,7 +465,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 				}
 			}
 
-			return new sj.Success({
+			return new Success({
 				origin: `${this.origin}.checkAgainst()`,
 				content: value,
 			});
@@ -473,7 +478,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 
 			//TODO
 
-			return new sj.Success({
+			return new Success({
 				origin: `${this.origin}.checkAgainst()`,
 				content: value,
 			});
@@ -483,7 +488,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			if (typeof this.custom === 'function') {
 				return this.custom(value);
 			} else {
-				return new sj.Success({
+				return new Success({
 					origin: `${this.origin}.checkCustom()`,
 					content: value,
 				});
@@ -627,7 +632,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			this.cssClass = undefined; 
 			this.content = value;
 			//C transform object (this will strip any irrelevant properties away)
-			return new sj.Success(this); 		
+			return new Success(this); 		
 		},
 
 		/* //OLD decided this was redundant
@@ -687,8 +692,8 @@ sj.Rule = Base.makeClass('Rule', Base, {
 					//C check, return errors too
 					return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
 				})).then(resolved => {
-					//C filter for sj.Success objects
-					return sj.filterList(resolved, sj.Success, new sj.Success({
+					//C filter for Success objects
+					return sj.filterList(resolved, Success, new Success({
 						origin: 'sj.Rule.checkRuleSet()',
 						message: 'all rules validated',
 					}), new Err({
@@ -756,7 +761,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 
 					return result;
 				})).then(resolved => {
-					return sj.filterList(resolved, sj.Success, new sj.Success({
+					return sj.filterList(resolved, Success, new Success({
 						origin: 'checkRuleSet()',
 						message: 'all rules validated',
 					}), new Err({
@@ -909,7 +914,7 @@ sj.Rule2 = Base.makeClass('Rule2', Base, {
 			//G baseCast() may use other rule's casting methods. but because they have their own internal casting steps, pass the castValue and the accessory object so that even if the casting function fails, the castValue will still retain any modifications: rule.validateCast(accessory.castValue, accessory); 
 			//R this is important because otherwise the casting method will just fail, leaving the castValue as the original, causing unexpected error messages (casting '4' as an integer would fail with 'not a number' instead of 'not an integer' because first the number casting would fail, leaving the castValue as a string, then validation would return the 'not a number' error).
 			baseCast(accessory) {
-				new sj.Warn({
+				new Warn({
 					log: true,
 					origin: 'sj.Rule2.baseCast()',
 					reason: `a baseCast() function has not been created for this rule: ${this.name}`,
@@ -1282,60 +1287,8 @@ sj.Rule2.augmentClass({
 	}),
 });
 
-// SUCCESS //C success and error objects are returned from functions (mostly async ones)
-sj.Success = Base.makeClass('Success', Base, {
-	constructorParts: parent => ({
-		defaults: {
-			// NEW
-			timestamp: undefined,
-		},
-	}),	
-});
-sj.SuccessList = Base.makeClass('SuccessList', sj.Success, {
-	constructorParts: parent => ({
-		//C wrapper for an array of successful items
-		defaults: {
-			// OVERWRITE
-			reason: 'all items successful',
-			content: [],
-		},
-	}),
-});
-sj.Warn = Base.makeClass('Warn', sj.Success, {
-	constructorParts: parent => ({
-		defaults: {
-			// OVERWRITE
-			log: true,
-		},
-	}),
-});
-
-sj.Credentials = Base.makeClass('Credentials', sj.Success, {
-	constructorParts: parent => ({
-		//TODO allowUnknown: true,
-
-		defaults: {
-			//TODO this part should only be server-side 
-			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-			authRequestTimestamp: 0,
-			authRequestTimeout: 300000, //C default 5 minutes
-			authRequestURL: '',
-			authCode: Symbol(),
-			
-			accessToken: Symbol(),
-			expires: 0,
-			refreshToken: Symbol(),
-			refreshBuffer:  60000, //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-			
-			scopes: [],
-		},
-	}),
-});
-
-
 // ENTITIES
-sj.Entity = Base.makeClass('Entity', sj.Success, {
+sj.Entity = Base.makeClass('Entity', Success, {
 	constructorParts: parent => ({
 		afterInitialize(accessory) {
 			const that = this; //? is this necessary?
@@ -1663,7 +1616,7 @@ sj.Track = Base.makeClass('Track', sj.Entity, {
 			if (sj.isType(accessory.options.source, Object)) {
 				const found = sj.Source.instances.find(source => source.name === accessory.options.source.name);
 				if (found) accessory.options.source = found;
-				else new sj.Warn({
+				else new Warn({
 					origin: 'sj.Track.beforeInitialize()',
 					reason: 'source was passed but it is not an existing source',
 					content: accessory.options.source,
@@ -1809,7 +1762,7 @@ sj.Source = Base.makeClass('Source', Base, {
 			nullPrefix: '',
 			idPrefix: '',
 			
-			credentials: new sj.Credentials(),
+			credentials: new Credentials(),
 	
 			//TODO this should only be server-side
 			api: {},
@@ -1894,7 +1847,7 @@ sj.LiveQuery = Base.makeClass('LiveQuery', Base, {
 	}),
 });
 sj.Subscription = Base.makeClass('Subscription', Base, {
-	//? should this inherit from sj.Success since it will be returned from a function>
+	//? should this inherit from Success since it will be returned from a function>
 	constructorParts: parent => ({
 		defaults: {
 			liveQuery: undefined,

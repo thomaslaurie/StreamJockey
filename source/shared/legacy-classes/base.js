@@ -157,10 +157,11 @@ Base.trace = function () {
 };
 Base.prototype.announce = function () {
 	//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-	//TODO
+	console.log(`▮\n${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}\n▮`);
+	//OLD//! Don't add these back in, they will be a circular dependency.
 	// if (this instanceof Error) {
 	// 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-	// } else if (this instanceof sj.Warn) {
+	// } else if (this instanceof Warn) {
 	// 	console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
 	// } else {
 	// 	console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //

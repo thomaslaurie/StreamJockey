@@ -116,6 +116,10 @@ import {
 	ErrorList, 
 	Err,
 } from '../shared/legacy-classes/error.js';
+import {
+	Success,
+	SuccessList,
+} from '../shared/legacy-classes/success.js';
 
 
 
@@ -334,7 +338,7 @@ sj.liveData = liveData;
         throw sj.propagate(rejected);
     });
 })().then(resolved => {
-    new sj.Success({
+    new Success({
         origin: 'initialize database',
         message: 'database initialized',
     });
@@ -504,7 +508,7 @@ sj.session.login = async function (db, ctx, user) {
     });
 
     ctx.session.user = new sj.User(user);
-    return new sj.Success({
+    return new Success({
         origin: 'login()',
         message: 'user logged in',
         content: ctx.session.user,
@@ -512,14 +516,14 @@ sj.session.login = async function (db, ctx, user) {
 };
 sj.session.get = async function (ctx) {
     await sj.isLoggedIn(ctx);
-    return new sj.Success({
+    return new Success({
         origin: 'getMe()',
         content: ctx.session.user,
     });
 };
 sj.session.logout = async function (ctx) {
     delete ctx.session.user;
-    return new sj.Success({
+    return new Success({
         origin: 'logout()',
         message: 'user logged out',
     });
@@ -544,7 +548,7 @@ sj.isLoggedIn = async function (ctx) {
 
     //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
 
-    return new sj.Success({
+    return new Success({
         origin: 'isLoggedIn()',
         message: 'user is logged in',
     });
@@ -698,7 +702,7 @@ sj.Entity.augmentClass({
 			//C rebuild
 			const built = shook.map(list => list.map(entity => new this(entity)));
 
-			return new sj.SuccessList({
+			return new SuccessList({
 				...this[methodName+'Success'](),
 				//R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
 				content: built[1], 
@@ -743,7 +747,7 @@ sj.Entity.augmentClass({
 					return checked;
 				} else {
 					//C don't pack into validated
-					return new sj.Success({
+					return new Success({
 						origin: 'sj.Entity.validate()',
 						message: `optional ${key} is empty, skipped validation`,
 					});
@@ -1090,7 +1094,7 @@ sj.Track.augmentClass({
 	
 			//C return early if none are moving
 			if (inputTracks.length === 0) {
-				return new sj.SuccessList({
+				return new SuccessList({
 					origin: 'sj.Track.order()',
 					message: 'track positions did not need to be set',
 				});
@@ -1206,7 +1210,7 @@ sj.Track.augmentClass({
 						anotherPlaylistStored.inputsToAdd.push(track);
 					}
 	
-					return new sj.Success({
+					return new Success({
 						origin: 'sj.Track.order()',
 						message: "retrieved track's playlist",
 					});
@@ -1319,7 +1323,7 @@ sj.Track.augmentClass({
 					}
 				});
 	
-				return new sj.SuccessList({
+				return new SuccessList({
 					origin: 'sj.Track.order()',
 					message: 'influenced tracks calculated',
 					content: influencedTracks,

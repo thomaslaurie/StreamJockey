@@ -37790,6 +37790,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./server-request.js */ "./source/public/js/server-request.js");
 /* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37832,6 +37833,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
 
  // INTERNAL
+
 
 
 
@@ -37962,7 +37964,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command = _shared_legacy_clas
       this.fullResolve = function (success) {
         //C resolve collapsed commands
         this.collapsedCommands.forEach(collapsedCommand => {
-          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+          collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37974,7 +37976,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command = _shared_legacy_clas
       this.fullReject = function (error) {
         //C//! RESOLVE collapsed commands
         this.collapsedCommands.forEach(a => {
-          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+          a.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -38335,7 +38337,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback = _shared_legacy_cla
 
           });
           console.log('reached');
-          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start command completed'
           });
@@ -38510,7 +38512,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
           command.reject = reject;
         }); //C push command to the queue or resolve it (because it has been collapsed)
 
-        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
           origin: 'pushCommand()',
           reason: 'command was annihilated'
         })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
@@ -38881,7 +38883,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
       _this14.credentials.expires = tokens.accessToken;
       _this14.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
-      return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
         origin: 'sj.spotify.auth()',
         message: 'authorized spotify'
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
@@ -39101,7 +39103,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
 
                             yield context.dispatch('updatePlayback', state); //C resolve
 
-                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success(success)); //C prevent other exit points from executing their code
+                            resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"](success)); //C prevent other exit points from executing their code
 
                             resolved = true;
                           }
@@ -39135,7 +39137,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
                       if (!resolved && stateCondition(context.state)) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success(success));
+                        resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"](success));
                         resolved = true;
                       } //C if timed out, reject
 
@@ -39236,7 +39238,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
                   yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
 
                   yield context.dispatch('pause');
-                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+                  resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
                     origin: 'spotify.loadPlayer()',
                     message: 'spotify player loaded',
                     content: player
@@ -39459,7 +39461,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
           					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
           
           					spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-          						triggerResolve(new sj.Success({
+          						triggerResolve(new Success({
           							origin: 'spotify.loadPlayer()',
           							message: 'spotify player loaded',
           						}));
@@ -39566,7 +39568,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
 
 
           context.commit('setState', newState);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
             origin: 'spotify module command - updatePlayback()',
             message: 'spotify playback updated',
             content: newState
@@ -39589,7 +39591,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
             });
           });
           yield context.dispatch('updatePlayback', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
             origin: 'spotify module command - checkPlayback()',
             message: 'spotify playback checked',
             content: context.state
@@ -40061,7 +40063,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _global_js__WEB
                     return _asyncToGenerator(function* () {
                       //TODO handle error?
                       yield context.dispatch('checkPlayback').catch(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].propagate);
-                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+                      deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
                         origin: 'sj.youtube loadPlayer()',
                         reason: 'youtube iframe player loaded'
                       }));
@@ -40144,7 +40146,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _global_js__WEB
 
           state.track = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track(track);
           context.commit('setState', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
             origin: 'youtube module action - checkPlayback()',
             message: 'youtube playback updated',
             content: state
@@ -40305,7 +40307,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 					if (resolved.content.length === 1) {
 						youtube.playback.track = resolved.content[0];
 
-						return new sj.Success({
+						return new Success({
 							log: true,
 							origin: 'youtube.checkPlayback()',
 							message: 'youtube playback state checked',
@@ -40324,7 +40326,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 				});
 			} else {
 				// no track is playing
-				return new sj.Success({
+				return new Success({
 					log: true,
 					origin: 'youtube.checkPlayback()',
 					message: 'youtube playback state checked',
@@ -40348,7 +40350,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 
 /* //R
-	I considered instead of updating playback state in each source function upon sj.Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
+	I considered instead of updating playback state in each source function upon Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
 	
 	I thought because track info is also needed (in addition to playback state) that a final checkPlayback() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
@@ -40371,7 +40373,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 				youtubePlayer.playVideo();
 				youtubePlayer.pauseVideo();
 
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.start()',
 					message: 'track started',
@@ -40393,7 +40395,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 			try {
 				youtubePlayer.playVideo();
 				
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.resume()',
 					message: 'track started',
@@ -40414,7 +40416,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 		return new Promise(function (resolve, reject) {
 			try {
 				youtubePlayer.pauseVideo();
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.pause()',
 					message: 'track paused',
@@ -40438,7 +40440,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 				// (seconds - number, allowSeekAhead of loading - boolean)
 				youtubePlayer.seekTo(Math.round(ms / 1000), true);
 
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.seek()',
 					message: 'track seeked',
@@ -40480,6 +40482,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -40575,6 +40578,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // BUILT-IN
 // EXTERNAL
  // INTERNAL
+
 
 
 
@@ -40785,7 +40789,7 @@ sj.Subscriptions = function () {
 	//G wrapper objects vs bare return
 		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive Err
 		more complex functions (async, error-able, client-server transfer) should wrap their result:
-			sj.Success / sj.SuccessList
+			Success / SuccessList
 				wraps empty content, arrays of other objects, misc content
 				or is a descendant item object
 			or a Err / ErrList
@@ -40856,7 +40860,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         //C check against each datatype
         for (var i = 0; i < _this.dataTypes.length; i++) {
           if (sj.isType(value, _this.dataTypes[i])) {
-            return new sj.Success({
+            return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
               origin: "".concat(_this.origin, ".checkType()"),
               message: 'validated data type',
               content: value
@@ -40868,7 +40872,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
             var parsed = Number.parseFloat(value);
 
             if (_this.dataTypes[i] === 'number' && !Number.isNaN(parsed) || _this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
-              return new sj.Success({
+              return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
                 origin: "".concat(_this.origin, ".checkType()"),
                 message: 'validated data type',
                 content: parsed
@@ -40916,7 +40920,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
           }
         }
 
-        return new sj.Success({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
           origin: "".concat(_this2.origin, ".checkSize()"),
           content: value
         });
@@ -40956,7 +40960,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
           }
         }
 
-        return new sj.Success({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
           origin: "".concat(_this3.origin, ".checkAgainst()"),
           content: value
         });
@@ -40973,7 +40977,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         } //TODO
 
 
-        return new sj.Success({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
           origin: "".concat(_this4.origin, ".checkAgainst()"),
           content: value
         });
@@ -40987,7 +40991,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         if (typeof _this5.custom === 'function') {
           return _this5.custom(value);
         } else {
-          return new sj.Success({
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
             origin: "".concat(_this5.origin, ".checkCustom()"),
             content: value
           });
@@ -41129,7 +41133,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         _this6.cssClass = undefined;
         _this6.content = value; //C transform object (this will strip any irrelevant properties away)
 
-        return new sj.Success(_this6);
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"](_this6);
       })();
     }
     /* //OLD decided this was redundant
@@ -41186,8 +41190,8 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     					//C check, return errors too
     			return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
     		})).then(resolved => {
-    			//C filter for sj.Success objects
-    			return sj.filterList(resolved, sj.Success, new sj.Success({
+    			//C filter for Success objects
+    			return sj.filterList(resolved, Success, new Success({
     				origin: 'sj.Rule.checkRuleSet()',
     				message: 'all rules validated',
     			}), new Err({
@@ -41250,7 +41254,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			obj[prop] = result.content;
     					return result;
     		})).then(resolved => {
-    			return sj.filterList(resolved, sj.Success, new sj.Success({
+    			return sj.filterList(resolved, Success, new Success({
     				origin: 'checkRuleSet()',
     				message: 'all rules validated',
     			}), new Err({
@@ -41385,7 +41389,7 @@ sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       //G baseCast() may use other rule's casting methods. but because they have their own internal casting steps, pass the castValue and the accessory object so that even if the casting function fails, the castValue will still retain any modifications: rule.validateCast(accessory.castValue, accessory); 
       //R this is important because otherwise the casting method will just fail, leaving the castValue as the original, causing unexpected error messages (casting '4' as an integer would fail with 'not a number' instead of 'not an integer' because first the number casting would fail, leaving the castValue as a string, then validation would return the 'not a number' error).
       baseCast(accessory) {
-        new sj.Warn({
+        new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
           log: true,
           origin: 'sj.Rule2.baseCast()',
           reason: "a baseCast() function has not been created for this rule: ".concat(this.name)
@@ -41828,58 +41832,9 @@ sj.Rule2.augmentClass({
 
     })
   })
-}); // SUCCESS //C success and error objects are returned from functions (mostly async ones)
-
-sj.Success = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Success', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      timestamp: undefined
-    }
-  })
-});
-sj.SuccessList = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('SuccessList', sj.Success, {
-  constructorParts: parent => ({
-    //C wrapper for an array of successful items
-    defaults: {
-      // OVERWRITE
-      reason: 'all items successful',
-      content: []
-    }
-  })
-});
-sj.Warn = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Warn', sj.Success, {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      log: true
-    }
-  })
-});
-sj.Credentials = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Credentials', sj.Success, {
-  constructorParts: parent => ({
-    //TODO allowUnknown: true,
-    defaults: {
-      //TODO this part should only be server-side 
-      //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-      authRequestKey: Symbol(),
-      //! this shouldn't break sj.checkKey(), but also shouldn't match anything
-      authRequestTimestamp: 0,
-      authRequestTimeout: 300000,
-      //C default 5 minutes
-      authRequestURL: '',
-      authCode: Symbol(),
-      accessToken: Symbol(),
-      expires: 0,
-      refreshToken: Symbol(),
-      refreshBuffer: 60000,
-      //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-      scopes: []
-    }
-  })
 }); // ENTITIES
 
-sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Entity', sj.Success, {
+sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Entity', _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"], {
   constructorParts: parent => ({
     afterInitialize(accessory) {
       var that = this; //? is this necessary?
@@ -42184,7 +42139,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       //C find existing source by track.source.name and set it as the reference
       if (sj.isType(accessory.options.source, Object)) {
         var found = sj.Source.instances.find(source => source.name === accessory.options.source.name);
-        if (found) accessory.options.source = found;else new sj.Warn({
+        if (found) accessory.options.source = found;else new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
           origin: 'sj.Track.beforeInitialize()',
           reason: 'source was passed but it is not an existing source',
           content: accessory.options.source
@@ -42319,7 +42274,7 @@ sj.Source = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default
       register: false,
       nullPrefix: '',
       idPrefix: '',
-      credentials: new sj.Credentials(),
+      credentials: new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Credentials"](),
       //TODO this should only be server-side
       api: {},
       scopes: [],
@@ -42415,7 +42370,7 @@ sj.LiveQuery = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defa
   })
 });
 sj.Subscription = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Subscription', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
-  //? should this inherit from sj.Success since it will be returned from a function>
+  //? should this inherit from Success since it will be returned from a function>
   constructorParts: parent => ({
     defaults: {
       liveQuery: undefined,
@@ -42765,6 +42720,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _global_client_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-client.js */ "./source/public/js/global-client.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -43027,6 +42983,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
  // INTERNAL
 //! depends on global-client.js because it is used in index.js alongside global-client.js
+
 
 
 
@@ -43431,7 +43388,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = liveQuery; //C don't trigger update for calls older than the existing data
 
         if (callTimestamp <= liveQuery.timestamp) {
-          new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Warn({
+          new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Warn"]({
             origin: 'update()',
             message: 'cachedEntities not updated because newer data has already been received',
             reason: "data timestamp: ".concat(liveQuery.timestamp, ", update timestamp: ").concat(callTimestamp)
@@ -43976,7 +43933,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               //C subscribe
               var subscribeResult = yield new Promise((resolve, reject) => {
                 context.state.socket.emit('subscribe', queryPack, result => {
-                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success)) {
+                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"])) {
                     resolve(result);
                   } else {
                     reject(result);
@@ -44005,7 +43962,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
               var unsubscribeResult = yield new Promise((resolve, reject) => {
                 context.state.socket.emit('unsubscribe', queryPack, result => {
-                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Success)) {
+                  if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"])) {
                     resolve(result);
                   } else {
                     reject(result);
@@ -62410,11 +62367,12 @@ Base.trace = function () {
   }
 };
 
-Base.prototype.announce = function () {//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-  //TODO
+Base.prototype.announce = function () {
+  //R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
+  console.log("\u25AE\n".concat(this.constructorName, " ").concat(this.origin, " ").concat(this.message, "\n").concat(this.trace(), "\n\u25AE")); //OLD//! Don't add these back in, they will be a circular dependency.
   // if (this instanceof Error) {
   // 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-  // } else if (this instanceof sj.Warn) {
+  // } else if (this instanceof Warn) {
   // 	console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
   // } else {
   // 	console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //
@@ -62537,6 +62495,73 @@ var Timeout = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Timeou
   constructorParts: parent => ({
     defaults: {
       message: 'request timed out'
+    }
+  })
+});
+
+/***/ }),
+
+/***/ "./source/shared/legacy-classes/success.js":
+/*!*************************************************!*\
+  !*** ./source/shared/legacy-classes/success.js ***!
+  \*************************************************/
+/*! exports provided: Success, SuccessList, Warn, Credentials */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SuccessList", function() { return SuccessList; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Warn", function() { return Warn; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Credentials", function() { return Credentials; });
+/* harmony import */ var _base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.js */ "./source/shared/legacy-classes/base.js");
+// SUCCESS //C success and error objects are returned from functions (mostly async ones)
+
+var Success = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Success', _base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  constructorParts: parent => ({
+    defaults: {
+      // NEW
+      timestamp: undefined
+    }
+  })
+});
+var SuccessList = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('SuccessList', Success, {
+  constructorParts: parent => ({
+    //C wrapper for an array of successful items
+    defaults: {
+      // OVERWRITE
+      reason: 'all items successful',
+      content: []
+    }
+  })
+});
+var Warn = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Warn', Success, {
+  constructorParts: parent => ({
+    defaults: {
+      // OVERWRITE
+      log: true
+    }
+  })
+});
+var Credentials = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Credentials', Success, {
+  constructorParts: parent => ({
+    //TODO allowUnknown: true,
+    defaults: {
+      //TODO this part should only be server-side 
+      //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
+      authRequestKey: Symbol(),
+      //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+      authRequestTimestamp: 0,
+      authRequestTimeout: 300000,
+      //C default 5 minutes
+      authRequestURL: '',
+      authCode: Symbol(),
+      accessToken: Symbol(),
+      expires: 0,
+      refreshToken: Symbol(),
+      refreshBuffer: 60000,
+      //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
+      scopes: []
     }
   })
 });

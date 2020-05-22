@@ -271,6 +271,10 @@ import {
 	Unreachable,
 	Err,
 } from '../../shared/legacy-classes/error.js';
+import {
+	Success,
+	Warn,
+} from '../../shared/legacy-classes/success.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -550,7 +554,7 @@ export default {
 
 			//C don't trigger update for calls older than the existing data
 			if (callTimestamp <= liveQuery.timestamp) {
-				new sj.Warn({
+				new Warn({
 					origin: 'update()',
 					message: 'cachedEntities not updated because newer data has already been received',
 					reason: `data timestamp: ${liveQuery.timestamp}, update timestamp: ${callTimestamp}`,
@@ -961,7 +965,7 @@ export default {
 					//C subscribe
 					let subscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('subscribe', queryPack, result => {
-							if (sj.isType(result, sj.Success)) {
+							if (sj.isType(result, Success)) {
 								resolve(result);
 							} else {
 								reject(result);
@@ -993,7 +997,7 @@ export default {
 					//C unsubscribe
 					let unsubscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('unsubscribe', queryPack, result => {
-							if (sj.isType(result, sj.Success)) {
+							if (sj.isType(result, Success)) {
 								resolve(result);
 							} else {
 								reject(result);

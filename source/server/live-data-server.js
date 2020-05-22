@@ -17,6 +17,10 @@ import Base from '../shared/legacy-classes/base.js';
 import { 
 	Err,
 } from '../shared/legacy-classes/error.js';
+import {
+	Success,
+	Warn,
+} from '../shared/legacy-classes/success.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -164,7 +168,7 @@ export default {
 		//C update user
 		Object.assign(subscription.user, user);
 
-		return new sj.Success({
+		return new Success({
 			origin: 'sj.addSubscriber()',
 			message: 'added subscriber',
 			content: processedQuery,
@@ -186,7 +190,7 @@ export default {
 		//C find liveQuery index
 		const liveQuery = this.findLiveQuery(table, processedQuery);
 		const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-		if (!sj.isType(liveQuery, sj.LiveQuery) || liveQueryIndex < 0) return new sj.Warn({
+		if (!sj.isType(liveQuery, sj.LiveQuery) || liveQueryIndex < 0) return new Warn({
 			origin: 'sj.subscriptions.remove()',
 			message: 'no subscription found for this query',
 			content: {
@@ -199,7 +203,7 @@ export default {
 		//C find subscription
 		const subscription = this.findSubscription(liveQuery, user);
 		const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-		if (!sj.isType(subscription, sj.Subscription) || subscriptionIndex < 0) return new sj.Warn({
+		if (!sj.isType(subscription, sj.Subscription) || subscriptionIndex < 0) return new Warn({
 			origin: 'sj.subscriptions.remove()',
 			message: 'no subscriber found for this user',
 			content: {
@@ -217,7 +221,7 @@ export default {
 			this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
 		}
 	
-		return new sj.Success({
+		return new Success({
 			origin: 'sj.removeSubscriber()',
 			message: 'removed subscriber',
 			content: processedQuery,

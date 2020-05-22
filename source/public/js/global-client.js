@@ -64,7 +64,9 @@ import {
 	Timeout,
 	Err,
 } from '../../shared/legacy-classes/error.js';
-
+import {
+	Success,
+} from '../../shared/legacy-classes/success.js';
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -169,7 +171,7 @@ sj.Command = Base.makeClass('Command', Base, {
 			this.fullResolve = function (success) {
 				//C resolve collapsed commands
 				this.collapsedCommands.forEach(collapsedCommand => {
-					collapsedCommand.resolve(new sj.Success({
+					collapsedCommand.resolve(new Success({
 						origin: 'resolvePlus()',
 						reason: 'command was collapsed',
 					}));
@@ -180,7 +182,7 @@ sj.Command = Base.makeClass('Command', Base, {
 			this.fullReject = function (error) {
 				//C//! RESOLVE collapsed commands
 				this.collapsedCommands.forEach(a => {
-					a.resolve(new sj.Success({
+					a.resolve(new Success({
 						origin: 'resolvePlus()',
 						reason: 'command was collapsed',
 					}));
@@ -492,7 +494,7 @@ sj.Playback = Base.makeClass('Playback', Base, {
 
 				console.log('reached');
 
-				return new sj.Success({
+				return new Success({
 					origin: 'sj.Playback.baseActions.start()',
 					reason: 'start command completed',
 				});
@@ -665,7 +667,7 @@ sj.Playback.module = new sj.Playback({
 
 			//C push command to the queue or resolve it (because it has been collapsed)
 			if (push) context.commit('pushQueuedCommand', command);
-			else command.fullResolve(new sj.Success({
+			else command.fullResolve(new Success({
 				origin: 'pushCommand()',
 				reason: 'command was annihilated',
 			}));
@@ -1003,7 +1005,7 @@ sj.spotify = new sj.Source({
 		this.credentials.expires = tokens.accessToken;
 		this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 	
-		return new sj.Success({
+		return new Success({
 			origin: 'sj.spotify.auth()',
 			message: 'authorized spotify',
 		});
@@ -1196,7 +1198,7 @@ sj.spotify = new sj.Source({
 										//C update playback state
 										await context.dispatch('updatePlayback', state);
 										//C resolve
-										resolve(new sj.Success(success));
+										resolve(new Success(success));
 										//C prevent other exit points from executing their code
 										resolved = true;
 									}
@@ -1221,7 +1223,7 @@ sj.spotify = new sj.Source({
 								await context.dispatch('checkPlayback');
 								if (!resolved && stateCondition(context.state)) {
 									this.removeListener('player_state_changed', callback);
-									resolve(new sj.Success(success));
+									resolve(new Success(success));
 									resolved = true;
 								}
 								
@@ -1310,7 +1312,7 @@ sj.spotify = new sj.Source({
 							//C ensure that playback is not playing
 							await context.dispatch('pause');
 
-							resolve(new sj.Success({
+							resolve(new Success({
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player loaded',
 								content: player,
@@ -1518,7 +1520,7 @@ sj.spotify = new sj.Source({
 									// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
 			
 									spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-										triggerResolve(new sj.Success({
+										triggerResolve(new Success({
 											origin: 'spotify.loadPlayer()',
 											message: 'spotify player loaded',
 										}));
@@ -1624,7 +1626,7 @@ sj.spotify = new sj.Source({
 					);
 				*/
 				context.commit('setState', newState);
-				return new sj.Success({
+				return new Success({
 					origin: 'spotify module command - updatePlayback()',
 					message: 'spotify playback updated',
 					content: newState,
@@ -1646,7 +1648,7 @@ sj.spotify = new sj.Source({
 				});
 
 				await context.dispatch('updatePlayback', state);
-				return new sj.Success({
+				return new Success({
 					origin: 'spotify module command - checkPlayback()',
 					message: 'spotify playback checked',
 					content: context.state,
@@ -2035,7 +2037,7 @@ sj.youtube = new sj.Source({
 								async onReady(event) {
 									//TODO handle error?
 									await context.dispatch('checkPlayback').catch(sj.propagate);
-									deferred.resolve(new sj.Success({
+									deferred.resolve(new Success({
 										origin: 'sj.youtube loadPlayer()',
 										reason: 'youtube iframe player loaded',
 									}));
@@ -2117,7 +2119,7 @@ sj.youtube = new sj.Source({
 
 
 				context.commit('setState', state);
-				return new sj.Success({
+				return new Success({
 					origin: 'youtube module action - checkPlayback()',
 					message: 'youtube playback updated',
 					content: state,
@@ -2245,7 +2247,7 @@ sj.youtube.formatSnippet = function (snippet) {
 					if (resolved.content.length === 1) {
 						youtube.playback.track = resolved.content[0];
 
-						return new sj.Success({
+						return new Success({
 							log: true,
 							origin: 'youtube.checkPlayback()',
 							message: 'youtube playback state checked',
@@ -2264,7 +2266,7 @@ sj.youtube.formatSnippet = function (snippet) {
 				});
 			} else {
 				// no track is playing
-				return new sj.Success({
+				return new Success({
 					log: true,
 					origin: 'youtube.checkPlayback()',
 					message: 'youtube playback state checked',
@@ -2290,7 +2292,7 @@ sj.youtube.formatSnippet = function (snippet) {
 //   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 
 /* //R
-	I considered instead of updating playback state in each source function upon sj.Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
+	I considered instead of updating playback state in each source function upon Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
 	
 	I thought because track info is also needed (in addition to playback state) that a final checkPlayback() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
@@ -2312,7 +2314,7 @@ sj.youtube.formatSnippet = function (snippet) {
 				youtubePlayer.playVideo();
 				youtubePlayer.pauseVideo();
 
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.start()',
 					message: 'track started',
@@ -2333,7 +2335,7 @@ sj.youtube.formatSnippet = function (snippet) {
 			try {
 				youtubePlayer.playVideo();
 				
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.resume()',
 					message: 'track started',
@@ -2353,7 +2355,7 @@ sj.youtube.formatSnippet = function (snippet) {
 		return new Promise(function (resolve, reject) {
 			try {
 				youtubePlayer.pauseVideo();
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.pause()',
 					message: 'track paused',
@@ -2376,7 +2378,7 @@ sj.youtube.formatSnippet = function (snippet) {
 				// (seconds - number, allowSeekAhead of loading - boolean)
 				youtubePlayer.seekTo(Math.round(ms / 1000), true);
 
-				resolve(new sj.Success({
+				resolve(new Success({
 					log: true,
 					origin: 'youtube.seek()',
 					message: 'track seeked',

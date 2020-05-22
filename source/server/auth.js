@@ -52,6 +52,9 @@ import {
 	AuthRequired, 
 	Err,
 } from '../shared/legacy-classes/error.js';
+import { 
+	Credentials,
+} from '../shared/legacy-classes/success.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -155,7 +158,7 @@ sj.spotify = new sj.Source({
 Object.assign(sj.spotify, {
 	startAuthRequest: async function () {
 		let pack = await auth.addRequestKey();
-		return new sj.Credentials({
+		return new Credentials({
 			authRequestKey: pack.key,
 			authRequestTimestamp: pack.timestamp,
 			authRequestTimeout: pack.timeout,
@@ -202,7 +205,7 @@ Object.assign(sj.spotify, {
 		}
 
 		//C send the event and credentials for endAuthRequest() to pick up
-		emitter.emit(query.state, new sj.Credentials({ //? sj.success here?
+		emitter.emit(query.state, new Credentials({ //? sj.success here?
 			authRequestKey: query.state, //? is this needed anymore?
 			authCode: query.code,
 		}));
@@ -261,7 +264,7 @@ Object.assign(sj.spotify, {
 		});
 
 		//C repack and return
-		return new sj.Credentials({
+		return new Credentials({
 			accessToken: result.access_token,
 			expires: timestamp + result.expires_in,
 			//refreshToken: result.refresh_token,
@@ -307,7 +310,7 @@ Object.assign(sj.spotify, {
 		}
 		
 		//C send only the accessToken and the expiry time
-		return new sj.Credentials({
+		return new Credentials({
 			origin: 'sj.spotify.refreshToken()',
 			accessToken: result.access_token,
 			expires: timestamp + result.expires_in,

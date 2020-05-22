@@ -91,6 +91,9 @@ import {
 import { 
 	Err,
 } from '../shared/legacy-classes/error.js';
+import {
+	Success,
+} from '../shared/legacy-classes/success.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -171,7 +174,7 @@ export default function ({replaceIndex}) {
 	})
 
 	.post('/log', async (ctx, next) => {
-		ctx.response.body = new sj.Success({
+		ctx.response.body = new Success({
 			origin: 'routes.js /log POST',
 			message: 'received client log message',
 		});
