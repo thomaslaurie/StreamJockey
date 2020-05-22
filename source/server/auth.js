@@ -48,7 +48,10 @@ import {
 } from '../shared/utility/index.js';
 import request from '../shared/request.js';
 import sj from './global-server.js';
-
+import { 
+	AuthRequired, 
+	Err,
+} from '../shared/legacy-classes/error.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -132,7 +135,7 @@ sj.spotify = new sj.Source({
 		if (!sj.isType(this.api._credentials.clientId, String) ||
 		!sj.isType(this.api._credentials.clientSecret, String) ||
 		!sj.isType(this.api._credentials.redirectUri, String)) {
-            throw new sj.Error({
+            throw new Err({
                 log: true,
                 origin: 'spotify.makeAuthRequestURL()',
                 message: 'one or more api credentials are missing or of the wrong type',
@@ -179,7 +182,7 @@ Object.assign(sj.spotify, {
 		await auth.checkRequestKey(query.state);
 		//C ensure that spotify sent the code
 		if (sj.isType(query.code, undefined)) {
-			emitter.emit(query.state, new sj.Error({
+			emitter.emit(query.state, new Err({
 				log: true,
 				origin: 'receiveAuthRequest()',
 				message: 'spotify authorization failed',
@@ -189,7 +192,7 @@ Object.assign(sj.spotify, {
 		}
 		//C ensure that spotify didn't send an error
 		if (!sj.isType(query.error, undefined)) {
-			emitter.emit(query.state, new sj.Error({
+			emitter.emit(query.state, new Err({
 				log: true,
 				origin: 'receiveAuthRequest()',
 				message: 'spotify authorization failed',
@@ -215,7 +218,7 @@ Object.assign(sj.spotify, {
 
 			//C setup timeout
 			wait(credentials.authRequestTimeout).then(() => {
-				reject(new sj.Error({
+				reject(new Err({
 					log: true,
 					origin: 'sj.spotify.endAuthRequest()',
 					message: 'request timeout',
@@ -243,7 +246,7 @@ Object.assign(sj.spotify, {
 			}),
 			headers: sj.URL_HEADER,
 		}).catch(rejected => {
-			throw new sj.Error({
+			throw new Err({
 				log: true,
 				message: 'failed to authorize spotify',
 				reason: 'token exchange failed',
@@ -274,7 +277,7 @@ Object.assign(sj.spotify, {
 		//C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 		//TODO reconsider this string test
 		if (!rules.visibleString.test(refreshToken)) {
-			throw new sj.AuthRequired();
+			throw new AuthRequired();
 		}
 
 		//C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
@@ -289,7 +292,7 @@ Object.assign(sj.spotify, {
 			}), 
 			headers: sj.URL_HEADER,
 		}).catch(rejected => {
-			throw new sj.Error({
+			throw new Err({
 				log: true,
 				message: 'failed to authorize spotify',
 				reason: 'token refresh failed',

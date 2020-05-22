@@ -9,12 +9,16 @@
 		one,
 		any,
 	} from '../../../shared/utility/index.js';
+	import {
+		Err,
+	} from '../../../shared/legacy-classes/error.js';
 
 	import AsyncSwitch from './AsyncSwitch.vue';
 	
     import AsyncDelay from './AsyncDelay.vue';
     import AsyncLoading from './AsyncLoading.vue';
-    import AsyncError from './AsyncError.vue';
+	import AsyncError from './AsyncError.vue';
+
 
 	//TODO consider adding different display types (for components representing the same type of data eg. track) instead of different components?
 
@@ -92,7 +96,7 @@
 					else return (a.prototype instanceof b);
 				};
 
-				if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.sj.Error({
+				if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.Err({
 						origin: 'AsyncDisplay usingQuery()',
 						reason: 'attempting to use a query but Entity is not a child class of sj.Entity',
 						content: this.fclone(this.Entity),
@@ -156,7 +160,7 @@
 			},
 
 			startTimeouts() {
-				if (!this.sj.isType(this.refreshPromise, Deferred)) throw new this.sj.Error({
+				if (!this.sj.isType(this.refreshPromise, Deferred)) throw new this.Err({
 					origin: 'AsyncContent startTimeouts()',
 					reason: 'refresh promise must be an instance of Deferred',
 				});
@@ -167,7 +171,7 @@
                 });
                 this.clearTimeout = setTimer(this.timeout, () => {
 					//C reject after timeout time
-					this.refreshPromise.reject(new this.sj.Error({
+					this.refreshPromise.reject(new this.Err({
                         origin: 'AsyncDisplay.load()',
                         message: 'content request timed out',
                     }));

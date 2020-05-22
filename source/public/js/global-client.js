@@ -50,11 +50,7 @@ import {
 	any,
 	repeat,
 	rules,
-	appendQueryParameters,
 } from '../../shared/utility/index.js';
-import {
-	safeStringify,
-} from '../../shared/derived-utility/index.js';
 import {
 	runHTMLScript,
 } from './browser-utility/index.js';
@@ -62,6 +58,12 @@ import sj from './global.js';
 import request from '../../shared/request.js';
 import serverRequest from './server-request.js';
 import Base from '../../shared/legacy-classes/base.js';
+import { 
+	AuthRequired, 
+	Unreachable,
+	Timeout,
+	Err,
+} from '../../shared/legacy-classes/error.js';
 
 
 
@@ -151,7 +153,7 @@ sj.Command = Base.makeClass('Command', Base, {
 			//G must be given a source
 			//TODO The non-instance source casting actually seems necessary here for some reason.
 			if (!sj.isType(accessory.options.source, sj.Source)) {
-				throw new sj.Error({
+				throw new Err({
 					origin: 'sj.Command.beforeInitialize()',
 					message: 'no source is active to receive this command',
 					reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
@@ -188,13 +190,13 @@ sj.Command = Base.makeClass('Command', Base, {
 			};
 
 			this.resolve = function () {
-				throw new sj.Error({
+				throw new Err({
 					origin: 'sj.Command.resolve()',
 					reason: 'command.resolve called but it has not been given a resolve function',
 				});
 			};
 			this.resolve = function () {
-				throw new sj.Error({
+				throw new Err({
 					origin: 'sj.Command.reject()',
 					reason: 'command.reject called but it has not been given a reject function',
 				});
@@ -222,7 +224,7 @@ sj.Start = Base.makeClass('Start', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a track
-			if (!sj.isType(accessory.options.track, sj.Track)) throw new sj.Error({
+			if (!sj.isType(accessory.options.track, sj.Track)) throw new Err({
 				origin: 'sj.Start.beforeInitialize()',
 				reason: 'sj.Start instance.track must be an sj.Track',
 				content: accessory.options.track,
@@ -286,7 +288,7 @@ sj.Toggle = Base.makeClass('Toggle', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G isPlaying must be manually set to true or false
-			if (options.isPlaying !== true && options.isPlaying !== false) throw new sj.Error({
+			if (options.isPlaying !== true && options.isPlaying !== false) throw new Err({
 				origin: 'sj.Toggle',
 				reason: `Toggle isPlaying must be true or false: ${options.isPlaying}`,
 				content: options.isPlaying,
@@ -330,7 +332,7 @@ sj.Seek = Base.makeClass('Seek', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G progress must be manually set between 0 and 1\
-			if (options.progress < 0 || 1 < options.progress) throw new sj.Error({
+			if (options.progress < 0 || 1 < options.progress) throw new Err({
 				origin: 'sj.Seek.trigger()',
 				reason: `seek progress is not a number between 0 and 1: ${options.progress}`,
 				content: options.progress,
@@ -360,7 +362,7 @@ sj.Volume = Base.makeClass('Volume', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize({options}) {
 			//G volume must be manually set between 0 and 1
-			if (options.volume < 0 || 1 < options.volume) throw new sj.Error({
+			if (options.volume < 0 || 1 < options.volume) throw new Err({
 				origin: 'sj.Volume.trigger()',
 				reason: `volume is not a number between 0 and 1: ${options.volume}`,
 				content: options.volume,
@@ -438,7 +440,7 @@ sj.Playback = Base.makeClass('Playback', Base, {
 				const timeBefore = Date.now();
 
 				/* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
-					const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+					const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
 						origin: 'sj.Playback.baseActions.start()',
 						reason: 'start state timed out',
 					}));
@@ -498,7 +500,7 @@ sj.Playback = Base.makeClass('Playback', Base, {
 
 			/* //OLD
 				async preserveLocalMetadata(context, track) {
-					if (!sj.isType(track, sj.Track)) throw new sj.Error({
+					if (!sj.isType(track, sj.Track)) throw new Err({
 						origin: 'preserveLocalMetadata()',
 						reason: 'track is not an sj.Track',
 					});
@@ -1073,10 +1075,10 @@ sj.spotify = new sj.Source({
 		let that = this;
 		let refresh = async function (that) {
 			let result = await serverRequest('GET', `spotify/refreshToken`).catch(sj.andResolve);
-			if (sj.isType(result, sj.AuthRequired)) {
+			if (sj.isType(result, AuthRequired)) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
-			} else if (sj.isType(result, sj.Error)) {
+			} else if (sj.isType(result, Err)) {
 				throw sj.propagate(result);
 			} else {
 				//C assign sj.spotify.credentials
@@ -1209,7 +1211,7 @@ sj.spotify = new sj.Source({
 								await command().catch(rejected => {
 									if (!resolved) {
 										this.removeListener('player_state_changed', callback);
-										reject(new sj.Error({...error, content: rejected}));
+										reject(new Err({...error, content: rejected}));
 										resolved = true;
 									}
 								});
@@ -1227,7 +1229,7 @@ sj.spotify = new sj.Source({
 								await wait(sj.Playback.requestTimeout);
 								if (!resolved) {
 									this.removeListener('player_state_changed', callback);
-									reject(new sj.Timeout(timeoutError));
+									reject(new Timeout(timeoutError));
 									resolved = true;
 								}
 							});
@@ -1257,7 +1259,7 @@ sj.spotify = new sj.Source({
 								device_ids: [device_id],
 								play: false, // keeps current playback state
 							}).catch(rejected => {
-								reject(new sj.Error({
+								reject(new Err({
 									//code: JSON.parse(error.response).error.status,
 									origin: 'spotify.loadPlayer()',
 									message: 'spotify player could not be loaded',
@@ -1279,7 +1281,7 @@ sj.spotify = new sj.Source({
 								await wait(delay);
 								delay = delay*2; //C double the delay each time
 								return await sj.spotify.request('Get', 'me/player').catch(rejected => {
-									reject(new sj.Error({
+									reject(new Err({
 										//code: JSON.parse(error.response).error.status,
 										origin: 'spotify.loadPlayer()',
 										message: 'spotify player could not be loaded',
@@ -1324,7 +1326,7 @@ sj.spotify = new sj.Source({
 						//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 						player.on('initialization_error', ({message}) => {
 							//C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-							reject(new sj.Error({
+							reject(new Err({
 								log: true,
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player encountered an initialization error',
@@ -1333,7 +1335,7 @@ sj.spotify = new sj.Source({
 						});
 						player.on('authentication_error', ({message}) => {
 							//C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-							reject(new sj.Error({
+							reject(new Err({
 								log: true,
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player encountered an authentication error',
@@ -1342,7 +1344,7 @@ sj.spotify = new sj.Source({
 						});
 						player.on('account_error', ({message}) => {
 							//C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-							reject(new sj.Error({
+							reject(new Err({
 								log: true,
 								origin: 'spotify.loadPlayer()',
 								message: 'this account does not have a valid Spotify Premium subscription',
@@ -1367,13 +1369,13 @@ sj.spotify = new sj.Source({
 							//C 'returns a promise with a boolean for whether or not the connection was successful'
 							//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
 							//! do not resolve here, the player will trigger the 'ready' event when its truly ready
-							if (!resolved) reject(new sj.Error({
+							if (!resolved) reject(new Err({
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player failed to connect',
 								reason: 'spotify.connect() failed',
 							}));
 						}, rejected => {
-							reject(new sj.Unreachable({ //C a rejection shouldn't be possible here
+							reject(new Unreachable({ //C a rejection shouldn't be possible here
 								origin: 'spotify.loadPlayer()',
 								message: 'spotify player failed to connect',
 								reason: 'spotify.connect() failed, this should not be reachable',
@@ -1479,7 +1481,7 @@ sj.spotify = new sj.Source({
 								// error handling
 								player.addListener('initialization_error', function ({message}) { 
 									//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-									triggerReject(new sj.Error({
+									triggerReject(new Err({
 											log: true,
 											origin: 'spotify.loadPlayer()',
 											message: 'spotify player encountered an initialization error',
@@ -1490,7 +1492,7 @@ sj.spotify = new sj.Source({
 			
 								player.addListener('authentication_error', function ({message}) { 
 									// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-									triggerReject(new sj.Error({
+									triggerReject(new Err({
 											log: true,
 											origin: 'spotify.loadPlayer()',
 											message: 'spotify player encountered an authentication error',
@@ -1501,7 +1503,7 @@ sj.spotify = new sj.Source({
 			
 								player.addListener('account_error', function ({message}) {
 									// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-									triggerReject(new sj.Error({
+									triggerReject(new Err({
 											log: true,
 											origin: 'spotify.loadPlayer()',
 											message: 'this account does not have a valid Spotify Premium subscription',
@@ -1523,7 +1525,7 @@ sj.spotify = new sj.Source({
 			
 										// TODO updatePlayback(); ?
 									}, function (rejected) {
-										triggerReject(new sj.Error({
+										triggerReject(new Err({
 											log: true,
 											code: JSON.parse(error.response).error.status,
 											origin: 'spotify.loadPlayer()',
@@ -1532,7 +1534,7 @@ sj.spotify = new sj.Source({
 											content: error,
 										}));
 									}).catch(function (rejected) {
-										triggerReject(new sj.Error({
+										triggerReject(new Err({
 											log: true,
 											origin: 'spotify.loadPlayer()',
 											message: 'spotify player could not be loaded',
@@ -1547,7 +1549,7 @@ sj.spotify = new sj.Source({
 									// returns a promise with a boolean for whether or not the connection was successful
 									// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
 									if (!resolved) {
-										triggerReject(new sj.Error({
+										triggerReject(new Err({
 											log: true,
 											origin: 'spotify.loadPlayer()',
 											message: 'spotify player failed to connect',
@@ -1556,7 +1558,7 @@ sj.spotify = new sj.Source({
 									}
 								}, function (rejected) {
 									// should not be possible to get here, but handle it either way
-									triggerReject(new sj.Error({
+									triggerReject(new Err({
 										log: true,
 										origin: 'spotify.loadPlayer()',
 										message: 'spotify player failed to connect',
@@ -1565,7 +1567,7 @@ sj.spotify = new sj.Source({
 									}));
 								});
 							} catch (e) {
-								triggerReject(new sj.Error({
+								triggerReject(new Err({
 									log: true,
 									origin: 'spotify.loadPlayer()',
 									message: 'spotify player failed to connect',
@@ -1577,7 +1579,7 @@ sj.spotify = new sj.Source({
 						
 			
 						$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
-							triggerReject(new sj.Error({
+							triggerReject(new Err({
 								log: true,
 								origin: 'spotify.loadPlayer()',
 								message: 'failed to load spotify player',
@@ -1633,7 +1635,7 @@ sj.spotify = new sj.Source({
 
 				//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
 				const state = await context.state.player.getCurrentState().catch(rejected => {
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						//code: JSON.parse(rejected.response).error.status,
 						origin: 'spotify.checkPlayback()',
@@ -1782,7 +1784,7 @@ sj.youtube = new sj.Source({
 		//OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
 		//! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
 		window.gapi2 = window.gapi;
-		const loaded = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+		const loaded = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
 			log: false,
 			origin: 'sj.youtube.auth()',
 			reason: 'gapi loading timed out',
@@ -1906,7 +1908,7 @@ sj.youtube = new sj.Source({
 						4. Creating new keys.
 					//L See here: https://stackoverflow.com/a/27491718
 				*/
-				throw new sj.Error({
+				throw new Err({
 					reason: 'API key is invalid.',
 					message: 'YouTube credentials are invalid.',
 					content: rejected,
@@ -1972,7 +1974,7 @@ sj.youtube = new sj.Source({
 			//C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
 			part: 'contentDetails',
 		});
-		if (searchResults.length !== videoResult.result.items.length) throw new sj.Error({
+		if (searchResults.length !== videoResult.result.items.length) throw new Err({
 			origin: 'youtube.search()',
 			reason: 'search result length not equal to video result length',
 			content: {
@@ -1982,7 +1984,7 @@ sj.youtube = new sj.Source({
 		});
 		videoResult.result.items.forEach((item, index) => {
 			//C ensure that ids line up
-			if (searchResults[index].id.videoId !== item.id) throw new sj.Error({
+			if (searchResults[index].id.videoId !== item.id) throw new Err({
 				origin: 'youtube.search()',
 				reason: `search and video results at ${index} do not have the same id`,
 			});
@@ -2006,7 +2008,7 @@ sj.youtube = new sj.Source({
 				await runHTMLScript('https://www.youtube.com/iframe_api');
 
 				//TODO choose timeout
-				const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+				const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
 					origin: 'sj.youtube loadPlayer()',
 					reason: 'youtube iframe player load timed out',
 				}));
@@ -2163,7 +2165,7 @@ sj.youtube.formatContentDetails = function (contentDetails) {
 },
 sj.youtube.formatSnippet = function (snippet) {
 	const pack = {};
-	if (!sj.isType(snippet, Object)) throw new sj.Error({
+	if (!sj.isType(snippet, Object)) throw new Err({
 		origin: 'sj.youtube.formatSnippet()',
 		reason: 'snippet is not an object',
 	});
@@ -2249,7 +2251,7 @@ sj.youtube.formatSnippet = function (snippet) {
 							message: 'youtube playback state checked',
 						});
 					} else {
-						throw new sj.Error({
+						throw new Err({
 							log: true,
 							code: '404',
 							origin: 'youtube.checkPlayback()',
@@ -2269,7 +2271,7 @@ sj.youtube.formatSnippet = function (snippet) {
 				});
 			}
 		} catch (e) {
-			throw new sj.Error({
+			throw new Err({
 				log: true,
 				origin: 'youtube.checkPlayback()',
 				message: 'could not check youtube playback',
@@ -2316,7 +2318,7 @@ sj.youtube.formatSnippet = function (snippet) {
 					message: 'track started',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					origin: 'youtube.start()',
 					message: 'failed to start youtube track',
 					content: e,
@@ -2337,7 +2339,7 @@ sj.youtube.formatSnippet = function (snippet) {
 					message: 'track started',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					origin: 'youtube.resume()',
 					message: 'failed to resume youtube track',
 					content: e,
@@ -2357,7 +2359,7 @@ sj.youtube.formatSnippet = function (snippet) {
 					message: 'track paused',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					log: true,
 					origin: 'youtube.pause()',
 					message: 'failed to pause',
@@ -2380,7 +2382,7 @@ sj.youtube.formatSnippet = function (snippet) {
 					message: 'track seeked',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					log: true,
 					origin: 'youtube.seek()',
 					message: 'failed to seek',

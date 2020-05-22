@@ -81,15 +81,16 @@ import {
 	clientIndexFileName,
 } from '../config/project-paths.js';
 import sj from './global-server.js';
-import auth from './auth.js'; // side-effects
+import auth from './auth.js'; //! side-effects
 import {
 	GET_BODY,
 } from '../public/js/constants.js';
-import propagate from '../shared/propagate.js';
 import {
 	ParseError,
 } from '../shared/errors/index.js';
-
+import { 
+	Err,
+} from '../shared/legacy-classes/error.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -131,7 +132,7 @@ export default function ({replaceIndex}) {
 			//C stop recursion if 10 layers deep
 			depth = depth || 0;
 			if (depth >= 10) {
-				throw new sj.Error({
+				throw new Err({
 					log: true,
 					origin: 'addListener()',
 					message: 'could not handle request, timeout error',
@@ -262,7 +263,7 @@ export default function ({replaceIndex}) {
 
 	// catch
 	.all('/*', async (ctx, next) => {
-		ctx.response.body = new sj.Error({
+		ctx.response.body = new Err({
 			log: true,
 			origin: 'apiRouter',
 			message: 'could not process request',

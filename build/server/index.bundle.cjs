@@ -518,12 +518,12 @@ sj.Subscriptions = function () {
 
 /* //TODO
 	//G wrapper objects vs bare return
-		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive sj.Error
+		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive Err
 		more complex functions (async, error-able, client-server transfer) should wrap their result:
 			sj.Success / sj.SuccessList
 				wraps empty content, arrays of other objects, misc content
 				or is a descendant item object
-			or a sj.Error / sj.ErrorList
+			or a Err / ErrList
 				wraps empty content, arrays of other objects with at least one error, non-sj errors
 				or is a custom error
 
@@ -537,16 +537,8 @@ sj.Subscriptions = function () {
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-// ERROR
+// RULE
 
-
-sj.Error = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"];
-sj.ErrorList = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]; // CUSTOM ERRORS
-
-sj.SilentError = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"];
-sj.AuthRequired = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["AuthRequired"];
-sj.Unreachable = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Unreachable"];
-sj.Timeout = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Timeout"]; // RULE
 
 sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   //G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
@@ -619,7 +611,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       } //C throw if no matches
 
 
-      throw new sj.Error({
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: `${this.origin}.checkType()`,
         message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
@@ -633,7 +625,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       if (sj.isType(value, String)) {
         //C string length
         if (!(value.length >= this.min && value.length <= this.max)) {
-          throw new sj.Error({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
             log: true,
             origin: `${this.origin}.checkSize()`,
             message: `${m} characters long`,
@@ -643,7 +635,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       } else if (sj.isType(value, Number)) {
         //C number size
         if (!(value >= this.min && value <= this.max)) {
-          throw new sj.Error({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
             log: true,
             origin: `${this.origin}.checkSize()`,
             message: `${m} items long`,
@@ -669,7 +661,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         //R indexOf apparently uses === so this should be fine
         //L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
         if (this.againstValue.indexOf(value) === -1) {
-          throw new sj.Error({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
             log: true,
             origin: `${this.origin}.checkAgainst() array`,
             message: this.againstMessage,
@@ -679,7 +671,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       } else {
         //C base value
         if (!(value === this.againstValue)) {
-          throw new sj.Error({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
             log: true,
             origin: `${this.origin}.checkAgainst() non-array`,
             message: this.againstMessage,
@@ -803,7 +795,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       }
       /*
       	if (!this.checkType(value)) {
-      		throw new sj.Error({
+      		throw new Err({
       			log: this.log,
       			origin: this.origin,
       			message: `${this.valueName} must be a ${this.dataType}`,
@@ -820,21 +812,21 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       		} else if (sj.typeOf(value) === 'array') {
       			message = `${message} items long`;
       		}
-      				throw new sj.Error({
+      				throw new Err({
       			log: this.log,
       			origin: this.origin,
       			message: message,
       		});
       	}
       	if (this.useAgainst && !this.checkAgainst(value, value2)) {
-      		throw new sj.Error({
+      		throw new Err({
       			log: this.log,
       			origin: this.origin,
       			message: this.againstMessage,
       		});
       	}
       	if (this.useFilter && !this.checkFilter(value, value2)) {
-      		throw new sj.Error({
+      		throw new Err({
       			log: this.log,
       			origin: this.origin,
       			message: this.filterMessage,
@@ -857,7 +849,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     	async checkProperty(obj, prop, value2) {
     		//C validate arguments
     		if (!sj.isType(obj, 'object')) {
-    			throw new sj.Error({
+    			throw new Err({
     				log: true,
     				origin: 'sj.Rule.checkProperty()',
     				message: 'validation error',
@@ -867,7 +859,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     		}
     		if (!prop in obj) {
     			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    			throw new sj.Error({
+    			throw new Err({
     				log: true,
     				origin: 'sj.Rule.checkProperty()',
     				message: 'validation error',
@@ -878,7 +870,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     				//C check rules
     		let result = this.check(obj[prop], value2).catch(rejected => {
     			//C throw error if failed 
-    			//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
+    			//! do not modify the original property, so that Err.content is not relied upon to always be the original property
     			throw sj.propagate(rejected);
     		});
     				//C modify and return if successful
@@ -894,7 +886,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
     					//C validate arguments
     			if (!rules instanceof this) {
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -909,7 +901,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			return sj.filterList(resolved, sj.Success, new sj.Success({
     				origin: 'sj.Rule.checkRuleSet()',
     				message: 'all rules validated',
-    			}), new sj.Error({
+    			}), new Err({
     				origin: 'sj.Rule.checkRuleSet()',
     				message: 'one or more issues with rules',
     				reason: 'validation functions returned one or more errors',
@@ -930,7 +922,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			if (!(rules instanceof sj.Rule)) {
     				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
     				//? is it possible to dynamically get this class
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -940,7 +932,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			}
     			if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
     				//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -950,7 +942,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			}
     			if (!(prop in obj)) {
     				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -958,7 +950,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     					content: obj,
     				});
     			}
-    					let result = new sj.Error(); //? why is this here
+    					let result = new Err(); //? why is this here
     					//C call check() with 1 or 2 values
     			if (sj.typeOf(value2) === 'undefined') {
     				result = await rules.check(obj[prop]).then(sj.sj.andResolve());
@@ -972,7 +964,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			return sj.filterList(resolved, sj.Success, new sj.Success({
     				origin: 'checkRuleSet()',
     				message: 'all rules validated',
-    			}), new sj.Error({
+    			}), new Err({
     				origin: 'checkRuleSet()',
     				message: 'one or more issues with fields',
     				reason: 'validation functions returned one or more errors',
@@ -1083,7 +1075,7 @@ sj.Rule.augmentClass({
 sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule2', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
-      if (typeof accessory.options.baseValidate !== 'function' || typeof accessory.options.baseCast !== 'function') throw new sj.Error({
+      if (typeof accessory.options.baseValidate !== 'function' || typeof accessory.options.baseCast !== 'function') throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         origin: 'sj.Rule2.beforeInit()',
         reason: 'baseValidate or baseCast is not a function',
         content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(accessory.options)
@@ -1094,7 +1086,7 @@ sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       //G baseValidate() and baseCast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
       //G baseValidate() should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders) if failed, this error should be SilentError/log: false, as it is caught and processed in validate()
       baseValidate(value, accessory) {
-        throw new sj.SilentError({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.baseValidate()',
           reason: `a baseValidate() function has not been created for this rule: ${this.name}`
         });
@@ -1257,14 +1249,14 @@ sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
 
-        if (sj.isType(targetError, sj.ErrorList)) {
+        if (sj.isType(targetError, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"])) {
           //C fill each item
           for (const listError of targetError.content) {
             this.fillError(listError, fill);
           }
         }
 
-        throw new sj.Error({ ...targetError,
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({ ...targetError,
           //C custom properties //! will overwrite any filled properties
           ...error,
           //C fixed properties
@@ -1281,7 +1273,7 @@ sj.Rule2.augmentClass({
     // STRING
     string: new sj.Rule2({
       baseValidate(value) {
-        if (!sj.isType(value, String)) throw new sj.SilentError({
+        if (!sj.isType(value, String)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.string.baseValidate()',
           reason: '$0 is not a string',
           message: '$0 must be text.',
@@ -1306,7 +1298,7 @@ sj.Rule2.augmentClass({
         sj.Rule2.string.validate(value); //TODO ensure that this regExp checks for all possible white space
         //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
 
-        if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.SilentError({
+        if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.trimmed.baseValidate()',
           reason: '$0 is not trimmed',
           message: '$0 must not have any leading or trailing whitespace.',
@@ -1324,7 +1316,7 @@ sj.Rule2.augmentClass({
       //C string has any non-whitespace characters
       baseValidate(value) {
         sj.Rule2.string.validate(value);
-        if (value.trim() === '') throw new sj.SilentError({
+        if (value.trim() === '') throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.nonEmptyString.baseValidate()',
           reason: '$0 is empty or only has whitespace',
           message: '$0 must not be empty.',
@@ -1340,7 +1332,7 @@ sj.Rule2.augmentClass({
     // NUMBER
     number: new sj.Rule2({
       baseValidate(value) {
-        if (!sj.isType(value, Number)) throw new sj.SilentError({
+        if (!sj.isType(value, Number)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.number.baseValidate()',
           reason: '$0 is not a number',
           message: '$0 must be a number.',
@@ -1358,7 +1350,7 @@ sj.Rule2.augmentClass({
     }),
     nonNaNNumber: new sj.Rule2({
       baseValidate(value) {
-        if (!sj.isType(value, Number) || Number.isNaN(value)) throw new sj.SilentError({
+        if (!sj.isType(value, Number) || Number.isNaN(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
           reason: '$0 is not a number or is NaN',
           message: '$0 must be a number.',
@@ -1375,7 +1367,7 @@ sj.Rule2.augmentClass({
       baseValidate(value) {
         //L don't worry about NaN here: https://stackoverflow.com/a/26982925
         sj.Rule2.number.validate(value);
-        if (value < 0) throw new sj.SilentError({
+        if (value < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
           reason: '$0 is negative',
           message: '$0 must not be negative.',
@@ -1393,7 +1385,7 @@ sj.Rule2.augmentClass({
         sj.Rule2.number.validate(value);
 
         if (0 < value) {
-          throw new sj.SilentError({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
             origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
             reason: '$0 is positive',
             message: '$0 must not be positive.',
@@ -1411,7 +1403,7 @@ sj.Rule2.augmentClass({
       baseValidate(value) {
         //L don't worry about NaN here: https://stackoverflow.com/a/26982925
         sj.Rule2.number.validate(value);
-        if (value <= 0) throw new sj.SilentError({
+        if (value <= 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.positiveNumber.baseValidate()',
           reason: '$0 is negative or 0',
           message: '$0 must be positive.',
@@ -1427,7 +1419,7 @@ sj.Rule2.augmentClass({
     negativeNumber: new sj.Rule2({
       baseValidate(value) {
         sj.Rule2.number.validate(value);
-        if (0 <= value) throw new sj.SilentError({
+        if (0 <= value) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.negativeNumber.baseValidate()',
           reason: '$0 is positive or 0',
           message: '$0 must be negative.',
@@ -1445,7 +1437,7 @@ sj.Rule2.augmentClass({
       baseValidate(value) {
         //L don't worry about NaN here: https://stackoverflow.com/a/26982925
         sj.Rule2.number.validate(value);
-        if (!Number.isInteger(value)) throw new sj.SilentError({
+        if (!Number.isInteger(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.integer.baseValidate()',
           reason: '$0 is not an integer',
           message: '$0 must be an integer.',
@@ -1627,7 +1619,7 @@ sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default
 
       tableToEntity(tableName) {
         const Entity = this.children.find(child => child.table === tableName);
-        if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
+        if (!sj.isType(new Entity(), sj.Entity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           origin: 'sj.Entity.tableToEntity()',
           reason: `table is not recognized: ${tableName}`,
           content: tableName
@@ -2139,6 +2131,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/request.js */ "./source/shared/request.js");
 /* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2174,6 +2167,7 @@ __webpack_require__.r(__webpack_exports__);
 
  //L https://github.com/thelinmichael/spotify-web-api-node
 // INTERNAL
+
 
 
 
@@ -2249,7 +2243,7 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_
   makeAuthRequestURL: function (key) {
     //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
     if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.redirectUri, String)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: 'spotify.makeAuthRequestURL()',
         message: 'one or more api credentials are missing or of the wrong type',
@@ -2293,7 +2287,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
 
     if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.code, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
+      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -2304,7 +2298,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
 
 
     if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.error, undefined)) {
-      emitter.emit(query.state, new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
+      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: 'receiveAuthRequest()',
         message: 'spotify authorization failed',
@@ -2331,7 +2325,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
       }); //C setup timeout
 
       Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
-        reject(new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
+        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: 'sj.spotify.endAuthRequest()',
           message: 'request timeout'
@@ -2358,7 +2352,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
       }),
       headers: _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER
     }).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token exchange failed',
@@ -2388,7 +2382,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].AuthRequired();
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["AuthRequired"]();
     } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
@@ -2402,7 +2396,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
       }),
       headers: _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER
     }).catch(rejected => {
-      throw new _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].Error({
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         message: 'failed to authorize spotify',
         reason: 'token refresh failed',
@@ -2520,12 +2514,13 @@ const schema = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2558,7 +2553,7 @@ __webpack_require__.r(__webpack_exports__);
 		//L multiple resources with one request: https://stackoverflow.com/questions/32098423/rest-updating-multiple-resources-with-one-request-is-it-standard-or-to-be-avo
 
 
-	//R sj.ErrorList
+	//R ErrList
 		ErrorList should not be a wrapper for a list of errors, ErrorList should be a version of a single error that has multiple 'parallel' parts (ie: adding a user and having an issue with multiple fields - its still a single error with one resource (a user) but there are multiple parts to the error that need to be evaluated in parallel not in sequence)
 		
 		would this not mean that requests are also evaluated in parallel? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
@@ -2620,21 +2615,22 @@ __webpack_require__.r(__webpack_exports__);
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝ 
 // BUILT-IN
-// INTERNAL
-
-
-
- // EXTERNAL
+// EXTERNAL
 // import fetch from 'node-fetch'; //C global.js uses fetch
+ // INTERNAL
+
+
+
+
 
  //TODO refactor this function out in favor of more specific validators.
 // global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
 
 function isEmpty(input) {
   //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-  return !(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'boolean') || _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
+  return !(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'boolean') || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
   //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-  _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'object') && Object.keys(input).length > 0 || _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(input, 'array') && input.length > 0);
+  _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'object') && Object.keys(input).length > 0 || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'array') && input.length > 0);
 }
 
 ; //  ██╗███╗   ██╗██╗████████╗
@@ -2647,10 +2643,10 @@ function isEmpty(input) {
 
 const saltRounds = 10; // DATABASE
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //C for use of db with globals so that db doesn't have to be imported twice
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db = _db_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //C for use of db with globals so that db doesn't have to be imported twice
 // LIVE DATA
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //  ██╗   ██╗████████╗██╗██╗     
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_4__["default"]; //  ██╗   ██╗████████╗██╗██╗     
 //  ██║   ██║╚══██╔══╝██║██║     
 //  ██║   ██║   ██║   ██║██║     
 //  ██║   ██║   ██║   ██║██║     
@@ -2688,7 +2684,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
   	};
   */
   // initialize
-  return _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db.tx(async function (t) {
+  return _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db.tx(async function (t) {
     // TODO this will not alter tables if they do already exist (save this for migration)
     // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
     // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
@@ -2703,7 +2699,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
 
 
     return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-      throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: 'schema initialization',
         message: 'database error',
@@ -2722,7 +2718,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
 				"email" text CONSTRAINT "users_email_key" UNIQUE,
 				"spotifyRefreshToken" text
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: 'users table initialization',
           message: 'database error',
@@ -2739,7 +2735,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
                 SELECT id, name, email 
                 FROM "sj"."users"
             ;`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: 'users_self initialization',
           message: 'database error',
@@ -2754,7 +2750,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
                 SELECT id, name
                 FROM "sj"."users"
             ;`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: 'users_public initialization',
           message: 'database error',
@@ -2776,7 +2772,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
                 
                 CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: 'playlists table initialization',
           message: 'database error',
@@ -2799,7 +2795,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
 
                 CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
             );`).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: 'tracks table initialization',
           message: 'database error',
@@ -2810,13 +2806,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
         });
       });
     }).catch(rejected => {
-      throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(rejected);
+      throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
     });
   }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(rejected);
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
   });
 })().then(resolved => {
-  new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'initialize database',
     message: 'database initialized'
   });
@@ -2824,7 +2820,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData = _live_da
   console.log(rejected);
 });
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError = function (pgError, sjError) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError = function (pgError, sjError) {
   //TODO any validation needed here?
   //TODO consider separating insertion checks into Conditions so multiple parameters are checked
   //TODO add targets and cssClasses to each violation case too
@@ -2872,7 +2868,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError 
   return sjError;
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //C this shouldn't insert anything
     return `("id") SELECT 0 WHERE 0 = 1`;
@@ -2892,11 +2888,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues = funct
     placeholders = placeholders.join(', ');
     placeholders = `(${placeholders})`; //? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
 
-    return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
+    return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
   }
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
     //C return a false clause
@@ -2906,15 +2902,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere = functi
     let pairs = [];
     pairs = Object.keys(mappedEntity).map(key => {
       //C wrap array in another array so that pgp doesn't think its values are for separate placeholders
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
+      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
     }); //C join with ' AND '
 
     return pairs.join(' AND ');
   }
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet = function (mappedEntity) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
     //C don't make any change
@@ -2924,8 +2920,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet = function
     let pairs = []; //C pair as formatted string
 
     pairs = Object.keys(mappedEntity).map(key => {
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input);
+      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input);
     }); //C join with ', '
 
     return pairs.join(', ');
@@ -2939,24 +2935,24 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet = function
 // CRUD
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = async function (db, ctx, user) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = async function (db, ctx, user) {
   //C validate
-  user.name = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content);
-  user.password = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  user.name = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
+  user.password = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
   //C get password
 
   let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
     return resolved.password;
   }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       log: false,
       origin: 'login()',
       message: 'could not login, database error'
     }));
   }); //C check password
 
-  let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_4___default.a.compare(user.password, existingPassword).catch(rejected => {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+  let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.compare(user.password, existingPassword).catch(rejected => {
+    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       log: true,
       origin: 'login()',
       message: 'server error',
@@ -2968,7 +2964,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = asy
   });
 
   if (!isMatch) {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       log: true,
       origin: 'login()',
       message: 'incorrect password',
@@ -2979,40 +2975,40 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.login = asy
 
 
   user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       log: false,
       origin: 'login()',
       message: 'could not login, database error'
     }));
   });
-  ctx.session.user = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User(user);
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  ctx.session.user = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User(user);
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'login()',
     message: 'user logged in',
     content: ctx.session.user
   });
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.get = async function (ctx) {
-  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn(ctx);
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get = async function (ctx) {
+  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn(ctx);
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'getMe()',
     content: ctx.session.user
   });
 };
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].session.logout = async function (ctx) {
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = async function (ctx) {
   delete ctx.session.user;
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'logout()',
     message: 'user logged out'
   });
 }; // UTIL
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn = async function (ctx) {
-  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(ctx.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(ctx.session.user.id, 'integer')) {
-    throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async function (ctx) {
+  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user.id, 'integer')) {
+    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       log: true,
       origin: 'isLoggedIn()',
       code: 403,
@@ -3025,9 +3021,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn = async 
   } //C redundancy check to make sure id is right format
 
 
-  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule.id.check(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
+  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule.id.check(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
 
-  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+  return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
     origin: 'isLoggedIn()',
     message: 'user is logged in'
   });
@@ -3039,7 +3035,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isLoggedIn = async 
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
   prototypeProperties: parent => ({
     async add(db) {
       return await this.constructor.add(this, db);
@@ -3061,23 +3057,23 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
   staticProperties(parent) {
     // CRUD METHODS
-    this.add = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.add = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'add');
     };
 
-    this.get = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.get = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'get');
     };
 
-    this.edit = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.edit = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'edit');
     };
 
-    this.remove = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.remove = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.frame(db, query, 'remove');
     };
 
-    this.getMimic = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
+    this.getMimic = async function (query, db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       //C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.liveData.notify()
       return await this.frame(db, query, 'getMimic');
     }; // FRAME
@@ -3085,12 +3081,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
     this.frame = async function (db, anyEntities, methodName) {
       //C catch sj.Entity
-      if (this === _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+      if (this === _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         origin: 'sj.Entity.[CRUD]',
         reason: `cannot call CRUD method directly on sj.Entity`
       }); //C cast as array
 
-      const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
+      const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(anyEntities); //C shorthand
 
       const isGetMimic = methodName === 'getMimic'; //C store getMimic
 
@@ -3102,11 +3098,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C prepare
+        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C prepare
 
-        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate)); //C accommodate
+        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C accommodate
 
-        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate) : []; //C map
+        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate) : []; //C map
 
         const inputMapped = this.mapColumns(preparedEntities);
         const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
@@ -3115,18 +3111,18 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         const inputAfter = isGetMimic ? inputMapped : [];
 
         if (!isGetMimic) {
-          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
+          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             if (methodName !== 'remove') inputAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({ ...this[methodName + 'Error'](),
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -3137,13 +3133,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         const influencedAfter = [];
 
         if (!isGet) {
-          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(influencedMapped, async influencedEntity => {
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
             influencedAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate(new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({ ...this[methodName + 'Error'](),
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -3154,21 +3150,21 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate));
-      }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
+        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate));
+      }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
-      const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+      const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
       const timestamp = Date.now(); //C if get, don't notify
 
-      if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
+      if (!isGet) shookGet.forEach(list => _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
       else if (isGetMimic) return shookGet[1]; //C shake for return
 
-      const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
+      const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
       const built = shook.map(list => list.map(entity => new this(entity)));
-      return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({ ...this[methodName + 'Success'](),
+      return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({ ...this[methodName + 'Success'](),
         //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
         content: built[1],
         timestamp
@@ -3185,12 +3181,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 
     this.validate = async function (entity, methodName) {
       const validated = {};
-      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
+      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(Object.keys(this.schema), async key => {
         const prop = this.schema[key]; //C catches
 
-        if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Rule)) {
+        if (!(prop.rule instanceof _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Rule)) {
           // sj.Rule
-          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
             log: true,
             origin: 'sj.Entity.validate()',
             message: 'validation error',
@@ -3203,17 +3199,17 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         if (prop[methodName].check && !isEmpty(entity[key]) || prop[methodName].check === 2) {
           //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
           const checked = await prop.rule.check(entity[key], entity[prop.against]);
-          validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content(checked);
+          validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content(checked);
           return checked;
         } else {
           //C don't pack into validated
-          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
             origin: 'sj.Entity.validate()',
             message: `optional ${key} is empty, skipped validation`
           });
         }
       }).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({
           origin: 'sj.Entity.validate()',
           message: 'one or more issues with properties',
           reason: 'validating properties returned one or more errors',
@@ -3241,7 +3237,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         let mappedEntity = {};
         Object.keys(entity).forEach(key => {
           //C for each property
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(this.schema[key], Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(this.schema[key].columnName, String)) {
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key], Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key].columnName, String)) {
             //C if schema has property 
             mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
           } else {
@@ -3261,7 +3257,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
           //C for each columnName
           let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
 
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(key, String)) {
+          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(key, String)) {
             //C set entity[key] as value of mappedEntity[columnName]
             entity[key] = mappedEntity[columnName];
           } else {
@@ -3276,7 +3272,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
     this.queryOrder = `ORDER BY "id" ASC`; //C executes SQL queries
 
     this.addQuery = async function (t, mappedEntity) {
-      let values = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildValues(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+      let values = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
       //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
       let row = await t.one(`
@@ -3284,7 +3280,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.add()`,
           message: `could not add ${this.name}s`
@@ -3294,14 +3290,14 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
     };
 
     this.getQuery = async function (t, mappedEntity) {
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere(mappedEntity);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere(mappedEntity);
       let rows = await t.any(`
 				SELECT * 
 				FROM "sj"."${this.table}" 
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.get()`,
           message: `could not get ${this.name}s`
@@ -3315,8 +3311,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
         id,
         ...mappedEntitySet
       } = mappedEntity;
-      let set = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildSet(mappedEntitySet);
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere({
+      let set = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet(mappedEntitySet);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere({
         id
       });
       let row = await t.one(`
@@ -3325,7 +3321,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.edit()`,
           message: `could not edit ${this.names}`
@@ -3335,13 +3331,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
     };
 
     this.removeQuery = async function (t, mappedEntity) {
-      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].buildWhere(mappedEntity);
+      let where = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere(mappedEntity);
       let row = await t.one(`
 				DELETE FROM "sj"."${this.table}" 
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.remove()`,
           message: `could not remove ${this.names}s`
@@ -3414,7 +3410,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Entity.augmentClass
   }
 
 });
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.augmentClass({
   constructorProperties: parent => ({
     defaults: {
       serverTestProp: null
@@ -3427,15 +3423,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.augmentClass
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.augmentClass({
   staticProperties(parent) {
     // CRUD
     this.addPrepare = this.editPrepare = async function (t, user) {
       let newUser = Object.assign([], user); //C hash password
       //TODO might be a vulnerability here with this string check
 
-      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_4___default.a.hash(newUser.password, saltRounds).catch(rejected => {
-        throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, saltRounds).catch(rejected => {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: 'sj.User.add()',
           message: 'failed to add user',
@@ -3456,7 +3452,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].User.augmentClass({
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playlist.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentClass({
   staticProperties: parent => ({
     // CRUD
     queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
@@ -3468,10 +3464,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Playlist.augmentCla
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass({
+_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass({
   prototypeProperties(parent) {
-    this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].db) {
-      return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
+    this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
+      return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(this));
     };
   },
 
@@ -3480,7 +3476,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
     this.addBefore = this.getBefore = this.editBefore = this.removeBefore = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(entity.source, Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(entity.source.name, String) ? entity.source.name : undefined;
+        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source, Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source.name, String) ? entity.source.name : undefined;
       });
       return newEntities;
     };
@@ -3491,10 +3487,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
         id: Symbol()
       };
 
-      if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(newTrack.position, 'integer')) {
-        let existingTracks = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.get({
+      if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newTrack.position, 'integer')) {
+        let existingTracks = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.get({
           playlistId: newTrack.playlistId
-        }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content);
+        }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
         newTrack.position = existingTracks.length;
       }
 
@@ -3515,7 +3511,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
       //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
       //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
       await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: 'sj.Track.move()',
           message: 'could not order tracks, database error',
@@ -3523,13 +3519,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
           cssClass: 'notifyError'
         }));
       });
-      return await this.order(t, tracks).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].propagate);
+      return await this.order(t, tracks).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
     };
 
     this.addAfter = this.getAfter = this.editAfter = this.deleteAfter = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Source.instances.find(source => source.name === entity.source);
+        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances.find(source => source.name === entity.source);
       });
       return newEntities;
     }; // UTIL
@@ -3553,7 +3549,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
       inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
       if (inputTracks.length === 0) {
-        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({
+        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({
           origin: 'sj.Track.order()',
           message: 'track positions did not need to be set'
         });
@@ -3565,13 +3561,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
         const influencedTracks = [];
         const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
 
-        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
+        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(playlistId, 'integer')) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(playlistId, 'integer')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               origin: 'sj.Track.order()',
               reason: `playlistId is not an integer: ${playlistId}`
             });
-            if (!Array.isArray(existingTracks)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+            if (!Array.isArray(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               origin: 'sj.Track.order()',
               reason: `existingTracks is not an array: ${existingTracks}`
             }); //C stores playlist in playlists if not already stored
@@ -3599,11 +3595,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
           const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; //C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
           //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
-          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
+          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
+					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = (
@@ -3613,7 +3609,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
 						)
 					`, track.id);
           const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               log: false,
               origin: 'sj.Track.order()',
               message: 'could not move tracks'
@@ -3627,7 +3623,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
             delete t.playlistId;
           });
 
-          if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) {
+          if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) {
             //C if not switching playlists
             //C group by action
             currentPlaylistStored['inputsTo' + action].push(track);
@@ -3639,7 +3635,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
 							FROM "sj"."tracks" 
 							WHERE "playlistId" = $1
 						`, track.playlistId).catch(rejected => {
-              throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].parsePostgresError(rejected, new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Error({
+              throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
                 log: false,
                 origin: 'sj.Track.order()',
                 message: 'could not move tracks'
@@ -3654,12 +3650,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
             anotherPlaylistStored.inputsToAdd.push(track);
           }
 
-          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Success({
+          return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Success({
             origin: 'sj.Track.order()',
             message: "retrieved track's playlist"
           });
         }).catch(rejected => {
-          throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].ErrorList({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({
             origin: 'sj.Track.order() - movingTracks iterator',
             message: `could not retrieve some track's playlist`,
             content: rejected
@@ -3676,15 +3672,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
           playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
 
           playlist.inputsToPosition.forEach(trackToPosition => {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].isType(trackToPosition.position, Number)) {
+            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(trackToPosition.position, Number)) {
               trackToPosition.position === Infinity;
             }
           }); //C sort
 
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
 
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
           //console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
           //console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
           //console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
@@ -3747,7 +3743,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
             delete inputTrack.position;
           }
         });
-        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].SuccessList({
+        return new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].SuccessList({
           origin: 'sj.Track.order()',
           message: 'influenced tracks calculated',
           content: influencedTracks
@@ -3804,7 +3800,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"].Track.augmentClass(
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (_public_js_global_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"]);
 
 /***/ }),
 
@@ -4066,6 +4062,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../public/js/global.js */ "./source/public/js/global.js");
 /* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -4078,6 +4075,7 @@ __webpack_require__.r(__webpack_exports__);
  // INTERNAL
 
  //! depends on the common global.js not the global-server.js because global-server.js uses this module
+
 
 
  //  ██╗███╗   ██╗██╗████████╗
@@ -4188,7 +4186,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       origin: 'sj.liveData.add()',
       reason: 'table is not an sj.LiveTable'
     }); //C find liveQuery, add if it doesn't exist
@@ -4229,7 +4227,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       origin: 'sj.liveData.remove()',
       reason: 'table is not an sj.LiveTable'
     }); //C find liveQuery index
@@ -4274,7 +4272,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
   async notify(Entity, entities, timestamp) {
     //C for each liveQuery
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       origin: 'sj.liveData.notify()',
       reason: 'table is not an sj.LiveTable'
     });
@@ -4361,8 +4359,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 /* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
 /* harmony import */ var _public_js_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../public/js/constants.js */ "./source/public/js/constants.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -4437,7 +4435,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
- // side-effects
+ //! side-effects
 
 
 
@@ -4479,7 +4477,7 @@ __webpack_require__.r(__webpack_exports__);
   		//C stop recursion if 10 layers deep
   		depth = depth || 0;
   		if (depth >= 10) {
-  			throw new sj.Error({
+  			throw new Err({
   				log: true,
   				origin: 'addListener()',
   				message: 'could not handle request, timeout error',
@@ -4510,7 +4508,7 @@ __webpack_require__.r(__webpack_exports__);
       ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
       await next();
     } catch (error) {
-      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["ParseError"]({
+      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["ParseError"]({
         message: error.message,
         userMessage: 'Request failed due to an internal error.',
         input: queryBody
@@ -4581,7 +4579,7 @@ __webpack_require__.r(__webpack_exports__);
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }) // catch
   .all('/*', async (ctx, next) => {
-    ctx.response.body = new _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Error({
+    ctx.response.body = new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__["Err"]({
       log: true,
       origin: 'apiRouter',
       message: 'could not process request',

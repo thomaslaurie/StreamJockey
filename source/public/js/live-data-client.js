@@ -267,6 +267,10 @@ import {
 } from '../../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../../shared/utility/object/deep-compare.js';
 import sj from './global-client.js';
+import { 
+	Unreachable,
+	Err,
+} from '../../shared/legacy-classes/error.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -296,7 +300,7 @@ export default {
 		
 		getLiveData: state => subscription => {
 			//C validate
-			if (!sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+			if (!sj.isType(subscription, sj.Subscription)) throw new Err({
 				origin: 'getLiveData()', 
 				reason: 'subscription is not an sj.Subscription',
 				content: subscription,
@@ -304,7 +308,7 @@ export default {
 
 			//C shorten
 			const liveQuery = subscription.liveQuery;
-			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new Err({
 				origin: 'getLiveData()',
 				reason: `liveQuery is not an sj.LiveQuery`,
 				content: liveQuery,
@@ -312,7 +316,7 @@ export default {
 
 			//C get all liveQuery.cachedEntityRefs.entity
 			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-				if (!sj.isType(cachedEntityRef, sj.CachedEntity)) throw new sj.Error({
+				if (!sj.isType(cachedEntityRef, sj.CachedEntity)) throw new Err({
 					origin: 'getLiveData()',
 					reason: 'cachedEntityRef is not a cachedEntity',
 					content: fclone(cachedEntityRef),
@@ -396,7 +400,7 @@ export default {
 
 			//C find cachedEntity by entity
 			const cachedEntity = context.getters.findCachedEntity({table, entity});
-			if (!sj.isType(cachedEntity, sj.CachedEntity)) throw new sj.Unreachable({origin: 'addCachedEntity()'});
+			if (!sj.isType(cachedEntity, sj.CachedEntity)) throw new Unreachable({origin: 'addCachedEntity()'});
 
 			//C shorthand
 			const liveQueryRefs = cachedEntity.liveQueryRefs;
@@ -405,7 +409,7 @@ export default {
 			//C find references
 			const foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
 			const foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
-			if (foundLiveQueryRef !== foundCachedEntityRef) throw new sj.Unreachable({
+			if (foundLiveQueryRef !== foundCachedEntityRef) throw new Unreachable({
 				origin: 'addCachedEntity()',
 				reason: 'either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen',
 				content: {
@@ -429,12 +433,12 @@ export default {
 		async removeCachedEntity(context, {cachedEntity, liveQuery}) {
 			//C find both reference indexes
 			const cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
-			if (cachedEntityRefIndex < 0) throw new sj.Error({
+			if (cachedEntityRefIndex < 0) throw new Err({
 				origin: 'removeCachedEntity()',
 				reason: 'cachedEntityRef not found in liveQuery',
 			});
 			const liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
-			if (liveQueryRefIndex < 0) throw new sj.Error({
+			if (liveQueryRefIndex < 0) throw new Err({
 				origin: 'removeCachedEntity()',
 				reason: 'liveQueryRef not found in cachedEntity',
 			});
@@ -453,7 +457,7 @@ export default {
 			if (cachedEntity.liveQueryRefs.length <= 0) {
 				//C remove the cachedEntity
 				const cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
-				if (cachedEntityIndex < 0) throw new sj.Error({
+				if (cachedEntityIndex < 0) throw new Err({
 					origin: 'removeCachedEntity()',
 					reason: 'cachedEntity not found in table',
 				});
@@ -506,7 +510,7 @@ export default {
 				
 				//C find liveQuery
 				const liveQuery = context.getters.findLiveQuery({table, query});
-				if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Unreachable({origin: 'addLiveQuery()'});
+				if (!sj.isType(liveQuery, sj.LiveQuery)) throw new Unreachable({origin: 'addLiveQuery()'});
 
 				//C trigger the initial update
 				await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: Date.now()});
@@ -528,7 +532,7 @@ export default {
 					liveQueries: table.liveQueries, 
 					index: liveQueryIndex,
 				});
-			} else throw new sj.Error({
+			} else throw new Err({
 				origin: 'removeLiveQuery',
 				reason: 'liveQuery not found in table',
 			});
@@ -586,7 +590,7 @@ export default {
 
 				//C find it's cachedEntity
 				const cachedEntity = await context.getters.findCachedEntity({table, entity});
-				if (!sj.isType(cachedEntity, sj.CachedEntity)) throw new sj.Unreachable({origin: 'update()'});
+				if (!sj.isType(cachedEntity, sj.CachedEntity)) throw new Unreachable({origin: 'update()'});
 
 				//C edit the cachedEntity (won't edit if data is old, or unchanged)
 				const edited = await context.dispatch('updateCachedEntity', {cachedEntity, entity, timestamp});
@@ -612,7 +616,7 @@ export default {
 
 			//C find the liveQuery
 			const liveQuery = context.getters.findLiveQuery({table, query}); //! this should never fail
-			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Unreachable({
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new Unreachable({
 				origin: 'addSubscription()',
 				reason: 'liveQuery not found in table',
 				content: liveQuery,
@@ -639,7 +643,7 @@ export default {
 					subscriptions: liveQuery.subscriptions,
 					index: subscriptionIndex,
 				});
-			} else throw new sj.Error({
+			} else throw new Err({
 				origin: 'removeSubscription',
 				reason: 'subscription not found in liveQuery',
 			});
@@ -658,17 +662,17 @@ export default {
 			//C validate
 			//TODO how to check if class is subclass, because this is getting ridiculous
 			//L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
+			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new Err({
 				origin: 'subscribe()', 
 				reason: 'Entity is not an sj.Entity',
 				content: Entity,
 			});
-			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
+			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
 				origin: 'subscribe()', 
 				reason: 'query is not an Object',
 				content: query,
 			});
-			if (!sj.isType(options, Object)) throw new sj.Error({
+			if (!sj.isType(options, Object)) throw new Err({
 				origin: 'subscribe()', 
 				reason: 'options is not an Object',
 				content: options,
@@ -676,7 +680,7 @@ export default {
 
 			//C shorten
 			const table = context.getters.findTable(Entity);
-			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+			if (!sj.isType(table, sj.LiveTable)) throw new Err({
 				origin: 'subscribe()', 
 				reason: 'table is not an sj.LiveTable',
 				content: table,
@@ -699,7 +703,7 @@ export default {
 		}) {
 			//C validate //! return early if not a subscription
 			if (!sj.isType(subscription, sj.Subscription)) {
-				if (strict) throw new sj.Error({
+				if (strict) throw new Err({
 					origin: 'unsubscribe()', 
 					reason: 'subscription is not an sj.Subscription',
 					content: subscription,
@@ -709,25 +713,25 @@ export default {
 			
 			//C shorten
 			const liveQuery = subscription.liveQuery;
-			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new Err({
 				origin: 'unsubscribe()',
 				reason: `liveQuery is not an sj.LiveQuery`,
 				content: liveQuery,
 			});
 			const query = liveQuery.query;
-			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
+			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
 				origin: 'unsubscribe()', 
 				reason: 'query is not an Object',
 				content: query,
 			});
 			const table = liveQuery.table;
-			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+			if (!sj.isType(table, sj.LiveTable)) throw new Err({
 				origin: 'unsubscribe()', 
 				reason: 'table is not an sj.LiveTable',
 				content: table,
 			});
 			const Entity = table.Entity;
-			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
+			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new Err({
 				origin: 'unsubscribe()', 
 				reason: 'Entity is not an sj.LiveTable',
 				content: Entity,
@@ -759,7 +763,7 @@ export default {
 
 			//C strict check here throws or lets function execute //! doesn't early return
 			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-			if (strict && !sj.isType(subscription, sj.Subscription)) throw new sj.Error({
+			if (strict && !sj.isType(subscription, sj.Subscription)) throw new Err({
 				origin: 'change()', 
 				reason: 'subscription is not an sj.Subscription',
 				content: subscription,
@@ -781,12 +785,12 @@ export default {
 			timestamp,
 		}) {
 			//C validate
-			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new sj.Error({
+			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new Err({
 				origin: 'update()', 
 				reason: 'Entity is not an sj.Entity',
 				content: fclone(Entity),
 			});
-			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new sj.Error({
+			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
 				origin: 'update()', 
 				reason: 'query is not an Object',
 				content: fclone(query),
@@ -795,7 +799,7 @@ export default {
 
 			//C shorten
 			const table = context.getters.findTable(Entity);
-			if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+			if (!sj.isType(table, sj.LiveTable)) throw new Err({
 				origin: 'update()', 
 				reason: 'table is not an sj.LiveTable',
 				content: {
@@ -804,7 +808,7 @@ export default {
 				},
 			});
 			const liveQuery = context.getters.findLiveQuery({table, query});
-			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new sj.Error({
+			if (!sj.isType(liveQuery, sj.LiveQuery)) throw new Err({
 				origin: 'update()',
 				reason: `liveQuery is not an sj.LiveQuery`,
 				content: {
@@ -829,7 +833,7 @@ export default {
 		async serverSubscribe(context, {table, query}) {
 			return await new Promise((resolve, reject) => {
 				const clearTimer = setTimer(context.state.timeout, () => {
-					reject(new sj.Error({
+					reject(new Err({
 						log: true,
 						reason: 'socket - subscribe timed out',
 					}));
@@ -837,7 +841,7 @@ export default {
 
 				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
-					if (sj.isType(result, sj.Error)) reject(result);
+					if (sj.isType(result, Err)) reject(result);
 					else resolve(result);
 				});
 			}).then(sj.content).catch(sj.propagate);
@@ -845,7 +849,7 @@ export default {
 		async serverUnsubscribe(context, {table, query}) {
 			await new Promise((resolve, reject) => {
 				const clearTimer = setTimer(context.state.timeout, () => {
-					reject(new sj.Error({
+					reject(new Err({
 						log: true,
 						reason: 'socket - unsubscribe timed out',
 					}));
@@ -853,7 +857,7 @@ export default {
 
 				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
-					if (sj.isType(result, sj.Error)) reject(result);
+					if (sj.isType(result, Err)) reject(result);
 					else resolve(result);
 				});
 			}).then(sj.content).catch(sj.propagate);

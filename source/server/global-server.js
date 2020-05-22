@@ -30,7 +30,7 @@
 		//L multiple resources with one request: https://stackoverflow.com/questions/32098423/rest-updating-multiple-resources-with-one-request-is-it-standard-or-to-be-avo
 
 
-	//R sj.ErrorList
+	//R ErrList
 		ErrorList should not be a wrapper for a list of errors, ErrorList should be a version of a single error that has multiple 'parallel' parts (ie: adding a user and having an issue with multiple fields - its still a single error with one resource (a user) but there are multiple parts to the error that need to be evaluated in parallel not in sequence)
 		
 		would this not mean that requests are also evaluated in parallel? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
@@ -98,6 +98,10 @@
 
 // BUILT-IN
 
+// EXTERNAL
+// import fetch from 'node-fetch'; //C global.js uses fetch
+import bcrypt from 'bcryptjs';
+
 // INTERNAL
 import {
 	pick,
@@ -108,10 +112,11 @@ import {
 import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
 import liveData from './live-data-server.js';
+import { 
+	ErrorList, 
+	Err,
+} from '../shared/legacy-classes/error.js';
 
-// EXTERNAL
-// import fetch from 'node-fetch'; //C global.js uses fetch
-import bcrypt from 'bcryptjs';
 
 
 //TODO refactor this function out in favor of more specific validators.
@@ -200,7 +205,7 @@ sj.liveData = liveData;
 
         if (false) {
             await t.none(`DROP SCHEMA IF EXISTS "sj" CASCADE`).catch(rejected => {
-                throw new sj.Error({
+                throw new Err({
                     log: true,
                     origin: 'schema initialization',
                     message: 'database error',
@@ -216,7 +221,7 @@ sj.liveData = liveData;
         // !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
         // !!! column names are camelCase (because they get converted to properties), everything else is underscore
         return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-            throw new sj.Error({
+            throw new Err({
                 log: true,
                 origin: 'schema initialization',
                 message: 'database error',
@@ -235,7 +240,7 @@ sj.liveData = liveData;
 				"email" text CONSTRAINT "users_email_key" UNIQUE,
 				"spotifyRefreshToken" text
             );`).catch(rejected => {
-                throw new sj.Error({
+                throw new Err({
                     log: true,
                     origin: 'users table initialization',
                     message: 'database error',
@@ -252,7 +257,7 @@ sj.liveData = liveData;
                 SELECT id, name, email 
                 FROM "sj"."users"
             ;`).catch(rejected => {
-                throw new sj.Error({
+                throw new Err({
                     log: true,
                     origin: 'users_self initialization',
                     message: 'database error',
@@ -267,7 +272,7 @@ sj.liveData = liveData;
                 SELECT id, name
                 FROM "sj"."users"
             ;`).catch(rejected => {
-                throw new sj.Error({
+                throw new Err({
                     log: true,
                     origin: 'users_public initialization',
                     message: 'database error',
@@ -289,7 +294,7 @@ sj.liveData = liveData;
                 
                 CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
             );`).catch(rejected => {
-                throw new sj.Error({
+                throw new Err({
                     log: true,
                     origin: 'playlists table initialization',
                     message: 'database error',
@@ -312,7 +317,7 @@ sj.liveData = liveData;
 
                 CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
             );`).catch(rejected => {
-                throw new sj.Error({
+                throw new Err({
                     log: true,
                     origin: 'tracks table initialization',
                     message: 'database error',
@@ -460,7 +465,7 @@ sj.session.login = async function (db, ctx, user) {
     let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
         return resolved.password;
     }).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new Err({
             log: false,
             origin: 'login()',
             message: 'could not login, database error',
@@ -469,7 +474,7 @@ sj.session.login = async function (db, ctx, user) {
 
     //C check password
     let isMatch = await bcrypt.compare(user.password, existingPassword).catch(rejected => {
-        throw new sj.Error({
+        throw new Err({
             log: true,
             origin: 'login()',
             message: 'server error',
@@ -480,7 +485,7 @@ sj.session.login = async function (db, ctx, user) {
         });
     });
     if (!isMatch) {
-        throw new sj.Error({
+        throw new Err({
             log: true,
             origin: 'login()',
             message: 'incorrect password',
@@ -491,7 +496,7 @@ sj.session.login = async function (db, ctx, user) {
 
     //C get user
     user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new sj.Error({
+        throw sj.parsePostgresError(rejected, new Err({
             log: false,
             origin: 'login()',
             message: 'could not login, database error',
@@ -523,7 +528,7 @@ sj.session.logout = async function (ctx) {
 // UTIL
 sj.isLoggedIn = async function (ctx) {
     if (!sj.isType(ctx.session.user, sj.User) || !sj.isType(ctx.session.user.id, 'integer')) {
-        throw new sj.Error({
+        throw new Err({
             log: true,
             origin: 'isLoggedIn()',
             code: 403,
@@ -591,7 +596,7 @@ sj.Entity.augmentClass({
 		// FRAME
 		this.frame = async function (db, anyEntities, methodName) {
 			//C catch sj.Entity
-			if (this === sj.Entity) throw new sj.Error({
+			if (this === sj.Entity) throw new Err({
 				origin: 'sj.Entity.[CRUD]',
 				reason: `cannot call CRUD method directly on sj.Entity`,
 			});
@@ -640,7 +645,7 @@ sj.Entity.augmentClass({
 						const after = await this[methodName+'Query'](t, entity).then(any).catch(sj.propagate);
 						if (methodName !== 'remove') inputAfter.push(...after);
 					}).catch(rejected => {
-						throw sj.propagate(new sj.ErrorList({
+						throw sj.propagate(new ErrorList({
 							...this[methodName+'Error'](),
 							content: rejected,
 						}));
@@ -658,7 +663,7 @@ sj.Entity.augmentClass({
 						const after = await this.editQuery(t, influencedEntity).then(any).catch(sj.propagate);
 						influencedAfter.push(...after);
 					}).catch(rejected => {
-						throw sj.propagate(new sj.ErrorList({
+						throw sj.propagate(new ErrorList({
 							...this[methodName+'Error'](),
 							content: rejected,
 						}));
@@ -721,7 +726,7 @@ sj.Entity.augmentClass({
 
 				//C catches
 				if (!(prop.rule instanceof sj.Rule)) { // sj.Rule
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						origin: 'sj.Entity.validate()',
 						message: 'validation error',
@@ -744,7 +749,7 @@ sj.Entity.augmentClass({
 					});
 				}
 			}).catch(rejected => {
-				throw new sj.ErrorList({
+				throw new ErrorList({
 					origin: 'sj.Entity.validate()',
 					message: 'one or more issues with properties',
 					reason: 'validating properties returned one or more errors',
@@ -817,7 +822,7 @@ sj.Entity.augmentClass({
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => { 
-				throw sj.parsePostgresError(rejected, new sj.Error({
+				throw sj.parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.add()`,
 					message: `could not add ${this.name}s`,
@@ -835,7 +840,7 @@ sj.Entity.augmentClass({
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
+				throw sj.parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.get()`,
 					message: `could not get ${this.name}s`,
@@ -855,7 +860,7 @@ sj.Entity.augmentClass({
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
+				throw sj.parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.edit()`,
 					message: `could not edit ${this.names}`,
@@ -872,7 +877,7 @@ sj.Entity.augmentClass({
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
+				throw sj.parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.remove()`,
 					message: `could not remove ${this.names}s`,
@@ -952,7 +957,7 @@ sj.User.augmentClass({
 			//C hash password
 			//TODO might be a vulnerability here with this string check
 			if (sj.isType(newUser.password, String)) newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
-				throw new sj.Error({
+				throw new Err({
 					log: true,
 					origin: 'sj.User.add()',
 					message: 'failed to add user',
@@ -1035,7 +1040,7 @@ sj.Track.augmentClass({
 			//L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
 			//L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
 			await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new sj.Error({
+				throw sj.parsePostgresError(rejected, new Err({
 					log: false,
 					origin: 'sj.Track.move()',
 					message: 'could not order tracks, database error',
@@ -1101,11 +1106,11 @@ sj.Track.augmentClass({
 				//C retrieve track's playlist, group each track by playlist & moveType
 				await asyncMap(inputTracks, async (track, index) => {
 					const storePlaylist = function (playlistId, existingTracks) {
-						if (!sj.isType(playlistId, 'integer')) throw new sj.Error({
+						if (!sj.isType(playlistId, 'integer')) throw new Err({
 							origin: 'sj.Track.order()',
 							reason: `playlistId is not an integer: ${playlistId}`,
 						});
-						if (!Array.isArray(existingTracks)) throw new sj.Error({
+						if (!Array.isArray(existingTracks)) throw new Err({
 							origin: 'sj.Track.order()',
 							reason: `existingTracks is not an array: ${existingTracks}`,
 						});
@@ -1156,7 +1161,7 @@ sj.Track.augmentClass({
 						)
 					`, track.id);
 					const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-						throw sj.parsePostgresError(rejected, new sj.Error({
+						throw sj.parsePostgresError(rejected, new Err({
 							log: false,
 							origin: 'sj.Track.order()',
 							message: 'could not move tracks',
@@ -1184,7 +1189,7 @@ sj.Track.augmentClass({
 							FROM "sj"."tracks" 
 							WHERE "playlistId" = $1
 						`, track.playlistId).catch(rejected => {
-							throw sj.parsePostgresError(rejected, new sj.Error({
+							throw sj.parsePostgresError(rejected, new Err({
 								log: false,
 								origin: 'sj.Track.order()',
 								message: 'could not move tracks',
@@ -1206,7 +1211,7 @@ sj.Track.augmentClass({
 						message: "retrieved track's playlist",
 					});
 				}).catch(rejected => {
-					throw new sj.ErrorList({
+					throw new ErrorList({
 						origin: 'sj.Track.order() - movingTracks iterator',
 						message: `could not retrieve some track's playlist`,
 						content: rejected,

@@ -14,6 +14,9 @@ import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep
 //! depends on the common global.js not the global-server.js because global-server.js uses this module
 import sj from '../public/js/global.js';
 import Base from '../shared/legacy-classes/base.js';
+import { 
+	Err,
+} from '../shared/legacy-classes/error.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -133,7 +136,7 @@ export default {
 
 		//C find table
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+		if (!sj.isType(table, sj.LiveTable)) throw new Err({
 			origin: 'sj.liveData.add()',
 			reason: 'table is not an sj.LiveTable',
 		});
@@ -175,7 +178,7 @@ export default {
 		
 		//C find table
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+		if (!sj.isType(table, sj.LiveTable)) throw new Err({
 			origin: 'sj.liveData.remove()',
 			reason: 'table is not an sj.LiveTable',
 		});
@@ -224,7 +227,7 @@ export default {
 	async notify(Entity, entities, timestamp) {
 		//C for each liveQuery
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, sj.LiveTable)) throw new sj.Error({
+		if (!sj.isType(table, sj.LiveTable)) throw new Err({
 			origin: 'sj.liveData.notify()',
 			reason: 'table is not an sj.LiveTable',
 		});

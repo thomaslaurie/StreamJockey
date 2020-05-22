@@ -102,9 +102,6 @@ import {
 	Err,
 	ErrorList,
 	SilentError,
-	AuthRequired,
-	Unreachable,
-	Timeout,
 } from '../../shared/legacy-classes/error.js';
 
 
@@ -300,12 +297,12 @@ sj.Subscriptions = function () {
 
 /* //TODO
 	//G wrapper objects vs bare return
-		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive sj.Error
+		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive Err
 		more complex functions (async, error-able, client-server transfer) should wrap their result:
 			sj.Success / sj.SuccessList
 				wraps empty content, arrays of other objects, misc content
 				or is a descendant item object
-			or a sj.Error / sj.ErrorList
+			or a Err / ErrList
 				wraps empty content, arrays of other objects with at least one error, non-sj errors
 				or is a custom error
 
@@ -320,17 +317,6 @@ sj.Subscriptions = function () {
 */
 
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-
-// ERROR
-sj.Error = Err;
-sj.ErrorList = ErrorList;
-
-// CUSTOM ERRORS
-sj.SilentError = SilentError;
-sj.AuthRequired = AuthRequired;
-sj.Unreachable = Unreachable;
-sj.Timeout = Timeout;
-
 
 // RULE
 sj.Rule = Base.makeClass('Rule', Base, {
@@ -407,7 +393,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			}
 
 			//C throw if no matches
-			throw new sj.Error({
+			throw new Err({
 				log: true,
 				origin: `${this.origin}.checkType()`,
 				message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
@@ -420,7 +406,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			if (sj.isType(value, String)) {
 				//C string length
 				if (!(value.length >= this.min && value.length <= this.max)) {
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						origin: `${this.origin}.checkSize()`,
 						message: `${m} characters long`,
@@ -430,7 +416,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			} else if (sj.isType(value, Number)) {
 				//C number size
 				if (!(value >= this.min && value <= this.max)) {
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						origin: `${this.origin}.checkSize()`,
 						message: `${m} items long`,
@@ -455,7 +441,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 				//R indexOf apparently uses === so this should be fine
 				//L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
 				if (this.againstValue.indexOf(value) === -1) {
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						origin: `${this.origin}.checkAgainst() array`,
 						message: this.againstMessage,
@@ -465,7 +451,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			} else {
 				//C base value
 				if (!(value === this.againstValue)) {
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						origin: `${this.origin}.checkAgainst() non-array`,
 						message: this.againstMessage,
@@ -594,7 +580,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			
 			/*
 				if (!this.checkType(value)) {
-					throw new sj.Error({
+					throw new Err({
 						log: this.log,
 						origin: this.origin,
 						message: `${this.valueName} must be a ${this.dataType}`,
@@ -613,21 +599,21 @@ sj.Rule = Base.makeClass('Rule', Base, {
 						message = `${message} items long`;
 					}
 
-					throw new sj.Error({
+					throw new Err({
 						log: this.log,
 						origin: this.origin,
 						message: message,
 					});
 				}
 				if (this.useAgainst && !this.checkAgainst(value, value2)) {
-					throw new sj.Error({
+					throw new Err({
 						log: this.log,
 						origin: this.origin,
 						message: this.againstMessage,
 					});
 				}
 				if (this.useFilter && !this.checkFilter(value, value2)) {
-					throw new sj.Error({
+					throw new Err({
 						log: this.log,
 						origin: this.origin,
 						message: this.filterMessage,
@@ -650,7 +636,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 			async checkProperty(obj, prop, value2) {
 				//C validate arguments
 				if (!sj.isType(obj, 'object')) {
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						origin: 'sj.Rule.checkProperty()',
 						message: 'validation error',
@@ -660,7 +646,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 				}
 				if (!prop in obj) {
 					//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-					throw new sj.Error({
+					throw new Err({
 						log: true,
 						origin: 'sj.Rule.checkProperty()',
 						message: 'validation error',
@@ -672,7 +658,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 				//C check rules
 				let result = this.check(obj[prop], value2).catch(rejected => {
 					//C throw error if failed 
-					//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
+					//! do not modify the original property, so that Err.content is not relied upon to always be the original property
 					throw sj.propagate(rejected);
 				});
 
@@ -689,7 +675,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 
 					//C validate arguments
 					if (!rules instanceof this) {
-						return new sj.Error({
+						return new Err({
 							log: true,
 							origin: 'checkRuleSet()',
 							message: 'validation error',
@@ -705,7 +691,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 					return sj.filterList(resolved, sj.Success, new sj.Success({
 						origin: 'sj.Rule.checkRuleSet()',
 						message: 'all rules validated',
-					}), new sj.Error({
+					}), new Err({
 						origin: 'sj.Rule.checkRuleSet()',
 						message: 'one or more issues with rules',
 						reason: 'validation functions returned one or more errors',
@@ -727,7 +713,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 					if (!(rules instanceof sj.Rule)) {
 						//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
 						//? is it possible to dynamically get this class
-						return new sj.Error({
+						return new Err({
 							log: true,
 							origin: 'checkRuleSet()',
 							message: 'validation error',
@@ -737,7 +723,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 					}
 					if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
 						//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-						return new sj.Error({
+						return new Err({
 							log: true,
 							origin: 'checkRuleSet()',
 							message: 'validation error',
@@ -747,7 +733,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 					}
 					if (!(prop in obj)) {
 						//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-						return new sj.Error({
+						return new Err({
 							log: true,
 							origin: 'checkRuleSet()',
 							message: 'validation error',
@@ -756,7 +742,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 						});
 					}
 
-					let result = new sj.Error(); //? why is this here
+					let result = new Err(); //? why is this here
 
 					//C call check() with 1 or 2 values
 					if (sj.typeOf(value2) === 'undefined') {
@@ -773,7 +759,7 @@ sj.Rule = Base.makeClass('Rule', Base, {
 					return sj.filterList(resolved, sj.Success, new sj.Success({
 						origin: 'checkRuleSet()',
 						message: 'all rules validated',
-					}), new sj.Error({
+					}), new Err({
 						origin: 'checkRuleSet()',
 						message: 'one or more issues with fields',
 						reason: 'validation functions returned one or more errors',
@@ -902,7 +888,7 @@ sj.Rule2 = Base.makeClass('Rule2', Base, {
 			if (
 				typeof accessory.options.baseValidate !== 'function' ||
 				typeof accessory.options.baseCast !== 'function'
-			) throw new sj.Error({
+			) throw new Err({
 				origin: 'sj.Rule2.beforeInit()',
 				reason: 'baseValidate or baseCast is not a function',
 				content: fclone(accessory.options),
@@ -913,7 +899,7 @@ sj.Rule2 = Base.makeClass('Rule2', Base, {
 
 			//G baseValidate() should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders) if failed, this error should be SilentError/log: false, as it is caught and processed in validate()
 			baseValidate(value, accessory) {
-				throw new sj.SilentError({
+				throw new SilentError({
 					origin: 'sj.Rule2.baseValidate()',
 					reason: `a baseValidate() function has not been created for this rule: ${this.name}`,
 				});
@@ -1062,14 +1048,14 @@ sj.Rule2 = Base.makeClass('Rule2', Base, {
 				this.fillError(targetError, fill);
 	
 				//C if ErrorList
-				if (sj.isType(targetError, sj.ErrorList)) {
+				if (sj.isType(targetError, ErrorList)) {
 					//C fill each item
 					for (const listError of targetError.content) {
 						this.fillError(listError, fill);
 					}
 				}
 	
-				throw new sj.Error({
+				throw new Err({
 					...targetError,
 					//C custom properties //! will overwrite any filled properties
 					...error,
@@ -1085,7 +1071,7 @@ sj.Rule2.augmentClass({
 		// STRING
 		string: new sj.Rule2({
 			baseValidate(value) {
-				if (!sj.isType(value, String)) throw new sj.SilentError({
+				if (!sj.isType(value, String)) throw new SilentError({
 					origin: 'sj.Rule2.string.baseValidate()',
 					reason: '$0 is not a string',
 					message: '$0 must be text.',
@@ -1107,7 +1093,7 @@ sj.Rule2.augmentClass({
 				sj.Rule2.string.validate(value);
 				//TODO ensure that this regExp checks for all possible white space
 				//L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
-				if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.SilentError({
+				if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new SilentError({
 					origin: 'sj.Rule2.trimmed.baseValidate()',
 					reason: '$0 is not trimmed',
 					message: '$0 must not have any leading or trailing whitespace.',
@@ -1123,7 +1109,7 @@ sj.Rule2.augmentClass({
 			//C string has any non-whitespace characters
 			baseValidate(value) {
 				sj.Rule2.string.validate(value);
-				if (value.trim() === '') throw new sj.SilentError({
+				if (value.trim() === '') throw new SilentError({
 					origin: 'sj.Rule2.nonEmptyString.baseValidate()',
 					reason: '$0 is empty or only has whitespace',
 					message: '$0 must not be empty.',
@@ -1139,7 +1125,7 @@ sj.Rule2.augmentClass({
 		// NUMBER
 		number: new sj.Rule2({
 			baseValidate(value) {
-				if (!sj.isType(value, Number)) throw new sj.SilentError({
+				if (!sj.isType(value, Number)) throw new SilentError({
 					origin: 'sj.Rule2.number.baseValidate()',
 					reason: '$0 is not a number',
 					message: '$0 must be a number.',
@@ -1155,7 +1141,7 @@ sj.Rule2.augmentClass({
 		}),
 		nonNaNNumber: new sj.Rule2({
 			baseValidate(value) {
-				if (!sj.isType(value, Number) || Number.isNaN(value)) throw new sj.SilentError({
+				if (!sj.isType(value, Number) || Number.isNaN(value)) throw new SilentError({
 					origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
 					reason: '$0 is not a number or is NaN',
 					message: '$0 must be a number.',
@@ -1172,7 +1158,7 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
-				if (value < 0) throw new sj.SilentError({
+				if (value < 0) throw new SilentError({
 					origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
 					reason: '$0 is negative',
 					message: '$0 must not be negative.',
@@ -1188,7 +1174,7 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				sj.Rule2.number.validate(value);
 				if (0 < value) {
-					throw new sj.SilentError({
+					throw new SilentError({
 						origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
 						reason: '$0 is positive',
 						message: '$0 must not be positive.',
@@ -1205,7 +1191,7 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
-				if (value <= 0) throw new sj.SilentError({
+				if (value <= 0) throw new SilentError({
 					origin: 'sj.Rule2.positiveNumber.baseValidate()',
 					reason: '$0 is negative or 0',
 					message: '$0 must be positive.',
@@ -1220,7 +1206,7 @@ sj.Rule2.augmentClass({
 		negativeNumber: new sj.Rule2({
 			baseValidate(value) {
 				sj.Rule2.number.validate(value);
-				if (0 <= value) throw new sj.SilentError({
+				if (0 <= value) throw new SilentError({
 					origin: 'sj.Rule2.negativeNumber.baseValidate()',
 					reason: '$0 is positive or 0',
 					message: '$0 must be negative.',
@@ -1238,7 +1224,7 @@ sj.Rule2.augmentClass({
 			baseValidate(value) {
 				//L don't worry about NaN here: https://stackoverflow.com/a/26982925
 				sj.Rule2.number.validate(value);
-				if (!Number.isInteger(value)) throw new sj.SilentError({
+				if (!Number.isInteger(value)) throw new SilentError({
 					origin: 'sj.Rule2.integer.baseValidate()',
 					reason: '$0 is not an integer',
 					message: '$0 must be an integer.',
@@ -1414,7 +1400,7 @@ sj.Entity = Base.makeClass('Entity', sj.Success, {
 
 			tableToEntity(tableName) {
 				const Entity = this.children.find(child => child.table === tableName);
-				if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
+				if (!sj.isType(new Entity(), sj.Entity)) throw new Err({
 					origin: 'sj.Entity.tableToEntity()',
 					reason: `table is not recognized: ${tableName}`,
 					content: tableName,

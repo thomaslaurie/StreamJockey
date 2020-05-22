@@ -315,10 +315,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
-/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
-/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
-/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
+/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
+/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
+/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -330,16 +331,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
  //TODO consider adding different display types (for components representing the same type of data eg. track) instead of different components?
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display',
   components: {
-    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
     //TODO make actual default components
-    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
-    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
-    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_5__["default"]
+    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_6__["default"]
   },
 
   data() {
@@ -412,7 +414,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }
 
       ;
-      if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.sj.Error({
+      if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.Err({
         origin: 'AsyncDisplay usingQuery()',
         reason: 'attempting to use a query but Entity is not a child class of sj.Entity',
         content: this.fclone(this.Entity)
@@ -474,7 +476,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     startTimeouts() {
-      if (!this.sj.isType(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"])) throw new this.sj.Error({
+      if (!this.sj.isType(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"])) throw new this.Err({
         origin: 'AsyncContent startTimeouts()',
         reason: 'refresh promise must be an instance of Deferred'
       });
@@ -484,7 +486,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       });
       this.clearTimeout = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(this.timeout, () => {
         //C reject after timeout time
-        this.refreshPromise.reject(new this.sj.Error({
+        this.refreshPromise.reject(new this.Err({
           origin: 'AsyncDisplay.load()',
           message: 'content request timed out'
         }));
@@ -37782,12 +37784,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var he__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! he */ "./node_modules/he/he.js");
 /* harmony import */ var he__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(he__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/derived-utility/index.js */ "./source/shared/derived-utility/index.js");
-/* harmony import */ var _browser_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./browser-utility/index.js */ "./source/public/js/browser-utility/index.js");
-/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
-/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
-/* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./server-request.js */ "./source/public/js/server-request.js");
-/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _browser_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./browser-utility/index.js */ "./source/public/js/browser-utility/index.js");
+/* harmony import */ var _global_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./global.js */ "./source/public/js/global.js");
+/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
+/* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./server-request.js */ "./source/public/js/server-request.js");
+/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37847,9 +37849,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 //C attach external libraries to sj so that they can be used where ever sj is imported
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_0___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].he = he__WEBPACK_IMPORTED_MODULE_1___default.a;
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].appName = 'StreamJockey'; //   ██████╗██╗      █████╗ ███████╗███████╗
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].moment = moment__WEBPACK_IMPORTED_MODULE_0___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].he = he__WEBPACK_IMPORTED_MODULE_1___default.a;
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].appName = 'StreamJockey'; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -37857,7 +37859,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].appName = 'StreamJockey'; // 
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 // ENTITY CRUD METHODS
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Entity.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Entity.augmentClass({
   prototypeProperties: parent => ({
     add() {
       var _this = this;
@@ -37898,7 +37900,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Entity.augmentClass({
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
       })();
     },
 
@@ -37906,7 +37908,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Entity.augmentClass({
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
       })();
     },
 
@@ -37914,7 +37916,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Entity.augmentClass({
       var _this7 = this;
 
       return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
       })();
     },
 
@@ -37922,7 +37924,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Entity.augmentClass({
       var _this8 = this;
 
       return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
+        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
       })();
     }
 
@@ -37935,13 +37937,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Entity.augmentClass({
 //TODO consider a stop command? it would stop all sources and set the current source back to null
 //TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"].makeClass('Command', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"], {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"].makeClass('Command', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"], {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a source
       //TODO The non-instance source casting actually seems necessary here for some reason.
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source)) {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source)) {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
           origin: 'sj.Command.beforeInitialize()',
           message: 'no source is active to receive this command',
           reason: "sj.Command instance.source must be an sj.Source: ".concat(accessory.options.source),
@@ -37960,7 +37962,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command = _shared_legacy_clas
       this.fullResolve = function (success) {
         //C resolve collapsed commands
         this.collapsedCommands.forEach(collapsedCommand => {
-          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+          collapsedCommand.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37972,7 +37974,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command = _shared_legacy_clas
       this.fullReject = function (error) {
         //C//! RESOLVE collapsed commands
         this.collapsedCommands.forEach(a => {
-          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+          a.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
             origin: 'resolvePlus()',
             reason: 'command was collapsed'
           }));
@@ -37982,14 +37984,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command = _shared_legacy_clas
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
           origin: 'sj.Command.resolve()',
           reason: 'command.resolve called but it has not been given a resolve function'
         });
       };
 
       this.resolve = function () {
-        throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
           origin: 'sj.Command.reject()',
           reason: 'command.reject called but it has not been given a reject function'
         });
@@ -38000,7 +38002,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command = _shared_legacy_clas
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
       //C otherCommand must be an sj.Command, and have the same playback-state properties
-      return _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command) && otherCommand.source === this.source;
+      return _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command) && otherCommand.source === this.source;
     },
 
     collapseCondition(otherCommand) {
@@ -38021,11 +38023,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command = _shared_legacy_clas
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"].makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"].makeClass('Start', _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a track
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track)) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         origin: 'sj.Start.beforeInitialize()',
         reason: 'sj.Start instance.track must be an sj.Track',
         content: accessory.options.track
@@ -38040,14 +38042,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start = _shared_legacy_classe
   }),
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track) //C catch non-sj.Tracks
+      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track) //C catch non-sj.Tracks
       && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
       && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
     },
 
     collapseCondition(otherCommand) {
       //C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Resume || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Pause || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Seek;
     },
 
     trigger(context) {
@@ -38056,7 +38058,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start = _shared_legacy_classe
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this10, context); //C pause all
 
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
           });
@@ -38068,7 +38070,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start = _shared_legacy_classe
 
         context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
           subscription: context.state.startingTrackSubscription,
-          Entity: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track,
+          Entity: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track,
           query: {
             id: _this10.track.id
           },
@@ -38090,7 +38092,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start = _shared_legacy_classe
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"].makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Toggle = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"].makeClass('Toggle', _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command, {
   //? pause command might not have a desired progress?
   //TODO toggle resume seems to be broken, maybe because of CORS?
   // "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
@@ -38100,7 +38102,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle = _shared_legacy_class
         options
       } = _ref2;
       //G isPlaying must be manually set to true or false
-      if (options.isPlaying !== true && options.isPlaying !== false) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+      if (options.isPlaying !== true && options.isPlaying !== false) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         origin: 'sj.Toggle',
         reason: "Toggle isPlaying must be true or false: ".concat(options.isPlaying),
         content: options.isPlaying
@@ -38127,7 +38129,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle = _shared_legacy_class
 
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this11, context);
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (source) {
             if (_this11.isPlaying && source === _this11.source) {
               //C resume target if resuming
@@ -38147,14 +38149,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle = _shared_legacy_class
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"].makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Seek = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"].makeClass('Seek', _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(_ref4) {
       var {
         options
       } = _ref4;
       //G progress must be manually set between 0 and 1\
-      if (options.progress < 0 || 1 < options.progress) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+      if (options.progress < 0 || 1 < options.progress) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         origin: 'sj.Seek.trigger()',
         reason: "seek progress is not a number between 0 and 1: ".concat(options.progress),
         content: options.progress
@@ -38171,7 +38173,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek = _shared_legacy_classes
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Seek;
     },
 
     trigger(context) {
@@ -38185,14 +38187,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek = _shared_legacy_classes
 
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"].makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Command, {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Volume = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"].makeClass('Volume', _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command, {
   constructorParts: parent => ({
     beforeInitialize(_ref5) {
       var {
         options
       } = _ref5;
       //G volume must be manually set between 0 and 1
-      if (options.volume < 0 || 1 < options.volume) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+      if (options.volume < 0 || 1 < options.volume) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         origin: 'sj.Volume.trigger()',
         reason: "volume is not a number between 0 and 1: ".concat(options.volume),
         content: options.volume
@@ -38209,7 +38211,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume = _shared_legacy_class
     },
 
     collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume;
+      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Volume;
     },
 
     trigger(context) {
@@ -38218,7 +38220,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume = _shared_legacy_class
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this13, context); //C adjust volume on all sources
 
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.instances, /*#__PURE__*/function () {
           var _ref6 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this13.volume);
           });
@@ -38233,7 +38235,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume = _shared_legacy_class
   })
 }); // PLAYBACK
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"].makeClass('Playback', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_8__["default"], {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"].makeClass('Playback', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"], {
   constructorParts(parent) {
     return {
       defaults: {
@@ -38282,7 +38284,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback = _shared_legacy_cla
           } = context;
           var timeBefore = Date.now();
           /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
-          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new sj.Error({
+          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
           		origin: 'sj.Playback.baseActions.start()',
           		reason: 'start state timed out',
           	}));
@@ -38333,7 +38335,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback = _shared_legacy_cla
 
           });
           console.log('reached');
-          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
             origin: 'sj.Playback.baseActions.start()',
             reason: 'start command completed'
           });
@@ -38341,7 +38343,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback = _shared_legacy_cla
       }
       /* //OLD
       	async preserveLocalMetadata(context, track) {
-      		if (!sj.isType(track, sj.Track)) throw new sj.Error({
+      		if (!sj.isType(track, sj.Track)) throw new Err({
       			origin: 'preserveLocalMetadata()',
       			reason: 'track is not an sj.Track',
       		});
@@ -38405,7 +38407,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback = _shared_legacy_cla
     baseModules: {}
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback({
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback({
   //G main playback module for app
   modules: {},
   state: {
@@ -38508,7 +38510,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
           command.reject = reject;
         }); //C push command to the queue or resolve it (because it has been collapsed)
 
-        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
           origin: 'pushCommand()',
           reason: 'command was annihilated'
         })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
@@ -38543,7 +38545,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
         var {
           dispatch
         } = _ref10;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Start({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start({
           source: track.source,
           //! uses track's source
           track
@@ -38559,7 +38561,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref11;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Toggle({
           source,
           //! other non-start basic playback functions just use the current desiredPlayback source
           isPlaying: false
@@ -38575,7 +38577,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref12;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Toggle({
           source,
           isPlaying: true
         }));
@@ -38590,7 +38592,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
             desiredSource: source
           }
         } = _ref13;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Seek({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Seek({
           source,
           progress
         }));
@@ -38606,7 +38608,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
           }
         } = _ref14;
         //TODO volume should change volume on all sources
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Volume({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Volume({
           source,
           volume
         }));
@@ -38623,7 +38625,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
             desiredIsPlaying: isPlaying
           }
         } = _ref15;
-        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Toggle({
+        return yield dispatch('pushCommand', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Toggle({
           source,
           isPlaying: !isPlaying
         }));
@@ -38701,7 +38703,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
     */
     // ACTUAL
     sourceOrBase: (state, getters) => key => {
-      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.baseState[key];else return state[state.source.name][key];
+      if (state.source === null) return _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.baseState[key];else return state[state.source.name][key];
     },
     actualSource: (state, getters) => {
       return state.source;
@@ -38709,10 +38711,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
     actualTrack: (state, getters, rootState, rootGetters) => {
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track)) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track)) {
         //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-        if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -38721,7 +38723,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
     actualProgress: (state, getters) => {
       var progress = getters.sourceOrBase('progress');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
         //C if playing, return inferred progress
         var elapsedTime = state.clock - state[state.source.name].timestamp;
         var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
@@ -38744,7 +38746,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
       //C value starts as the actualValue
       var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
 
       for (var queuedCommand of state.commandQueue) {
         if (queuedCommand[key] !== undefined) value = queuedCommand[key];
@@ -38766,17 +38768,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module = new _global
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
     }
   }
 }); // SOURCE
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.augmentClass({
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.augmentClass({
   constructorParts(parent) {
-    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.afterInitialize;
+    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.afterInitialize;
     return {
       defaults: {
         //TODO change these off undefined
@@ -38797,7 +38799,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.augmentClass({
         var state = this === null || this === void 0 ? void 0 : (_this$playback = this.playback) === null || _this$playback === void 0 ? void 0 : _this$playback.state;
         if (state != null) state.source = this; //C push own playback module to main playback modules
 
-        _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
+        _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
           namespaced: true
         });
       }
@@ -38812,9 +38814,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source.augmentClass({
 //  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.login = /*#__PURE__*/function () {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.login = /*#__PURE__*/function () {
   var _ref16 = _asyncToGenerator(function* (user) {
-    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', 'session', new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
+    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', 'session', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
   });
 
   return function (_x4) {
@@ -38822,11 +38824,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.login = /*#__PURE__*/
   };
 }();
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', 'session');
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', 'session');
 });
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('DELETE', 'session'); //TODO reconnect socket subscriptions to update subscriber info
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
+  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('DELETE', 'session'); //TODO reconnect socket subscriptions to update subscriber info
 }); //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
@@ -38844,7 +38846,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].session.logout = /*#__PURE__*
 */
 // global source objects
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
   register: true,
@@ -38864,22 +38866,22 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
       */
       //TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
       //C request url
-      var requestCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', 'spotify/authRequestStart'); //C open spotify auth request window
+      var requestCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', 'spotify/authRequestStart'); //C open spotify auth request window
       //L https://www.w3schools.com/jsref/met_win_open.asp
 
       var authWindow = window.open(requestCredentials.authRequestURL); //C listen for response from spotify
       //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 
-      var authCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', 'spotify/authRequestEnd', requestCredentials); //C automatically close window when data is received
+      var authCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', 'spotify/authRequestEnd', requestCredentials); //C automatically close window when data is received
 
       authWindow.close(); //C exchange auth code for tokens
 
-      var tokens = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('POST', 'spotify/exchangeToken', authCredentials);
+      var tokens = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', 'spotify/exchangeToken', authCredentials);
       _this14.credentials.accessToken = tokens.accessToken;
       _this14.credentials.expires = tokens.accessToken;
       _this14.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
-      return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+      return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
         origin: 'sj.spotify.auth()',
         message: 'authorized spotify'
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
@@ -38933,10 +38935,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
 
 
       var token = yield _this15.getAccessToken();
-      options.headers = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].JSON_HEADER, {
+      options.headers = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].JSON_HEADER, {
         Authorization: "Bearer ".concat(token)
       });
-      return yield Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])(method, url, options);
+      return yield Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_5__["default"])(method, url, options);
     })();
   },
 
@@ -38953,13 +38955,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
 
       var refresh = /*#__PURE__*/function () {
         var _ref19 = _asyncToGenerator(function* (that) {
-          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', "spotify/refreshToken").catch(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].andResolve);
+          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', "spotify/refreshToken").catch(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].andResolve);
 
-          if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].AuthRequired)) {
+          if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"])) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
-          } else if (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error)) {
-            throw _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].propagate(result);
+          } else if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"])) {
+            throw _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].propagate(result);
           } else {
             //C assign sj.spotify.credentials
             that.credentials.accessToken = result.accessToken;
@@ -38995,10 +38997,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
         amount = 1
       } = _ref20;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.positiveInteger.validate(amount);
-      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.request('GET', 'search', {
+      _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Rule2.positiveInteger.validate(amount);
+      var result = yield _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify.request('GET', 'search', {
         q: term,
         type: 'track',
         market: 'from_token',
@@ -39020,8 +39022,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
 
       });
       return result.tracks.items.map(track => {
-        return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify,
+        return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
           sourceId: track.id,
           name: track.name,
           duration: track.duration_ms,
@@ -39032,7 +39034,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback({
     //G source-specific playback should be the basic playback functions that connects this app to the source's api
     actions: {
       loadPlayer(context) {
@@ -39042,10 +39044,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
             window.onSpotifyWebPlaybackSDKReady = function () {
               var player = new window.Spotify.Player({
                 //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-                name: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].appName,
+                name: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].appName,
                 getOAuthToken: function () {
                   var _getOAuthToken = _asyncToGenerator(function* (callback) {
-                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.getAccessToken();
+                    var token = yield _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify.getAccessToken();
                     callback(token);
                   });
 
@@ -39059,11 +39061,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
               });
               player.formatState = function (state) {
                 //TODO state could be anything from the callback, better validate it somehow
-                if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(state, Object)) return {};
+                if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state, Object)) return {};
                 var t = state.track_window.current_track;
                 return {
-                  track: new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track({
-                    source: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify,
+                  track: new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track({
+                    source: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
                     sourceId: t.id,
                     name: t.name,
                     duration: t.duration_ms,
@@ -39099,7 +39101,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
 
                             yield context.dispatch('updatePlayback', state); //C resolve
 
-                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success(success)); //C prevent other exit points from executing their code
+                            resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success(success)); //C prevent other exit points from executing their code
 
                             resolved = true;
                           }
@@ -39120,7 +39122,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                         if (!resolved) {
                           _this17.removeListener('player_state_changed', callback);
 
-                          reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error(_objectSpread({}, error, {
+                          reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"](_objectSpread({}, error, {
                             content: rejected
                           })));
                           resolved = true;
@@ -39133,17 +39135,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                       if (!resolved && stateCondition(context.state)) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success(success));
+                        resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success(success));
                         resolved = true;
                       } //C if timed out, reject
 
 
-                      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout);
+                      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.requestTimeout);
 
                       if (!resolved) {
                         _this17.removeListener('player_state_changed', callback);
 
-                        reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Timeout(timeoutError));
+                        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Timeout"](timeoutError));
                         resolved = true;
                       }
                     });
@@ -39182,12 +39184,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                     player
                   }); //C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 
-                  yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.request('PUT', 'me/player', {
+                  yield _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify.request('PUT', 'me/player', {
                     device_ids: [device_id],
                     play: false // keeps current playback state
 
                   }).catch(rejected => {
-                    reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+                    reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                       //code: JSON.parse(error.response).error.status,
                       origin: 'spotify.loadPlayer()',
                       message: 'spotify player could not be loaded',
@@ -39207,8 +39209,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                     yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(delay);
                     delay = delay * 2; //C double the delay each time
 
-                    return yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify.request('Get', 'me/player').catch(rejected => {
-                      reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+                    return yield _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify.request('Get', 'me/player').catch(rejected => {
+                      reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                         //code: JSON.parse(error.response).error.status,
                         origin: 'spotify.loadPlayer()',
                         message: 'spotify player could not be loaded',
@@ -39225,16 +39227,16 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                     until(result) {
                       //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
                       //C this is fine, it just means that it's not ready, so just catch anything.
-                      return _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(result.device, Object) && result.device.id === device_id;
+                      return _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result.device, Object) && result.device.id === device_id;
                     },
 
-                    timeout: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout * 2
+                    timeout: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.requestTimeout * 2
                   }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
 
                   yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
 
                   yield context.dispatch('pause');
-                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+                  resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
                     origin: 'spotify.loadPlayer()',
                     message: 'spotify player loaded',
                     content: player
@@ -39260,7 +39262,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref29;
                 //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an initialization error',
@@ -39272,7 +39274,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref30;
                 //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player encountered an authentication error',
@@ -39284,7 +39286,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                   message
                 } = _ref31;
                 //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                   log: true,
                   origin: 'spotify.loadPlayer()',
                   message: 'this account does not have a valid Spotify Premium subscription',
@@ -39309,13 +39311,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
                 //C 'returns a promise with a boolean for whether or not the connection was successful'
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
                 //! do not resolve here, the player will trigger the 'ready' event when its truly ready
-                if (!resolved) reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+                if (!resolved) reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
                   reason: 'spotify.connect() failed'
                 }));
               }, rejected => {
-                reject(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Unreachable({
+                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Unreachable"]({
                   //C a rejection shouldn't be possible here
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player failed to connect',
@@ -39420,7 +39422,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           				// error handling
           				player.addListener('initialization_error', function ({message}) { 
           					//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-          					triggerReject(new sj.Error({
+          					triggerReject(new Err({
           							log: true,
           							origin: 'spotify.loadPlayer()',
           							message: 'spotify player encountered an initialization error',
@@ -39431,7 +39433,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           
           				player.addListener('authentication_error', function ({message}) { 
           					// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-          					triggerReject(new sj.Error({
+          					triggerReject(new Err({
           							log: true,
           							origin: 'spotify.loadPlayer()',
           							message: 'spotify player encountered an authentication error',
@@ -39442,7 +39444,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           
           				player.addListener('account_error', function ({message}) {
           					// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-          					triggerReject(new sj.Error({
+          					triggerReject(new Err({
           							log: true,
           							origin: 'spotify.loadPlayer()',
           							message: 'this account does not have a valid Spotify Premium subscription',
@@ -39464,7 +39466,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           
           						// TODO updatePlayback(); ?
           					}, function (rejected) {
-          						triggerReject(new sj.Error({
+          						triggerReject(new Err({
           							log: true,
           							code: JSON.parse(error.response).error.status,
           							origin: 'spotify.loadPlayer()',
@@ -39473,7 +39475,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           							content: error,
           						}));
           					}).catch(function (rejected) {
-          						triggerReject(new sj.Error({
+          						triggerReject(new Err({
           							log: true,
           							origin: 'spotify.loadPlayer()',
           							message: 'spotify player could not be loaded',
@@ -39488,7 +39490,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           					// returns a promise with a boolean for whether or not the connection was successful
           					// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
           					if (!resolved) {
-          						triggerReject(new sj.Error({
+          						triggerReject(new Err({
           							log: true,
           							origin: 'spotify.loadPlayer()',
           							message: 'spotify player failed to connect',
@@ -39497,7 +39499,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           					}
           				}, function (rejected) {
           					// should not be possible to get here, but handle it either way
-          					triggerReject(new sj.Error({
+          					triggerReject(new Err({
           						log: true,
           						origin: 'spotify.loadPlayer()',
           						message: 'spotify player failed to connect',
@@ -39506,7 +39508,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           					}));
           				});
           			} catch (e) {
-          				triggerReject(new sj.Error({
+          				triggerReject(new Err({
           					log: true,
           					origin: 'spotify.loadPlayer()',
           					message: 'spotify player failed to connect',
@@ -39518,7 +39520,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           		
           
           		$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
-          			triggerReject(new sj.Error({
+          			triggerReject(new Err({
           				log: true,
           				origin: 'spotify.loadPlayer()',
           				message: 'failed to load spotify player',
@@ -39564,7 +39566,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
 
 
           context.commit('setState', newState);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
             origin: 'spotify module command - updatePlayback()',
             message: 'spotify playback updated',
             content: newState
@@ -39577,7 +39579,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
           //C retrieves playback from api and updates it
           //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
           var state = yield context.state.player.getCurrentState().catch(rejected => {
-            throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
               log: true,
               //code: JSON.parse(rejected.response).error.status,
               origin: 'spotify.checkPlayback()',
@@ -39587,7 +39589,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
             });
           });
           yield context.dispatch('updatePlayback', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
             origin: 'spotify module command - checkPlayback()',
             message: 'spotify playback checked',
             content: context.state
@@ -39780,7 +39782,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].spotify = new _global_js__WEB
     }
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
   name: 'youtube',
   register: true,
   idPrefix: 'https://www.youtube.com/watch?v=',
@@ -39795,7 +39797,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
       //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
-      var loaded = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+      var loaded = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         log: false,
         origin: 'sj.youtube.auth()',
         reason: 'gapi loading timed out'
@@ -39817,7 +39819,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
       }); //C loads gapi into global scope 
       //TODO is there any way to make this more module-like?
 
-      yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["runHTMLScript"])('https://apis.google.com/js/api.js'); //C wait for gapi
+      yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["runHTMLScript"])('https://apis.google.com/js/api.js'); //C wait for gapi
 
       yield loaded; //C remove the watcher
 
@@ -39854,7 +39856,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
       var {
         apiKey,
         clientId
-      } = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_7__["default"])('GET', "youtube/credentials"); //TODO Create specific rules for each API key.
+      } = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', "youtube/credentials"); //TODO Create specific rules for each API key.
 
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate(apiKey);
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate(clientId); //C loads and performs authorization, short version of the code commented out below
@@ -39923,7 +39925,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
           		4. Creating new keys.
           	//L See here: https://stackoverflow.com/a/27491718
           */
-          throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
             reason: 'API key is invalid.',
             message: 'YouTube credentials are invalid.',
             content: rejected
@@ -39931,7 +39933,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
         } else {
           throw rejected;
         }
-      }).catch(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].propagate);
+      }).catch(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].propagate);
     })();
   },
 
@@ -39945,9 +39947,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
         amount = 1
       } = _ref37;
       // VALIDATE
-      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonEmptyString.validate(term);
-      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.nonNegativeInteger.validate(startIndex);
-      _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
+      _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Rule2.nonEmptyString.validate(term);
+      _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Rule2.nonNegativeInteger.validate(startIndex);
+      _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Rule2.positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
       //! this will drive api quotas up fast if the startIndex or amount are high (n*50)
       //!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
 
@@ -39964,7 +39966,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
       var pageToken = null;
 
       while (allPageResults.length < startIndex + amount && limit > 0) {
-        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.request('GET', 'search', _objectSpread({
+        var pageResults = yield _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.request('GET', 'search', _objectSpread({
           //L https://developers.google.com/youtube/v3/docs/search/list#parameters
           part: 'snippet',
           type: 'video',
@@ -39982,14 +39984,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
       var searchResults = allPageResults.slice(startIndex, startIndex + amount); //C videoResults must also be searched because the contentDetails part is not available for the search request
       //L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
 
-      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.request('GET', 'videos', {
+      var videoResult = yield _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.request('GET', 'videos', {
         //L https://developers.google.com/youtube/v3/docs/videos/list
         //C join the results ids
         id: searchResults.map(item => item.id.videoId).join(','),
         //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
         part: 'contentDetails'
       });
-      if (searchResults.length !== videoResult.result.items.length) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+      if (searchResults.length !== videoResult.result.items.length) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         origin: 'youtube.search()',
         reason: 'search result length not equal to video result length',
         content: {
@@ -39999,7 +40001,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
       });
       videoResult.result.items.forEach((item, index) => {
         //C ensure that ids line up
-        if (searchResults[index].id.videoId !== item.id) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+        if (searchResults[index].id.videoId !== item.id) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
           origin: 'youtube.search()',
           reason: "search and video results at ".concat(index, " do not have the same id")
         }); //C append contentDetails part to the search results
@@ -40014,24 +40016,24 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
           snippet,
           contentDetails
         } = _ref38;
-        return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track(_objectSpread({
-          source: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube,
+        return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track(_objectSpread({
+          source: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
           sourceId: id,
-          link: _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.idPrefix + id
+          link: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.idPrefix + id
         }, _this19.formatSnippet(snippet), {}, _this19.formatContentDetails(contentDetails)));
       });
     })();
   },
 
-  playback: new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback({
+  playback: new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback({
     actions: {
       loadPlayer(context) {
         return _asyncToGenerator(function* () {
           //C load youtube iframe api
-          yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["runHTMLScript"])('https://www.youtube.com/iframe_api'); //TODO choose timeout
+          yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["runHTMLScript"])('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
-          var deferred = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Playback.requestTimeout, () => new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+          var deferred = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
             origin: 'sj.youtube loadPlayer()',
             reason: 'youtube iframe player load timed out'
           }));
@@ -40058,8 +40060,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
                   onReady(event) {
                     return _asyncToGenerator(function* () {
                       //TODO handle error?
-                      yield context.dispatch('checkPlayback').catch(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].propagate);
-                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+                      yield context.dispatch('checkPlayback').catch(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].propagate);
+                      deferred.resolve(new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
                         origin: 'sj.youtube loadPlayer()',
                         reason: 'youtube iframe player loaded'
                       }));
@@ -40098,7 +40100,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
           track.link = player.getVideoUrl(); //C remove the idPrefix or nullPrefix from youtube urls
           //! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 
-          track.sourceId = track.link.replace(new RegExp("".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.idPrefix), "|").concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.nullPrefix))), '');
+          track.sourceId = track.link.replace(new RegExp("".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.idPrefix), "|").concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.nullPrefix))), '');
           var playerDuration = player.getDuration(); //! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
           //C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
 
@@ -40128,21 +40130,21 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
             track.name = context.state.startingTrack.name;
             track.artists = [...context.state.startingTrack.artists];
           } else {
-            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.request('GET', 'videos', {
+            var video = yield _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.request('GET', 'videos', {
               id: track.sourceId,
               part: 'snippet'
             });
 
             if (video.result.items.length === 1) {
-              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatSnippet(video.result.items[0].snippet);
+              var formattedSnippet = _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatSnippet(video.result.items[0].snippet);
               track.name = formattedSnippet.name;
               track.artists = formattedSnippet.artists;
             }
           }
 
-          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Track(track);
+          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track(track);
           context.commit('setState', state);
-          return new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Success({
+          return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Success({
             origin: 'youtube module action - checkPlayback()',
             message: 'youtube playback updated',
             content: state
@@ -40220,13 +40222,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube = new _global_js__WEB
   })
 }); //TODO move inside
 
-_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails = function (contentDetails) {
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails = function (contentDetails) {
   var pack = {};
-  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].moment.ISO_8601).asMilliseconds();
+  pack.duration = _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].moment.duration(contentDetails.duration, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].moment.ISO_8601).asMilliseconds();
   return pack;
-}, _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatSnippet = function (snippet) {
+}, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatSnippet = function (snippet) {
   var pack = {};
-  if (!_global_js__WEBPACK_IMPORTED_MODULE_5__["default"].isType(snippet, Object)) throw new _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].Error({
+  if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(snippet, Object)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
     origin: 'sj.youtube.formatSnippet()',
     reason: 'snippet is not an object'
   }); //C assuming title format of 'Artist - Title'
@@ -40251,8 +40253,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
   //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
 
 
-  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].he.decode(artist));
-  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].he.decode(pack.name);
+  pack.artists = pack.artists.map(artist => _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].he.decode(artist));
+  pack.name = _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].he.decode(pack.name);
   return pack;
 }; //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
 //  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
@@ -40309,7 +40311,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
 							message: 'youtube playback state checked',
 						});
 					} else {
-						throw new sj.Error({
+						throw new Err({
 							log: true,
 							code: '404',
 							origin: 'youtube.checkPlayback()',
@@ -40329,7 +40331,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
 				});
 			}
 		} catch (e) {
-			throw new sj.Error({
+			throw new Err({
 				log: true,
 				origin: 'youtube.checkPlayback()',
 				message: 'could not check youtube playback',
@@ -40375,7 +40377,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
 					message: 'track started',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					origin: 'youtube.start()',
 					message: 'failed to start youtube track',
 					content: e,
@@ -40397,7 +40399,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
 					message: 'track started',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					origin: 'youtube.resume()',
 					message: 'failed to resume youtube track',
 					content: e,
@@ -40418,7 +40420,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
 					message: 'track paused',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					log: true,
 					origin: 'youtube.pause()',
 					message: 'failed to pause',
@@ -40442,7 +40444,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
 					message: 'track seeked',
 				}));
 			} catch (e) {
-				reject(new sj.Error({
+				reject(new Err({
 					log: true,
 					origin: 'youtube.seek()',
 					message: 'failed to seek',
@@ -40458,7 +40460,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_5__["default"].youtube.formatContentDetails 
 	};
 */
 
-/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
 
 /***/ }),
 
@@ -40781,12 +40783,12 @@ sj.Subscriptions = function () {
 
 /* //TODO
 	//G wrapper objects vs bare return
-		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive sj.Error
+		simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive Err
 		more complex functions (async, error-able, client-server transfer) should wrap their result:
 			sj.Success / sj.SuccessList
 				wraps empty content, arrays of other objects, misc content
 				or is a descendant item object
-			or a sj.Error / sj.ErrorList
+			or a Err / ErrList
 				wraps empty content, arrays of other objects with at least one error, non-sj errors
 				or is a custom error
 
@@ -40800,16 +40802,8 @@ sj.Subscriptions = function () {
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-// ERROR
+// RULE
 
-
-sj.Error = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"];
-sj.ErrorList = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]; // CUSTOM ERRORS
-
-sj.SilentError = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"];
-sj.AuthRequired = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["AuthRequired"];
-sj.Unreachable = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Unreachable"];
-sj.Timeout = _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Timeout"]; // RULE
 
 sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   //G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
@@ -40885,7 +40879,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         } //C throw if no matches
 
 
-        throw new sj.Error({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
           origin: "".concat(_this.origin, ".checkType()"),
           message: "".concat(_this.valueName, " must be a ").concat(_this.dataTypes.join(' or ')),
@@ -40903,7 +40897,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         if (sj.isType(value, String)) {
           //C string length
           if (!(value.length >= _this2.min && value.length <= _this2.max)) {
-            throw new sj.Error({
+            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               log: true,
               origin: "".concat(_this2.origin, ".checkSize()"),
               message: "".concat(m, " characters long"),
@@ -40913,7 +40907,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         } else if (sj.isType(value, Number)) {
           //C number size
           if (!(value >= _this2.min && value <= _this2.max)) {
-            throw new sj.Error({
+            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               log: true,
               origin: "".concat(_this2.origin, ".checkSize()"),
               message: "".concat(m, " items long"),
@@ -40943,7 +40937,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
           //R indexOf apparently uses === so this should be fine
           //L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
           if (_this3.againstValue.indexOf(value) === -1) {
-            throw new sj.Error({
+            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               log: true,
               origin: "".concat(_this3.origin, ".checkAgainst() array"),
               message: _this3.againstMessage,
@@ -40953,7 +40947,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         } else {
           //C base value
           if (!(value === _this3.againstValue)) {
-            throw new sj.Error({
+            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               log: true,
               origin: "".concat(_this3.origin, ".checkAgainst() non-array"),
               message: _this3.againstMessage,
@@ -41089,7 +41083,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         }
         /*
         	if (!this.checkType(value)) {
-        		throw new sj.Error({
+        		throw new Err({
         			log: this.log,
         			origin: this.origin,
         			message: `${this.valueName} must be a ${this.dataType}`,
@@ -41106,21 +41100,21 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
         		} else if (sj.typeOf(value) === 'array') {
         			message = `${message} items long`;
         		}
-        				throw new sj.Error({
+        				throw new Err({
         			log: this.log,
         			origin: this.origin,
         			message: message,
         		});
         	}
         	if (this.useAgainst && !this.checkAgainst(value, value2)) {
-        		throw new sj.Error({
+        		throw new Err({
         			log: this.log,
         			origin: this.origin,
         			message: this.againstMessage,
         		});
         	}
         	if (this.useFilter && !this.checkFilter(value, value2)) {
-        		throw new sj.Error({
+        		throw new Err({
         			log: this.log,
         			origin: this.origin,
         			message: this.filterMessage,
@@ -41144,7 +41138,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     	async checkProperty(obj, prop, value2) {
     		//C validate arguments
     		if (!sj.isType(obj, 'object')) {
-    			throw new sj.Error({
+    			throw new Err({
     				log: true,
     				origin: 'sj.Rule.checkProperty()',
     				message: 'validation error',
@@ -41154,7 +41148,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     		}
     		if (!prop in obj) {
     			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    			throw new sj.Error({
+    			throw new Err({
     				log: true,
     				origin: 'sj.Rule.checkProperty()',
     				message: 'validation error',
@@ -41165,7 +41159,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     				//C check rules
     		let result = this.check(obj[prop], value2).catch(rejected => {
     			//C throw error if failed 
-    			//! do not modify the original property, so that sj.Error.content is not relied upon to always be the original property
+    			//! do not modify the original property, so that Err.content is not relied upon to always be the original property
     			throw sj.propagate(rejected);
     		});
     				//C modify and return if successful
@@ -41181,7 +41175,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
     					//C validate arguments
     			if (!rules instanceof this) {
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -41196,7 +41190,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			return sj.filterList(resolved, sj.Success, new sj.Success({
     				origin: 'sj.Rule.checkRuleSet()',
     				message: 'all rules validated',
-    			}), new sj.Error({
+    			}), new Err({
     				origin: 'sj.Rule.checkRuleSet()',
     				message: 'one or more issues with rules',
     				reason: 'validation functions returned one or more errors',
@@ -41217,7 +41211,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			if (!(rules instanceof sj.Rule)) {
     				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
     				//? is it possible to dynamically get this class
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -41227,7 +41221,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			}
     			if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
     				//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -41237,7 +41231,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			}
     			if (!(prop in obj)) {
     				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    				return new sj.Error({
+    				return new Err({
     					log: true,
     					origin: 'checkRuleSet()',
     					message: 'validation error',
@@ -41245,7 +41239,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     					content: obj,
     				});
     			}
-    					let result = new sj.Error(); //? why is this here
+    					let result = new Err(); //? why is this here
     					//C call check() with 1 or 2 values
     			if (sj.typeOf(value2) === 'undefined') {
     				result = await rules.check(obj[prop]).then(sj.sj.andResolve());
@@ -41259,7 +41253,7 @@ sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
     			return sj.filterList(resolved, sj.Success, new sj.Success({
     				origin: 'checkRuleSet()',
     				message: 'all rules validated',
-    			}), new sj.Error({
+    			}), new Err({
     				origin: 'checkRuleSet()',
     				message: 'one or more issues with fields',
     				reason: 'validation functions returned one or more errors',
@@ -41370,7 +41364,7 @@ sj.Rule.augmentClass({
 sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule2', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
-      if (typeof accessory.options.baseValidate !== 'function' || typeof accessory.options.baseCast !== 'function') throw new sj.Error({
+      if (typeof accessory.options.baseValidate !== 'function' || typeof accessory.options.baseCast !== 'function') throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         origin: 'sj.Rule2.beforeInit()',
         reason: 'baseValidate or baseCast is not a function',
         content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(accessory.options)
@@ -41381,7 +41375,7 @@ sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       //G baseValidate() and baseCast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
       //G baseValidate() should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders) if failed, this error should be SilentError/log: false, as it is caught and processed in validate()
       baseValidate(value, accessory) {
-        throw new sj.SilentError({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.baseValidate()',
           reason: "a baseValidate() function has not been created for this rule: ".concat(this.name)
         });
@@ -41583,14 +41577,14 @@ sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
         //C fill error
         this.fillError(targetError, fill); //C if ErrorList
 
-        if (sj.isType(targetError, sj.ErrorList)) {
+        if (sj.isType(targetError, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"])) {
           //C fill each item
           for (var listError of targetError.content) {
             this.fillError(listError, fill);
           }
         }
 
-        throw new sj.Error(_objectSpread({}, targetError, {}, error, {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"](_objectSpread({}, targetError, {}, error, {
           //C fixed properties
           origin
         }));
@@ -41605,7 +41599,7 @@ sj.Rule2.augmentClass({
     // STRING
     string: new sj.Rule2({
       baseValidate(value) {
-        if (!sj.isType(value, String)) throw new sj.SilentError({
+        if (!sj.isType(value, String)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.string.baseValidate()',
           reason: '$0 is not a string',
           message: '$0 must be text.',
@@ -41630,7 +41624,7 @@ sj.Rule2.augmentClass({
         sj.Rule2.string.validate(value); //TODO ensure that this regExp checks for all possible white space
         //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
 
-        if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new sj.SilentError({
+        if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.trimmed.baseValidate()',
           reason: '$0 is not trimmed',
           message: '$0 must not have any leading or trailing whitespace.',
@@ -41648,7 +41642,7 @@ sj.Rule2.augmentClass({
       //C string has any non-whitespace characters
       baseValidate(value) {
         sj.Rule2.string.validate(value);
-        if (value.trim() === '') throw new sj.SilentError({
+        if (value.trim() === '') throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.nonEmptyString.baseValidate()',
           reason: '$0 is empty or only has whitespace',
           message: '$0 must not be empty.',
@@ -41664,7 +41658,7 @@ sj.Rule2.augmentClass({
     // NUMBER
     number: new sj.Rule2({
       baseValidate(value) {
-        if (!sj.isType(value, Number)) throw new sj.SilentError({
+        if (!sj.isType(value, Number)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.number.baseValidate()',
           reason: '$0 is not a number',
           message: '$0 must be a number.',
@@ -41682,7 +41676,7 @@ sj.Rule2.augmentClass({
     }),
     nonNaNNumber: new sj.Rule2({
       baseValidate(value) {
-        if (!sj.isType(value, Number) || Number.isNaN(value)) throw new sj.SilentError({
+        if (!sj.isType(value, Number) || Number.isNaN(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
           reason: '$0 is not a number or is NaN',
           message: '$0 must be a number.',
@@ -41699,7 +41693,7 @@ sj.Rule2.augmentClass({
       baseValidate(value) {
         //L don't worry about NaN here: https://stackoverflow.com/a/26982925
         sj.Rule2.number.validate(value);
-        if (value < 0) throw new sj.SilentError({
+        if (value < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
           reason: '$0 is negative',
           message: '$0 must not be negative.',
@@ -41717,7 +41711,7 @@ sj.Rule2.augmentClass({
         sj.Rule2.number.validate(value);
 
         if (0 < value) {
-          throw new sj.SilentError({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
             origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
             reason: '$0 is positive',
             message: '$0 must not be positive.',
@@ -41735,7 +41729,7 @@ sj.Rule2.augmentClass({
       baseValidate(value) {
         //L don't worry about NaN here: https://stackoverflow.com/a/26982925
         sj.Rule2.number.validate(value);
-        if (value <= 0) throw new sj.SilentError({
+        if (value <= 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.positiveNumber.baseValidate()',
           reason: '$0 is negative or 0',
           message: '$0 must be positive.',
@@ -41751,7 +41745,7 @@ sj.Rule2.augmentClass({
     negativeNumber: new sj.Rule2({
       baseValidate(value) {
         sj.Rule2.number.validate(value);
-        if (0 <= value) throw new sj.SilentError({
+        if (0 <= value) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.negativeNumber.baseValidate()',
           reason: '$0 is positive or 0',
           message: '$0 must be negative.',
@@ -41769,7 +41763,7 @@ sj.Rule2.augmentClass({
       baseValidate(value) {
         //L don't worry about NaN here: https://stackoverflow.com/a/26982925
         sj.Rule2.number.validate(value);
-        if (!Number.isInteger(value)) throw new sj.SilentError({
+        if (!Number.isInteger(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
           origin: 'sj.Rule2.integer.baseValidate()',
           reason: '$0 is not an integer',
           message: '$0 must be an integer.',
@@ -41949,7 +41943,7 @@ sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default
 
       tableToEntity(tableName) {
         var Entity = this.children.find(child => child.table === tableName);
-        if (!sj.isType(new Entity(), sj.Entity)) throw new sj.Error({
+        if (!sj.isType(new Entity(), sj.Entity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           origin: 'sj.Entity.tableToEntity()',
           reason: "table is not recognized: ".concat(tableName),
           content: tableName
@@ -42770,6 +42764,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _global_client_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-client.js */ "./source/public/js/global-client.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -43035,6 +43030,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
  //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
 //  ████╗ ████║██╔═══██╗██╔══██╗██║   ██║██║     ██╔════╝
 //  ██╔████╔██║██║   ██║██║  ██║██║   ██║██║     █████╗  
@@ -43072,21 +43068,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     getLiveData: state => subscription => {
       //C validate
-      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
         origin: 'getLiveData()',
         reason: 'subscription is not an sj.Subscription',
         content: subscription
       }); //C shorten
 
       var liveQuery = subscription.liveQuery;
-      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
         origin: 'getLiveData()',
         reason: "liveQuery is not an sj.LiveQuery",
         content: liveQuery
       }); //C get all liveQuery.cachedEntityRefs.entity
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntityRef, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntityRef, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'getLiveData()',
           reason: 'cachedEntityRef is not a cachedEntity',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(cachedEntityRef)
@@ -43237,7 +43233,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           entity
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
           origin: 'addCachedEntity()'
         }); //C shorthand
 
@@ -43246,7 +43242,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
         var foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
-        if (foundLiveQueryRef !== foundCachedEntityRef) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
+        if (foundLiveQueryRef !== foundCachedEntityRef) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
           origin: 'addCachedEntity()',
           reason: 'either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen',
           content: {
@@ -43282,12 +43278,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref16;
         //C find both reference indexes
         var cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
-        if (cachedEntityRefIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (cachedEntityRefIndex < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'removeCachedEntity()',
           reason: 'cachedEntityRef not found in liveQuery'
         });
         var liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
-        if (liveQueryRefIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (liveQueryRefIndex < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'removeCachedEntity()',
           reason: 'liveQueryRef not found in cachedEntity'
         }); //C remove references from each other
@@ -43304,7 +43300,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (cachedEntity.liveQueryRefs.length <= 0) {
           //C remove the cachedEntity
           var cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
-          if (cachedEntityIndex < 0) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+          if (cachedEntityIndex < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
             origin: 'removeCachedEntity()',
             reason: 'cachedEntity not found in table'
           });
@@ -43379,7 +43375,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table,
             query
           });
-          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
+          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
             origin: 'addLiveQuery()'
           }); //C trigger the initial update
 
@@ -43406,7 +43402,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             liveQueries: table.liveQueries,
             index: liveQueryIndex
           });
-        } else throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        } else throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'removeLiveQuery',
           reason: 'liveQuery not found in table'
         });
@@ -43495,7 +43491,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             entity
           });
 
-          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(_cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
+          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(_cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
             origin: 'update()'
           }); //C edit the cachedEntity (won't edit if data is old, or unchanged)
 
@@ -43553,7 +43549,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         }); //! this should never fail
 
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Unreachable({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
           origin: 'addSubscription()',
           reason: 'liveQuery not found in table',
           content: liveQuery
@@ -43584,7 +43580,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             subscriptions: liveQuery.subscriptions,
             index: subscriptionIndex
           });
-        } else throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        } else throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'removeSubscription',
           reason: 'subscription not found in liveQuery'
         }); //C if liveQuery no longer has any subscriptions
@@ -43606,24 +43602,24 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //C validate
         //TODO how to check if class is subclass, because this is getting ridiculous
         //L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'subscribe()',
           reason: 'Entity is not an sj.Entity',
           content: Entity
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'subscribe()',
           reason: 'query is not an Object',
           content: query
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(options, Object)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(options, Object)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'subscribe()',
           reason: 'options is not an Object',
           content: options
         }); //C shorten
 
         var table = context.getters.findTable(Entity);
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'subscribe()',
           reason: 'table is not an sj.LiveTable',
           content: table
@@ -43655,7 +43651,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         //C validate //! return early if not a subscription
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) {
-          if (strict) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+          if (strict) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
             origin: 'unsubscribe()',
             reason: 'subscription is not an sj.Subscription',
             content: subscription
@@ -43664,25 +43660,25 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
         var liveQuery = subscription.liveQuery;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
           reason: "liveQuery is not an sj.LiveQuery",
           content: liveQuery
         });
         var query = liveQuery.query;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
           reason: 'query is not an Object',
           content: query
         });
         var table = liveQuery.table;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
           reason: 'table is not an sj.LiveTable',
           content: table
         });
         var Entity = table.Entity;
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
           reason: 'Entity is not an sj.LiveTable',
           content: Entity
@@ -43715,7 +43711,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
         //C strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-        if (strict && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (strict && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'change()',
           reason: 'subscription is not an sj.Subscription',
           content: subscription
@@ -43745,12 +43741,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           timestamp
         } = _ref25;
         //C validate
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
           reason: 'Entity is not an sj.Entity',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(Entity)
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
           reason: 'query is not an Object',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(query)
@@ -43758,7 +43754,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(timestamp, 'integer')) timestamp = Date.now(); //C shorten
 
         var table = context.getters.findTable(Entity);
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
           reason: 'table is not an sj.LiveTable',
           content: {
@@ -43770,7 +43766,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           query
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
           reason: "liveQuery is not an sj.LiveQuery",
           content: {
@@ -43813,7 +43809,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref26;
         return yield new Promise((resolve, reject) => {
           var clearTimer = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(context.state.timeout, () => {
-            reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+            reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
               log: true,
               reason: 'socket - subscribe timed out'
             }));
@@ -43823,7 +43819,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error)) reject(result);else resolve(result);
+            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"])) reject(result);else resolve(result);
           });
         }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
       })();
@@ -43837,7 +43833,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref27;
         yield new Promise((resolve, reject) => {
           var clearTimer = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(context.state.timeout, () => {
-            reject(new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error({
+            reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
               log: true,
               reason: 'socket - unsubscribe timed out'
             }));
@@ -43847,7 +43843,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Error)) reject(result);else resolve(result);
+            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"])) reject(result);else resolve(result);
           });
         }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
       })();
