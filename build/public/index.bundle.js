@@ -40483,6 +40483,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -40578,6 +40579,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // BUILT-IN
 // EXTERNAL
  // INTERNAL
+
 
 
 
@@ -40809,562 +40811,6 @@ sj.Subscriptions = function () {
 // RULE
 
 
-sj.Rule = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
-  //G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
-  constructorParts: parent => ({
-    //G//! 'this' refers to the static class inside constructorParts(), however 'this' refers to the instance inside before/afterInitialize()
-    defaults: {
-      // NEW
-      valueName: 'input',
-      trim: false,
-      dataTypes: ['string'],
-      min: 0,
-      max: Infinity,
-      //! remember to set useAgainst: true, if passing a value2 to use
-      useAgainst: false,
-      //C this is a reference value and should not be able to be equal to anything,
-      //R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
-      againstValue: {},
-
-      get againstMessage() {
-        //! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
-        var againstValueName = this.againstValue; //C join array of values if matching against multiple values
-
-        if (Array.isArray(this.againstValue)) {
-          againstValueName = this.againstValue.join(', ');
-        }
-
-        return "".concat(this.valueName, " did not match against these values: ").concat(againstValueName);
-      },
-
-      //! remember to set useFilter: true, if passing a value2 to use
-      useFilter: false,
-      //C match nothing //TODO verify this
-      //L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
-      filterExpression: '\\b\\B',
-      filterRequirements: 'none',
-
-      get filterMessage() {
-        return "".concat(this.valueName, " did not meet these requirements: ").concat(this.filterRequirements);
-      },
-
-      custom: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    //TODO how to deal with returning the password field since its sensitive
-    checkType(value) {
-      var _this = this;
-
-      return _asyncToGenerator(function* () {
-        //C check against each datatype
-        for (var i = 0; i < _this.dataTypes.length; i++) {
-          if (sj.isType(value, _this.dataTypes[i])) {
-            return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-              origin: "".concat(_this.origin, ".checkType()"),
-              message: 'validated data type',
-              content: value
-            });
-          } //C parse strings for numbers
-
-
-          if (sj.isType(value, String)) {
-            var parsed = Number.parseFloat(value);
-
-            if (_this.dataTypes[i] === 'number' && !Number.isNaN(parsed) || _this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
-              return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-                origin: "".concat(_this.origin, ".checkType()"),
-                message: 'validated data type',
-                content: parsed
-              });
-            } //TODO parse strings for boolean & symbols & other?
-
-          }
-        } //C throw if no matches
-
-
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-          log: true,
-          origin: "".concat(_this.origin, ".checkType()"),
-          message: "".concat(_this.valueName, " must be a ").concat(_this.dataTypes.join(' or ')),
-          content: value
-        });
-      })();
-    },
-
-    checkSize(value) {
-      var _this2 = this;
-
-      return _asyncToGenerator(function* () {
-        var m = "".concat(_this2.valueName, " must be between ").concat(_this2.min, " and ").concat(_this2.max);
-
-        if (sj.isType(value, String)) {
-          //C string length
-          if (!(value.length >= _this2.min && value.length <= _this2.max)) {
-            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-              log: true,
-              origin: "".concat(_this2.origin, ".checkSize()"),
-              message: "".concat(m, " characters long"),
-              content: value
-            });
-          }
-        } else if (sj.isType(value, Number)) {
-          //C number size
-          if (!(value >= _this2.min && value <= _this2.max)) {
-            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-              log: true,
-              origin: "".concat(_this2.origin, ".checkSize()"),
-              message: "".concat(m, " items long"),
-              content: value
-            });
-          }
-        }
-
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-          origin: "".concat(_this2.origin, ".checkSize()"),
-          content: value
-        });
-      })();
-    },
-
-    checkAgainst(value, value2) {
-      var _this3 = this;
-
-      return _asyncToGenerator(function* () {
-        //C custom againstValue
-        if (!sj.isType(value2, undefined)) {
-          _this3.againstValue = value2;
-        }
-
-        if (Array.isArray(_this3.againstValue)) {
-          //C arrays
-          //R indexOf apparently uses === so this should be fine
-          //L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
-          if (_this3.againstValue.indexOf(value) === -1) {
-            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-              log: true,
-              origin: "".concat(_this3.origin, ".checkAgainst() array"),
-              message: _this3.againstMessage,
-              content: value
-            });
-          }
-        } else {
-          //C base value
-          if (!(value === _this3.againstValue)) {
-            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-              log: true,
-              origin: "".concat(_this3.origin, ".checkAgainst() non-array"),
-              message: _this3.againstMessage,
-              content: value
-            });
-          }
-        }
-
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-          origin: "".concat(_this3.origin, ".checkAgainst()"),
-          content: value
-        });
-      })();
-    },
-
-    checkFilter(value, value2) {
-      var _this4 = this;
-
-      return _asyncToGenerator(function* () {
-        //C custom againstValue
-        if (sj.isType(value2, undefined)) {
-          _this4.filterExpression = value2;
-        } //TODO
-
-
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-          origin: "".concat(_this4.origin, ".checkAgainst()"),
-          content: value
-        });
-      })();
-    },
-
-    checkCustom(value) {
-      var _this5 = this;
-
-      return _asyncToGenerator(function* () {
-        if (typeof _this5.custom === 'function') {
-          return _this5.custom(value);
-        } else {
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-            origin: "".concat(_this5.origin, ".checkCustom()"),
-            content: value
-          });
-        }
-      })();
-    },
-
-    /* //OLD
-    	//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
-    	checkType(value) {
-    		let t = sj.typeOf(value);
-    				//C if value is a string and dataType is a number or integer
-    				if (this.dataType === 'number' && t === 'string') {
-    			//C	try to parse the string and check if it is a number
-    			//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
-    			let p = parseFloat(value);
-    			if (!Number.isNaN(p)) {
-    				//C if so, convert it to the parsed number and return
-    				value = p;
-    				return true;
-    			}
-    			return false;
-    		}
-    		if (this.dataType === 'integer') {
-    			if (t === 'string') {
-    				let p = parseInt(value);
-    				if (Number.isInteger(p)) {
-    					value = p;
-    					return true;
-    				}
-    				return false;
-    			}
-    					// if not a string, just see if its an integer
-    			return Number.isInteger(value);
-    		}
-    				return t === this.dataType;
-    	}
-    	checkSize(value) {
-    		if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
-    			return value.length >= this.min && value.length <= this.max;
-    		} else if (sj.typeOf(value) === 'number') {
-    			return value >= this.min && value <= this.max;
-    		} else {
-    			return true;
-    		}
-    	}	
-    	checkAgainst(value, value2) {
-    		// allow custom check against value
-    		if (sj.typeOf(value2) !== 'undefined') {
-    			this.againstValue = value2;
-    		}
-    				if (Array.isArray(this.againstValue)) {
-    			return this.againstValue.indexOf(value) !== -1;
-    		} else {
-    			//! no type coercion
-    			return value === this.againstValue;
-    		}
-    	}	
-    	checkFilter(value, value2) {
-    		//TODO regex, similar to checkAgainst
-    		return true;
-    	}
-    */
-    //! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
-    //TODO should sj.Rule be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
-    //! to use the possibly modified value from check(), set the input value to equal the result.content
-    check(value, value2) {
-      var _this6 = this;
-
-      return _asyncToGenerator(function* () {
-        //L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-        //C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
-        //C trim
-        if (_this6.trim && sj.isType(value, String)) {
-          value = value.trim();
-        } //C checks & possibly modifies
-
-
-        value = yield _this6.checkType(value).then(sj.content); //R no need to catch and return the content as it will be in the thrown error anyways
-
-        yield _this6.checkSize(value);
-
-        if (_this6.useAgainst) {
-          yield _this6.checkAgainst(value, value2);
-        }
-
-        if (_this6.useFilter) {
-          yield _this6.checkFilter(value, value2);
-        }
-
-        if (typeof _this6.custom === 'function') {
-          yield _this6.checkCustom(value);
-        }
-        /*
-        	if (!this.checkType(value)) {
-        		throw new Err({
-        			log: this.log,
-        			origin: this.origin,
-        			message: `${this.valueName} must be a ${this.dataType}`,
-        		})
-        	}
-        	if (this.trim && sj.typeOf(value) === 'string') {
-        		value = value.trim();
-        	}
-        
-        	if (!this.checkSize(value)) {
-        		let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
-        		if (sj.typeOf(value) === 'string') {
-        			message = `${message} characters long`;
-        		} else if (sj.typeOf(value) === 'array') {
-        			message = `${message} items long`;
-        		}
-        				throw new Err({
-        			log: this.log,
-        			origin: this.origin,
-        			message: message,
-        		});
-        	}
-        	if (this.useAgainst && !this.checkAgainst(value, value2)) {
-        		throw new Err({
-        			log: this.log,
-        			origin: this.origin,
-        			message: this.againstMessage,
-        		});
-        	}
-        	if (this.useFilter && !this.checkFilter(value, value2)) {
-        		throw new Err({
-        			log: this.log,
-        			origin: this.origin,
-        			message: this.filterMessage,
-        		});
-        	}
-        */
-        //C remove error-related properties
-
-
-        _this6.target = undefined; //TODO consider inputCorrect styling
-
-        _this6.cssClass = undefined;
-        _this6.content = value; //C transform object (this will strip any irrelevant properties away)
-
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"](_this6);
-      })();
-    }
-    /* //OLD decided this was redundant
-    	//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
-    	//? this may not be needed over check(), see sj.Rule.checkRuleSet() in global-server.js
-    	async checkProperty(obj, prop, value2) {
-    		//C validate arguments
-    		if (!sj.isType(obj, 'object')) {
-    			throw new Err({
-    				log: true,
-    				origin: 'sj.Rule.checkProperty()',
-    				message: 'validation error',
-    				reason: `sj.Rule.checkProperty()'s first argument is not an object`,
-    				content: obj,
-    			});
-    		}
-    		if (!prop in obj) {
-    			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    			throw new Err({
-    				log: true,
-    				origin: 'sj.Rule.checkProperty()',
-    				message: 'validation error',
-    				reason: `sj.Rule.checkProperty()'s object argument is missing a '${prop}' property`,
-    				content: obj,
-    			});
-    		}
-    				//C check rules
-    		let result = this.check(obj[prop], value2).catch(rejected => {
-    			//C throw error if failed 
-    			//! do not modify the original property, so that Err.content is not relied upon to always be the original property
-    			throw sj.propagate(rejected);
-    		});
-    				//C modify and return if successful
-    		obj[prop] = result.content;
-    		return result;
-    	}
-    */
-
-    /* //OLD, new check ruleset was created in global-server.js
-    	static async checkRuleSet(ruleSet) {
-    		//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
-    		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
-    			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-    					//C validate arguments
-    			if (!rules instanceof this) {
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() is missing a sj.Rule object`,
-    					content: rules,
-    				});
-    			}
-    					//C check, return errors too
-    			return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
-    		})).then(resolved => {
-    			//C filter for Success objects
-    			return sj.filterList(resolved, Success, new Success({
-    				origin: 'sj.Rule.checkRuleSet()',
-    				message: 'all rules validated',
-    			}), new Err({
-    				origin: 'sj.Rule.checkRuleSet()',
-    				message: 'one or more issues with rules',
-    				reason: 'validation functions returned one or more errors',
-    			}));
-    		}).catch(rejected => {
-    			throw sj.propagate(rejected);
-    		});
-    	}
-    */
-
-    /* //OLD
-    	//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
-    	static async checkRuleSet(ruleSet) {
-    		//C takes a 2D array of [[sj.Rule, obj, propertyName, value2(optional)], [], [], ...]
-    				return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
-    			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-    					//C validate arguments
-    			if (!(rules instanceof sj.Rule)) {
-    				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
-    				//? is it possible to dynamically get this class
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() is missing a sj.Rule object`,
-    					content: rules,
-    				});
-    			}
-    			if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
-    				//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() is missing an object argument`,
-    					content: obj,
-    				});
-    			}
-    			if (!(prop in obj)) {
-    				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() obj is missing a '${prop}' property`,
-    					content: obj,
-    				});
-    			}
-    					let result = new Err(); //? why is this here
-    					//C call check() with 1 or 2 values
-    			if (sj.typeOf(value2) === 'undefined') {
-    				result = await rules.check(obj[prop]).then(sj.sj.andResolve());
-    			} else {
-    				result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
-    			}
-    					//C pass the possibly modified value back to the original object
-    			obj[prop] = result.content;
-    					return result;
-    		})).then(resolved => {
-    			return sj.filterList(resolved, Success, new Success({
-    				origin: 'checkRuleSet()',
-    				message: 'all rules validated',
-    			}), new Err({
-    				origin: 'checkRuleSet()',
-    				message: 'one or more issues with fields',
-    				reason: 'validation functions returned one or more errors',
-    			}));
-    		}).catch(rejected => {
-    			throw sj.propagate(rejected);
-    		});
-    	}
-    */
-
-
-  }),
-  staticProperties: parent => ({
-    //! string to be hashed must not be greater than 72 characters (//? or bytes???),
-    stringMaxLength: 100,
-    bigStringMaxLength: 2000,
-    nameMinLength: 3,
-    nameMaxLength: 16,
-    defaultColor: '#ffffff',
-    visibilityStates: ['public', 'private', 'linkOnly']
-  })
-});
-sj.Rule.augmentClass({
-  //C add custom sj.Rules as statics of sj.Rule
-  staticProperties: parent => ({
-    none: new sj.Rule({
-      origin: 'noRules',
-      message: 'value validated',
-      valueName: 'Value',
-      dataTypes: ['string', 'number', 'boolean', 'array'] //TODO etc. or just make functionality for this
-
-    }),
-    posInt: new sj.Rule({
-      origin: 'positiveIntegerRules',
-      message: 'number validated',
-      valueName: 'Number',
-      dataTypes: ['integer']
-    }),
-    id: new sj.Rule({
-      origin: 'idRules',
-      message: 'id validated',
-      valueName: 'id',
-      dataTypes: ['integer']
-    }),
-    image: new sj.Rule({
-      origin: 'imageRules',
-      message: 'image validated',
-      target: 'playlistImage',
-      cssClass: 'inputError',
-      valueName: 'image',
-      trim: true,
-      max: sj.Rule.bigStringMaxLength,
-      // TODO filter: ___,
-      filterMessage: 'Image must be a valid url'
-    }),
-    color: new sj.Rule({
-      origin: 'colorRules',
-      message: 'color validated',
-      target: 'playlistColor',
-      cssClass: 'inputError',
-      valueName: 'color',
-      trim: true,
-      filter: '/#([a-f0-9]{3}){1,2}\b/',
-      //TODO is this correct?
-      filterMessage: 'Color must be in hex format #XXXXXX'
-    }),
-    visibility: new sj.Rule({
-      origin: 'visibilityRules',
-      message: 'visibility validated',
-      target: 'playlistVisibility',
-      cssClass: 'inputError',
-      valueName: 'Visibility',
-      useAgainst: true,
-      againstValue: sj.Rule.visibilityStates,
-      againstMessage: 'please select a valid visibility level'
-    }),
-    //TODO other / old
-    //? not sure what these were used for
-    self: new sj.Rule({
-      origin: 'selfRules',
-      message: 'self validated',
-      target: 'notify',
-      cssClass: 'notifyError',
-      valueName: 'Id',
-      dataTypes: ['integer'],
-      useAgainst: true,
-      //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
-      againstMessage: 'you are not the owner of this'
-    }),
-    setPassword: new sj.Rule({
-      origin: 'setPasswordRules',
-      message: 'password validated',
-      target: 'registerPassword',
-      cssClass: 'inputError',
-      valueName: 'Password',
-      min: 6,
-      max: 72,
-      //! as per bcrypt
-      useAgainst: true,
-
-      get againstMessage() {
-        return 'Passwords do not match';
-      }
-
-    })
-  })
-});
 sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule2', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
@@ -41951,7 +41397,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       //G 0 = unused, 1 = optional, 2 = required
       id: {
         columnName: 'id',
-        rule: sj.Rule.id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
         add: auto,
         get: optional,
         edit: required,
@@ -41959,15 +41405,15 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       name: {
         columnName: 'name',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'userNameRules',
           message: 'username validated',
           target: 'registerUserName',
           cssClass: 'inputError',
           valueName: 'Username',
           trim: true,
-          min: sj.Rule.nameMinLength,
-          max: sj.Rule.nameMaxLength
+          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMinLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMaxLength
         }),
         add: required,
         get: optional,
@@ -41976,7 +41422,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       email: {
         columnName: 'email',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'emailRules',
           message: 'email validated',
           target: 'registerEmail',
@@ -41984,7 +41430,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
           valueName: 'E-mail',
           trim: true,
           min: 3,
-          max: sj.Rule.stringMaxLength //TODO useFilter: ___, filterMessage: ___, 
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].stringMaxLength //TODO useFilter: ___, filterMessage: ___, 
           //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
 
         }),
@@ -41995,7 +41441,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       password: {
         columnName: 'password',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'passwordRules',
           message: 'password validated',
           target: 'registerPassword',
@@ -42016,7 +41462,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       spotifyRefreshToken: {
         columnName: 'spotifyRefreshToken',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'spotifyRefreshTokenRules',
           message: 'token validated',
           valueName: 'Token' //TODO empty for now
@@ -42057,7 +41503,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
     this.schema = {
       id: {
         columnName: 'id',
-        rule: sj.Rule.id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
         add: auto,
         get: optional,
         edit: required,
@@ -42065,7 +41511,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       userId: {
         columnName: 'userId',
-        rule: sj.Rule.id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
         add: required,
         get: optional,
         edit: optional,
@@ -42073,15 +41519,15 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       name: {
         columnName: 'name',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'playlistNameRules()',
           message: 'name validated',
           target: 'playlistName',
           cssClass: 'inputError',
           valueName: 'Name',
           trim: true,
-          min: sj.Rule.nameMinLength,
-          max: sj.Rule.stringMaxLength
+          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMinLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].stringMaxLength
         }),
         add: required,
         get: optional,
@@ -42090,13 +41536,13 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       description: {
         columnName: 'description',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'descriptionRules()',
           message: 'description validated',
           target: 'playlistDescription',
           cssClass: 'inputError',
           valueName: 'Description',
-          max: sj.Rule.bigStringMaxLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].bigStringMaxLength,
           trim: true
         }),
         add: optional,
@@ -42106,7 +41552,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       visibility: {
         columnName: 'visibility',
-        rule: sj.Rule.visibility,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].visibility,
         add: optional,
         get: optional,
         edit: optional,
@@ -42114,7 +41560,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       image: {
         columnName: 'image',
-        rule: sj.Rule.image,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].image,
         add: optional,
         get: optional,
         edit: optional,
@@ -42122,7 +41568,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       color: {
         columnName: 'color',
-        rule: sj.Rule.color,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].color,
         add: optional,
         get: optional,
         edit: optional,
@@ -42170,7 +41616,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
     this.schema = {
       id: {
         columnName: 'id',
-        rule: sj.Rule.id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
         add: auto,
         get: optional,
         edit: required,
@@ -42178,7 +41624,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       playlistId: {
         columnName: 'playlistId',
-        rule: sj.Rule.id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
         add: required,
         get: optional,
         edit: optional,
@@ -42186,7 +41632,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       position: {
         columnName: 'position',
-        rule: sj.Rule.posInt,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].posInt,
         add: optional,
         get: optional,
         edit: optional,
@@ -42194,13 +41640,13 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       name: {
         columnName: 'name',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'trackNameRules()',
           message: 'name validated',
           valueName: 'Name',
           trim: true,
-          min: sj.Rule.nameMinLength,
-          max: sj.Rule.stringMaxLength
+          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMinLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].stringMaxLength
         }),
         add: required,
         get: optional,
@@ -42209,7 +41655,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       duration: {
         columnName: 'duration',
-        rule: sj.Rule.posInt,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].posInt,
         add: required,
         get: optional,
         edit: optional,
@@ -42217,7 +41663,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       source: {
         columnName: 'source',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'sourceRules',
           message: 'source validated',
           valueName: 'Source',
@@ -42234,7 +41680,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       sourceId: {
         columnName: 'sourceId',
-        rule: new sj.Rule({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           origin: 'sourceIdRules',
           message: 'source id validated',
           valueName: 'Source ID' //? any source id rules (other than being a string)? length? trim?
@@ -42247,8 +41693,8 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       artists: {
         columnName: 'artists',
-        rule: new sj.Rule({
-          origin: 'sj.Rules.artists',
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+          origin: 'Rule1s.artists',
           message: 'artists validated',
           valueName: 'Artists',
           dataTypes: ['array']
@@ -62355,21 +61801,21 @@ Base.trace = function () {
     //C get stack
     var stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
 
-    var stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+    var stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-    var stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+    var stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
 
     var ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-    ignore = replaceAll(ignore.join('|'), '.', '\.');
+    ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(ignore.join('|'), '.', '\.');
     var exp = new RegExp("(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:".concat(ignore, ")(?:.+?(?=\\n|\n|\r|$))"), 'g');
-    var stackTrace3 = replaceAll(stackTrace2, exp, '');
+    var stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(stackTrace2, exp, '');
     return stackTrace0;
   }
 };
 
 Base.prototype.announce = function () {
   //R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-  console.log("\u25AE\n".concat(this.constructorName, " ").concat(this.origin, " ").concat(this.message, "\n").concat(this.trace(), "\n\u25AE")); //OLD//! Don't add these back in, they will be a circular dependency.
+  console.log("\u25AE\n".concat(this.constructorName, " ").concat(this.origin, " ").concat(this.message, "\n").concat(this.constructor.trace(), "\n\u25AE")); //OLD//! Don't add these back in, they will be a circular dependency.
   // if (this instanceof Error) {
   // 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
   // } else if (this instanceof Warn) {
@@ -62498,6 +61944,586 @@ var Timeout = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Timeou
     }
   })
 });
+
+/***/ }),
+
+/***/ "./source/shared/legacy-classes/rule1.js":
+/*!***********************************************!*\
+  !*** ./source/shared/legacy-classes/rule1.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./success.js */ "./source/shared/legacy-classes/success.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+
+
+
+var Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule', _base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  //G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
+  constructorParts: parent => ({
+    //G//! 'this' refers to the static class inside constructorParts(), however 'this' refers to the instance inside before/afterInitialize()
+    defaults: {
+      // NEW
+      valueName: 'input',
+      trim: false,
+      dataTypes: ['string'],
+      min: 0,
+      max: Infinity,
+      //! remember to set useAgainst: true, if passing a value2 to use
+      useAgainst: false,
+      //C this is a reference value and should not be able to be equal to anything,
+      //R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
+      againstValue: {},
+
+      get againstMessage() {
+        //! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
+        var againstValueName = this.againstValue; //C join array of values if matching against multiple values
+
+        if (Array.isArray(this.againstValue)) {
+          againstValueName = this.againstValue.join(', ');
+        }
+
+        return "".concat(this.valueName, " did not match against these values: ").concat(againstValueName);
+      },
+
+      //! remember to set useFilter: true, if passing a value2 to use
+      useFilter: false,
+      //C match nothing //TODO verify this
+      //L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
+      filterExpression: '\\b\\B',
+      filterRequirements: 'none',
+
+      get filterMessage() {
+        return "".concat(this.valueName, " did not meet these requirements: ").concat(this.filterRequirements);
+      },
+
+      custom: undefined
+    }
+  }),
+  prototypeProperties: parent => ({
+    //TODO how to deal with returning the password field since its sensitive
+    checkType(value) {
+      var _this = this;
+
+      return _asyncToGenerator(function* () {
+        //C check against each datatype
+        for (var i = 0; i < _this.dataTypes.length; i++) {
+          if ( // Quick hack for replacing sj.isType which checks against custom types like 'array' and 'integer'
+          typeof value === _this.dataTypes[i] || _this.dataTypes[i] === 'array' && Array.isArray(value) || _this.dataTypes[i] === 'integer' && Number.isInteger(value)) {
+            return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+              origin: "".concat(_this.origin, ".checkType()"),
+              message: 'validated data type',
+              content: value
+            });
+          } //C parse strings for numbers
+
+
+          if (typeof value === 'string') {
+            var parsed = Number.parseFloat(value);
+
+            if (_this.dataTypes[i] === 'number' && !Number.isNaN(parsed) || _this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
+              return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+                origin: "".concat(_this.origin, ".checkType()"),
+                message: 'validated data type',
+                content: parsed
+              });
+            } //TODO parse strings for boolean & symbols & other?
+
+          }
+        } //C throw if no matches
+
+
+        throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+          log: true,
+          origin: "".concat(_this.origin, ".checkType()"),
+          message: "".concat(_this.valueName, " must be a ").concat(_this.dataTypes.join(' or ')),
+          content: value
+        });
+      })();
+    },
+
+    checkSize(value) {
+      var _this2 = this;
+
+      return _asyncToGenerator(function* () {
+        var m = "".concat(_this2.valueName, " must be between ").concat(_this2.min, " and ").concat(_this2.max);
+
+        if (typeof value === 'string') {
+          //C string length
+          if (!(value.length >= _this2.min && value.length <= _this2.max)) {
+            throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+              log: true,
+              origin: "".concat(_this2.origin, ".checkSize()"),
+              message: "".concat(m, " characters long"),
+              content: value
+            });
+          }
+        } else if (typeof value === 'number') {
+          //C number size
+          if (!(value >= _this2.min && value <= _this2.max)) {
+            throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+              log: true,
+              origin: "".concat(_this2.origin, ".checkSize()"),
+              message: "".concat(m, " items long"),
+              content: value
+            });
+          }
+        }
+
+        return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+          origin: "".concat(_this2.origin, ".checkSize()"),
+          content: value
+        });
+      })();
+    },
+
+    checkAgainst(value, value2) {
+      var _this3 = this;
+
+      return _asyncToGenerator(function* () {
+        //C custom againstValue
+        if (value2 !== undefined) {
+          _this3.againstValue = value2;
+        }
+
+        if (Array.isArray(_this3.againstValue)) {
+          //C arrays
+          //R indexOf apparently uses === so this should be fine
+          //L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
+          if (_this3.againstValue.indexOf(value) === -1) {
+            throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+              log: true,
+              origin: "".concat(_this3.origin, ".checkAgainst() array"),
+              message: _this3.againstMessage,
+              content: value
+            });
+          }
+        } else {
+          //C base value
+          if (!(value === _this3.againstValue)) {
+            throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+              log: true,
+              origin: "".concat(_this3.origin, ".checkAgainst() non-array"),
+              message: _this3.againstMessage,
+              content: value
+            });
+          }
+        }
+
+        return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+          origin: "".concat(_this3.origin, ".checkAgainst()"),
+          content: value
+        });
+      })();
+    },
+
+    checkFilter(value, value2) {
+      var _this4 = this;
+
+      return _asyncToGenerator(function* () {
+        //C custom againstValue
+        if (value2 === undefined) {
+          _this4.filterExpression = value2;
+        } //TODO
+
+
+        return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+          origin: "".concat(_this4.origin, ".checkAgainst()"),
+          content: value
+        });
+      })();
+    },
+
+    checkCustom(value) {
+      var _this5 = this;
+
+      return _asyncToGenerator(function* () {
+        if (typeof _this5.custom === 'function') {
+          return _this5.custom(value);
+        } else {
+          return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+            origin: "".concat(_this5.origin, ".checkCustom()"),
+            content: value
+          });
+        }
+      })();
+    },
+
+    /* //OLD
+    	//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
+    	checkType(value) {
+    		let t = sj.typeOf(value);
+    				//C if value is a string and dataType is a number or integer
+    				if (this.dataType === 'number' && t === 'string') {
+    			//C	try to parse the string and check if it is a number
+    			//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
+    			let p = parseFloat(value);
+    			if (!Number.isNaN(p)) {
+    				//C if so, convert it to the parsed number and return
+    				value = p;
+    				return true;
+    			}
+    			return false;
+    		}
+    		if (this.dataType === 'integer') {
+    			if (t === 'string') {
+    				let p = parseInt(value);
+    				if (Number.isInteger(p)) {
+    					value = p;
+    					return true;
+    				}
+    				return false;
+    			}
+    					// if not a string, just see if its an integer
+    			return Number.isInteger(value);
+    		}
+    				return t === this.dataType;
+    	}
+    	checkSize(value) {
+    		if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
+    			return value.length >= this.min && value.length <= this.max;
+    		} else if (sj.typeOf(value) === 'number') {
+    			return value >= this.min && value <= this.max;
+    		} else {
+    			return true;
+    		}
+    	}	
+    	checkAgainst(value, value2) {
+    		// allow custom check against value
+    		if (sj.typeOf(value2) !== 'undefined') {
+    			this.againstValue = value2;
+    		}
+    				if (Array.isArray(this.againstValue)) {
+    			return this.againstValue.indexOf(value) !== -1;
+    		} else {
+    			//! no type coercion
+    			return value === this.againstValue;
+    		}
+    	}	
+    	checkFilter(value, value2) {
+    		//TODO regex, similar to checkAgainst
+    		return true;
+    	}
+    */
+    //! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
+    //TODO should Rule1 be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
+    //! to use the possibly modified value from check(), set the input value to equal the result.content
+    check(value, value2) {
+      var _this6 = this;
+
+      return _asyncToGenerator(function* () {
+        //L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
+        //C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
+        //C trim
+        if (_this6.trim && typeof value === 'string') {
+          value = value.trim();
+        } //C checks & possibly modifies
+
+
+        value = yield _this6.checkType(value).then(resolved => resolved === null || resolved === void 0 ? void 0 : resolved.content); //R no need to catch and return the content as it will be in the thrown error anyways
+
+        yield _this6.checkSize(value);
+
+        if (_this6.useAgainst) {
+          yield _this6.checkAgainst(value, value2);
+        }
+
+        if (_this6.useFilter) {
+          yield _this6.checkFilter(value, value2);
+        }
+
+        if (typeof _this6.custom === 'function') {
+          yield _this6.checkCustom(value);
+        }
+        /*
+        	if (!this.checkType(value)) {
+        		throw new Err({
+        			log: this.log,
+        			origin: this.origin,
+        			message: `${this.valueName} must be a ${this.dataType}`,
+        		})
+        	}
+        	if (this.trim && sj.typeOf(value) === 'string') {
+        		value = value.trim();
+        	}
+        
+        	if (!this.checkSize(value)) {
+        		let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
+        		if (sj.typeOf(value) === 'string') {
+        			message = `${message} characters long`;
+        		} else if (sj.typeOf(value) === 'array') {
+        			message = `${message} items long`;
+        		}
+        				throw new Err({
+        			log: this.log,
+        			origin: this.origin,
+        			message: message,
+        		});
+        	}
+        	if (this.useAgainst && !this.checkAgainst(value, value2)) {
+        		throw new Err({
+        			log: this.log,
+        			origin: this.origin,
+        			message: this.againstMessage,
+        		});
+        	}
+        	if (this.useFilter && !this.checkFilter(value, value2)) {
+        		throw new Err({
+        			log: this.log,
+        			origin: this.origin,
+        			message: this.filterMessage,
+        		});
+        	}
+        */
+        //C remove error-related properties
+
+
+        _this6.target = undefined; //TODO consider inputCorrect styling
+
+        _this6.cssClass = undefined;
+        _this6.content = value; //C transform object (this will strip any irrelevant properties away)
+
+        return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"](_this6);
+      })();
+    }
+    /* //OLD decided this was redundant
+    	//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
+    	//? this may not be needed over check(), see Rule1.checkRuleSet() in global-server.js
+    	async checkProperty(obj, prop, value2) {
+    		//C validate arguments
+    		if (!sj.isType(obj, 'object')) {
+    			throw new Err({
+    				log: true,
+    				origin: 'Rule1.checkProperty()',
+    				message: 'validation error',
+    				reason: `Rule1.checkProperty()'s first argument is not an object`,
+    				content: obj,
+    			});
+    		}
+    		if (!prop in obj) {
+    			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+    			throw new Err({
+    				log: true,
+    				origin: 'Rule1.checkProperty()',
+    				message: 'validation error',
+    				reason: `Rule1.checkProperty()'s object argument is missing a '${prop}' property`,
+    				content: obj,
+    			});
+    		}
+    				//C check rules
+    		let result = this.check(obj[prop], value2).catch(rejected => {
+    			//C throw error if failed 
+    			//! do not modify the original property, so that Err.content is not relied upon to always be the original property
+    			throw sj.propagate(rejected);
+    		});
+    				//C modify and return if successful
+    		obj[prop] = result.content;
+    		return result;
+    	}
+    */
+
+    /* //OLD, new check ruleset was created in global-server.js
+    	static async checkRuleSet(ruleSet) {
+    		//C takes a 2D array of [[Rule1, obj, propertyName, value2(optional)], [], [], ...]
+    		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
+    			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+    					//C validate arguments
+    			if (!rules instanceof this) {
+    				return new Err({
+    					log: true,
+    					origin: 'checkRuleSet()',
+    					message: 'validation error',
+    					reason: `checkRuleSet() is missing a Rule1 object`,
+    					content: rules,
+    				});
+    			}
+    					//C check, return errors too
+    			return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
+    		})).then(resolved => {
+    			//C filter for Success objects
+    			return sj.filterList(resolved, Success, new Success({
+    				origin: 'Rule1.checkRuleSet()',
+    				message: 'all rules validated',
+    			}), new Err({
+    				origin: 'Rule1.checkRuleSet()',
+    				message: 'one or more issues with rules',
+    				reason: 'validation functions returned one or more errors',
+    			}));
+    		}).catch(rejected => {
+    			throw sj.propagate(rejected);
+    		});
+    	}
+    */
+
+    /* //OLD
+    	//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
+    	static async checkRuleSet(ruleSet) {
+    		//C takes a 2D array of [[Rule1, obj, propertyName, value2(optional)], [], [], ...]
+    				return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
+    			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+    					//C validate arguments
+    			if (!(rules instanceof Rule1)) {
+    				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
+    				//? is it possible to dynamically get this class
+    				return new Err({
+    					log: true,
+    					origin: 'checkRuleSet()',
+    					message: 'validation error',
+    					reason: `checkRuleSet() is missing a Rule1 object`,
+    					content: rules,
+    				});
+    			}
+    			if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
+    				//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
+    				return new Err({
+    					log: true,
+    					origin: 'checkRuleSet()',
+    					message: 'validation error',
+    					reason: `checkRuleSet() is missing an object argument`,
+    					content: obj,
+    				});
+    			}
+    			if (!(prop in obj)) {
+    				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
+    				return new Err({
+    					log: true,
+    					origin: 'checkRuleSet()',
+    					message: 'validation error',
+    					reason: `checkRuleSet() obj is missing a '${prop}' property`,
+    					content: obj,
+    				});
+    			}
+    					let result = new Err(); //? why is this here
+    					//C call check() with 1 or 2 values
+    			if (sj.typeOf(value2) === 'undefined') {
+    				result = await rules.check(obj[prop]).then(sj.sj.andResolve());
+    			} else {
+    				result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
+    			}
+    					//C pass the possibly modified value back to the original object
+    			obj[prop] = result.content;
+    					return result;
+    		})).then(resolved => {
+    			return sj.filterList(resolved, Success, new Success({
+    				origin: 'checkRuleSet()',
+    				message: 'all rules validated',
+    			}), new Err({
+    				origin: 'checkRuleSet()',
+    				message: 'one or more issues with fields',
+    				reason: 'validation functions returned one or more errors',
+    			}));
+    		}).catch(rejected => {
+    			throw sj.propagate(rejected);
+    		});
+    	}
+    */
+
+
+  }),
+  staticProperties: parent => ({
+    //! string to be hashed must not be greater than 72 characters (//? or bytes???),
+    stringMaxLength: 100,
+    bigStringMaxLength: 2000,
+    nameMinLength: 3,
+    nameMaxLength: 16,
+    defaultColor: '#ffffff',
+    visibilityStates: ['public', 'private', 'linkOnly']
+  })
+});
+Rule1.augmentClass({
+  //C add custom Rule1s as statics of Rule1
+  staticProperties: parent => ({
+    none: new Rule1({
+      origin: 'noRules',
+      message: 'value validated',
+      valueName: 'Value',
+      dataTypes: ['string', 'number', 'boolean', 'array'] //TODO etc. or just make functionality for this
+
+    }),
+    posInt: new Rule1({
+      origin: 'positiveIntegerRules',
+      message: 'number validated',
+      valueName: 'Number',
+      dataTypes: ['integer']
+    }),
+    id: new Rule1({
+      origin: 'idRules',
+      message: 'id validated',
+      valueName: 'id',
+      dataTypes: ['integer']
+    }),
+    image: new Rule1({
+      origin: 'imageRules',
+      message: 'image validated',
+      target: 'playlistImage',
+      cssClass: 'inputError',
+      valueName: 'image',
+      trim: true,
+      max: Rule1.bigStringMaxLength,
+      // TODO filter: ___,
+      filterMessage: 'Image must be a valid url'
+    }),
+    color: new Rule1({
+      origin: 'colorRules',
+      message: 'color validated',
+      target: 'playlistColor',
+      cssClass: 'inputError',
+      valueName: 'color',
+      trim: true,
+      filter: '/#([a-f0-9]{3}){1,2}\b/',
+      //TODO is this correct?
+      filterMessage: 'Color must be in hex format #XXXXXX'
+    }),
+    visibility: new Rule1({
+      origin: 'visibilityRules',
+      message: 'visibility validated',
+      target: 'playlistVisibility',
+      cssClass: 'inputError',
+      valueName: 'Visibility',
+      useAgainst: true,
+      againstValue: Rule1.visibilityStates,
+      againstMessage: 'please select a valid visibility level'
+    }),
+    //TODO other / old
+    //? not sure what these were used for
+    self: new Rule1({
+      origin: 'selfRules',
+      message: 'self validated',
+      target: 'notify',
+      cssClass: 'notifyError',
+      valueName: 'Id',
+      dataTypes: ['integer'],
+      useAgainst: true,
+      //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
+      againstMessage: 'you are not the owner of this'
+    }),
+    setPassword: new Rule1({
+      origin: 'setPasswordRules',
+      message: 'password validated',
+      target: 'registerPassword',
+      cssClass: 'inputError',
+      valueName: 'Password',
+      min: 6,
+      max: 72,
+      //! as per bcrypt
+      useAgainst: true,
+
+      get againstMessage() {
+        return 'Passwords do not match';
+      }
+
+    })
+  })
+});
+/* harmony default export */ __webpack_exports__["default"] = (Rule1);
 
 /***/ }),
 

@@ -120,6 +120,7 @@ import {
 	Success,
 	SuccessList,
 } from '../shared/legacy-classes/success.js';
+import Rule1 from '../shared/legacy-classes/rule1.js';
 
 
 
@@ -544,7 +545,7 @@ sj.isLoggedIn = async function (ctx) {
         });
     }
 	//C redundancy check to make sure id is right format
-	await sj.Rule.id.check(ctx.session.user.id);
+	await Rule1.id.check(ctx.session.user.id);
 
     //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
 
@@ -729,12 +730,12 @@ sj.Entity.augmentClass({
 				const prop = this.schema[key];
 
 				//C catches
-				if (!(prop.rule instanceof sj.Rule)) { // sj.Rule
+				if (!(prop.rule instanceof Rule1)) { // Rule1
 					throw new Err({
 						log: true,
 						origin: 'sj.Entity.validate()',
 						message: 'validation error',
-						reason: `${key}'s rule is not an sj.Rule`,
+						reason: `${key}'s rule is not an Rule1`,
 						content: prop,
 					});
 				}

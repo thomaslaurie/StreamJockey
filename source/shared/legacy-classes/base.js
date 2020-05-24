@@ -11,6 +11,7 @@
 
 import {
 	pick,
+	replaceAll,
 } from '../utility/index.js';
 
 class Base {
@@ -157,7 +158,7 @@ Base.trace = function () {
 };
 Base.prototype.announce = function () {
 	//R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-	console.log(`▮\n${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}\n▮`);
+	console.log(`▮\n${this.constructorName} ${this.origin} ${this.message}\n${this.constructor.trace()}\n▮`);
 	//OLD//! Don't add these back in, they will be a circular dependency.
 	// if (this instanceof Error) {
 	// 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);

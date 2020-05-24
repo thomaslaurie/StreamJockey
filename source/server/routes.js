@@ -156,6 +156,11 @@ export default function ({replaceIndex}) {
 			return f;
 		}
 	*/
+
+	//TODO This routing file is in need of some refactoring.
+	// Instead of using .catch(sj.andResolve) on everything, a middleware should be written for it.
+	//! Be aware, the first time this was tried it caused issues with liveQueries not working.
+
 	// server-side data & processing requests
 	apiRouter
 	.get('/*', async (ctx, next) => {
@@ -163,14 +168,16 @@ export default function ({replaceIndex}) {
 		const queryBody = ctx.request.query[GET_BODY];
 		try {
 			ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
-			await next();
 		} catch (error) {
+			ctx.response.body = 400;
 			ctx.response.body = new ParseError({
 				message: error.message,
 				userMessage: 'Request failed due to an internal error.',
 				input: queryBody,
 			});
 		}
+
+		await next();
 	})
 
 	.post('/log', async (ctx, next) => {
@@ -205,7 +212,6 @@ export default function ({replaceIndex}) {
 		ctx.response.body = await sj.youtube.getCredentials().catch(sj.andResolve);
 	})
 
-	//---------- session is failing with 404 not found
 	// session
 	//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 	//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
