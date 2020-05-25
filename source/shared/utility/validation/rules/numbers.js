@@ -1,3 +1,6 @@
+//TODO Create a lint rule to warn against ".validateCast(reference.value);" inside casters. This doesn't pass the nested cast value back up to the parent cast function.
+//TODO Create tests for this.
+
 import Rule from '../rule.js';
 
 export const number = new Rule({
@@ -85,8 +88,8 @@ export const nonNegativeInteger = new Rule({
 		integer.validate(value);
 	},
 	caster(reference) {
-		nonNegativeNumber.validateCast(reference.value);
-		integer.validateCast(reference.value);
+		nonNegativeNumber.validateCast(reference);
+		integer.validateCast(reference);
 	},
 });
 export const nonPositiveInteger = new Rule({
@@ -95,8 +98,8 @@ export const nonPositiveInteger = new Rule({
 		integer.validate(value);
 	},
 	caster(reference) {
-		nonPositiveNumber.validateCast(reference.value);
-		integer.validateCast(reference.value);
+		nonPositiveNumber.validateCast(reference);
+		integer.validateCast(reference);
 	},
 });
 export const positiveInteger = new Rule({
@@ -105,8 +108,8 @@ export const positiveInteger = new Rule({
 		integer.validate(value);
 	},
 	caster(reference) {
-		positiveNumber.validateCast(reference.value);
-		integer.validateCast(reference.value);
+		positiveNumber.validateCast(reference);
+		integer.validateCast(reference);
 	},
 });
 export const negativeInteger = new Rule({
@@ -115,7 +118,7 @@ export const negativeInteger = new Rule({
 		integer.validate(value);
 	},
 	caster(reference) {
-		negativeNumber.validateCast(reference.value);
-		integer.validateCast(reference.value);
+		negativeNumber.validateCast(reference);
+		integer.validateCast(reference);
 	},
 });

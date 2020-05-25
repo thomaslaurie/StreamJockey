@@ -1108,9 +1108,9 @@ sj.spotify = new sj.Source({
 		amount = 1,
 	}) {
 		// VALIDATE
-		sj.Rule2.nonEmptyString.validate(term);
-		sj.Rule2.nonNegativeInteger.validate(startIndex);
-		sj.Rule2.positiveInteger.validate(amount);
+		rules.visibleString.validate(term);
+		rules.nonNegativeInteger.validate(startIndex);
+		rules.positiveInteger.validate(amount);
 	
 		const result = await sj.spotify.request('GET', 'search', {
 			q: term,
@@ -1927,9 +1927,9 @@ sj.youtube = new sj.Source({
 		amount = 1,
 	}) {
 		// VALIDATE
-		sj.Rule2.nonEmptyString.validate(term);
-		sj.Rule2.nonNegativeInteger.validate(startIndex);
-		sj.Rule2.positiveInteger.validate(amount);
+		rules.visibleString.validate(term);
+		rules.nonNegativeInteger.validate(startIndex);
+		rules.positiveInteger.validate(amount);
 
 
 		//C amass search result pages until the last requested search index is included

@@ -3,6 +3,10 @@
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import SearchPanel from '../track/SearchPanel.vue';
 
+	import {
+		rules,
+	} from '../../../shared/utility/index.js';
+
     export default {
         name: 'playlist-page',
         extends: AsyncDisplay,
@@ -14,7 +18,7 @@
             return {
 				// OVERWRITES
 				Entity: this.$root.sj.Playlist,
-				sQuery: {id: this.$root.sj.Rule2.nonNegativeInteger.validateCast(this.$route.params.id)},
+				sQuery: {id: rules.nonNegativeInteger.validateCast(this.$route.params.id)[0]},
 
 				// NEW
                 edit: true,

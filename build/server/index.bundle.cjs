@@ -226,15 +226,13 @@ const GET_BODY = encodeURIComponent('body');
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
-/* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -319,8 +317,7 @@ __webpack_require__.r(__webpack_exports__);
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 // BUILT-IN
 // EXTERNAL
- // INTERNAL
-
+// INTERNAL
 
 
 
@@ -355,7 +352,7 @@ sj.test = async function test(tests, origin) {
 }; // CONSTANTS
 
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_4__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -431,7 +428,7 @@ sj.isType = function (input, type) {
     let tempInput = input;
     let tempType = type;
 
-    if ((input instanceof _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"] || typeof input.constructorName === 'string' && (() => {
+    if ((input instanceof _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"] || typeof input.constructorName === 'string' && (() => {
       //C input or input.constructorName is an instance of a constructible
       let Target = sj[input.constructorName];
 
@@ -489,7 +486,7 @@ sj.isType = function (input, type) {
 }; // ERROR
 
 
-sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"];
+sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"];
 
 sj.andResolve = function (rejected) {
   //C resolves/returns any errors thrown by sj.propagate()
@@ -541,442 +538,10 @@ sj.Subscriptions = function () {
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-// RULE
+// ENTITIES
 
 
-sj.Rule2 = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Rule2', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      if (typeof accessory.options.baseValidate !== 'function' || typeof accessory.options.baseCast !== 'function') throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-        origin: 'sj.Rule2.beforeInit()',
-        reason: 'baseValidate or baseCast is not a function',
-        content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(accessory.options)
-      });
-    },
-
-    defaults: {
-      //G baseValidate() and baseCast() may be synchronous or async, the caller should know which. But if it doesn't, call with await, as it wont affect the result of synchronous functions.
-      //G baseValidate() should have one or many, sequential and/or parallel conditions that do nothing if passed and throw a specific error (with placeholders) if failed, this error should be SilentError/log: false, as it is caught and processed in validate()
-      baseValidate(value, accessory) {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.baseValidate()',
-          reason: `a baseValidate() function has not been created for this rule: ${this.name}`
-        });
-      },
-
-      //G baseCast() should have one or more sequential casting functions (which may error freely) that modify accessory.castValue
-      //G baseCast() may use other rule's casting methods. but because they have their own internal casting steps, pass the castValue and the accessory object so that even if the casting function fails, the castValue will still retain any modifications: rule.validateCast(accessory.castValue, accessory); 
-      //R this is important because otherwise the casting method will just fail, leaving the castValue as the original, causing unexpected error messages (casting '4' as an integer would fail with 'not a number' instead of 'not an integer' because first the number casting would fail, leaving the castValue as a string, then validation would return the 'not a number' error).
-      baseCast(accessory) {
-        new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
-          log: true,
-          origin: 'sj.Rule2.baseCast()',
-          reason: `a baseCast() function has not been created for this rule: ${this.name}`
-        });
-      },
-
-      //C string or array of strings used to replace $0, $1, $2... of specific properties (reason and message so far) of an error and it's content errors if error is an ErrorList
-      fill: 'Value'
-    },
-
-    afterInitialize() {
-      //C baseValidate and baseCast are guaranteed to be functions, this distinguishes between 'Function' and 'AsyncFunction'
-      const isValidateSync = this.baseValidate.constructor.name === 'Function';
-      const isCastSync = this.baseCast.constructor.name === 'Function'; //C try-catch blocks are used for both async and sync to increase clarity
-
-      if (isValidateSync) {
-        //C calls baseValidate(), returns value on pass, throws a processed error on fail
-        this.validate = function (value, accessory = {}) {
-          try {
-            this.baseValidate(value, accessory);
-            return value;
-          } catch (e) {
-            throw this.processError(e, accessory);
-          }
-        }; //C calls validate but instead returns true on pass and false on error
-
-
-        this.check = function (value, accessory = {}) {
-          try {
-            this.validate(value, accessory);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        };
-      } else {
-        this.validate = async function (value, accessory = {}) {
-          try {
-            await this.baseValidate(value, accessory);
-            return value;
-          } catch (e) {
-            throw this.processError(e, accessory);
-          }
-        };
-
-        this.check = async function (value, accessory = {}) {
-          try {
-            await this.validate(value, accessory);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        };
-      }
-
-      if (isValidateSync && isCastSync) {
-        //C validate that uses the value from cast() instead of the original value, also returns the cast value
-        this.validateCast = function (value, accessory = {}) {
-          //C Casted values are stored on the accessory object so that upon error, the last successfully cast value can be used. 
-          //R This removes the need to write a bunch of try/catch blocks inside the baseCast method.
-          //R cast() was originally it's own function, however it was moved into validateCast() because it wasn't supposed to be used on its own as the casted value wasn't guaranteed to be correctly cast without throwing an error, as some values cannot be cast (negative to positive) it would've involved just re-validating the cast inside the function which is redundant.
-          //C The castValue starts as the original value.
-          accessory.castValue = value;
-
-          try {
-            //C Don't throw upon baseCast() error, just use the last successful castValue and apply the respective validate() error.
-
-            /* //R 
-            	why not just throw the error and forget about the last successfully cast value?
-            	
-            	casting errors aren't very user friendly (because the user won't know what cast means), so just delegate the error handling to whats already written in the validate function
-            	
-            	Example: while '2.35' can be cast to the number, it cannot (in this example) be cast to an integer. the validator will throw 'number is not an integer' for this STRING, rather than having cast throw 'cannot cast number to integer'.
-            */
-            this.baseCast(accessory);
-          } catch (e) {}
-
-          ;
-
-          try {
-            return this.validate(accessory.castValue, accessory);
-          } catch (e) {
-            throw this.processError(e, accessory);
-          }
-        }; //C same as check(), just uses validateCast() instead of validate()
-
-
-        this.checkCast = function (value, accessory = {}) {
-          try {
-            this.validateCast(value, accessory);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        };
-      } else {
-        this.validateCast = async function (value, accessory = {}) {
-          accessory.castValue = value;
-
-          try {
-            await this.baseCast(accessory);
-          } catch (e) {}
-
-          ;
-
-          try {
-            return await this.validate(accessory.castValue, accessory);
-          } catch (e) {
-            throw this.processError(e, accessory);
-          }
-        };
-
-        this.checkCast = async function (value, accessory = {}) {
-          try {
-            await this.validateCast(value, accessory);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        };
-      }
-    }
-
-  }),
-
-  prototypeProperties(parent) {
-    //C name property is tied to the rule-instance's key inside sj.Rule2, otherwise undefined
-    Object.defineProperty(this, 'name', {
-      get() {
-        return Object.keys(this.constructor).find(key => this.constructor[key] === this);
-      }
-
-    });
-    return {
-      fillError(error, fill) {
-        //C replace placeholders
-        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(fill).forEach((item, index) => {
-          const string = String(item);
-          error.reason = error.reason.replace(`$${index}`, string);
-          error.message = error.message.replace(`$${index}`, string);
-        });
-      },
-
-      processError(targetError, {
-        fill = this.fill,
-        error,
-        origin
-      }) {
-        //C may receive custom fill, error, and origin fields from accessory at call invocation
-        //C fill error
-        this.fillError(targetError, fill); //C if ErrorList
-
-        if (sj.isType(targetError, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"])) {
-          //C fill each item
-          for (const listError of targetError.content) {
-            this.fillError(listError, fill);
-          }
-        }
-
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({ ...targetError,
-          //C custom properties //! will overwrite any filled properties
-          ...error,
-          //C fixed properties
-          origin
-        });
-      }
-
-    };
-  }
-
-});
-sj.Rule2.augmentClass({
-  staticProperties: parent => ({
-    // STRING
-    string: new sj.Rule2({
-      baseValidate(value) {
-        if (!sj.isType(value, String)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.string.baseValidate()',
-          reason: '$0 is not a string',
-          message: '$0 must be text.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        //C a failed stringify can still be turned in to a string
-        if (typeof accessory.castValue === 'object') {
-          try {
-            accessory.castValue = JSON.stringify(accessory.castValue);
-          } catch (e) {}
-        }
-
-        accessory.castValue = String(accessory.castValue);
-      }
-
-    }),
-    trimmed: new sj.Rule2({
-      baseValidate(value) {
-        sj.Rule2.string.validate(value); //TODO ensure that this regExp checks for all possible white space
-        //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
-
-        if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.trimmed.baseValidate()',
-          reason: '$0 is not trimmed',
-          message: '$0 must not have any leading or trailing whitespace.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.string.validateCast(accessory.castValue, accessory);
-        accessory.castValue = accessory.castValue.trim();
-      }
-
-    }),
-    nonEmptyString: new sj.Rule2({
-      //C string has any non-whitespace characters
-      baseValidate(value) {
-        sj.Rule2.string.validate(value);
-        if (value.trim() === '') throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.nonEmptyString.baseValidate()',
-          reason: '$0 is empty or only has whitespace',
-          message: '$0 must not be empty.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.string.validateCast(accessory.castValue, accessory); //! cannot cast any further than a string
-      }
-
-    }),
-    // NUMBER
-    number: new sj.Rule2({
-      baseValidate(value) {
-        if (!sj.isType(value, Number)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.number.baseValidate()',
-          reason: '$0 is not a number',
-          message: '$0 must be a number.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        //C parse strings for floats
-        //! do not cast to NaN
-        const n = Number.parseFloat(accessory.castValue);
-        if (!Number.isNaN(n)) accessory.castValue = n;
-      }
-
-    }),
-    nonNaNNumber: new sj.Rule2({
-      baseValidate(value) {
-        if (!sj.isType(value, Number) || Number.isNaN(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.nonNaNNumber.baseValidate()',
-          reason: '$0 is not a number or is NaN',
-          message: '$0 must be a number.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.number.validateCast(accessory.castValue, accessory); //! don't cast NaN to a non-NaN number
-      }
-
-    }),
-    nonNegativeNumber: new sj.Rule2({
-      baseValidate(value) {
-        //L don't worry about NaN here: https://stackoverflow.com/a/26982925
-        sj.Rule2.number.validate(value);
-        if (value < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.nonNegativeNumber.baseValidate()',
-          reason: '$0 is negative',
-          message: '$0 must not be negative.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.number.validateCast(accessory.castValue, accessory); //! don't cast negative number to a non-negative number
-      }
-
-    }),
-    nonPositiveNumber: new sj.Rule2({
-      baseValidate(value) {
-        sj.Rule2.number.validate(value);
-
-        if (0 < value) {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-            origin: 'sj.Rule2.nonPositiveNumber.baseValidate()',
-            reason: '$0 is positive',
-            message: '$0 must not be positive.',
-            content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-          });
-        }
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.number.validateCast(accessory.castValue, accessory); //! don't cast positive number to a non-positive number
-      }
-
-    }),
-    positiveNumber: new sj.Rule2({
-      baseValidate(value) {
-        //L don't worry about NaN here: https://stackoverflow.com/a/26982925
-        sj.Rule2.number.validate(value);
-        if (value <= 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.positiveNumber.baseValidate()',
-          reason: '$0 is negative or 0',
-          message: '$0 must be positive.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.number.validateCast(accessory.castValue, accessory); //! don't cast non-positive number to a positive number
-      }
-
-    }),
-    negativeNumber: new sj.Rule2({
-      baseValidate(value) {
-        sj.Rule2.number.validate(value);
-        if (0 <= value) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.negativeNumber.baseValidate()',
-          reason: '$0 is positive or 0',
-          message: '$0 must be negative.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.number.validateCast(accessory.castValue, accessory); //! don't cast non-negative number to a negative number
-      }
-
-    }),
-    // INTEGER
-    integer: new sj.Rule2({
-      baseValidate(value) {
-        //L don't worry about NaN here: https://stackoverflow.com/a/26982925
-        sj.Rule2.number.validate(value);
-        if (!Number.isInteger(value)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["SilentError"]({
-          origin: 'sj.Rule2.integer.baseValidate()',
-          reason: '$0 is not an integer',
-          message: '$0 must be an integer.',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(value)
-        });
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.number.validateCast(accessory.castValue, accessory); //C chops any decimal off of floats
-        //! this may give misleading errors, as the value will no longer fail because it's not an integer but because it's chopped value fails some other condition
-
-        accessory.castValue = Number.parseInt(accessory.castValue);
-      }
-
-    }),
-    nonNegativeInteger: new sj.Rule2({
-      baseValidate(value) {
-        sj.Rule2.nonNegativeNumber.validate(value);
-        sj.Rule2.integer.validate(value);
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.nonNegativeNumber.validateCast(accessory.castValue, accessory);
-        sj.Rule2.integer.validateCast(accessory.castValue, accessory);
-      }
-
-    }),
-    nonPositiveInteger: new sj.Rule2({
-      baseValidate(value) {
-        sj.Rule2.nonPositiveNumber.validate(value);
-        sj.Rule2.integer.validate(value);
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.nonPositiveNumber.validateCast(accessory.castValue, accessory);
-        sj.Rule2.integer.validateCast(accessory.castValue, accessory);
-      }
-
-    }),
-    positiveInteger: new sj.Rule2({
-      baseValidate(value) {
-        sj.Rule2.positiveNumber.validate(value);
-        sj.Rule2.integer.validate(value);
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.positiveNumber.validateCast(accessory.castValue, accessory);
-        sj.Rule2.integer.validateCast(accessory.castValue, accessory);
-      }
-
-    }),
-    negativeInteger: new sj.Rule2({
-      baseValidate(value) {
-        sj.Rule2.negativeNumber.validate(value);
-        sj.Rule2.integer.validate(value);
-      },
-
-      baseCast(accessory) {
-        sj.Rule2.negativeNumber.validateCast(accessory.castValue, accessory);
-        sj.Rule2.integer.validateCast(accessory.castValue, accessory);
-      }
-
-    })
-  })
-}); // ENTITIES
-
-sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Entity', _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"], {
+sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Entity', _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"], {
   constructorParts: parent => ({
     afterInitialize(accessory) {
       const that = this; //? is this necessary?
@@ -986,7 +551,7 @@ sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default
         Object.defineProperties(that.filters, {
           [key]: {
             get: function () {
-              return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, that.constructor.filters[key]);
+              return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(that, that.constructor.filters[key]);
             }
           }
         });
@@ -1042,7 +607,7 @@ sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default
 
       tableToEntity(tableName) {
         const Entity = this.children.find(child => child.table === tableName);
-        if (!sj.isType(new Entity(), sj.Entity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+        if (!sj.isType(new Entity(), sj.Entity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'sj.Entity.tableToEntity()',
           reason: `table is not recognized: ${tableName}`,
           content: tableName
@@ -1076,7 +641,7 @@ const auto = {
   out: true,
   check: 0
 };
-sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('User', sj.Entity, {
+sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('User', sj.Entity, {
   constructorParts: parent => ({
     defaults: {
       // NEW
@@ -1095,7 +660,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       //G 0 = unused, 1 = optional, 2 = required
       id: {
         columnName: 'id',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
         add: auto,
         get: optional,
         edit: required,
@@ -1103,15 +668,15 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       name: {
         columnName: 'name',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'userNameRules',
           message: 'username validated',
           target: 'registerUserName',
           cssClass: 'inputError',
           valueName: 'Username',
           trim: true,
-          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMinLength,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMaxLength
+          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMinLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMaxLength
         }),
         add: required,
         get: optional,
@@ -1120,7 +685,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       email: {
         columnName: 'email',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'emailRules',
           message: 'email validated',
           target: 'registerEmail',
@@ -1128,7 +693,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
           valueName: 'E-mail',
           trim: true,
           min: 3,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].stringMaxLength //TODO useFilter: ___, filterMessage: ___, 
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].stringMaxLength //TODO useFilter: ___, filterMessage: ___, 
           //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
 
         }),
@@ -1139,7 +704,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       password: {
         columnName: 'password',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'passwordRules',
           message: 'password validated',
           target: 'registerPassword',
@@ -1160,7 +725,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
       },
       spotifyRefreshToken: {
         columnName: 'spotifyRefreshToken',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'spotifyRefreshTokenRules',
           message: 'token validated',
           valueName: 'Token' //TODO empty for now
@@ -1180,7 +745,7 @@ sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"]
   }
 
 });
-sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Playlist', sj.Entity, {
+sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Playlist', sj.Entity, {
   constructorParts: parent => ({
     defaults: {
       // OVERWRITE
@@ -1201,7 +766,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
     this.schema = {
       id: {
         columnName: 'id',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
         add: auto,
         get: optional,
         edit: required,
@@ -1209,7 +774,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       userId: {
         columnName: 'userId',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
         add: required,
         get: optional,
         edit: optional,
@@ -1217,15 +782,15 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       name: {
         columnName: 'name',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'playlistNameRules()',
           message: 'name validated',
           target: 'playlistName',
           cssClass: 'inputError',
           valueName: 'Name',
           trim: true,
-          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMinLength,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].stringMaxLength
+          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMinLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].stringMaxLength
         }),
         add: required,
         get: optional,
@@ -1234,13 +799,13 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       description: {
         columnName: 'description',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'descriptionRules()',
           message: 'description validated',
           target: 'playlistDescription',
           cssClass: 'inputError',
           valueName: 'Description',
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].bigStringMaxLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].bigStringMaxLength,
           trim: true
         }),
         add: optional,
@@ -1250,7 +815,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       visibility: {
         columnName: 'visibility',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].visibility,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].visibility,
         add: optional,
         get: optional,
         edit: optional,
@@ -1258,7 +823,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       image: {
         columnName: 'image',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].image,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].image,
         add: optional,
         get: optional,
         edit: optional,
@@ -1266,7 +831,7 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
       },
       color: {
         columnName: 'color',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].color,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].color,
         add: optional,
         get: optional,
         edit: optional,
@@ -1277,13 +842,13 @@ sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defau
   }
 
 });
-sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Track', sj.Entity, {
+sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Track', sj.Entity, {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //C find existing source by track.source.name and set it as the reference
       if (sj.isType(accessory.options.source, Object)) {
         const found = sj.Source.instances.find(source => source.name === accessory.options.source.name);
-        if (found) accessory.options.source = found;else new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
+        if (found) accessory.options.source = found;else new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Warn"]({
           origin: 'sj.Track.beforeInitialize()',
           reason: 'source was passed but it is not an existing source',
           content: accessory.options.source
@@ -1314,7 +879,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
     this.schema = {
       id: {
         columnName: 'id',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
         add: auto,
         get: optional,
         edit: required,
@@ -1322,7 +887,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       playlistId: {
         columnName: 'playlistId',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
         add: required,
         get: optional,
         edit: optional,
@@ -1330,7 +895,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       position: {
         columnName: 'position',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].posInt,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].posInt,
         add: optional,
         get: optional,
         edit: optional,
@@ -1338,13 +903,13 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       name: {
         columnName: 'name',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'trackNameRules()',
           message: 'name validated',
           valueName: 'Name',
           trim: true,
-          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].nameMinLength,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].stringMaxLength
+          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMinLength,
+          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].stringMaxLength
         }),
         add: required,
         get: optional,
@@ -1353,7 +918,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       duration: {
         columnName: 'duration',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].posInt,
+        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].posInt,
         add: required,
         get: optional,
         edit: optional,
@@ -1361,7 +926,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       source: {
         columnName: 'source',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'sourceRules',
           message: 'source validated',
           valueName: 'Source',
@@ -1378,7 +943,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       sourceId: {
         columnName: 'sourceId',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'sourceIdRules',
           message: 'source id validated',
           valueName: 'Source ID' //? any source id rules (other than being a string)? length? trim?
@@ -1391,7 +956,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
       },
       artists: {
         columnName: 'artists',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           origin: 'Rule1s.artists',
           message: 'artists validated',
           valueName: 'Artists',
@@ -1409,7 +974,7 @@ sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"
   }
 
 });
-sj.Source = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Source', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
+sj.Source = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Source', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
   constructorParts: parent => ({
     defaults: {
       // NEW
@@ -1418,7 +983,7 @@ sj.Source = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default
       register: false,
       nullPrefix: '',
       idPrefix: '',
-      credentials: new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Credentials"](),
+      credentials: new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Credentials"](),
       //TODO this should only be server-side
       api: {},
       scopes: [],
@@ -1453,7 +1018,7 @@ sj.Source = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default
   })
 }); // LIVE DATA
 
-sj.LiveTable = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('LiveTable', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
+sj.LiveTable = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('LiveTable', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
   constructorParts: parent => ({
     defaults: {
       Entity: undefined
@@ -1476,7 +1041,7 @@ sj.LiveTable = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defa
 
   })
 });
-sj.CachedEntity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('CachedEntity', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
+sj.CachedEntity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('CachedEntity', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
   constructorParts: parent => ({
     defaults: {
       table: undefined,
@@ -1492,10 +1057,10 @@ sj.CachedEntity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["d
 
   })
 });
-sj.LiveQuery = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('LiveQuery', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
+sj.LiveQuery = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('LiveQuery', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
   constructorParts: parent => ({
     beforeInitialize(accessory) {
-      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(accessory.options.query);
+      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(accessory.options.query);
     },
 
     defaults: {
@@ -1513,7 +1078,7 @@ sj.LiveQuery = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["defa
 
   })
 });
-sj.Subscription = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"].makeClass('Subscription', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
+sj.Subscription = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Subscription', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
   //? should this inherit from Success since it will be returned from a function>
   constructorParts: parent => ({
     defaults: {
@@ -8766,6 +8331,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
+//TODO Create a lint rule to warn against ".validateCast(reference.value);" inside casters. This doesn't pass the nested cast value back up to the parent cast function.
+//TODO Create tests for this.
 
 const number = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   validator(value) {
@@ -8861,8 +8428,8 @@ const nonNegativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"](
   },
 
   caster(reference) {
-    nonNegativeNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
+    nonNegativeNumber.validateCast(reference);
+    integer.validateCast(reference);
   }
 
 });
@@ -8873,8 +8440,8 @@ const nonPositiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"](
   },
 
   caster(reference) {
-    nonPositiveNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
+    nonPositiveNumber.validateCast(reference);
+    integer.validateCast(reference);
   }
 
 });
@@ -8885,8 +8452,8 @@ const positiveInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   },
 
   caster(reference) {
-    positiveNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
+    positiveNumber.validateCast(reference);
+    integer.validateCast(reference);
   }
 
 });
@@ -8897,8 +8464,8 @@ const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   },
 
   caster(reference) {
-    negativeNumber.validateCast(reference.value);
-    integer.validateCast(reference.value);
+    negativeNumber.validateCast(reference);
+    integer.validateCast(reference);
   }
 
 });

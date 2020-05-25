@@ -2,6 +2,7 @@
 	import {
 		one,
 		keyCode,
+		rules,
 	} from '../../../shared/utility/index.js';
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 
@@ -29,7 +30,7 @@
 				default: null,
 				validator(value) {
 					//! validator cannot reference this, must use a separately imported sj reference
-					return value === null || sj.Rule2.positiveInteger.check(value);
+					return value === null || rules.positiveInteger.test(value);
 				},
 			},
 		},
