@@ -37,6 +37,8 @@ import {
 
 //TODO It seems like many subscriptions are being called but not as many un-subscriptions.
 
+//TODO sockets need better error handling just like the koa router
+
 sj.Subscription.augmentClass({
 	constructorParts: parent => ({
 		defaults: {
@@ -98,7 +100,7 @@ export default {
 					: new sj.User({socketId: socket.id});
 					
 				//! using sj.Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
-				const result = await sj.liveData.add(sj.Entity.tableToEntity(table), query, user).catch(sj.andResolve);
+				const result = await sj.liveData.add(sj.Entity.tableToEntity(table), query, user);
 
 				//!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
 				//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
@@ -112,7 +114,7 @@ export default {
 					? socket.session.user
 					: new sj.User({socketId: socket.id});
 
-				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, user).catch(sj.andResolve);
+				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, user);
 				callback(fclone(result));
 			});
 

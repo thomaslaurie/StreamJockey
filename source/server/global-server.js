@@ -121,6 +121,7 @@ import {
 	SuccessList,
 } from '../shared/legacy-classes/success.js';
 import Rule1 from '../shared/legacy-classes/rule1.js';
+import Source from '../shared/source.js';
 
 
 
@@ -937,7 +938,7 @@ sj.Entity.augmentClass({
 	},
 });
 
-sj.Source.augmentClass({
+Source.augmentClass({
 	constructorProperties: parent => ({
 		defaults: {
 			serverTestProp: null,
@@ -1063,7 +1064,7 @@ sj.Track.augmentClass({
 			let newEntities = entities.slice();
 
 			newEntities.forEach(entity => {
-				entity.source = sj.Source.instances.find(source => source.name === entity.source);
+				entity.source = Source.instances.find(source => source.name === entity.source);
 			});
 			
 			return newEntities;

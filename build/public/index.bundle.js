@@ -1828,6 +1828,8 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _track_SearchResults_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../track/SearchResults.vue */ "./source/public/vue/track/SearchResults.vue");
+/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/source.js */ "./source/shared/source.js");
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'search-panel',
@@ -1838,7 +1840,8 @@ __webpack_require__.r(__webpack_exports__);
   data() {
     return {
       //C just use the first source instance
-      source: this.$root.sj.Source.instances[0]
+      source: _shared_source_js__WEBPACK_IMPORTED_MODULE_1__["default"].instances[0],
+      Source: _shared_source_js__WEBPACK_IMPORTED_MODULE_1__["default"]
     };
   },
 
@@ -1859,11 +1862,13 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _js_global_client_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../js/global-client.js */ "./source/public/js/global-client.js");
+/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/source.js */ "./source/shared/source.js");
+/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
+/* harmony import */ var _js_global_client_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../js/global-client.js */ "./source/public/js/global-client.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
  //C for use of sj inside validator function
@@ -1872,7 +1877,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'search-results',
   components: {
-    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
+    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"]
   },
 
   data() {
@@ -1887,7 +1892,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       default: null,
 
       validator(value) {
-        return _js_global_client_js__WEBPACK_IMPORTED_MODULE_2__["default"].Source.instances.includes(value);
+        return _shared_source_js__WEBPACK_IMPORTED_MODULE_1__["default"].instances.includes(value);
       }
 
     },
@@ -36573,7 +36578,7 @@ var render = function() {
   return _c(
     "div",
     [
-      _vm._l(_vm.sj.Source.instances, function(sourceInstance, index) {
+      _vm._l(_vm.Source.instances, function(sourceInstance, index) {
         return _c("div", { key: sourceInstance.name + "Radio" }, [
           _c("input", {
             directives: [
@@ -36602,7 +36607,7 @@ var render = function() {
         ])
       }),
       _vm._v(" "),
-      _vm._l(_vm.sj.Source.instances, function(sourceInstance) {
+      _vm._l(_vm.Source.instances, function(sourceInstance) {
         return _c(
           "div",
           { key: sourceInstance.name + "Search" },
@@ -37793,6 +37798,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37835,6 +37841,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
 
  // INTERNAL
+
 
 
 
@@ -37943,17 +37950,20 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Entity.augmentClass({
 
 _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"].makeClass('Command', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_7__["default"], {
   constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      //G must be given a source
+    beforeInitialize(accessory) {//G must be given a source
       //TODO The non-instance source casting actually seems necessary here for some reason.
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(accessory.options.source, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source)) {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
-          origin: 'sj.Command.beforeInitialize()',
-          message: 'no source is active to receive this command',
-          reason: "sj.Command instance.source must be an sj.Source: ".concat(accessory.options.source),
-          content: accessory.options.source
-        });
+      //TODO Find a better way to convert from non-instance to instance.
+
+      /*
+      if (!sj.isType(accessory.options.source, sj.Source)) {
+      	throw new Err({
+      		origin: 'sj.Command.beforeInitialize()',
+      		message: 'no source is active to receive this command',
+      		reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
+      		content: accessory.options.source,
+      	});
       }
+      */
     },
 
     defaults: {
@@ -38062,7 +38072,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this10, context); //C pause all
 
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].instances, /*#__PURE__*/function () {
           var _ref = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
           });
@@ -38133,7 +38143,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Toggle = _shared_legacy_class
 
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this11, context);
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].instances, /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (source) {
             if (_this11.isPlaying && source === _this11.source) {
               //C resume target if resuming
@@ -38224,7 +38234,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Volume = _shared_legacy_class
       return _asyncToGenerator(function* () {
         yield parent.prototype.trigger.call(_this13, context); //C adjust volume on all sources
 
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.instances, /*#__PURE__*/function () {
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].instances, /*#__PURE__*/function () {
           var _ref6 = _asyncToGenerator(function* (source) {
             if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this13.volume);
           });
@@ -38780,9 +38790,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
   }
 }); // SOURCE
 
-_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.augmentClass({
+_shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].augmentClass({
   constructorParts(parent) {
-    var oldAfterInitialize = _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source.afterInitialize;
+    var oldAfterInitialize = _shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].afterInitialize;
     return {
       defaults: {
         //TODO change these off undefined
@@ -38850,7 +38860,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.logout = /*#__PURE__*
 */
 // global source objects
 
-_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
   register: true,
@@ -39786,7 +39796,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _global_js__WEB
     }
   })
 });
-_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Source({
+_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
   name: 'youtube',
   register: true,
   idPrefix: 'https://www.youtube.com/watch?v=',
@@ -40484,12 +40494,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -40579,6 +40585,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // BUILT-IN
 // EXTERNAL
 // INTERNAL
+
+
 
 
 
@@ -40807,565 +40815,16 @@ sj.Subscriptions = function () {
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-// ENTITIES
 
 
-sj.Entity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Entity', _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"], {
-  constructorParts: parent => ({
-    afterInitialize(accessory) {
-      var that = this; //? is this necessary?
-
-      this.filters = {};
-      Object.keys(that.constructor.filters).forEach(key => {
-        Object.defineProperties(that.filters, {
-          [key]: {
-            get: function get() {
-              return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(that, that.constructor.filters[key]);
-            }
-          }
-        });
-      });
-    },
-
-    defaults: {
-      // NEW
-      id: undefined
-    }
-  }),
-
-  staticProperties(parent) {
-    // GETTER
-    Object.defineProperty(this, 'table', {
-      get: function get() {
-        return "".concat(this.name.charAt(0).toLowerCase() + this.name.slice(1), "s"); //! lowercase, plural of name
-      }
-    });
-    return {
-      //TODO how to make these immutable?
-      //C list of references to child classes, these should be added in the child's static constructor
-      children: [],
-      filters: {
-        id: ['id']
-      },
-
-      //C automatically create new filters based on schema
-      updateFilters() {
-        var methodNames = ['add', 'get', 'edit', 'remove'];
-        var types = ['in', 'out', 'check'];
-        var schemaFilters = {};
-        Object.keys(this.schema).forEach(key => {
-          //C for each property
-          methodNames.forEach(methodName => {
-            //C for each crud method
-            types.forEach(type => {
-              //C for each filter type
-              if (this.schema[key][methodName][type]) {
-                //C if property is optional or required
-                var filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
-
-                if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-                schemaFilters[filterName].push(key);
-              }
-            });
-          });
-        });
-        this.filters = _objectSpread({}, this.filters, {}, schemaFilters);
-      },
-
-      tableToEntity(tableName) {
-        var Entity = this.children.find(child => child.table === tableName);
-        if (!sj.isType(new Entity(), sj.Entity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-          origin: 'sj.Entity.tableToEntity()',
-          reason: "table is not recognized: ".concat(tableName),
-          content: tableName
-        });
-        return Entity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-        //R any metadata (table) should be sent separately (or implicitly) from the query
-      }
-
-    };
-  }
-
-}); // schema property states //TODO could these be static on sj.Entity and called via this.x ?
-
-var unused = {
-  in: false,
-  out: false,
-  check: 0
-};
-var optional = {
-  in: true,
-  out: true,
-  check: 1
-};
-var required = {
-  in: true,
-  out: true,
-  check: 2
-};
-var auto = {
-  in: false,
-  out: true,
-  check: 0
-};
-sj.User = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('User', sj.Entity, {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      name: '',
-      email: '',
-      password: '',
-      password2: '',
-      spotifyRefreshToken: null,
-      socketId: null
-    }
-  }),
-
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      //G 0 = unused, 1 = optional, 2 = required
-      id: {
-        columnName: 'id',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
-        add: auto,
-        get: optional,
-        edit: required,
-        remove: required
-      },
-      name: {
-        columnName: 'name',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'userNameRules',
-          message: 'username validated',
-          target: 'registerUserName',
-          cssClass: 'inputError',
-          valueName: 'Username',
-          trim: true,
-          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMinLength,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMaxLength
-        }),
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      email: {
-        columnName: 'email',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'emailRules',
-          message: 'email validated',
-          target: 'registerEmail',
-          cssClass: 'inputError',
-          valueName: 'E-mail',
-          trim: true,
-          min: 3,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].stringMaxLength //TODO useFilter: ___, filterMessage: ___, 
-          //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-
-        }),
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      password: {
-        columnName: 'password',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'passwordRules',
-          message: 'password validated',
-          target: 'registerPassword',
-          cssClass: 'inputError',
-          valueName: 'Password',
-          min: 6,
-          max: 72 //! as per bcrypt
-
-        }),
-        add: required,
-        get: unused,
-        edit: {
-          in: true,
-          out: false,
-          check: 1
-        },
-        remove: unused
-      },
-      spotifyRefreshToken: {
-        columnName: 'spotifyRefreshToken',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'spotifyRefreshTokenRules',
-          message: 'token validated',
-          valueName: 'Token' //TODO empty for now
-
-        }),
-        add: unused,
-        get: {
-          in: false,
-          out: true,
-          check: 0
-        },
-        edit: optional,
-        remove: unused
-      }
-    };
-    this.updateFilters();
-  }
-
-});
-sj.Playlist = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Playlist', sj.Entity, {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      content: [],
-      //? is this required to be an array, tracks aren't stored here anymore
-      // NEW
-      userId: undefined,
-      name: '',
-      visibility: '',
-      description: '',
-      color: '',
-      image: ''
-    }
-  }),
-
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      id: {
-        columnName: 'id',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
-        add: auto,
-        get: optional,
-        edit: required,
-        remove: required
-      },
-      userId: {
-        columnName: 'userId',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      name: {
-        columnName: 'name',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'playlistNameRules()',
-          message: 'name validated',
-          target: 'playlistName',
-          cssClass: 'inputError',
-          valueName: 'Name',
-          trim: true,
-          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMinLength,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].stringMaxLength
-        }),
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      description: {
-        columnName: 'description',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'descriptionRules()',
-          message: 'description validated',
-          target: 'playlistDescription',
-          cssClass: 'inputError',
-          valueName: 'Description',
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].bigStringMaxLength,
-          trim: true
-        }),
-        add: optional,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      visibility: {
-        columnName: 'visibility',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].visibility,
-        add: optional,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      image: {
-        columnName: 'image',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].image,
-        add: optional,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      color: {
-        columnName: 'color',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].color,
-        add: optional,
-        get: optional,
-        edit: optional,
-        remove: unused
-      }
-    };
-    this.updateFilters();
-  }
-
-});
-sj.Track = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Track', sj.Entity, {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      //C find existing source by track.source.name and set it as the reference
-      if (sj.isType(accessory.options.source, Object)) {
-        var found = sj.Source.instances.find(source => source.name === accessory.options.source.name);
-        if (found) accessory.options.source = found;else new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Warn"]({
-          origin: 'sj.Track.beforeInitialize()',
-          reason: 'source was passed but it is not an existing source',
-          content: accessory.options.source
-        });
-      }
-
-      ;
-    },
-
-    defaults: {
-      // NEW
-      playlistId: null,
-      position: null,
-      source: null,
-      //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-      sourceId: null,
-      // TODO assumes ids are unique, even across all sources
-      artists: [],
-      name: null,
-      duration: null,
-      //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
-      link: null
-    }
-  }),
-
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      id: {
-        columnName: 'id',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
-        add: auto,
-        get: optional,
-        edit: required,
-        remove: required
-      },
-      playlistId: {
-        columnName: 'playlistId',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].id,
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      position: {
-        columnName: 'position',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].posInt,
-        add: optional,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      name: {
-        columnName: 'name',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'trackNameRules()',
-          message: 'name validated',
-          valueName: 'Name',
-          trim: true,
-          min: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].nameMinLength,
-          max: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].stringMaxLength
-        }),
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      duration: {
-        columnName: 'duration',
-        rule: _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"].posInt,
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      source: {
-        columnName: 'source',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'sourceRules',
-          message: 'source validated',
-          valueName: 'Source',
-          useAgainst: false,
-          //TODO sourceList isn't populated in global.js, but main.js
-          custom: function custom(value) {
-            return sj.Source.instances.some(source => value === source.name);
-          }
-        }),
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      sourceId: {
-        columnName: 'sourceId',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'sourceIdRules',
-          message: 'source id validated',
-          valueName: 'Source ID' //? any source id rules (other than being a string)? length? trim?
-
-        }),
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      },
-      artists: {
-        columnName: 'artists',
-        rule: new _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
-          origin: 'Rule1s.artists',
-          message: 'artists validated',
-          valueName: 'Artists',
-          dataTypes: ['array']
-        }),
-        add: required,
-        get: optional,
-        edit: optional,
-        remove: unused
-      }
-    };
-    this.updateFilters(); //G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
-
-    this.filters.localMetadata = ['id', 'playlistId', 'position'];
-  }
-
-});
-sj.Source = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Source', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      name: undefined,
-      //! source.name is a unique identifier
-      register: false,
-      nullPrefix: '',
-      idPrefix: '',
-      credentials: new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Credentials"](),
-      //TODO this should only be server-side
-      api: {},
-      scopes: [],
-      authRequestManually: true,
-      makeAuthRequestURL: function makeAuthRequestURL() {}
-    },
-
-    afterInitialize(accessory) {
-      //C add source to static source list: sj.Source.instances
-      //R Must be manually declared to register, as otherwise, temporary initializations get added and cause issue.
-      if (this.register) this.constructor.register(this);
-    }
-
-  }),
-  staticProperties: parent => ({
-    instances: [],
-
-    register(source) {
-      if (!(source instanceof this)) {
-        throw new InternalError({
-          message: 'A non-Source was registered.'
-        });
-      }
-
-      this.instances.push(source);
-    },
-
-    find(name) {
-      return this.instances.find(instance => instance.name === name);
-    }
-
-  })
-}); // LIVE DATA
-
-sj.LiveTable = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('LiveTable', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      Entity: undefined
-    },
-
-    afterInitialize() {
-      Object.assign(this, {
-        liveQueries: [],
-        cachedEntities: []
-      });
-    }
-
-  }),
-  staticProperties: parent => ({
-    makeTables(tableKeys) {
-      return new Map(sj.Entity.children.map(Entity => [Entity, new this({
-        Entity
-      })]));
-    }
-
-  })
-});
-sj.CachedEntity = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('CachedEntity', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      table: undefined,
-      entity: undefined
-    },
-
-    afterInitialize() {
-      Object.assign(this, {
-        liveQueryRefs: [],
-        timestamp: 0
-      });
-    }
-
-  })
-});
-sj.LiveQuery = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('LiveQuery', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      if (sj.isType(accessory.options.query, Array)) accessory.options.query = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(accessory.options.query);
-    },
-
-    defaults: {
-      table: undefined,
-      query: undefined
-    },
-
-    afterInitialize() {
-      Object.assign(this, {
-        cachedEntityRefs: [],
-        subscriptions: [],
-        timestamp: 0
-      });
-    }
-
-  })
-});
-sj.Subscription = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"].makeClass('Subscription', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  //? should this inherit from Success since it will be returned from a function>
-  constructorParts: parent => ({
-    defaults: {
-      liveQuery: undefined,
-
-      onUpdate() {},
-
-      //C any update
-      onAdd() {},
-
-      //C entities added
-      onEdit() {},
-
-      //C entities data changed
-      onRemove() {} //C entities removed
-
-
-    }
-  })
-});
+sj.Entity = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"];
+sj.User = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"];
+sj.Playlist = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"];
+sj.Track = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"];
+sj.LiveTable = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"];
+sj.CachedEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["CachedEntity"];
+sj.LiveQuery = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"];
+sj.Subscription = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"];
 /* harmony default export */ __webpack_exports__["default"] = (sj);
 
 /***/ }),
@@ -42752,7 +42211,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"])) reject(result);else resolve(result);
+            if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"])) reject(result);else {
+              resolve(result);
+            }
           });
         }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
       })();
@@ -60966,6 +60427,575 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/shared/entities/entity.js":
+/*!******************************************!*\
+  !*** ./source/shared/entities/entity.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Entity', _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"], {
+  constructorParts: parent => ({
+    afterInitialize(accessory) {
+      var that = this; //? is this necessary?
+
+      this.filters = {};
+      Object.keys(that.constructor.filters).forEach(key => {
+        Object.defineProperties(that.filters, {
+          [key]: {
+            get: function get() {
+              return pick(that, that.constructor.filters[key]);
+            }
+          }
+        });
+      });
+    },
+
+    defaults: {
+      // NEW
+      id: undefined
+    }
+  }),
+
+  staticProperties(parent) {
+    // GETTER
+    Object.defineProperty(this, 'table', {
+      get: function get() {
+        return "".concat(this.name.charAt(0).toLowerCase() + this.name.slice(1), "s"); //! lowercase, plural of name
+      }
+    });
+    return {
+      //TODO how to make these immutable?
+      //C list of references to child classes, these should be added in the child's static constructor
+      children: [],
+      filters: {
+        id: ['id']
+      },
+
+      //C automatically create new filters based on schema
+      updateFilters() {
+        var methodNames = ['add', 'get', 'edit', 'remove'];
+        var types = ['in', 'out', 'check'];
+        var schemaFilters = {};
+        Object.keys(this.schema).forEach(key => {
+          //C for each property
+          methodNames.forEach(methodName => {
+            //C for each crud method
+            types.forEach(type => {
+              //C for each filter type
+              if (this.schema[key][methodName][type]) {
+                //C if property is optional or required
+                var filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
+
+                if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+                schemaFilters[filterName].push(key);
+              }
+            });
+          });
+        });
+        this.filters = _objectSpread({}, this.filters, {}, schemaFilters);
+      },
+
+      tableToEntity(tableName) {
+        //TODO Revaluate this.
+        var FoundEntity = this.children.find(child => child.table === tableName);
+
+        if (!(new FoundEntity() instanceof this)) {
+          throw new _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+            origin: 'sj.Entity.tableToEntity()',
+            reason: "table is not recognized: ".concat(tableName),
+            content: tableName
+          });
+        }
+
+        return FoundEntity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+        //R any metadata (table) should be sent separately (or implicitly) from the query
+      }
+
+    };
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/entities/index.js":
+/*!*****************************************!*\
+  !*** ./source/shared/entities/index.js ***!
+  \*****************************************/
+/*! exports provided: Entity, Playlist, Track, User */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Entity", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entities/playlist.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/shared/entities/track.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/shared/entities/user.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/shared/entities/playlist.js":
+/*!********************************************!*\
+  !*** ./source/shared/entities/playlist.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
+/* harmony import */ var _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Playlist', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
+  constructorParts: parent => ({
+    defaults: {
+      // OVERWRITE
+      content: [],
+      //? is this required to be an array, tracks aren't stored here anymore
+      // NEW
+      userId: undefined,
+      name: '',
+      visibility: '',
+      description: '',
+      color: '',
+      image: ''
+    }
+  }),
+
+  staticProperties(parent) {
+    parent.children.push(this);
+    this.schema = {
+      id: {
+        columnName: 'id',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
+      },
+      userId: {
+        columnName: 'userId',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      name: {
+        columnName: 'name',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'playlistNameRules()',
+          message: 'name validated',
+          target: 'playlistName',
+          cssClass: 'inputError',
+          valueName: 'Name',
+          trim: true,
+          min: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMinLength,
+          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].stringMaxLength
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      description: {
+        columnName: 'description',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'descriptionRules()',
+          message: 'description validated',
+          target: 'playlistDescription',
+          cssClass: 'inputError',
+          valueName: 'Description',
+          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].bigStringMaxLength,
+          trim: true
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      visibility: {
+        columnName: 'visibility',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].visibility,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      image: {
+        columnName: 'image',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].image,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      color: {
+        columnName: 'color',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].color,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      }
+    };
+    this.updateFilters();
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/entities/schema-states.js":
+/*!*************************************************!*\
+  !*** ./source/shared/entities/schema-states.js ***!
+  \*************************************************/
+/*! exports provided: unused, optional, required, auto */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unused", function() { return unused; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "optional", function() { return optional; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "required", function() { return required; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "auto", function() { return auto; });
+//TODO Make into class with validated properties.
+//TODO//OLD schema property states //TODO could these be static on sj.Entity and called via this.x ?
+var unused = {
+  in: false,
+  out: false,
+  check: 0
+};
+var optional = {
+  in: true,
+  out: true,
+  check: 1
+};
+var required = {
+  in: true,
+  out: true,
+  check: 2
+};
+var auto = {
+  in: false,
+  out: true,
+  check: 0
+};
+
+/***/ }),
+
+/***/ "./source/shared/entities/track.js":
+/*!*****************************************!*\
+  !*** ./source/shared/entities/track.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
+/* harmony import */ var _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
+
+
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Track', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
+  constructorParts: parent => ({
+    beforeInitialize(accessory) {
+      //C find existing source by track.source.name and set it as the reference
+      if (_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(accessory.options.source)) {
+        var found = _source_js__WEBPACK_IMPORTED_MODULE_5__["default"].instances.find(source => source.name === accessory.options.source.name);
+        if (found) accessory.options.source = found;else new Warn({
+          origin: 'sj.Track.beforeInitialize()',
+          reason: 'source was passed but it is not an existing source',
+          content: accessory.options.source
+        });
+      }
+
+      ;
+    },
+
+    defaults: {
+      // NEW
+      playlistId: null,
+      position: null,
+      source: null,
+      //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
+      sourceId: null,
+      // TODO assumes ids are unique, even across all sources
+      artists: [],
+      name: null,
+      duration: null,
+      //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
+      link: null
+    }
+  }),
+
+  staticProperties(parent) {
+    parent.children.push(this);
+    this.schema = {
+      id: {
+        columnName: 'id',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
+      },
+      playlistId: {
+        columnName: 'playlistId',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      position: {
+        columnName: 'position',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].posInt,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      name: {
+        columnName: 'name',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'trackNameRules()',
+          message: 'name validated',
+          valueName: 'Name',
+          trim: true,
+          min: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMinLength,
+          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].stringMaxLength
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      duration: {
+        columnName: 'duration',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].posInt,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      source: {
+        columnName: 'source',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'sourceRules',
+          message: 'source validated',
+          valueName: 'Source',
+          useAgainst: false,
+          //TODO sourceList isn't populated in global.js, but main.js
+          custom: function custom(value) {
+            return _source_js__WEBPACK_IMPORTED_MODULE_5__["default"].instances.some(source => value === source.name);
+          }
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      sourceId: {
+        columnName: 'sourceId',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'sourceIdRules',
+          message: 'source id validated',
+          valueName: 'Source ID' //? any source id rules (other than being a string)? length? trim?
+
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      artists: {
+        columnName: 'artists',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'Rule1s.artists',
+          message: 'artists validated',
+          valueName: 'Artists',
+          dataTypes: ['array']
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      }
+    };
+    this.updateFilters(); //G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
+
+    this.filters.localMetadata = ['id', 'playlistId', 'position'];
+  }
+
+}));
+
+/***/ }),
+
+/***/ "./source/shared/entities/user.js":
+/*!****************************************!*\
+  !*** ./source/shared/entities/user.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
+/* harmony import */ var _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
+
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('User', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
+  constructorParts: parent => ({
+    defaults: {
+      // NEW
+      name: '',
+      email: '',
+      password: '',
+      password2: '',
+      spotifyRefreshToken: null,
+      socketId: null
+    }
+  }),
+
+  staticProperties(parent) {
+    parent.children.push(this);
+    this.schema = {
+      //G 0 = unused, 1 = optional, 2 = required
+      id: {
+        columnName: 'id',
+        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
+      },
+      name: {
+        columnName: 'name',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'userNameRules',
+          message: 'username validated',
+          target: 'registerUserName',
+          cssClass: 'inputError',
+          valueName: 'Username',
+          trim: true,
+          min: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMinLength,
+          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMaxLength
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      email: {
+        columnName: 'email',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'emailRules',
+          message: 'email validated',
+          target: 'registerEmail',
+          cssClass: 'inputError',
+          valueName: 'E-mail',
+          trim: true,
+          min: 3,
+          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].stringMaxLength //TODO useFilter: ___, filterMessage: ___, 
+          //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
+
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      password: {
+        columnName: 'password',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'passwordRules',
+          message: 'password validated',
+          target: 'registerPassword',
+          cssClass: 'inputError',
+          valueName: 'Password',
+          min: 6,
+          max: 72 //! as per bcrypt
+
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
+        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
+        edit: {
+          in: true,
+          out: false,
+          check: 1
+        },
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      },
+      spotifyRefreshToken: {
+        columnName: 'spotifyRefreshToken',
+        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
+          origin: 'spotifyRefreshTokenRules',
+          message: 'token validated',
+          valueName: 'Token' //TODO empty for now
+
+        }),
+        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
+        get: {
+          in: false,
+          out: true,
+          check: 0
+        },
+        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
+        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+      }
+    };
+    this.updateFilters();
+  }
+
+}));
+
+/***/ }),
+
 /***/ "./source/shared/errors/custom-error.js":
 /*!**********************************************!*\
   !*** ./source/shared/errors/custom-error.js ***!
@@ -62124,6 +62154,111 @@ var Credentials = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Cr
 
 /***/ }),
 
+/***/ "./source/shared/live-data.js":
+/*!************************************!*\
+  !*** ./source/shared/live-data.js ***!
+  \************************************/
+/*! exports provided: LiveTable, CachedEntity, LiveQuery, Subscription */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveTable", function() { return LiveTable; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CachedEntity", function() { return CachedEntity; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveQuery", function() { return LiveQuery; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Subscription", function() { return Subscription; });
+/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+
+
+
+var LiveTable = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('LiveTable', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  constructorParts: parent => ({
+    defaults: {
+      Entity: undefined
+    },
+
+    afterInitialize() {
+      Object.assign(this, {
+        liveQueries: [],
+        cachedEntities: []
+      });
+    }
+
+  }),
+  staticProperties: parent => ({
+    makeTables(tableKeys) {
+      return new Map(_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Entity"].children.map(EntityClass => [EntityClass, new this({
+        Entity: EntityClass
+      })]));
+    }
+
+  })
+});
+var CachedEntity = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('CachedEntity', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  constructorParts: parent => ({
+    defaults: {
+      table: undefined,
+      entity: undefined
+    },
+
+    afterInitialize() {
+      Object.assign(this, {
+        liveQueryRefs: [],
+        timestamp: 0
+      });
+    }
+
+  })
+});
+var LiveQuery = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('LiveQuery', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  constructorParts: parent => ({
+    beforeInitialize(accessory) {
+      if (Array.isArray(accessory.options.query)) {
+        accessory.options.query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(accessory.options.query);
+      }
+    },
+
+    defaults: {
+      table: undefined,
+      query: undefined
+    },
+
+    afterInitialize() {
+      Object.assign(this, {
+        cachedEntityRefs: [],
+        subscriptions: [],
+        timestamp: 0
+      });
+    }
+
+  })
+});
+var Subscription = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Subscription', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  //? should this inherit from Success since it will be returned from a function>
+  constructorParts: parent => ({
+    defaults: {
+      liveQuery: undefined,
+
+      onUpdate() {},
+
+      //C any update
+      onAdd() {},
+
+      //C entities added
+      onEdit() {},
+
+      //C entities data changed
+      onRemove() {} //C entities removed
+
+
+    }
+  })
+});
+
+/***/ }),
+
 /***/ "./source/shared/propagate.js":
 /*!************************************!*\
   !*** ./source/shared/propagate.js ***!
@@ -62296,6 +62431,67 @@ function _ref2() {
 }
 
 ;
+
+/***/ }),
+
+/***/ "./source/shared/source.js":
+/*!*********************************!*\
+  !*** ./source/shared/source.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/internal-error.js */ "./source/shared/errors/internal-error.js");
+/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Source', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  constructorParts: parent => ({
+    defaults: {
+      // NEW
+      name: undefined,
+      //! source.name is a unique identifier
+      register: false,
+      nullPrefix: '',
+      idPrefix: '',
+      credentials: new _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Credentials"](),
+      //TODO this should only be server-side
+      api: {},
+      scopes: [],
+      authRequestManually: true,
+      makeAuthRequestURL: function makeAuthRequestURL() {}
+    },
+
+    afterInitialize(accessory) {
+      //C add source to static source list: sj.Source.instances
+      //R Must be manually declared to register, as otherwise, temporary initializations get added and cause issue.
+      if (this.register) this.constructor.register(this);
+    }
+
+  }),
+  staticProperties: parent => ({
+    instances: [],
+
+    register(source) {
+      if (!(source instanceof this)) {
+        throw new _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
+          message: 'A non-Source was registered.'
+        });
+      }
+
+      this.instances.push(source);
+    },
+
+    find(name) {
+      return this.instances.find(instance => instance.name === name);
+    }
+
+  })
+}));
 
 /***/ }),
 

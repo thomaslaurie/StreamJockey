@@ -4,6 +4,7 @@
 		keyCode,
 		rules,
 	} from '../../../shared/utility/index.js';
+	import Source from '../../../shared/source.js';
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 
 	//C for use of sj inside validator function
@@ -22,7 +23,7 @@
 			source: {
 				default: null,
 				validator(value) {
-					return sj.Source.instances.includes(value);
+					return Source.instances.includes(value);
 				},
 			},
 			//C target playlist to add to

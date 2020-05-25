@@ -846,7 +846,9 @@ export default {
 				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
 					if (sj.isType(result, Err)) reject(result);
-					else resolve(result);
+					else {
+						resolve(result);
+					}
 				});
 			}).then(sj.content).catch(sj.propagate);
 		},

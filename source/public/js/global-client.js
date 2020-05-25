@@ -67,6 +67,7 @@ import {
 import {
 	Success,
 } from '../../shared/legacy-classes/success.js';
+import Source from '../../shared/source.js';
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -154,6 +155,8 @@ sj.Command = Base.makeClass('Command', Base, {
 		beforeInitialize(accessory) {
 			//G must be given a source
 			//TODO The non-instance source casting actually seems necessary here for some reason.
+			//TODO Find a better way to convert from non-instance to instance.
+			/*
 			if (!sj.isType(accessory.options.source, sj.Source)) {
 				throw new Err({
 					origin: 'sj.Command.beforeInitialize()',
@@ -162,6 +165,7 @@ sj.Command = Base.makeClass('Command', Base, {
 					content: accessory.options.source,
 				});
 			}
+			*/
 		},
 		defaults: {
 			source: undefined,
@@ -258,7 +262,7 @@ sj.Start = Base.makeClass('Start', sj.Command, {
 			await parent.prototype.trigger.call(this, context);
 
 			//C pause all
-			await asyncMap(sj.Source.instances, async source => {
+			await asyncMap(Source.instances, async source => {
 				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
 			});
 
@@ -318,7 +322,7 @@ sj.Toggle = Base.makeClass('Toggle', sj.Command, {
 		async trigger(context) {
 			await parent.prototype.trigger.call(this, context);
 
-			await asyncMap(sj.Source.instances, async source => {
+			await asyncMap(Source.instances, async source => {
 				if (this.isPlaying && source === this.source) {
 					//C resume target if resuming
 					await context.dispatch(`${source.name}/resume`);
@@ -387,7 +391,7 @@ sj.Volume = Base.makeClass('Volume', sj.Command, {
 			await parent.prototype.trigger.call(this, context);
 
 			//C adjust volume on all sources
-			await asyncMap(sj.Source.instances, async source => {
+			await asyncMap(Source.instances, async source => {
 				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/volume`, this.volume);
 			});
 		},
@@ -896,9 +900,9 @@ sj.Playback.module = new sj.Playback({
 });
 
 // SOURCE
-sj.Source.augmentClass({
+Source.augmentClass({
 	constructorParts(parent) {
-		const oldAfterInitialize = sj.Source.afterInitialize;
+		const oldAfterInitialize = Source.afterInitialize;
 
 		return {
 			defaults: {
@@ -968,7 +972,7 @@ sj.session.logout = async function () {
 */
 
 // global source objects
-sj.spotify = new sj.Source({
+sj.spotify = new Source({
 	//TODO make apiReady and playerReady checks
 	name: 'spotify',
 	register: true,
@@ -1768,7 +1772,7 @@ sj.spotify = new sj.Source({
 		},
 	}),
 });
-sj.youtube = new sj.Source({
+sj.youtube = new Source({
 	name: 'youtube',
 	register: true,
 	idPrefix:	'https://www.youtube.com/watch?v=',
@@ -2159,6 +2163,7 @@ sj.youtube = new sj.Source({
 		},
 	}),
 });
+
 //TODO move inside
 sj.youtube.formatContentDetails = function (contentDetails) {
 	const pack = {};

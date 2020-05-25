@@ -55,6 +55,7 @@ import {
 import { 
 	Credentials,
 } from '../shared/legacy-classes/success.js';
+import Source from '../shared/source.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -96,7 +97,7 @@ auth.checkRequestKey = async function (key) {
 
 //TODO consider moving this over to the globals-server stuff
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
-sj.spotify = new sj.Source({
+sj.spotify = new Source({
 	name: 'spotify',
 	register: true,
     api: new SpotifyWebApi({
@@ -154,7 +155,7 @@ sj.spotify = new sj.Source({
         return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`;
     },
 });
-//TODO make any property available for sj.Source
+//TODO make any property available for Source
 Object.assign(sj.spotify, {
 	startAuthRequest: async function () {
 		let pack = await auth.addRequestKey();
@@ -319,7 +320,7 @@ Object.assign(sj.spotify, {
 });
 
 
-sj.youtube = new sj.Source({
+sj.youtube = new Source({
 	name: 'youtube',
 	register: true,
 });
