@@ -21,11 +21,11 @@
         },
         methods: {
             async submit() {
-				const currentUser = await this.sj.session.get().then(this.sj.content);
+				const currentUser = await this.sj.session.get().then((result) => result.content);
                 const playlist = await Playlist.add({
                     userId: currentUser.id,
                     ...this,
-				}).then(this.sj.content).then(one).catch(rejected => {
+				}).then((result) => result.content).then(one).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
 				});

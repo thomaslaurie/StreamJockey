@@ -470,8 +470,8 @@ sj.buildSet = function (mappedEntity) {
 // CRUD
 sj.session.login = async function (db, ctx, user) {
 	//C validate
-	user.name = await User.schema.name.rule.check(user.name).then(sj.content);
-	user.password = await User.schema.password.rule.check(user.password).then(sj.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+	user.name = await User.schema.name.rule.check(user.name).then((result) => result.content);
+	user.password = await User.schema.password.rule.check(user.password).then((result) => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
 
     //C get password
     let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
@@ -751,7 +751,7 @@ Entity.augmentClass({
 				if ((prop[methodName].check && !isEmpty(entity[key])) || prop[methodName].check === 2) {
 					//G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
 					const checked = await prop.rule.check(entity[key], entity[prop.against]);
-					validated[key] = sj.content(checked);
+					validated[key] = checked.content;
 					return checked;
 				} else {
 					//C don't pack into validated
@@ -1033,7 +1033,7 @@ Track.augmentClass({
 			//C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
 			let newTrack = {...track, id: Symbol()};
 			if (!sj.isType(newTrack.position, 'integer')) {
-				let existingTracks = await Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
+				let existingTracks = await Track.get({playlistId: newTrack.playlistId}, t).then((result) => result.content);
 				newTrack.position = existingTracks.length;
 			}
 			return newTrack;
@@ -1060,7 +1060,7 @@ Track.augmentClass({
 					cssClass: 'notifyError',
 				}));
 			});
-			return await this.order(t, tracks).then(sj.content).catch(sj.propagate);
+			return await this.order(t, tracks).then((result) => result.content).catch(sj.propagate);
 		};
 	
 		this.addAfter =

@@ -285,21 +285,6 @@ sj.andResolve = function (rejected) {
 		return e;
 	}
 };
-
-// FORMAT
-sj.content = function (resolved) {
-	//C shorter syntax for immediately returning the content property of a resolved object in a promise chain
-	return resolved.content;
-};
-
-// LIVE DATA
-sj.Subscriptions = function () {
-	//C creates an array for each Entity type
-	Entity.children.forEach(child => {
-		this[child.table] = [];
-	});
-};
-
 	
 //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝

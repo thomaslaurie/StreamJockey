@@ -182,7 +182,7 @@
 			},
 			async refreshData() {
 				if (!this.Entity) return undefined;
-				return await this.Entity.get(this.query).then(this.sj.content).then(this.sj.one);
+				return await this.Entity.get(this.query).then((result) => result.content).then(this.sj.one);
 			},
 
 			// HANLDERS

@@ -206,7 +206,7 @@
 			},
 			async deadRefresh() {
 				//! one item here, uses any() in AsyncDisplayList
-				this.deadContent = await this.Entity.get(this.query).then(this.sj.content).then(one);
+				this.deadContent = await this.Entity.get(this.query).then((result) => result.content).then(one);
 			},
 
             handleSuccess(resolved) {

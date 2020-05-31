@@ -15,7 +15,7 @@
             },
             async profile() {
                 //C me might have to be async retrieved and stored on the menu bar if info is to be displayed
-                const me = await this.sj.session.get().then(this.sj.content);
+                const me = await this.sj.session.get().then((result) => result.content);
                 this.$router.push(`/user/${me.id}`);
 			},
         },

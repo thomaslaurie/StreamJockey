@@ -53,7 +53,7 @@
 			// OVERWRITES
 			async refreshData() {
 				if (!this.Entity) return [];
-				return await this.Entity.get(this.query).then(this.sj.content).then(this.sj.any);
+				return await this.Entity.get(this.query).then((result) => result.content).then(this.sj.any);
 			},			
         },
 

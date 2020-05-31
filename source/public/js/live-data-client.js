@@ -862,7 +862,7 @@ export default {
 						resolve(result);
 					}
 				});
-			}).then(sj.content).catch(sj.propagate);
+			}).then((result) => result.content).catch(sj.propagate);
 		},
 		async serverUnsubscribe(context, {table, query}) {
 			await new Promise((resolve, reject) => {
@@ -878,7 +878,7 @@ export default {
 					if (sj.isType(result, Err)) reject(result);
 					else resolve(result);
 				});
-			}).then(sj.content).catch(sj.propagate);
+			}).then((result) => result.content).catch(sj.propagate);
 		},
 		async reconnect(context) {
 			for (const table in context.state.tables) {
@@ -1148,19 +1148,19 @@ export default {
 				email: uniqueName(),
 				password: 'placeholder',
 				password2: 'placeholder',
-			}).add().then(sj.content).then(one);
+			}).add().then((result) => result.content).then(one);
 			const playlist = await new Playlist({
 				userId: user.id,
 				name: uniqueName(),
 				description: 'placeholder',
-			}).add().then(sj.content).then(one);
+			}).add().then((result) => result.content).then(one);
 			const track = await new Track({
 				playlistId: playlist.id,
 				source: sj.spotify,
 				sourceId: 'placeholder',
 				name: uniqueName(),
 				duration: uniqueDuration(),
-			}).add().then(sj.content).then(one);
+			}).add().then((result) => result.content).then(one);
 
 			
 			// MAKE SUBSCRIPTION
@@ -1221,7 +1221,7 @@ export default {
 				xTracks[i] = await new Track({
 					...track, 
 					position: undefined,
-				}).add().then(sj.content).then(one);
+				}).add().then((result) => result.content).then(one);
 			}
 			await waitForUpdate();
 			//console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);

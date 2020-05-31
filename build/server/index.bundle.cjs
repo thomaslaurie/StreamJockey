@@ -505,20 +505,6 @@ sj.andResolve = function (rejected) {
   } catch (e) {
     return e;
   }
-}; // FORMAT
-
-
-sj.content = function (resolved) {
-  //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
-  return resolved.content;
-}; // LIVE DATA
-
-
-sj.Subscriptions = function () {
-  //C creates an array for each Entity type
-  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"].children.forEach(child => {
-    this[child.table] = [];
-  });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
@@ -805,7 +791,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     }); //C store refresh token in database
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(result => result.content);
     await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
@@ -821,8 +807,8 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
   },
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
-    let refreshToken = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(result => result.content);
+    let refreshToken = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
@@ -1389,8 +1375,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function
 
 _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = async function (db, ctx, user) {
   //C validate
-  user.name = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
-  user.password = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  user.name = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.name.rule.check(user.name).then(result => result.content);
+  user.password = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.password.rule.check(user.password).then(result => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
   //C get password
 
   let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
@@ -1651,7 +1637,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
         if (prop[methodName].check && !isEmpty(entity[key]) || prop[methodName].check === 2) {
           //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
           const checked = await prop.rule.check(entity[key], entity[prop.against]);
-          validated[key] = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content(checked);
+          validated[key] = checked.content;
           return checked;
         } else {
           //C don't pack into validated
@@ -1942,7 +1928,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
       if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newTrack.position, 'integer')) {
         let existingTracks = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].get({
           playlistId: newTrack.playlistId
-        }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
+        }, t).then(result => result.content);
         newTrack.position = existingTracks.length;
       }
 
@@ -1971,7 +1957,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
           cssClass: 'notifyError'
         }));
       });
-      return await this.order(t, tracks).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+      return await this.order(t, tracks).then(result => result.content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
     };
 
     this.addAfter = this.getAfter = this.editAfter = this.deleteAfter = async function (t, entities) {

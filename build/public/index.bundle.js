@@ -529,7 +529,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return _asyncToGenerator(function* () {
         //! one item here, uses any() in AsyncDisplayList
-        _this3.deadContent = yield _this3.Entity.get(_this3.query).then(_this3.sj.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
+        _this3.deadContent = yield _this3.Entity.get(_this3.query).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
       })();
     },
 
@@ -644,7 +644,7 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        _this.deadContent = yield _this.Entity.get(_this.query).then(_this.sj.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]);
+        _this.deadContent = yield _this.Entity.get(_this.query).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]);
       })();
     }
 
@@ -878,7 +878,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return _asyncToGenerator(function* () {
         //C me might have to be async retrieved and stored on the menu bar if info is to be displayed
-        var me = yield _this.sj.session.get().then(_this.sj.content);
+        var me = yield _this.sj.session.get().then(result => result.content);
 
         _this.$router.push("/user/".concat(me.id));
       })();
@@ -1108,10 +1108,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        var currentUser = yield _this.sj.session.get().then(_this.sj.content);
+        var currentUser = yield _this.sj.session.get().then(result => result.content);
         var playlist = yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Playlist"].add(_objectSpread({
           userId: currentUser.id
-        }, _this)).then(_this.sj.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
+        }, _this)).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
           //TODO handle error
           console.error(rejected);
         });
@@ -1283,7 +1283,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         _this.currentUser = yield _this.sj.session.login({
           name: _this.name,
           password: _this.password
-        }).then(_this.sj.content).catch(rejected => {
+        }).then(result => result.content).catch(rejected => {
           console.error(rejected);
         });
         _this.isLoggedIn = true;
@@ -1306,7 +1306,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this3 = this;
 
       return _asyncToGenerator(function* () {
-        _this3.result = yield _this3.Entity.add(_this3.input).then(_this3.sj.content).catch(_this3.handle);
+        _this3.result = yield _this3.Entity.add(_this3.input).then(result => result.content).catch(_this3.handle);
       })();
     },
 
@@ -1314,7 +1314,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this4 = this;
 
       return _asyncToGenerator(function* () {
-        _this4.result = yield _this4.Entity.get(_this4.input).then(_this4.sj.content).catch(_this4.handle);
+        _this4.result = yield _this4.Entity.get(_this4.input).then(result => result.content).catch(_this4.handle);
       })();
     },
 
@@ -1322,7 +1322,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        _this5.result = yield _this5.Entity.edit(_this5.input).then(_this5.sj.content).catch(_this5.handle);
+        _this5.result = yield _this5.Entity.edit(_this5.input).then(result => result.content).catch(_this5.handle);
       })();
     },
 
@@ -1330,7 +1330,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        _this6.result = yield _this6.Entity.remove(_this6.input).then(_this6.sj.content).catch(_this6.handle);
+        _this6.result = yield _this6.Entity.remove(_this6.input).then(result => result.content).catch(_this6.handle);
       })();
     },
 
@@ -1496,7 +1496,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        _this.searchResults = yield _this.sj.spotify.search(_this.searchTerm).then(_this.sj.content);
+        _this.searchResults = yield _this.sj.spotify.search(_this.searchTerm).then(result => result.content);
       })();
     },
 
@@ -40869,20 +40869,6 @@ sj.andResolve = function (rejected) {
   } catch (e) {
     return e;
   }
-}; // FORMAT
-
-
-sj.content = function (resolved) {
-  //C shorter syntax for immediately returning the content property of a resolved object in a promise chain
-  return resolved.content;
-}; // LIVE DATA
-
-
-sj.Subscriptions = function () {
-  //C creates an array for each Entity type
-  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"].children.forEach(child => {
-    this[child.table] = [];
-  });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
@@ -42307,7 +42293,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               resolve(result);
             }
           });
-        }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
+        }).then(result => result.content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
       })();
     },
 
@@ -42331,7 +42317,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             clearTimer();
             if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"])) reject(result);else resolve(result);
           });
-        }).then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
+        }).then(result => result.content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
       })();
     },
 
@@ -42699,19 +42685,19 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           email: uniqueName(),
           password: 'placeholder',
           password2: 'placeholder'
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
+        }).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         var playlist = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Playlist"]({
           userId: user.id,
           name: uniqueName(),
           description: 'placeholder'
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
+        }).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         var track = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"]({
           playlistId: playlist.id,
           source: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
           sourceId: 'placeholder',
           name: uniqueName(),
           duration: uniqueDuration()
-        }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]); // MAKE SUBSCRIPTION
+        }).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]); // MAKE SUBSCRIPTION
 
         var onAddCount = 0;
         var onEditCount = 0;
@@ -42756,7 +42742,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         for (var i = 0; i < iterations; i++) {
           xTracks[i] = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"](_objectSpread({}, track, {
             position: undefined
-          })).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
+          })).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         }
 
         yield waitForUpdate(); //console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
