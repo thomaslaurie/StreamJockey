@@ -25,6 +25,11 @@ import {
 	Entity,
 	User,
 } from '../shared/entities/index.js';
+import {
+	LiveTable,
+	LiveQuery,
+	Subscription,
+} from '../shared/live-data.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -42,7 +47,7 @@ import {
 
 //TODO sockets need better error handling just like the koa router
 
-sj.Subscription.augmentClass({
+Subscription.augmentClass({
 	constructorParts: parent => ({
 		defaults: {
 			user: null,
@@ -53,7 +58,7 @@ sj.Subscription.augmentClass({
 export default {
 	app: null,
 	socket: null,
-	tables: sj.LiveTable.makeTables(),
+	tables: LiveTable.makeTables(),
 
 	start({
 		app,
@@ -145,15 +150,15 @@ export default {
 
 		//C find table
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, sj.LiveTable)) throw new Err({
+		if (!sj.isType(table, LiveTable)) throw new Err({
 			origin: 'sj.liveData.add()',
-			reason: 'table is not an sj.LiveTable',
+			reason: 'table is not an LiveTable',
 		});
 
 		//C find liveQuery, add if it doesn't exist
 		let liveQuery = this.findLiveQuery(table, processedQuery);
-		if (!sj.isType(liveQuery, sj.LiveQuery)) {
-			liveQuery = new sj.LiveQuery({
+		if (!sj.isType(liveQuery, LiveQuery)) {
+			liveQuery = new LiveQuery({
 				table,
 				query: processedQuery,
 			});
@@ -162,8 +167,8 @@ export default {
 
 		//C find subscription, add if it doesn't exist
 		let subscription = this.findSubscription(liveQuery, user);
-		if (!sj.isType(subscription, sj.Subscription)) {
-			subscription = new sj.Subscription({
+		if (!sj.isType(subscription, Subscription)) {
+			subscription = new Subscription({
 				liveQuery,
 				user,
 			});
@@ -187,16 +192,16 @@ export default {
 		
 		//C find table
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, sj.LiveTable)) throw new Err({
+		if (!sj.isType(table, LiveTable)) throw new Err({
 			origin: 'sj.liveData.remove()',
-			reason: 'table is not an sj.LiveTable',
+			reason: 'table is not an LiveTable',
 		});
 
 		//C find liveQuery index
 		const liveQuery = this.findLiveQuery(table, processedQuery);
 		const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-		if (!sj.isType(liveQuery, sj.LiveQuery) || liveQueryIndex < 0) return new Warn({
-			origin: 'sj.subscriptions.remove()',
+		if (!sj.isType(liveQuery, LiveQuery) || liveQueryIndex < 0) return new Warn({
+			origin: 'Subscriptions.remove()',
 			message: 'no subscription found for this query',
 			content: {
 				Entity,
@@ -208,8 +213,8 @@ export default {
 		//C find subscription
 		const subscription = this.findSubscription(liveQuery, user);
 		const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-		if (!sj.isType(subscription, sj.Subscription) || subscriptionIndex < 0) return new Warn({
-			origin: 'sj.subscriptions.remove()',
+		if (!sj.isType(subscription, Subscription) || subscriptionIndex < 0) return new Warn({
+			origin: 'Subscriptions.remove()',
 			message: 'no subscriber found for this user',
 			content: {
 				liveQuerySubscriptions: liveQuery.subscriptions,
@@ -236,9 +241,9 @@ export default {
 	async notify(Entity, entities, timestamp) {
 		//C for each liveQuery
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, sj.LiveTable)) throw new Err({
+		if (!sj.isType(table, LiveTable)) throw new Err({
 			origin: 'sj.liveData.notify()',
-			reason: 'table is not an sj.LiveTable',
+			reason: 'table is not an LiveTable',
 		});
 
 		for (const liveQuery of table.liveQueries) {

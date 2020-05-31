@@ -230,11 +230,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -321,10 +317,6 @@ __webpack_require__.r(__webpack_exports__);
 // BUILT-IN
 // EXTERNAL
 // INTERNAL
-
-
-
-
 
 
 
@@ -439,13 +431,13 @@ sj.isType = function (input, type) {
 
       if (Target === undefined) {
         if (input.constructorName === 'Entity') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"];
         } else if (input.constructorName === 'User') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"];
         } else if (input.constructorName === 'Playlist') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Playlist"];
         } else if (input.constructorName === 'Track') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"];
         }
       }
 
@@ -524,7 +516,7 @@ sj.content = function (resolved) {
 
 sj.Subscriptions = function () {
   //C creates an array for each Entity type
-  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"].children.forEach(child => {
+  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"].children.forEach(child => {
     this[child.table] = [];
   });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -557,10 +549,6 @@ sj.Subscriptions = function () {
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
 
 
-sj.LiveTable = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"];
-sj.CachedEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["CachedEntity"];
-sj.LiveQuery = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"];
-sj.Subscription = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"];
 /* harmony default export */ __webpack_exports__["default"] = (sj);
 
 /***/ }),
@@ -2529,6 +2517,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -2546,6 +2535,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -2558,7 +2548,7 @@ __webpack_require__.r(__webpack_exports__);
 //TODO It seems like many subscriptions are being called but not as many un-subscriptions.
 //TODO sockets need better error handling just like the koa router
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmentClass({
+_shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"].augmentClass({
   constructorParts: parent => ({
     defaults: {
       user: null
@@ -2568,7 +2558,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
 /* harmony default export */ __webpack_exports__["default"] = ({
   app: null,
   socket: null,
-  tables: _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable.makeTables(),
+  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"].makeTables(),
 
   start({
     app,
@@ -2655,15 +2645,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       origin: 'sj.liveData.add()',
-      reason: 'table is not an sj.LiveTable'
+      reason: 'table is not an LiveTable'
     }); //C find liveQuery, add if it doesn't exist
 
     let liveQuery = this.findLiveQuery(table, processedQuery);
 
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) {
-      liveQuery = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"])) {
+      liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"]({
         table,
         query: processedQuery
       });
@@ -2673,8 +2663,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
 
     let subscription = this.findSubscription(liveQuery, user);
 
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) {
-      subscription = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"])) {
+      subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"]({
         liveQuery,
         user
       });
@@ -2696,15 +2686,15 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       origin: 'sj.liveData.remove()',
-      reason: 'table is not an sj.LiveTable'
+      reason: 'table is not an LiveTable'
     }); //C find liveQuery index
 
     const liveQuery = this.findLiveQuery(table, processedQuery);
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery) || liveQueryIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
-      origin: 'sj.subscriptions.remove()',
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"]) || liveQueryIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
+      origin: 'Subscriptions.remove()',
       message: 'no subscription found for this query',
       content: {
         Entity,
@@ -2715,8 +2705,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
 
     const subscription = this.findSubscription(liveQuery, user);
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription) || subscriptionIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
-      origin: 'sj.subscriptions.remove()',
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"]) || subscriptionIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Warn"]({
+      origin: 'Subscriptions.remove()',
       message: 'no subscriber found for this user',
       content: {
         liveQuerySubscriptions: liveQuery.subscriptions,
@@ -2741,9 +2731,9 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
   async notify(Entity, entities, timestamp) {
     //C for each liveQuery
     const table = this.findTable(Entity);
-    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+    if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       origin: 'sj.liveData.notify()',
-      reason: 'table is not an sj.LiveTable'
+      reason: 'table is not an LiveTable'
     });
 
     for (const liveQuery of table.liveQueries) {

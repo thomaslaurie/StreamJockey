@@ -8,6 +8,9 @@
 		Playlist,
 		Track,
 	} from '../../../client/entities/index.js';
+	import {
+		Subscription,
+	} from '../../../shared/live-data.js';
 	
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
@@ -75,7 +78,7 @@
 
 			subscriptionData: function () {
 				//TODO I think this is old, transition to the new AsyncDisplay
-				if (sj.isType(this.subscription, sj.Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
+				if (sj.isType(this.subscription, Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
 			},
 		},
 		watch: {

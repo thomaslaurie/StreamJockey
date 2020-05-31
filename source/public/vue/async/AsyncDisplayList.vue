@@ -3,6 +3,10 @@
 		dynamicSort,
 		any,
 	} from '../../../shared/utility/index.js';
+	import {
+		Subscription,
+	} from '../../../shared/live-data.js';
+
     import AsyncDisplay from './AsyncDisplay.vue';
 
     export default {
@@ -27,7 +31,7 @@
 		computed: {
 			// OVERWRITES
 			liveContent() {
-				if (this.sj.isType(this.subscription, this.sj.Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
+				if (this.sj.isType(this.subscription, Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
 				else return [];
 			},
 

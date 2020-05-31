@@ -6,6 +6,10 @@
 		Track,
 	} from '../../../client/entities/index.js';
 
+	import {
+		Subscription,
+	} from '../../../shared/live-data.js';
+
     export default {
 		name: 'player-bar',
 
@@ -26,7 +30,7 @@
 					: null;
 			},
 			playlistTracks() {
-				return this.sj.isType(this.playlistTracksSubscription, this.sj.Subscription) 
+				return this.sj.isType(this.playlistTracksSubscription, Subscription) 
 					? this.$store.getters.getLiveData(this.playlistTracksSubscription)
 					: null;
 			},
@@ -69,7 +73,7 @@
 						this.playlistTracksSubscription = await this.$store.dispatch('unsubscribe', {subscription: this.playlistTracksSubscription});
 
 					//C if the playlistId has changed or the playlistTracksSubscription doesn't exist
-					} else if (id !== oldId || !this.sj.isType(this.playlistTracksSubscription, this.sj.Subscription)) {
+					} else if (id !== oldId || !this.sj.isType(this.playlistTracksSubscription, Subscription)) {
 						//C update the playlistTracksSubscription to the proper playlistId
 						this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
 							subscription: this.playlistTracksSubscription,

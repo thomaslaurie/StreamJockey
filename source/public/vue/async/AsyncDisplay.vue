@@ -15,6 +15,9 @@
 	import {
 		Entity,
 	} from '../../../client/entities/index.js';
+	import {
+		Subscription,
+	} from '../../../shared/live-data.js';
 
 	import AsyncSwitch from './AsyncSwitch.vue';
 	
@@ -76,7 +79,7 @@
 			liveContent() {
 				//! one item here, uses any() in AsyncDisplayList
 				//? should this type check go into usingLive?
-				if (this.sj.isType(this.subscription, this.sj.Subscription)) return one(this.$store.getters.getLiveData(this.subscription));
+				if (this.sj.isType(this.subscription, Subscription)) return one(this.$store.getters.getLiveData(this.subscription));
 				else return null;
 
 				//R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining

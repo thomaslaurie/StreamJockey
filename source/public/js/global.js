@@ -92,35 +92,16 @@
 // INTERNAL
 import {
 	define,
-	any,
-	pick,
 } from '../../shared/utility/index.js';
 import Base from '../../shared/legacy-classes/base.js';
 import propagate from '../../shared/propagate.js';
 import * as constants from './constants.js';
-import {
-	Err,
-	ErrorList,
-	SilentError,
-} from '../../shared/legacy-classes/error.js';
-import {
-	Success,
-	Warn,
-	Credentials,
-} from '../../shared/legacy-classes/success.js';
-import Rule1 from '../../shared/legacy-classes/rule1.js';
 import {
 	Entity,
 	User,
 	Playlist,
 	Track,
 } from '../../shared/entities/index.js';
-import {
-	LiveQuery,
-	LiveTable,
-	CachedEntity,
-	Subscription,
-} from '../../shared/live-data.js';
 
 
 
@@ -349,10 +330,5 @@ sj.Subscriptions = function () {
 */
 
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-
-sj.LiveTable = LiveTable;
-sj.CachedEntity = CachedEntity;
-sj.LiveQuery = LiveQuery;
-sj.Subscription = Subscription;
 
 export default sj;

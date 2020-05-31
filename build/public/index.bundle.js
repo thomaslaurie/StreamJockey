@@ -317,10 +317,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
-/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
-/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
-/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
+/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
+/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
+/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -334,16 +335,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
  //TODO consider adding different display types (for components representing the same type of data eg. track) instead of different components?
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display',
   components: {
-    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
     //TODO make actual default components
-    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
-    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
-    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_7__["default"]
+    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_7__["default"],
+    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
   },
 
   data() {
@@ -395,7 +397,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     liveContent() {
       //! one item here, uses any() in AsyncDisplayList
       //? should this type check go into usingLive?
-      if (this.sj.isType(this.subscription, this.sj.Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
+      if (this.sj.isType(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"])) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
       //R however the real issue was that because I am using slotted content, even though it isn't rendering due to the state property, the elements still require their data references (unlike v-if and other methods)
       //L using a custom directive was a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
     },
@@ -574,7 +576,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -583,9 +586,10 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
 
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display-list',
-  extends: _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
+  extends: _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
 
   data() {
     return {
@@ -606,7 +610,7 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
   computed: {
     // OVERWRITES
     liveContent() {
-      if (this.sj.isType(this.subscription, this.sj.Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));else return [];
+      if (this.sj.isType(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"])) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));else return [];
     },
 
     // NEW
@@ -897,11 +901,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/live-data.js */ "./source/shared/live-data.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 // EXTERNAL
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -926,7 +932,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     playlistTracks() {
-      return this.sj.isType(this.playlistTracksSubscription, this.sj.Subscription) ? this.$store.getters.getLiveData(this.playlistTracksSubscription) : null;
+      return this.sj.isType(this.playlistTracksSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"]) ? this.$store.getters.getLiveData(this.playlistTracksSubscription) : null;
     },
 
     prevTrack() {
@@ -969,7 +975,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             _this.playlistTracksSubscription = yield _this.$store.dispatch('unsubscribe', {
               subscription: _this.playlistTracksSubscription
             }); //C if the playlistId has changed or the playlistTracksSubscription doesn't exist
-          } else if (id !== oldId || !_this.sj.isType(_this.playlistTracksSubscription, _this.sj.Subscription)) {
+          } else if (id !== oldId || !_this.sj.isType(_this.playlistTracksSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"])) {
             //C update the playlistTracksSubscription to the proper playlistId
             _this.playlistTracksSubscription = yield _this.$store.dispatch('resubscribe', {
               subscription: _this.playlistTracksSubscription,
@@ -1145,9 +1151,10 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
-/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
+/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
+/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1163,12 +1170,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'database-page',
   components: {
-    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
-    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
-    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__["default"]
+    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__["default"]
   },
 
   data() {
@@ -1220,7 +1228,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     },
     subscriptionData: function subscriptionData() {
       //TODO I think this is old, transition to the new AsyncDisplay
-      if (sj.isType(this.subscription, sj.Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
+      if (sj.isType(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"])) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
     }
   },
   watch: {
@@ -37951,6 +37959,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37993,6 +38002,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
 
  // INTERNAL
+
 
 
 
@@ -38863,10 +38873,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.currentTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__["Subscription"])) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.startingTrackSubscription, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Subscription)) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__["Subscription"])) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
     }
   }
 }); // SOURCE
@@ -40572,11 +40582,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -40667,10 +40673,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // BUILT-IN
 // EXTERNAL
 // INTERNAL
-
-
-
-
 
 
 
@@ -40793,13 +40795,13 @@ sj.isType = function (input, type) {
 
       if (Target === undefined) {
         if (input.constructorName === 'Entity') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"];
         } else if (input.constructorName === 'User') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"];
         } else if (input.constructorName === 'Playlist') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Playlist"];
         } else if (input.constructorName === 'Track') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"];
         }
       }
 
@@ -40878,7 +40880,7 @@ sj.content = function (resolved) {
 
 sj.Subscriptions = function () {
   //C creates an array for each Entity type
-  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"].children.forEach(child => {
+  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"].children.forEach(child => {
     this[child.table] = [];
   });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -40911,10 +40913,6 @@ sj.Subscriptions = function () {
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
 
 
-sj.LiveTable = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"];
-sj.CachedEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["CachedEntity"];
-sj.LiveQuery = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"];
-sj.Subscription = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"];
 /* harmony default export */ __webpack_exports__["default"] = (sj);
 
 /***/ }),
@@ -41247,6 +41245,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -41515,6 +41514,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
  //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
 //  ████╗ ████║██╔═══██╗██╔══██╗██║   ██║██║     ██╔════╝
 //  ██╔████╔██║██║   ██║██║  ██║██║   ██║██║     █████╗  
@@ -41524,7 +41524,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   state: {
-    tables: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable.makeTables(),
+    tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"].makeTables(),
     socket: null,
     timeout: 10000 //C 10 seconds
 
@@ -41552,21 +41552,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     getLiveData: state => subscription => {
       //C validate
-      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
         origin: 'getLiveData()',
-        reason: 'subscription is not an sj.Subscription',
+        reason: 'subscription is not an Subscription',
         content: subscription
       }); //C shorten
 
       var liveQuery = subscription.liveQuery;
-      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+      if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
         origin: 'getLiveData()',
-        reason: "liveQuery is not an sj.LiveQuery",
+        reason: "liveQuery is not an LiveQuery",
         content: liveQuery
       }); //C get all liveQuery.cachedEntityRefs.entity
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntityRef, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["CachedEntity"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'getLiveData()',
           reason: 'cachedEntityRef is not a cachedEntity',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(cachedEntityRef)
@@ -41702,10 +41702,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(context.getters.findCachedEntity({
           table,
           entity
-        }), _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) {
+        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["CachedEntity"])) {
           context.commit('pushCachedEntity', {
             cachedEntities: table.cachedEntities,
-            cachedEntity: new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity({
+            cachedEntity: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["CachedEntity"]({
               table,
               entity
             })
@@ -41717,7 +41717,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           entity
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["CachedEntity"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
           origin: 'addCachedEntity()'
         }); //C shorthand
 
@@ -41845,11 +41845,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(context.getters.findLiveQuery({
           table,
           query
-        }), _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) {
+        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"])) {
           //C add it
           context.commit('pushLiveQuery', {
             liveQueries: table.liveQueries,
-            liveQuery: new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery({
+            liveQuery: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"]({
               table,
               query
             })
@@ -41859,7 +41859,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table,
             query
           });
-          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
+          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
             origin: 'addLiveQuery()'
           }); //C trigger the initial update
 
@@ -41975,7 +41975,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             entity
           });
 
-          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(_cachedEntity, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].CachedEntity)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
+          if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["CachedEntity"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
             origin: 'update()'
           }); //C edit the cachedEntity (won't edit if data is old, or unchanged)
 
@@ -42033,13 +42033,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         }); //! this should never fail
 
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Unreachable"]({
           origin: 'addSubscription()',
           reason: 'liveQuery not found in table',
           content: liveQuery
         }); //C create a new subscription
 
-        var subscription = new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription(_objectSpread({}, options, {
+        var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"](_objectSpread({}, options, {
           liveQuery //C parent reference
 
         })); //C push and return
@@ -42103,9 +42103,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }); //C shorten
 
         var table = context.getters.findTable(Entity);
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'subscribe()',
-          reason: 'table is not an sj.LiveTable',
+          reason: 'table is not an LiveTable',
           content: table
         }); //C subscribe on server 
 
@@ -42129,24 +42129,24 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(function* () {
         var {
           subscription,
-          strict = false //C subscription must be an sj.Subscription and must be included in it's liveQuery.subscriptions
+          strict = false //C subscription must be an Subscription and must be included in it's liveQuery.subscriptions
 
         } = _ref23;
 
         //C validate //! return early if not a subscription
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) {
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"])) {
           if (strict) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
             origin: 'unsubscribe()',
-            reason: 'subscription is not an sj.Subscription',
+            reason: 'subscription is not an Subscription',
             content: subscription
           });else return null;
         } //C shorten
 
 
         var liveQuery = subscription.liveQuery;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
-          reason: "liveQuery is not an sj.LiveQuery",
+          reason: "liveQuery is not an LiveQuery",
           content: liveQuery
         });
         var query = liveQuery.query;
@@ -42156,15 +42156,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           content: query
         });
         var table = liveQuery.table;
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
-          reason: 'table is not an sj.LiveTable',
+          reason: 'table is not an LiveTable',
           content: table
         });
         var TargetEntity = table.Entity;
         if (!Object.getPrototypeOf(TargetEntity) === _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
-          reason: 'Entity is not an sj.LiveTable',
+          reason: 'Entity is not an LiveTable',
           content: TargetEntity
         }); //C unsubscribe on server
         //? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
@@ -42195,15 +42195,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
         //C strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-        if (strict && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (strict && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'change()',
-          reason: 'subscription is not an sj.Subscription',
+          reason: 'subscription is not an Subscription',
           content: subscription
         }); //C subscribe to new
 
         var newSubscription = yield context.dispatch('subscribe', {
           Entity,
-          //! Entity cannot be derived from the old subscription as it may not be an sj.Subscription if the function call is not strict
+          //! Entity cannot be derived from the old subscription as it may not be an Subscription if the function call is not strict
           query,
           options
         }); //C unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
@@ -42238,9 +42238,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(timestamp, 'integer')) timestamp = Date.now(); //C shorten
 
         var table = context.getters.findTable(TargetEntity);
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
-          reason: 'table is not an sj.LiveTable',
+          reason: 'table is not an LiveTable',
           content: {
             Entity: fclone__WEBPACK_IMPORTED_MODULE_0___default()(TargetEntity),
             table: fclone__WEBPACK_IMPORTED_MODULE_0___default()(table)
@@ -42250,9 +42250,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           query
         });
-        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveQuery)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
-          reason: "liveQuery is not an sj.LiveQuery",
+          reason: "liveQuery is not an LiveQuery",
           content: {
             query: fclone__WEBPACK_IMPORTED_MODULE_0___default()(query),
             table: fclone__WEBPACK_IMPORTED_MODULE_0___default()(table),
@@ -42386,8 +42386,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         			},	
         		}),
         	});
-        	//C sj.Subscription class has an unsubscribe() method that auto-fills the subscription itself
-        	sj.Subscription.augmentClass({
+        	//C Subscription class has an unsubscribe() method that auto-fills the subscription itself
+        	Subscription.augmentClass({
         		prototypeProperties: parent => ({
         			async unsubscribe() {
         				return await context.dispatch('unsubscribe', {
@@ -42740,7 +42740,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
           }
         });
-        tests.push(['isSubscription', _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(trackSubscription, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription)]); // ITERATE
+        tests.push(['isSubscription', _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(trackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"])]); // ITERATE
 
         var iterations = Math.round(Math.random() * 10) + 5;
         var xTracks = [];

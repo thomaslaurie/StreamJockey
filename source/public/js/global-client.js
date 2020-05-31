@@ -72,6 +72,9 @@ import {
 	User,
 	Track,
 } from '../../client/entities/index.js';
+import {
+	Subscription,
+} from '../../shared/live-data.js';
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -846,11 +849,11 @@ sj.Playback.module = new sj.Playback({
 
 		// LOCAL TRACKS
 		currentTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.currentTrackSubscription, sj.Subscription)) return one(rootGetters.getLiveData(state.currentTrackSubscription));
+			if (sj.isType(state.currentTrackSubscription, Subscription)) return one(rootGetters.getLiveData(state.currentTrackSubscription));
 			else return null;
 		},
 		startingTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.startingTrackSubscription, sj.Subscription)) return one(rootGetters.getLiveData(state.startingTrackSubscription));
+			if (sj.isType(state.startingTrackSubscription, Subscription)) return one(rootGetters.getLiveData(state.startingTrackSubscription));
 			else return null;
 		},
 	},
