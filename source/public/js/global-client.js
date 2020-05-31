@@ -76,6 +76,7 @@ import {
 	Subscription,
 } from '../../shared/live-data.js';
 import {
+	default as propagate,
 	returnPropagate,
 } from '../../shared/propagate.js';
 
@@ -1002,7 +1003,7 @@ sj.spotify = new Source({
 				authRequestWindow.close();
 				return resolved;
 			}).catch(rejected => {
-				throw sj.propagate(rejected);
+				throw propagate(rejected);
 			});
 		*/
 	},
@@ -1048,7 +1049,7 @@ sj.spotify = new Source({
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
 			} else if (sj.isType(result, Err)) {
-				throw sj.propagate(result);
+				throw propagate(result);
 			} else {
 				//C assign sj.spotify.credentials
 				that.credentials.accessToken = result.accessToken;
@@ -1885,7 +1886,7 @@ sj.youtube = new Source({
 			} else {
 				throw rejected;
 			}
-		}).catch(sj.propagate);
+		}).catch(propagate);
 	},
 
 	async search({
@@ -2003,7 +2004,7 @@ sj.youtube = new Source({
 							events: {
 								async onReady(event) {
 									//TODO handle error?
-									await context.dispatch('checkPlayback').catch(sj.propagate);
+									await context.dispatch('checkPlayback').catch(propagate);
 									deferred.resolve(new Success({
 										origin: 'sj.youtube loadPlayer()',
 										reason: 'youtube iframe player loaded',
@@ -2230,7 +2231,7 @@ sj.youtube.formatSnippet = function (snippet) {
 						});
 					}
 				}).catch(function (rejected) {
-					throw sj.propagate(rejected);
+					throw propagate(rejected);
 				});
 			} else {
 				// no track is playing

@@ -351,7 +351,7 @@ const Rule1 = Base.makeClass('Rule', Base, {
 				let result = this.check(obj[prop], value2).catch(rejected => {
 					//C throw error if failed 
 					//! do not modify the original property, so that Err.content is not relied upon to always be the original property
-					throw sj.propagate(rejected);
+					throw propagate(rejected);
 				});
 
 				//C modify and return if successful
@@ -389,7 +389,7 @@ const Rule1 = Base.makeClass('Rule', Base, {
 						reason: 'validation functions returned one or more errors',
 					}));
 				}).catch(rejected => {
-					throw sj.propagate(rejected);
+					throw propagate(rejected);
 				});
 			}
 		*/
@@ -457,7 +457,7 @@ const Rule1 = Base.makeClass('Rule', Base, {
 						reason: 'validation functions returned one or more errors',
 					}));
 				}).catch(rejected => {
-					throw sj.propagate(rejected);
+					throw propagate(rejected);
 				});
 			}
 		*/

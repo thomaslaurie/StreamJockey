@@ -63,7 +63,7 @@
 	// BIG
 		Break every single part of every module, see if all possible outcomes are caught and handled properly.
 
-		Ensure everything has an error handler - most of the time 'throw sj.propagate(rejected);'.
+		Ensure everything has an error handler - most of the time 'throw propagate(rejected);'.
 
 		Fill in and make consistent content for all success, error, data objects.
 
@@ -273,9 +273,6 @@ sj.isType = function (input, type) {
 
 	return false;
 };
-
-// ERROR
-sj.propagate = propagate;
 	
 //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝

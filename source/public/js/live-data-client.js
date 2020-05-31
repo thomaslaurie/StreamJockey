@@ -287,6 +287,7 @@ import {
 	LiveQuery,
 	Subscription,
 } from '../../shared/live-data.js';
+import propagate from '../../shared/propagate.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -862,7 +863,7 @@ export default {
 						resolve(result);
 					}
 				});
-			}).then((result) => result.content).catch(sj.propagate);
+			}).then((result) => result.content).catch(propagate);
 		},
 		async serverUnsubscribe(context, {table, query}) {
 			await new Promise((resolve, reject) => {
@@ -878,7 +879,7 @@ export default {
 					if (sj.isType(result, Err)) reject(result);
 					else resolve(result);
 				});
-			}).then((result) => result.content).catch(sj.propagate);
+			}).then((result) => result.content).catch(propagate);
 		},
 		async reconnect(context) {
 			for (const table in context.state.tables) {

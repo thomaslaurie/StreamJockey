@@ -294,7 +294,7 @@ __webpack_require__.r(__webpack_exports__);
 	// BIG
 		Break every single part of every module, see if all possible outcomes are caught and handled properly.
 
-		Ensure everything has an error handler - most of the time 'throw sj.propagate(rejected);'.
+		Ensure everything has an error handler - most of the time 'throw propagate(rejected);'.
 
 		Fill in and make consistent content for all success, error, data objects.
 
@@ -492,10 +492,7 @@ sj.isType = function (input, type) {
   }
 
   return false;
-}; // ERROR
-
-
-sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //   ██████╗██╗      █████╗ ███████╗███████╗
+}; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -523,6 +520,7 @@ sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]; // 
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
+
 
 /* harmony default export */ __webpack_exports__["default"] = (sj);
 
@@ -944,6 +942,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -1008,7 +1007,7 @@ __webpack_require__.r(__webpack_exports__);
 /*
 	// PRODUCTION
 		tree-shake any objects that don't need to be exported (remove from sj.x, just hae them locally defined)
-		after functions are mostly debugged - remove a lot of the .catch(sj.propagate) - this is mainly tracing and unhandled error
+		after functions are mostly debugged - remove a lot of the .catch(propagate) - this is mainly tracing and unhandled error
 
 	// BEST PRACTICE
 		//L best practices: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
@@ -1041,6 +1040,7 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL
 // import fetch from 'node-fetch'; //C global.js uses fetch
  // INTERNAL
+
 
 
 
@@ -1233,10 +1233,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
         });
       });
     }).catch(rejected => {
-      throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
+      throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected);
     });
   }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(rejected);
+    throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected);
   });
 })().then(resolved => {
   new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
@@ -1525,11 +1525,11 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C prepare
+        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"])); //C prepare
 
-        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate)); //C accommodate
+        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"])); //C accommodate
 
-        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate) : []; //C map
+        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]) : []; //C map
 
         const inputMapped = this.mapColumns(preparedEntities);
         const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
@@ -1541,15 +1541,15 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
           await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]);
             if (methodName !== 'remove') inputAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({ ...this[methodName + 'Error'](),
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -1561,12 +1561,12 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
 
         if (!isGet) {
           await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]);
             influencedAfter.push(...after);
           }).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({ ...this[methodName + 'Error'](),
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -1577,8 +1577,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate));
-      }).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate); //! finish the transaction here so that notify won't be called before the database has updated
+        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]));
+      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
       const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
@@ -1946,7 +1946,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
           cssClass: 'notifyError'
         }));
       });
-      return await this.order(t, tracks).then(result => result.content).catch(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].propagate);
+      return await this.order(t, tracks).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__["default"]);
     };
 
     this.addAfter = this.getAfter = this.editAfter = this.deleteAfter = async function (t, entities) {
@@ -4568,7 +4568,7 @@ const Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule',
     		let result = this.check(obj[prop], value2).catch(rejected => {
     			//C throw error if failed 
     			//! do not modify the original property, so that Err.content is not relied upon to always be the original property
-    			throw sj.propagate(rejected);
+    			throw propagate(rejected);
     		});
     				//C modify and return if successful
     		obj[prop] = result.content;
@@ -4604,7 +4604,7 @@ const Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule',
     				reason: 'validation functions returned one or more errors',
     			}));
     		}).catch(rejected => {
-    			throw sj.propagate(rejected);
+    			throw propagate(rejected);
     		});
     	}
     */
@@ -4667,7 +4667,7 @@ const Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule',
     				reason: 'validation functions returned one or more errors',
     			}));
     		}).catch(rejected => {
-    			throw sj.propagate(rejected);
+    			throw propagate(rejected);
     		});
     	}
     */

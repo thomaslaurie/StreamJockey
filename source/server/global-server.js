@@ -64,7 +64,7 @@
 /*
 	// PRODUCTION
 		tree-shake any objects that don't need to be exported (remove from sj.x, just hae them locally defined)
-		after functions are mostly debugged - remove a lot of the .catch(sj.propagate) - this is mainly tracing and unhandled error
+		after functions are mostly debugged - remove a lot of the .catch(propagate) - this is mainly tracing and unhandled error
 
 	// BEST PRACTICE
 		//L best practices: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
@@ -128,6 +128,7 @@ import {
 	Playlist,
 	Track,
 } from '../shared/entities/index.js';
+import propagate from '../shared/propagate.js';
 
 
 
@@ -340,10 +341,10 @@ sj.liveData = liveData;
                 });
             });
         }).catch(rejected => {
-            throw sj.propagate(rejected);
+            throw propagate(rejected);
         });
     }).catch(rejected => {
-        throw sj.propagate(rejected);
+        throw propagate(rejected);
     });
 })().then(resolved => {
     new Success({
@@ -629,13 +630,13 @@ Entity.augmentClass({
 				const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
 				//C validate
-				const validatedEntities = await asyncMap(beforeEntities, async entity => await this.validate(entity, methodName).catch(sj.propagate));
+				const validatedEntities = await asyncMap(beforeEntities, async entity => await this.validate(entity, methodName).catch(propagate));
 
 				//C prepare
-				const preparedEntities = await asyncMap(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(sj.propagate));
+				const preparedEntities = await asyncMap(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(propagate));
 
 				//C accommodate
-				const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(sj.propagate) : [];
+				const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(propagate) : [];
 
 				//C map
 				const inputMapped = this.mapColumns(preparedEntities);
@@ -649,15 +650,15 @@ Entity.augmentClass({
 					await asyncMap(inputMapped, async entity => {
 						//C before, ignore add
 						if (!isGet && methodName !== 'add') {
-							const before = await this.getQuery(t, pick(entity, this.filters.id)).then(any).catch(sj.propagate)
+							const before = await this.getQuery(t, pick(entity, this.filters.id)).then(any).catch(propagate)
 							inputBefore.push(...before);
 						}
 
 						//C after, ignore remove (still needs to execute though)
-						const after = await this[methodName+'Query'](t, entity).then(any).catch(sj.propagate);
+						const after = await this[methodName+'Query'](t, entity).then(any).catch(propagate);
 						if (methodName !== 'remove') inputAfter.push(...after);
 					}).catch(rejected => {
-						throw sj.propagate(new ErrorList({
+						throw propagate(new ErrorList({
 							...this[methodName+'Error'](),
 							content: rejected,
 						}));
@@ -669,13 +670,13 @@ Entity.augmentClass({
 				const influencedAfter = [];
 				if (!isGet) {
 					await asyncMap(influencedMapped, async influencedEntity => {
-						const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(any).catch(sj.propagate);
+						const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(any).catch(propagate);
 						influencedBefore.push(...before);
 
-						const after = await this.editQuery(t, influencedEntity).then(any).catch(sj.propagate);
+						const after = await this.editQuery(t, influencedEntity).then(any).catch(propagate);
 						influencedAfter.push(...after);
 					}).catch(rejected => {
-						throw sj.propagate(new ErrorList({
+						throw propagate(new ErrorList({
 							...this[methodName+'Error'](),
 							content: rejected,
 						}));
@@ -690,8 +691,8 @@ Entity.augmentClass({
 				const unmapped = all.map(list => this.unmapColumns(list));
 
 				//C process
-				return await asyncMap(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(sj.propagate));
-			}).catch(sj.propagate); //! finish the transaction here so that notify won't be called before the database has updated
+				return await asyncMap(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(propagate));
+			}).catch(propagate); //! finish the transaction here so that notify won't be called before the database has updated
 
 			//C shake for subscriptions with getOut filter
 			const shookGet = after.map(list => any(list).map((item) => pick(item, this.filters.getOut)));
@@ -1060,7 +1061,7 @@ Track.augmentClass({
 					cssClass: 'notifyError',
 				}));
 			});
-			return await this.order(t, tracks).then((result) => result.content).catch(sj.propagate);
+			return await this.order(t, tracks).then((result) => result.content).catch(propagate);
 		};
 	
 		this.addAfter =

@@ -39016,7 +39016,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
       		authRequestWindow.close();
       		return resolved;
       	}).catch(rejected => {
-      		throw sj.propagate(rejected);
+      		throw propagate(rejected);
       	});
       */
     })();
@@ -39068,7 +39068,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
           } else if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"])) {
-            throw _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].propagate(result);
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["default"])(result);
           } else {
             //C assign sj.spotify.credentials
             that.credentials.accessToken = result.accessToken;
@@ -40040,7 +40040,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
         } else {
           throw rejected;
         }
-      }).catch(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].propagate);
+      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["default"]);
     })();
   },
 
@@ -40167,7 +40167,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
                   onReady(event) {
                     return _asyncToGenerator(function* () {
                       //TODO handle error?
-                      yield context.dispatch('checkPlayback').catch(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].propagate);
+                      yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["default"]);
                       deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
                         origin: 'sj.youtube loadPlayer()',
                         reason: 'youtube iframe player loaded'
@@ -40427,7 +40427,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
 						});
 					}
 				}).catch(function (rejected) {
-					throw sj.propagate(rejected);
+					throw propagate(rejected);
 				});
 			} else {
 				// no track is playing
@@ -40652,7 +40652,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 	// BIG
 		Break every single part of every module, see if all possible outcomes are caught and handled properly.
 
-		Ensure everything has an error handler - most of the time 'throw sj.propagate(rejected);'.
+		Ensure everything has an error handler - most of the time 'throw propagate(rejected);'.
 
 		Fill in and make consistent content for all success, error, data objects.
 
@@ -40858,10 +40858,7 @@ sj.isType = function (input, type) {
   }
 
   return false;
-}; // ERROR
-
-
-sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //   ██████╗██╗      █████╗ ███████╗███████╗
+}; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -40889,6 +40886,7 @@ sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]; // 
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
+
 
 /* harmony default export */ __webpack_exports__["default"] = (sj);
 
@@ -41223,6 +41221,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -41485,6 +41484,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
  // INTERNAL
 //! depends on global-client.js because it is used in index.js alongside global-client.js
+
 
 
 
@@ -42284,7 +42284,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               resolve(result);
             }
           });
-        }).then(result => result.content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
+        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["default"]);
       })();
     },
 
@@ -42308,7 +42308,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             clearTimer();
             if (_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"])) reject(result);else resolve(result);
           });
-        }).then(result => result.content).catch(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].propagate);
+        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["default"]);
       })();
     },
 
@@ -61951,7 +61951,7 @@ var Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule', _
     		let result = this.check(obj[prop], value2).catch(rejected => {
     			//C throw error if failed 
     			//! do not modify the original property, so that Err.content is not relied upon to always be the original property
-    			throw sj.propagate(rejected);
+    			throw propagate(rejected);
     		});
     				//C modify and return if successful
     		obj[prop] = result.content;
@@ -61987,7 +61987,7 @@ var Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule', _
     				reason: 'validation functions returned one or more errors',
     			}));
     		}).catch(rejected => {
-    			throw sj.propagate(rejected);
+    			throw propagate(rejected);
     		});
     	}
     */
@@ -62050,7 +62050,7 @@ var Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule', _
     				reason: 'validation functions returned one or more errors',
     			}));
     		}).catch(rejected => {
-    			throw sj.propagate(rejected);
+    			throw propagate(rejected);
     		});
     	}
     */
