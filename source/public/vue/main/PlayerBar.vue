@@ -2,6 +2,10 @@
 	// EXTERNAL
 	import fclone from 'fclone';
 
+	import {
+		Track,
+	} from '../../../client/entities/index.js';
+
     export default {
 		name: 'player-bar',
 
@@ -28,7 +32,7 @@
 			},
 			prevTrack() {
 				return (
-					this.sj.isType(this.currentTrack, this.sj.Track) &&			//C currentTrack exists
+					this.sj.isType(this.currentTrack, Track) &&			//C currentTrack exists
 					this.sj.isType(this.playlistTracks, Array) &&				//C playlistTrack exists
 					0 < this.currentTrack.position && 							//C//! currentTrack is after first track
 					this.currentTrack.position < this.playlistTracks.length		//C currentTrack is not above bounds
@@ -38,7 +42,7 @@
 			},
 			nextTrack() {
 				return (
-					this.sj.isType(this.currentTrack, this.sj.Track) &&			//C currentTrack exists
+					this.sj.isType(this.currentTrack, Track) &&			//C currentTrack exists
 					this.sj.isType(this.playlistTracks, Array) &&				//C playlistTrack exists
 					0 <= this.currentTrack.position && 							//C currentTrack is not below bounds
 					this.currentTrack.position < this.playlistTracks.length-1	//C//! currentTrack is before last track
@@ -69,7 +73,7 @@
 						//C update the playlistTracksSubscription to the proper playlistId
 						this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
 							subscription: this.playlistTracksSubscription,
-							Entity: this.sj.Track,
+							Entity: Track,
 							query: {playlistId: id},
 						});
 					}

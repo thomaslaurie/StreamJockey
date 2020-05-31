@@ -20,7 +20,7 @@ export default Base.makeClass('Track', Entity, {
 				const found = Source.instances.find(source => source.name === accessory.options.source.name);
 				if (found) accessory.options.source = found;
 				else new Warn({
-					origin: 'sj.Track.beforeInitialize()',
+					origin: 'Track.beforeInitialize()',
 					reason: 'source was passed but it is not an existing source',
 					content: accessory.options.source,
 				});

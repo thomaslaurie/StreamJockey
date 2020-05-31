@@ -310,6 +310,7 @@ __webpack_require__.r(__webpack_exports__);
 	// SMALL
 		eslint + prettier configuration
 		//L https://medium.com/@pgivens/write-cleaner-code-using-prettier-and-eslint-in-vscode-d04f63805dcd
+		lint rule for triple === where a single = is intended (ie no triple equal on single lines). (maybe)
 */
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
@@ -383,7 +384,7 @@ sj.isType = function (input, type) {
   */
   // value
   if (input === type) {
-    //!//TODO this will cause issues with ('object', 'object') and inconsistencies like true === (sj.Entity, sj.Entity) vs false == (sj.Track, sj.Entity)
+    //!//TODO this will cause issues with ('object', 'object') and inconsistencies like true === (sj.Entity, sj.Entity) vs false == (Track, sj.Entity)
     return true;
   } // instanceof
 
@@ -434,7 +435,19 @@ sj.isType = function (input, type) {
 
     if ((input instanceof _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"] || typeof input.constructorName === 'string' && (() => {
       //C input or input.constructorName is an instance of a constructible
-      let Target = sj[input.constructorName];
+      let Target = sj[input.constructorName]; //TODO temporary workaround, should use interfaces in places where instanceof cannot be used. Or just make a completely different checking system.
+
+      if (Target === undefined) {
+        if (input.constructorName === 'Entity') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"];
+        } else if (input.constructorName === 'User') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"];
+        } else if (input.constructorName === 'Playlist') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"];
+        } else if (input.constructorName === 'Track') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"];
+        }
+      }
 
       if (typeof Target === 'function') {
         tempInput = new Target({
@@ -511,7 +524,7 @@ sj.content = function (resolved) {
 
 sj.Subscriptions = function () {
   //C creates an array for each Entity type
-  sj.Entity.children.forEach(child => {
+  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"].children.forEach(child => {
     this[child.table] = [];
   });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -544,10 +557,6 @@ sj.Subscriptions = function () {
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
 
 
-sj.Entity = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"];
-sj.User = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"];
-sj.Playlist = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"];
-sj.Track = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"];
 sj.LiveTable = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"];
 sj.CachedEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["CachedEntity"];
 sj.LiveQuery = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"];
@@ -575,6 +584,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -610,6 +620,7 @@ __webpack_require__.r(__webpack_exports__);
 
  //L https://github.com/thelinmichael/spotify-web-api-node
 // INTERNAL
+
 
 
 
@@ -807,7 +818,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
     let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
-    await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.edit({
+    await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
     }).then(resolved => {}); //C repack and return
@@ -823,7 +834,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
     let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content);
-    let refreshToken = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let refreshToken = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].get(me).then(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
@@ -852,7 +863,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result.refresh_token, 'string')) {
       //? better validation?
       //C store it
-      await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].User.edit({
+      await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
@@ -969,6 +980,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -1066,6 +1078,7 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL
 // import fetch from 'node-fetch'; //C global.js uses fetch
  // INTERNAL
+
 
 
 
@@ -1388,8 +1401,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function
 
 _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = async function (db, ctx, user) {
   //C validate
-  user.name = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
-  user.password = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  user.name = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.name.rule.check(user.name).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
+  user.password = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.password.rule.check(user.password).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
   //C get password
 
   let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
@@ -1432,7 +1445,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = asy
       message: 'could not login, database error'
     }));
   });
-  ctx.session.user = new _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User(user);
+  ctx.session.user = new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"](user);
   return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
     origin: 'login()',
     message: 'user logged in',
@@ -1458,7 +1471,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = as
 
 
 _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async function (ctx) {
-  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user.id, 'integer')) {
+  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"]) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user.id, 'integer')) {
     throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
       log: true,
       origin: 'isLoggedIn()',
@@ -1486,7 +1499,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async 
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass({
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
   prototypeProperties: parent => ({
     async add(db) {
       return await this.constructor.add(this, db);
@@ -1531,10 +1544,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
 
     this.frame = async function (db, anyEntities, methodName) {
-      //C catch sj.Entity
-      if (this === _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-        origin: 'sj.Entity.[CRUD]',
-        reason: `cannot call CRUD method directly on sj.Entity`
+      //C catch Entity
+      if (this === _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+        origin: 'Entity.[CRUD]',
+        reason: `cannot call CRUD method directly on Entity`
       }); //C cast as array
 
       const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(anyEntities); //C shorthand
@@ -1627,7 +1640,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
 
     this.addBefore = this.getBefore = this.editBefore = this.removeBefore = async function (t, entities, accessory) {
       return entities.slice();
-    }; //C validates each using sj.Entity.schema
+    }; //C validates each using Entity.schema
 
 
     this.validate = async function (entity, methodName) {
@@ -1639,7 +1652,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
           // Rule1
           throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
             log: true,
-            origin: 'sj.Entity.validate()',
+            origin: 'Entity.validate()',
             message: 'validation error',
             reason: `${key}'s rule is not an Rule1`,
             content: prop
@@ -1655,13 +1668,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
         } else {
           //C don't pack into validated
           return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-            origin: 'sj.Entity.validate()',
+            origin: 'Entity.validate()',
             message: `optional ${key} is empty, skipped validation`
           });
         }
       }).catch(rejected => {
         throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({
-          origin: 'sj.Entity.validate()',
+          origin: 'Entity.validate()',
           message: 'one or more issues with properties',
           reason: 'validating properties returned one or more errors',
           content: rejected
@@ -1692,7 +1705,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
             //C if schema has property 
             mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
           } else {
-            console.warn(`sj.Entity.mapColumns() - property ${key} in entity not found in schema`);
+            console.warn(`Entity.mapColumns() - property ${key} in entity not found in schema`);
           }
         });
         return mappedEntity;
@@ -1712,7 +1725,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Entity.augmentClass
             //C set entity[key] as value of mappedEntity[columnName]
             entity[key] = mappedEntity[columnName];
           } else {
-            console.warn(`sj.Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
+            console.warn(`Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
           }
         });
         return entity;
@@ -1874,7 +1887,7 @@ _shared_source_js__WEBPACK_IMPORTED_MODULE_8__["default"].augmentClass({
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.augmentClass({
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].augmentClass({
   staticProperties(parent) {
     // CRUD
     this.addPrepare = this.editPrepare = async function (t, user) {
@@ -1884,7 +1897,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.augmentClass({
       if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, saltRounds).catch(rejected => {
         throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: true,
-          origin: 'sj.User.add()',
+          origin: 'User.add()',
           message: 'failed to add user',
           reason: 'hash failed',
           content: rejected
@@ -1903,7 +1916,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].User.augmentClass({
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentClass({
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Playlist"].augmentClass({
   staticProperties: parent => ({
     // CRUD
     queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
@@ -1915,7 +1928,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Playlist.augmentCla
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass({
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
   prototypeProperties(parent) {
     this.order = async function (db = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].db) {
       return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(this));
@@ -1933,13 +1946,13 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
     };
 
     this.addPrepare = async function (t, track) {
-      //C set id of tracks to be added as a temporary symbol, so that sj.Track.order() is able to identify tracks
+      //C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
       let newTrack = { ...track,
         id: Symbol()
       };
 
       if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newTrack.position, 'integer')) {
-        let existingTracks = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.get({
+        let existingTracks = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].get({
           playlistId: newTrack.playlistId
         }, t).then(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].content);
         newTrack.position = existingTracks.length;
@@ -1949,7 +1962,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
     };
 
     this.removePrepare = async function (t, track) {
-      //C set position of tracks to be removed as null, so that sj.Track.order() recognizes them as tracks to remove
+      //C set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
       return { ...track,
         position: null
       };
@@ -1964,7 +1977,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
       await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
         throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
-          origin: 'sj.Track.move()',
+          origin: 'Track.move()',
           message: 'could not order tracks, database error',
           target: 'notify',
           cssClass: 'notifyError'
@@ -2001,7 +2014,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
 
       if (inputTracks.length === 0) {
         return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["SuccessList"]({
-          origin: 'sj.Track.order()',
+          origin: 'Track.order()',
           message: 'track positions did not need to be set'
         });
       } //console.log('inputTracks.length:', inputTracks.length, '\n ---');
@@ -2015,11 +2028,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
         await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
             if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(playlistId, 'integer')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-              origin: 'sj.Track.order()',
+              origin: 'Track.order()',
               reason: `playlistId is not an integer: ${playlistId}`
             });
             if (!Array.isArray(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-              origin: 'sj.Track.order()',
+              origin: 'Track.order()',
               reason: `existingTracks is not an array: ${existingTracks}`
             }); //C stores playlist in playlists if not already stored
 
@@ -2062,7 +2075,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
           const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
             throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               log: false,
-              origin: 'sj.Track.order()',
+              origin: 'Track.order()',
               message: 'could not move tracks'
             }));
           }); //C store
@@ -2088,7 +2101,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
 						`, track.playlistId).catch(rejected => {
               throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
                 log: false,
-                origin: 'sj.Track.order()',
+                origin: 'Track.order()',
                 message: 'could not move tracks'
               }));
             });
@@ -2102,12 +2115,12 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
           }
 
           return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-            origin: 'sj.Track.order()',
+            origin: 'Track.order()',
             message: "retrieved track's playlist"
           });
         }).catch(rejected => {
           throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["ErrorList"]({
-            origin: 'sj.Track.order() - movingTracks iterator',
+            origin: 'Track.order() - movingTracks iterator',
             message: `could not retrieve some track's playlist`,
             content: rejected
           });
@@ -2195,7 +2208,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
           }
         });
         return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["SuccessList"]({
-          origin: 'sj.Track.order()',
+          origin: 'Track.order()',
           message: 'influenced tracks calculated',
           content: influencedTracks
         });
@@ -2239,8 +2252,8 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].Track.augmentClass(
       
       		this essentially 'fills' the existing tracks around the set positions of the input tracks
       	
-      		for sj.Track.order()
-      			there is a recursive loop hazard in here (basically if sj.Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
+      		for Track.order()
+      			there is a recursive loop hazard in here (basically if Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
       	
       		//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
       					//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
@@ -2515,6 +2528,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -2527,6 +2541,7 @@ __webpack_require__.r(__webpack_exports__);
  // INTERNAL
 
  //! depends on the common global.js not the global-server.js because global-server.js uses this module
+
 
 
 
@@ -2575,7 +2590,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
       console.log('CONNECT', socket.id); //C if user is logged in, give the socketId to the session
       //! I don't think the cookie session receives this, though it isn't needed there so far
 
-      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User)) socket.session.user.socketId = socket.id;
+      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"])) socket.session.user.socketId = socket.id;
       socket.on('disconnect', async reason => {
         console.log('DISCONNECT', socket.id);
         await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.disconnect(socket.id).catch(rejected => {
@@ -2583,7 +2598,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
           if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(rejected, _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_4__["default"])) rejected.announce();else console.error('subscription disconnect error:', rejected);
         }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-        if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User)) socket.session.user.socketId = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.defaults.socketId;
+        if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"])) socket.session.user.socketId = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"].defaults.socketId;
       });
       socket.on('subscribe', async ({
         table,
@@ -2592,11 +2607,11 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
         console.log('SUBSCRIBE', socket.id); //C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
         //TODO socketId validator, this is all that really matters here
 
-        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User) ? socket.session.user : new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User({
+        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"]) ? socket.session.user : new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"]({
           socketId: socket.id
-        }); //! using sj.Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
+        }); //! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
-        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.add(_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity.tableToEntity(table), query, user); //!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
+        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.add(_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"].tableToEntity(table), query, user); //!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
         //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
         //C using fclone to drop circular references
 
@@ -2607,10 +2622,10 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Subscription.augmen
         query
       }, callback) => {
         console.log('UNSUBSCRIBE', socket.id);
-        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User) ? socket.session.user : new _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].User({
+        const user = _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"]) ? socket.session.user : new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"]({
           socketId: socket.id
         });
-        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.remove(_public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity.tableToEntity(table), query, user);
+        const result = await _public_js_global_js__WEBPACK_IMPORTED_MODULE_3__["default"].liveData.remove(_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"].tableToEntity(table), query, user);
         callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
       });
       socket.on('error', reason => {
@@ -2816,6 +2831,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2866,7 +2882,7 @@ __webpack_require__.r(__webpack_exports__);
 /*
 	consider using a separate router for source-api requests (sourceRouter)
 
-	error converting sj.Track() to JSON because of circular reference
+	error converting Track() to JSON because of circular reference
 
 	Create lint rule to not call next() without await: await next().
 		This was causing requests to return early and 404 all the time.
@@ -2891,6 +2907,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //! side-effects
+
 
 
 
@@ -3011,32 +3028,32 @@ __webpack_require__.r(__webpack_exports__);
     ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.logout(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }) //TODO condense this
   // user
-  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].User.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }) // playlist
-  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Playlist.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }) // track
-  .post(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).get(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).patch(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
-  }).delete(`/${_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.table}`, async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].Track.remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+  }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
   }) // catch
   .all('/*', async (ctx, next) => {
     ctx.response.body = new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__["Err"]({
@@ -3282,7 +3299,7 @@ __webpack_require__.r(__webpack_exports__);
 
         if (!(new FoundEntity() instanceof this)) {
           throw new _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            origin: 'sj.Entity.tableToEntity()',
+            origin: 'Entity.tableToEntity()',
             reason: `table is not recognized: ${tableName}`,
             content: tableName
           });
@@ -3510,7 +3527,7 @@ __webpack_require__.r(__webpack_exports__);
       if (_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(accessory.options.source)) {
         const found = _source_js__WEBPACK_IMPORTED_MODULE_5__["default"].instances.find(source => source.name === accessory.options.source.name);
         if (found) accessory.options.source = found;else new Warn({
-          origin: 'sj.Track.beforeInitialize()',
+          origin: 'Track.beforeInitialize()',
           reason: 'source was passed but it is not an existing source',
           content: accessory.options.source
         });

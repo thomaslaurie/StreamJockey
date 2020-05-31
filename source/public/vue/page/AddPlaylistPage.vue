@@ -2,7 +2,11 @@
 	import {
 		one,
 	} from '../../../shared/utility/index.js';
-    import VueX, {mapState} from '../../js/vendor/vuex.esm.browser.js'; 
+	import VueX, {mapState} from '../../js/vendor/vuex.esm.browser.js'; 
+	
+	import {
+		Playlist,
+	} from '../../../client/entities/index.js';
 
     export default {
         name: 'add-playlist-page',
@@ -18,7 +22,7 @@
         methods: {
             async submit() {
 				const currentUser = await this.sj.session.get().then(this.sj.content);
-                const playlist = await this.sj.Playlist.add({
+                const playlist = await Playlist.add({
                     userId: currentUser.id,
                     ...this,
 				}).then(this.sj.content).then(one).catch(rejected => {

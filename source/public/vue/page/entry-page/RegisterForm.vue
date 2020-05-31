@@ -1,4 +1,8 @@
 <script>
+	import {
+		User,
+	} from '../../../../client/entities/index.js';
+
     export default {
         name: 'register-form',
         data() {
@@ -11,7 +15,7 @@
         },
         methods: {
             async submit() {
-                await this.sj.User.add(this).catch(rejected => {
+                await User.add(this).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
                 });

@@ -7,6 +7,11 @@
 		rules,
 	} from '../../../shared/utility/index.js';
 
+	import {
+		Playlist,
+		Track,
+	} from '../../../client/entities/index.js';
+
     export default {
         name: 'playlist-page',
         extends: AsyncDisplay,
@@ -17,7 +22,7 @@
         data() {
             return {
 				// OVERWRITES
-				Entity: this.$root.sj.Playlist,
+				Entity: Playlist,
 				sQuery: {id: rules.nonNegativeInteger.validateCast(this.$route.params.id)[0]},
 
 				// NEW
@@ -33,7 +38,7 @@
 			},
 			async add(track) { //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
 				track.playlistId = this.content.id;
-				await this.sj.Track.add(track);
+				await Track.add(track);
 				await this.refresh(); //TODO
 			},
 		},

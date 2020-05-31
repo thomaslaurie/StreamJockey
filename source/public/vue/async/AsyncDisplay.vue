@@ -12,6 +12,9 @@
 	import {
 		Err,
 	} from '../../../shared/legacy-classes/error.js';
+	import {
+		Entity,
+	} from '../../../client/entities/index.js';
 
 	import AsyncSwitch from './AsyncSwitch.vue';
 	
@@ -96,9 +99,9 @@
 					else return (a.prototype instanceof b);
 				};
 
-				if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.Err({
+				if (!isSubclass(this.Entity, Entity)) throw new this.Err({
 						origin: 'AsyncDisplay usingQuery()',
-						reason: 'attempting to use a query but Entity is not a child class of sj.Entity',
+						reason: 'attempting to use a query but Entity is not a child class of Entity',
 						content: this.fclone(this.Entity),
 					});
 				return !!(

@@ -1,4 +1,8 @@
 <script>
+	import {
+		User,
+	} from '../../../client/entities/index.js';
+
     import AsyncDisplay from '../async/AsyncDisplay.vue';
     import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
 
@@ -10,7 +14,7 @@
 		},
 		data() { return {
 			//OVERWRITES
-			Entity: this.$root.sj.User,
+			Entity: User,
 			sQuery: {id: this.$route.params.id},
 		}; },
         methods: {

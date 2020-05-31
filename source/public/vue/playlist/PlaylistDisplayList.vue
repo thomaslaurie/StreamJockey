@@ -1,6 +1,9 @@
 <script>
 	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
 	import PlaylistDisplay from './PlaylistDisplay.vue';
+	import {
+		Playlist,
+	} from '../../../client/entities/index.js';
 
     export default {
         name: 'playlist-display-list',
@@ -10,7 +13,7 @@
 		},
 		data() { return {
 			//OVERWRITES
-			Entity: this.$root.sj.Playlist,
+			Entity: Playlist,
 		}; },
     }
 </script>

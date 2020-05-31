@@ -275,6 +275,12 @@ import {
 	Success,
 	Warn,
 } from '../../shared/legacy-classes/success.js';
+import {
+	Entity,
+	User,
+	Playlist,
+	Track,
+} from '../../client/entities/index.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -666,9 +672,9 @@ export default {
 			//C validate
 			//TODO how to check if class is subclass, because this is getting ridiculous
 			//L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new Err({
+			if (!Object.getPrototypeOf(Entity) === Entity) throw new Err({
 				origin: 'subscribe()', 
-				reason: 'Entity is not an sj.Entity',
+				reason: 'Entity is not an Entity',
 				content: Entity,
 			});
 			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
@@ -734,17 +740,17 @@ export default {
 				reason: 'table is not an sj.LiveTable',
 				content: table,
 			});
-			const Entity = table.Entity;
-			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new Err({
+			const TargetEntity = table.Entity;
+			if (!Object.getPrototypeOf(TargetEntity) === Entity) throw new Err({
 				origin: 'unsubscribe()', 
 				reason: 'Entity is not an sj.LiveTable',
-				content: Entity,
+				content: TargetEntity,
 			});
 			
 
 			//C unsubscribe on server
 			//? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
-			const preparedQuery = any(query).map((q) => pick(q, Entity.filters.getIn));
+			const preparedQuery = any(query).map((q) => pick(q, TargetEntity.filters.getIn));
 			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
 
 			//C remove subscription from it's liveQuery
@@ -784,15 +790,15 @@ export default {
 			return newSubscription;
 		},
 		async update(context, {
-			Entity, 
+			Entity: TargetEntity, 
 			query, 
 			timestamp,
 		}) {
 			//C validate
-			if (!Object.getPrototypeOf(Entity) === sj.Entity) throw new Err({
+			if (!Object.getPrototypeOf(TargetEntity) === Entity) throw new Err({
 				origin: 'update()', 
-				reason: 'Entity is not an sj.Entity',
-				content: fclone(Entity),
+				reason: 'Entity is not an Entity',
+				content: fclone(TargetEntity),
 			});
 			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
 				origin: 'update()', 
@@ -802,12 +808,12 @@ export default {
 			if (!sj.isType(timestamp, 'integer')) timestamp = Date.now();
 
 			//C shorten
-			const table = context.getters.findTable(Entity);
+			const table = context.getters.findTable(TargetEntity);
 			if (!sj.isType(table, sj.LiveTable)) throw new Err({
 				origin: 'update()', 
 				reason: 'table is not an sj.LiveTable',
 				content: {
-					Entity: fclone(Entity),
+					Entity: fclone(TargetEntity),
 					table: fclone(table),
 				},
 			});
@@ -937,14 +943,14 @@ export default {
 			});
 
 			context.state.socket.on('notify', async ({table, query, timestamp}) => {
-				const Entity = sj.Entity.tableToEntity(table);
-				context.dispatch('update', {Entity, query, timestamp});
+				const TargetEntity = Entity.tableToEntity(table);
+				context.dispatch('update', {Entity: TargetEntity, query, timestamp});
 			});
 
 			//C socket test
 			//TODO rewrite this
 			context.state.socket.test = async function () {
-				sj.Track.placeholder = {
+				Track.placeholder = {
 					playlistId: 2, 
 					name: 'placeholder name', 
 					duration: 1234, 
@@ -952,12 +958,12 @@ export default {
 					sourceId: 'placeholderSourceId', 
 					artists: ['foo', 'bar'],
 				};
-				sj.Playlist.placeholder = {
+				Playlist.placeholder = {
 					userId: 3,
 					name: 'placeholder name',
 					description: 'placeholder description',
 				};
-				sj.User.placeholder = {
+				User.placeholder = {
 					name: 'placeholder name',
 					email: 'placeholder email',
 					password: 'placeholder password',
@@ -1069,24 +1075,24 @@ export default {
 			
 			
 				test([
-					//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
-					//['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
-					//['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
+					//['add track name', 			true === await add(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+					//['add playlist name', 		true === await add(Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
+					//['add user name', 			true === await add(User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
 			
-					//['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
-					//['edit to new name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
+					//['edit existing name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
+					//['edit to new name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
 			
 			
-					['remove track name', 		true === await remove(sj.Track, {table: 'tracks', query: {name: 'some name'}}, {name: 'some name'})],
-					['remove playlist name', 	true === await remove(sj.Playlist, {table: 'playlists', query: {name: 'some name'}}, {name: 'some name'})],
-					['remove user name', 		true === await remove(sj.User, {table: 'users', query: {name: 'some name'}}, {name: 'some name'})],
+					['remove track name', 		true === await remove(Track, {table: 'tracks', query: {name: 'some name'}}, {name: 'some name'})],
+					['remove playlist name', 	true === await remove(Playlist, {table: 'playlists', query: {name: 'some name'}}, {name: 'some name'})],
+					['remove user name', 		true === await remove(User, {table: 'users', query: {name: 'some name'}}, {name: 'some name'})],
 					
 				], 'context.state.socket.test()');
 			
 			
-				delete sj.Track.placeholder;
-				delete sj.Playlist.placeholder;
-				delete sj.User.placeholder;
+				delete Track.placeholder;
+				delete Playlist.placeholder;
+				delete User.placeholder;
 			};
 			//await context.state.socket.test();
 
@@ -1131,18 +1137,18 @@ export default {
 			};
 
 			// CREATE
-			const user = await new sj.User({
+			const user = await new User({
 				name: uniqueName(),
 				email: uniqueName(),
 				password: 'placeholder',
 				password2: 'placeholder',
 			}).add().then(sj.content).then(one);
-			const playlist = await new sj.Playlist({
+			const playlist = await new Playlist({
 				userId: user.id,
 				name: uniqueName(),
 				description: 'placeholder',
 			}).add().then(sj.content).then(one);
-			const track = await new sj.Track({
+			const track = await new Track({
 				playlistId: playlist.id,
 				source: sj.spotify,
 				sourceId: 'placeholder',
@@ -1158,7 +1164,7 @@ export default {
 
 			
 			const trackSubscription = await context.dispatch('subscribe', {
-				Entity: sj.Track,
+				Entity: Track,
 				query: {name: track.name},
 				options: {
 					onUpdate() {
@@ -1206,7 +1212,7 @@ export default {
 			
 			// ADD
 			for (let i = 0; i < iterations; i++) {
-				xTracks[i] = await new sj.Track({
+				xTracks[i] = await new Track({
 					...track, 
 					position: undefined,
 				}).add().then(sj.content).then(one);

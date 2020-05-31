@@ -1,12 +1,16 @@
 <script>
-    import AsyncDisplay from '../async/AsyncDisplay.vue';
+	import AsyncDisplay from '../async/AsyncDisplay.vue';
+	
+	import {
+		Playlist,
+	} from '../../../client/entities/index.js';
 
     export default {
         name: 'playlist-display',
 		extends: AsyncDisplay,
 		data() { return {
 			//OVERWRITES
-			Entity: this.$root.sj.Playlist,
+			Entity: Playlist,
 		}; },
         methods: {
 			// NEW

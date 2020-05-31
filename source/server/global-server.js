@@ -122,6 +122,12 @@ import {
 } from '../shared/legacy-classes/success.js';
 import Rule1 from '../shared/legacy-classes/rule1.js';
 import Source from '../shared/source.js';
+import {
+	Entity,
+	User,
+	Playlist,
+	Track,
+} from '../shared/entities/index.js';
 
 
 
@@ -464,8 +470,8 @@ sj.buildSet = function (mappedEntity) {
 // CRUD
 sj.session.login = async function (db, ctx, user) {
 	//C validate
-	user.name = await sj.User.schema.name.rule.check(user.name).then(sj.content);
-	user.password = await sj.User.schema.password.rule.check(user.password).then(sj.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+	user.name = await User.schema.name.rule.check(user.name).then(sj.content);
+	user.password = await User.schema.password.rule.check(user.password).then(sj.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
 
     //C get password
     let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
@@ -509,7 +515,7 @@ sj.session.login = async function (db, ctx, user) {
         }));
     });
 
-    ctx.session.user = new sj.User(user);
+    ctx.session.user = new User(user);
     return new Success({
         origin: 'login()',
         message: 'user logged in',
@@ -533,7 +539,7 @@ sj.session.logout = async function (ctx) {
 
 // UTIL
 sj.isLoggedIn = async function (ctx) {
-    if (!sj.isType(ctx.session.user, sj.User) || !sj.isType(ctx.session.user.id, 'integer')) {
+    if (!sj.isType(ctx.session.user, User) || !sj.isType(ctx.session.user.id, 'integer')) {
         throw new Err({
             log: true,
             origin: 'isLoggedIn()',
@@ -564,7 +570,7 @@ sj.isLoggedIn = async function (ctx) {
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
 
-sj.Entity.augmentClass({
+Entity.augmentClass({
 	prototypeProperties: parent => ({
 		async add(db) {
 			return await this.constructor.add(this, db);
@@ -601,10 +607,10 @@ sj.Entity.augmentClass({
 
 		// FRAME
 		this.frame = async function (db, anyEntities, methodName) {
-			//C catch sj.Entity
-			if (this === sj.Entity) throw new Err({
-				origin: 'sj.Entity.[CRUD]',
-				reason: `cannot call CRUD method directly on sj.Entity`,
+			//C catch Entity
+			if (this === Entity) throw new Err({
+				origin: 'Entity.[CRUD]',
+				reason: `cannot call CRUD method directly on Entity`,
 			});
 
 			//C cast as array
@@ -724,7 +730,7 @@ sj.Entity.augmentClass({
 			return entities.slice();
 		};
 
-		//C validates each using sj.Entity.schema
+		//C validates each using Entity.schema
 		this.validate = async function (entity, methodName) {
 			const validated = {};
 			await asyncMap(Object.keys(this.schema), async key => {
@@ -734,7 +740,7 @@ sj.Entity.augmentClass({
 				if (!(prop.rule instanceof Rule1)) { // Rule1
 					throw new Err({
 						log: true,
-						origin: 'sj.Entity.validate()',
+						origin: 'Entity.validate()',
 						message: 'validation error',
 						reason: `${key}'s rule is not an Rule1`,
 						content: prop,
@@ -750,13 +756,13 @@ sj.Entity.augmentClass({
 				} else {
 					//C don't pack into validated
 					return new Success({
-						origin: 'sj.Entity.validate()',
+						origin: 'Entity.validate()',
 						message: `optional ${key} is empty, skipped validation`,
 					});
 				}
 			}).catch(rejected => {
 				throw new ErrorList({
-					origin: 'sj.Entity.validate()',
+					origin: 'Entity.validate()',
 					message: 'one or more issues with properties',
 					reason: 'validating properties returned one or more errors',
 					content: rejected,
@@ -791,7 +797,7 @@ sj.Entity.augmentClass({
 					if (sj.isType(this.schema[key], Object) && sj.isType(this.schema[key].columnName, String)) { //C if schema has property 
 						mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
 					} else {
-						console.warn(`sj.Entity.mapColumns() - property ${key} in entity not found in schema`);
+						console.warn(`Entity.mapColumns() - property ${key} in entity not found in schema`);
 					}
 				});
 				return mappedEntity;
@@ -807,7 +813,7 @@ sj.Entity.augmentClass({
 						//C set entity[key] as value of mappedEntity[columnName]
 						entity[key] = mappedEntity[columnName];
 					} else {
-						console.warn(`sj.Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
+						console.warn(`Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
 					}
 				});
 				return entity;
@@ -953,7 +959,7 @@ Source.augmentClass({
 //  ╚██████╔╝███████║███████╗██║  ██║
 //   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
 
-sj.User.augmentClass({
+User.augmentClass({
 	staticProperties(parent) {
 		// CRUD
 		this.addPrepare = 
@@ -965,7 +971,7 @@ sj.User.augmentClass({
 			if (sj.isType(newUser.password, String)) newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
 				throw new Err({
 					log: true,
-					origin: 'sj.User.add()',
+					origin: 'User.add()',
 					message: 'failed to add user',
 					reason: 'hash failed',
 					content: rejected,
@@ -987,7 +993,7 @@ sj.User.augmentClass({
 //  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
 //  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
 
-sj.Playlist.augmentClass({
+Playlist.augmentClass({
 	staticProperties: parent => ({
 		// CRUD
 		queryOrder: 'ORDER BY "userId" ASC, "id" ASC',
@@ -1002,7 +1008,7 @@ sj.Playlist.augmentClass({
 //     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 //     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
 
-sj.Track.augmentClass({
+Track.augmentClass({
 	prototypeProperties(parent) {
 		this.order = async function (db = sj.db) {
 			return await this.constructor.order(db, any(this));
@@ -1024,16 +1030,16 @@ sj.Track.augmentClass({
 		};
 	
 		this.addPrepare = async function (t, track) {
-			//C set id of tracks to be added as a temporary symbol, so that sj.Track.order() is able to identify tracks
+			//C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
 			let newTrack = {...track, id: Symbol()};
 			if (!sj.isType(newTrack.position, 'integer')) {
-				let existingTracks = await sj.Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
+				let existingTracks = await Track.get({playlistId: newTrack.playlistId}, t).then(sj.content);
 				newTrack.position = existingTracks.length;
 			}
 			return newTrack;
 		};
 		this.removePrepare = async function (t, track) {
-			//C set position of tracks to be removed as null, so that sj.Track.order() recognizes them as tracks to remove
+			//C set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
 			return {...track, position: null};
 		};
 	
@@ -1048,7 +1054,7 @@ sj.Track.augmentClass({
 			await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
 				throw sj.parsePostgresError(rejected, new Err({
 					log: false,
-					origin: 'sj.Track.move()',
+					origin: 'Track.move()',
 					message: 'could not order tracks, database error',
 					target: 'notify',
 					cssClass: 'notifyError',
@@ -1097,7 +1103,7 @@ sj.Track.augmentClass({
 			//C return early if none are moving
 			if (inputTracks.length === 0) {
 				return new SuccessList({
-					origin: 'sj.Track.order()',
+					origin: 'Track.order()',
 					message: 'track positions did not need to be set',
 				});
 			}
@@ -1113,11 +1119,11 @@ sj.Track.augmentClass({
 				await asyncMap(inputTracks, async (track, index) => {
 					const storePlaylist = function (playlistId, existingTracks) {
 						if (!sj.isType(playlistId, 'integer')) throw new Err({
-							origin: 'sj.Track.order()',
+							origin: 'Track.order()',
 							reason: `playlistId is not an integer: ${playlistId}`,
 						});
 						if (!Array.isArray(existingTracks)) throw new Err({
-							origin: 'sj.Track.order()',
+							origin: 'Track.order()',
 							reason: `existingTracks is not an array: ${existingTracks}`,
 						});
 	
@@ -1169,7 +1175,7 @@ sj.Track.augmentClass({
 					const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
 						throw sj.parsePostgresError(rejected, new Err({
 							log: false,
-							origin: 'sj.Track.order()',
+							origin: 'Track.order()',
 							message: 'could not move tracks',
 						}));
 					});
@@ -1197,7 +1203,7 @@ sj.Track.augmentClass({
 						`, track.playlistId).catch(rejected => {
 							throw sj.parsePostgresError(rejected, new Err({
 								log: false,
-								origin: 'sj.Track.order()',
+								origin: 'Track.order()',
 								message: 'could not move tracks',
 							}));
 						});
@@ -1213,12 +1219,12 @@ sj.Track.augmentClass({
 					}
 	
 					return new Success({
-						origin: 'sj.Track.order()',
+						origin: 'Track.order()',
 						message: "retrieved track's playlist",
 					});
 				}).catch(rejected => {
 					throw new ErrorList({
-						origin: 'sj.Track.order() - movingTracks iterator',
+						origin: 'Track.order() - movingTracks iterator',
 						message: `could not retrieve some track's playlist`,
 						content: rejected,
 					});
@@ -1326,7 +1332,7 @@ sj.Track.augmentClass({
 				});
 	
 				return new SuccessList({
-					origin: 'sj.Track.order()',
+					origin: 'Track.order()',
 					message: 'influenced tracks calculated',
 					content: influencedTracks,
 				});
@@ -1373,8 +1379,8 @@ sj.Track.augmentClass({
 					this essentially 'fills' the existing tracks around the set positions of the input tracks
 	
 	
-					for sj.Track.order()
-						there is a recursive loop hazard in here (basically if sj.Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
+					for Track.order()
+						there is a recursive loop hazard in here (basically if Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
 	
 	
 					//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:

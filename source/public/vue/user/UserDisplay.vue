@@ -1,12 +1,17 @@
 <script>
-    import AsyncDisplay from '../async/AsyncDisplay.vue';
+	import AsyncDisplay from '../async/AsyncDisplay.vue';
+	
+	import {
+		User,
+	} from '../../../client/entities/index.js';
+
 
     export default {
         name: 'user-display',
 		extends: AsyncDisplay,
 		data() { return {
 			// OVERWRITES
-			Entity: this.$root.sj.User,
+			Entity: User,
 		}; },
         methods: {
 			// NEW

@@ -1,5 +1,9 @@
 <script>
 	import AsyncDisplay from '../async/AsyncDisplay.vue';
+
+	import {
+		Track,
+	} from '../../../client/entities/index.js';
 	
     export default {
         name: 'track-display',
@@ -10,7 +14,7 @@
 		},
 		data() { return {
 			//OVERWRITES
-			Entity: this.$root.sj.Track,
+			Entity: Track,
 		}; },
         methods: {
 			// NEW
@@ -21,7 +25,7 @@
 				await this.$store.dispatch('player/start', this.content);
 			},
 			async remove() { //! shortened to del to avoid delete reserved word
-				await this.sj.Track.remove(this.content);
+				await Track.remove(this.content);
 				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
 			},
 			async add() {

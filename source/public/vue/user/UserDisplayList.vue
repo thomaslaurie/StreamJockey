@@ -2,6 +2,11 @@
 	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
 	import UserDisplay from './UserDisplay.vue';
 
+	import {
+		User,
+	} from '../../../client/entities/index.js';
+
+
     export default {
         name: 'user-display-list',
 		extends: AsyncDisplayList,
@@ -10,7 +15,7 @@
 		},
 		data() { return {
 			// OVERWRITES
-			Entity: this.$root.sj.User,
+			Entity: User,
 		}; },
     }
 </script>

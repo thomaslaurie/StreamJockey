@@ -6,6 +6,9 @@
 	} from '../../../shared/utility/index.js';
 	import Source from '../../../shared/source.js';
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
+	import {
+		Track,
+	} from '../../../client/entities/index.js';
 
 	//C for use of sj inside validator function
 	import sj from '../../js/global-client.js';
@@ -47,7 +50,7 @@
 			async add(track) { 
 				//C add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
 				track.playlistId = this.playlistId;
-				await this.sj.Track.add(track);
+				await Track.add(track);
 			},
 
 			/* //R having search results be a temporary database playlist
@@ -75,12 +78,12 @@
 
 				async search() {
 					//C get existing searched tracks
-					const searchedTracks = await this.sj.Track.get({
+					const searchedTracks = await Track.get({
 						playlistId: this.playlistId,
 					}).then(this.sj.content);
 
 					//C remove them all
-					await this.sj.Track.remove(this.sj.shake(searchedTracks, this.sj.Track.filters.id));
+					await Track.remove(this.sj.shake(searchedTracks, Track.filters.id));
 					
 					//C search the new term
 					this.results = await this.source.search({
@@ -95,7 +98,7 @@
 					}
 
 					//C add them all
-					await this.sj.Track.add(this.results);
+					await Track.add(this.results);
 				},
 
 				async addPlaylist() {

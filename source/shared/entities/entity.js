@@ -75,7 +75,7 @@ export default Base.makeClass('Entity', Success, {
 
 				if (!((new FoundEntity()) instanceof this)) {
 					throw new Err({
-						origin: 'sj.Entity.tableToEntity()',
+						origin: 'Entity.tableToEntity()',
 						reason: `table is not recognized: ${tableName}`,
 						content: tableName,
 					});

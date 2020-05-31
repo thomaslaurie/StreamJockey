@@ -316,10 +316,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
-/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
-/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
-/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/public/vue/async/AsyncSwitch.vue");
+/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/public/vue/async/AsyncDelay.vue");
+/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/public/vue/async/AsyncLoading.vue");
+/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/public/vue/async/AsyncError.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -332,16 +333,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
  //TODO consider adding different display types (for components representing the same type of data eg. track) instead of different components?
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display',
   components: {
-    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
     //TODO make actual default components
-    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
-    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
-    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_6__["default"]
+    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_7__["default"]
   },
 
   data() {
@@ -414,9 +416,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }
 
       ;
-      if (!isSubclass(this.Entity, this.sj.Entity)) throw new this.Err({
+      if (!isSubclass(this.Entity, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"])) throw new this.Err({
         origin: 'AsyncDisplay usingQuery()',
-        reason: 'attempting to use a query but Entity is not a child class of sj.Entity',
+        reason: 'attempting to use a query but Entity is not a child class of Entity',
         content: this.fclone(this.Entity)
       });
       return !!(this.usingParent && this.pQuery || !this.usingParent && this.sQuery);
@@ -894,11 +896,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 // EXTERNAL
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'player-bar',
@@ -926,7 +930,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     prevTrack() {
-      return this.sj.isType(this.currentTrack, this.sj.Track) && //C currentTrack exists
+      return this.sj.isType(this.currentTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"]) && //C currentTrack exists
       this.sj.isType(this.playlistTracks, Array) && //C playlistTrack exists
       0 < this.currentTrack.position && //C//! currentTrack is after first track
       this.currentTrack.position < this.playlistTracks.length //C currentTrack is not above bounds
@@ -935,7 +939,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     nextTrack() {
-      return this.sj.isType(this.currentTrack, this.sj.Track) && //C currentTrack exists
+      return this.sj.isType(this.currentTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"]) && //C currentTrack exists
       this.sj.isType(this.playlistTracks, Array) && //C playlistTrack exists
       0 <= this.currentTrack.position && //C currentTrack is not below bounds
       this.currentTrack.position < this.playlistTracks.length - 1 //C//! currentTrack is before last track
@@ -969,7 +973,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             //C update the playlistTracksSubscription to the proper playlistId
             _this.playlistTracksSubscription = yield _this.$store.dispatch('resubscribe', {
               subscription: _this.playlistTracksSubscription,
-              Entity: _this.sj.Track,
+              Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"],
               query: {
                 playlistId: id
               }
@@ -1068,6 +1072,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../js/vendor/vuex.esm.browser.js */ "./source/public/js/vendor/vuex.esm.browser.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1077,6 +1082,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -1097,7 +1103,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
       return _asyncToGenerator(function* () {
         var currentUser = yield _this.sj.session.get().then(_this.sj.content);
-        var playlist = yield _this.sj.Playlist.add(_objectSpread({
+        var playlist = yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Playlist"].add(_objectSpread({
           userId: currentUser.id
         }, _this)).then(_this.sj.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
           //TODO handle error
@@ -1138,9 +1144,10 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
-/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
+/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
+/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1155,12 +1162,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'database-page',
   components: {
-    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
-    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
-    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
+    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
+    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__["default"]
   },
 
   data() {
@@ -1205,7 +1213,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
   computed: {
     Entity: function Entity() {
-      if (this.entityType === 'track') return this.sj.Track;else if (this.entityType === 'playlist') return this.sj.Playlist;else if (this.entityType === 'user') return this.sj.User;
+      if (this.entityType === 'track') return _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"];else if (this.entityType === 'playlist') return _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Playlist"];else if (this.entityType === 'user') return _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"];
     },
     input: function input() {
       if (this.entityType === 'track') return _objectSpread({}, this.defaultTrack, {}, this.inputTrack);else if (this.entityType === 'playlist') return _objectSpread({}, this.defaultPlaylist, {}, this.inputPlaylist);else if (this.entityType === 'user') return _objectSpread({}, this.defaultUser, {}, this.inputUser);
@@ -1442,9 +1450,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
 /* harmony import */ var _track_SearchPanel_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../track/SearchPanel.vue */ "./source/public/vue/track/SearchPanel.vue");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 
@@ -1461,7 +1471,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data() {
     return {
       // OVERWRITES
-      Entity: this.$root.sj.Playlist,
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Playlist"],
       sQuery: {
         id: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].nonNegativeInteger.validateCast(this.$route.params.id)[0]
       },
@@ -1488,7 +1498,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(function* () {
         //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
         track.playlistId = _this2.content.id;
-        yield _this2.sj.Track.add(track);
+        yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"].add(track);
         yield _this2.refresh(); //TODO
       })();
     }
@@ -1544,6 +1554,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'track-page',
@@ -1552,7 +1564,7 @@ __webpack_require__.r(__webpack_exports__);
   data() {
     return {
       // OVERWRITES
-      Entity: this.$root.sj.Track,
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"],
       sQuery: {
         id: this.$route.params.id
       }
@@ -1572,25 +1584,27 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
-/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'user-page',
-  extends: _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_0__["default"],
+  extends: _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
   components: {
-    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_1__["default"]
+    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"]
   },
 
   data() {
     return {
       //OVERWRITES
-      Entity: this.$root.sj.User,
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["User"],
       sQuery: {
         id: this.$route.params.id
       }
@@ -1705,9 +1719,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'register-form',
@@ -1726,7 +1742,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        yield _this.sj.User.add(_this).catch(rejected => {
+        yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["User"].add(_this).catch(rejected => {
           //TODO handle error
           console.error(rejected);
         });
@@ -1756,9 +1772,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -1768,7 +1786,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data() {
     return {
       //OVERWRITES
-      Entity: this.$root.sj.Playlist
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Playlist"]
     };
   },
 
@@ -1798,6 +1816,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _async_AsyncDisplayList_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplayList.vue */ "./source/public/vue/async/AsyncDisplayList.vue");
 /* harmony import */ var _PlaylistDisplay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PlaylistDisplay.vue */ "./source/public/vue/playlist/PlaylistDisplay.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -1810,7 +1830,7 @@ __webpack_require__.r(__webpack_exports__);
   data() {
     return {
       //OVERWRITES
-      Entity: this.$root.sj.Playlist
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Playlist"]
     };
   }
 
@@ -1864,10 +1884,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/source.js */ "./source/shared/source.js");
 /* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _js_global_client_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../js/global-client.js */ "./source/public/js/global-client.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _js_global_client_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../js/global-client.js */ "./source/public/js/global-client.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 
@@ -1926,7 +1948,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(function* () {
         //C add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
         track.playlistId = _this2.playlistId;
-        yield _this2.sj.Track.add(track);
+        yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"].add(track);
       })();
     }
     /* //R having search results be a temporary database playlist
@@ -1949,11 +1971,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     	},
     		async search() {
     		//C get existing searched tracks
-    		const searchedTracks = await this.sj.Track.get({
+    		const searchedTracks = await Track.get({
     			playlistId: this.playlistId,
     		}).then(this.sj.content);
     			//C remove them all
-    		await this.sj.Track.remove(this.sj.shake(searchedTracks, this.sj.Track.filters.id));
+    		await Track.remove(this.sj.shake(searchedTracks, Track.filters.id));
     		
     		//C search the new term
     		this.results = await this.source.search({
@@ -1966,7 +1988,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     			result.playlistId = this.playlistId;
     		}
     			//C add them all
-    		await this.sj.Track.add(this.results);
+    		await Track.add(this.results);
     	},
     		async addPlaylist() {
     		console.log('ADD PLAYLIST CALLED');
@@ -2010,9 +2032,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -2026,7 +2050,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data() {
     return {
       //OVERWRITES
-      Entity: this.$root.sj.Track
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"]
     };
   },
 
@@ -2053,7 +2077,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return _asyncToGenerator(function* () {
         //! shortened to del to avoid delete reserved word
-        yield _this3.sj.Track.remove(_this3.content);
+        yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"].remove(_this3.content);
 
         _this3.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
 
@@ -2085,6 +2109,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _async_AsyncDisplayList_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplayList.vue */ "./source/public/vue/async/AsyncDisplayList.vue");
 /* harmony import */ var _TrackDisplay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TrackDisplay.vue */ "./source/public/vue/track/TrackDisplay.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -2096,7 +2122,7 @@ __webpack_require__.r(__webpack_exports__);
 
   data() {
     return {
-      Entity: this.$root.sj.Track
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Track"]
     };
   }
 
@@ -2114,9 +2140,11 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -2126,7 +2154,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data() {
     return {
       // OVERWRITES
-      Entity: this.$root.sj.User
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"]
     };
   },
 
@@ -2156,6 +2184,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _async_AsyncDisplayList_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../async/AsyncDisplayList.vue */ "./source/public/vue/async/AsyncDisplayList.vue");
 /* harmony import */ var _UserDisplay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./UserDisplay.vue */ "./source/public/vue/user/UserDisplay.vue");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -2168,7 +2198,7 @@ __webpack_require__.r(__webpack_exports__);
   data() {
     return {
       // OVERWRITES
-      Entity: this.$root.sj.User
+      Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["User"]
     };
   }
 
@@ -37693,6 +37723,127 @@ module.exports = yeast;
 
 /***/ }),
 
+/***/ "./source/client/entities/entity.js":
+/*!******************************************!*\
+  !*** ./source/client/entities/entity.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _public_js_server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../public/js/server-request.js */ "./source/public/js/server-request.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+//! Side Effects
+
+
+ // ENTITY CRUD METHODS
+
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Entity"].augmentClass({
+  prototypeProperties: () => ({
+    add() {
+      var _this = this;
+
+      return _asyncToGenerator(function* () {
+        return yield _this.constructor.add(_this);
+      })();
+    },
+
+    get() {
+      var _this2 = this;
+
+      return _asyncToGenerator(function* () {
+        return yield _this2.constructor.get(_this2);
+      })();
+    },
+
+    edit() {
+      var _this3 = this;
+
+      return _asyncToGenerator(function* () {
+        //! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited.
+        return yield _this3.constructor.edit(_this3);
+      })();
+    },
+
+    remove() {
+      var _this4 = this;
+
+      return _asyncToGenerator(function* () {
+        return yield _this4.constructor.remove(_this4);
+      })();
+    }
+
+  }),
+  staticProperties: () => ({
+    add(query) {
+      var _this5 = this;
+
+      return _asyncToGenerator(function* () {
+        return yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
+      })();
+    },
+
+    get(query) {
+      var _this6 = this;
+
+      return _asyncToGenerator(function* () {
+        return yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
+      })();
+    },
+
+    edit(query) {
+      var _this7 = this;
+
+      return _asyncToGenerator(function* () {
+        return yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
+      })();
+    },
+
+    remove(query) {
+      var _this8 = this;
+
+      return _asyncToGenerator(function* () {
+        return yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
+      })();
+    }
+
+  })
+});
+/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Entity"]);
+
+/***/ }),
+
+/***/ "./source/client/entities/index.js":
+/*!*****************************************!*\
+  !*** ./source/client/entities/index.js ***!
+  \*****************************************/
+/*! exports provided: Entity, Playlist, Track, User */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Entity", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Playlist"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"]; });
+
+ // Re-exporting shared entities so that client files can import entities all from the same folder.
+
+
+
+/***/ }),
+
 /***/ "./source/public/js/browser-utility/index.js":
 /*!***************************************************!*\
   !*** ./source/public/js/browser-utility/index.js ***!
@@ -37799,6 +37950,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -37850,6 +38002,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
  //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 //  ██╗███╗   ██╗██╗████████╗
@@ -37868,79 +38021,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].appName = 'StreamJockey'; // 
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
-// ENTITY CRUD METHODS
-
-_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Entity.augmentClass({
-  prototypeProperties: parent => ({
-    add() {
-      var _this = this;
-
-      return _asyncToGenerator(function* () {
-        return yield _this.constructor.add(_this);
-      })();
-    },
-
-    get() {
-      var _this2 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield _this2.constructor.get(_this2);
-      })();
-    },
-
-    edit() {
-      var _this3 = this;
-
-      return _asyncToGenerator(function* () {
-        //! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited
-        return yield _this3.constructor.edit(_this3);
-      })();
-    },
-
-    remove() {
-      var _this4 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield _this4.constructor.remove(_this4);
-      })();
-    }
-
-  }),
-  staticProperties: parent => ({
-    add(query) {
-      var _this5 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
-      })();
-    },
-
-    get(query) {
-      var _this6 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
-      })();
-    },
-
-    edit(query) {
-      var _this7 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
-      })();
-    },
-
-    remove(query) {
-      var _this8 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
-      })();
-    }
-
-  })
-}); // ACTION
+// ACTION
 //R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
 //G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
 //G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
@@ -38027,11 +38108,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command = _shared_legacy_clas
     annihilateCondition: otherCommand => false,
 
     trigger(context) {
-      var _this9 = this;
+      var _this = this;
 
       return _asyncToGenerator(function* () {
         //C load the player if not loaded
-        if (context.state[_this9.source.name].player === null) yield context.dispatch("".concat(_this9.source.name, "/loadPlayer"));
+        if (context.state[_this.source.name].player === null) yield context.dispatch("".concat(_this.source.name, "/loadPlayer"));
       })();
     }
 
@@ -38041,9 +38122,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a track
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(accessory.options.track, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
+      if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(accessory.options.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         origin: 'sj.Start.beforeInitialize()',
-        reason: 'sj.Start instance.track must be an sj.Track',
+        reason: 'sj.Start instance.track must be an Track',
         content: accessory.options.track
       });
     },
@@ -38056,7 +38137,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
   }),
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(otherCommand.track, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track) //C catch non-sj.Tracks
+      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(otherCommand.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]) //C catch non-Tracks
       && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
       && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
     },
@@ -38067,10 +38148,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
     },
 
     trigger(context) {
-      var _this10 = this;
+      var _this2 = this;
 
       return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this10, context); //C pause all
+        yield parent.prototype.trigger.call(_this2, context); //C pause all
 
         yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].instances, /*#__PURE__*/function () {
           var _ref = _asyncToGenerator(function* (source) {
@@ -38084,9 +38165,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
 
         context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
           subscription: context.state.startingTrackSubscription,
-          Entity: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track,
+          Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"],
           query: {
-            id: _this10.track.id
+            id: _this2.track.id
           },
           options: {} //TODO //?
 
@@ -38095,12 +38176,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
         }))); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
         //C start target
 
-        yield context.dispatch("".concat(_this10.source.name, "/start"), _this10.track); //C transfer subscription from starting to current
+        yield context.dispatch("".concat(_this2.source.name, "/start"), _this2.track); //C transfer subscription from starting to current
 
         context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
         context.commit('setStartingTrackSubscription', null); //C change source
 
-        context.commit('setSource', _this10.source);
+        context.commit('setSource', _this2.source);
       })();
     }
 
@@ -38139,13 +38220,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Toggle = _shared_legacy_class
     },
 
     trigger(context) {
-      var _this11 = this;
+      var _this3 = this;
 
       return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this11, context);
+        yield parent.prototype.trigger.call(_this3, context);
         yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].instances, /*#__PURE__*/function () {
           var _ref3 = _asyncToGenerator(function* (source) {
-            if (_this11.isPlaying && source === _this11.source) {
+            if (_this3.isPlaying && source === _this3.source) {
               //C resume target if resuming
               yield context.dispatch("".concat(source.name, "/resume"));
             } else {
@@ -38191,11 +38272,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Seek = _shared_legacy_classes
     },
 
     trigger(context) {
-      var _this12 = this;
+      var _this4 = this;
 
       return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this12, context);
-        yield context.dispatch("".concat(_this12.source.name, "/seek"), _this12.progress);
+        yield parent.prototype.trigger.call(_this4, context);
+        yield context.dispatch("".concat(_this4.source.name, "/seek"), _this4.progress);
       })();
     }
 
@@ -38229,14 +38310,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Volume = _shared_legacy_class
     },
 
     trigger(context) {
-      var _this13 = this;
+      var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this13, context); //C adjust volume on all sources
+        yield parent.prototype.trigger.call(_this5, context); //C adjust volume on all sources
 
         yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].instances, /*#__PURE__*/function () {
           var _ref6 = _asyncToGenerator(function* (source) {
-            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this13.volume);
+            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this5.volume);
           });
 
           return function (_x3) {
@@ -38357,12 +38438,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback = _shared_legacy_cla
       }
       /* //OLD
       	async preserveLocalMetadata(context, track) {
-      		if (!sj.isType(track, sj.Track)) throw new Err({
+      		if (!sj.isType(track, Track)) throw new Err({
       			origin: 'preserveLocalMetadata()',
-      			reason: 'track is not an sj.Track',
+      			reason: 'track is not an Track',
       		});
       				//C default local metadata as foreign track
-      		let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
+      		let local = Track.filters.localMetadata.reduce((obj, key) => {
       			obj[key] = null;
       			return obj;
       		}, {});
@@ -38372,7 +38453,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback = _shared_legacy_cla
       		else if (sj.isType(context.state.startingTrack, Object) && 
       		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
       				//C return new track with localMetadata properties replaced
-      		return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
+      		return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
       	},
       */
 
@@ -38725,10 +38806,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
     actualTrack: (state, getters, rootState, rootGetters) => {
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(sourceOrBaseTrack, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track)) {
+      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(sourceOrBaseTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"])) {
         //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.currentTrack, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.startingTrack, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.currentTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.startingTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -38830,7 +38911,7 @@ _shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].augmentClass({
 
 _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.login = /*#__PURE__*/function () {
   var _ref16 = _asyncToGenerator(function* (user) {
-    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', 'session', new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].User(user)); //TODO reconnect socket subscriptions to update subscriber info
+    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', 'session', new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"](user)); //TODO reconnect socket subscriptions to update subscriber info
   });
 
   return function (_x4) {
@@ -38867,7 +38948,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
 
   //? where is this being called?
   auth() {
-    var _this14 = this;
+    var _this6 = this;
 
     return _asyncToGenerator(function* () {
       //C prompts the user to accept permissions in a new window, then receives an auth code from spotify
@@ -38891,9 +38972,9 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
       authWindow.close(); //C exchange auth code for tokens
 
       var tokens = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', 'spotify/exchangeToken', authCredentials);
-      _this14.credentials.accessToken = tokens.accessToken;
-      _this14.credentials.expires = tokens.accessToken;
-      _this14.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
+      _this6.credentials.accessToken = tokens.accessToken;
+      _this6.credentials.expires = tokens.accessToken;
+      _this6.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
       return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
         origin: 'sj.spotify.auth()',
@@ -38930,7 +39011,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
   },
 
   request(method, path, content) {
-    var _this15 = this;
+    var _this7 = this;
 
     return _asyncToGenerator(function* () {
       // request() wrapper specifically fro spotify-web-api requests.
@@ -38948,7 +39029,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
       } // HEADER
 
 
-      var token = yield _this15.getAccessToken();
+      var token = yield _this7.getAccessToken();
       options.headers = _objectSpread({}, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].JSON_HEADER, {
         Authorization: "Bearer ".concat(token)
       });
@@ -38958,14 +39039,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
 
   //? this is specific to spotify, maybe move this once optional options are implemented into classes
   getAccessToken() {
-    var _this16 = this;
+    var _this8 = this;
 
     return _asyncToGenerator(function* () {
       //C gets the api access token, handles all refreshing, initializing, errors, etc.
       //C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
       //TODO must respond to denials by spotify too
       //C refresh
-      var that = _this16;
+      var that = _this8;
 
       var refresh = /*#__PURE__*/function () {
         var _ref19 = _asyncToGenerator(function* (that) {
@@ -38990,16 +39071,16 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
       //TODO reconsider this string test
 
 
-      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(_this16.credentials.accessToken) || _this16.credentials.expires <= Date.now()) {
+      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(_this8.credentials.accessToken) || _this8.credentials.expires <= Date.now()) {
         yield refresh(that);
       } //C if token is soon to expire, refresh in the background, return the existing token
 
 
-      if (_this16.credentials.expires <= Date.now() + _this16.refreshBuffer) {
+      if (_this8.credentials.expires <= Date.now() + _this8.refreshBuffer) {
         refresh(that);
       }
 
-      return _this16.credentials.accessToken;
+      return _this8.credentials.accessToken;
     })();
   },
 
@@ -39036,7 +39117,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
 
       });
       return result.tracks.items.map(track => {
-        return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track({
+        return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]({
           source: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
           sourceId: track.id,
           name: track.name,
@@ -39078,7 +39159,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                 if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state, Object)) return {};
                 var t = state.track_window.current_track;
                 return {
-                  track: new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track({
+                  track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]({
                     source: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
                     sourceId: t.id,
                     name: t.name,
@@ -39093,7 +39174,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                 };
               }, player.awaitState = /*#__PURE__*/function () {
                 var _ref22 = _asyncToGenerator(function* (_ref21) {
-                  var _this17 = this;
+                  var _this9 = this;
 
                   var {
                     command = () => {},
@@ -39110,7 +39191,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                         var _ref24 = _asyncToGenerator(function* (state) {
                           if (!resolved && stateCondition(player.formatState(state))) {
                             //C remove listener
-                            _this17.removeListener('player_state_changed', callback); //C update playback state
+                            _this9.removeListener('player_state_changed', callback); //C update playback state
 
 
                             yield context.dispatch('updatePlayback', state); //C resolve
@@ -39128,13 +39209,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                       //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
 
 
-                      _this17.addListener('player_state_changed', callback); //C if command failed, reject
+                      _this9.addListener('player_state_changed', callback); //C if command failed, reject
                       //! don't do anything when main() resolves, it only indicates that the command has been received
 
 
                       yield command().catch(rejected => {
                         if (!resolved) {
-                          _this17.removeListener('player_state_changed', callback);
+                          _this9.removeListener('player_state_changed', callback);
 
                           reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"](_objectSpread({}, error, {
                             content: rejected
@@ -39147,7 +39228,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                       yield context.dispatch('checkPlayback');
 
                       if (!resolved && stateCondition(context.state)) {
-                        _this17.removeListener('player_state_changed', callback);
+                        _this9.removeListener('player_state_changed', callback);
 
                         resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"](success));
                         resolved = true;
@@ -39157,7 +39238,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                       yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.requestTimeout);
 
                       if (!resolved) {
-                        _this17.removeListener('player_state_changed', callback);
+                        _this9.removeListener('player_state_changed', callback);
 
                         reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Timeout"](timeoutError));
                         resolved = true;
@@ -39909,7 +39990,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
   },
 
   request(method, path, content) {
-    var _this18 = this;
+    var _this10 = this;
 
     return _asyncToGenerator(function* () {
       var _window, _window$gapi, _window$gapi$auth, _window$gapi$auth$get, _window$gapi$auth$get2, _window$gapi$auth$get3, _window$gapi$auth$get4;
@@ -39917,7 +39998,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
       //C check that user is authorized (signedIn)
       //TODO how do I check that the client library is loaded?
       if (!((_window = window) === null || _window === void 0 ? void 0 : (_window$gapi = _window.gapi) === null || _window$gapi === void 0 ? void 0 : (_window$gapi$auth = _window$gapi.auth2) === null || _window$gapi$auth === void 0 ? void 0 : (_window$gapi$auth$get = _window$gapi$auth.getAuthInstance) === null || _window$gapi$auth$get === void 0 ? void 0 : (_window$gapi$auth$get2 = _window$gapi$auth$get.call(_window$gapi$auth)) === null || _window$gapi$auth$get2 === void 0 ? void 0 : (_window$gapi$auth$get3 = _window$gapi$auth$get2.isSignedIn) === null || _window$gapi$auth$get3 === void 0 ? void 0 : (_window$gapi$auth$get4 = _window$gapi$auth$get3.get) === null || _window$gapi$auth$get4 === void 0 ? void 0 : _window$gapi$auth$get4.call(_window$gapi$auth$get3))) {
-        yield _this18.auth();
+        yield _this10.auth();
       }
 
       return yield new Promise((resolve, reject) => {
@@ -39952,7 +40033,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
   },
 
   search(_ref37) {
-    var _this19 = this;
+    var _this11 = this;
 
     return _asyncToGenerator(function* () {
       var {
@@ -40030,12 +40111,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
           snippet,
           contentDetails
         } = _ref38;
-        return new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track(_objectSpread({
+        return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"](_objectSpread({
           source: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
           sourceId: id,
           link: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.idPrefix + id
-        }, _this19.formatSnippet(snippet), {}, _this19.formatContentDetails(contentDetails)));
+        }, _this11.formatSnippet(snippet), {}, _this11.formatContentDetails(contentDetails)));
       });
     })();
   },
@@ -40156,7 +40237,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
             }
           }
 
-          state.track = new _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Track(track);
+          state.track = new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"](track);
           context.commit('setState', state);
           return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_9__["Success"]({
             origin: 'youtube module action - checkPlayback()',
@@ -40575,6 +40656,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 	// SMALL
 		eslint + prettier configuration
 		//L https://medium.com/@pgivens/write-cleaner-code-using-prettier-and-eslint-in-vscode-d04f63805dcd
+		lint rule for triple === where a single = is intended (ie no triple equal on single lines). (maybe)
 */
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
@@ -40656,7 +40738,7 @@ sj.isType = function (input, type) {
   */
   // value
   if (input === type) {
-    //!//TODO this will cause issues with ('object', 'object') and inconsistencies like true === (sj.Entity, sj.Entity) vs false == (sj.Track, sj.Entity)
+    //!//TODO this will cause issues with ('object', 'object') and inconsistencies like true === (sj.Entity, sj.Entity) vs false == (Track, sj.Entity)
     return true;
   } // instanceof
 
@@ -40707,7 +40789,19 @@ sj.isType = function (input, type) {
 
     if ((input instanceof _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"] || typeof input.constructorName === 'string' && (() => {
       //C input or input.constructorName is an instance of a constructible
-      var Target = sj[input.constructorName];
+      var Target = sj[input.constructorName]; //TODO temporary workaround, should use interfaces in places where instanceof cannot be used. Or just make a completely different checking system.
+
+      if (Target === undefined) {
+        if (input.constructorName === 'Entity') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"];
+        } else if (input.constructorName === 'User') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"];
+        } else if (input.constructorName === 'Playlist') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"];
+        } else if (input.constructorName === 'Track') {
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"];
+        }
+      }
 
       if (typeof Target === 'function') {
         tempInput = new Target({
@@ -40784,7 +40878,7 @@ sj.content = function (resolved) {
 
 sj.Subscriptions = function () {
   //C creates an array for each Entity type
-  sj.Entity.children.forEach(child => {
+  _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"].children.forEach(child => {
     this[child.table] = [];
   });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -40817,10 +40911,6 @@ sj.Subscriptions = function () {
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
 
 
-sj.Entity = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Entity"];
-sj.User = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"];
-sj.Playlist = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"];
-sj.Track = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"];
 sj.LiveTable = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveTable"];
 sj.CachedEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["CachedEntity"];
 sj.LiveQuery = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["LiveQuery"];
@@ -41156,6 +41246,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _global_client_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./global-client.js */ "./source/public/js/global-client.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -41418,6 +41509,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
  // INTERNAL
 //! depends on global-client.js because it is used in index.js alongside global-client.js
+
 
 
 
@@ -41994,9 +42086,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //C validate
         //TODO how to check if class is subclass, because this is getting ridiculous
         //L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!Object.getPrototypeOf(Entity) === Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'subscribe()',
-          reason: 'Entity is not an sj.Entity',
+          reason: 'Entity is not an Entity',
           content: Entity
         });
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
@@ -42069,15 +42161,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           reason: 'table is not an sj.LiveTable',
           content: table
         });
-        var Entity = table.Entity;
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        var TargetEntity = table.Entity;
+        if (!Object.getPrototypeOf(TargetEntity) === _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'unsubscribe()',
           reason: 'Entity is not an sj.LiveTable',
-          content: Entity
+          content: TargetEntity
         }); //C unsubscribe on server
         //? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
 
-        var preparedQuery = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
+        var preparedQuery = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, TargetEntity.filters.getIn));
         var processedQuery = yield context.dispatch('serverUnsubscribe', {
           table,
           query: preparedQuery
@@ -42128,15 +42220,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     update(context, _ref25) {
       return _asyncToGenerator(function* () {
         var {
-          Entity,
+          Entity: TargetEntity,
           query,
           timestamp
         } = _ref25;
         //C validate
-        if (!Object.getPrototypeOf(Entity) === _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        if (!Object.getPrototypeOf(TargetEntity) === _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
-          reason: 'Entity is not an sj.Entity',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(Entity)
+          reason: 'Entity is not an Entity',
+          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(TargetEntity)
         });
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Object) && !_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(query, Array)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
@@ -42145,12 +42237,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         });
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(timestamp, 'integer')) timestamp = Date.now(); //C shorten
 
-        var table = context.getters.findTable(Entity);
+        var table = context.getters.findTable(TargetEntity);
         if (!_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].isType(table, _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].LiveTable)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
           origin: 'update()',
           reason: 'table is not an sj.LiveTable',
           content: {
-            Entity: fclone__WEBPACK_IMPORTED_MODULE_0___default()(Entity),
+            Entity: fclone__WEBPACK_IMPORTED_MODULE_0___default()(TargetEntity),
             table: fclone__WEBPACK_IMPORTED_MODULE_0___default()(table)
           }
         });
@@ -42331,9 +42423,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               query,
               timestamp
             } = _ref30;
-            var Entity = _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Entity.tableToEntity(table);
+            var TargetEntity = _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table);
             context.dispatch('update', {
-              Entity,
+              Entity: TargetEntity,
               query,
               timestamp
             });
@@ -42346,7 +42438,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //TODO rewrite this
 
         context.state.socket.test = /*#__PURE__*/_asyncToGenerator(function* () {
-          _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track.placeholder = {
+          _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"].placeholder = {
             playlistId: 2,
             name: 'placeholder name',
             duration: 1234,
@@ -42354,12 +42446,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             sourceId: 'placeholderSourceId',
             artists: ['foo', 'bar']
           };
-          _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist.placeholder = {
+          _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Playlist"].placeholder = {
             userId: 3,
             name: 'placeholder name',
             description: 'placeholder description'
           };
-          _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.placeholder = {
+          _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].placeholder = {
             name: 'placeholder name',
             email: 'placeholder email',
             password: 'placeholder password'
@@ -42521,26 +42613,26 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             };
           }();
 
-          test([//['add track name', 			true === await add(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
-          //['add playlist name', 		true === await add(sj.Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
-          //['add user name', 			true === await add(sj.User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
-          //['edit existing name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
-          //['edit to new name', 		true === await edit(sj.Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
-          ['remove track name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track, {
+          test([//['add track name', 			true === await add(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+          //['add playlist name', 		true === await add(Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
+          //['add user name', 			true === await add(User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
+          //['edit existing name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
+          //['edit to new name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
+          ['remove track name', true === (yield remove(_client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"], {
             table: 'tracks',
             query: {
               name: 'some name'
             }
           }, {
             name: 'some name'
-          }))], ['remove playlist name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist, {
+          }))], ['remove playlist name', true === (yield remove(_client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Playlist"], {
             table: 'playlists',
             query: {
               name: 'some name'
             }
           }, {
             name: 'some name'
-          }))], ['remove user name', true === (yield remove(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User, {
+          }))], ['remove user name', true === (yield remove(_client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], {
             table: 'users',
             query: {
               name: 'some name'
@@ -42548,9 +42640,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }, {
             name: 'some name'
           }))]], 'context.state.socket.test()');
-          delete _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track.placeholder;
-          delete _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist.placeholder;
-          delete _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User.placeholder;
+          delete _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"].placeholder;
+          delete _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Playlist"].placeholder;
+          delete _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].placeholder;
         }); //await context.state.socket.test();
         //C module test
         // await context.dispatch('test');
@@ -42602,18 +42694,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }(); // CREATE
 
 
-        var user = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].User({
+        var user = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
           name: uniqueName(),
           email: uniqueName(),
           password: 'placeholder',
           password2: 'placeholder'
         }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
-        var playlist = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Playlist({
+        var playlist = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Playlist"]({
           userId: user.id,
           name: uniqueName(),
           description: 'placeholder'
         }).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
-        var track = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track({
+        var track = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"]({
           playlistId: playlist.id,
           source: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
           sourceId: 'placeholder',
@@ -42625,7 +42717,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var onEditCount = 0;
         var onRemoveCount = 0;
         var trackSubscription = yield context.dispatch('subscribe', {
-          Entity: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track,
+          Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"],
           query: {
             name: track.name
           },
@@ -42662,7 +42754,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         tests.push(['cachedEntityRefs length before', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore], ['cachedEntities length before', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore], ['lengthBefore', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore], ['noneAdded', onAddCount === addedBefore], ['noneEdited', onEditCount === editedBefore], ['noneRemoved', onRemoveCount === removedBefore]); // ADD
 
         for (var i = 0; i < iterations; i++) {
-          xTracks[i] = yield new _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].Track(_objectSpread({}, track, {
+          xTracks[i] = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"](_objectSpread({}, track, {
             position: undefined
           })).add().then(_global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         }
@@ -60516,7 +60608,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
         if (!(new FoundEntity() instanceof this)) {
           throw new _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            origin: 'sj.Entity.tableToEntity()',
+            origin: 'Entity.tableToEntity()',
             reason: "table is not recognized: ".concat(tableName),
             content: tableName
           });
@@ -60744,7 +60836,7 @@ __webpack_require__.r(__webpack_exports__);
       if (_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(accessory.options.source)) {
         var found = _source_js__WEBPACK_IMPORTED_MODULE_5__["default"].instances.find(source => source.name === accessory.options.source.name);
         if (found) accessory.options.source = found;else new Warn({
-          origin: 'sj.Track.beforeInitialize()',
+          origin: 'Track.beforeInitialize()',
           reason: 'source was passed but it is not an existing source',
           content: accessory.options.source
         });

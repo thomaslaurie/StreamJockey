@@ -1,6 +1,10 @@
 <script>
 	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
 	import TrackDisplay from './TrackDisplay.vue';
+
+	import {
+		Track,
+	} from '../../../client/entities/index.js';
 	
     export default {
         name: 'track-display-list',
@@ -9,7 +13,7 @@
 			TrackDisplay,
 		},
 		data() { return {
-			Entity: this.$root.sj.Track,
+			Entity: Track,
 		}; },
     }
 </script>

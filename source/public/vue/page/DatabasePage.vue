@@ -2,6 +2,12 @@
 	import {
 		any,
 	} from '../../../shared/utility/index.js';
+
+	import {
+		User,
+		Playlist,
+		Track,
+	} from '../../../client/entities/index.js';
 	
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
@@ -57,9 +63,9 @@
 		},
 		computed: {
 			Entity: function () {
-				if (this.entityType === 'track') return this.sj.Track;
-				else if (this.entityType === 'playlist') return this.sj.Playlist;
-				else if (this.entityType === 'user') return this.sj.User;
+				if (this.entityType === 'track') return Track;
+				else if (this.entityType === 'playlist') return Playlist;
+				else if (this.entityType === 'user') return User;
 			},
 			input: function () {
 				if (this.entityType === 'track') return {...this.defaultTrack, ...this.inputTrack};

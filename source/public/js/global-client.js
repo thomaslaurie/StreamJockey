@@ -68,6 +68,10 @@ import {
 	Success,
 } from '../../shared/legacy-classes/success.js';
 import Source from '../../shared/source.js';
+import {
+	User,
+	Track,
+} from '../../client/entities/index.js';
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -94,53 +98,6 @@ sj.appName = 'StreamJockey';
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
 
-// ENTITY CRUD METHODS
-sj.Entity.augmentClass({
-	prototypeProperties: parent => ({
-		async add() {
-			return await this.constructor.add(this);
-		},
-		async get() {
-			return await this.constructor.get(this);
-		},
-		async edit() { //! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited
-			return await this.constructor.edit(this);
-		},
-		async remove() {
-			return await this.constructor.remove(this);
-		},
-	}),
-	staticProperties: parent => ({
-		async add(query) {
-			return await serverRequest(
-				'POST',
-				this.table,
-				any(query).map((q) => pick(q, this.filters.addIn)),
-			);
-		},
-		async get(query) {
-			return await serverRequest(
-				'GET',
-				this.table,
-				any(query).map((q) => pick(q, this.filters.getIn)),
-			);
-		},
-		async edit(query) {
-			return await serverRequest(
-				'PATCH', 
-				this.table,
-				any(query).map((q) => pick(q, this.filters.editIn))
-			);
-		},
-		async remove(query) {
-			return await serverRequest(
-				'DELETE', 
-				this.table,
-				any(query).map((q) => pick(q,  this.filters.removeIn))
-			);
-		},
-	}),
-});
 
 // ACTION
 //R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
@@ -230,9 +187,9 @@ sj.Start = Base.makeClass('Start', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a track
-			if (!sj.isType(accessory.options.track, sj.Track)) throw new Err({
+			if (!sj.isType(accessory.options.track, Track)) throw new Err({
 				origin: 'sj.Start.beforeInitialize()',
-				reason: 'sj.Start instance.track must be an sj.Track',
+				reason: 'sj.Start instance.track must be an Track',
 				content: accessory.options.track,
 			});
 		},
@@ -245,7 +202,7 @@ sj.Start = Base.makeClass('Start', sj.Command, {
 	prototypeProperties: parent => ({
 		identicalCondition(otherCommand) {
 			return parent.prototype.identicalCondition.call(this, otherCommand) 
-			&& sj.isType(otherCommand.track, sj.Track) //C catch non-sj.Tracks
+			&& sj.isType(otherCommand.track, Track) //C catch non-Tracks
 			&& otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
 			&& otherCommand.isPlaying === this.isPlaying
 			&& otherCommand.progress === this.progress;
@@ -270,7 +227,7 @@ sj.Start = Base.makeClass('Start', sj.Command, {
 			context.commit('setStartingTrackSubscription', await context.dispatch('resubscribe', {
 				subscription: context.state.startingTrackSubscription,
 
-				Entity: sj.Track,
+				Entity: Track,
 				query: {id: this.track.id},
 				options: {}, //TODO //?
 			}, {root: true})); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
@@ -506,13 +463,13 @@ sj.Playback = Base.makeClass('Playback', Base, {
 
 			/* //OLD
 				async preserveLocalMetadata(context, track) {
-					if (!sj.isType(track, sj.Track)) throw new Err({
+					if (!sj.isType(track, Track)) throw new Err({
 						origin: 'preserveLocalMetadata()',
-						reason: 'track is not an sj.Track',
+						reason: 'track is not an Track',
 					});
 
 					//C default local metadata as foreign track
-					let local = sj.Track.filters.localMetadata.reduce((obj, key) => {
+					let local = Track.filters.localMetadata.reduce((obj, key) => {
 						obj[key] = null;
 						return obj;
 					}, {});
@@ -524,7 +481,7 @@ sj.Playback = Base.makeClass('Playback', Base, {
 					track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
 
 					//C return new track with localMetadata properties replaced
-					return new sj.Track({...track, ...sj.shake(local, sj.Track.filters.localMetadata)});
+					return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
 				},
 			*/
 		},
@@ -820,10 +777,10 @@ sj.Playback.module = new sj.Playback({
 		},
 		actualTrack:		(state, getters, rootState, rootGetters) => {
 			const sourceOrBaseTrack = getters.sourceOrBase('track');
-			if (sj.isType(sourceOrBaseTrack, sj.Track)) {
+			if (sj.isType(sourceOrBaseTrack, Track)) {
 				//C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-				if (sj.isType(getters.currentTrack, sj.Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-				if (sj.isType(getters.startingTrack, sj.Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+				if (sj.isType(getters.currentTrack, Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+				if (sj.isType(getters.startingTrack, Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
 			}
 			
 			return sourceOrBaseTrack;
@@ -943,7 +900,7 @@ Source.augmentClass({
 //  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
 sj.session.login = async function (user) {
-	return await serverRequest('POST', 'session', new sj.User(user));
+	return await serverRequest('POST', 'session', new User(user));
 	//TODO reconnect socket subscriptions to update subscriber info
 };
 sj.session.get = async function () {
@@ -1139,7 +1096,7 @@ sj.spotify = new Source({
 		});
 	
 		return result.tracks.items.map(track => {
-			return new sj.Track({
+			return new Track({
 				source: sj.spotify,
 				sourceId: track.id,
 				name: track.name,
@@ -1171,7 +1128,7 @@ sj.spotify = new Source({
 							if (!sj.isType(state, Object)) return {};
 							const t = state.track_window.current_track; 
 							return {
-								track: new sj.Track({
+								track: new Track({
 									source: sj.spotify,
 									sourceId: t.id,
 									name: t.name,
@@ -1998,7 +1955,7 @@ sj.youtube = new Source({
 			searchResults[index].contentDetails = item.contentDetails;
 		});
 
-		return searchResults.map(({id: {videoId: id}, snippet, contentDetails}) => new sj.Track({
+		return searchResults.map(({id: {videoId: id}, snippet, contentDetails}) => new Track({
 			source: sj.youtube, //! this is causing issues with fClone, its throwing a cross origin error
 			sourceId: id,
 			link: sj.youtube.idPrefix + id,
@@ -2119,7 +2076,7 @@ sj.youtube = new Source({
 					}
 				}
 
-				state.track = new sj.Track(track);
+				state.track = new Track(track);
 
 
 				context.commit('setState', state);

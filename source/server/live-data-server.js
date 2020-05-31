@@ -21,7 +21,10 @@ import {
 	Success,
 	Warn,
 } from '../shared/legacy-classes/success.js';
-
+import {
+	Entity,
+	User,
+} from '../shared/entities/index.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -75,7 +78,7 @@ export default {
 			
 			//C if user is logged in, give the socketId to the session
 			//! I don't think the cookie session receives this, though it isn't needed there so far
-			if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = socket.id;
+			if (sj.isType(socket.session.user, User)) socket.session.user.socketId = socket.id;
 
 			socket.on('disconnect', async (reason) => {
 				console.log('DISCONNECT', socket.id);
@@ -87,7 +90,7 @@ export default {
 				});
 				
 				//? socket won't be used anymore, so does anything really need to be deleted here?
-				if (sj.isType(socket.session.user, sj.User)) socket.session.user.socketId = sj.User.defaults.socketId;
+				if (sj.isType(socket.session.user, User)) socket.session.user.socketId = User.defaults.socketId;
 			});
 
 			socket.on('subscribe', async ({table, query}, callback) => {
@@ -95,12 +98,12 @@ export default {
 
 				//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
 				//TODO socketId validator, this is all that really matters here
-				const user = sj.isType(socket.session.user, sj.User)
+				const user = sj.isType(socket.session.user, User)
 					? socket.session.user
-					: new sj.User({socketId: socket.id});
+					: new User({socketId: socket.id});
 					
-				//! using sj.Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
-				const result = await sj.liveData.add(sj.Entity.tableToEntity(table), query, user);
+				//! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
+				const result = await sj.liveData.add(Entity.tableToEntity(table), query, user);
 
 				//!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
 				//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
@@ -110,11 +113,11 @@ export default {
 			socket.on('unsubscribe', async ({table, query}, callback) => {
 				console.log('UNSUBSCRIBE', socket.id);
 
-				const user = sj.isType(socket.session.user, sj.User)
+				const user = sj.isType(socket.session.user, User)
 					? socket.session.user
-					: new sj.User({socketId: socket.id});
+					: new User({socketId: socket.id});
 
-				const result = await sj.liveData.remove(sj.Entity.tableToEntity(table), query, user);
+				const result = await sj.liveData.remove(Entity.tableToEntity(table), query, user);
 				callback(fclone(result));
 			});
 

@@ -50,7 +50,7 @@
 /*
 	consider using a separate router for source-api requests (sourceRouter)
 
-	error converting sj.Track() to JSON because of circular reference
+	error converting Track() to JSON because of circular reference
 
 	Create lint rule to not call next() without await: await next().
 		This was causing requests to return early and 404 all the time.
@@ -94,6 +94,11 @@ import {
 import {
 	Success,
 } from '../shared/legacy-classes/success.js';
+import {
+	User,
+	Playlist,
+	Track,
+} from '../shared/entities/index.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -229,45 +234,45 @@ export default function ({replaceIndex}) {
 
 	//TODO condense this
 	// user
-	.post(`/${sj.User.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.User.add(ctx.request.body).catch(sj.andResolve);
+	.post(`/${User.table}`, async (ctx, next) => {
+		ctx.response.body = await User.add(ctx.request.body).catch(sj.andResolve);
 	})
-	.get(`/${sj.User.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.User.get(ctx.request.body).catch(sj.andResolve);
+	.get(`/${User.table}`, async (ctx, next) => {
+		ctx.response.body = await User.get(ctx.request.body).catch(sj.andResolve);
 	})
-	.patch(`/${sj.User.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.User.edit(ctx.request.body).catch(sj.andResolve);
+	.patch(`/${User.table}`, async (ctx, next) => {
+		ctx.response.body = await User.edit(ctx.request.body).catch(sj.andResolve);
 	})
-	.delete(`/${sj.User.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.User.remove(ctx.request.body).catch(sj.andResolve);
+	.delete(`/${User.table}`, async (ctx, next) => {
+		ctx.response.body = await User.remove(ctx.request.body).catch(sj.andResolve);
 	})
 
 	// playlist
-	.post(`/${sj.Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Playlist.add(ctx.request.body).catch(sj.andResolve);
+	.post(`/${Playlist.table}`, async (ctx, next) => {
+		ctx.response.body = await Playlist.add(ctx.request.body).catch(sj.andResolve);
 	})
-	.get(`/${sj.Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Playlist.get(ctx.request.body).catch(sj.andResolve);
+	.get(`/${Playlist.table}`, async (ctx, next) => {
+		ctx.response.body = await Playlist.get(ctx.request.body).catch(sj.andResolve);
 	})
-	.patch(`/${sj.Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Playlist.edit(ctx.request.body).catch(sj.andResolve);
+	.patch(`/${Playlist.table}`, async (ctx, next) => {
+		ctx.response.body = await Playlist.edit(ctx.request.body).catch(sj.andResolve);
 	})
-	.delete(`/${sj.Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Playlist.remove(ctx.request.body).catch(sj.andResolve);
+	.delete(`/${Playlist.table}`, async (ctx, next) => {
+		ctx.response.body = await Playlist.remove(ctx.request.body).catch(sj.andResolve);
 	})
 
 	// track
-	.post(`/${sj.Track.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Track.add(ctx.request.body).catch(sj.andResolve);
+	.post(`/${Track.table}`, async (ctx, next) => {
+		ctx.response.body = await Track.add(ctx.request.body).catch(sj.andResolve);
 	})
-	.get(`/${sj.Track.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Track.get(ctx.request.body).catch(sj.andResolve);
+	.get(`/${Track.table}`, async (ctx, next) => {
+		ctx.response.body = await Track.get(ctx.request.body).catch(sj.andResolve);
 	})
-	.patch(`/${sj.Track.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Track.edit(ctx.request.body).catch(sj.andResolve);
+	.patch(`/${Track.table}`, async (ctx, next) => {
+		ctx.response.body = await Track.edit(ctx.request.body).catch(sj.andResolve);
 	})
-	.delete(`/${sj.Track.table}`, async (ctx, next) => {
-		ctx.response.body = await sj.Track.remove(ctx.request.body).catch(sj.andResolve);
+	.delete(`/${Track.table}`, async (ctx, next) => {
+		ctx.response.body = await Track.remove(ctx.request.body).catch(sj.andResolve);
 	})
 
 	// catch

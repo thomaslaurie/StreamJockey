@@ -1,12 +1,15 @@
 <script>
-    import AsyncDisplay from '../async/AsyncDisplay.vue';
+	import AsyncDisplay from '../async/AsyncDisplay.vue';
+	import {
+		Track,
+	} from '../../../client/entities/index.js';
 
     export default {
         name: 'track-page',
 		extends: AsyncDisplay,
 		data() { return {
 			// OVERWRITES
-			Entity: this.$root.sj.Track,
+			Entity: Track,
 			sQuery: {id: this.$route.params.id},
 		}; },
     }

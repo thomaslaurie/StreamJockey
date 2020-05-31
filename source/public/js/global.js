@@ -75,6 +75,7 @@
 	// SMALL
 		eslint + prettier configuration
 		//L https://medium.com/@pgivens/write-cleaner-code-using-prettier-and-eslint-in-vscode-d04f63805dcd
+		lint rule for triple === where a single = is intended (ie no triple equal on single lines). (maybe)
 */
 
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
@@ -185,7 +186,7 @@ sj.isType = function (input, type) {
 	
 
 	// value
-	if (input === type) { //!//TODO this will cause issues with ('object', 'object') and inconsistencies like true === (sj.Entity, sj.Entity) vs false == (sj.Track, sj.Entity)
+	if (input === type) { //!//TODO this will cause issues with ('object', 'object') and inconsistencies like true === (sj.Entity, sj.Entity) vs false == (Track, sj.Entity)
 		return true;
 	}
 	
@@ -232,6 +233,20 @@ sj.isType = function (input, type) {
 		if ((input instanceof Base || (typeof input.constructorName === 'string' && (() => { 
 			//C input or input.constructorName is an instance of a constructible
 			let Target = sj[input.constructorName];
+
+			//TODO temporary workaround, should use interfaces in places where instanceof cannot be used. Or just make a completely different checking system.
+			if (Target === undefined) {
+				if (input.constructorName === 'Entity') {
+					Target = Entity;
+				} else if (input.constructorName === 'User') {
+					Target = User;
+				} else if (input.constructorName === 'Playlist') {
+					Target = Playlist;
+				} else if (input.constructorName === 'Track') {
+					Target = Track;
+				}
+			}
+
 			if (typeof Target === 'function') {
 				tempInput = new Target({log: false}); //! This is absolutely wrong, as it assumes all arguments are optional. (Caused issue where the playback argument was required for sj.Sources).
 				return true;
@@ -299,7 +314,7 @@ sj.content = function (resolved) {
 // LIVE DATA
 sj.Subscriptions = function () {
 	//C creates an array for each Entity type
-	sj.Entity.children.forEach(child => {
+	Entity.children.forEach(child => {
 		this[child.table] = [];
 	});
 };
@@ -334,11 +349,6 @@ sj.Subscriptions = function () {
 */
 
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-
-sj.Entity = Entity;
-sj.User = User;
-sj.Playlist = Playlist;
-sj.Track = Track;
 
 sj.LiveTable = LiveTable;
 sj.CachedEntity = CachedEntity;
