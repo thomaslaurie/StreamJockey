@@ -59,6 +59,9 @@ import Source from '../shared/source.js';
 import {
 	User,
 } from '../shared/entities/index.js';
+import {
+	URL_HEADER,
+} from '../shared/constants.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -251,7 +254,7 @@ Object.assign(sj.spotify, {
 				client_secret: process.env.SPOTIFY_CLIENT_SECRET,
 				// alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 			}),
-			headers: sj.URL_HEADER,
+			headers: URL_HEADER,
 		}).catch(rejected => {
 			throw new Err({
 				log: true,
@@ -297,7 +300,7 @@ Object.assign(sj.spotify, {
 				client_id: process.env.SPOTIFY_CLIENT_ID,
 				client_secret: process.env.SPOTIFY_CLIENT_SECRET,
 			}), 
-			headers: sj.URL_HEADER,
+			headers: URL_HEADER,
 		}).catch(rejected => {
 			throw new Err({
 				log: true,

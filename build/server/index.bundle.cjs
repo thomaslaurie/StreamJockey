@@ -189,34 +189,6 @@ module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePath
 
 /***/ }),
 
-/***/ "./source/public/js/constants.js":
-/*!***************************************!*\
-  !*** ./source/public/js/constants.js ***!
-  \***************************************/
-/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SERVER_URL", function() { return SERVER_URL; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "API_URL", function() { return API_URL; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GET_BODY", function() { return GET_BODY; });
-const SERVER_URL = `http://localhost:3000`;
-const API_URL = `${SERVER_URL}/api`;
-const JSON_HEADER = Object.freeze({
-  'Accept': 'application/json',
-  'Content-Type': 'application/json'
-});
-const URL_HEADER = Object.freeze({
-  'Accept': 'application/json',
-  'Content-Type': 'application/x-www-form-urlencoded'
-});
-const GET_BODY = encodeURIComponent('body');
-
-/***/ }),
-
 /***/ "./source/public/js/global.js":
 /*!************************************!*\
   !*** ./source/public/js/global.js ***!
@@ -226,11 +198,8 @@ const GET_BODY = encodeURIComponent('body');
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -318,9 +287,6 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL
 // INTERNAL
 
-
-
-
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -328,9 +294,7 @@ __webpack_require__.r(__webpack_exports__);
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-const sj = {}; // CONSTANTS
-
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
+const sj = {}; //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
 //  ██║     ██║     ███████║███████╗███████╗    ██║   ██║   ██║   ██║██║     
 //  ██║     ██║     ██╔══██║╚════██║╚════██║    ██║   ██║   ██║   ██║██║     
@@ -406,19 +370,19 @@ sj.isType = function (input, type) {
     let tempInput = input;
     let tempType = type;
 
-    if ((input instanceof _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_1__["default"] || typeof input.constructorName === 'string' && (() => {
+    if ((input instanceof _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"] || typeof input.constructorName === 'string' && (() => {
       //C input or input.constructorName is an instance of a constructible
       let Target = sj[input.constructorName]; //TODO temporary workaround, should use interfaces in places where instanceof cannot be used. Or just make a completely different checking system.
 
       if (Target === undefined) {
         if (input.constructorName === 'Entity') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Entity"];
         } else if (input.constructorName === 'User') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"];
         } else if (input.constructorName === 'Playlist') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Playlist"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Playlist"];
         } else if (input.constructorName === 'Track') {
-          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"];
+          Target = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"];
         }
       }
 
@@ -527,6 +491,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -562,6 +527,7 @@ __webpack_require__.r(__webpack_exports__);
 
  //L https://github.com/thelinmichael/spotify-web-api-node
 // INTERNAL
+
 
 
 
@@ -748,7 +714,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
         client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
       }),
-      headers: _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__["URL_HEADER"]
     }).catch(rejected => {
       throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
@@ -792,7 +758,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
         client_id: process.env.SPOTIFY_CLIENT_ID,
         client_secret: process.env.SPOTIFY_CLIENT_SECRET
       }),
-      headers: _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].URL_HEADER
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__["URL_HEADER"]
     }).catch(rejected => {
       throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
@@ -2773,7 +2739,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
 /* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 /* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
-/* harmony import */ var _public_js_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../public/js/constants.js */ "./source/public/js/constants.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
@@ -2926,7 +2892,7 @@ __webpack_require__.r(__webpack_exports__);
 
   apiRouter.get('/*', async (ctx, next) => {
     // Set GET request bodies as the parsed body parameter (if it exists).
-    const queryBody = ctx.request.query[_public_js_constants_js__WEBPACK_IMPORTED_MODULE_9__["GET_BODY"]];
+    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_9__["GET_BODY"]];
 
     try {
       ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
@@ -3070,6 +3036,34 @@ __webpack_require__.r(__webpack_exports__);
   return router;
 });
 ;
+
+/***/ }),
+
+/***/ "./source/shared/constants.js":
+/*!************************************!*\
+  !*** ./source/shared/constants.js ***!
+  \************************************/
+/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SERVER_URL", function() { return SERVER_URL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "API_URL", function() { return API_URL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GET_BODY", function() { return GET_BODY; });
+const SERVER_URL = `http://localhost:3000`;
+const API_URL = `${SERVER_URL}/api`;
+const JSON_HEADER = Object.freeze({
+  'Accept': 'application/json',
+  'Content-Type': 'application/json'
+});
+const URL_HEADER = Object.freeze({
+  'Accept': 'application/json',
+  'Content-Type': 'application/x-www-form-urlencoded'
+});
+const GET_BODY = encodeURIComponent('body');
 
 /***/ }),
 

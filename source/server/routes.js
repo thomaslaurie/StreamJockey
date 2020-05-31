@@ -84,7 +84,7 @@ import sj from './global-server.js';
 import auth from './auth.js'; //! side-effects
 import {
 	GET_BODY,
-} from '../public/js/constants.js';
+} from '../shared/constants.js';
 import {
 	ParseError,
 } from '../shared/errors/index.js';

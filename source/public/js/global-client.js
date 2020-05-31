@@ -79,6 +79,9 @@ import {
 	default as propagate,
 	returnPropagate,
 } from '../../shared/propagate.js';
+import {
+	JSON_HEADER,
+} from '../../shared/constants.js';
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -982,14 +985,14 @@ sj.spotify = new Source({
 	
 		/* //OLD
 			//C request authURL & authKey
-			return fetch(`${sj.API_URL}/spotify/startAuthRequest`).then(resolved => {
+			return fetch(`${API_URL}/spotify/startAuthRequest`).then(resolved => {
 				//C open spotify auth request window
 				//L https://www.w3schools.com/jsref/met_win_open.asp
 				authRequestWindow = window.open(resolved.authRequestURL);
 				return resolved;
 			}).then(resolved => {
 				//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-				return fetch(`${sj.API_URL}/spotify/endAuthRequest`,  {
+				return fetch(`${API_URL}/spotify/endAuthRequest`,  {
 					method: 'post',
 					headers: {
 						'Accept': 'application/json',
@@ -1028,7 +1031,7 @@ sj.spotify = new Source({
 		// HEADER
 		const token = await this.getAccessToken();
 		options.headers = {
-			...sj.JSON_HEADER,
+			...JSON_HEADER,
 			Authorization: `Bearer ${token}`,
 		};
 

@@ -21,7 +21,7 @@ import {
 import {
 	GET_BODY,
 	API_URL,
-} from './constants.js';
+} from '../../shared/constants.js';
 import request from '../../shared/request.js';
 import urlRule from '../../shared/derived-utility/url.js';
 

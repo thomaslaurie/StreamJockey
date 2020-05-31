@@ -90,12 +90,7 @@
 // EXTERNAL
 
 // INTERNAL
-import {
-	define,
-} from '../../shared/utility/index.js';
 import Base from '../../shared/legacy-classes/base.js';
-import propagate from '../../shared/propagate.js';
-import * as constants from './constants.js';
 import {
 	Entity,
 	User,
@@ -113,9 +108,6 @@ import {
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 const sj = {};
-
-// CONSTANTS
-define.constant(sj, constants);
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
