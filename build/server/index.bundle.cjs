@@ -495,17 +495,7 @@ sj.isType = function (input, type) {
 }; // ERROR
 
 
-sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"];
-
-sj.andResolve = function (rejected) {
-  //C resolves/returns any errors thrown by sj.propagate()
-  //G someAsyncFunction().catch(sj.andResolve);
-  try {
-    return sj.propagate(rejected);
-  } catch (e) {
-    return e;
-  }
-}; //   ██████╗██╗      █████╗ ███████╗███████╗
+sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -533,7 +523,6 @@ sj.andResolve = function (rejected) {
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-
 
 /* harmony default export */ __webpack_exports__["default"] = (sj);
 
@@ -2808,6 +2797,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2888,6 +2878,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -2914,7 +2905,7 @@ __webpack_require__.r(__webpack_exports__);
   //  ██╔══██║██╔═══╝ ██║
   //  ██║  ██║██║     ██║
   //  ╚═╝  ╚═╝╚═╝     ╚═╝
-  //TODO consider putting .catch(sj.andResolve) as a middleware?
+  //TODO consider putting .catch(returnPropagate) as a middleware?
 
   /*
   	let listenerList = [
@@ -2948,7 +2939,7 @@ __webpack_require__.r(__webpack_exports__);
   	}
   */
   //TODO This routing file is in need of some refactoring.
-  // Instead of using .catch(sj.andResolve) on everything, a middleware should be written for it.
+  // Instead of using .catch(returnPropagate) on everything, a middleware should be written for it.
   //! Be aware, the first time this was tried it caused issues with liveQueries not working.
   // server-side data & processing requests
 
@@ -2976,60 +2967,60 @@ __webpack_require__.r(__webpack_exports__);
   }) // auth
   .get('/spotify/authRequestStart', async (ctx, next) => {
     //C retrieves an auth request URL and it's respective local key (for event handling)
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.startAuthRequest().catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.startAuthRequest().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get('/spotify/authRedirect', async (ctx, next) => {
     //C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
     //! this URL is sensitive to the url given to spotify developer site (i think)
-    await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.receiveAuthRequest(ctx.request.query).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.receiveAuthRequest(ctx.request.query).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
     await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
       root: root
     });
   }).post('/spotify/authRequestEnd', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.endAuthRequest(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.endAuthRequest(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).post('/spotify/exchangeToken', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.exchangeToken(ctx, ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.exchangeToken(ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get('/spotify/refreshToken', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.refreshToken(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.refreshToken(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get('/youtube/credentials', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].youtube.getCredentials().catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].youtube.getCredentials().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }) // session
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.login(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].db, ctx, ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.login(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].db, ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.get(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.get(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).delete('/session', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.logout(ctx).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.logout(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }) //TODO condense this
   // user
   .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }) // playlist
   .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }) // track
   .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].add(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].get(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].edit(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].remove(ctx.request.body).catch(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].andResolve);
+    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }) // catch
   .all('/*', async (ctx, next) => {
     ctx.response.body = new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__["Err"]({
@@ -4958,11 +4949,12 @@ const Subscription = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["defau
 /*!************************************!*\
   !*** ./source/shared/propagate.js ***!
   \************************************/
-/*! exports provided: default */
+/*! exports provided: default, returnPropagate */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "returnPropagate", function() { return returnPropagate; });
 /* harmony import */ var _derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./derived-utility/safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
 /* harmony import */ var _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
 // Takes an input (which was thrown), re-throws it if its already an Error, otherwise wraps it in an error instance and throws that.
@@ -4970,8 +4962,9 @@ __webpack_require__.r(__webpack_exports__);
 //! Be aware of JSON.stringify()'s interaction with Error instances and non-enumerable properties:
 //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 
+ // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (value, overwriteOptions) {
+/* harmony default export */ __webpack_exports__["default"] = (function (error, overwriteOptions) {
   if (value instanceof Error) {
     throw value;
   } else {
@@ -4983,6 +4976,16 @@ __webpack_require__.r(__webpack_exports__);
     });
   }
 });
+; // Propagates a value, but returns it instead of throwing it.
+//TODO Consider refactoring implementations of this out, into a better solution.
+
+function returnPropagate(value, overwriteOptions) {
+  try {
+    propagate(value, overwriteOptions);
+  } catch (error) {
+    return error;
+  }
+}
 ;
 
 /***/ }),

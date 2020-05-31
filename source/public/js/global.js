@@ -276,15 +276,6 @@ sj.isType = function (input, type) {
 
 // ERROR
 sj.propagate = propagate;
-sj.andResolve = function (rejected) {
-	//C resolves/returns any errors thrown by sj.propagate()
-	//G someAsyncFunction().catch(sj.andResolve);
-	try {
-		return sj.propagate(rejected);
-	} catch (e) {
-		return e;
-	}
-};
 	
 //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝

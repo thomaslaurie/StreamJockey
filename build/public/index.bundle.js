@@ -37960,6 +37960,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -38002,6 +38003,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
 
  // INTERNAL
+
 
 
 
@@ -39060,7 +39062,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
 
       var refresh = /*#__PURE__*/function () {
         var _ref19 = _asyncToGenerator(function* (that) {
-          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', "spotify/refreshToken").catch(_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].andResolve);
+          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
 
           if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"])) {
             //C call auth() if server doesn't have a refresh token
@@ -40859,17 +40861,7 @@ sj.isType = function (input, type) {
 }; // ERROR
 
 
-sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"];
-
-sj.andResolve = function (rejected) {
-  //C resolves/returns any errors thrown by sj.propagate()
-  //G someAsyncFunction().catch(sj.andResolve);
-  try {
-    return sj.propagate(rejected);
-  } catch (e) {
-    return e;
-  }
-}; //   ██████╗██╗      █████╗ ███████╗███████╗
+sj.propagate = _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -40897,7 +40889,6 @@ sj.andResolve = function (rejected) {
 
 */
 //L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-
 
 /* harmony default export */ __webpack_exports__["default"] = (sj);
 
@@ -62341,11 +62332,12 @@ var Subscription = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default
 /*!************************************!*\
   !*** ./source/shared/propagate.js ***!
   \************************************/
-/*! exports provided: default */
+/*! exports provided: default, returnPropagate */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "returnPropagate", function() { return returnPropagate; });
 /* harmony import */ var _derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./derived-utility/safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
 /* harmony import */ var _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -62359,8 +62351,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //! Be aware of JSON.stringify()'s interaction with Error instances and non-enumerable properties:
 //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 
+ // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (value, overwriteOptions) {
+/* harmony default export */ __webpack_exports__["default"] = (function (error, overwriteOptions) {
   if (value instanceof Error) {
     throw value;
   } else {
@@ -62372,6 +62365,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     }));
   }
 });
+; // Propagates a value, but returns it instead of throwing it.
+//TODO Consider refactoring implementations of this out, into a better solution.
+
+function returnPropagate(value, overwriteOptions) {
+  try {
+    propagate(value, overwriteOptions);
+  } catch (error) {
+    return error;
+  }
+}
 ;
 
 /***/ }),

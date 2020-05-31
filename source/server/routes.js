@@ -99,6 +99,9 @@ import {
 	Playlist,
 	Track,
 } from '../shared/entities/index.js';
+import {
+	returnPropagate,
+} from '../shared/propagate.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -128,7 +131,7 @@ export default function ({replaceIndex}) {
 	//  ██╔══██║██╔═══╝ ██║
 	//  ██║  ██║██║     ██║
 	//  ╚═╝  ╚═╝╚═╝     ╚═╝
-	//TODO consider putting .catch(sj.andResolve) as a middleware?
+	//TODO consider putting .catch(returnPropagate) as a middleware?
 
 	/*
 		let listenerList = [
@@ -163,7 +166,7 @@ export default function ({replaceIndex}) {
 	*/
 
 	//TODO This routing file is in need of some refactoring.
-	// Instead of using .catch(sj.andResolve) on everything, a middleware should be written for it.
+	// Instead of using .catch(returnPropagate) on everything, a middleware should be written for it.
 	//! Be aware, the first time this was tried it caused issues with liveQueries not working.
 
 	// server-side data & processing requests
@@ -195,84 +198,84 @@ export default function ({replaceIndex}) {
 	// auth
 	.get('/spotify/authRequestStart', async (ctx, next) => {
 		//C retrieves an auth request URL and it's respective local key (for event handling)
-		ctx.response.body = await sj.spotify.startAuthRequest().catch(sj.andResolve);
+		ctx.response.body = await sj.spotify.startAuthRequest().catch(returnPropagate);
 	})
 	.get('/spotify/authRedirect', async (ctx, next) => { 
 		//C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
 		//! this URL is sensitive to the url given to spotify developer site (i think)
-		await sj.spotify.receiveAuthRequest(ctx.request.query).catch(sj.andResolve);
+		await sj.spotify.receiveAuthRequest(ctx.request.query).catch(returnPropagate);
 		await send(ctx, app, {root: root});
 	})
 	.post('/spotify/authRequestEnd', async (ctx, next) => {
-		ctx.response.body = await sj.spotify.endAuthRequest(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.spotify.endAuthRequest(ctx.request.body).catch(returnPropagate);
 	})
 	.post('/spotify/exchangeToken', async (ctx, next) => {
-		ctx.response.body = await sj.spotify.exchangeToken(ctx, ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.spotify.exchangeToken(ctx, ctx.request.body).catch(returnPropagate);
 	})
 	.get('/spotify/refreshToken', async (ctx, next) => {
-		ctx.response.body = await sj.spotify.refreshToken(ctx).catch(sj.andResolve);
+		ctx.response.body = await sj.spotify.refreshToken(ctx).catch(returnPropagate);
 	})
 
 	.get('/youtube/credentials', async (ctx, next) => {
-		ctx.response.body = await sj.youtube.getCredentials().catch(sj.andResolve);
+		ctx.response.body = await sj.youtube.getCredentials().catch(returnPropagate);
 	})
 
 	// session
 	//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 	//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 	.post('/session', async (ctx, next) => {
-		ctx.response.body = await sj.session.login(sj.db, ctx, ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await sj.session.login(sj.db, ctx, ctx.request.body).catch(returnPropagate);
 	})
 	.get('/session', async (ctx, next) => {
 		//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-		ctx.response.body = await sj.session.get(ctx).catch(sj.andResolve);
+		ctx.response.body = await sj.session.get(ctx).catch(returnPropagate);
 	})
 	.delete('/session', async (ctx, next) => {
-		ctx.response.body = await sj.session.logout(ctx).catch(sj.andResolve);
+		ctx.response.body = await sj.session.logout(ctx).catch(returnPropagate);
 	})
 
 
 	//TODO condense this
 	// user
 	.post(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.add(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await User.add(ctx.request.body).catch(returnPropagate);
 	})
 	.get(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.get(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await User.get(ctx.request.body).catch(returnPropagate);
 	})
 	.patch(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.edit(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await User.edit(ctx.request.body).catch(returnPropagate);
 	})
 	.delete(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.remove(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await User.remove(ctx.request.body).catch(returnPropagate);
 	})
 
 	// playlist
 	.post(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.add(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Playlist.add(ctx.request.body).catch(returnPropagate);
 	})
 	.get(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.get(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Playlist.get(ctx.request.body).catch(returnPropagate);
 	})
 	.patch(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.edit(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Playlist.edit(ctx.request.body).catch(returnPropagate);
 	})
 	.delete(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.remove(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Playlist.remove(ctx.request.body).catch(returnPropagate);
 	})
 
 	// track
 	.post(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.add(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Track.add(ctx.request.body).catch(returnPropagate);
 	})
 	.get(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.get(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Track.get(ctx.request.body).catch(returnPropagate);
 	})
 	.patch(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.edit(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Track.edit(ctx.request.body).catch(returnPropagate);
 	})
 	.delete(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.remove(ctx.request.body).catch(sj.andResolve);
+		ctx.response.body = await Track.remove(ctx.request.body).catch(returnPropagate);
 	})
 
 	// catch

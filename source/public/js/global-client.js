@@ -75,6 +75,9 @@ import {
 import {
 	Subscription,
 } from '../../shared/live-data.js';
+import {
+	returnPropagate,
+} from '../../shared/propagate.js';
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -1040,7 +1043,7 @@ sj.spotify = new Source({
 		//C refresh
 		let that = this;
 		let refresh = async function (that) {
-			let result = await serverRequest('GET', `spotify/refreshToken`).catch(sj.andResolve);
+			let result = await serverRequest('GET', `spotify/refreshToken`).catch(returnPropagate);
 			if (sj.isType(result, AuthRequired)) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
