@@ -40585,10 +40585,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants.js */ "./source/public/js/constants.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -40686,34 +40682,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-var sj = {};
-
-sj.test = /*#__PURE__*/function () {
-  var _test = _asyncToGenerator(function* (tests, origin) {
-    var failCount = 0;
-
-    for (var [name, _test2] of tests) {
-      if (!_test2) {
-        console.error("".concat(origin, " - test failed: ").concat(name));
-        failCount++;
-      }
-    }
-
-    if (failCount === 0) {
-      console.log("%c".concat(origin, " - all tests passed"), 'background-color: #d0efd8');
-      return true;
-    } else {
-      return false;
-    }
-  });
-
-  function test(_x, _x2) {
-    return _test.apply(this, arguments);
-  }
-
-  return test;
-}(); // CONSTANTS
-
+var sj = {}; // CONSTANTS
 
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     
@@ -41222,6 +41191,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_test_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/test.js */ "./source/shared/test.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -41484,6 +41454,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
  // INTERNAL
 //! depends on global-client.js because it is used in index.js alongside global-client.js
+
 
 
 
@@ -42590,7 +42561,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             };
           }();
 
-          test([//['add track name', 			true === await add(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+          Object(_shared_test_js__WEBPACK_IMPORTED_MODULE_9__["default"])([//['add track name', 			true === await add(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
           //['add playlist name', 		true === await add(Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
           //['add user name', 			true === await add(User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
           //['edit existing name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
@@ -42766,7 +42737,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         yield playlist.remove();
         yield user.remove(); //TODO add tests for convergent liveQueries
 
-        var passed = yield _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].test([...tests], 'liveQuery'); //C this refreshes the page until the test fails
+        var passed = yield Object(_shared_test_js__WEBPACK_IMPORTED_MODULE_9__["default"])([...tests], 'liveQuery'); //C this refreshes the page until the test fails
 
         if (passed) document.location.reload();
       })();
@@ -62573,6 +62544,49 @@ __webpack_require__.r(__webpack_exports__);
 
   })
 }));
+
+/***/ }),
+
+/***/ "./source/shared/test.js":
+/*!*******************************!*\
+  !*** ./source/shared/test.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return test; });
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function test(_x, _x2) {
+  return _test.apply(this, arguments);
+}
+
+function _test() {
+  _test = _asyncToGenerator(function* (tests, origin) {
+    var failCount = 0;
+
+    for (var [name, _test2] of tests) {
+      if (!_test2) {
+        console.error("".concat(origin, " - test failed: ").concat(name));
+        failCount++;
+      }
+    }
+
+    if (failCount === 0) {
+      console.log("%c".concat(origin, " - all tests passed"), 'background-color: #d0efd8');
+      return true;
+    } else {
+      return false;
+    }
+  });
+  return _test.apply(this, arguments);
+}
+
+;
 
 /***/ }),
 

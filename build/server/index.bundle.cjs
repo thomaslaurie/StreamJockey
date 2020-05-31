@@ -328,26 +328,7 @@ __webpack_require__.r(__webpack_exports__);
 //  ██║██║ ╚████║██║   ██║   
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
-const sj = {};
-
-sj.test = async function test(tests, origin) {
-  let failCount = 0;
-
-  for (const [name, test] of tests) {
-    if (!test) {
-      console.error(`${origin} - test failed: ${name}`);
-      failCount++;
-    }
-  }
-
-  if (failCount === 0) {
-    console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
-    return true;
-  } else {
-    return false;
-  }
-}; // CONSTANTS
-
+const sj = {}; // CONSTANTS
 
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(sj, _constants_js__WEBPACK_IMPORTED_MODULE_3__); //   ██████╗██╗      █████╗ ███████╗███████╗    ██╗   ██╗████████╗██╗██╗     
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝    ██║   ██║╚══██╔══╝██║██║     

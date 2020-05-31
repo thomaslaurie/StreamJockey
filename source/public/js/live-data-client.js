@@ -288,6 +288,7 @@ import {
 	Subscription,
 } from '../../shared/live-data.js';
 import propagate from '../../shared/propagate.js';
+import test from '../../shared/test.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -1284,7 +1285,7 @@ export default {
 			await user.remove();
 
 			//TODO add tests for convergent liveQueries
-			const passed = await sj.test([
+			const passed = await test([
 				...tests,
 			], 'liveQuery');
 
