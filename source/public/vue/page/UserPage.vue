@@ -2,6 +2,7 @@
 	import {
 		User,
 	} from '../../../client/entities/index.js';
+	import * as session from '../../../client/session-methods.js';
 
     import AsyncDisplay from '../async/AsyncDisplay.vue';
     import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
@@ -20,7 +21,7 @@
         methods: {
 			// NEW
             async logout() {
-                await this.sj.session.logout().catch(rejected => {
+                await session.logout().catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
                 });

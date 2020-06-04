@@ -854,9 +854,11 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../js/vendor/vuex.esm.browser.js */ "./source/public/js/vendor/vuex.esm.browser.js");
+/* harmony import */ var _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/session-methods.js */ "./source/client/session-methods.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -878,7 +880,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return _asyncToGenerator(function* () {
         //C me might have to be async retrieved and stored on the menu bar if info is to be displayed
-        var me = yield _this.sj.session.get().then(result => result.content);
+        var me = yield _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]().then(result => result.content);
 
         _this.$router.push("/user/".concat(me.id));
       })();
@@ -1077,8 +1079,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../js/vendor/vuex.esm.browser.js */ "./source/public/js/vendor/vuex.esm.browser.js");
-/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/session-methods.js */ "./source/client/session-methods.js");
+/* harmony import */ var _js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../js/vendor/vuex.esm.browser.js */ "./source/public/js/vendor/vuex.esm.browser.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1088,6 +1091,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -1102,14 +1106,14 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     };
   },
 
-  computed: _objectSpread({}, Object(_js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["mapState"])(['me'])),
+  computed: _objectSpread({}, Object(_js_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["mapState"])(['me'])),
   methods: {
     submit() {
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        var currentUser = yield _this.sj.session.get().then(result => result.content);
-        var playlist = yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Playlist"].add(_objectSpread({
+        var currentUser = yield _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]().then(result => result.content);
+        var playlist = yield _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Playlist"].add(_objectSpread({
           userId: currentUser.id
         }, _this)).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
           //TODO handle error
@@ -1152,9 +1156,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
-/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
+/* harmony import */ var _client_session_methods_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../client/session-methods.js */ "./source/client/session-methods.js");
+/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/public/vue/track/TrackDisplayList.vue");
+/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
+/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/public/vue/user/UserDisplayList.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1171,12 +1176,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'database-page',
   components: {
-    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
-    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
-    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__["default"]
+    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_6__["default"]
   },
 
   data() {
@@ -1280,7 +1286,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        _this.currentUser = yield _this.sj.session.login({
+        _this.currentUser = yield _client_session_methods_js__WEBPACK_IMPORTED_MODULE_3__["login"]({
           name: _this.name,
           password: _this.password
         }).then(result => result.content).catch(rejected => {
@@ -1294,7 +1300,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this2 = this;
 
       return _asyncToGenerator(function* () {
-        yield _this2.sj.session.logout().catch(rejected => {
+        yield _client_session_methods_js__WEBPACK_IMPORTED_MODULE_3__["logout"]().catch(rejected => {
           console.error(rejected);
         });
         _this2.isLoggedIn = false;
@@ -1593,8 +1599,9 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
-/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
+/* harmony import */ var _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../client/session-methods.js */ "./source/client/session-methods.js");
+/* harmony import */ var _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../async/AsyncDisplay.vue */ "./source/public/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/public/vue/playlist/PlaylistDisplayList.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1602,11 +1609,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'user-page',
-  extends: _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_1__["default"],
+  extends: _async_AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
   components: {
-    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__["default"]
+    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_3__["default"]
   },
 
   data() {
@@ -1625,7 +1633,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        yield _this.sj.session.logout().catch(rejected => {
+        yield _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__["logout"]().catch(rejected => {
           //TODO handle error
           console.error(rejected);
         });
@@ -1677,9 +1685,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../client/session-methods.js */ "./source/client/session-methods.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
  //import {mapState} from '../../../js/vendor/vuex.esm.browser.js'; 
 
@@ -1699,7 +1709,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        var result = yield _this.sj.session.login(_this).catch(rejected => {
+        var result = yield _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__["login"](_this).catch(rejected => {
           //TODO handle error
           throw rejected; // console.error(rejected); //TODO//! If the login is invalid or the quest fails for some reason, this would've still continue to the home page.
         }); //let me = one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
@@ -1728,9 +1738,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../client/session-methods.js */ "./source/client/session-methods.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -1754,7 +1766,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           //TODO handle error
           console.error(rejected);
         });
-        var me = yield _this.sj.session.login(_this).catch(rejected => {
+        var me = yield _client_session_methods_js__WEBPACK_IMPORTED_MODULE_1__["login"](_this).catch(rejected => {
           //TODO handle error
           console.error(rejected);
         });
@@ -2001,7 +2013,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     		async addPlaylist() {
     		console.log('ADD PLAYLIST CALLED');
     		//C add a search result playlist to store and play search results from
-    		const currentUser = await this.sj.session.get().then(this.sj.content);
+    		const currentUser = await session.get().then(this.sj.content);
     		this.playlist = await new this.sj.Playlist({
     			userId: currentUser.id,
     			name: `searchPlaylist${keyCode.create(10)}`,
@@ -37852,6 +37864,70 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/client/session-methods.js":
+/*!******************************************!*\
+  !*** ./source/client/session-methods.js ***!
+  \******************************************/
+/*! exports provided: login, get, logout */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "login", function() { return login; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "get", function() { return get; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "logout", function() { return logout; });
+/* harmony import */ var _public_js_server_request__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../public/js/server-request */ "./source/public/js/server-request.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+
+ // CREATE
+
+function login(_x) {
+  return _login.apply(this, arguments);
+}
+
+function _login() {
+  _login = _asyncToGenerator(function* (user) {
+    return yield Object(_public_js_server_request__WEBPACK_IMPORTED_MODULE_0__["default"])('POST', 'session', new _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](user)); //TODO Reconnect socket subscriptions to update subscriber info.
+  });
+  return _login.apply(this, arguments);
+}
+
+; // READ
+
+function get() {
+  return _get.apply(this, arguments);
+}
+
+function _get() {
+  _get = _asyncToGenerator(function* () {
+    return yield Object(_public_js_server_request__WEBPACK_IMPORTED_MODULE_0__["default"])('GET', 'session');
+  });
+  return _get.apply(this, arguments);
+}
+
+; // UPDATE
+//?
+// DELETE
+
+function logout() {
+  return _logout.apply(this, arguments);
+}
+
+function _logout() {
+  _logout = _asyncToGenerator(function* () {
+    return yield Object(_public_js_server_request__WEBPACK_IMPORTED_MODULE_0__["default"])('DELETE', 'session'); //TODO Reconnect socket subscriptions to update subscriber info.
+  });
+  return _logout.apply(this, arguments);
+}
+
+;
+
+/***/ }),
+
 /***/ "./source/public/js/browser-utility/index.js":
 /*!***************************************************!*\
   !*** ./source/public/js/browser-utility/index.js ***!
@@ -38888,28 +38964,6 @@ _shared_source_js__WEBPACK_IMPORTED_MODULE_10__["default"].augmentClass({
     };
   }
 
-}); //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
-//  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
-//  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
-//  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
-//  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
-//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-
-_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.login = /*#__PURE__*/function () {
-  var _ref16 = _asyncToGenerator(function* (user) {
-    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('POST', 'session', new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"](user)); //TODO reconnect socket subscriptions to update subscriber info
-  });
-
-  return function (_x4) {
-    return _ref16.apply(this, arguments);
-  };
-}();
-
-_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', 'session');
-});
-_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.logout = /*#__PURE__*/_asyncToGenerator(function* () {
-  return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('DELETE', 'session'); //TODO reconnect socket subscriptions to update subscriber info
 }); //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
@@ -39035,7 +39089,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
       var that = _this8;
 
       var refresh = /*#__PURE__*/function () {
-        var _ref19 = _asyncToGenerator(function* (that) {
+        var _ref16 = _asyncToGenerator(function* (that) {
           var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
 
           if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"])) {
@@ -39050,8 +39104,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
           }
         });
 
-        return function refresh(_x5) {
-          return _ref19.apply(this, arguments);
+        return function refresh(_x4) {
+          return _ref16.apply(this, arguments);
         };
       }(); //C if client doesn't have token or if it has expired, refresh it immediately
       //TODO reconsider this string test
@@ -39070,13 +39124,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
     })();
   },
 
-  search(_ref20) {
+  search(_ref17) {
     return _asyncToGenerator(function* () {
       var {
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref20;
+      } = _ref17;
       // VALIDATE
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.validate(term);
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].nonNegativeInteger.validate(startIndex);
@@ -39132,7 +39186,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                     callback(token);
                   });
 
-                  function getOAuthToken(_x6) {
+                  function getOAuthToken(_x5) {
                     return _getOAuthToken.apply(this, arguments);
                   }
 
@@ -39159,7 +39213,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
 
                 };
               }, player.awaitState = /*#__PURE__*/function () {
-                var _ref22 = _asyncToGenerator(function* (_ref21) {
+                var _ref19 = _asyncToGenerator(function* (_ref18) {
                   var _this9 = this;
 
                   var {
@@ -39168,13 +39222,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                     success = {},
                     error = {},
                     timeoutError = {}
-                  } = _ref21;
+                  } = _ref18;
                   return new Promise( /*#__PURE__*/function () {
-                    var _ref23 = _asyncToGenerator(function* (resolve, reject) {
+                    var _ref20 = _asyncToGenerator(function* (resolve, reject) {
                       var resolved = false; //C resolved boolean is used to prevent later announcements of response objects
 
                       var callback = /*#__PURE__*/function () {
-                        var _ref24 = _asyncToGenerator(function* (state) {
+                        var _ref21 = _asyncToGenerator(function* (state) {
                           if (!resolved && stateCondition(player.formatState(state))) {
                             //C remove listener
                             _this9.removeListener('player_state_changed', callback); //C update playback state
@@ -39188,8 +39242,8 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                           }
                         });
 
-                        return function callback(_x10) {
-                          return _ref24.apply(this, arguments);
+                        return function callback(_x9) {
+                          return _ref21.apply(this, arguments);
                         };
                       }(); //C add the listener before the request is made, so that the event cannot be missed 
                       //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
@@ -39231,22 +39285,22 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                       }
                     });
 
-                    return function (_x8, _x9) {
-                      return _ref23.apply(this, arguments);
+                    return function (_x7, _x8) {
+                      return _ref20.apply(this, arguments);
                     };
                   }());
                 });
 
-                return function (_x7) {
-                  return _ref22.apply(this, arguments);
+                return function (_x6) {
+                  return _ref19.apply(this, arguments);
                 };
               }(), //C events
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
               player.on('ready', /*#__PURE__*/function () {
-                var _ref26 = _asyncToGenerator(function* (_ref25) {
+                var _ref23 = _asyncToGenerator(function* (_ref22) {
                   var {
                     device_id
-                  } = _ref25;
+                  } = _ref22;
                   //C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
                   //L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
                   //C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
@@ -39324,24 +39378,24 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                   }));
                 });
 
-                return function (_x11) {
-                  return _ref26.apply(this, arguments);
+                return function (_x10) {
+                  return _ref23.apply(this, arguments);
                 };
               }());
-              player.on('not_ready', (_ref28) => {
+              player.on('not_ready', (_ref25) => {
                 var {
                   device_id
-                } = _ref28;
+                } = _ref25;
                 //? don't know what to do here
                 console.error('not_ready', 'device_id:', device_id);
               }); //C errors
               //TODO make better handlers
               //L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 
-              player.on('initialization_error', (_ref29) => {
+              player.on('initialization_error', (_ref26) => {
                 var {
                   message
-                } = _ref29;
+                } = _ref26;
                 //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
                 reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                   log: true,
@@ -39350,10 +39404,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                   reason: message
                 }));
               });
-              player.on('authentication_error', (_ref30) => {
+              player.on('authentication_error', (_ref27) => {
                 var {
                   message
-                } = _ref30;
+                } = _ref27;
                 //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
                 reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                   log: true,
@@ -39362,10 +39416,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                   reason: message
                 }));
               });
-              player.on('account_error', (_ref31) => {
+              player.on('account_error', (_ref28) => {
                 var {
                   message
-                } = _ref31;
+                } = _ref28;
                 //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
                 reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
                   log: true,
@@ -39380,10 +39434,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                 //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
                 context.dispatch('updatePlayback', state);
               });
-              player.on('playback_error', (_ref32) => {
+              player.on('playback_error', (_ref29) => {
                 var {
                   message
-                } = _ref32;
+                } = _ref29;
                 //TODO this should be a listener, and not resolve or reject
                 console.error('playback_error', message);
               }); //C connect player
@@ -39721,13 +39775,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
         })();
       },
 
-      pause(_ref33) {
+      pause(_ref30) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref33;
+          } = _ref30;
           return yield player.awaitState({
             command: function () {
               var _command2 = _asyncToGenerator(function* () {
@@ -39755,13 +39809,13 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
         })();
       },
 
-      resume(_ref34) {
+      resume(_ref31) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref34;
+          } = _ref31;
           return yield player.awaitState({
             command: function () {
               var _command3 = _asyncToGenerator(function* () {
@@ -39789,7 +39843,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
         })();
       },
 
-      seek(_ref35, progress) {
+      seek(_ref32, progress) {
         return _asyncToGenerator(function* () {
           var {
             state,
@@ -39797,7 +39851,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
               player,
               track
             }
-          } = _ref35;
+          } = _ref32;
           var ms = progress * track.duration;
           var timeBeforeCall = Date.now();
           return yield player.awaitState({
@@ -39828,11 +39882,11 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
         })();
       },
 
-      volume(_ref36, volume) {
+      volume(_ref33, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref36;
+          } = _ref33;
           return yield player.awaitState({
             command: function () {
               var _command5 = _asyncToGenerator(function* () {
@@ -40018,7 +40072,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
     })();
   },
 
-  search(_ref37) {
+  search(_ref34) {
     var _this11 = this;
 
     return _asyncToGenerator(function* () {
@@ -40026,7 +40080,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
         term = '',
         startIndex = 0,
         amount = 1
-      } = _ref37;
+      } = _ref34;
       // VALIDATE
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.validate(term);
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].nonNegativeInteger.validate(startIndex);
@@ -40089,14 +40143,14 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
 
         searchResults[index].contentDetails = item.contentDetails;
       });
-      return searchResults.map((_ref38) => {
+      return searchResults.map((_ref35) => {
         var {
           id: {
             videoId: id
           },
           snippet,
           contentDetails
-        } = _ref38;
+        } = _ref35;
         return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"](_objectSpread({
           source: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube,
           //! this is causing issues with fClone, its throwing a cross origin error
@@ -40233,17 +40287,17 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
         })();
       },
 
-      baseStart(_ref39, _ref40) {
+      baseStart(_ref36, _ref37) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             },
             dispatch
-          } = _ref39;
+          } = _ref36;
           var {
             sourceId
-          } = _ref40;
+          } = _ref37;
           player.loadVideoById({
             videoId: sourceId //startSeconds
             //endSeconds
@@ -40255,45 +40309,45 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_
 
       // async start(context, track) {
       // },
-      pause(_ref41) {
+      pause(_ref38) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref41;
+          } = _ref38;
           player.pauseVideo(); //TODO return
         })();
       },
 
-      resume(_ref42) {
+      resume(_ref39) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref42;
+          } = _ref39;
           player.playVideo(); //TODO return
         })();
       },
 
-      seek(_ref43, progress) {
+      seek(_ref40, progress) {
         return _asyncToGenerator(function* () {
           var {
             state: {
               player
             }
-          } = _ref43;
+          } = _ref40;
           var seconds = progress * track.duration * 0.001;
           player.seekTo(seconds, true); //TODO return
         })();
       },
 
-      volume(_ref44, volume) {
+      volume(_ref41, volume) {
         return _asyncToGenerator(function* () {
           var {
             state: player
-          } = _ref44;
+          } = _ref41;
           player.setVolume(volume * 100);
           player.unMute(); //TODO return
         })();
@@ -40657,9 +40711,7 @@ var sj = {}; //   ██████╗██╗      █████╗ ██�
 //  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 //C these reference sj.Bases, don't call these until classes are defined
-// SESSION //C holds login, get, logout, etc. methods
-
-sj.session = {}; // TYPE
+// TYPE
 //TODO refactor this out, but this will be a lot of work to test
 
 sj.isType = function (input, type) {

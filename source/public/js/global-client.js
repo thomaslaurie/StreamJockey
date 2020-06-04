@@ -902,26 +902,6 @@ Source.augmentClass({
 });
 
 
-//  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
-//  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
-//  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
-//  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
-//  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
-//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
-
-sj.session.login = async function (user) {
-	return await serverRequest('POST', 'session', new User(user));
-	//TODO reconnect socket subscriptions to update subscriber info
-};
-sj.session.get = async function () {
-    return await serverRequest('GET', 'session');
-};
-sj.session.logout = async function () {
-	return await serverRequest('DELETE', 'session');
-	//TODO reconnect socket subscriptions to update subscriber info
-};
-
-
 //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  

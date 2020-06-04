@@ -2,6 +2,7 @@
 	import {
 		User,
 	} from '../../../../client/entities/index.js';
+	import * as session from '../../../../client/session-methods.js';
 
     export default {
         name: 'register-form',
@@ -20,7 +21,7 @@
                     console.error(rejected);
                 });
                 
-                let me = await this.sj.session.login(this).catch(rejected => {
+                let me = await session.login(this).catch(rejected => {
                     //TODO handle error
                     console.error(rejected);
             	});

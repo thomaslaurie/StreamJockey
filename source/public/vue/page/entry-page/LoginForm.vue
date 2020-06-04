@@ -2,6 +2,7 @@
 	import {
 		one,
 	} from '../../../../shared/utility/index.js';
+	import * as session from '../../../../client/session-methods.js';
     //import {mapState} from '../../../js/vendor/vuex.esm.browser.js'; 
 
     export default {
@@ -15,7 +16,7 @@
         },
         methods: {
             async submit() {
-                let result = await this.sj.session.login(this).catch(rejected => {
+                let result = await session.login(this).catch(rejected => {
 					//TODO handle error
 					throw rejected;
                     // console.error(rejected); //TODO//! If the login is invalid or the quest fails for some reason, this would've still continue to the home page.

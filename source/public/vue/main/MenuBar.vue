@@ -1,5 +1,6 @@
 <script>
-    import {mapState} from '../../js/vendor/vuex.esm.browser.js'; 
+	import {mapState} from '../../js/vendor/vuex.esm.browser.js'; 
+	import * as session from '../../../client/session-methods.js';
 
     export default {
         name: 'menu-bar',
@@ -15,7 +16,7 @@
             },
             async profile() {
                 //C me might have to be async retrieved and stored on the menu bar if info is to be displayed
-                const me = await this.sj.session.get().then((result) => result.content);
+                const me = await session.get().then((result) => result.content);
                 this.$router.push(`/user/${me.id}`);
 			},
         },

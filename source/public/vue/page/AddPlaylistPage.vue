@@ -2,6 +2,7 @@
 	import {
 		one,
 	} from '../../../shared/utility/index.js';
+	import * as session from '../../../client/session-methods.js';
 	import VueX, {mapState} from '../../js/vendor/vuex.esm.browser.js'; 
 	
 	import {
@@ -21,7 +22,7 @@
         },
         methods: {
             async submit() {
-				const currentUser = await this.sj.session.get().then((result) => result.content);
+				const currentUser = await session.get().then((result) => result.content);
                 const playlist = await Playlist.add({
                     userId: currentUser.id,
                     ...this,

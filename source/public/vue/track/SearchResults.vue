@@ -104,7 +104,7 @@
 				async addPlaylist() {
 					console.log('ADD PLAYLIST CALLED');
 					//C add a search result playlist to store and play search results from
-					const currentUser = await this.sj.session.get().then(this.sj.content);
+					const currentUser = await session.get().then(this.sj.content);
 					this.playlist = await new this.sj.Playlist({
 						userId: currentUser.id,
 						name: `searchPlaylist${keyCode.create(10)}`,

@@ -301,9 +301,7 @@ const sj = {}; //   ██████╗██╗      █████╗ █�
 //  ╚██████╗███████╗██║  ██║███████║███████║    ╚██████╔╝   ██║   ██║███████╗
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝     ╚═════╝    ╚═╝   ╚═╝╚══════╝
 //C these reference sj.Bases, don't call these until classes are defined
-// SESSION //C holds login, get, logout, etc. methods
-
-sj.session = {}; // TYPE
+// TYPE
 //TODO refactor this out, but this will be a lot of work to test
 
 sj.isType = function (input, type) {
@@ -492,6 +490,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 /* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -527,6 +526,7 @@ __webpack_require__.r(__webpack_exports__);
 
  //L https://github.com/thelinmichael/spotify-web-api-node
 // INTERNAL
+
 
 
 
@@ -725,7 +725,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     }); //C store refresh token in database
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(result => result.content);
+    let me = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx).then(result => result.content);
     await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
@@ -741,7 +741,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
   },
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
-    let me = await _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].session.get(ctx).then(result => result.content);
+    let me = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx).then(result => result.content);
     let refreshToken = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
@@ -890,6 +890,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -987,6 +988,7 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL
 // import fetch from 'node-fetch'; //C global.js uses fetch
  // INTERNAL
+
 
 
 
@@ -1194,54 +1196,6 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].liveData = _live_da
   console.log(rejected);
 });
 
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError = function (pgError, sjError) {
-  //TODO any validation needed here?
-  //TODO consider separating insertion checks into Conditions so multiple parameters are checked
-  //TODO add targets and cssClasses to each violation case too
-  sjError.code = pgError.code;
-  sjError.reason = pgError.message;
-  sjError.content = pgError; // https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-  // Class 23 — Integrity Constraint Violation
-
-  if (pgError.code === '23505') {
-    // unique_violation
-    // users
-    if (pgError.constraint === 'users_name_key') {
-      sjError.message = 'this user name is already taken';
-    }
-
-    if (pgError.constraint === 'users_email_key') {
-      sjError.message = 'this email is already in use';
-    } // playlists
-
-
-    if (pgError.constraint === 'playlists_userId_name_key') {
-      sjError.message = 'you already have a playlist with this name';
-    } // tracks
-
-
-    if (pgError.constraint === 'tracks_position_key') {
-      sjError.message = 'a track already exists at this position';
-    }
-  }
-
-  if (pgError.code === '23503') {
-    // foreign_key_violation
-    // playlists
-    if (pgError.constraint === 'playlists_userId_fkey') {
-      sjError.message = 'cannot add a playlist for an unknown user';
-    } // tracks
-
-
-    if (pgError.constraint === 'tracks_playlistId_fkey') {
-      sjError.message = 'cannot add a track for an unknown playlist';
-    }
-  }
-
-  sjError.announce();
-  return sjError;
-};
-
 _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildValues = function (mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //C this shouldn't insert anything
@@ -1300,107 +1254,6 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function
 
     return pairs.join(', ');
   }
-}; //  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
-//  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
-//  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
-//  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
-//  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
-//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝ 
-// CRUD
-
-
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.login = async function (db, ctx, user) {
-  //C validate
-  user.name = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.name.rule.check(user.name).then(result => result.content);
-  user.password = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].schema.password.rule.check(user.password).then(result => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
-  //C get password
-
-  let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
-    return resolved.password;
-  }).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-      log: false,
-      origin: 'login()',
-      message: 'could not login, database error'
-    }));
-  }); //C check password
-
-  let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.compare(user.password, existingPassword).catch(rejected => {
-    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-      log: true,
-      origin: 'login()',
-      message: 'server error',
-      reason: 'hash compare failed',
-      content: rejected,
-      target: 'loginPassword',
-      cssClass: 'inputError'
-    });
-  });
-
-  if (!isMatch) {
-    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-      log: true,
-      origin: 'login()',
-      message: 'incorrect password',
-      target: 'loginPassword',
-      cssClass: 'inputError'
-    });
-  } //C get user
-
-
-  user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-    throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-      log: false,
-      origin: 'login()',
-      message: 'could not login, database error'
-    }));
-  });
-  ctx.session.user = new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"](user);
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-    origin: 'login()',
-    message: 'user logged in',
-    content: ctx.session.user
-  });
-};
-
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.get = async function (ctx) {
-  await _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn(ctx);
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-    origin: 'getMe()',
-    content: ctx.session.user
-  });
-};
-
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].session.logout = async function (ctx) {
-  delete ctx.session.user;
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-    origin: 'logout()',
-    message: 'user logged out'
-  });
-}; // UTIL
-
-
-_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isLoggedIn = async function (ctx) {
-  if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"]) || !_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(ctx.session.user.id, 'integer')) {
-    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-      log: true,
-      origin: 'isLoggedIn()',
-      code: 403,
-      message: 'you must be logged in to do this',
-      reason: 'user is not logged in',
-      target: 'notify',
-      cssClass: 'notifyError' // TODO consider denial error rather than error error (you messed up vs I messed up)
-
-    });
-  } //C redundancy check to make sure id is right format
-
-
-  await _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_7__["default"].id.check(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
-
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Success"]({
-    origin: 'isLoggedIn()',
-    message: 'user is logged in'
-  });
 }; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
@@ -1654,7 +1507,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.add()`,
           message: `could not add ${this.name}s`
@@ -1671,7 +1524,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.get()`,
           message: `could not get ${this.name}s`
@@ -1695,7 +1548,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.edit()`,
           message: `could not edit ${this.names}`
@@ -1711,7 +1564,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: `sj.${this.name}.remove()`,
           message: `could not remove ${this.names}s`
@@ -1885,7 +1738,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
       //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
       //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
       await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-        throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
           log: false,
           origin: 'Track.move()',
           message: 'could not order tracks, database error',
@@ -1983,7 +1836,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
 						)
 					`, track.id);
           const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-            throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+            throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               log: false,
               origin: 'Track.order()',
               message: 'could not move tracks'
@@ -2009,7 +1862,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
 							FROM "sj"."tracks" 
 							WHERE "playlistId" = $1
 						`, track.playlistId).catch(rejected => {
-              throw _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].parsePostgresError(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+              throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_11__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
                 log: false,
                 origin: 'Track.order()',
                 message: 'could not move tracks'
@@ -2716,6 +2569,67 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_8__["Subscription"].augmentClass({
 
 /***/ }),
 
+/***/ "./source/server/parse-postgres-error.js":
+/*!***********************************************!*\
+  !*** ./source/server/parse-postgres-error.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return parsePostgresError; });
+function parsePostgresError(pgError, sjError) {
+  //TODO any validation needed here?
+  //TODO consider separating insertion checks into Conditions so multiple parameters are checked
+  //TODO add targets and cssClasses to each violation case too
+  sjError.code = pgError.code;
+  sjError.reason = pgError.message;
+  sjError.content = pgError; // https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
+  // Class 23 — Integrity Constraint Violation
+
+  if (pgError.code === '23505') {
+    // unique_violation
+    // users
+    if (pgError.constraint === 'users_name_key') {
+      sjError.message = 'this user name is already taken';
+    }
+
+    if (pgError.constraint === 'users_email_key') {
+      sjError.message = 'this email is already in use';
+    } // playlists
+
+
+    if (pgError.constraint === 'playlists_userId_name_key') {
+      sjError.message = 'you already have a playlist with this name';
+    } // tracks
+
+
+    if (pgError.constraint === 'tracks_position_key') {
+      sjError.message = 'a track already exists at this position';
+    }
+  }
+
+  if (pgError.code === '23503') {
+    // foreign_key_violation
+    // playlists
+    if (pgError.constraint === 'playlists_userId_fkey') {
+      sjError.message = 'cannot add a playlist for an unknown user';
+    } // tracks
+
+
+    if (pgError.constraint === 'tracks_playlistId_fkey') {
+      sjError.message = 'cannot add a track for an unknown playlist';
+    }
+  }
+
+  sjError.announce();
+  return sjError;
+}
+;
+
+/***/ }),
+
 /***/ "./source/server/routes.js":
 /*!*********************************!*\
   !*** ./source/server/routes.js ***!
@@ -2745,6 +2659,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2820,6 +2735,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //! side-effects
+
 
 
 
@@ -2934,12 +2850,12 @@ __webpack_require__.r(__webpack_exports__);
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.login(_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].db, ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["login"](_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].db, ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.get(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["get"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).delete('/session', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].session.logout(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["logout"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }) //TODO condense this
   // user
   .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
@@ -3035,6 +2951,139 @@ __webpack_require__.r(__webpack_exports__);
   });
   return router;
 });
+;
+
+/***/ }),
+
+/***/ "./source/server/session-methods.js":
+/*!******************************************!*\
+  !*** ./source/server/session-methods.js ***!
+  \******************************************/
+/*! exports provided: login, get, logout */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "login", function() { return login; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "get", function() { return get; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "logout", function() { return logout; });
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+// EXTERNAL
+ // INTERNAL
+
+
+
+
+
+ // CREATE
+
+async function login(db, ctx, user) {
+  //C validate
+  user.name = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.name.rule.check(user.name).then(result => result.content);
+  user.password = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.password.rule.check(user.password).then(result => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  //C get password
+
+  let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
+    return resolved.password;
+  }).catch(rejected => {
+    throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      log: false,
+      origin: 'login()',
+      message: 'could not login, database error'
+    }));
+  }); //C check password
+
+  let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.compare(user.password, existingPassword).catch(rejected => {
+    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      log: true,
+      origin: 'login()',
+      message: 'server error',
+      reason: 'hash compare failed',
+      content: rejected,
+      target: 'loginPassword',
+      cssClass: 'inputError'
+    });
+  });
+
+  if (!isMatch) {
+    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      log: true,
+      origin: 'login()',
+      message: 'incorrect password',
+      target: 'loginPassword',
+      cssClass: 'inputError'
+    });
+  } //C get user
+
+
+  user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
+    throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      log: false,
+      origin: 'login()',
+      message: 'could not login, database error'
+    }));
+  });
+  ctx.session.user = new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](user);
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+    origin: 'login()',
+    message: 'user logged in',
+    content: ctx.session.user
+  });
+}
+; // READ
+
+async function get(ctx) {
+  await isLoggedIn(ctx).catch(rejected => {
+    //TODO Temporary until route error handling can be reworked.
+    console.log('Error in server api session.get()', rejected);
+  });
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+    origin: 'getMe()',
+    content: ctx.session.user
+  });
+}
+; // UPDATE
+//?
+// DELETE
+
+async function logout(ctx) {
+  delete ctx.session.user;
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+    origin: 'logout()',
+    message: 'user logged out'
+  });
+}
+;
+
+async function isLoggedIn(ctx) {
+  if (!(ctx.session.user instanceof _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ctx.session.user.constructorName === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.test(ctx.session.user.id)) {
+    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      log: true,
+      origin: 'isLoggedIn()',
+      code: 403,
+      message: 'you must be logged in to do this',
+      reason: 'user is not logged in',
+      target: 'notify',
+      cssClass: 'notifyError' // TODO consider denial error rather than error error (you messed up vs I messed up)
+
+    });
+  } //C redundancy check to make sure id is right format
+
+
+  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.validate(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page)
+
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+    origin: 'isLoggedIn()',
+    message: 'user is logged in'
+  });
+}
+
 ;
 
 /***/ }),

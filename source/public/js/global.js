@@ -119,8 +119,6 @@ const sj = {};
 
 //C these reference sj.Bases, don't call these until classes are defined
 
-// SESSION //C holds login, get, logout, etc. methods
-sj.session = {};
 
 // TYPE
 //TODO refactor this out, but this will be a lot of work to test

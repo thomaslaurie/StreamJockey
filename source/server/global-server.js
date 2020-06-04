@@ -129,6 +129,7 @@ import {
 	Track,
 } from '../shared/entities/index.js';
 import propagate from '../shared/propagate.js';
+import parsePostgresError from './parse-postgres-error.js';
 
 
 
@@ -355,51 +356,6 @@ sj.liveData = liveData;
     console.log(rejected);
 });
 
-sj.parsePostgresError = function (pgError, sjError) {
-    //TODO any validation needed here?
-    //TODO consider separating insertion checks into Conditions so multiple parameters are checked
-    //TODO add targets and cssClasses to each violation case too
-
-    sjError.code = pgError.code;
-    sjError.reason = pgError.message;
-    sjError.content = pgError;
-
-    // https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-
-    // Class 23 — Integrity Constraint Violation
-    if (pgError.code === '23505') { // unique_violation
-        // users
-        if (pgError.constraint === 'users_name_key') {
-            sjError.message = 'this user name is already taken';
-        }
-        if (pgError.constraint === 'users_email_key') {
-            sjError.message = 'this email is already in use';
-        }
-        // playlists
-        if (pgError.constraint === 'playlists_userId_name_key') {
-            sjError.message = 'you already have a playlist with this name';
-        }
-        // tracks
-        if (pgError.constraint === 'tracks_position_key') {
-            sjError.message = 'a track already exists at this position';
-        }
-    }
-
-    if (pgError.code === '23503') { // foreign_key_violation
-        // playlists
-        if (pgError.constraint === 'playlists_userId_fkey') {
-            sjError.message = 'cannot add a playlist for an unknown user';
-        }
-        // tracks
-        if (pgError.constraint === 'tracks_playlistId_fkey') {
-            sjError.message = 'cannot add a track for an unknown playlist';
-        }
-    }
-
-    sjError.announce();
-    return sjError;
-}
-
 
 sj.buildValues = function (mappedEntity) {
 	if (Object.keys(mappedEntity).length === 0) {
@@ -458,109 +414,6 @@ sj.buildSet = function (mappedEntity) {
 		//C join with ', '
 		return pairs.join(', ');
 	}
-};
-
-
-//  ███████╗███████╗███████╗███████╗██╗ ██████╗ ███╗   ██╗
-//  ██╔════╝██╔════╝██╔════╝██╔════╝██║██╔═══██╗████╗  ██║
-//  ███████╗█████╗  ███████╗███████╗██║██║   ██║██╔██╗ ██║
-//  ╚════██║██╔══╝  ╚════██║╚════██║██║██║   ██║██║╚██╗██║
-//  ███████║███████╗███████║███████║██║╚██████╔╝██║ ╚████║
-//  ╚══════╝╚══════╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝ 
-
-// CRUD
-sj.session.login = async function (db, ctx, user) {
-	//C validate
-	user.name = await User.schema.name.rule.check(user.name).then((result) => result.content);
-	user.password = await User.schema.password.rule.check(user.password).then((result) => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
-
-    //C get password
-    let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
-        return resolved.password;
-    }).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new Err({
-            log: false,
-            origin: 'login()',
-            message: 'could not login, database error',
-        }));
-    });
-
-    //C check password
-    let isMatch = await bcrypt.compare(user.password, existingPassword).catch(rejected => {
-        throw new Err({
-            log: true,
-            origin: 'login()',
-            message: 'server error',
-            reason: 'hash compare failed',
-            content: rejected,
-            target: 'loginPassword',
-            cssClass: 'inputError',
-        });
-    });
-    if (!isMatch) {
-        throw new Err({
-            log: true,
-            origin: 'login()',
-            message: 'incorrect password',
-            target: 'loginPassword',
-            cssClass: 'inputError',
-        });
-    }
-
-    //C get user
-    user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-        throw sj.parsePostgresError(rejected, new Err({
-            log: false,
-            origin: 'login()',
-            message: 'could not login, database error',
-        }));
-    });
-
-    ctx.session.user = new User(user);
-    return new Success({
-        origin: 'login()',
-        message: 'user logged in',
-        content: ctx.session.user,
-    });
-};
-sj.session.get = async function (ctx) {
-    await sj.isLoggedIn(ctx);
-    return new Success({
-        origin: 'getMe()',
-        content: ctx.session.user,
-    });
-};
-sj.session.logout = async function (ctx) {
-    delete ctx.session.user;
-    return new Success({
-        origin: 'logout()',
-        message: 'user logged out',
-    });
-};
-
-// UTIL
-sj.isLoggedIn = async function (ctx) {
-    if (!sj.isType(ctx.session.user, User) || !sj.isType(ctx.session.user.id, 'integer')) {
-        throw new Err({
-            log: true,
-            origin: 'isLoggedIn()',
-            code: 403,
-        
-            message: 'you must be logged in to do this',
-            reason: 'user is not logged in',
-            target: 'notify',
-            cssClass: 'notifyError', // TODO consider denial error rather than error error (you messed up vs I messed up)
-        });
-    }
-	//C redundancy check to make sure id is right format
-	await Rule1.id.check(ctx.session.user.id);
-
-    //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database everytime the user wants to know if they're logged in, (every page)
-
-    return new Success({
-        origin: 'isLoggedIn()',
-        message: 'user is logged in',
-    });
 };
 
 
@@ -835,7 +688,7 @@ Entity.augmentClass({
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => { 
-				throw sj.parsePostgresError(rejected, new Err({
+				throw parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.add()`,
 					message: `could not add ${this.name}s`,
@@ -853,7 +706,7 @@ Entity.augmentClass({
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new Err({
+				throw parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.get()`,
 					message: `could not get ${this.name}s`,
@@ -873,7 +726,7 @@ Entity.augmentClass({
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new Err({
+				throw parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.edit()`,
 					message: `could not edit ${this.names}`,
@@ -890,7 +743,7 @@ Entity.augmentClass({
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new Err({
+				throw parsePostgresError(rejected, new Err({
 					log: false,
 					origin: `sj.${this.name}.remove()`,
 					message: `could not remove ${this.names}s`,
@@ -1053,7 +906,7 @@ Track.augmentClass({
 			//L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
 			//L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
 			await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-				throw sj.parsePostgresError(rejected, new Err({
+				throw parsePostgresError(rejected, new Err({
 					log: false,
 					origin: 'Track.move()',
 					message: 'could not order tracks, database error',
@@ -1174,7 +1027,7 @@ Track.augmentClass({
 						)
 					`, track.id);
 					const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-						throw sj.parsePostgresError(rejected, new Err({
+						throw parsePostgresError(rejected, new Err({
 							log: false,
 							origin: 'Track.order()',
 							message: 'could not move tracks',
@@ -1202,7 +1055,7 @@ Track.augmentClass({
 							FROM "sj"."tracks" 
 							WHERE "playlistId" = $1
 						`, track.playlistId).catch(rejected => {
-							throw sj.parsePostgresError(rejected, new Err({
+							throw parsePostgresError(rejected, new Err({
 								log: false,
 								origin: 'Track.order()',
 								message: 'could not move tracks',

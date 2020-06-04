@@ -11,6 +11,7 @@
 	import {
 		Subscription,
 	} from '../../../shared/live-data.js';
+	import * as session from '../../../client/session-methods.js';
 	
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
@@ -131,13 +132,13 @@
 
 
             async login() {
-                this.currentUser = await this.sj.session.login({name: this.name, password: this.password}).then((result) => result.content).catch(rejected => {
+                this.currentUser = await session.login({name: this.name, password: this.password}).then((result) => result.content).catch(rejected => {
                     console.error(rejected);
 				});
 				this.isLoggedIn = true;
 			},
 			async logout() {
-				await this.sj.session.logout().catch(rejected => {
+				await session.logout().catch(rejected => {
 					console.error(rejected);
 				});
 				this.isLoggedIn = false;
