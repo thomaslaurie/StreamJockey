@@ -38010,6 +38010,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -38052,6 +38053,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
 
  // INTERNAL
+
 
 
 
@@ -38159,7 +38161,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command = _shared_legacy_clas
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
       //C otherCommand must be an sj.Command, and have the same playback-state properties
-      return _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command) && otherCommand.source === this.source;
+      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(otherCommand, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Command, 'Command') && otherCommand.source === this.source;
     },
 
     collapseCondition(otherCommand) {
@@ -38184,7 +38186,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //G must be given a track
-      if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(accessory.options.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"])) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(accessory.options.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"], 'Track')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
         origin: 'sj.Start.beforeInitialize()',
         reason: 'sj.Start instance.track must be an Track',
         content: accessory.options.track
@@ -38199,7 +38201,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Start = _shared_legacy_classe
   }),
   prototypeProperties: parent => ({
     identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(otherCommand.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]) //C catch non-Tracks
+      return parent.prototype.identicalCondition.call(this, otherCommand) && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(otherCommand.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"], 'Track') //C catch non-Tracks
       && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
       && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
     },
@@ -38868,10 +38870,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
     actualTrack: (state, getters, rootState, rootGetters) => {
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(sourceOrBaseTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"])) {
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(sourceOrBaseTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"], 'Track')) {
         //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.currentTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(getters.startingTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(getters.currentTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(getters.startingTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -38931,10 +38933,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__["Subscription"])) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__["Subscription"])) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_12__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
     }
   }
 }); // SOURCE
@@ -39098,7 +39100,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
         var _ref16 = _asyncToGenerator(function* (that) {
           var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_6__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
 
-          if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"])) {
+          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_15__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"], 'AuthRequired')) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
           } else if (result instanceof _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]) {
@@ -61300,6 +61302,23 @@ __webpack_require__.r(__webpack_exports__);
   }
 
 }));
+
+/***/ }),
+
+/***/ "./source/shared/is-instance-of.js":
+/*!*****************************************!*\
+  !*** ./source/shared/is-instance-of.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+//TODO Replace all references to this function with an instanceof or interface test.
+/* harmony default export */ __webpack_exports__["default"] = (function (value, Class, className) {
+  return value instanceof Class || (value === null || value === void 0 ? void 0 : value.constructorName) === className;
+});
+;
 
 /***/ }),
 

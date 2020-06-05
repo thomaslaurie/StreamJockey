@@ -80,6 +80,7 @@ import {
 import {
 	JSON_HEADER,
 } from '../../shared/constants.js';
+import isInstanceOf from '../../shared/is-instance-of.js';
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
@@ -177,7 +178,7 @@ sj.Command = Base.makeClass('Command', Base, {
 	prototypeProperties: parent => ({
 		identicalCondition(otherCommand) {
 			//C otherCommand must be an sj.Command, and have the same playback-state properties
-			return sj.isType(otherCommand, sj.Command)
+			return isInstanceOf(otherCommand, sj.Command, 'Command')
 			&& otherCommand.source === this.source;
 		}, 
 		collapseCondition(otherCommand) {
@@ -195,7 +196,7 @@ sj.Start = Base.makeClass('Start', sj.Command, {
 	constructorParts: parent => ({
 		beforeInitialize(accessory) {
 			//G must be given a track
-			if (!sj.isType(accessory.options.track, Track)) throw new Err({
+			if (!isInstanceOf(accessory.options.track, Track, 'Track')) throw new Err({
 				origin: 'sj.Start.beforeInitialize()',
 				reason: 'sj.Start instance.track must be an Track',
 				content: accessory.options.track,
@@ -210,7 +211,7 @@ sj.Start = Base.makeClass('Start', sj.Command, {
 	prototypeProperties: parent => ({
 		identicalCondition(otherCommand) {
 			return parent.prototype.identicalCondition.call(this, otherCommand) 
-			&& sj.isType(otherCommand.track, Track) //C catch non-Tracks
+			&& isInstanceOf(otherCommand.track, Track, 'Track') //C catch non-Tracks
 			&& otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
 			&& otherCommand.isPlaying === this.isPlaying
 			&& otherCommand.progress === this.progress;
@@ -785,10 +786,10 @@ sj.Playback.module = new sj.Playback({
 		},
 		actualTrack:		(state, getters, rootState, rootGetters) => {
 			const sourceOrBaseTrack = getters.sourceOrBase('track');
-			if (sj.isType(sourceOrBaseTrack, Track)) {
+			if (isInstanceOf(sourceOrBaseTrack, Track, 'Track')) {
 				//C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-				if (sj.isType(getters.currentTrack, Track) && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-				if (sj.isType(getters.startingTrack, Track) && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+				if (isInstanceOf(getters.currentTrack, Track, 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+				if (isInstanceOf(getters.startingTrack, Track, 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
 			}
 			
 			return sourceOrBaseTrack;
@@ -852,11 +853,11 @@ sj.Playback.module = new sj.Playback({
 
 		// LOCAL TRACKS
 		currentTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.currentTrackSubscription, Subscription)) return one(rootGetters.getLiveData(state.currentTrackSubscription));
+			if (isInstanceOf(state.currentTrackSubscription, Subscription, 'Subscription')) return one(rootGetters.getLiveData(state.currentTrackSubscription));
 			else return null;
 		},
 		startingTrack:		(state, getters, rootState, rootGetters) => {
-			if (sj.isType(state.startingTrackSubscription, Subscription)) return one(rootGetters.getLiveData(state.startingTrackSubscription));
+			if (isInstanceOf(state.startingTrackSubscription, Subscription, 'Subscription')) return one(rootGetters.getLiveData(state.startingTrackSubscription));
 			else return null;
 		},
 	},
@@ -1024,7 +1025,7 @@ sj.spotify = new Source({
 		let that = this;
 		let refresh = async function (that) {
 			let result = await serverRequest('GET', `spotify/refreshToken`).catch(returnPropagate);
-			if (sj.isType(result, AuthRequired)) {
+			if (isInstanceOf(result, AuthRequired, 'AuthRequired')) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
 			} else if (result instanceof Err) {
