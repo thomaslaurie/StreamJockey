@@ -38878,9 +38878,12 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
     },
     actualIsPlaying: (state, getters) => getters.sourceOrBase('isPlaying'),
     actualProgress: (state, getters) => {
-      var progress = getters.sourceOrBase('progress');
+      var _state$source;
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.source, Object) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state[state.source.name], Object) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state[state.source.name].track, Object) && state[state.source.name].isPlaying) {
+      var progress = getters.sourceOrBase('progress');
+      var source = state === null || state === void 0 ? void 0 : state[state === null || state === void 0 ? void 0 : (_state$source = state.source) === null || _state$source === void 0 ? void 0 : _state$source.name];
+
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
         //C if playing, return inferred progress
         var elapsedTime = state.clock - state[state.source.name].timestamp;
         var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
@@ -38903,7 +38906,10 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module = new _global
       //C value starts as the actualValue
       var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
 
-      if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key]; //C then if defined, each queuedCommand
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
+        value = state.sentCommand[key];
+      } //C then if defined, each queuedCommand
+
 
       for (var queuedCommand of state.commandQueue) {
         if (queuedCommand[key] !== undefined) value = queuedCommand[key];
@@ -39095,7 +39101,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
           if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"])) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
-          } else if (_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"])) {
+          } else if (result instanceof _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]) {
             throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["default"])(result);
           } else {
             //C assign sj.spotify.credentials
@@ -39196,7 +39202,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
               });
               player.formatState = function (state) {
                 //TODO state could be anything from the callback, better validate it somehow
-                if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(state, Object)) return {};
+                if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(state)) return {};
                 var t = state.track_window.current_track;
                 return {
                   track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"]({
@@ -39362,7 +39368,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_
                     until(result) {
                       //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
                       //C this is fine, it just means that it's not ready, so just catch anything.
-                      return _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result, Object) && _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result.device, Object) && result.device.id === device_id;
+                      return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(result) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(result.device) && result.device.id === device_id;
                     },
 
                     timeout: _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.requestTimeout * 2
@@ -40363,7 +40369,7 @@ _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatContentDetails 
   return pack;
 }, _global_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube.formatSnippet = function (snippet) {
   var pack = {};
-  if (!_global_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(snippet, Object)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
+  if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(snippet)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_8__["Err"]({
     origin: 'sj.youtube.formatSnippet()',
     reason: 'snippet is not an object'
   }); //C assuming title format of 'Artist - Title'

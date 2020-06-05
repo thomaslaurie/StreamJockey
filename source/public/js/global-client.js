@@ -42,12 +42,10 @@ import {
 	clamp, 
 	capitalizeFirstCharacter,
 	escapeRegExp,
-	pick,
 	asyncMap,
 	wait,
 	Deferred,
 	one,
-	any,
 	repeat,
 	rules,
 } from '../../shared/utility/index.js';
@@ -799,12 +797,8 @@ sj.Playback.module = new sj.Playback({
 		actualProgress:		(state, getters) => {
 			let progress = getters.sourceOrBase('progress');
 
-			if (
-				sj.isType(state.source, Object) && 
-				sj.isType(state[state.source.name], Object) &&
-				sj.isType(state[state.source.name].track, Object) && 
-				state[state.source.name].isPlaying
-			) {
+			const source = state?.[state?.source?.name];
+			if (rules.object.test(source?.track) && source?.isPlaying) {
 				//C if playing, return inferred progress
 				const elapsedTime = state.clock - state[state.source.name].timestamp;
 				const elapsedProgress = elapsedTime / state[state.source.name].track.duration;
@@ -830,7 +824,9 @@ sj.Playback.module = new sj.Playback({
 			//C value starts as the actualValue
 			let value = getters[`actual${capitalizeFirstCharacter(key)}`];
 			//C then if defined, sentCommand
-			if (sj.isType(state.sentCommand, Object) && state.sentCommand[key] !== undefined) value = state.sentCommand[key];
+			if (rules.object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
+				value = state.sentCommand[key];
+			}
 			//C then if defined, each queuedCommand
 			for (const queuedCommand of state.commandQueue) {
 				if (queuedCommand[key] !== undefined) value = queuedCommand[key];
@@ -1031,7 +1027,7 @@ sj.spotify = new Source({
 			if (sj.isType(result, AuthRequired)) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
-			} else if (sj.isType(result, Err)) {
+			} else if (result instanceof Err) {
 				throw propagate(result);
 			} else {
 				//C assign sj.spotify.credentials
@@ -1115,7 +1111,7 @@ sj.spotify = new Source({
 						});
 						player.formatState = function (state) {
 							//TODO state could be anything from the callback, better validate it somehow
-							if (!sj.isType(state, Object)) return {};
+							if (!rules.object.test(state)) return {};
 							const t = state.track_window.current_track; 
 							return {
 								track: new Track({
@@ -1249,8 +1245,8 @@ sj.spotify = new Source({
 									//L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
 									//C this is fine, it just means that it's not ready, so just catch anything.
 									return (
-										sj.isType(result, Object) 		 &&
-										sj.isType(result.device, Object) &&
+										rules.object.test(result) 		 &&
+										rules.object.test(result.device) &&
 										result.device.id === device_id
 									);
 								},
@@ -2119,7 +2115,7 @@ sj.youtube.formatContentDetails = function (contentDetails) {
 },
 sj.youtube.formatSnippet = function (snippet) {
 	const pack = {};
-	if (!sj.isType(snippet, Object)) throw new Err({
+	if (!rules.object.test(snippet)) throw new Err({
 		origin: 'sj.youtube.formatSnippet()',
 		reason: 'snippet is not an object',
 	});
