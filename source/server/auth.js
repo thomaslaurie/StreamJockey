@@ -143,9 +143,9 @@ sj.spotify = new Source({
     authRequestManually: true,
     makeAuthRequestURL: function (key) {
 		//TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-		if (!sj.isType(this.api._credentials.clientId, String) ||
-		!sj.isType(this.api._credentials.clientSecret, String) ||
-		!sj.isType(this.api._credentials.redirectUri, String)) {
+		if (!rules.string.test(this.api._credentials.clientId) ||
+		!rules.string.test(this.api._credentials.clientSecret) ||
+		!rules.string.test(this.api._credentials.redirectUri)) {
             throw new Err({
                 log: true,
                 origin: 'spotify.makeAuthRequestURL()',
@@ -192,7 +192,7 @@ Object.assign(sj.spotify, {
 		//C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
 		await auth.checkRequestKey(query.state);
 		//C ensure that spotify sent the code
-		if (sj.isType(query.code, undefined)) {
+		if (query.code === undefined) {
 			emitter.emit(query.state, new Err({
 				log: true,
 				origin: 'receiveAuthRequest()',
@@ -202,7 +202,7 @@ Object.assign(sj.spotify, {
 			}));
 		}
 		//C ensure that spotify didn't send an error
-		if (!sj.isType(query.error, undefined)) {
+		if (query.error !== undefined) {
 			emitter.emit(query.state, new Err({
 				log: true,
 				origin: 'receiveAuthRequest()',
@@ -312,7 +312,7 @@ Object.assign(sj.spotify, {
 		});
 
 		//C if a new refresh token was sent
-		if (sj.isType(result.refresh_token, 'string')) { //? better validation?
+		if (rules.string.test(result.refresh_token)) { //? better validation?
 			//C store it
 			await User.edit({id: me.id, spotifyRefreshToken: result.refresh_token});	
 		}

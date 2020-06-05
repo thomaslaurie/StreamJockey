@@ -606,7 +606,7 @@ _global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_
   authRequestManually: true,
   makeAuthRequestURL: function (key) {
     //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientId, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.clientSecret, String) || !_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(this.api._credentials.redirectUri, String)) {
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(this.api._credentials.clientId) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(this.api._credentials.clientSecret) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(this.api._credentials.redirectUri)) {
       throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: 'spotify.makeAuthRequestURL()',
@@ -650,7 +650,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
     await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.code, undefined)) {
+    if (query.code === undefined) {
       emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: 'receiveAuthRequest()',
@@ -661,7 +661,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
     } //C ensure that spotify didn't send an error
 
 
-    if (!_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(query.error, undefined)) {
+    if (query.error !== undefined) {
       emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
         log: true,
         origin: 'receiveAuthRequest()',
@@ -768,7 +768,7 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify,
       });
     }); //C if a new refresh token was sent
 
-    if (_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].isType(result.refresh_token, 'string')) {
+    if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(result.refresh_token)) {
       //? better validation?
       //C store it
       await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit({
