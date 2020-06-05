@@ -62370,7 +62370,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
  // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (error, overwriteOptions) {
+/* harmony default export */ __webpack_exports__["default"] = (function (value, overwriteOptions) {
   if (value instanceof Error) {
     throw value;
   } else {

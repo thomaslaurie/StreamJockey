@@ -108,6 +108,7 @@ import {
 	stableSort,
 	asyncMap,
 	any,
+	rules,
 } from '../shared/utility/index.js';
 import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
@@ -138,13 +139,13 @@ import parsePostgresError from './parse-postgres-error.js';
 function isEmpty(input) {
 	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
 	return !(
-		sj.isType(input, 'boolean') || 
-        sj.isType(input, 'number') || 
+		rules.boolean.test(input) ||
+        rules.number.test(input) || 
         //C check for empty and whitespace strings and string conversions of null and undefined
         //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-        (sj.isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') ||
-        (sj.isType(input, 'object') && Object.keys(input).length > 0) ||
-        (sj.isType(input, 'array') && input.length > 0)
+        (rules.string.test(input) && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') ||
+        (rules.object.test(input) && Object.keys(input).length > 0) ||
+        (rules.array.test(input) && input.length > 0)
 	);
 };
 
@@ -391,7 +392,7 @@ sj.buildWhere = function (mappedEntity) {
 		let pairs = [];
 		pairs = Object.keys(mappedEntity).map(key => {
 			//C wrap array in another array so that pgp doesn't think its values are for separate placeholders
-			let input = sj.isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+			let input = (rules.array.test(mappedEntity[key])) ? [mappedEntity[key]] : mappedEntity[key];
 			return pgp.as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
 		});
 
@@ -408,7 +409,7 @@ sj.buildSet = function (mappedEntity) {
 		let pairs = [];
 		//C pair as formatted string
 		pairs = Object.keys(mappedEntity).map(key => {
-			let input = sj.isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+			let input = (rules.array.test(mappedEntity[key])) ? [mappedEntity[key]] : mappedEntity[key];
 			return pgp.as.format(`"${key}" = $1`, input);
 		});
 		//C join with ', '
@@ -648,7 +649,7 @@ Entity.augmentClass({
 			return entities.map(entity => { //C for each entity
 				let mappedEntity = {};
 				Object.keys(entity).forEach(key => { //C for each property
-					if (sj.isType(this.schema[key], Object) && sj.isType(this.schema[key].columnName, String)) { //C if schema has property 
+					if (rules.object.test(this.schema[key]) && rules.string.test(this.schema[key].columnName)) { //C if schema has property 
 						mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
 					} else {
 						console.warn(`Entity.mapColumns() - property ${key} in entity not found in schema`);
@@ -663,7 +664,7 @@ Entity.augmentClass({
 				let entity = {};
 				Object.keys(mappedEntity).forEach(columnName => { //C for each columnName
 					let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
-					if (sj.isType(key, String)) {
+					if (rules.string.test(key)) {
 						//C set entity[key] as value of mappedEntity[columnName]
 						entity[key] = mappedEntity[columnName];
 					} else {
@@ -822,15 +823,17 @@ User.augmentClass({
 	
 			//C hash password
 			//TODO might be a vulnerability here with this string check
-			if (sj.isType(newUser.password, String)) newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
-				throw new Err({
-					log: true,
-					origin: 'User.add()',
-					message: 'failed to add user',
-					reason: 'hash failed',
-					content: rejected,
+			if (rules.string.test(newUser.password)) {
+				newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
+					throw new Err({
+						log: true,
+						origin: 'User.add()',
+						message: 'failed to add user',
+						reason: 'hash failed',
+						content: rejected,
+					});
 				});
-			});
+			}
 	
 			return newUser;
 		};
@@ -876,7 +879,8 @@ Track.augmentClass({
 		this.removeBefore = async function (t, entities) {
 			let newEntities = entities.slice();
 			newEntities.forEach(entity => {
-				entity.source = sj.isType(entity.source, Object) && sj.isType(entity.source.name, String)
+				//TODO Possible issue here where the condition following && could evaluate first. Not sure what the precedense is.
+				entity.source = rules.object.test(entity.source) && rules.string.test(entity.source.name)
 				? entity.source.name
 				: undefined;
 			});
@@ -886,7 +890,7 @@ Track.augmentClass({
 		this.addPrepare = async function (t, track) {
 			//C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
 			let newTrack = {...track, id: Symbol()};
-			if (!sj.isType(newTrack.position, 'integer')) {
+			if (!rules.integer.test(newTrack.position)) {
 				let existingTracks = await Track.get({playlistId: newTrack.playlistId}, t).then((result) => result.content);
 				newTrack.position = existingTracks.length;
 			}
@@ -972,11 +976,11 @@ Track.augmentClass({
 				//C retrieve track's playlist, group each track by playlist & moveType
 				await asyncMap(inputTracks, async (track, index) => {
 					const storePlaylist = function (playlistId, existingTracks) {
-						if (!sj.isType(playlistId, 'integer')) throw new Err({
+						if (!rules.integer.test(playlistId)) throw new Err({
 							origin: 'Track.order()',
 							reason: `playlistId is not an integer: ${playlistId}`,
 						});
-						if (!Array.isArray(existingTracks)) throw new Err({
+						if (!rules.array.test(existingTracks)) throw new Err({
 							origin: 'Track.order()',
 							reason: `existingTracks is not an array: ${existingTracks}`,
 						});
@@ -1043,7 +1047,7 @@ Track.augmentClass({
 					});
 	
 					
-					if (!sj.isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) { 
+					if (!rules.integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) { 
 						//C if not switching playlists
 						//C group by action
 						currentPlaylistStored['inputsTo'+action].push(track);
@@ -1102,7 +1106,7 @@ Track.augmentClass({
 					playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove];
 					//C give tracks with no position an Infinite position so they get added to the bottom of the playlist
 					playlist.inputsToPosition.forEach(trackToPosition => {
-						if (!sj.isType(trackToPosition.position, Number)) {
+						if (!rules.number.test(trackToPosition.position)) {
 							trackToPosition.position === Infinity;
 						}
 					});

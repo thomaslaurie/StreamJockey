@@ -7,7 +7,7 @@ import safeStringify from './derived-utility/safe-stringify.js';
 import UnexpectedValueThrown from './errors/unexpected-value-thrown.js';
 
 // Wraps the passed value in an Error instance if it isn't one. Then throws it.
-export default function (error, overwriteOptions) {
+export default function (value, overwriteOptions) {
 	if (value instanceof Error) {
 		throw value;
 	} else {

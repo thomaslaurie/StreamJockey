@@ -1004,9 +1004,9 @@ __webpack_require__.r(__webpack_exports__);
 
 function isEmpty(input) {
   //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-  return !(_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'boolean') || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'number') || //C check for empty and whitespace strings and string conversions of null and undefined
+  return !(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.test(input) || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].number.test(input) || //C check for empty and whitespace strings and string conversions of null and undefined
   //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-  _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'string') && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'object') && Object.keys(input).length > 0 || _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(input, 'array') && input.length > 0);
+  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(input) && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(input) && Object.keys(input).length > 0 || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(input) && input.length > 0);
 }
 
 ; //  ██╗███╗   ██╗██╗████████╗
@@ -1230,7 +1230,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildWhere = functi
     let pairs = [];
     pairs = Object.keys(mappedEntity).map(key => {
       //C wrap array in another array so that pgp doesn't think its values are for separate placeholders
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
       return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
     }); //C join with ' AND '
 
@@ -1248,7 +1248,7 @@ _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].buildSet = function
     let pairs = []; //C pair as formatted string
 
     pairs = Object.keys(mappedEntity).map(key => {
-      let input = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(mappedEntity[key], Array) ? [mappedEntity[key]] : mappedEntity[key];
+      let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
       return _db_js__WEBPACK_IMPORTED_MODULE_3__["pgp"].as.format(`"${key}" = $1`, input);
     }); //C join with ', '
 
@@ -1464,7 +1464,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
         let mappedEntity = {};
         Object.keys(entity).forEach(key => {
           //C for each property
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key], Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(this.schema[key].columnName, String)) {
+          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(this.schema[key]) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.schema[key].columnName)) {
             //C if schema has property 
             mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
           } else {
@@ -1484,7 +1484,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Entity"].augmentClass({
           //C for each columnName
           let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
 
-          if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(key, String)) {
+          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(key)) {
             //C set entity[key] as value of mappedEntity[columnName]
             entity[key] = mappedEntity[columnName];
           } else {
@@ -1657,15 +1657,18 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["User"].augmentClass({
       let newUser = Object.assign([], user); //C hash password
       //TODO might be a vulnerability here with this string check
 
-      if (_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newUser.password, String)) newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, saltRounds).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-          log: true,
-          origin: 'User.add()',
-          message: 'failed to add user',
-          reason: 'hash failed',
-          content: rejected
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(newUser.password)) {
+        newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, saltRounds).catch(rejected => {
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+            log: true,
+            origin: 'User.add()',
+            message: 'failed to add user',
+            reason: 'hash failed',
+            content: rejected
+          });
         });
-      });
+      }
+
       return newUser;
     };
 
@@ -1703,7 +1706,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
     this.addBefore = this.getBefore = this.editBefore = this.removeBefore = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source, Object) && _public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(entity.source.name, String) ? entity.source.name : undefined;
+        //TODO Possible issue here where the condition following && could evaluate first. Not sure what the precedense is.
+        entity.source = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(entity.source) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(entity.source.name) ? entity.source.name : undefined;
       });
       return newEntities;
     };
@@ -1714,7 +1718,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
         id: Symbol()
       };
 
-      if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(newTrack.position, 'integer')) {
+      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(newTrack.position)) {
         let existingTracks = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].get({
           playlistId: newTrack.playlistId
         }, t).then(result => result.content);
@@ -1790,11 +1794,11 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
 
         await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(playlistId, 'integer')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(playlistId)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               origin: 'Track.order()',
               reason: `playlistId is not an integer: ${playlistId}`
             });
-            if (!Array.isArray(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
+            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
               origin: 'Track.order()',
               reason: `existingTracks is not an array: ${existingTracks}`
             }); //C stores playlist in playlists if not already stored
@@ -1850,7 +1854,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
             delete t.playlistId;
           });
 
-          if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(track.playlistId, 'integer') || track.playlistId === currentPlaylistStored.id) {
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
             //C if not switching playlists
             //C group by action
             currentPlaylistStored['inputsTo' + action].push(track);
@@ -1899,7 +1903,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_9__["Track"].augmentClass({
           playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
 
           playlist.inputsToPosition.forEach(trackToPosition => {
-            if (!_public_js_global_js__WEBPACK_IMPORTED_MODULE_2__["default"].isType(trackToPosition.position, Number)) {
+            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].number.test(trackToPosition.position)) {
               trackToPosition.position === Infinity;
             }
           }); //C sort
@@ -4988,7 +4992,7 @@ __webpack_require__.r(__webpack_exports__);
 
  // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (error, overwriteOptions) {
+/* harmony default export */ __webpack_exports__["default"] = (function (value, overwriteOptions) {
   if (value instanceof Error) {
     throw value;
   } else {
