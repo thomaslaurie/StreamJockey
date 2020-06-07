@@ -1,7 +1,7 @@
 import {
 	rules,
 } from '../../shared/utility/index.js';
-import serverRequest from '../../public/js/server-request.js';
+import serverRequest from '../server-request.js';
 import {
 	Err,
 } from '../../shared/legacy-classes/error.js';

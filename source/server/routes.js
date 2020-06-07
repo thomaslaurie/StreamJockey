@@ -118,7 +118,7 @@ export default function ({replaceIndex}) {
 	//TODO there has to be a cleaner way of doing this (especially the replace manipulation)
 	//R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
 	// const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-	const root = sourcePath('../build/public');
+	const root = sourcePath('../build/client');
 	const app = `/${clientIndexFileName}`;
 
 	// router

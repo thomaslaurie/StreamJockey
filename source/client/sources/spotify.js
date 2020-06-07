@@ -7,7 +7,7 @@ import {
 	rules,
 } from '../../shared/utility/index.js';
 import request from '../../shared/request.js';
-import serverRequest from '../../public/js/server-request.js';
+import serverRequest from '../server-request.js';
 import { 
 	AuthRequired, 
 	Unreachable,
@@ -477,7 +477,7 @@ spotify.playback = new Playback({
 
 				//C dynamic import Spotify's SDK
 				//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
-				import(/* webpackChunkName: 'spotify-player' */ `../../public/js/vendor/spotify-player.js`);
+				import(/* webpackChunkName: 'spotify-player' */ `../vendor/spotify-player.js`);
 			});
 
 			/* //OLD

@@ -1,4 +1,4 @@
-import serverRequest from '../public/js/server-request';
+import serverRequest from './server-request.js';
 import {
 	User,
 } from './entities/index.js';

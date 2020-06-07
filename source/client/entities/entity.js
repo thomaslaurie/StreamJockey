@@ -3,7 +3,7 @@
 import {
 	Entity,
 } from '../../shared/entities/index.js';
-import serverRequest from '../../public/js/server-request.js';
+import serverRequest from '../server-request.js';
 import { 
 	any,
 	pick,

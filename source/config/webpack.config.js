@@ -110,12 +110,12 @@ export const clientOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'web',
 	entry: {
-		index: sourcePath('public/js/index.js'),
+		index: sourcePath('client/index.js'),
 	},
 	output: {
 		filename: '[name].bundle.js',
 		chunkFilename: '[name].chunk.js',
-		path: sourcePath('../build/public'),
+		path: sourcePath('../build/client'),
 		//TODO This is explicitly required for webpack-dev-middleware, not 100% sure what it should be yet though.
 		//publicPath: 'dist/', //C the prefix that gets added to resource requests, //L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
 		//TODO consider tossing not-yet-bundled resources into dist too (clientIndex, css)
@@ -147,9 +147,9 @@ export const clientOptions = (env, argv) => ({
 							//! Apparently breaks sass source-maps.
 							prependData: `@import 'global.scss';`,
 							sassOptions: {
-								includePaths: [sourcePath('public/css')],
+								includePaths: [sourcePath('client/ui/css')],
 							},
-							// data: `@import '${sourcePath(`public/${clientIndex}`)}';`,
+							// data: `@import '${sourcePath(`client/ui/${clientIndex}`)}';`,
 						},
 					},
 				],
@@ -161,7 +161,7 @@ export const clientOptions = (env, argv) => ({
 		...common.plugins(env, argv),
 		new VueLoaderPlugin(),
 		new HtmlWebpackPlugin({
-			template: sourcePath(`public/${clientIndexFileName}`),
+			template: sourcePath(`client/ui/${clientIndexFileName}`),
 		}),
 	],
 });
