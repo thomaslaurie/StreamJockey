@@ -156,8 +156,8 @@ import VueX from './vendor/vuex.esm.browser.js';
 import SocketIO from 'socket.io-client';
 
 // INTERNAL
-import sj from './global-client.js';
 import liveData from './live-data-client.js';
+import universalPlaybackModule from '../../client/universal-playback-module.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -174,15 +174,9 @@ Vue.config.devtools = false;
 
 Vue.use(VueRouter);
 Vue.use(VueX);
-Vue.mixin({
-	//L global mixins: https://vuejs.org/v2/guide/mixins.html#Global-Mixin, so that sj does not have to be imported into every component
-	//G to access mixin before component creation (ie inside data function), use this.$root.x instead of this.x
-    data() {
-        return {
-            sj,
-        };
-    },
-});
+
+//OLD//L global mixins: https://vuejs.org/v2/guide/mixins.html#Global-Mixin, so that sj does not have to be imported into every component
+//OLD//G to access mixin before component creation (ie inside data function), use this.$root.x instead of this.x
 
 //  ██╗   ██╗██╗   ██╗███████╗
 //  ██║   ██║██║   ██║██╔════╝
@@ -267,7 +261,7 @@ const store = new VueX.Store({
 	modules: {
 		liveData, //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
 		player: {
-			...sj.Playback.module,
+			...universalPlaybackModule,
 			namespaced: true,
 		},
 	},

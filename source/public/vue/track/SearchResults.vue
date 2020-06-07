@@ -10,9 +10,6 @@
 		Track,
 	} from '../../../client/entities/index.js';
 
-	//C for use of sj inside validator function
-	import sj from '../../js/global-client.js';
-
     export default {
         name: 'search-results',
         components: {

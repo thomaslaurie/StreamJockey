@@ -267,7 +267,6 @@ import {
 	rules,
 } from '../../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../../shared/utility/object/deep-compare.js';
-import sj from './global-client.js';
 import { 
 	Unreachable,
 	Err,
@@ -291,6 +290,9 @@ import {
 import propagate from '../../shared/propagate.js';
 import test from '../../shared/test.js';
 import isInstanceOf from '../../shared/is-instance-of.js';
+import {
+	spotify,
+} from '../../client/sources/index.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -964,7 +966,7 @@ export default {
 					playlistId: 2, 
 					name: 'placeholder name', 
 					duration: 1234, 
-					source: sj.spotify, 
+					source: spotify, 
 					sourceId: 'placeholderSourceId', 
 					artists: ['foo', 'bar'],
 				};
@@ -1160,7 +1162,7 @@ export default {
 			}).add().then((result) => result.content).then(one);
 			const track = await new Track({
 				playlistId: playlist.id,
-				source: sj.spotify,
+				source: spotify,
 				sourceId: 'placeholder',
 				name: uniqueName(),
 				duration: uniqueDuration(),

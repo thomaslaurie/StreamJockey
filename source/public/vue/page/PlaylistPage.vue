@@ -12,6 +12,10 @@
 		Track,
 	} from '../../../client/entities/index.js';
 
+	import {
+		spotify,
+	} from '../../../client/sources/index.js';
+
     export default {
         name: 'playlist-page',
         extends: AsyncDisplay,
@@ -34,7 +38,7 @@
         methods: {
 			// NEW
             async search() {
-				this.searchResults = await this.sj.spotify.search(this.searchTerm).then((result) => result.content);
+				this.searchResults = await spotify.search(this.searchTerm).then((result) => result.content);
 			},
 			async add(track) { //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
 				track.playlistId = this.content.id;

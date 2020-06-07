@@ -1475,9 +1475,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _track_SearchPanel_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../track/SearchPanel.vue */ "./source/public/vue/track/SearchPanel.vue");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _client_sources_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../client/sources/index.js */ "./source/client/sources/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 
 
 
@@ -1512,7 +1514,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        _this.searchResults = yield _this.sj.spotify.search(_this.searchTerm).then(result => result.content);
+        _this.searchResults = yield _client_sources_index_js__WEBPACK_IMPORTED_MODULE_5__["spotify"].search(_this.searchTerm).then(result => result.content);
       })();
     },
 
@@ -37753,6 +37755,355 @@ module.exports = yeast;
 
 /***/ }),
 
+/***/ "./source/client/commands.js":
+/*!***********************************!*\
+  !*** ./source/client/commands.js ***!
+  \***********************************/
+/*! exports provided: Command, Start, Toggle, Seek, Volume */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Command", function() { return Command; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Start", function() { return Start; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Toggle", function() { return Toggle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Seek", function() { return Seek; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Volume", function() { return Volume; });
+/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+
+
+
+
+
+ //TODO Review these classes, ensure that references to .prototype and .constructor don't break if a sub-class is created.
+// COMMANDS
+//R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
+//G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
+//G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
+//G tightly integrated with VueX
+//TODO consider a stop command? it would stop all sources and set the current source back to null
+//TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
+
+var Command = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Command', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  constructorParts: parent => ({
+    beforeInitialize(accessory) {//G must be given a source
+      //TODO The non-instance source casting actually seems necessary here for some reason.
+      //TODO Find a better way to convert from non-instance to instance.
+
+      /*
+      if (!sj.isType(accessory.options.source, sj.Source)) {
+      	throw new Err({
+      		origin: 'sj.Command.beforeInitialize()',
+      		message: 'no source is active to receive this command',
+      		reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
+      		content: accessory.options.source,
+      	});
+      }
+      */
+    },
+
+    defaults: {
+      source: undefined,
+      sourceInstances: []
+    },
+
+    afterInitialize(accessory) {
+      this.collapsedCommands = []; //C an array used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated
+
+      this.fullResolve = function (success) {
+        //C resolve collapsed commands
+        this.collapsedCommands.forEach(collapsedCommand => {
+          collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+            origin: 'resolvePlus()',
+            reason: 'command was collapsed'
+          }));
+        }); //C resolve self
+
+        this.resolve(success);
+      };
+
+      this.fullReject = function (error) {
+        //C//! RESOLVE collapsed commands
+        this.collapsedCommands.forEach(a => {
+          a.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+            origin: 'resolvePlus()',
+            reason: 'command was collapsed'
+          }));
+        }); //C reject self
+
+        this.reject(error);
+      };
+
+      this.resolve = function () {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+          origin: 'sj.Command.resolve()',
+          reason: 'command.resolve called but it has not been given a resolve function'
+        });
+      };
+
+      this.resolve = function () {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+          origin: 'sj.Command.reject()',
+          reason: 'command.reject called but it has not been given a reject function'
+        });
+      };
+    }
+
+  }),
+  prototypeProperties: parent => ({
+    collapseCondition(otherCommand) {
+      //C collapse if identical
+      return this.identicalCondition(otherCommand);
+    },
+
+    annihilateCondition: otherCommand => false,
+
+    trigger(context) {
+      var _this = this;
+
+      return _asyncToGenerator(function* () {
+        //C load the player if not loaded
+        if (context.state[_this.source.name].player === null) yield context.dispatch("".concat(_this.source.name, "/loadPlayer"));
+      })();
+    }
+
+  })
+});
+var Start = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Start', Command, {
+  constructorParts: parent => ({
+    beforeInitialize(accessory) {
+      //G must be given a track
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(accessory.options.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        origin: 'sj.Start.beforeInitialize()',
+        reason: 'sj.Start instance.track must be an Track',
+        content: accessory.options.track
+      });
+    },
+
+    defaults: {
+      track: undefined,
+      isPlaying: true,
+      progress: 0
+    }
+  }),
+  prototypeProperties: parent => ({
+    identicalCondition(otherCommand) {
+      return parent.prototype.identicalCondition.call(this, otherCommand) && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') //C catch non-Tracks
+      && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
+      && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
+    },
+
+    trigger(context) {
+      var _this2 = this;
+
+      return _asyncToGenerator(function* () {
+        yield parent.prototype.trigger.call(_this2, context); //C pause all
+
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
+          var _ref = _asyncToGenerator(function* (source) {
+            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
+          });
+
+          return function (_x) {
+            return _ref.apply(this, arguments);
+          };
+        }()); //C change startingTrackSubscription to subscription of the new track
+
+        context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
+          subscription: context.state.startingTrackSubscription,
+          Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"],
+          query: {
+            id: _this2.track.id
+          },
+          options: {} //TODO //?
+
+        }, {
+          root: true
+        }))); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
+        //C start target
+
+        yield context.dispatch("".concat(_this2.source.name, "/start"), _this2.track); //C transfer subscription from starting to current
+
+        context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
+        context.commit('setStartingTrackSubscription', null); //C change source
+
+        context.commit('setSource', _this2.source);
+      })();
+    }
+
+  })
+});
+var Toggle = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Toggle', Command, {
+  //? pause command might not have a desired progress?
+  //TODO toggle resume seems to be broken, maybe because of CORS?
+  // "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
+  constructorParts: parent => ({
+    beforeInitialize(_ref2) {
+      var {
+        options
+      } = _ref2;
+      //G isPlaying must be manually set to true or false
+      if (options.isPlaying !== true && options.isPlaying !== false) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        origin: 'sj.Toggle',
+        reason: "Toggle isPlaying must be true or false: ".concat(options.isPlaying),
+        content: options.isPlaying
+      });
+    },
+
+    defaults: {
+      isPlaying: undefined
+    }
+  }),
+  prototypeProperties: parent => ({
+    identicalCondition(otherCommand) {
+      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
+    },
+
+    //! sj.Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates
+    annihilateCondition(otherCommand) {
+      return parent.prototype.annihilateCondition.call(this, otherCommand) || //C same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts)
+      parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
+    },
+
+    trigger(context) {
+      var _this3 = this;
+
+      return _asyncToGenerator(function* () {
+        yield parent.prototype.trigger.call(_this3, context);
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["asyncMap"])(_this3.sourceInstances, /*#__PURE__*/function () {
+          var _ref3 = _asyncToGenerator(function* (source) {
+            if (_this3.isPlaying && source === _this3.source) {
+              //C resume target if resuming
+              yield context.dispatch("".concat(source.name, "/resume"));
+            } else {
+              //C pause all or rest
+              if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
+            }
+          });
+
+          return function (_x2) {
+            return _ref3.apply(this, arguments);
+          };
+        }());
+      })();
+    }
+
+  })
+});
+var Seek = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Seek', Command, {
+  constructorParts: parent => ({
+    beforeInitialize(_ref4) {
+      var {
+        options
+      } = _ref4;
+      //G progress must be manually set between 0 and 1\
+      if (options.progress < 0 || 1 < options.progress) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        origin: 'sj.Seek.trigger()',
+        reason: "seek progress is not a number between 0 and 1: ".concat(options.progress),
+        content: options.progress
+      });
+    },
+
+    defaults: {
+      progress: undefined
+    }
+  }),
+  prototypeProperties: parent => ({
+    identicalCondition(otherCommand) {
+      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
+    },
+
+    trigger(context) {
+      var _this4 = this;
+
+      return _asyncToGenerator(function* () {
+        yield parent.prototype.trigger.call(_this4, context);
+        yield context.dispatch("".concat(_this4.source.name, "/seek"), _this4.progress);
+      })();
+    }
+
+  })
+});
+var Volume = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Volume', Command, {
+  constructorParts: parent => ({
+    beforeInitialize(_ref5) {
+      var {
+        options
+      } = _ref5;
+      //G volume must be manually set between 0 and 1
+      if (options.volume < 0 || 1 < options.volume) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        origin: 'sj.Volume.trigger()',
+        reason: "volume is not a number between 0 and 1: ".concat(options.volume),
+        content: options.volume
+      });
+    },
+
+    defaults: {
+      volume: undefined
+    }
+  }),
+  prototypeProperties: parent => ({
+    identicalCondition(otherCommand) {
+      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
+    },
+
+    trigger(context) {
+      var _this5 = this;
+
+      return _asyncToGenerator(function* () {
+        yield parent.prototype.trigger.call(_this5, context); //C adjust volume on all sources
+
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
+          var _ref6 = _asyncToGenerator(function* (source) {
+            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this5.volume);
+          });
+
+          return function (_x3) {
+            return _ref6.apply(this, arguments);
+          };
+        }());
+      })();
+    }
+
+  })
+}); // COMMAND EXTERNALS
+// These methods have references to constructors that are not available at declaration:
+// Command
+
+Command.prototype.identicalCondition = function (otherCommand) {
+  //C otherCommand must be an sj.Command, and have the same playback-state properties
+  return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
+}; // Start, Resume, Pause, Seek
+
+
+Start.prototype.collapseCondition = function (otherCommand) {
+  //C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
+  return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Resume || otherCommand.constructor === Pause || otherCommand.constructor === Seek;
+}; // Seek
+
+
+Seek.prototype.collapseCondition = function (otherCommand) {
+  return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
+}; // Volume
+
+
+Volume.prototype.collapseCondition = function (otherCommand) {
+  return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
+};
+
+
+
+/***/ }),
+
 /***/ "./source/client/entities/entity.js":
 /*!******************************************!*\
   !*** ./source/client/entities/entity.js ***!
@@ -37874,6 +38225,629 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/client/playback.js":
+/*!***********************************!*\
+  !*** ./source/client/playback.js ***!
+  \***********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+
+
+
+
+
+
+ // PLAYBACK
+
+var Playback = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Playback', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+  constructorParts(parent) {
+    return {
+      defaults: {
+        // NEW
+        state: undefined,
+        actions: undefined,
+        mutations: undefined,
+        getters: undefined,
+        modules: undefined
+      },
+
+      afterInitialize() {
+        //C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
+        //C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
+        this.state = _objectSpread({}, this.constructor.baseState, {}, this.state);
+        this.actions = _objectSpread({}, this.constructor.baseActions, {}, this.actions);
+        this.mutations = _objectSpread({}, this.constructor.baseMutations, {}, this.mutations);
+        this.baseGetters = _objectSpread({}, this.constructor.baseGetters, {}, this.getters);
+        this.baseModules = _objectSpread({}, this.constructor.baseModules, {}, this.getters);
+      }
+
+    };
+  },
+
+  staticProperties: parent => ({
+    requestTimeout: 5000,
+    baseState: {
+      source: null,
+      player: null,
+      track: null,
+      isPlaying: false,
+      progress: 0,
+      volume: 1,
+      //G all state properties should be updated at the same time
+      timestamp: Date.now(),
+      //R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
+      startingTrack: null
+    },
+    baseActions: {
+      start(context, track) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            getters,
+            state
+          } = context;
+          var timeBefore = Date.now();
+          /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
+          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
+          		origin: 'sj.Playback.baseActions.start()',
+          		reason: 'start state timed out',
+          	}));
+          			const unwatch = context.watch(
+          		//C pack desired state
+          		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
+          		//C evaluate state conditions
+          		({sourceId, isPlaying, progress}) => {
+          			if (
+          				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+          				sourceId === track.sourceId &&
+          				isPlaying === true &&
+          				progress <= (Date.now() - timeBefore) / duration
+          			) {
+          				deferred.resolve();
+          			}
+          		}, 
+          		{deep: true, immediate: true}
+          	);
+          */
+          //C trigger api
+
+          yield dispatch('baseStart', track);
+          /* //TODO same here
+          	//C wait for desired state
+          	await deferred;
+          	unwatch();
+          */
+          //C Wait for the desired state.
+
+          yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["wait"])(100);
+            return {
+              sourceId: getters.sourceId,
+              isPlaying: state.isPlaying,
+              progress: state.progress
+            };
+          }), {
+            until(_ref2) {
+              var {
+                sourceId,
+                isPlaying,
+                progress
+              } = _ref2;
+              //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+              return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
+            }
+
+          });
+          console.log('reached');
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+            origin: 'sj.Playback.baseActions.start()',
+            reason: 'start command completed'
+          });
+        })();
+      }
+      /* //OLD
+      	async preserveLocalMetadata(context, track) {
+      		if (!sj.isType(track, Track)) throw new Err({
+      			origin: 'preserveLocalMetadata()',
+      			reason: 'track is not an Track',
+      		});
+      				//C default local metadata as foreign track
+      		let local = Track.filters.localMetadata.reduce((obj, key) => {
+      			obj[key] = null;
+      			return obj;
+      		}, {});
+      				//C set local as current or starting track if matching
+      		if (sj.isType(context.state.track, Object) && 
+      		track.sourceId === context.state.track.sourceId)			local = context.state.track;
+      		else if (sj.isType(context.state.startingTrack, Object) && 
+      		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
+      				//C return new track with localMetadata properties replaced
+      		return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
+      	},
+      */
+
+
+    },
+    baseMutations: {
+      setState(state, values) {
+        Object.assign(state, values);
+      },
+
+      setStartingTrack(state, track) {
+        state.startingTrack = track;
+      },
+
+      removeStartingTrack(state, track) {
+        state.startingTrack = null;
+      }
+
+    },
+    baseGetters: {
+      //C safe getters for track properties
+      sourceId: state => {
+        var _state$track;
+
+        return state === null || state === void 0 ? void 0 : (_state$track = state.track) === null || _state$track === void 0 ? void 0 : _state$track.sourceId;
+      },
+      duration: state => {
+        var _state$track2;
+
+        return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
+      },
+      //C state conditions for command resolution
+      isStarted: (state, _ref3) => {
+        var {
+          sourceId,
+          duration
+        } = _ref3;
+        return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration;
+      } //TODO
+      // isPaused:
+      // isResumed:
+      // isSeeked:
+      // isVolumed:
+
+    },
+    baseModules: {}
+  })
+}); // PLAYBACK EXTERNALS
+
+Playback.createUniversalModule = function (sourceInstances) {
+  // Add source instance playback modules as sub-module of the universal module.
+  var modules = {};
+
+  for (var sourceInstance of sourceInstances) {
+    modules[sourceInstance.name] = _objectSpread({}, sourceInstance.playback, {
+      namespaced: true
+    });
+  }
+
+  return new Playback({
+    //G main playback module for app
+    modules,
+    state: {
+      // CLOCK 
+      //C basically a reactive Date.now(), so far just used for updating playback progress
+      clock: Date.now(),
+      clockIntervalId: null,
+      // QUEUE
+
+      /* //R Old Queue Thought Process
+      		//  //R
+      	// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
+      	// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
+      	// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
+      	// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
+      	// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
+      	// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
+      				TODO checkPlaybackState every command just like before, find a better way
+      		// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
+      		// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
+      				Command Failure Handling 
+      		// 	!!! old, meant for individual command types
+      					// send command, change pendingCommand to true, wait
+      		// 	if success: change pendingCommand to false
+      		// 		if queuedCommand exists: change command to queuedCommand, clear queued command, repeat...
+      		// 		else: nothing
+      		// 	if failure: 
+      		// 		if queuedCommand exists: change pendingCommand to false, change command to queuedCommand, clear queued command, repeat... // pendingCommands aren't desired if queuedCommands exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+      		// 		else: trigger auto-retry process
+      		// 			if success: repeat...
+      		// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
+      */
+      commandQueue: [],
+      sentCommand: null,
+      // PLAYBACK STATE
+      //C source is used to select the proper playback state for actualPlayback
+      source: null,
+      // List of active source instances for actions to modify the playback of.
+      sourceInstances,
+      // LOCAL TRACKS
+      currentTrackSubscription: null,
+      startingTrackSubscription: null
+    },
+    actions: {
+      // CLOCK
+      startClock(context) {
+        return _asyncToGenerator(function* () {
+          yield context.dispatch('stopClock');
+          var id = setInterval(() => context.commit('updateClock'), 100); //C clock refresh rate
+
+          context.commit('setClockIntervalId', id);
+        })();
+      },
+
+      stopClock(context) {
+        return _asyncToGenerator(function* () {
+          clearInterval(context.state.clockIntervalId);
+          context.commit('setClockIntervalId', null);
+        })();
+      },
+
+      // QUEUE
+      //TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
+      pushCommand(context, command) {
+        return _asyncToGenerator(function* () {
+          //C Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
+          var push = true; //C remove redundant commands if necessary
+
+          var compact = function compact(i) {
+            if (i >= 0) {
+              //R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
+              if (command.collapseCondition(context.state.commandQueue[i])) {
+                //C if last otherCommand collapses, this command gets pushed
+                push = true; //C store otherCommand on this command
+
+                command.collapsedCommands.unshift(context.state.commandQueue[i]); //C remove otherCommand
+
+                context.commit('removeQueuedCommand', i); //C analyze next otherCommand
+
+                compact(i - 1);
+              } else if (command.annihilateCondition(context.state.commandQueue[i])) {
+                //C if last otherCommand annihilates, this command doesn't get pushed
+                push = false;
+                command.collapsedCommands.unshift(context.state.commandQueue[i]);
+                context.commit('removeQueuedCommand', i);
+                compact(i - 1);
+              } else {
+                //C if otherCommand does not collapse or annihilate, escape
+                return;
+              }
+            }
+          };
+
+          compact(context.state.commandQueue.length - 1);
+          if ( //C if there is a sent command and identical to the sent command,
+          context.state.sentCommand !== null && command.identicalCondition(context.state.sentCommand) || //C or if there isn't a sent command and identical to the actual playback
+          context.state.sentCommand === null && command.identicalCondition(context.getters.actualPlayback)) push === false; //C don't push
+          //C route command resolve/reject to this result promise
+
+          var resultPromise = new Promise((resolve, reject) => {
+            command.resolve = resolve;
+            command.reject = reject;
+          }); //C push command to the queue or resolve it (because it has been collapsed)
+
+          if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+            origin: 'pushCommand()',
+            reason: 'command was annihilated'
+          })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
+
+          context.dispatch('nextCommand'); //C await for the command to resolve
+
+          return yield resultPromise;
+        })();
+      },
+
+      nextCommand(context) {
+        return _asyncToGenerator(function* () {
+          //C don't do anything if another command is still processing or if no queued commands exist
+          if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return; //C move the command from the queue to sent
+
+          context.commit('setSentCommand', context.state.commandQueue[0]);
+          context.commit('removeQueuedCommand', 0); //C trigger and resolve the command
+
+          yield context.state.sentCommand.trigger(context).then(resolved => context.state.sentCommand.fullResolve(resolved), rejected => context.state.sentCommand.fullReject(rejected)); //C mark the sent command as finished
+
+          context.commit('removeSentCommand'); //C send next command //! do not await, this just restarts the nextCommand cycle
+
+          context.dispatch('nextCommand');
+        })();
+      },
+
+      // PLAYBACK FUNCTIONS
+      //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
+      // BASIC
+      start(_ref4, track) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            state: {
+              sourceInstances
+            }
+          } = _ref4;
+          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Start"]({
+            source: track.source,
+            //! uses track's source
+            sourceInstances,
+            track
+          }));
+        })();
+      },
+
+      pause(_ref5) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            getters: {
+              desiredSource: source
+            },
+            state: {
+              sourceInstances
+            }
+          } = _ref5;
+          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Toggle"]({
+            source,
+            //! other non-start basic playback functions just use the current desiredPlayback source
+            sourceInstances,
+            isPlaying: false
+          }));
+        })();
+      },
+
+      resume(_ref6) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            getters: {
+              desiredSource: source
+            },
+            state: {
+              sourceInstances
+            }
+          } = _ref6;
+          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Toggle"]({
+            source,
+            sourceInstances,
+            isPlaying: true
+          }));
+        })();
+      },
+
+      seek(_ref7, progress) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            getters: {
+              desiredSource: source
+            },
+            state: {
+              sourceInstances
+            }
+          } = _ref7;
+          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Seek"]({
+            source,
+            sourceInstances,
+            progress
+          }));
+        })();
+      },
+
+      volume(_ref8, volume) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            getters: {
+              desiredSource: source
+            },
+            state: {
+              sourceInstances
+            }
+          } = _ref8;
+          //TODO volume should change volume on all sources
+          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Volume"]({
+            source,
+            sourceInstances,
+            volume
+          }));
+        })();
+      },
+
+      // HIGHER LEVEL
+      toggle(_ref9) {
+        return _asyncToGenerator(function* () {
+          var {
+            dispatch,
+            getters: {
+              desiredSource: source,
+              desiredIsPlaying: isPlaying
+            },
+            state: {
+              sourceInstances
+            }
+          } = _ref9;
+          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Toggle"]({
+            source,
+            sourceInstances,
+            isPlaying: !isPlaying
+          }));
+        })();
+      }
+
+    },
+    mutations: {
+      // CLOCK
+      updateClock(state) {
+        state.clock = Date.now();
+      },
+
+      setClockIntervalId(state, id) {
+        state.clockIntervalId = id;
+      },
+
+      // QUEUE
+      pushQueuedCommand(state, command) {
+        state.commandQueue.push(command);
+      },
+
+      removeQueuedCommand(state, index) {
+        state.commandQueue.splice(index, 1);
+      },
+
+      setSentCommand(state, command) {
+        state.sentCommand = command;
+      },
+
+      removeSentCommand(state) {
+        state.sentCommand = null;
+      },
+
+      // PLAYBACK STATE
+      setSource(state, source) {
+        state.source = source;
+      },
+
+      // LOCAL TRACKS
+      setCurrentTrackSubscription(state, subscription) {
+        state.currentTrackSubscription = subscription;
+      },
+
+      setStartingTrackSubscription(state, subscription) {
+        state.startingTrackSubscription = subscription;
+      }
+
+    },
+    getters: {
+      /*
+      	// PLAYBACK STATE
+      	actualPlayback(state, getters) {
+      		//C return null playback state if no source
+      		if (state.source === null) return {...sj.Playback.baseState};
+      					//C get the source state
+      		const sourceState = state[state.source.name];
+      					//C use inferredProgress or regular progress depending on isPlaying
+      		//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
+      		if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
+      		else return sourceState;
+      	},		
+      	inferredProgress(state) {
+      		if (state.source === null) return -1;
+      		//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
+      		const sourceState = state[state.source.name];
+      		const elapsedTime = state.clock - sourceState.timestamp;
+      		const elapsedProgress = elapsedTime / sourceState.track.duration;
+      		return clamp(sourceState.progress + elapsedProgress, 0, 1);
+      	},
+      	desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
+      		//! this will update x-times per second when playing as the track progress is constantly updating
+      		return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
+      	},
+      */
+      // ACTUAL
+      sourceOrBase: (state, getters) => key => {
+        if (state.source === null) return Playback.baseState[key];else return state[state.source.name][key];
+      },
+      actualSource: (state, getters) => {
+        return state.source;
+      },
+      actualTrack: (state, getters, rootState, rootGetters) => {
+        var sourceOrBaseTrack = getters.sourceOrBase('track');
+
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(sourceOrBaseTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track')) {
+          //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
+          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(getters.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(getters.startingTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        }
+
+        return sourceOrBaseTrack;
+      },
+      actualIsPlaying: (state, getters) => getters.sourceOrBase('isPlaying'),
+      actualProgress: (state, getters) => {
+        var _state$source;
+
+        var progress = getters.sourceOrBase('progress');
+        var source = state === null || state === void 0 ? void 0 : state[state === null || state === void 0 ? void 0 : (_state$source = state.source) === null || _state$source === void 0 ? void 0 : _state$source.name];
+
+        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
+          //C if playing, return inferred progress
+          var elapsedTime = state.clock - state[state.source.name].timestamp;
+          var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
+          progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
+        }
+
+        return progress;
+      },
+      actualVolume: (state, getters) => getters.sourceOrBase('volume'),
+      actualPlayback: (state, getters) => ({
+        //! this will update as fast as progress does
+        source: getters.actualSource,
+        track: getters.actualTrack,
+        isPlaying: getters.actualIsPlaying,
+        progress: getters.actualProgress,
+        volume: getters.actualVolume
+      }),
+      // DESIRED
+      flattenPlayback: (state, getters) => key => {
+        //C value starts as the actualValue
+        var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
+
+        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
+          value = state.sentCommand[key];
+        } //C then if defined, each queuedCommand
+
+
+        for (var queuedCommand of state.commandQueue) {
+          if (queuedCommand[key] !== undefined) value = queuedCommand[key];
+        }
+
+        return value;
+      },
+      desiredSource: (state, getters) => getters.flattenPlayback('source'),
+      desiredTrack: (state, getters) => getters.flattenPlayback('track'),
+      desiredIsPlaying: (state, getters) => getters.flattenPlayback('isPlaying'),
+      desiredProgress: (state, getters) => getters.flattenPlayback('progress'),
+      desiredVolume: (state, getters) => getters.flattenPlayback('volume'),
+      desiredPlayback: (state, getters) => ({
+        source: getters.actualSource,
+        track: getters.desiredTrack,
+        isPlaying: getters.desiredIsPlaying,
+        progress: getters.desiredProgress,
+        volume: getters.desiredVolume
+      }),
+      // LOCAL TRACKS
+      currentTrack: (state, getters, rootState, rootGetters) => {
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
+      },
+      startingTrack: (state, getters, rootState, rootGetters) => {
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
+      }
+    }
+  });
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Playback);
+
+/***/ }),
+
 /***/ "./source/client/session-methods.js":
 /*!******************************************!*\
   !*** ./source/client/session-methods.js ***!
@@ -37935,6 +38909,1586 @@ function _logout() {
 }
 
 ;
+
+/***/ }),
+
+/***/ "./source/client/source.js":
+/*!*********************************!*\
+  !*** ./source/client/source.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
+//! Sources must manually set their playback.state.source as themselves.
+//R This caused a bug earlier when the playback got externalized and was no longer available in the initial afterInitialize step.
+
+_shared_source_js__WEBPACK_IMPORTED_MODULE_0__["default"].augmentClass({
+  constructorParts(parent) {
+    return {
+      defaults: {
+        //TODO change these off undefined
+        auth: undefined,
+        request: undefined,
+        getAccessToken: undefined,
+        search: undefined,
+        player: undefined,
+        loadPlayer: undefined,
+        playback: undefined
+      }
+    };
+  }
+
+});
+/* harmony default export */ __webpack_exports__["default"] = (_shared_source_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+/***/ }),
+
+/***/ "./source/client/sources/index.js":
+/*!****************************************!*\
+  !*** ./source/client/sources/index.js ***!
+  \****************************************/
+/*! exports provided: spotify, youtube */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _spotify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./spotify.js */ "./source/client/sources/spotify.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spotify", function() { return _spotify_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _youtube_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./youtube.js */ "./source/client/sources/youtube.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "youtube", function() { return _youtube_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/client/sources/spotify.js":
+/*!******************************************!*\
+  !*** ./source/client/sources/spotify.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
+/* harmony import */ var _public_js_server_request_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../public/js/server-request.js */ "./source/public/js/server-request.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+
+
+
+
+
+
+
+
+
+
+
+var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+  //TODO make apiReady and playerReady checks
+  name: 'spotify',
+  register: true,
+
+  //? where is this being called?
+  auth() {
+    var _this = this;
+
+    return _asyncToGenerator(function* () {
+      //C prompts the user to accept permissions in a new window, then receives an auth code from spotify
+
+      /* //R
+      	this was split in to multiple parts on the client side to have an automatically closing window
+      	//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+      	//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
+      
+      */
+      //TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
+      //C request url
+      var requestCredentials = yield serverRequestRequest('GET', 'spotify/authRequestStart'); //C open spotify auth request window
+      //L https://www.w3schools.com/jsref/met_win_open.asp
+
+      var authWindow = window.open(requestCredentials.authRequestURL); //C listen for response from spotify
+      //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
+
+      var authCredentials = yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'spotify/authRequestEnd', requestCredentials); //C automatically close window when data is received
+
+      authWindow.close(); //C exchange auth code for tokens
+
+      var tokens = yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'spotify/exchangeToken', authCredentials);
+      _this.credentials.accessToken = tokens.accessToken;
+      _this.credentials.expires = tokens.accessToken;
+      _this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
+
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+        origin: 'sj.spotify.auth()',
+        message: 'authorized spotify'
+      }); //TODO there needs to be a scopes (permissions) check in here somewhere
+
+      /* //OLD
+      	//C request authURL & authKey
+      	return fetch(`${API_URL}/spotify/startAuthRequest`).then(resolved => {
+      		//C open spotify auth request window
+      		//L https://www.w3schools.com/jsref/met_win_open.asp
+      		authRequestWindow = window.open(resolved.authRequestURL);
+      		return resolved;
+      	}).then(resolved => {
+      		//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
+      		return fetch(`${API_URL}/spotify/endAuthRequest`,  {
+      			method: 'post',
+      			headers: {
+      				'Accept': 'application/json',
+      				'Content-Type': 'application/json',
+      			},
+      			body: JSON.stringify(resolved),
+      		});
+      	}).then(resolved => {
+      		return resolved.json();
+      	}).then(resolved => {
+      		authRequestWindow.close();
+      		return resolved;
+      	}).catch(rejected => {
+      		throw propagate(rejected);
+      	});
+      */
+    })();
+  },
+
+  request(method, path, content) {
+    var _this2 = this;
+
+    return _asyncToGenerator(function* () {
+      // request() wrapper specifically fro spotify-web-api requests.
+      // Automatically gets the accessToken and applies the correct header and URL prefix.
+      // URL
+      var prefix = 'https://api.spotify.com/v1';
+      var url = "".concat(prefix, "/").concat(path); // OPTIONS
+
+      var options = {}; // BODY
+
+      if (method === 'GET') {
+        options.queryParameters = content;
+      } else {
+        options.JSONBody = content;
+      } // HEADER
+
+
+      var token = yield _this2.getAccessToken();
+      options.headers = _objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["JSON_HEADER"], {
+        Authorization: "Bearer ".concat(token)
+      });
+      return yield Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])(method, url, options);
+    })();
+  },
+
+  //? this is specific to spotify, maybe move this once optional options are implemented into classes
+  getAccessToken() {
+    var _this3 = this;
+
+    return _asyncToGenerator(function* () {
+      //C gets the api access token, handles all refreshing, initializing, errors, etc.
+      //C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
+      //TODO must respond to denials by spotify too
+      //C refresh
+      var that = _this3;
+
+      var refresh = /*#__PURE__*/function () {
+        var _ref = _asyncToGenerator(function* (that) {
+          var result = yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["returnPropagate"]);
+
+          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["AuthRequired"], 'AuthRequired')) {
+            //C call auth() if server doesn't have a refresh token
+            yield that.auth();
+          } else if (result instanceof _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]) {
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])(result);
+          } else {
+            //C assign sj.spotify.credentials
+            that.credentials.accessToken = result.accessToken;
+            that.credentials.expires = result.accessToken;
+          }
+        });
+
+        return function refresh(_x) {
+          return _ref.apply(this, arguments);
+        };
+      }(); //C if client doesn't have token or if it has expired, refresh it immediately
+      //TODO reconsider this string test
+
+
+      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].visibleString.test(_this3.credentials.accessToken) || _this3.credentials.expires <= Date.now()) {
+        yield refresh(that);
+      } //C if token is soon to expire, refresh in the background, return the existing token
+
+
+      if (_this3.credentials.expires <= Date.now() + _this3.refreshBuffer) {
+        refresh(that);
+      }
+
+      return _this3.credentials.accessToken;
+    })();
+  }
+
+}); // External due to spotify self reference.
+
+spotify.search = /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator(function* (_ref2) {
+    var {
+      term = '',
+      startIndex = 0,
+      amount = 1
+    } = _ref2;
+    // VALIDATE
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].visibleString.validate(term);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(startIndex);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveInteger.validate(amount);
+    var result = yield spotify.request('GET', 'search', {
+      q: term,
+      type: 'track',
+      market: 'from_token',
+      limit: amount,
+      offset: startIndex // include_external: 'audio',
+
+      /* //G
+      	type: 
+      		'A comma-separated list of item types to search across. Valid types are: album , artist, playlist, and track.'
+      	market:
+      		'An ISO 3166-1 alpha-2 country code or the string from_token. If a country code is specified, only artists, albums, and tracks with content that is playable in that market is returned. Note: Playlist results are not affected by the market parameter. If market is set to from_token, and a valid access token is specified in the request header, only content playable in the country associated with the user account, is returned. Users can view the country that is associated with their account in the account settings. A user must grant access to the user-read-private scope prior to when the access token is issued.'
+      	limit:
+      		'Maximum number of results to return. Default: 20, Minimum: 1, Maximum: 50, //! Note: The limit is applied within each type, not on the total response. For example, if the limit value is 3 and the type is artist,album, the response contains 3 artists and 3 albums.'
+      	offset:
+      		'The index of the first result to return. Default: 0 (the first result). Maximum offset (including limit): 10,000. Use with limit to get the next page of search results.'
+      	include_external:
+      		'Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses.'
+      */
+
+    });
+    return result.tracks.items.map(track => {
+      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]({
+        source: spotify,
+        sourceId: track.id,
+        name: track.name,
+        duration: track.duration_ms,
+        link: track.external_urls.spotify,
+        artists: track.artists.map(artist => artist.name)
+      });
+    });
+  });
+
+  return function (_x2) {
+    return _ref3.apply(this, arguments);
+  };
+}();
+
+spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
+  //G source-specific playback should be the basic playback functions that connects this app to the source's api
+  state: {
+    source: spotify
+  },
+  actions: {
+    loadPlayer(context) {
+      return _asyncToGenerator(function* () {
+        return yield new Promise((resolve, reject) => {
+          //C this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
+          window.onSpotifyWebPlaybackSDKReady = function () {
+            var player = new window.Spotify.Player({
+              //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
+              name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["APP_NAME"],
+              getOAuthToken: function () {
+                var _getOAuthToken = _asyncToGenerator(function* (callback) {
+                  var token = yield spotify.getAccessToken();
+                  callback(token);
+                });
+
+                function getOAuthToken(_x3) {
+                  return _getOAuthToken.apply(this, arguments);
+                }
+
+                return getOAuthToken;
+              }() //volume: 1, //TODO initialize with a custom volume (default is 1)
+
+            });
+            player.formatState = function (state) {
+              //TODO state could be anything from the callback, better validate it somehow
+              if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(state)) return {};
+              var t = state.track_window.current_track;
+              return {
+                track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]({
+                  source: spotify,
+                  sourceId: t.id,
+                  name: t.name,
+                  duration: t.duration_ms,
+                  artists: t.artists.map(artist => artist.name) //TODO link: t.uri,
+
+                }),
+                isPlaying: !state.paused,
+                progress: state.position / t.duration_ms,
+                timestamp: state.timestamp //! this isn't in the documentation, but the property exists
+
+              };
+            }, player.awaitState = /*#__PURE__*/function () {
+              var _ref5 = _asyncToGenerator(function* (_ref4) {
+                var _this4 = this;
+
+                var {
+                  command = () => {},
+                  stateCondition = () => false,
+                  success = {},
+                  error = {},
+                  timeoutError = {}
+                } = _ref4;
+                return new Promise( /*#__PURE__*/function () {
+                  var _ref6 = _asyncToGenerator(function* (resolve, reject) {
+                    var resolved = false; //C resolved boolean is used to prevent later announcements of response objects
+
+                    var callback = /*#__PURE__*/function () {
+                      var _ref7 = _asyncToGenerator(function* (state) {
+                        if (!resolved && stateCondition(player.formatState(state))) {
+                          //C remove listener
+                          _this4.removeListener('player_state_changed', callback); //C update playback state
+
+
+                          yield context.dispatch('updatePlayback', state); //C resolve
+
+                          resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"](success)); //C prevent other exit points from executing their code
+
+                          resolved = true;
+                        }
+                      });
+
+                      return function callback(_x7) {
+                        return _ref7.apply(this, arguments);
+                      };
+                    }(); //C add the listener before the request is made, so that the event cannot be missed 
+                    //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
+
+
+                    _this4.addListener('player_state_changed', callback); //C if command failed, reject
+                    //! don't do anything when main() resolves, it only indicates that the command has been received
+
+
+                    yield command().catch(rejected => {
+                      if (!resolved) {
+                        _this4.removeListener('player_state_changed', callback);
+
+                        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"](_objectSpread({}, error, {
+                          content: rejected
+                        })));
+                        resolved = true;
+                      }
+                    }); //C if playback is already in the proper state, resolve but don't update
+                    //! this check is required because in this case spotify wont trigger a 'player_state_changed' event
+
+                    yield context.dispatch('checkPlayback');
+
+                    if (!resolved && stateCondition(context.state)) {
+                      _this4.removeListener('player_state_changed', callback);
+
+                      resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"](success));
+                      resolved = true;
+                    } //C if timed out, reject
+
+
+                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_10__["default"].requestTimeout);
+
+                    if (!resolved) {
+                      _this4.removeListener('player_state_changed', callback);
+
+                      reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Timeout"](timeoutError));
+                      resolved = true;
+                    }
+                  });
+
+                  return function (_x5, _x6) {
+                    return _ref6.apply(this, arguments);
+                  };
+                }());
+              });
+
+              return function (_x4) {
+                return _ref5.apply(this, arguments);
+              };
+            }(), //C events
+            //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+            player.on('ready', /*#__PURE__*/function () {
+              var _ref9 = _asyncToGenerator(function* (_ref8) {
+                var {
+                  device_id
+                } = _ref8;
+                //C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
+                //L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+                //C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
+                var iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
+
+                if (iframe) {
+                  iframe.style.display = 'block';
+                  iframe.style.position = 'absolute';
+                  iframe.style.top = '-1000px';
+                  iframe.style.left = '-1000px';
+                } //C set the player as ready 
+                //! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
+
+
+                context.commit('setState', {
+                  player
+                }); //C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
+
+                yield spotify.request('PUT', 'me/player', {
+                  device_ids: [device_id],
+                  play: false // keeps current playback state
+
+                }).catch(rejected => {
+                  reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                    //code: JSON.parse(error.response).error.status,
+                    origin: 'spotify.loadPlayer()',
+                    message: 'spotify player could not be loaded',
+                    //reason: JSON.parse(error.response).error.message,
+                    content: rejected
+                  }));
+                }); //C wait for device to transfer
+                //TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
+                //C starting delay
+
+                var delay = 100;
+                yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+                  //C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
+                  //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
+                  //C timeout is doubled here to work better with the doubling delay time.
+                  //C using an object wrapper for the delay argument so that it can be modified between iterations
+                  yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(delay);
+                  delay = delay * 2; //C double the delay each time
+
+                  return yield spotify.request('Get', 'me/player').catch(rejected => {
+                    reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                      //code: JSON.parse(error.response).error.status,
+                      origin: 'spotify.loadPlayer()',
+                      message: 'spotify player could not be loaded',
+                      //reason: JSON.parse(error.response).error.message,
+                      content: rejected
+                    }));
+                    return {
+                      device: {
+                        id: device_id
+                      }
+                    }; //C break the loop after rejecting
+                  });
+                }), {
+                  until(result) {
+                    //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
+                    //C this is fine, it just means that it's not ready, so just catch anything.
+                    return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result.device) && result.device.id === device_id;
+                  },
+
+                  timeout: _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"].requestTimeout * 2
+                }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
+
+                yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
+
+                yield context.dispatch('pause');
+                resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+                  origin: 'spotify.loadPlayer()',
+                  message: 'spotify player loaded',
+                  content: player
+                }));
+              });
+
+              return function (_x8) {
+                return _ref9.apply(this, arguments);
+              };
+            }());
+            player.on('not_ready', (_ref11) => {
+              var {
+                device_id
+              } = _ref11;
+              //? don't know what to do here
+              console.error('not_ready', 'device_id:', device_id);
+            }); //C errors
+            //TODO make better handlers
+            //L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
+
+            player.on('initialization_error', (_ref12) => {
+              var {
+                message
+              } = _ref12;
+              //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                log: true,
+                origin: 'spotify.loadPlayer()',
+                message: 'spotify player encountered an initialization error',
+                reason: message
+              }));
+            });
+            player.on('authentication_error', (_ref13) => {
+              var {
+                message
+              } = _ref13;
+              //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                log: true,
+                origin: 'spotify.loadPlayer()',
+                message: 'spotify player encountered an authentication error',
+                reason: message
+              }));
+            });
+            player.on('account_error', (_ref14) => {
+              var {
+                message
+              } = _ref14;
+              //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                log: true,
+                origin: 'spotify.loadPlayer()',
+                message: 'this account does not have a valid Spotify Premium subscription',
+                reason: message
+              }));
+            }); //C ongoing listeners
+
+            player.on('player_state_changed', state => {
+              //C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
+              //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
+              context.dispatch('updatePlayback', state);
+            });
+            player.on('playback_error', (_ref15) => {
+              var {
+                message
+              } = _ref15;
+              //TODO this should be a listener, and not resolve or reject
+              console.error('playback_error', message);
+            }); //C connect player
+
+            player.connect().then(resolved => {
+              //C 'returns a promise with a boolean for whether or not the connection was successful'
+              //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+              //! do not resolve here, the player will trigger the 'ready' event when its truly ready
+              if (!resolved) reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                origin: 'spotify.loadPlayer()',
+                message: 'spotify player failed to connect',
+                reason: 'spotify.connect() failed'
+              }));
+            }, rejected => {
+              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
+                //C a rejection shouldn't be possible here
+                origin: 'spotify.loadPlayer()',
+                message: 'spotify player failed to connect',
+                reason: 'spotify.connect() failed, this should not be reachable',
+                content: rejected
+              }));
+            });
+            /* //R
+            	//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
+            	//L events: https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
+            	let eventName = 'spotifyLoadPlayer';
+            	// listener
+            	window.addEventListener(eventName, function (customEvent) {
+            		if (customEvent.detail.resolved) {
+            			resolve(customEvent.detail.data);
+            		} else {
+            			reject(customEvent.detail.data);
+            		}
+            	}, {once: true});
+            	// triggers
+            	function triggerResolve(data) {
+            		window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: true, data}}));
+            	}
+            	function triggerReject(data) {
+            		window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: false, data}}));
+            	}
+            */
+          }; //C dynamic import Spotify's SDK
+          //! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
+
+
+          __webpack_require__.e(/*! import() | spotify-player */ "spotify-player").then(__webpack_require__.t.bind(null, /*! ../../public/js/vendor/spotify-player.js */ "./source/public/js/vendor/spotify-player.js", 7));
+        });
+        /* //OLD
+        	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
+        	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
+        	// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+        
+        	// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
+        
+        	return new Promise(function (resolve, reject) {
+        		// setup resolve/reject listeners
+        		window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
+        			resolve(e.detail);
+        			e.currentTarget.removeEventListener(e.type, function () {});
+        		});
+        
+        		window.addEventListener('spotifyLoadPlayerFailure', function (e) {
+        			reject(e.detail);
+        			e.currentTarget.removeEventListener(e.type, function () {});
+        		});
+        
+        		// simplify event triggers
+        		function triggerResolve(data) {
+        			window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {detail: data}));
+        		}
+        
+        		function triggerReject(data) {
+        			window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {detail: data}));
+        		}
+        		
+        		
+        		window.onSpotifyWebPlaybackSDKReady = function () {
+        			// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
+        			try {
+        				// initialize
+        				var player = new Spotify.Player({
+        					name: WEB_PLAYER_NAME,
+        					getOAuthToken: cb => { cb(spotifyAccessToken); }
+        				});
+        
+        				// configure listeners
+        				// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+        				
+        				// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
+        
+        				player.addListener('playback_error', function ({message}) { 
+        					console.error(message); 
+        					// TODO handle me
+        				});
+        
+        				// playback status updates
+        				player.addListener('player_state_changed', function (state) {
+        					// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
+        					spotify.playback.timestamp = state.timestamp;
+        					spotify.playback.isPlaying = !state.paused;
+        					spotify.playback.progress = state.position;
+        					spotify.playback.track = {
+        						source: spotify,
+        						sourceId: state.track_window.current_track.id,
+        						artists: [],
+        						title: state.track_window.current_track.name,
+        						duration: state.track_window.current_track.duration_ms,
+        					}
+        
+        					// fill artists
+        					state.track_window.current_track.artists.forEach(function (artist, i) {
+        						spotify.playback.track.artists[i] = artist.name;
+        					});
+        				});
+        
+        				// error handling
+        				player.addListener('initialization_error', function ({message}) { 
+        					//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+        					triggerReject(new Err({
+        							log: true,
+        							origin: 'spotify.loadPlayer()',
+        							message: 'spotify player encountered an initialization error',
+        							reason: message,
+        						})
+        					);
+        				});
+        
+        				player.addListener('authentication_error', function ({message}) { 
+        					// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+        					triggerReject(new Err({
+        							log: true,
+        							origin: 'spotify.loadPlayer()',
+        							message: 'spotify player encountered an authentication error',
+        							reason: message,
+        						})
+        					);
+        				});
+        
+        				player.addListener('account_error', function ({message}) {
+        					// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+        					triggerReject(new Err({
+        							log: true,
+        							origin: 'spotify.loadPlayer()',
+        							message: 'this account does not have a valid Spotify Premium subscription',
+        							reason: message,
+        						})
+        					);
+        				});
+        
+        				// ready
+        				player.addListener('ready', function ({device_id}) {
+        					// returns a WebPlaybackPlayer object which just contains the created device_id
+        					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
+        
+        					spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
+        						triggerResolve(new Success({
+        							origin: 'spotify.loadPlayer()',
+        							message: 'spotify player loaded',
+        						}));
+        
+        						// TODO updatePlayback(); ?
+        					}, function (rejected) {
+        						triggerReject(new Err({
+        							log: true,
+        							code: JSON.parse(error.response).error.status,
+        							origin: 'spotify.loadPlayer()',
+        							message: 'spotify player could not be loaded',
+        							reason: JSON.parse(error.response).error.message,
+        							content: error,
+        						}));
+        					}).catch(function (rejected) {
+        						triggerReject(new Err({
+        							log: true,
+        							origin: 'spotify.loadPlayer()',
+        							message: 'spotify player could not be loaded',
+        							content: rejected,
+        						}));
+        					});
+        				});
+        
+        				// connect to player
+        				player.connect().then(function (resolved) {
+        					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
+        					// returns a promise with a boolean for whether or not the connection was successful
+        					// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
+        					if (!resolved) {
+        						triggerReject(new Err({
+        							log: true,
+        							origin: 'spotify.loadPlayer()',
+        							message: 'spotify player failed to connect',
+        							reason: 'spotify.connect() failed',
+        						}));
+        					}
+        				}, function (rejected) {
+        					// should not be possible to get here, but handle it either way
+        					triggerReject(new Err({
+        						log: true,
+        						origin: 'spotify.loadPlayer()',
+        						message: 'spotify player failed to connect',
+        						reason: 'spotify.connect() failed',
+        						content: rejected,
+        					}));
+        				});
+        			} catch (e) {
+        				triggerReject(new Err({
+        					log: true,
+        					origin: 'spotify.loadPlayer()',
+        					message: 'spotify player failed to connect',
+        					reason: e,
+        					content: e,
+        				}));
+        			}
+        		}
+        		
+        
+        		$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
+        			triggerReject(new Err({
+        				log: true,
+        				origin: 'spotify.loadPlayer()',
+        				message: 'failed to load spotify player',
+        				reason: exception,
+        			}));
+        		});
+        	});
+        */
+      })();
+    },
+
+    //C spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
+    updatePlayback(context, state) {
+      return _asyncToGenerator(function* () {
+        //C formats and commits playback state
+
+        /* //R
+        	when formattingState and checkState are executed, the track only gets metadata from the api and therefore looses it's playlistId, position, and other custom metadata, how to preserve this data so it can be used to know the currently playing track, playlist, and next/prev tracks
+        			my issue right now is where to store the app-generated metadata
+        			because, I want the individual source playbacks to also be able to react to external changes
+        			maybe just a simple if statement - if the track changes when not commanded to do so by the app, then a foreign track is being played, play history should still be recorded fine, but no playlist in the app would show a track as 'playing', unless the same foreign track is being displayed (like in search results, though this would mean that search results shouldn't be played sequentially in a playlist, which isn't really a necessary behavior) (a foreign track could simply be indicated by a null playlist id)
+        			so the playlistId/position should hang out on the track until it is either replaced by a new track with its own playlistId/position or wiped out by a track with no playlistId/position
+        		//? are playlistId and position mutually required? is there a situation where playlistId or position would exist on their own? I don't think so
+        */
+        //C formats given state and adds volume from getVolume() to it, commits to state
+        var formattedState = context.state.player.formatState(state); //C these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
+        //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
+
+        var volume = yield context.state.player.getVolume();
+
+        var newState = _objectSpread({}, formattedState, {
+          volume
+        });
+        /*
+        	console.log(
+        		'track.name', formattedState.track.name, '\n',
+        		'track.sourceId', formattedState.track.sourceId, '\n',
+        		'isPlaying', formattedState.isPlaying, '\n',
+        		'progress', formattedState.progress,  '\n',
+        		'timestamp', formattedState.timestamp, '\n',
+        	);
+        */
+
+
+        context.commit('setState', newState);
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+          origin: 'spotify module command - updatePlayback()',
+          message: 'spotify playback updated',
+          content: newState
+        });
+      })();
+    },
+
+    checkPlayback(context) {
+      return _asyncToGenerator(function* () {
+        //C retrieves playback from api and updates it
+        //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
+        var state = yield context.state.player.getCurrentState().catch(rejected => {
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+            log: true,
+            //code: JSON.parse(rejected.response).error.status,
+            origin: 'spotify.checkPlayback()',
+            message: 'failed to check spotify playback state',
+            //reason: JSON.parse(rejected.response).error.message,
+            content: rejected
+          });
+        });
+        yield context.dispatch('updatePlayback', state);
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+          origin: 'spotify module command - checkPlayback()',
+          message: 'spotify playback checked',
+          content: context.state
+        });
+      })();
+    },
+
+    //G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
+    //G should resolve only when the playback command is applied
+    // PLAYBACK COMMANDS
+    //G must handle redundant requests (eg. pause when already paused)
+    //G must only resolve when the playback state is actually applied (not just on command acknowledgement)
+    start(context, track) {
+      return _asyncToGenerator(function* () {
+        var timeBeforeCall = Date.now();
+        var result = yield context.state.player.awaitState({
+          command: function () {
+            var _command = _asyncToGenerator(function* () {
+              return yield context.state.source.request('PUT', 'me/player/play', {
+                uris: ["spotify:track:".concat(track.sourceId)]
+              });
+            });
+
+            function command() {
+              return _command.apply(this, arguments);
+            }
+
+            return command;
+          }(),
+          stateCondition: state => //C track must be playing, near the start (within the time from when the call was made to now), and the same track
+          state.isPlaying === true && //state.progress !== context.state.progress && //!
+          //state.progress !== 0 && //C track must be actually started
+          state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration && state.track.sourceId === context.state.track.sourceId,
+          success: {},
+          error: {
+            //code: JSON.parse(rejected.response).error.status,
+            origin: 'spotify.start()',
+            message: 'spotify track could not be started' //reason: JSON.parse(rejected.response).error.message,
+
+          },
+          timeoutError: {
+            origin: 'sj.spotify.playback.actions.start()'
+          }
+        }); //TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
+
+        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(1000);
+        return result;
+      })();
+    },
+
+    pause(_ref16) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: {
+            player
+          }
+        } = _ref16;
+        return yield player.awaitState({
+          command: function () {
+            var _command2 = _asyncToGenerator(function* () {
+              return yield player.pause();
+            });
+
+            function command() {
+              return _command2.apply(this, arguments);
+            }
+
+            return command;
+          }(),
+          stateCondition: state => state.isPlaying === false,
+          success: {},
+          error: {
+            //code: JSON.parse(rejected.response).error.status,
+            origin: 'spotify.pause()',
+            message: 'spotify track could not be paused' //reason: JSON.parse(rejected.response).error.message,
+
+          },
+          timeoutError: {
+            origin: 'sj.spotify.playback.actions.pause()'
+          }
+        });
+      })();
+    },
+
+    resume(_ref17) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: {
+            player
+          }
+        } = _ref17;
+        return yield player.awaitState({
+          command: function () {
+            var _command3 = _asyncToGenerator(function* () {
+              return yield player.resume();
+            });
+
+            function command() {
+              return _command3.apply(this, arguments);
+            }
+
+            return command;
+          }(),
+          stateCondition: state => state.isPlaying === true,
+          success: {},
+          error: {
+            //code: JSON.parse(rejected.response).error.status,
+            origin: 'spotify.resume()',
+            message: 'spotify track could not be resumed' //reason: JSON.parse(rejected.response).error.message,
+
+          },
+          timeoutError: {
+            origin: 'sj.spotify.playback.actions.resume()'
+          }
+        });
+      })();
+    },
+
+    seek(_ref18, progress) {
+      return _asyncToGenerator(function* () {
+        var {
+          state,
+          state: {
+            player,
+            track
+          }
+        } = _ref18;
+        var ms = progress * track.duration;
+        var timeBeforeCall = Date.now();
+        return yield player.awaitState({
+          command: function () {
+            var _command4 = _asyncToGenerator(function* () {
+              return yield player.seek(ms);
+            });
+
+            function command() {
+              return _command4.apply(this, arguments);
+            }
+
+            return command;
+          }(),
+          //C state.position must be greater than the set position but less than the difference in time it took to call and resolve
+          stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
+          success: {},
+          error: {
+            //code: JSON.parse(rejected.response).error.status,
+            origin: 'spotify.seek()',
+            message: 'spotify track could not be seeked' //reason: JSON.parse(rejected.response).error.message,
+
+          },
+          timeoutError: {
+            origin: 'sj.spotify.playback.actions.seek()'
+          }
+        });
+      })();
+    },
+
+    volume(_ref19, volume) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: player
+        } = _ref19;
+        return yield player.awaitState({
+          command: function () {
+            var _command5 = _asyncToGenerator(function* () {
+              return yield player.setVolume(volume);
+            });
+
+            function command() {
+              return _command5.apply(this, arguments);
+            }
+
+            return command;
+          }(),
+          stateCondition: state => state.volume === volume,
+          success: {},
+          error: {
+            //code: JSON.parse(rejected.response).error.status,
+            origin: 'spotify.seek()',
+            message: 'spotify volume could not be set' //reason: JSON.parse(rejected.response).error.message,
+
+          },
+          timeoutError: {
+            origin: 'sj.spotify.playback.actions.volume()'
+          }
+        });
+      })();
+    }
+
+  }
+});
+/* harmony default export */ __webpack_exports__["default"] = (spotify);
+
+/***/ }),
+
+/***/ "./source/client/sources/youtube.js":
+/*!******************************************!*\
+  !*** ./source/client/sources/youtube.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _public_js_server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../public/js/server-request.js */ "./source/public/js/server-request.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+
+
+
+
+
+
+
+
+var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
+  name: 'youtube',
+  register: true,
+  idPrefix: 'https://www.youtube.com/watch?v=',
+  nullPrefix: 'https://www.youtube.com/watch',
+
+  auth() {
+    return _asyncToGenerator(function* () {
+      //L example code: https://developers.google.com/youtube/v3/docs/search/list
+      //TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
+      //C watch for gapi to be assigned by using a setter with a deferred promise
+      //L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
+      //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
+      //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
+      window.gapi2 = window.gapi;
+      var loaded = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+        log: false,
+        origin: 'sj.youtube.auth()',
+        reason: 'gapi loading timed out'
+      }));
+      Object.defineProperty(window, 'gapi', {
+        configurable: true,
+        enumerable: true,
+
+        get() {
+          return window.gapi2;
+        },
+
+        set(value) {
+          //R gapi was first going to be stored on sj.youtube, however after gapi.cient.init() is called, gapi gets some cross-origin data defined on it. this is an issue when attempting to copy its data via fClone, as a cross-origin error will be thrown.
+          window.gapi2 = value;
+          loaded.resolve();
+        }
+
+      }); //C loads gapi into global scope 
+      //TODO is there any way to make this more module-like?
+
+      yield runHTMLScript('https://apis.google.com/js/api.js'); //C wait for gapi
+
+      yield loaded; //C remove the watcher
+
+      Object.defineProperty(window, 'gapi', {
+        configurable: true,
+        enumerable: true,
+        value: window.gapi2,
+        writable: true
+      });
+      delete window.gapi2; //C load client library
+
+      yield new Promise((resolve, reject) => {
+        //L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md
+        //C first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
+        gapi.load('client', {
+          callback(args) {
+            //? no idea what the parameters passed here are
+            resolve(args);
+          },
+
+          onerror(args) {
+            reject(args);
+          },
+
+          ontimeout(args) {
+            reject(args); //TODO probably a custom error here?
+          },
+
+          timeout: 60000 //TODO
+
+        });
+      }); //C get apiKey and clientId stored on server
+
+      var {
+        apiKey,
+        clientId
+      } = yield Object(_public_js_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('GET', "youtube/credentials"); //TODO Create specific rules for each API key.
+
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(apiKey);
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(clientId); //C loads and performs authorization, short version of the code commented out below
+      //R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
+
+      yield gapi.client.init({
+        //L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md#----gapiclientinitargs--
+        //TODO move keys
+        apiKey,
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
+        clientId,
+        //https://www.googleapis.com/auth/youtube.force-ssl
+        //https://www.googleapis.com/auth/youtube
+        scope: 'https://www.googleapis.com/auth/youtube.readonly'
+      });
+      /* LONG IMPLEMENTATION
+      	//! 'auth2:client' must be loaded above
+      			//C init and signIn to OAuth
+      	const googleAuth = await gapi.auth2.init({
+      		//! may only be initialized once, and so client_id and scopes cannot be reinitialized
+      		//L other options: https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
+      		client_id: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com', //TODO move
+      		//L The scopes to request, as a space-delimited string, may also be done in signIn() which adds on top of these scopes
+      		scope: '', //TODO
+      	});
+      	await googleAuth.signIn({
+      		//L https://developers.google.com/identity/sign-in/web/reference#googleauthsigninoptions
+      		//L consent, select_account, or none (can fail)
+      		prompt: 'consent',
+      	});
+      			//C init and load client
+      	gapi.client.setApiKey('key')
+      	await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
+      */
+    })();
+  },
+
+  request(method, path, content) {
+    var _this = this;
+
+    return _asyncToGenerator(function* () {
+      var _window, _window$gapi, _window$gapi$auth, _window$gapi$auth$get, _window$gapi$auth$get2, _window$gapi$auth$get3, _window$gapi$auth$get4;
+
+      //C check that user is authorized (signedIn)
+      //TODO how do I check that the client library is loaded?
+      if (!((_window = window) === null || _window === void 0 ? void 0 : (_window$gapi = _window.gapi) === null || _window$gapi === void 0 ? void 0 : (_window$gapi$auth = _window$gapi.auth2) === null || _window$gapi$auth === void 0 ? void 0 : (_window$gapi$auth$get = _window$gapi$auth.getAuthInstance) === null || _window$gapi$auth$get === void 0 ? void 0 : (_window$gapi$auth$get2 = _window$gapi$auth$get.call(_window$gapi$auth)) === null || _window$gapi$auth$get2 === void 0 ? void 0 : (_window$gapi$auth$get3 = _window$gapi$auth$get2.isSignedIn) === null || _window$gapi$auth$get3 === void 0 ? void 0 : (_window$gapi$auth$get4 = _window$gapi$auth$get3.get) === null || _window$gapi$auth$get4 === void 0 ? void 0 : _window$gapi$auth$get4.call(_window$gapi$auth$get3))) {
+        yield _this.auth();
+      }
+
+      return yield new Promise((resolve, reject) => {
+        // Wraps goog.Thenable which doesn't support the catch method.
+        gapi.client.request({
+          method,
+          path: "/youtube/v3/".concat(path),
+          params: content
+        }).then(resolve, reject);
+      }).catch(rejected => {
+        var _rejected$result, _rejected$result$erro, _rejected$result$erro2, _rejected$result$erro3, _rejected$result$erro4;
+
+        if ((rejected === null || rejected === void 0 ? void 0 : rejected.code) === 403 && (rejected === null || rejected === void 0 ? void 0 : (_rejected$result = rejected.result) === null || _rejected$result === void 0 ? void 0 : (_rejected$result$erro = _rejected$result.error) === null || _rejected$result$erro === void 0 ? void 0 : (_rejected$result$erro2 = _rejected$result$erro.errors[0]) === null || _rejected$result$erro2 === void 0 ? void 0 : (_rejected$result$erro3 = _rejected$result$erro2.message) === null || _rejected$result$erro3 === void 0 ? void 0 : (_rejected$result$erro4 = _rejected$result$erro3.startsWith) === null || _rejected$result$erro4 === void 0 ? void 0 : _rejected$result$erro4.call(_rejected$result$erro3, 'Access Not Configured.'))) {
+          /* The key has probably been invalidated.
+          	If the API is still enabled, try resetting the API by:
+          		1. Deleting the API keys.
+          		2. Disabling the API.
+          		3. Re-enabling the API.
+          		4. Creating new keys.
+          	//L See here: https://stackoverflow.com/a/27491718
+          */
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+            reason: 'API key is invalid.',
+            message: 'YouTube credentials are invalid.',
+            content: rejected
+          });
+        } else {
+          throw rejected;
+        }
+      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+    })();
+  }
+
+}); // External due to youtube self reference.
+
+youtube.search = /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator(function* (_ref) {
+    var {
+      term = '',
+      startIndex = 0,
+      amount = 1
+    } = _ref;
+    // VALIDATE
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].visibleString.validate(term);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(startIndex);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
+    //! this will drive api quotas up fast if the startIndex or amount are high (n*50)
+    //!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
+
+    /* //R
+    	default quota limit is 10 000 units per day (or not? I don't see a limit in the quotas tab of the api dashboard)
+    	/search costs 100 per page, (so only allowed to search 100 times per day)
+    	increasing the maxResults doesn't seem to increase the quota cost, but increasing the number of pages per search (by increasing startIndex or amount) will,
+    	so the best solution to adapting this page system to my start/amount system would be to request the maximum number of results per page (50), then requesting the next page until the last result is retrieved - this will require the minimum number of pages
+    */
+
+    var limit = 1; //TODO temp safeguard
+
+    var allPageResults = [];
+    var pageToken = null;
+
+    while (allPageResults.length < startIndex + amount && limit > 0) {
+      var pageResults = yield youtube.request('GET', 'search', _objectSpread({
+        //L https://developers.google.com/youtube/v3/docs/search/list#parameters
+        part: 'snippet',
+        type: 'video',
+        maxResults: 50,
+        q: term
+      }, pageToken !== null && {
+        pageToken
+      }));
+      allPageResults.push(...pageResults.result.items);
+      pageToken = pageResults.nextPageToken;
+      limit--;
+    } //C remove the unneeded results
+
+
+    var searchResults = allPageResults.slice(startIndex, startIndex + amount); //C videoResults must also be searched because the contentDetails part is not available for the search request
+    //L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
+
+    var videoResult = yield youtube.request('GET', 'videos', {
+      //L https://developers.google.com/youtube/v3/docs/videos/list
+      //C join the results ids
+      id: searchResults.map(item => item.id.videoId).join(','),
+      //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
+      part: 'contentDetails'
+    });
+    if (searchResults.length !== videoResult.result.items.length) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      origin: 'youtube.search()',
+      reason: 'search result length not equal to video result length',
+      content: {
+        searchLength: searchResults.length,
+        videoLength: videoResult.result.items.length
+      }
+    });
+    videoResult.result.items.forEach((item, index) => {
+      //C ensure that ids line up
+      if (searchResults[index].id.videoId !== item.id) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+        origin: 'youtube.search()',
+        reason: "search and video results at ".concat(index, " do not have the same id")
+      }); //C append contentDetails part to the search results
+
+      searchResults[index].contentDetails = item.contentDetails;
+    });
+    return searchResults.map((_ref3) => {
+      var {
+        id: {
+          videoId: id
+        },
+        snippet,
+        contentDetails
+      } = _ref3;
+      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"](_objectSpread({
+        source: youtube,
+        //! this is causing issues with fClone, its throwing a cross origin error
+        sourceId: id,
+        link: youtube.idPrefix + id
+      }, this.formatSnippet(snippet), {}, this.formatContentDetails(contentDetails)));
+    });
+  });
+
+  return function (_x) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+  state: {
+    source: youtube
+  },
+  actions: {
+    loadPlayer(context) {
+      return _asyncToGenerator(function* () {
+        //C load youtube iframe api
+        yield runHTMLScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
+
+        var deferred = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+          origin: 'sj.youtube loadPlayer()',
+          reason: 'youtube iframe player load timed out'
+        }));
+
+        window.onYouTubeIframeAPIReady = function () {
+          context.commit('setState', {
+            player: new YT.Player('youtubeIFrame', {
+              //! this won't throw any error if the element id doesn't exist
+              width: '640',
+              height: '390',
+              //videoId: 'M71c1UVf-VE',
+              // host: 'https://www.youtube.com', //? doesn't seem to help
+              playerVars: {
+                controls: 0,
+                disablekb: 1,
+                enablejsapi: 1,
+                fs: 0,
+                iv_load_policy: 3,
+                modestbranding: 1 // origin: 'http://localhost:3000', //TODO extract as constant //? doesn't seem to help
+
+              },
+              //L https://developers.google.com/youtube/iframe_api_reference#Events
+              events: {
+                onReady(event) {
+                  return _asyncToGenerator(function* () {
+                    //TODO handle error?
+                    yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+                    deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+                      origin: 'sj.youtube loadPlayer()',
+                      reason: 'youtube iframe player loaded'
+                    }));
+                  })();
+                },
+
+                onStateChange(event) {
+                  return _asyncToGenerator(function* () {
+                    //! onStateChange event only has the playbackState data, checkPlayback gets this anyways
+                    yield context.dispatch('checkPlayback');
+                  })();
+                },
+
+                onError(event) {
+                  //TODO
+                  console.error('youtube player onError:', event);
+                }
+
+              }
+            })
+          });
+        };
+
+        return yield deferred;
+      })();
+    },
+
+    checkPlayback(context) {
+      return _asyncToGenerator(function* () {
+        var _context$state, _context$state$track, _context$state2, _context$state2$start;
+
+        //TODO catch errors in here
+        var state = {};
+        var track = {};
+        var player = context.state.player;
+        track.link = player.getVideoUrl(); //C remove the idPrefix or nullPrefix from youtube urls
+        //! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
+
+        track.sourceId = track.link.replace(new RegExp("".concat(escapeRegExp(youtube.idPrefix), "|").concat(escapeRegExp(youtube.nullPrefix))), '');
+        var playerDuration = player.getDuration(); //! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
+        //C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
+
+        track.duration = playerDuration === 0 ? Infinity : playerDuration;
+        state.progress = player.getCurrentTime() * 1000 / track.duration;
+        var playerState = player.getPlayerState();
+        state.isPlaying = playerState === 1 || playerState === 3;
+        /* //G
+        	-1 un-started
+        	0 ended
+        	1 playing
+        	2 paused
+        	3 buffering - this should be considered as playing, but not influence the progress
+        	5 video cued
+        */
+        //C if muted: volume is 0, convert 0-100 to 0-1 range
+
+        state.volume = player.isMuted() ? 0 : player.getVolume() / 100; //C 
+
+        state.timestamp = Date.now(); //C get name and artists from current track, starting track, or an api call
+        //R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
+
+        if (track.sourceId === (context === null || context === void 0 ? void 0 : (_context$state = context.state) === null || _context$state === void 0 ? void 0 : (_context$state$track = _context$state.track) === null || _context$state$track === void 0 ? void 0 : _context$state$track.sourceId)) {
+          track.name = context.state.track.name;
+          track.artists = [...context.state.track.artists];
+        } else if (track.sourceId === (context === null || context === void 0 ? void 0 : (_context$state2 = context.state) === null || _context$state2 === void 0 ? void 0 : (_context$state2$start = _context$state2.startingTrack) === null || _context$state2$start === void 0 ? void 0 : _context$state2$start.sourceId)) {
+          track.name = context.state.startingTrack.name;
+          track.artists = [...context.state.startingTrack.artists];
+        } else {
+          var video = yield youtube.request('GET', 'videos', {
+            id: track.sourceId,
+            part: 'snippet'
+          });
+
+          if (video.result.items.length === 1) {
+            var formattedSnippet = youtube.formatSnippet(video.result.items[0].snippet);
+            track.name = formattedSnippet.name;
+            track.artists = formattedSnippet.artists;
+          }
+        }
+
+        state.track = new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"](track);
+        context.commit('setState', state);
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+          origin: 'youtube module action - checkPlayback()',
+          message: 'youtube playback updated',
+          content: state
+        });
+      })();
+    },
+
+    baseStart(_ref4, _ref5) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: {
+            player
+          },
+          dispatch
+        } = _ref4;
+        var {
+          sourceId
+        } = _ref5;
+        player.loadVideoById({
+          videoId: sourceId //startSeconds
+          //endSeconds
+          //suggestedQuality
+
+        });
+      })();
+    },
+
+    // async start(context, track) {
+    // },
+    pause(_ref6) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: {
+            player
+          }
+        } = _ref6;
+        player.pauseVideo(); //TODO return
+      })();
+    },
+
+    resume(_ref7) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: {
+            player
+          }
+        } = _ref7;
+        player.playVideo(); //TODO return
+      })();
+    },
+
+    seek(_ref8, progress) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: {
+            player
+          }
+        } = _ref8;
+        var seconds = progress * track.duration * 0.001;
+        player.seekTo(seconds, true); //TODO return
+      })();
+    },
+
+    volume(_ref9, volume) {
+      return _asyncToGenerator(function* () {
+        var {
+          state: player
+        } = _ref9;
+        player.setVolume(volume * 100);
+        player.unMute(); //TODO return
+      })();
+    }
+
+  }
+}); //TODO move inside
+
+youtube.formatContentDetails = function (contentDetails) {
+  var pack = {};
+  pack.duration = moment.duration(contentDetails.duration, moment.ISO_8601).asMilliseconds();
+  return pack;
+}, youtube.formatSnippet = function (snippet) {
+  var pack = {};
+  if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(snippet)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+    origin: 'sj.youtube.formatSnippet()',
+    reason: 'snippet is not an object'
+  }); //C assuming title format of 'Artist - Title'
+  //C splits on dash between one or any whitespace
+
+  var splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
+
+  if (splitTitle.length === 2) {
+    //C if splitTittle has the exact length of two
+    //C use the first part as the artists
+    //C splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
+    //TODO improve
+    pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g); //C use the second part as the name
+
+    pack.name = splitTitle[1];
+  } else {
+    //C use the channel title as the artist
+    pack.artists = [snippet.channelTitle]; //C use the full title as the name
+
+    pack.name = snippet.title;
+  } //C apparently the titles are html encoded, (possibly the artist names too//?)
+  //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
+
+
+  pack.artists = pack.artists.map(artist => he.decode(artist));
+  pack.name = he.decode(pack.name);
+  return pack;
+};
+/* harmony default export */ __webpack_exports__["default"] = (youtube);
+
+/***/ }),
+
+/***/ "./source/client/universal-playback-module.js":
+/*!****************************************************!*\
+  !*** ./source/client/universal-playback-module.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./playback.js */ "./source/client/playback.js");
+/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sources/index.js */ "./source/client/sources/index.js");
+
+
+/* harmony default export */ __webpack_exports__["default"] = (_playback_js__WEBPACK_IMPORTED_MODULE_0__["default"].createUniversalModule([_sources_index_js__WEBPACK_IMPORTED_MODULE_1__["spotify"], _sources_index_js__WEBPACK_IMPORTED_MODULE_1__["youtube"]]));
 
 /***/ }),
 
@@ -38020,16 +40574,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
 /* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -38078,900 +40622,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 var sj = {}; //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
-//   ██████╗██╗      █████╗ ███████╗███████╗
-//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
-//  ██║     ██║     ███████║███████╗███████╗
-//  ██║     ██║     ██╔══██║╚════██║╚════██║
-//  ╚██████╗███████╗██║  ██║███████║███████║
-//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
-// ACTION
-//R commands are separate from the playback module commands because they are supposed to be instanced, queued packets of trigger functionality and frozen state
-//G sj.Commands have their own playback state properties so that they can be queued and then collapsed/annihilated if redundant based on these properties
-//G they trigger basic playback functions from all the sources while ensuring these playbacks don't collide (ie. play at the same time)
-//G tightly integrated with VueX
-//TODO consider a stop command? it would stop all sources and set the current source back to null
-//TODO im not sure that the null check for sources should go in these commands, also they're inconsistent between the target source and other sources
-
-sj.Command = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"].makeClass('Command', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"], {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {//G must be given a source
-      //TODO The non-instance source casting actually seems necessary here for some reason.
-      //TODO Find a better way to convert from non-instance to instance.
-
-      /*
-      if (!sj.isType(accessory.options.source, sj.Source)) {
-      	throw new Err({
-      		origin: 'sj.Command.beforeInitialize()',
-      		message: 'no source is active to receive this command',
-      		reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
-      		content: accessory.options.source,
-      	});
-      }
-      */
-    },
-
-    defaults: {
-      source: undefined
-    },
-
-    afterInitialize(accessory) {
-      this.collapsedCommands = []; //C an array used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated
-
-      this.fullResolve = function (success) {
-        //C resolve collapsed commands
-        this.collapsedCommands.forEach(collapsedCommand => {
-          collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-            origin: 'resolvePlus()',
-            reason: 'command was collapsed'
-          }));
-        }); //C resolve self
-
-        this.resolve(success);
-      };
-
-      this.fullReject = function (error) {
-        //C//! RESOLVE collapsed commands
-        this.collapsedCommands.forEach(a => {
-          a.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-            origin: 'resolvePlus()',
-            reason: 'command was collapsed'
-          }));
-        }); //C reject self
-
-        this.reject(error);
-      };
-
-      this.resolve = function () {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-          origin: 'sj.Command.resolve()',
-          reason: 'command.resolve called but it has not been given a resolve function'
-        });
-      };
-
-      this.resolve = function () {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-          origin: 'sj.Command.reject()',
-          reason: 'command.reject called but it has not been given a reject function'
-        });
-      };
-    }
-
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      //C otherCommand must be an sj.Command, and have the same playback-state properties
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(otherCommand, sj.Command, 'Command') && otherCommand.source === this.source;
-    },
-
-    collapseCondition(otherCommand) {
-      //C collapse if identical
-      return this.identicalCondition(otherCommand);
-    },
-
-    annihilateCondition: otherCommand => false,
-
-    trigger(context) {
-      var _this = this;
-
-      return _asyncToGenerator(function* () {
-        //C load the player if not loaded
-        if (context.state[_this.source.name].player === null) yield context.dispatch("".concat(_this.source.name, "/loadPlayer"));
-      })();
-    }
-
-  })
-});
-sj.Start = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"].makeClass('Start', sj.Command, {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      //G must be given a track
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(accessory.options.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"], 'Track')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-        origin: 'sj.Start.beforeInitialize()',
-        reason: 'sj.Start instance.track must be an Track',
-        content: accessory.options.track
-      });
-    },
-
-    defaults: {
-      track: undefined,
-      isPlaying: true,
-      progress: 0
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(otherCommand.track, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"], 'Track') //C catch non-Tracks
-      && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
-      && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
-    },
-
-    collapseCondition(otherCommand) {
-      //C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === sj.Start || otherCommand.constructor === sj.Resume || otherCommand.constructor === sj.Pause || otherCommand.constructor === sj.Seek;
-    },
-
-    trigger(context) {
-      var _this2 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this2, context); //C pause all
-
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"].instances, /*#__PURE__*/function () {
-          var _ref = _asyncToGenerator(function* (source) {
-            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
-          });
-
-          return function (_x) {
-            return _ref.apply(this, arguments);
-          };
-        }()); //C change startingTrackSubscription to subscription of the new track
-
-        context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
-          subscription: context.state.startingTrackSubscription,
-          Entity: _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"],
-          query: {
-            id: _this2.track.id
-          },
-          options: {} //TODO //?
-
-        }, {
-          root: true
-        }))); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
-        //C start target
-
-        yield context.dispatch("".concat(_this2.source.name, "/start"), _this2.track); //C transfer subscription from starting to current
-
-        context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
-        context.commit('setStartingTrackSubscription', null); //C change source
-
-        context.commit('setSource', _this2.source);
-      })();
-    }
-
-  })
-});
-sj.Toggle = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"].makeClass('Toggle', sj.Command, {
-  //? pause command might not have a desired progress?
-  //TODO toggle resume seems to be broken, maybe because of CORS?
-  // "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
-  constructorParts: parent => ({
-    beforeInitialize(_ref2) {
-      var {
-        options
-      } = _ref2;
-      //G isPlaying must be manually set to true or false
-      if (options.isPlaying !== true && options.isPlaying !== false) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-        origin: 'sj.Toggle',
-        reason: "Toggle isPlaying must be true or false: ".concat(options.isPlaying),
-        content: options.isPlaying
-      });
-    },
-
-    defaults: {
-      isPlaying: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
-    },
-
-    //! sj.Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates
-    annihilateCondition(otherCommand) {
-      return parent.prototype.annihilateCondition.call(this, otherCommand) || //C same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts)
-      parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
-    },
-
-    trigger(context) {
-      var _this3 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this3, context);
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"].instances, /*#__PURE__*/function () {
-          var _ref3 = _asyncToGenerator(function* (source) {
-            if (_this3.isPlaying && source === _this3.source) {
-              //C resume target if resuming
-              yield context.dispatch("".concat(source.name, "/resume"));
-            } else {
-              //C pause all or rest
-              if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
-            }
-          });
-
-          return function (_x2) {
-            return _ref3.apply(this, arguments);
-          };
-        }());
-      })();
-    }
-
-  })
-});
-sj.Seek = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"].makeClass('Seek', sj.Command, {
-  constructorParts: parent => ({
-    beforeInitialize(_ref4) {
-      var {
-        options
-      } = _ref4;
-      //G progress must be manually set between 0 and 1\
-      if (options.progress < 0 || 1 < options.progress) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-        origin: 'sj.Seek.trigger()',
-        reason: "seek progress is not a number between 0 and 1: ".concat(options.progress),
-        content: options.progress
-      });
-    },
-
-    defaults: {
-      progress: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
-    },
-
-    collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === sj.Seek;
-    },
-
-    trigger(context) {
-      var _this4 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this4, context);
-        yield context.dispatch("".concat(_this4.source.name, "/seek"), _this4.progress);
-      })();
-    }
-
-  })
-});
-sj.Volume = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"].makeClass('Volume', sj.Command, {
-  constructorParts: parent => ({
-    beforeInitialize(_ref5) {
-      var {
-        options
-      } = _ref5;
-      //G volume must be manually set between 0 and 1
-      if (options.volume < 0 || 1 < options.volume) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-        origin: 'sj.Volume.trigger()',
-        reason: "volume is not a number between 0 and 1: ".concat(options.volume),
-        content: options.volume
-      });
-    },
-
-    defaults: {
-      volume: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
-    },
-
-    collapseCondition(otherCommand) {
-      return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === sj.Volume;
-    },
-
-    trigger(context) {
-      var _this5 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this5, context); //C adjust volume on all sources
-
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"].instances, /*#__PURE__*/function () {
-          var _ref6 = _asyncToGenerator(function* (source) {
-            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this5.volume);
-          });
-
-          return function (_x3) {
-            return _ref6.apply(this, arguments);
-          };
-        }());
-      })();
-    }
-
-  })
-}); // PLAYBACK
-
-sj.Playback = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"].makeClass('Playback', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_6__["default"], {
-  constructorParts(parent) {
-    return {
-      defaults: {
-        // NEW
-        state: undefined,
-        actions: undefined,
-        mutations: undefined,
-        getters: undefined,
-        modules: undefined
-      },
-
-      afterInitialize() {
-        //C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
-        //C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
-        this.state = _objectSpread({}, this.constructor.baseState, {}, this.state);
-        this.actions = _objectSpread({}, this.constructor.baseActions, {}, this.actions);
-        this.mutations = _objectSpread({}, this.constructor.baseMutations, {}, this.mutations);
-        this.baseGetters = _objectSpread({}, this.constructor.baseGetters, {}, this.getters);
-        this.baseModules = _objectSpread({}, this.constructor.baseModules, {}, this.getters);
-      }
-
-    };
-  },
-
-  staticProperties: parent => ({
-    requestTimeout: 5000,
-    baseState: {
-      source: null,
-      player: null,
-      track: null,
-      isPlaying: false,
-      progress: 0,
-      volume: 1,
-      //G all state properties should be updated at the same time
-      timestamp: Date.now(),
-      //R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
-      startingTrack: null
-    },
-    baseActions: {
-      start(context, track) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters,
-            state
-          } = context;
-          var timeBefore = Date.now();
-          /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
-          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
-          		origin: 'sj.Playback.baseActions.start()',
-          		reason: 'start state timed out',
-          	}));
-          			const unwatch = context.watch(
-          		//C pack desired state
-          		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
-          		//C evaluate state conditions
-          		({sourceId, isPlaying, progress}) => {
-          			if (
-          				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-          				sourceId === track.sourceId &&
-          				isPlaying === true &&
-          				progress <= (Date.now() - timeBefore) / duration
-          			) {
-          				deferred.resolve();
-          			}
-          		}, 
-          		{deep: true, immediate: true}
-          	);
-          */
-          //C trigger api
-
-          yield dispatch('baseStart', track);
-          /* //TODO same here
-          	//C wait for desired state
-          	await deferred;
-          	unwatch();
-          */
-          //C Wait for the desired state.
-
-          yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(100);
-            return {
-              sourceId: getters.sourceId,
-              isPlaying: state.isPlaying,
-              progress: state.progress
-            };
-          }), {
-            until(_ref8) {
-              var {
-                sourceId,
-                isPlaying,
-                progress
-              } = _ref8;
-              //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-              return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
-            }
-
-          });
-          console.log('reached');
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-            origin: 'sj.Playback.baseActions.start()',
-            reason: 'start command completed'
-          });
-        })();
-      }
-      /* //OLD
-      	async preserveLocalMetadata(context, track) {
-      		if (!sj.isType(track, Track)) throw new Err({
-      			origin: 'preserveLocalMetadata()',
-      			reason: 'track is not an Track',
-      		});
-      				//C default local metadata as foreign track
-      		let local = Track.filters.localMetadata.reduce((obj, key) => {
-      			obj[key] = null;
-      			return obj;
-      		}, {});
-      				//C set local as current or starting track if matching
-      		if (sj.isType(context.state.track, Object) && 
-      		track.sourceId === context.state.track.sourceId)			local = context.state.track;
-      		else if (sj.isType(context.state.startingTrack, Object) && 
-      		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
-      				//C return new track with localMetadata properties replaced
-      		return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
-      	},
-      */
-
-
-    },
-    baseMutations: {
-      setState(state, values) {
-        Object.assign(state, values);
-      },
-
-      setStartingTrack(state, track) {
-        state.startingTrack = track;
-      },
-
-      removeStartingTrack(state, track) {
-        state.startingTrack = null;
-      }
-
-    },
-    baseGetters: {
-      //C safe getters for track properties
-      sourceId: state => {
-        var _state$track;
-
-        return state === null || state === void 0 ? void 0 : (_state$track = state.track) === null || _state$track === void 0 ? void 0 : _state$track.sourceId;
-      },
-      duration: state => {
-        var _state$track2;
-
-        return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
-      },
-      //C state conditions for command resolution
-      isStarted: (state, _ref9) => {
-        var {
-          sourceId,
-          duration
-        } = _ref9;
-        return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration;
-      } //TODO
-      // isPaused:
-      // isResumed:
-      // isSeeked:
-      // isVolumed:
-
-    },
-    baseModules: {}
-  })
-});
-sj.Playback.module = new sj.Playback({
-  //G main playback module for app
-  modules: {},
-  state: {
-    // CLOCK 
-    //C basically a reactive Date.now(), so far just used for updating playback progress
-    clock: Date.now(),
-    clockIntervalId: null,
-    // QUEUE
-
-    /* //R Old Queue Thought Process
-    		//  //R
-    	// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
-    	// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
-    	// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
-    	// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
-    	// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
-    	// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
-    			TODO checkPlaybackState every command just like before, find a better way
-    		// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
-    		// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-    			Command Failure Handling 
-    		// 	!!! old, meant for individual command types
-    				// send command, change pendingCommand to true, wait
-    		// 	if success: change pendingCommand to false
-    		// 		if queuedCommand exists: change command to queuedCommand, clear queued command, repeat...
-    		// 		else: nothing
-    		// 	if failure: 
-    		// 		if queuedCommand exists: change pendingCommand to false, change command to queuedCommand, clear queued command, repeat... // pendingCommands aren't desired if queuedCommands exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
-    		// 		else: trigger auto-retry process
-    		// 			if success: repeat...
-    		// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
-    */
-    commandQueue: [],
-    sentCommand: null,
-    // PLAYBACK STATE
-    //C source is used to select the proper playback state for actualPlayback
-    source: null,
-    // LOCAL TRACKS
-    currentTrackSubscription: null,
-    startingTrackSubscription: null
-  },
-  actions: {
-    // CLOCK
-    startClock(context) {
-      return _asyncToGenerator(function* () {
-        yield context.dispatch('stopClock');
-        var id = setInterval(() => context.commit('updateClock'), 100); //C clock refresh rate
-
-        context.commit('setClockIntervalId', id);
-      })();
-    },
-
-    stopClock(context) {
-      return _asyncToGenerator(function* () {
-        clearInterval(context.state.clockIntervalId);
-        context.commit('setClockIntervalId', null);
-      })();
-    },
-
-    // QUEUE
-    //TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
-    pushCommand(context, command) {
-      return _asyncToGenerator(function* () {
-        //C Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
-        var push = true; //C remove redundant commands if necessary
-
-        var compact = function compact(i) {
-          if (i >= 0) {
-            //R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
-            if (command.collapseCondition(context.state.commandQueue[i])) {
-              //C if last otherCommand collapses, this command gets pushed
-              push = true; //C store otherCommand on this command
-
-              command.collapsedCommands.unshift(context.state.commandQueue[i]); //C remove otherCommand
-
-              context.commit('removeQueuedCommand', i); //C analyze next otherCommand
-
-              compact(i - 1);
-            } else if (command.annihilateCondition(context.state.commandQueue[i])) {
-              //C if last otherCommand annihilates, this command doesn't get pushed
-              push = false;
-              command.collapsedCommands.unshift(context.state.commandQueue[i]);
-              context.commit('removeQueuedCommand', i);
-              compact(i - 1);
-            } else {
-              //C if otherCommand does not collapse or annihilate, escape
-              return;
-            }
-          }
-        };
-
-        compact(context.state.commandQueue.length - 1);
-        if ( //C if there is a sent command and identical to the sent command,
-        context.state.sentCommand !== null && command.identicalCondition(context.state.sentCommand) || //C or if there isn't a sent command and identical to the actual playback
-        context.state.sentCommand === null && command.identicalCondition(context.getters.actualPlayback)) push === false; //C don't push
-        //C route command resolve/reject to this result promise
-
-        var resultPromise = new Promise((resolve, reject) => {
-          command.resolve = resolve;
-          command.reject = reject;
-        }); //C push command to the queue or resolve it (because it has been collapsed)
-
-        if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-          origin: 'pushCommand()',
-          reason: 'command was annihilated'
-        })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
-
-        context.dispatch('nextCommand'); //C await for the command to resolve
-
-        return yield resultPromise;
-      })();
-    },
-
-    nextCommand(context) {
-      return _asyncToGenerator(function* () {
-        //C don't do anything if another command is still processing or if no queued commands exist
-        if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return; //C move the command from the queue to sent
-
-        context.commit('setSentCommand', context.state.commandQueue[0]);
-        context.commit('removeQueuedCommand', 0); //C trigger and resolve the command
-
-        yield context.state.sentCommand.trigger(context).then(resolved => context.state.sentCommand.fullResolve(resolved), rejected => context.state.sentCommand.fullReject(rejected)); //C mark the sent command as finished
-
-        context.commit('removeSentCommand'); //C send next command //! do not await, this just restarts the nextCommand cycle
-
-        context.dispatch('nextCommand');
-      })();
-    },
-
-    // PLAYBACK FUNCTIONS
-    //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
-    // BASIC
-    start(_ref10, track) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch
-        } = _ref10;
-        return yield dispatch('pushCommand', new sj.Start({
-          source: track.source,
-          //! uses track's source
-          track
-        }));
-      })();
-    },
-
-    pause(_ref11) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          }
-        } = _ref11;
-        return yield dispatch('pushCommand', new sj.Toggle({
-          source,
-          //! other non-start basic playback functions just use the current desiredPlayback source
-          isPlaying: false
-        }));
-      })();
-    },
-
-    resume(_ref12) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          }
-        } = _ref12;
-        return yield dispatch('pushCommand', new sj.Toggle({
-          source,
-          isPlaying: true
-        }));
-      })();
-    },
-
-    seek(_ref13, progress) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          }
-        } = _ref13;
-        return yield dispatch('pushCommand', new sj.Seek({
-          source,
-          progress
-        }));
-      })();
-    },
-
-    volume(_ref14, volume) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source
-          }
-        } = _ref14;
-        //TODO volume should change volume on all sources
-        return yield dispatch('pushCommand', new sj.Volume({
-          source,
-          volume
-        }));
-      })();
-    },
-
-    // HIGHER LEVEL
-    toggle(_ref15) {
-      return _asyncToGenerator(function* () {
-        var {
-          dispatch,
-          getters: {
-            desiredSource: source,
-            desiredIsPlaying: isPlaying
-          }
-        } = _ref15;
-        return yield dispatch('pushCommand', new sj.Toggle({
-          source,
-          isPlaying: !isPlaying
-        }));
-      })();
-    }
-
-  },
-  mutations: {
-    // CLOCK
-    updateClock(state) {
-      state.clock = Date.now();
-    },
-
-    setClockIntervalId(state, id) {
-      state.clockIntervalId = id;
-    },
-
-    // QUEUE
-    pushQueuedCommand(state, command) {
-      state.commandQueue.push(command);
-    },
-
-    removeQueuedCommand(state, index) {
-      state.commandQueue.splice(index, 1);
-    },
-
-    setSentCommand(state, command) {
-      state.sentCommand = command;
-    },
-
-    removeSentCommand(state) {
-      state.sentCommand = null;
-    },
-
-    // PLAYBACK STATE
-    setSource(state, source) {
-      state.source = source;
-    },
-
-    // LOCAL TRACKS
-    setCurrentTrackSubscription(state, subscription) {
-      state.currentTrackSubscription = subscription;
-    },
-
-    setStartingTrackSubscription(state, subscription) {
-      state.startingTrackSubscription = subscription;
-    }
-
-  },
-  getters: {
-    /*
-    	// PLAYBACK STATE
-    	actualPlayback(state, getters) {
-    		//C return null playback state if no source
-    		if (state.source === null) return {...sj.Playback.baseState};
-    				//C get the source state
-    		const sourceState = state[state.source.name];
-    				//C use inferredProgress or regular progress depending on isPlaying
-    		//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
-    		if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
-    		else return sourceState;
-    	},		
-    	inferredProgress(state) {
-    		if (state.source === null) return -1;
-    		//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
-    		const sourceState = state[state.source.name];
-    		const elapsedTime = state.clock - sourceState.timestamp;
-    		const elapsedProgress = elapsedTime / sourceState.track.duration;
-    		return clamp(sourceState.progress + elapsedProgress, 0, 1);
-    	},
-    	desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
-    		//! this will update x-times per second when playing as the track progress is constantly updating
-    		return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
-    	},
-    */
-    // ACTUAL
-    sourceOrBase: (state, getters) => key => {
-      if (state.source === null) return sj.Playback.baseState[key];else return state[state.source.name][key];
-    },
-    actualSource: (state, getters) => {
-      return state.source;
-    },
-    actualTrack: (state, getters, rootState, rootGetters) => {
-      var sourceOrBaseTrack = getters.sourceOrBase('track');
-
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(sourceOrBaseTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"], 'Track')) {
-        //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(getters.currentTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(getters.startingTrack, _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
-      }
-
-      return sourceOrBaseTrack;
-    },
-    actualIsPlaying: (state, getters) => getters.sourceOrBase('isPlaying'),
-    actualProgress: (state, getters) => {
-      var _state$source;
-
-      var progress = getters.sourceOrBase('progress');
-      var source = state === null || state === void 0 ? void 0 : state[state === null || state === void 0 ? void 0 : (_state$source = state.source) === null || _state$source === void 0 ? void 0 : _state$source.name];
-
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
-        //C if playing, return inferred progress
-        var elapsedTime = state.clock - state[state.source.name].timestamp;
-        var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
-        progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
-      }
-
-      return progress;
-    },
-    actualVolume: (state, getters) => getters.sourceOrBase('volume'),
-    actualPlayback: (state, getters) => ({
-      //! this will update as fast as progress does
-      source: getters.actualSource,
-      track: getters.actualTrack,
-      isPlaying: getters.actualIsPlaying,
-      progress: getters.actualProgress,
-      volume: getters.actualVolume
-    }),
-    // DESIRED
-    flattenPlayback: (state, getters) => key => {
-      //C value starts as the actualValue
-      var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
-
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
-        value = state.sentCommand[key];
-      } //C then if defined, each queuedCommand
-
-
-      for (var queuedCommand of state.commandQueue) {
-        if (queuedCommand[key] !== undefined) value = queuedCommand[key];
-      }
-
-      return value;
-    },
-    desiredSource: (state, getters) => getters.flattenPlayback('source'),
-    desiredTrack: (state, getters) => getters.flattenPlayback('track'),
-    desiredIsPlaying: (state, getters) => getters.flattenPlayback('isPlaying'),
-    desiredProgress: (state, getters) => getters.flattenPlayback('progress'),
-    desiredVolume: (state, getters) => getters.flattenPlayback('volume'),
-    desiredPlayback: (state, getters) => ({
-      source: getters.actualSource,
-      track: getters.desiredTrack,
-      isPlaying: getters.desiredIsPlaying,
-      progress: getters.desiredProgress,
-      volume: getters.desiredVolume
-    }),
-    // LOCAL TRACKS
-    currentTrack: (state, getters, rootState, rootGetters) => {
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_11__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
-    },
-    startingTrack: (state, getters, rootState, rootGetters) => {
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_11__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
-    }
-  }
-}); // SOURCE
-
-_shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"].augmentClass({
-  constructorParts(parent) {
-    var oldAfterInitialize = _shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"].afterInitialize;
-    return {
-      defaults: {
-        //TODO change these off undefined
-        auth: undefined,
-        request: undefined,
-        getAccessToken: undefined,
-        search: undefined,
-        player: undefined,
-        loadPlayer: undefined,
-        playback: undefined
-      },
-
-      afterInitialize() {
-        var _this$playback;
-
-        oldAfterInitialize.call(this); //TODO Temporary workaround because isType() doesn't handle required arguments properly.
-
-        var state = this === null || this === void 0 ? void 0 : (_this$playback = this.playback) === null || _this$playback === void 0 ? void 0 : _this$playback.state;
-        if (state != null) state.source = this; //C push own playback module to main playback modules
-
-        sj.Playback.module.modules[this.name] = _objectSpread({}, this.playback, {
-          namespaced: true
-        });
-      }
-
-    };
-  }
-
-}); //  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
+//  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
 //  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
 //  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
 //  ╚════██║██║   ██║██║   ██║██╔══██╗██║     ██╔══╝  
@@ -38986,1419 +40637,7 @@ _shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"].augmentClass({
 
 	still some issues with playback, try rapid clicking seek, etc.
 */
-// global source objects
-
-sj.spotify = new _shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
-  //TODO make apiReady and playerReady checks
-  name: 'spotify',
-  register: true,
-
-  //? where is this being called?
-  auth() {
-    var _this6 = this;
-
-    return _asyncToGenerator(function* () {
-      //C prompts the user to accept permissions in a new window, then receives an auth code from spotify
-
-      /* //R
-      	this was split in to multiple parts on the client side to have an automatically closing window
-      	//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
-      	//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
-      
-      */
-      //TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
-      //C request url
-      var requestCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_5__["default"])('GET', 'spotify/authRequestStart'); //C open spotify auth request window
-      //L https://www.w3schools.com/jsref/met_win_open.asp
-
-      var authWindow = window.open(requestCredentials.authRequestURL); //C listen for response from spotify
-      //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-
-      var authCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_5__["default"])('POST', 'spotify/authRequestEnd', requestCredentials); //C automatically close window when data is received
-
-      authWindow.close(); //C exchange auth code for tokens
-
-      var tokens = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_5__["default"])('POST', 'spotify/exchangeToken', authCredentials);
-      _this6.credentials.accessToken = tokens.accessToken;
-      _this6.credentials.expires = tokens.accessToken;
-      _this6.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
-
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-        origin: 'sj.spotify.auth()',
-        message: 'authorized spotify'
-      }); //TODO there needs to be a scopes (permissions) check in here somewhere
-
-      /* //OLD
-      	//C request authURL & authKey
-      	return fetch(`${API_URL}/spotify/startAuthRequest`).then(resolved => {
-      		//C open spotify auth request window
-      		//L https://www.w3schools.com/jsref/met_win_open.asp
-      		authRequestWindow = window.open(resolved.authRequestURL);
-      		return resolved;
-      	}).then(resolved => {
-      		//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
-      		return fetch(`${API_URL}/spotify/endAuthRequest`,  {
-      			method: 'post',
-      			headers: {
-      				'Accept': 'application/json',
-      				'Content-Type': 'application/json',
-      			},
-      			body: JSON.stringify(resolved),
-      		});
-      	}).then(resolved => {
-      		return resolved.json();
-      	}).then(resolved => {
-      		authRequestWindow.close();
-      		return resolved;
-      	}).catch(rejected => {
-      		throw propagate(rejected);
-      	});
-      */
-    })();
-  },
-
-  request(method, path, content) {
-    var _this7 = this;
-
-    return _asyncToGenerator(function* () {
-      // request() wrapper specifically fro spotify-web-api requests.
-      // Automatically gets the accessToken and applies the correct header and URL prefix.
-      // URL
-      var prefix = 'https://api.spotify.com/v1';
-      var url = "".concat(prefix, "/").concat(path); // OPTIONS
-
-      var options = {}; // BODY
-
-      if (method === 'GET') {
-        options.queryParameters = content;
-      } else {
-        options.JSONBody = content;
-      } // HEADER
-
-
-      var token = yield _this7.getAccessToken();
-      options.headers = _objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_13__["JSON_HEADER"], {
-        Authorization: "Bearer ".concat(token)
-      });
-      return yield Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_4__["default"])(method, url, options);
-    })();
-  },
-
-  //? this is specific to spotify, maybe move this once optional options are implemented into classes
-  getAccessToken() {
-    var _this8 = this;
-
-    return _asyncToGenerator(function* () {
-      //C gets the api access token, handles all refreshing, initializing, errors, etc.
-      //C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
-      //TODO must respond to denials by spotify too
-      //C refresh
-      var that = _this8;
-
-      var refresh = /*#__PURE__*/function () {
-        var _ref16 = _asyncToGenerator(function* (that) {
-          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_5__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
-
-          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_14__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["AuthRequired"], 'AuthRequired')) {
-            //C call auth() if server doesn't have a refresh token
-            yield that.auth();
-          } else if (result instanceof _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]) {
-            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["default"])(result);
-          } else {
-            //C assign sj.spotify.credentials
-            that.credentials.accessToken = result.accessToken;
-            that.credentials.expires = result.accessToken;
-          }
-        });
-
-        return function refresh(_x4) {
-          return _ref16.apply(this, arguments);
-        };
-      }(); //C if client doesn't have token or if it has expired, refresh it immediately
-      //TODO reconsider this string test
-
-
-      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(_this8.credentials.accessToken) || _this8.credentials.expires <= Date.now()) {
-        yield refresh(that);
-      } //C if token is soon to expire, refresh in the background, return the existing token
-
-
-      if (_this8.credentials.expires <= Date.now() + _this8.refreshBuffer) {
-        refresh(that);
-      }
-
-      return _this8.credentials.accessToken;
-    })();
-  },
-
-  search(_ref17) {
-    return _asyncToGenerator(function* () {
-      var {
-        term = '',
-        startIndex = 0,
-        amount = 1
-      } = _ref17;
-      // VALIDATE
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.validate(term);
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].nonNegativeInteger.validate(startIndex);
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].positiveInteger.validate(amount);
-      var result = yield sj.spotify.request('GET', 'search', {
-        q: term,
-        type: 'track',
-        market: 'from_token',
-        limit: amount,
-        offset: startIndex // include_external: 'audio',
-
-        /* //G
-        	type: 
-        		'A comma-separated list of item types to search across. Valid types are: album , artist, playlist, and track.'
-        	market:
-        		'An ISO 3166-1 alpha-2 country code or the string from_token. If a country code is specified, only artists, albums, and tracks with content that is playable in that market is returned. Note: Playlist results are not affected by the market parameter. If market is set to from_token, and a valid access token is specified in the request header, only content playable in the country associated with the user account, is returned. Users can view the country that is associated with their account in the account settings. A user must grant access to the user-read-private scope prior to when the access token is issued.'
-        	limit:
-        		'Maximum number of results to return. Default: 20, Minimum: 1, Maximum: 50, //! Note: The limit is applied within each type, not on the total response. For example, if the limit value is 3 and the type is artist,album, the response contains 3 artists and 3 albums.'
-        	offset:
-        		'The index of the first result to return. Default: 0 (the first result). Maximum offset (including limit): 10,000. Use with limit to get the next page of search results.'
-        	include_external:
-        		'Possible values: audio. If include_external=audio is specified the response will include any relevant audio content that is hosted externally. By default external content is filtered out from responses.'
-        */
-
-      });
-      return result.tracks.items.map(track => {
-        return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"]({
-          source: sj.spotify,
-          sourceId: track.id,
-          name: track.name,
-          duration: track.duration_ms,
-          link: track.external_urls.spotify,
-          artists: track.artists.map(artist => artist.name)
-        });
-      });
-    })();
-  },
-
-  playback: new sj.Playback({
-    //G source-specific playback should be the basic playback functions that connects this app to the source's api
-    actions: {
-      loadPlayer(context) {
-        return _asyncToGenerator(function* () {
-          return yield new Promise((resolve, reject) => {
-            //C this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
-            window.onSpotifyWebPlaybackSDKReady = function () {
-              var player = new window.Spotify.Player({
-                //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-                name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_13__["APP_NAME"],
-                getOAuthToken: function () {
-                  var _getOAuthToken = _asyncToGenerator(function* (callback) {
-                    var token = yield sj.spotify.getAccessToken();
-                    callback(token);
-                  });
-
-                  function getOAuthToken(_x5) {
-                    return _getOAuthToken.apply(this, arguments);
-                  }
-
-                  return getOAuthToken;
-                }() //volume: 1, //TODO initialize with a custom volume (default is 1)
-
-              });
-              player.formatState = function (state) {
-                //TODO state could be anything from the callback, better validate it somehow
-                if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(state)) return {};
-                var t = state.track_window.current_track;
-                return {
-                  track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"]({
-                    source: sj.spotify,
-                    sourceId: t.id,
-                    name: t.name,
-                    duration: t.duration_ms,
-                    artists: t.artists.map(artist => artist.name) //TODO link: t.uri,
-
-                  }),
-                  isPlaying: !state.paused,
-                  progress: state.position / t.duration_ms,
-                  timestamp: state.timestamp //! this isn't in the documentation, but the property exists
-
-                };
-              }, player.awaitState = /*#__PURE__*/function () {
-                var _ref19 = _asyncToGenerator(function* (_ref18) {
-                  var _this9 = this;
-
-                  var {
-                    command = () => {},
-                    stateCondition = () => false,
-                    success = {},
-                    error = {},
-                    timeoutError = {}
-                  } = _ref18;
-                  return new Promise( /*#__PURE__*/function () {
-                    var _ref20 = _asyncToGenerator(function* (resolve, reject) {
-                      var resolved = false; //C resolved boolean is used to prevent later announcements of response objects
-
-                      var callback = /*#__PURE__*/function () {
-                        var _ref21 = _asyncToGenerator(function* (state) {
-                          if (!resolved && stateCondition(player.formatState(state))) {
-                            //C remove listener
-                            _this9.removeListener('player_state_changed', callback); //C update playback state
-
-
-                            yield context.dispatch('updatePlayback', state); //C resolve
-
-                            resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"](success)); //C prevent other exit points from executing their code
-
-                            resolved = true;
-                          }
-                        });
-
-                        return function callback(_x9) {
-                          return _ref21.apply(this, arguments);
-                        };
-                      }(); //C add the listener before the request is made, so that the event cannot be missed 
-                      //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
-
-
-                      _this9.addListener('player_state_changed', callback); //C if command failed, reject
-                      //! don't do anything when main() resolves, it only indicates that the command has been received
-
-
-                      yield command().catch(rejected => {
-                        if (!resolved) {
-                          _this9.removeListener('player_state_changed', callback);
-
-                          reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"](_objectSpread({}, error, {
-                            content: rejected
-                          })));
-                          resolved = true;
-                        }
-                      }); //C if playback is already in the proper state, resolve but don't update
-                      //! this check is required because in this case spotify wont trigger a 'player_state_changed' event
-
-                      yield context.dispatch('checkPlayback');
-
-                      if (!resolved && stateCondition(context.state)) {
-                        _this9.removeListener('player_state_changed', callback);
-
-                        resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"](success));
-                        resolved = true;
-                      } //C if timed out, reject
-
-
-                      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(sj.Playback.requestTimeout);
-
-                      if (!resolved) {
-                        _this9.removeListener('player_state_changed', callback);
-
-                        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Timeout"](timeoutError));
-                        resolved = true;
-                      }
-                    });
-
-                    return function (_x7, _x8) {
-                      return _ref20.apply(this, arguments);
-                    };
-                  }());
-                });
-
-                return function (_x6) {
-                  return _ref19.apply(this, arguments);
-                };
-              }(), //C events
-              //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-              player.on('ready', /*#__PURE__*/function () {
-                var _ref23 = _asyncToGenerator(function* (_ref22) {
-                  var {
-                    device_id
-                  } = _ref22;
-                  //C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
-                  //L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-                  //C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
-                  var iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
-
-                  if (iframe) {
-                    iframe.style.display = 'block';
-                    iframe.style.position = 'absolute';
-                    iframe.style.top = '-1000px';
-                    iframe.style.left = '-1000px';
-                  } //C set the player as ready 
-                  //! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
-
-
-                  context.commit('setState', {
-                    player
-                  }); //C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
-
-                  yield sj.spotify.request('PUT', 'me/player', {
-                    device_ids: [device_id],
-                    play: false // keeps current playback state
-
-                  }).catch(rejected => {
-                    reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-                      //code: JSON.parse(error.response).error.status,
-                      origin: 'spotify.loadPlayer()',
-                      message: 'spotify player could not be loaded',
-                      //reason: JSON.parse(error.response).error.message,
-                      content: rejected
-                    }));
-                  }); //C wait for device to transfer
-                  //TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
-                  //C starting delay
-
-                  var delay = 100;
-                  yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-                    //C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
-                    //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
-                    //C timeout is doubled here to work better with the doubling delay time.
-                    //C using an object wrapper for the delay argument so that it can be modified between iterations
-                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(delay);
-                    delay = delay * 2; //C double the delay each time
-
-                    return yield sj.spotify.request('Get', 'me/player').catch(rejected => {
-                      reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-                        //code: JSON.parse(error.response).error.status,
-                        origin: 'spotify.loadPlayer()',
-                        message: 'spotify player could not be loaded',
-                        //reason: JSON.parse(error.response).error.message,
-                        content: rejected
-                      }));
-                      return {
-                        device: {
-                          id: device_id
-                        }
-                      }; //C break the loop after rejecting
-                    });
-                  }), {
-                    until(result) {
-                      //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
-                      //C this is fine, it just means that it's not ready, so just catch anything.
-                      return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(result) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(result.device) && result.device.id === device_id;
-                    },
-
-                    timeout: sj.Playback.requestTimeout * 2
-                  }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
-
-                  yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
-
-                  yield context.dispatch('pause');
-                  resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-                    origin: 'spotify.loadPlayer()',
-                    message: 'spotify player loaded',
-                    content: player
-                  }));
-                });
-
-                return function (_x10) {
-                  return _ref23.apply(this, arguments);
-                };
-              }());
-              player.on('not_ready', (_ref25) => {
-                var {
-                  device_id
-                } = _ref25;
-                //? don't know what to do here
-                console.error('not_ready', 'device_id:', device_id);
-              }); //C errors
-              //TODO make better handlers
-              //L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
-
-              player.on('initialization_error', (_ref26) => {
-                var {
-                  message
-                } = _ref26;
-                //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-                  log: true,
-                  origin: 'spotify.loadPlayer()',
-                  message: 'spotify player encountered an initialization error',
-                  reason: message
-                }));
-              });
-              player.on('authentication_error', (_ref27) => {
-                var {
-                  message
-                } = _ref27;
-                //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-                  log: true,
-                  origin: 'spotify.loadPlayer()',
-                  message: 'spotify player encountered an authentication error',
-                  reason: message
-                }));
-              });
-              player.on('account_error', (_ref28) => {
-                var {
-                  message
-                } = _ref28;
-                //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-                  log: true,
-                  origin: 'spotify.loadPlayer()',
-                  message: 'this account does not have a valid Spotify Premium subscription',
-                  reason: message
-                }));
-              }); //C ongoing listeners
-
-              player.on('player_state_changed', state => {
-                //C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
-                //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
-                context.dispatch('updatePlayback', state);
-              });
-              player.on('playback_error', (_ref29) => {
-                var {
-                  message
-                } = _ref29;
-                //TODO this should be a listener, and not resolve or reject
-                console.error('playback_error', message);
-              }); //C connect player
-
-              player.connect().then(resolved => {
-                //C 'returns a promise with a boolean for whether or not the connection was successful'
-                //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-                //! do not resolve here, the player will trigger the 'ready' event when its truly ready
-                if (!resolved) reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-                  origin: 'spotify.loadPlayer()',
-                  message: 'spotify player failed to connect',
-                  reason: 'spotify.connect() failed'
-                }));
-              }, rejected => {
-                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Unreachable"]({
-                  //C a rejection shouldn't be possible here
-                  origin: 'spotify.loadPlayer()',
-                  message: 'spotify player failed to connect',
-                  reason: 'spotify.connect() failed, this should not be reachable',
-                  content: rejected
-                }));
-              });
-              /* //R
-              	//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
-              	//L events: https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
-              	let eventName = 'spotifyLoadPlayer';
-              	// listener
-              	window.addEventListener(eventName, function (customEvent) {
-              		if (customEvent.detail.resolved) {
-              			resolve(customEvent.detail.data);
-              		} else {
-              			reject(customEvent.detail.data);
-              		}
-              	}, {once: true});
-              	// triggers
-              	function triggerResolve(data) {
-              		window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: true, data}}));
-              	}
-              	function triggerReject(data) {
-              		window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: false, data}}));
-              	}
-              */
-            }; //C dynamic import Spotify's SDK
-            //! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
-
-
-            __webpack_require__.e(/*! import() | spotify-player */ "spotify-player").then(__webpack_require__.t.bind(null, /*! ./vendor/spotify-player.js */ "./source/public/js/vendor/spotify-player.js", 7));
-          });
-          /* //OLD
-          	// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
-          	// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
-          	// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-          
-          	// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
-          
-          	return new Promise(function (resolve, reject) {
-          		// setup resolve/reject listeners
-          		window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
-          			resolve(e.detail);
-          			e.currentTarget.removeEventListener(e.type, function () {});
-          		});
-          
-          		window.addEventListener('spotifyLoadPlayerFailure', function (e) {
-          			reject(e.detail);
-          			e.currentTarget.removeEventListener(e.type, function () {});
-          		});
-          
-          		// simplify event triggers
-          		function triggerResolve(data) {
-          			window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {detail: data}));
-          		}
-          
-          		function triggerReject(data) {
-          			window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {detail: data}));
-          		}
-          		
-          		
-          		window.onSpotifyWebPlaybackSDKReady = function () {
-          			// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
-          			try {
-          				// initialize
-          				var player = new Spotify.Player({
-          					name: WEB_PLAYER_NAME,
-          					getOAuthToken: cb => { cb(spotifyAccessToken); }
-          				});
-          
-          				// configure listeners
-          				// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-          				
-          				// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
-          
-          				player.addListener('playback_error', function ({message}) { 
-          					console.error(message); 
-          					// TODO handle me
-          				});
-          
-          				// playback status updates
-          				player.addListener('player_state_changed', function (state) {
-          					// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-          					spotify.playback.timestamp = state.timestamp;
-          					spotify.playback.isPlaying = !state.paused;
-          					spotify.playback.progress = state.position;
-          					spotify.playback.track = {
-          						source: spotify,
-          						sourceId: state.track_window.current_track.id,
-          						artists: [],
-          						title: state.track_window.current_track.name,
-          						duration: state.track_window.current_track.duration_ms,
-          					}
-          
-          					// fill artists
-          					state.track_window.current_track.artists.forEach(function (artist, i) {
-          						spotify.playback.track.artists[i] = artist.name;
-          					});
-          				});
-          
-          				// error handling
-          				player.addListener('initialization_error', function ({message}) { 
-          					//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-          					triggerReject(new Err({
-          							log: true,
-          							origin: 'spotify.loadPlayer()',
-          							message: 'spotify player encountered an initialization error',
-          							reason: message,
-          						})
-          					);
-          				});
-          
-          				player.addListener('authentication_error', function ({message}) { 
-          					// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-          					triggerReject(new Err({
-          							log: true,
-          							origin: 'spotify.loadPlayer()',
-          							message: 'spotify player encountered an authentication error',
-          							reason: message,
-          						})
-          					);
-          				});
-          
-          				player.addListener('account_error', function ({message}) {
-          					// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-          					triggerReject(new Err({
-          							log: true,
-          							origin: 'spotify.loadPlayer()',
-          							message: 'this account does not have a valid Spotify Premium subscription',
-          							reason: message,
-          						})
-          					);
-          				});
-          
-          				// ready
-          				player.addListener('ready', function ({device_id}) {
-          					// returns a WebPlaybackPlayer object which just contains the created device_id
-          					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-          
-          					spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
-          						triggerResolve(new Success({
-          							origin: 'spotify.loadPlayer()',
-          							message: 'spotify player loaded',
-          						}));
-          
-          						// TODO updatePlayback(); ?
-          					}, function (rejected) {
-          						triggerReject(new Err({
-          							log: true,
-          							code: JSON.parse(error.response).error.status,
-          							origin: 'spotify.loadPlayer()',
-          							message: 'spotify player could not be loaded',
-          							reason: JSON.parse(error.response).error.message,
-          							content: error,
-          						}));
-          					}).catch(function (rejected) {
-          						triggerReject(new Err({
-          							log: true,
-          							origin: 'spotify.loadPlayer()',
-          							message: 'spotify player could not be loaded',
-          							content: rejected,
-          						}));
-          					});
-          				});
-          
-          				// connect to player
-          				player.connect().then(function (resolved) {
-          					// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-          					// returns a promise with a boolean for whether or not the connection was successful
-          					// if connect() succeeded no action needed, player might still not be ready, will trigger the ready listener when ready
-          					if (!resolved) {
-          						triggerReject(new Err({
-          							log: true,
-          							origin: 'spotify.loadPlayer()',
-          							message: 'spotify player failed to connect',
-          							reason: 'spotify.connect() failed',
-          						}));
-          					}
-          				}, function (rejected) {
-          					// should not be possible to get here, but handle it either way
-          					triggerReject(new Err({
-          						log: true,
-          						origin: 'spotify.loadPlayer()',
-          						message: 'spotify player failed to connect',
-          						reason: 'spotify.connect() failed',
-          						content: rejected,
-          					}));
-          				});
-          			} catch (e) {
-          				triggerReject(new Err({
-          					log: true,
-          					origin: 'spotify.loadPlayer()',
-          					message: 'spotify player failed to connect',
-          					reason: e,
-          					content: e,
-          				}));
-          			}
-          		}
-          		
-          
-          		$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
-          			triggerReject(new Err({
-          				log: true,
-          				origin: 'spotify.loadPlayer()',
-          				message: 'failed to load spotify player',
-          				reason: exception,
-          			}));
-          		});
-          	});
-          */
-        })();
-      },
-
-      //C spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
-      updatePlayback(context, state) {
-        return _asyncToGenerator(function* () {
-          //C formats and commits playback state
-
-          /* //R
-          	when formattingState and checkState are executed, the track only gets metadata from the api and therefore looses it's playlistId, position, and other custom metadata, how to preserve this data so it can be used to know the currently playing track, playlist, and next/prev tracks
-          			my issue right now is where to store the app-generated metadata
-          			because, I want the individual source playbacks to also be able to react to external changes
-          			maybe just a simple if statement - if the track changes when not commanded to do so by the app, then a foreign track is being played, play history should still be recorded fine, but no playlist in the app would show a track as 'playing', unless the same foreign track is being displayed (like in search results, though this would mean that search results shouldn't be played sequentially in a playlist, which isn't really a necessary behavior) (a foreign track could simply be indicated by a null playlist id)
-          			so the playlistId/position should hang out on the track until it is either replaced by a new track with its own playlistId/position or wiped out by a track with no playlistId/position
-          		//? are playlistId and position mutually required? is there a situation where playlistId or position would exist on their own? I don't think so
-          */
-          //C formats given state and adds volume from getVolume() to it, commits to state
-          var formattedState = context.state.player.formatState(state); //C these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
-          //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
-
-          var volume = yield context.state.player.getVolume();
-
-          var newState = _objectSpread({}, formattedState, {
-            volume
-          });
-          /*
-          	console.log(
-          		'track.name', formattedState.track.name, '\n',
-          		'track.sourceId', formattedState.track.sourceId, '\n',
-          		'isPlaying', formattedState.isPlaying, '\n',
-          		'progress', formattedState.progress,  '\n',
-          		'timestamp', formattedState.timestamp, '\n',
-          	);
-          */
-
-
-          context.commit('setState', newState);
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-            origin: 'spotify module command - updatePlayback()',
-            message: 'spotify playback updated',
-            content: newState
-          });
-        })();
-      },
-
-      checkPlayback(context) {
-        return _asyncToGenerator(function* () {
-          //C retrieves playback from api and updates it
-          //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
-          var state = yield context.state.player.getCurrentState().catch(rejected => {
-            throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-              log: true,
-              //code: JSON.parse(rejected.response).error.status,
-              origin: 'spotify.checkPlayback()',
-              message: 'failed to check spotify playback state',
-              //reason: JSON.parse(rejected.response).error.message,
-              content: rejected
-            });
-          });
-          yield context.dispatch('updatePlayback', state);
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-            origin: 'spotify module command - checkPlayback()',
-            message: 'spotify playback checked',
-            content: context.state
-          });
-        })();
-      },
-
-      //G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
-      //G should resolve only when the playback command is applied
-      // PLAYBACK COMMANDS
-      //G must handle redundant requests (eg. pause when already paused)
-      //G must only resolve when the playback state is actually applied (not just on command acknowledgement)
-      start(context, track) {
-        return _asyncToGenerator(function* () {
-          var timeBeforeCall = Date.now();
-          var result = yield context.state.player.awaitState({
-            command: function () {
-              var _command = _asyncToGenerator(function* () {
-                return yield context.state.source.request('PUT', 'me/player/play', {
-                  uris: ["spotify:track:".concat(track.sourceId)]
-                });
-              });
-
-              function command() {
-                return _command.apply(this, arguments);
-              }
-
-              return command;
-            }(),
-            stateCondition: state => //C track must be playing, near the start (within the time from when the call was made to now), and the same track
-            state.isPlaying === true && //state.progress !== context.state.progress && //!
-            //state.progress !== 0 && //C track must be actually started
-            state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration && state.track.sourceId === context.state.track.sourceId,
-            success: {},
-            error: {
-              //code: JSON.parse(rejected.response).error.status,
-              origin: 'spotify.start()',
-              message: 'spotify track could not be started' //reason: JSON.parse(rejected.response).error.message,
-
-            },
-            timeoutError: {
-              origin: 'sj.spotify.playback.actions.start()'
-            }
-          }); //TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
-
-          yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(1000);
-          return result;
-        })();
-      },
-
-      pause(_ref30) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            }
-          } = _ref30;
-          return yield player.awaitState({
-            command: function () {
-              var _command2 = _asyncToGenerator(function* () {
-                return yield player.pause();
-              });
-
-              function command() {
-                return _command2.apply(this, arguments);
-              }
-
-              return command;
-            }(),
-            stateCondition: state => state.isPlaying === false,
-            success: {},
-            error: {
-              //code: JSON.parse(rejected.response).error.status,
-              origin: 'spotify.pause()',
-              message: 'spotify track could not be paused' //reason: JSON.parse(rejected.response).error.message,
-
-            },
-            timeoutError: {
-              origin: 'sj.spotify.playback.actions.pause()'
-            }
-          });
-        })();
-      },
-
-      resume(_ref31) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            }
-          } = _ref31;
-          return yield player.awaitState({
-            command: function () {
-              var _command3 = _asyncToGenerator(function* () {
-                return yield player.resume();
-              });
-
-              function command() {
-                return _command3.apply(this, arguments);
-              }
-
-              return command;
-            }(),
-            stateCondition: state => state.isPlaying === true,
-            success: {},
-            error: {
-              //code: JSON.parse(rejected.response).error.status,
-              origin: 'spotify.resume()',
-              message: 'spotify track could not be resumed' //reason: JSON.parse(rejected.response).error.message,
-
-            },
-            timeoutError: {
-              origin: 'sj.spotify.playback.actions.resume()'
-            }
-          });
-        })();
-      },
-
-      seek(_ref32, progress) {
-        return _asyncToGenerator(function* () {
-          var {
-            state,
-            state: {
-              player,
-              track
-            }
-          } = _ref32;
-          var ms = progress * track.duration;
-          var timeBeforeCall = Date.now();
-          return yield player.awaitState({
-            command: function () {
-              var _command4 = _asyncToGenerator(function* () {
-                return yield player.seek(ms);
-              });
-
-              function command() {
-                return _command4.apply(this, arguments);
-              }
-
-              return command;
-            }(),
-            //C state.position must be greater than the set position but less than the difference in time it took to call and resolve
-            stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
-            success: {},
-            error: {
-              //code: JSON.parse(rejected.response).error.status,
-              origin: 'spotify.seek()',
-              message: 'spotify track could not be seeked' //reason: JSON.parse(rejected.response).error.message,
-
-            },
-            timeoutError: {
-              origin: 'sj.spotify.playback.actions.seek()'
-            }
-          });
-        })();
-      },
-
-      volume(_ref33, volume) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: player
-          } = _ref33;
-          return yield player.awaitState({
-            command: function () {
-              var _command5 = _asyncToGenerator(function* () {
-                return yield player.setVolume(volume);
-              });
-
-              function command() {
-                return _command5.apply(this, arguments);
-              }
-
-              return command;
-            }(),
-            stateCondition: state => state.volume === volume,
-            success: {},
-            error: {
-              //code: JSON.parse(rejected.response).error.status,
-              origin: 'spotify.seek()',
-              message: 'spotify volume could not be set' //reason: JSON.parse(rejected.response).error.message,
-
-            },
-            timeoutError: {
-              origin: 'sj.spotify.playback.actions.volume()'
-            }
-          });
-        })();
-      }
-
-    }
-  })
-});
-sj.youtube = new _shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
-  name: 'youtube',
-  register: true,
-  idPrefix: 'https://www.youtube.com/watch?v=',
-  nullPrefix: 'https://www.youtube.com/watch',
-
-  auth() {
-    return _asyncToGenerator(function* () {
-      //L example code: https://developers.google.com/youtube/v3/docs/search/list
-      //TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
-      //C watch for gapi to be assigned by using a setter with a deferred promise
-      //L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
-      //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
-      //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
-      window.gapi2 = window.gapi;
-      var loaded = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(sj.Playback.requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-        log: false,
-        origin: 'sj.youtube.auth()',
-        reason: 'gapi loading timed out'
-      }));
-      Object.defineProperty(window, 'gapi', {
-        configurable: true,
-        enumerable: true,
-
-        get() {
-          return window.gapi2;
-        },
-
-        set(value) {
-          //R gapi was first going to be stored on sj.youtube, however after gapi.cient.init() is called, gapi gets some cross-origin data defined on it. this is an issue when attempting to copy its data via fClone, as a cross-origin error will be thrown.
-          window.gapi2 = value;
-          loaded.resolve();
-        }
-
-      }); //C loads gapi into global scope 
-      //TODO is there any way to make this more module-like?
-
-      yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["runHTMLScript"])('https://apis.google.com/js/api.js'); //C wait for gapi
-
-      yield loaded; //C remove the watcher
-
-      Object.defineProperty(window, 'gapi', {
-        configurable: true,
-        enumerable: true,
-        value: window.gapi2,
-        writable: true
-      });
-      delete window.gapi2; //C load client library
-
-      yield new Promise((resolve, reject) => {
-        //L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md
-        //C first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
-        gapi.load('client', {
-          callback(args) {
-            //? no idea what the parameters passed here are
-            resolve(args);
-          },
-
-          onerror(args) {
-            reject(args);
-          },
-
-          ontimeout(args) {
-            reject(args); //TODO probably a custom error here?
-          },
-
-          timeout: 60000 //TODO
-
-        });
-      }); //C get apiKey and clientId stored on server
-
-      var {
-        apiKey,
-        clientId
-      } = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_5__["default"])('GET', "youtube/credentials"); //TODO Create specific rules for each API key.
-
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate(apiKey);
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate(clientId); //C loads and performs authorization, short version of the code commented out below
-      //R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
-
-      yield gapi.client.init({
-        //L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md#----gapiclientinitargs--
-        //TODO move keys
-        apiKey,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
-        clientId,
-        //https://www.googleapis.com/auth/youtube.force-ssl
-        //https://www.googleapis.com/auth/youtube
-        scope: 'https://www.googleapis.com/auth/youtube.readonly'
-      });
-      /* LONG IMPLEMENTATION
-      	//! 'auth2:client' must be loaded above
-      			//C init and signIn to OAuth
-      	const googleAuth = await gapi.auth2.init({
-      		//! may only be initialized once, and so client_id and scopes cannot be reinitialized
-      		//L other options: https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
-      		client_id: '575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com', //TODO move
-      		//L The scopes to request, as a space-delimited string, may also be done in signIn() which adds on top of these scopes
-      		scope: '', //TODO
-      	});
-      	await googleAuth.signIn({
-      		//L https://developers.google.com/identity/sign-in/web/reference#googleauthsigninoptions
-      		//L consent, select_account, or none (can fail)
-      		prompt: 'consent',
-      	});
-      			//C init and load client
-      	gapi.client.setApiKey('key')
-      	await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
-      */
-    })();
-  },
-
-  request(method, path, content) {
-    var _this10 = this;
-
-    return _asyncToGenerator(function* () {
-      var _window, _window$gapi, _window$gapi$auth, _window$gapi$auth$get, _window$gapi$auth$get2, _window$gapi$auth$get3, _window$gapi$auth$get4;
-
-      //C check that user is authorized (signedIn)
-      //TODO how do I check that the client library is loaded?
-      if (!((_window = window) === null || _window === void 0 ? void 0 : (_window$gapi = _window.gapi) === null || _window$gapi === void 0 ? void 0 : (_window$gapi$auth = _window$gapi.auth2) === null || _window$gapi$auth === void 0 ? void 0 : (_window$gapi$auth$get = _window$gapi$auth.getAuthInstance) === null || _window$gapi$auth$get === void 0 ? void 0 : (_window$gapi$auth$get2 = _window$gapi$auth$get.call(_window$gapi$auth)) === null || _window$gapi$auth$get2 === void 0 ? void 0 : (_window$gapi$auth$get3 = _window$gapi$auth$get2.isSignedIn) === null || _window$gapi$auth$get3 === void 0 ? void 0 : (_window$gapi$auth$get4 = _window$gapi$auth$get3.get) === null || _window$gapi$auth$get4 === void 0 ? void 0 : _window$gapi$auth$get4.call(_window$gapi$auth$get3))) {
-        yield _this10.auth();
-      }
-
-      return yield new Promise((resolve, reject) => {
-        // Wraps goog.Thenable which doesn't support the catch method.
-        gapi.client.request({
-          method,
-          path: "/youtube/v3/".concat(path),
-          params: content
-        }).then(resolve, reject);
-      }).catch(rejected => {
-        var _rejected$result, _rejected$result$erro, _rejected$result$erro2, _rejected$result$erro3, _rejected$result$erro4;
-
-        if ((rejected === null || rejected === void 0 ? void 0 : rejected.code) === 403 && (rejected === null || rejected === void 0 ? void 0 : (_rejected$result = rejected.result) === null || _rejected$result === void 0 ? void 0 : (_rejected$result$erro = _rejected$result.error) === null || _rejected$result$erro === void 0 ? void 0 : (_rejected$result$erro2 = _rejected$result$erro.errors[0]) === null || _rejected$result$erro2 === void 0 ? void 0 : (_rejected$result$erro3 = _rejected$result$erro2.message) === null || _rejected$result$erro3 === void 0 ? void 0 : (_rejected$result$erro4 = _rejected$result$erro3.startsWith) === null || _rejected$result$erro4 === void 0 ? void 0 : _rejected$result$erro4.call(_rejected$result$erro3, 'Access Not Configured.'))) {
-          /* The key has probably been invalidated.
-          	If the API is still enabled, try resetting the API by:
-          		1. Deleting the API keys.
-          		2. Disabling the API.
-          		3. Re-enabling the API.
-          		4. Creating new keys.
-          	//L See here: https://stackoverflow.com/a/27491718
-          */
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-            reason: 'API key is invalid.',
-            message: 'YouTube credentials are invalid.',
-            content: rejected
-          });
-        } else {
-          throw rejected;
-        }
-      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["default"]);
-    })();
-  },
-
-  search(_ref34) {
-    var _this11 = this;
-
-    return _asyncToGenerator(function* () {
-      var {
-        term = '',
-        startIndex = 0,
-        amount = 1
-      } = _ref34;
-      // VALIDATE
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.validate(term);
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].nonNegativeInteger.validate(startIndex);
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
-      //! this will drive api quotas up fast if the startIndex or amount are high (n*50)
-      //!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
-
-      /* //R
-      	default quota limit is 10 000 units per day (or not? I don't see a limit in the quotas tab of the api dashboard)
-      	/search costs 100 per page, (so only allowed to search 100 times per day)
-      	increasing the maxResults doesn't seem to increase the quota cost, but increasing the number of pages per search (by increasing startIndex or amount) will,
-      	so the best solution to adapting this page system to my start/amount system would be to request the maximum number of results per page (50), then requesting the next page until the last result is retrieved - this will require the minimum number of pages
-      */
-
-      var limit = 1; //TODO temp safeguard
-
-      var allPageResults = [];
-      var pageToken = null;
-
-      while (allPageResults.length < startIndex + amount && limit > 0) {
-        var pageResults = yield sj.youtube.request('GET', 'search', _objectSpread({
-          //L https://developers.google.com/youtube/v3/docs/search/list#parameters
-          part: 'snippet',
-          type: 'video',
-          maxResults: 50,
-          q: term
-        }, pageToken !== null && {
-          pageToken
-        }));
-        allPageResults.push(...pageResults.result.items);
-        pageToken = pageResults.nextPageToken;
-        limit--;
-      } //C remove the unneeded results
-
-
-      var searchResults = allPageResults.slice(startIndex, startIndex + amount); //C videoResults must also be searched because the contentDetails part is not available for the search request
-      //L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
-
-      var videoResult = yield sj.youtube.request('GET', 'videos', {
-        //L https://developers.google.com/youtube/v3/docs/videos/list
-        //C join the results ids
-        id: searchResults.map(item => item.id.videoId).join(','),
-        //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
-        part: 'contentDetails'
-      });
-      if (searchResults.length !== videoResult.result.items.length) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-        origin: 'youtube.search()',
-        reason: 'search result length not equal to video result length',
-        content: {
-          searchLength: searchResults.length,
-          videoLength: videoResult.result.items.length
-        }
-      });
-      videoResult.result.items.forEach((item, index) => {
-        //C ensure that ids line up
-        if (searchResults[index].id.videoId !== item.id) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-          origin: 'youtube.search()',
-          reason: "search and video results at ".concat(index, " do not have the same id")
-        }); //C append contentDetails part to the search results
-
-        searchResults[index].contentDetails = item.contentDetails;
-      });
-      return searchResults.map((_ref35) => {
-        var {
-          id: {
-            videoId: id
-          },
-          snippet,
-          contentDetails
-        } = _ref35;
-        return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"](_objectSpread({
-          source: sj.youtube,
-          //! this is causing issues with fClone, its throwing a cross origin error
-          sourceId: id,
-          link: sj.youtube.idPrefix + id
-        }, _this11.formatSnippet(snippet), {}, _this11.formatContentDetails(contentDetails)));
-      });
-    })();
-  },
-
-  playback: new sj.Playback({
-    actions: {
-      loadPlayer(context) {
-        return _asyncToGenerator(function* () {
-          //C load youtube iframe api
-          yield Object(_browser_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["runHTMLScript"])('https://www.youtube.com/iframe_api'); //TODO choose timeout
-
-          var deferred = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["Deferred"]().timeout(sj.Playback.requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-            origin: 'sj.youtube loadPlayer()',
-            reason: 'youtube iframe player load timed out'
-          }));
-
-          window.onYouTubeIframeAPIReady = function () {
-            context.commit('setState', {
-              player: new YT.Player('youtubeIFrame', {
-                //! this won't throw any error if the element id doesn't exist
-                width: '640',
-                height: '390',
-                //videoId: 'M71c1UVf-VE',
-                // host: 'https://www.youtube.com', //? doesn't seem to help
-                playerVars: {
-                  controls: 0,
-                  disablekb: 1,
-                  enablejsapi: 1,
-                  fs: 0,
-                  iv_load_policy: 3,
-                  modestbranding: 1 // origin: 'http://localhost:3000', //TODO extract as constant //? doesn't seem to help
-
-                },
-                //L https://developers.google.com/youtube/iframe_api_reference#Events
-                events: {
-                  onReady(event) {
-                    return _asyncToGenerator(function* () {
-                      //TODO handle error?
-                      yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["default"]);
-                      deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-                        origin: 'sj.youtube loadPlayer()',
-                        reason: 'youtube iframe player loaded'
-                      }));
-                    })();
-                  },
-
-                  onStateChange(event) {
-                    return _asyncToGenerator(function* () {
-                      //! onStateChange event only has the playbackState data, checkPlayback gets this anyways
-                      yield context.dispatch('checkPlayback');
-                    })();
-                  },
-
-                  onError(event) {
-                    //TODO
-                    console.error('youtube player onError:', event);
-                  }
-
-                }
-              })
-            });
-          };
-
-          return yield deferred;
-        })();
-      },
-
-      checkPlayback(context) {
-        return _asyncToGenerator(function* () {
-          var _context$state, _context$state$track, _context$state2, _context$state2$start;
-
-          //TODO catch errors in here
-          var state = {};
-          var track = {};
-          var player = context.state.player;
-          track.link = player.getVideoUrl(); //C remove the idPrefix or nullPrefix from youtube urls
-          //! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
-
-          track.sourceId = track.link.replace(new RegExp("".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(sj.youtube.idPrefix), "|").concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["escapeRegExp"])(sj.youtube.nullPrefix))), '');
-          var playerDuration = player.getDuration(); //! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
-          //C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
-
-          track.duration = playerDuration === 0 ? Infinity : playerDuration;
-          state.progress = player.getCurrentTime() * 1000 / track.duration;
-          var playerState = player.getPlayerState();
-          state.isPlaying = playerState === 1 || playerState === 3;
-          /* //G
-          	-1 un-started
-          	0 ended
-          	1 playing
-          	2 paused
-          	3 buffering - this should be considered as playing, but not influence the progress
-          	5 video cued
-          */
-          //C if muted: volume is 0, convert 0-100 to 0-1 range
-
-          state.volume = player.isMuted() ? 0 : player.getVolume() / 100; //C 
-
-          state.timestamp = Date.now(); //C get name and artists from current track, starting track, or an api call
-          //R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
-
-          if (track.sourceId === (context === null || context === void 0 ? void 0 : (_context$state = context.state) === null || _context$state === void 0 ? void 0 : (_context$state$track = _context$state.track) === null || _context$state$track === void 0 ? void 0 : _context$state$track.sourceId)) {
-            track.name = context.state.track.name;
-            track.artists = [...context.state.track.artists];
-          } else if (track.sourceId === (context === null || context === void 0 ? void 0 : (_context$state2 = context.state) === null || _context$state2 === void 0 ? void 0 : (_context$state2$start = _context$state2.startingTrack) === null || _context$state2$start === void 0 ? void 0 : _context$state2$start.sourceId)) {
-            track.name = context.state.startingTrack.name;
-            track.artists = [...context.state.startingTrack.artists];
-          } else {
-            var video = yield sj.youtube.request('GET', 'videos', {
-              id: track.sourceId,
-              part: 'snippet'
-            });
-
-            if (video.result.items.length === 1) {
-              var formattedSnippet = sj.youtube.formatSnippet(video.result.items[0].snippet);
-              track.name = formattedSnippet.name;
-              track.artists = formattedSnippet.artists;
-            }
-          }
-
-          state.track = new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"](track);
-          context.commit('setState', state);
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_8__["Success"]({
-            origin: 'youtube module action - checkPlayback()',
-            message: 'youtube playback updated',
-            content: state
-          });
-        })();
-      },
-
-      baseStart(_ref36, _ref37) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            },
-            dispatch
-          } = _ref36;
-          var {
-            sourceId
-          } = _ref37;
-          player.loadVideoById({
-            videoId: sourceId //startSeconds
-            //endSeconds
-            //suggestedQuality
-
-          });
-        })();
-      },
-
-      // async start(context, track) {
-      // },
-      pause(_ref38) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            }
-          } = _ref38;
-          player.pauseVideo(); //TODO return
-        })();
-      },
-
-      resume(_ref39) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            }
-          } = _ref39;
-          player.playVideo(); //TODO return
-        })();
-      },
-
-      seek(_ref40, progress) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: {
-              player
-            }
-          } = _ref40;
-          var seconds = progress * track.duration * 0.001;
-          player.seekTo(seconds, true); //TODO return
-        })();
-      },
-
-      volume(_ref41, volume) {
-        return _asyncToGenerator(function* () {
-          var {
-            state: player
-          } = _ref41;
-          player.setVolume(volume * 100);
-          player.unMute(); //TODO return
-        })();
-      }
-
-    }
-  })
-}); //TODO move inside
-
-sj.youtube.formatContentDetails = function (contentDetails) {
-  var pack = {};
-  pack.duration = moment__WEBPACK_IMPORTED_MODULE_0___default.a.duration(contentDetails.duration, moment__WEBPACK_IMPORTED_MODULE_0___default.a.ISO_8601).asMilliseconds();
-  return pack;
-}, sj.youtube.formatSnippet = function (snippet) {
-  var pack = {};
-  if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(snippet)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_7__["Err"]({
-    origin: 'sj.youtube.formatSnippet()',
-    reason: 'snippet is not an object'
-  }); //C assuming title format of 'Artist - Title'
-  //C splits on dash between one or any whitespace
-
-  var splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
-
-  if (splitTitle.length === 2) {
-    //C if splitTittle has the exact length of two
-    //C use the first part as the artists
-    //C splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
-    //TODO improve
-    pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g); //C use the second part as the name
-
-    pack.name = splitTitle[1];
-  } else {
-    //C use the channel title as the artist
-    pack.artists = [snippet.channelTitle]; //C use the full title as the name
-
-    pack.name = snippet.title;
-  } //C apparently the titles are html encoded, (possibly the artist names too//?)
-  //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
-
-
-  pack.artists = pack.artists.map(artist => he__WEBPACK_IMPORTED_MODULE_1___default.a.decode(artist));
-  pack.name = he__WEBPACK_IMPORTED_MODULE_1___default.a.decode(pack.name);
-  return pack;
-}; //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
+//  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
 //  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
 //  ██████╔╝██║     ███████║ ╚████╔╝ ██████╔╝███████║██║     █████╔╝ 
 //  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██╔══██╗██╔══██║██║     ██╔═██╗ 
@@ -40622,18 +40861,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var socket_io_client__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(socket_io_client__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _global_client_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./global-client.js */ "./source/public/js/global-client.js");
 /* harmony import */ var _live_data_client_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./live-data-client.js */ "./source/public/js/live-data-client.js");
-/* harmony import */ var _vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../vue/main/AppMain.vue */ "./source/public/vue/main/AppMain.vue");
-/* harmony import */ var _vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../vue/page/HomePage.vue */ "./source/public/vue/page/HomePage.vue");
-/* harmony import */ var _vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../vue/page/UserPage.vue */ "./source/public/vue/page/UserPage.vue");
-/* harmony import */ var _vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../vue/page/PlaylistPage.vue */ "./source/public/vue/page/PlaylistPage.vue");
-/* harmony import */ var _vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../vue/page/TrackPage.vue */ "./source/public/vue/page/TrackPage.vue");
-/* harmony import */ var _vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../vue/page/AddPlaylistPage.vue */ "./source/public/vue/page/AddPlaylistPage.vue");
-/* harmony import */ var _vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../vue/page/TestPage.vue */ "./source/public/vue/page/TestPage.vue");
-/* harmony import */ var _vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../vue/page/EntryPage.vue */ "./source/public/vue/page/EntryPage.vue");
-/* harmony import */ var _vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../vue/page/AuthRedirectPage.vue */ "./source/public/vue/page/AuthRedirectPage.vue");
-/* harmony import */ var _vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../vue/page/ErrorPage.vue */ "./source/public/vue/page/ErrorPage.vue");
-/* harmony import */ var _vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../vue/page/NotFoundPage.vue */ "./source/public/vue/page/NotFoundPage.vue");
-/* harmony import */ var _vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../vue/page/DatabasePage.vue */ "./source/public/vue/page/DatabasePage.vue");
+/* harmony import */ var _client_universal_playback_module_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../client/universal-playback-module.js */ "./source/client/universal-playback-module.js");
+/* harmony import */ var _vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../vue/main/AppMain.vue */ "./source/public/vue/main/AppMain.vue");
+/* harmony import */ var _vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../vue/page/HomePage.vue */ "./source/public/vue/page/HomePage.vue");
+/* harmony import */ var _vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../vue/page/UserPage.vue */ "./source/public/vue/page/UserPage.vue");
+/* harmony import */ var _vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../vue/page/PlaylistPage.vue */ "./source/public/vue/page/PlaylistPage.vue");
+/* harmony import */ var _vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../vue/page/TrackPage.vue */ "./source/public/vue/page/TrackPage.vue");
+/* harmony import */ var _vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../vue/page/AddPlaylistPage.vue */ "./source/public/vue/page/AddPlaylistPage.vue");
+/* harmony import */ var _vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../vue/page/TestPage.vue */ "./source/public/vue/page/TestPage.vue");
+/* harmony import */ var _vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../vue/page/EntryPage.vue */ "./source/public/vue/page/EntryPage.vue");
+/* harmony import */ var _vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../vue/page/AuthRedirectPage.vue */ "./source/public/vue/page/AuthRedirectPage.vue");
+/* harmony import */ var _vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ../vue/page/ErrorPage.vue */ "./source/public/vue/page/ErrorPage.vue");
+/* harmony import */ var _vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ../vue/page/NotFoundPage.vue */ "./source/public/vue/page/NotFoundPage.vue");
+/* harmony import */ var _vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ../vue/page/DatabasePage.vue */ "./source/public/vue/page/DatabasePage.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -40796,6 +41036,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
  // INTERNAL
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -40842,50 +41083,50 @@ var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__[
   mode: 'history',
   routes: [{
     path: '/',
-    component: _vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    component: _vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_7__["default"],
     children: [{
       path: '/',
-      component: _vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_7__["default"]
+      component: _vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
     }, {
       path: '/user/:id',
-      component: _vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
+      component: _vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_9__["default"]
     }, {
       path: '/playlist/:id',
-      component: _vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_9__["default"]
+      component: _vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_10__["default"]
     }, {
       path: '/track/:id',
-      component: _vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_10__["default"]
+      component: _vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_11__["default"]
     }, {
       path: '/add',
-      component: _vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_11__["default"]
+      component: _vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_12__["default"]
     }, {
       path: '/test',
-      component: _vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_12__["default"]
+      component: _vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_13__["default"]
     }]
   }, {
     //C login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
     path: '/login',
-    component: _vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_13__["default"]
+    component: _vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_14__["default"]
   }, {
     path: '/error',
-    component: _vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_15__["default"]
+    component: _vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
   }, {
     path: '/database',
-    component: _vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_17__["default"]
+    component: _vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_18__["default"]
   }, {
     path: '/*/authRedirect',
-    component: _vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_14__["default"]
+    component: _vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_15__["default"]
   }, {
     //C catch invalid url paths 
     path: '*',
-    component: _vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
+    component: _vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_17__["default"]
   }]
 });
 var store = new _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Store({
   modules: {
     liveData: _live_data_client_js__WEBPACK_IMPORTED_MODULE_5__["default"],
     //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
-    player: _objectSpread({}, _global_client_js__WEBPACK_IMPORTED_MODULE_4__["default"].Playback.module, {
+    player: _objectSpread({}, _client_universal_playback_module_js__WEBPACK_IMPORTED_MODULE_6__["default"], {
       namespaced: true
     })
   },
@@ -40938,6 +41179,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_test_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/test.js */ "./source/shared/test.js");
 /* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _client_sources_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../client/sources/index.js */ "./source/client/sources/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -41200,6 +41442,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // EXTERNAL
  // INTERNAL
 //! depends on global-client.js because it is used in index.js alongside global-client.js
+
 
 
 
@@ -42137,7 +42380,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             playlistId: 2,
             name: 'placeholder name',
             duration: 1234,
-            source: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
+            source: _client_sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"],
             sourceId: 'placeholderSourceId',
             artists: ['foo', 'bar']
           };
@@ -42402,7 +42645,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
         var track = yield new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Track"]({
           playlistId: playlist.id,
-          source: _global_client_js__WEBPACK_IMPORTED_MODULE_3__["default"].spotify,
+          source: _client_sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"],
           sourceId: 'placeholder',
           name: uniqueName(),
           duration: uniqueDuration()
@@ -63029,6 +63272,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 						used as 'scope' variables, to store variables that aren't used by higher layers or super, but the instance
 					defaults to the 'input arguments'
 */
+//TODO//! Need a way to hoist the static class reference. Or else there is no way (without augmentation) to reference the exact constructor. (this.constructor will be different for sub-classes.) This should go along-side duper, but how to add it with instances?
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
 //TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
 
