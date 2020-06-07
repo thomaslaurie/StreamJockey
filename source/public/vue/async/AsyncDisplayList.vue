@@ -6,6 +6,7 @@
 	import {
 		Subscription,
 	} from '../../../shared/live-data.js';
+	import isInstanceOf from '../../../shared/is-instance-of.js';
 
     import AsyncDisplay from './AsyncDisplay.vue';
 
@@ -31,7 +32,7 @@
 		computed: {
 			// OVERWRITES
 			liveContent() {
-				if (this.sj.isType(this.subscription, Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
+				if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return any(this.$store.getters.getLiveData(this.subscription));
 				else return [];
 			},
 

@@ -18,6 +18,7 @@
 	import {
 		Subscription,
 	} from '../../../shared/live-data.js';
+	import isInstanceOf from '../../../shared/is-instance-of.js';
 
 	import AsyncSwitch from './AsyncSwitch.vue';
 	
@@ -79,7 +80,7 @@
 			liveContent() {
 				//! one item here, uses any() in AsyncDisplayList
 				//? should this type check go into usingLive?
-				if (this.sj.isType(this.subscription, Subscription)) return one(this.$store.getters.getLiveData(this.subscription));
+				if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return one(this.$store.getters.getLiveData(this.subscription));
 				else return null;
 
 				//R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
@@ -162,11 +163,11 @@
 
 				//! don't await here, because if refreshPromise is canceled, refresh will never resolve
 				//? what happens to then? if this promise doesn't resolve or reject is this eventually garbage collected?
-				if (this.sj.isType(this.refreshPromise, Deferred)) this.refreshPromise.then(this.handleSuccess, this.handleError);
+				if (isInstanceOf(this.refreshPromise, Deferred, 'Deferred')) this.refreshPromise.then(this.handleSuccess, this.handleError);
 			},
 
 			startTimeouts() {
-				if (!this.sj.isType(this.refreshPromise, Deferred)) throw new this.Err({
+				if (!isInstanceOf(this.refreshPromise, Deferred, 'Deferred')) throw new this.Err({
 					origin: 'AsyncContent startTimeouts()',
 					reason: 'refresh promise must be an instance of Deferred',
 				});
@@ -187,7 +188,7 @@
 				//C clear
 				this.clearDelay?.();
 				this.clearTimeout?.();
-				if (this.sj.isType(this.refreshPromise, Deferred)) this.refreshPromise.cancel();
+				if (isInstanceOf(this.refreshPromise, Deferred, 'Deferred')) this.refreshPromise.cancel();
 
 				//C reset
 				this.clearDelay = null;

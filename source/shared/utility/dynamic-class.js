@@ -4,6 +4,8 @@
 		Use for shallow but present class structures.
 	)
 
+	//L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
+
 	CLASS V FUNCTION DIFFERENCES (
 		//L https://medium.com/beginners-guide-to-mobile-web-development/super-and-extends-in-javascript-es6-understanding-the-tough-parts-6120372d3420
 		//L Native classes are actually different: see classtraphobic

@@ -264,6 +264,7 @@ import {
 	any,
 	repeat,
 	keyCode,
+	rules,
 } from '../../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../../shared/utility/object/deep-compare.js';
 import sj from './global-client.js';
@@ -289,6 +290,7 @@ import {
 } from '../../shared/live-data.js';
 import propagate from '../../shared/propagate.js';
 import test from '../../shared/test.js';
+import isInstanceOf from '../../shared/is-instance-of.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -318,7 +320,7 @@ export default {
 		
 		getLiveData: state => subscription => {
 			//C validate
-			if (!sj.isType(subscription, Subscription)) throw new Err({
+			if (!isInstanceOf(subscription, Subscription, 'Subscription')) throw new Err({
 				origin: 'getLiveData()', 
 				reason: 'subscription is not an Subscription',
 				content: subscription,
@@ -326,7 +328,7 @@ export default {
 
 			//C shorten
 			const liveQuery = subscription.liveQuery;
-			if (!sj.isType(liveQuery, LiveQuery)) throw new Err({
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Err({
 				origin: 'getLiveData()',
 				reason: `liveQuery is not an LiveQuery`,
 				content: liveQuery,
@@ -334,7 +336,7 @@ export default {
 
 			//C get all liveQuery.cachedEntityRefs.entity
 			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-				if (!sj.isType(cachedEntityRef, CachedEntity)) throw new Err({
+				if (!isInstanceOf(cachedEntityRef, CachedEntity, 'CachedEntity')) throw new Err({
 					origin: 'getLiveData()',
 					reason: 'cachedEntityRef is not a cachedEntity',
 					content: fclone(cachedEntityRef),
@@ -344,7 +346,7 @@ export default {
 		},
 		isSingle: state => subscription => {
 			const query = subscription.liveQuery.query;
-			return query.length === 1 && Object.keys(query[0]) === 1 && sj.isType(query[0].id, 'integer');
+			return query.length === 1 && Object.keys(query[0]) === 1 && rules.integer.test(query[0].id);
 		},
 	},
 	mutations: {
@@ -408,7 +410,7 @@ export default {
 
 
 			//C add cachedEntity to table if it doesn't exist
-			if (!sj.isType(context.getters.findCachedEntity({table, entity}), CachedEntity)) {
+			if (!isInstanceOf(context.getters.findCachedEntity({table, entity}), CachedEntity, 'CachedEntity')) {
 				context.commit('pushCachedEntity', {
 					cachedEntities: table.cachedEntities, 
 					cachedEntity: new CachedEntity({table, entity})
@@ -418,7 +420,7 @@ export default {
 
 			//C find cachedEntity by entity
 			const cachedEntity = context.getters.findCachedEntity({table, entity});
-			if (!sj.isType(cachedEntity, CachedEntity)) throw new Unreachable({origin: 'addCachedEntity()'});
+			if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) throw new Unreachable({origin: 'addCachedEntity()'});
 
 			//C shorthand
 			const liveQueryRefs = cachedEntity.liveQueryRefs;
@@ -522,13 +524,13 @@ export default {
 		// LIVE QUERY
 		async addLiveQuery(context, {table, query}) {
 			//C if the liveQuery cannot be found
-			if (!sj.isType(context.getters.findLiveQuery({table, query}), LiveQuery)) {
+			if (!isInstanceOf(context.getters.findLiveQuery({table, query}), LiveQuery, 'LiveQuery')) {
 				//C add it
 				context.commit('pushLiveQuery', {liveQueries: table.liveQueries, liveQuery: new LiveQuery({table, query})});
 				
 				//C find liveQuery
 				const liveQuery = context.getters.findLiveQuery({table, query});
-				if (!sj.isType(liveQuery, LiveQuery)) throw new Unreachable({origin: 'addLiveQuery()'});
+				if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Unreachable({origin: 'addLiveQuery()'});
 
 				//C trigger the initial update
 				await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: Date.now()});
@@ -608,7 +610,7 @@ export default {
 
 				//C find it's cachedEntity
 				const cachedEntity = await context.getters.findCachedEntity({table, entity});
-				if (!sj.isType(cachedEntity, CachedEntity)) throw new Unreachable({origin: 'update()'});
+				if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) throw new Unreachable({origin: 'update()'});
 
 				//C edit the cachedEntity (won't edit if data is old, or unchanged)
 				const edited = await context.dispatch('updateCachedEntity', {cachedEntity, entity, timestamp});
@@ -634,7 +636,7 @@ export default {
 
 			//C find the liveQuery
 			const liveQuery = context.getters.findLiveQuery({table, query}); //! this should never fail
-			if (!sj.isType(liveQuery, LiveQuery)) throw new Unreachable({
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Unreachable({
 				origin: 'addSubscription()',
 				reason: 'liveQuery not found in table',
 				content: liveQuery,
@@ -685,12 +687,12 @@ export default {
 				reason: 'Entity is not an Entity',
 				content: Entity,
 			});
-			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
+			if (!rules.object.test(query) && !rules.array.test(query)) throw new Err({
 				origin: 'subscribe()', 
 				reason: 'query is not an Object',
 				content: query,
 			});
-			if (!sj.isType(options, Object)) throw new Err({
+			if (!rules.object.test(options)) throw new Err({
 				origin: 'subscribe()', 
 				reason: 'options is not an Object',
 				content: options,
@@ -698,7 +700,7 @@ export default {
 
 			//C shorten
 			const table = context.getters.findTable(Entity);
-			if (!sj.isType(table, LiveTable)) throw new Err({
+			if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
 				origin: 'subscribe()', 
 				reason: 'table is not an LiveTable',
 				content: table,
@@ -720,7 +722,7 @@ export default {
 			strict = false, //C subscription must be an Subscription and must be included in it's liveQuery.subscriptions
 		}) {
 			//C validate //! return early if not a subscription
-			if (!sj.isType(subscription, Subscription)) {
+			if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
 				if (strict) throw new Err({
 					origin: 'unsubscribe()', 
 					reason: 'subscription is not an Subscription',
@@ -731,19 +733,19 @@ export default {
 			
 			//C shorten
 			const liveQuery = subscription.liveQuery;
-			if (!sj.isType(liveQuery, LiveQuery)) throw new Err({
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Err({
 				origin: 'unsubscribe()',
 				reason: `liveQuery is not an LiveQuery`,
 				content: liveQuery,
 			});
 			const query = liveQuery.query;
-			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
+			if (!rules.object.test(query) && !rules.array.test(query)) throw new Err({
 				origin: 'unsubscribe()', 
 				reason: 'query is not an Object',
 				content: query,
 			});
 			const table = liveQuery.table;
-			if (!sj.isType(table, LiveTable)) throw new Err({
+			if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
 				origin: 'unsubscribe()', 
 				reason: 'table is not an LiveTable',
 				content: table,
@@ -781,7 +783,7 @@ export default {
 
 			//C strict check here throws or lets function execute //! doesn't early return
 			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-			if (strict && !sj.isType(subscription, Subscription)) throw new Err({
+			if (strict && !isInstanceOf(subscription, Subscription, 'Subscription')) throw new Err({
 				origin: 'change()', 
 				reason: 'subscription is not an Subscription',
 				content: subscription,
@@ -808,16 +810,16 @@ export default {
 				reason: 'Entity is not an Entity',
 				content: fclone(TargetEntity),
 			});
-			if (!sj.isType(query, Object) && !sj.isType(query, Array)) throw new Err({
+			if (!rules.object.test(query) && !rules.array.test(query)) throw new Err({
 				origin: 'update()', 
 				reason: 'query is not an Object',
 				content: fclone(query),
 			});
-			if (!sj.isType(timestamp, 'integer')) timestamp = Date.now();
+			if (!rules.integer.test(timestamp)) timestamp = Date.now();
 
 			//C shorten
 			const table = context.getters.findTable(TargetEntity);
-			if (!sj.isType(table, LiveTable)) throw new Err({
+			if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
 				origin: 'update()', 
 				reason: 'table is not an LiveTable',
 				content: {
@@ -826,7 +828,7 @@ export default {
 				},
 			});
 			const liveQuery = context.getters.findLiveQuery({table, query});
-			if (!sj.isType(liveQuery, LiveQuery)) throw new Err({
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Err({
 				origin: 'update()',
 				reason: `liveQuery is not an LiveQuery`,
 				content: {
@@ -859,7 +861,7 @@ export default {
 
 				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
-					if (sj.isType(result, Err)) reject(result);
+					if (isInstanceOf(result, Err, 'Err')) reject(result);
 					else {
 						resolve(result);
 					}
@@ -877,7 +879,7 @@ export default {
 
 				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
-					if (sj.isType(result, Err)) reject(result);
+					if (isInstanceOf(result, Err, 'Err')) reject(result);
 					else resolve(result);
 				});
 			}).then((result) => result.content).catch(propagate);
@@ -981,7 +983,7 @@ export default {
 					//C subscribe
 					let subscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('subscribe', queryPack, result => {
-							if (sj.isType(result, Success)) {
+							if (isInstanceOf(result, Success, 'Success')) {
 								resolve(result);
 							} else {
 								reject(result);
@@ -1013,7 +1015,7 @@ export default {
 					//C unsubscribe
 					let unsubscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('unsubscribe', queryPack, result => {
-							if (sj.isType(result, Success)) {
+							if (isInstanceOf(result, Success, 'Success')) {
 								resolve(result);
 							} else {
 								reject(result);
@@ -1190,7 +1192,7 @@ export default {
 				},
 			});
 			tests.push(
-				['isSubscription', sj.isType(trackSubscription, Subscription)]
+				['isSubscription', isInstanceOf(trackSubscription, Subscription, 'Subscription')]
 			);
 
 			

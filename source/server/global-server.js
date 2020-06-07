@@ -110,7 +110,6 @@ import {
 	any,
 	rules,
 } from '../shared/utility/index.js';
-import sj from '../public/js/global.js';
 import database, {pgp} from './db.js';
 import liveData from './live-data-server.js';
 import { 
@@ -132,7 +131,7 @@ import {
 import propagate from '../shared/propagate.js';
 import parsePostgresError from './parse-postgres-error.js';
 
-
+const sj = {};
 
 //TODO refactor this function out in favor of more specific validators.
 // global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.

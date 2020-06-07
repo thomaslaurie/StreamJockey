@@ -52,7 +52,6 @@ import {
 import {
 	runHTMLScript,
 } from './browser-utility/index.js';
-import sj from './global.js';
 import request from '../../shared/request.js';
 import serverRequest from './server-request.js';
 import Base from '../../shared/legacy-classes/base.js';
@@ -81,6 +80,8 @@ import {
 	JSON_HEADER,
 } from '../../shared/constants.js';
 import isInstanceOf from '../../shared/is-instance-of.js';
+
+const sj = {};
 
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined

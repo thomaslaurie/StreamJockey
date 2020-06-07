@@ -1,0 +1,17 @@
+//G wrapper objects vs bare return
+	simple functions should just return the bare result, for testing purposes these can also have guard clauses and throw a more descriptive Err
+	more complex functions (async, error-able, client-server transfer) should wrap their result:
+		Success / SuccessList
+			wraps empty content, arrays of other objects, misc content
+			or is a descendant item object
+		or a Err / ErrList
+			wraps empty content, arrays of other objects with at least one error, non-sj errors
+			or is a custom error
+
+	//R
+	client-server transfer is the one place where the resolve/reject state of promises won't work - this is the big reason why wrappers are needed
+	even though resolve and rejections don't need to be the same format, its still useful to have the ability influence resolved values with a success wrapper for say logging or debugging
+
+reconsider the default values of class properties - semantics of undefined & null, error handling of placeholders '', [], {}, inequality of Symbol(), 'emptiness' sj.isEmpty()
+
+possibly a cyclical reference preservation function between client and server that replaces a reference to self with 'self1' keyword and also can find lower-level cyclical references by recursively calling the function on each layer with memory for which layer its on

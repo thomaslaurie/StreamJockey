@@ -11,8 +11,6 @@ import fclone from 'fclone';
 
 // INTERNAL
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
-//! depends on the common global.js not the global-server.js because global-server.js uses this module
-import sj from '../public/js/global.js';
 import Base from '../shared/legacy-classes/base.js';
 import { 
 	Err,
@@ -30,6 +28,7 @@ import {
 	LiveQuery,
 	Subscription,
 } from '../shared/live-data.js';
+import isInstanceOf from '../shared/is-instance-of.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -83,19 +82,19 @@ export default {
 			
 			//C if user is logged in, give the socketId to the session
 			//! I don't think the cookie session receives this, though it isn't needed there so far
-			if (sj.isType(socket.session.user, User)) socket.session.user.socketId = socket.id;
+			if (isInstanceOf(socket.session.user, User, 'User')) socket.session.user.socketId = socket.id;
 
 			socket.on('disconnect', async (reason) => {
 				console.log('DISCONNECT', socket.id);
 
-				await sj.liveData.disconnect(socket.id).catch(rejected => { 
+				await this.disconnect(socket.id).catch(rejected => { 
 					//TODO handle better
-					if (sj.isType(rejected, Base)) rejected.announce();
+					if (isInstanceOf(rejected, Base, 'Base')) rejected.announce();
 					else console.error('subscription disconnect error:', rejected);
 				});
 				
 				//? socket won't be used anymore, so does anything really need to be deleted here?
-				if (sj.isType(socket.session.user, User)) socket.session.user.socketId = User.defaults.socketId;
+				if (isInstanceOf(socket.session.user, User, 'User')) socket.session.user.socketId = User.defaults.socketId;
 			});
 
 			socket.on('subscribe', async ({table, query}, callback) => {
@@ -103,12 +102,12 @@ export default {
 
 				//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
 				//TODO socketId validator, this is all that really matters here
-				const user = sj.isType(socket.session.user, User)
+				const user = isInstanceOf(socket.session.user, User, 'User')
 					? socket.session.user
 					: new User({socketId: socket.id});
 					
 				//! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
-				const result = await sj.liveData.add(Entity.tableToEntity(table), query, user);
+				const result = await this.add(Entity.tableToEntity(table), query, user);
 
 				//!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
 				//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
@@ -118,11 +117,11 @@ export default {
 			socket.on('unsubscribe', async ({table, query}, callback) => {
 				console.log('UNSUBSCRIBE', socket.id);
 
-				const user = sj.isType(socket.session.user, User)
+				const user = isInstanceOf(socket.session.user, User, 'User')
 					? socket.session.user
 					: new User({socketId: socket.id});
 
-				const result = await sj.liveData.remove(Entity.tableToEntity(table), query, user);
+				const result = await this.remove(Entity.tableToEntity(table), query, user);
 				callback(fclone(result));
 			});
 
@@ -150,14 +149,14 @@ export default {
 
 		//C find table
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, LiveTable)) throw new Err({
+		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
 			origin: 'sj.liveData.add()',
 			reason: 'table is not an LiveTable',
 		});
 
 		//C find liveQuery, add if it doesn't exist
 		let liveQuery = this.findLiveQuery(table, processedQuery);
-		if (!sj.isType(liveQuery, LiveQuery)) {
+		if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
 			liveQuery = new LiveQuery({
 				table,
 				query: processedQuery,
@@ -167,7 +166,7 @@ export default {
 
 		//C find subscription, add if it doesn't exist
 		let subscription = this.findSubscription(liveQuery, user);
-		if (!sj.isType(subscription, Subscription)) {
+		if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
 			subscription = new Subscription({
 				liveQuery,
 				user,
@@ -192,7 +191,7 @@ export default {
 		
 		//C find table
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, LiveTable)) throw new Err({
+		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
 			origin: 'sj.liveData.remove()',
 			reason: 'table is not an LiveTable',
 		});
@@ -200,7 +199,7 @@ export default {
 		//C find liveQuery index
 		const liveQuery = this.findLiveQuery(table, processedQuery);
 		const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-		if (!sj.isType(liveQuery, LiveQuery) || liveQueryIndex < 0) return new Warn({
+		if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery') || liveQueryIndex < 0) return new Warn({
 			origin: 'Subscriptions.remove()',
 			message: 'no subscription found for this query',
 			content: {
@@ -213,7 +212,7 @@ export default {
 		//C find subscription
 		const subscription = this.findSubscription(liveQuery, user);
 		const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-		if (!sj.isType(subscription, Subscription) || subscriptionIndex < 0) return new Warn({
+		if (!isInstanceOf(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) return new Warn({
 			origin: 'Subscriptions.remove()',
 			message: 'no subscriber found for this user',
 			content: {
@@ -241,7 +240,7 @@ export default {
 	async notify(Entity, entities, timestamp) {
 		//C for each liveQuery
 		const table = this.findTable(Entity);
-		if (!sj.isType(table, LiveTable)) throw new Err({
+		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
 			origin: 'sj.liveData.notify()',
 			reason: 'table is not an LiveTable',
 		});

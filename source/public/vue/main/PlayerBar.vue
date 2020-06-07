@@ -5,10 +5,13 @@
 	import {
 		Track,
 	} from '../../../client/entities/index.js';
-
 	import {
 		Subscription,
 	} from '../../../shared/live-data.js';
+	import {
+		rules,
+	} from '../../../shared/utility/index.js';
+	import isInstanceOf from '../../../shared/is-instance-of.js';
 
     export default {
 		name: 'player-bar',
@@ -25,19 +28,19 @@
 			},
 			playlistId() {
 				//TODO replace with playlistId rule
-				return (this.sj.isType(this.currentTrack, Object) && this.sj.isType(this.currentTrack.playlistId, 'integer'))
+				return (rules.object.test(this.currentTrack) && rules.integer.test(this.currentTrack.playlistId))
 					? this.currentTrack.playlistId
 					: null;
 			},
 			playlistTracks() {
-				return this.sj.isType(this.playlistTracksSubscription, Subscription) 
+				return isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription') 
 					? this.$store.getters.getLiveData(this.playlistTracksSubscription)
 					: null;
 			},
 			prevTrack() {
 				return (
-					this.sj.isType(this.currentTrack, Track) &&			//C currentTrack exists
-					this.sj.isType(this.playlistTracks, Array) &&				//C playlistTrack exists
+					isInstanceOf(this.currentTrack, Track, 'Track') &&			//C currentTrack exists
+					rules.array.test(this.playlistTracks) &&				    //C playlistTrack exists
 					0 < this.currentTrack.position && 							//C//! currentTrack is after first track
 					this.currentTrack.position < this.playlistTracks.length		//C currentTrack is not above bounds
 						? this.playlistTracks[this.currentTrack.position-1] //!
@@ -46,8 +49,8 @@
 			},
 			nextTrack() {
 				return (
-					this.sj.isType(this.currentTrack, Track) &&			//C currentTrack exists
-					this.sj.isType(this.playlistTracks, Array) &&				//C playlistTrack exists
+					isInstanceOf(this.currentTrack, Track, 'Track') &&			//C currentTrack exists
+					rules.array.test(this.playlistTracks) &&				//C playlistTrack exists
 					0 <= this.currentTrack.position && 							//C currentTrack is not below bounds
 					this.currentTrack.position < this.playlistTracks.length-1	//C//! currentTrack is before last track
 						? this.playlistTracks[this.currentTrack.position+1] //!
@@ -73,7 +76,7 @@
 						this.playlistTracksSubscription = await this.$store.dispatch('unsubscribe', {subscription: this.playlistTracksSubscription});
 
 					//C if the playlistId has changed or the playlistTracksSubscription doesn't exist
-					} else if (id !== oldId || !this.sj.isType(this.playlistTracksSubscription, Subscription)) {
+					} else if (id !== oldId || !isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription')) {
 						//C update the playlistTracksSubscription to the proper playlistId
 						this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
 							subscription: this.playlistTracksSubscription,

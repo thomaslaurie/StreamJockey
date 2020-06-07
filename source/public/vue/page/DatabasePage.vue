@@ -12,6 +12,7 @@
 		Subscription,
 	} from '../../../shared/live-data.js';
 	import * as session from '../../../client/session-methods.js';
+	import isInstanceOf from '../../../shared/is-instance-of.js';
 	
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
@@ -79,7 +80,7 @@
 
 			subscriptionData: function () {
 				//TODO I think this is old, transition to the new AsyncDisplay
-				if (sj.isType(this.subscription, Subscription)) return any(this.$store.getters.getLiveData(this.subscription));
+				if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return any(this.$store.getters.getLiveData(this.subscription));
 			},
 		},
 		watch: {
