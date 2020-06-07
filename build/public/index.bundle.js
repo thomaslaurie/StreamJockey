@@ -38078,17 +38078,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 var sj = {}; //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
-//C attach external libraries to sj so that they can be used where ever sj is imported
-
-sj.moment = moment__WEBPACK_IMPORTED_MODULE_0___default.a;
-sj.he = he__WEBPACK_IMPORTED_MODULE_1___default.a;
-sj.appName = 'StreamJockey'; //   ██████╗██╗      █████╗ ███████╗███████╗
+//   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -39196,7 +39186,7 @@ sj.spotify = new _shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
             window.onSpotifyWebPlaybackSDKReady = function () {
               var player = new window.Spotify.Player({
                 //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-                name: sj.appName,
+                name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_13__["APP_NAME"],
                 getOAuthToken: function () {
                   var _getOAuthToken = _asyncToGenerator(function* (callback) {
                     var token = yield sj.spotify.getAccessToken();
@@ -40376,7 +40366,7 @@ sj.youtube = new _shared_source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
 
 sj.youtube.formatContentDetails = function (contentDetails) {
   var pack = {};
-  pack.duration = sj.moment.duration(contentDetails.duration, sj.moment.ISO_8601).asMilliseconds();
+  pack.duration = moment__WEBPACK_IMPORTED_MODULE_0___default.a.duration(contentDetails.duration, moment__WEBPACK_IMPORTED_MODULE_0___default.a.ISO_8601).asMilliseconds();
   return pack;
 }, sj.youtube.formatSnippet = function (snippet) {
   var pack = {};
@@ -40405,8 +40395,8 @@ sj.youtube.formatContentDetails = function (contentDetails) {
   //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
 
 
-  pack.artists = pack.artists.map(artist => sj.he.decode(artist));
-  pack.name = sj.he.decode(pack.name);
+  pack.artists = pack.artists.map(artist => he__WEBPACK_IMPORTED_MODULE_1___default.a.decode(artist));
+  pack.name = he__WEBPACK_IMPORTED_MODULE_1___default.a.decode(pack.name);
   return pack;
 }; //  ██████╗ ██╗      █████╗ ██╗   ██╗██████╗  █████╗  ██████╗██╗  ██╗
 //  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
@@ -60123,7 +60113,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!************************************!*\
   !*** ./source/shared/constants.js ***!
   \************************************/
-/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY */
+/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY, APP_NAME */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -60133,6 +60123,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GET_BODY", function() { return GET_BODY; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "APP_NAME", function() { return APP_NAME; });
 var SERVER_URL = "http://localhost:3000";
 var API_URL = "".concat(SERVER_URL, "/api");
 var JSON_HEADER = Object.freeze({
@@ -60144,6 +60135,7 @@ var URL_HEADER = Object.freeze({
   'Content-Type': 'application/x-www-form-urlencoded'
 });
 var GET_BODY = encodeURIComponent('body');
+var APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.
 
 /***/ }),
 

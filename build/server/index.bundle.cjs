@@ -2814,7 +2814,7 @@ async function isLoggedIn(ctx) {
 /*!************************************!*\
   !*** ./source/shared/constants.js ***!
   \************************************/
-/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY */
+/*! exports provided: SERVER_URL, API_URL, JSON_HEADER, URL_HEADER, GET_BODY, APP_NAME */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2824,6 +2824,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "JSON_HEADER", function() { return JSON_HEADER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "URL_HEADER", function() { return URL_HEADER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GET_BODY", function() { return GET_BODY; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "APP_NAME", function() { return APP_NAME; });
 const SERVER_URL = `http://localhost:3000`;
 const API_URL = `${SERVER_URL}/api`;
 const JSON_HEADER = Object.freeze({
@@ -2835,6 +2836,7 @@ const URL_HEADER = Object.freeze({
   'Content-Type': 'application/x-www-form-urlencoded'
 });
 const GET_BODY = encodeURIComponent('body');
+const APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.
 
 /***/ }),
 

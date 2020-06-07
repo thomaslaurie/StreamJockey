@@ -9,3 +9,4 @@ export const URL_HEADER = Object.freeze({
 	'Content-Type': 'application/x-www-form-urlencoded',
 });
 export const GET_BODY = encodeURIComponent('body');
+export const APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.

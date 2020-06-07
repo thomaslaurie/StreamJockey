@@ -78,6 +78,7 @@ import {
 } from '../../shared/propagate.js';
 import {
 	JSON_HEADER,
+	APP_NAME,
 } from '../../shared/constants.js';
 import isInstanceOf from '../../shared/is-instance-of.js';
 
@@ -86,19 +87,6 @@ const sj = {};
 
 //import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
 //import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
-
-
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
-
-//C attach external libraries to sj so that they can be used where ever sj is imported
-sj.moment = moment;
-sj.he = he;
-sj.appName = 'StreamJockey';
 
 
 //   ██████╗██╗      █████╗ ███████╗███████╗
@@ -1104,7 +1092,7 @@ sj.spotify = new Source({
 					window.onSpotifyWebPlaybackSDKReady = function () {
 						const player = new window.Spotify.Player({ 
 							//C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-							name: sj.appName,
+							name: APP_NAME,
 							getOAuthToken: async callback => {
 								let token = await sj.spotify.getAccessToken();
 								callback(token);
@@ -2112,7 +2100,7 @@ sj.youtube = new Source({
 //TODO move inside
 sj.youtube.formatContentDetails = function (contentDetails) {
 	const pack = {};
-	pack.duration = sj.moment.duration(contentDetails.duration, sj.moment.ISO_8601).asMilliseconds();
+	pack.duration = moment.duration(contentDetails.duration, moment.ISO_8601).asMilliseconds();
 	return pack;
 },
 sj.youtube.formatSnippet = function (snippet) {
@@ -2141,8 +2129,8 @@ sj.youtube.formatSnippet = function (snippet) {
 
 	//C apparently the titles are html encoded, (possibly the artist names too//?)
 	//L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
-	pack.artists = pack.artists.map(artist => sj.he.decode(artist));
-	pack.name = sj.he.decode(pack.name);
+	pack.artists = pack.artists.map(artist => he.decode(artist));
+	pack.name = he.decode(pack.name);
 
 	return pack;
 };
