@@ -519,6 +519,85 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube,
 
 /***/ }),
 
+/***/ "./source/server/database/sql-builders.js":
+/*!************************************************!*\
+  !*** ./source/server/database/sql-builders.js ***!
+  \************************************************/
+/*! exports provided: buildValues, buildWhere, buildSet */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildValues", function() { return buildValues; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildWhere", function() { return buildWhere; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildSet", function() { return buildSet; });
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+
+
+function buildValues(mappedEntity) {
+  if (Object.keys(mappedEntity).length === 0) {
+    //C this shouldn't insert anything
+    return `("id") SELECT 0 WHERE 0 = 1`;
+  } else {
+    let columns = [];
+    let values = [];
+    let placeholders = [];
+    Object.keys(mappedEntity).forEach((key, i) => {
+      columns.push(key);
+      values.push(mappedEntity[key]);
+      placeholders.push(`$${i + 1}`); //C $1 based placeholders
+    });
+    columns = columns.join('", "'); //C inner delimiter
+
+    columns = `("${columns}")`; //C outer
+
+    placeholders = placeholders.join(', ');
+    placeholders = `(${placeholders})`; //? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
+
+    return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
+  }
+}
+;
+function buildWhere(mappedEntity) {
+  if (Object.keys(mappedEntity).length === 0) {
+    //TODO hacky
+    //C return a false clause
+    return '0 = 1';
+  } else {
+    //C pair as formatted string
+    let pairs = [];
+    pairs = Object.keys(mappedEntity).map(key => {
+      //C wrap array in another array so that pgp doesn't think its values are for separate placeholders
+      let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
+    }); //C join with ' AND '
+
+    return pairs.join(' AND ');
+  }
+}
+;
+function buildSet(mappedEntity) {
+  if (Object.keys(mappedEntity).length === 0) {
+    //TODO hacky
+    //C don't make any change
+    //! this does have to reference a column that always exists (id)
+    return '"id" = "id"';
+  } else {
+    let pairs = []; //C pair as formatted string
+
+    pairs = Object.keys(mappedEntity).map(key => {
+      let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
+      return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input);
+    }); //C join with ', '
+
+    return pairs.join(', ');
+  }
+}
+;
+
+/***/ }),
+
 /***/ "./source/server/db.js":
 /*!*****************************!*\
   !*** ./source/server/db.js ***!
@@ -610,6 +689,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
+/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/sql-builders.js */ "./source/server/database/sql-builders.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -707,6 +787,7 @@ __webpack_require__.r(__webpack_exports__);
 // EXTERNAL
 // import fetch from 'node-fetch'; //C global.js uses fetch
  // INTERNAL
+
 
 
 
@@ -913,73 +994,12 @@ sj.liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //  
   });
 }).catch(rejected => {
   console.log(rejected);
-});
-
-sj.buildValues = function (mappedEntity) {
-  if (Object.keys(mappedEntity).length === 0) {
-    //C this shouldn't insert anything
-    return `("id") SELECT 0 WHERE 0 = 1`;
-  } else {
-    let columns = [];
-    let values = [];
-    let placeholders = [];
-    Object.keys(mappedEntity).forEach((key, i) => {
-      columns.push(key);
-      values.push(mappedEntity[key]);
-      placeholders.push(`$${i + 1}`); //C $1 based placeholders
-    });
-    columns = columns.join('", "'); //C inner delimiter
-
-    columns = `("${columns}")`; //C outer
-
-    placeholders = placeholders.join(', ');
-    placeholders = `(${placeholders})`; //? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
-
-    return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
-  }
-};
-
-sj.buildWhere = function (mappedEntity) {
-  if (Object.keys(mappedEntity).length === 0) {
-    //TODO hacky
-    //C return a false clause
-    return '0 = 1';
-  } else {
-    //C pair as formatted string
-    let pairs = [];
-    pairs = Object.keys(mappedEntity).map(key => {
-      //C wrap array in another array so that pgp doesn't think its values are for separate placeholders
-      let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
-    }); //C join with ' AND '
-
-    return pairs.join(' AND ');
-  }
-};
-
-sj.buildSet = function (mappedEntity) {
-  if (Object.keys(mappedEntity).length === 0) {
-    //TODO hacky
-    //C don't make any change
-    //! this does have to reference a column that always exists (id)
-    return '"id" = "id"';
-  } else {
-    let pairs = []; //C pair as formatted string
-
-    pairs = Object.keys(mappedEntity).map(key => {
-      let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
-      return _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`"${key}" = $1`, input);
-    }); //C join with ', '
-
-    return pairs.join(', ');
-  }
-}; //   ██████╗██╗      █████╗ ███████╗███████╗
+}); //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
 //  ╚██████╗███████╗██║  ██║███████║███████║
 //   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
-
 
 _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
   prototypeProperties: parent => ({
@@ -1218,7 +1238,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
     this.queryOrder = `ORDER BY "id" ASC`; //C executes SQL queries
 
     this.addQuery = async function (t, mappedEntity) {
-      let values = sj.buildValues(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+      let values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
       //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
       let row = await t.one(`
@@ -1236,7 +1256,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
     };
 
     this.getQuery = async function (t, mappedEntity) {
-      let where = sj.buildWhere(mappedEntity);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildWhere"])(mappedEntity);
       let rows = await t.any(`
 				SELECT * 
 				FROM "sj"."${this.table}" 
@@ -1257,8 +1277,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         id,
         ...mappedEntitySet
       } = mappedEntity;
-      let set = sj.buildSet(mappedEntitySet);
-      let where = sj.buildWhere({
+      let set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildSet"])(mappedEntitySet);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildWhere"])({
         id
       });
       let row = await t.one(`
@@ -1277,7 +1297,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
     };
 
     this.removeQuery = async function (t, mappedEntity) {
-      let where = sj.buildWhere(mappedEntity);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildWhere"])(mappedEntity);
       let row = await t.one(`
 				DELETE FROM "sj"."${this.table}" 
 				WHERE $1:raw 
@@ -5541,6 +5561,7 @@ __webpack_require__.r(__webpack_exports__);
 					defaults to the 'input arguments'
 */
 //TODO//! Need a way to hoist the static class reference. Or else there is no way (without augmentation) to reference the exact constructor. (this.constructor will be different for sub-classes.) This should go along-side duper, but how to add it with instances?
+// Maybe, using a function for each layer would allow that? Giving direct reference to the class being defined. This however would not be contextual between instance/prototype/static
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
 //TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
 

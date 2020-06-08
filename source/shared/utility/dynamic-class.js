@@ -151,6 +151,7 @@
 */
 
 //TODO//! Need a way to hoist the static class reference. Or else there is no way (without augmentation) to reference the exact constructor. (this.constructor will be different for sub-classes.) This should go along-side duper, but how to add it with instances?
+// Maybe, using a function for each layer would allow that? Giving direct reference to the class being defined. This however would not be contextual between instance/prototype/static
 
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
 //TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
