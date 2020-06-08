@@ -200,17 +200,7 @@ module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePath
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "events");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
-/* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/request.js */ "./source/shared/request.js");
-/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -241,19 +231,7 @@ __webpack_require__.r(__webpack_exports__);
 //  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 // BUILT-IN
- // EXTERNAL
-//import btoa from 'btoa';
-
- //L https://github.com/thelinmichael/spotify-web-api-node
-// INTERNAL
-
-
-
-
-
-
-
-
+ // INTERNAL
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -277,11 +255,11 @@ auth.requestTimeout = 300000; //C 5 minutes
 auth.requestKeys = [];
 
 auth.addRequestKey = async function () {
-  return await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].addTo(this.requestKeys, this.requestTimeout);
+  return await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["keyCode"].addTo(this.requestKeys, this.requestTimeout);
 };
 
 auth.checkRequestKey = async function (key) {
-  let pack = await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["keyCode"].verify(this.requestKeys, key);
+  let pack = await _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["keyCode"].verify(this.requestKeys, key);
   return {
     authRequestKey: pack.key,
     authRequestTimestamp: pack.timestamp
@@ -292,229 +270,8 @@ auth.checkRequestKey = async function (key) {
 //  ╚════██║██║   ██║██║   ██║██╔══██╗██║     ██╔══╝  
 //  ███████║╚██████╔╝╚██████╔╝██║  ██║╚██████╗███████╗
 //  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚══════╝
-//TODO consider moving this over to the globals-server stuff
-//C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 
 
-_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify = new _shared_source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
-  name: 'spotify',
-  register: true,
-  api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_1___default.a({
-    //C create api object and set credentials in constructor
-    clientId: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri: process.env.SPOTIFY_REDIRECT_URI
-  }),
-
-  get scopes() {
-    //? why does this need to be a getter?, i think it was because one of the properties needed to be dynamic and react to authRequestManually
-    return [
-    /* //C
-    contains an array of all scopes sent with the auth request
-              'streaming', 'user-read-birthdate', 'user-read-email', 'user-read-private' are required for the web playback sdk
-    'user-modify-playback-state' is required to operate the playback
-              show_dialog sets whether or not to force the user to approve the request each time
-    
-    state gets returned back with the request, TODO use with hashes to verfy that the response came from the expected source
-    */
-    // users
-    'user-read-private', 'user-read-email', 'user-read-birthdate', // spotify connect
-    'user-read-currently-playing', 'user-modify-playback-state', 'user-read-playback-state', // streaming
-    'streaming'];
-  },
-
-  authRequestManually: true,
-  makeAuthRequestURL: function (key) {
-    //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
-    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(this.api._credentials.clientId) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(this.api._credentials.clientSecret) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(this.api._credentials.redirectUri)) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-        log: true,
-        origin: 'spotify.makeAuthRequestURL()',
-        message: 'one or more api credentials are missing or of the wrong type',
-        content: {
-          clientId: this.api._credentials.clientId,
-          clientSecret: this.api._credentials.clientSecret,
-          redirectUri: this.api._credentials.redirectUri
-        }
-      });
-    } //! the show_dialog query parameter isn't available in the createAuthorizeURL, so it is manually added
-
-
-    return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`;
-  }
-}); //TODO make any property available for Source
-
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].spotify, {
-  startAuthRequest: async function () {
-    let pack = await auth.addRequestKey();
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Credentials"]({
-      authRequestKey: pack.key,
-      authRequestTimestamp: pack.timestamp,
-      authRequestTimeout: pack.timeout,
-      authRequestURL: this.makeAuthRequestURL(pack.key)
-    });
-  },
-  receiveAuthRequest: async function (query) {
-    //C receives and transforms credentials from spotify after the user confirms the authorization
-
-    /*//C spotify authorization guide
-    	//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-    			if the user accepts the request:
-    	code	An authorization code that can be exchanged for an access token.
-    	state	The value of the state parameter supplied in the request.
-    			if the user denies the request, or if an error has occured
-    	error	The reason authorization failed, for example: “access_denied” 
-    	state	The value of the state parameter supplied in the request.
-    			//TODO create error parser for spotify api
-    */
-    //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
-    await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
-
-    if (query.code === undefined) {
-      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-        log: true,
-        origin: 'receiveAuthRequest()',
-        message: 'spotify authorization failed',
-        reason: 'code is missing',
-        content: query
-      }));
-    } //C ensure that spotify didn't send an error
-
-
-    if (query.error !== undefined) {
-      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-        log: true,
-        origin: 'receiveAuthRequest()',
-        message: 'spotify authorization failed',
-        reason: query.error,
-        content: query
-      }));
-    } //C send the event and credentials for endAuthRequest() to pick up
-
-
-    emitter.emit(query.state, new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Credentials"]({
-      //? sj.success here?
-      authRequestKey: query.state,
-      //? is this needed anymore?
-      authCode: query.code
-    }));
-  },
-  endAuthRequest: async function (credentials) {
-    //C catches events emitted by receiveAuthRequest() and sends them to the waiting router request
-    return await new Promise((resolve, reject) => {
-      //! needs to be a promise wrapper because emitter.once uses a callback function
-      //C setup listener for authRequestKey
-      emitter.once(credentials.authRequestKey, result => {
-        resolve(result);
-      }); //C setup timeout
-
-      Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(credentials.authRequestTimeout).then(() => {
-        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-          log: true,
-          origin: 'sj.spotify.endAuthRequest()',
-          message: 'request timeout'
-        }));
-      });
-    });
-  },
-  exchangeToken: async function (ctx, credentials) {
-    //C exchange auth code for access and refresh tokens
-    //C exchangeToken() is only outside of endAuthRequest() because the auth window should close and not have to wait for the exchange to happen - to reduce flickering of the redirect page
-    //C grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
-    let timestamp = Date.now(); //C exchange the auth code for tokens
-    //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
-
-    let result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_3__["default"])('POST', 'https://accounts.spotify.com/api/token', {
-      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
-        grant_type: 'authorization_code',
-        code: credentials.authCode,
-        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-        //C only used for validation, no need to make a second redirect handler
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
-
-      }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__["URL_HEADER"]
-    }).catch(rejected => {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-        log: true,
-        message: 'failed to authorize spotify',
-        reason: 'token exchange failed',
-        content: rejected
-      });
-    }); //C store refresh token in database
-    //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
-
-    let me = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx).then(result => result.content);
-    await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit({
-      id: me.id,
-      spotifyRefreshToken: result.refresh_token
-    }).then(resolved => {}); //C repack and return
-
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Credentials"]({
-      accessToken: result.access_token,
-      expires: timestamp + result.expires_in,
-      //refreshToken: result.refresh_token,
-      scopes: result.scope.split(' ') //C result.token_type is the only omitted property, this is always 'Bearer'
-
-    });
-  },
-  refreshToken: async function (ctx) {
-    //C get the refresh token from the database
-    let me = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx).then(result => result.content);
-    let refreshToken = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
-    //TODO reconsider this string test
-
-    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].visibleString.test(refreshToken)) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["AuthRequired"]();
-    } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
-
-
-    let timestamp = Date.now();
-    let result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_3__["default"])('POST', 'https://accounts.spotify.com/api/token', {
-      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["encodeProperties"])({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: process.env.SPOTIFY_CLIENT_ID,
-        client_secret: process.env.SPOTIFY_CLIENT_SECRET
-      }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__["URL_HEADER"]
-    }).catch(rejected => {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_5__["Err"]({
-        log: true,
-        message: 'failed to authorize spotify',
-        reason: 'token refresh failed',
-        content: rejected
-      });
-    }); //C if a new refresh token was sent
-
-    if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.test(result.refresh_token)) {
-      //? better validation?
-      //C store it
-      await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit({
-        id: me.id,
-        spotifyRefreshToken: result.refresh_token
-      });
-    } //C send only the accessToken and the expiry time
-
-
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_6__["Credentials"]({
-      origin: 'sj.spotify.refreshToken()',
-      accessToken: result.access_token,
-      expires: timestamp + result.expires_in
-    });
-  }
-});
-_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube = new _shared_source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
-  name: 'youtube',
-  register: true
-});
-Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube, {
-  getCredentials: async () => ({
-    apiKey: process.env.YOUTUBE_API_KEY,
-    clientId: process.env.YOUTUBE_CLIENT_ID
-  })
-});
 /* harmony default export */ __webpack_exports__["default"] = (auth);
 
 /***/ }),
@@ -858,127 +615,27 @@ const schema = {
 
 /***/ }),
 
-/***/ "./source/server/global-server.js":
-/*!****************************************!*\
-  !*** ./source/server/global-server.js ***!
-  \****************************************/
+/***/ "./source/server/entities/entity.js":
+/*!******************************************!*\
+  !*** ./source/server/entities/entity.js ***!
+  \******************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
-/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
-/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
-/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/sql-builders.js */ "./source/server/database/sql-builders.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/server/constants.js");
-/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
-// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
-// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
-// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
-// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
-// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
-// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
-
-/*
-    //G CRUD MAP
-    Create = add
-    Retrieve = get
-    Update = edit
-    Delete = remove
-
-    //R CRUD DATA FORMAT
-		get functions will be allowed to get multiple resources (just a simple query based on matches), for example getting a playlist with only userId will get all playlists by that user
-		
-		there is some confusion about what is 'known' information - because playlists hold data on the tracks they contain, but users don't hold data on the playlists they have. get needs the ability for multiple matches because it is not 'known' by the client what it contains (playlist is only able to do this because the multiple query is done manually server-side when getting the original playlist, this is not done for user)
-	
-		two directions - either make user retrieve all of it's containing playlists (lots of data being passed around here, no way to do a different query for playlists or tracks separated from user), or allow multiple querying (creates a difference between get and the other CRUD methods (add, edit, and remove could be done in multiple but these are all methods where the client 'knows' the exact resource they're manipulating and can be done iteratively on the client-side)
-	
-		maybe make all CRUD methods multiply possible (for admin stuff? remove all tracks in a playlist (at once) without doing them iteratively client-side), all of these would have to fail if any one part fails (using that postgres thing (transaction commit?))
-
-		all CRUD will return an array of any number of rows
-
-		GET should be the only method used for search/query. EDIT & DELETE (& ADD) should not, therefore, editing or deleting a resource should only be done when it's id is known (after probably GETing it), (this clears up confusion: say we want to edit a track where its property is x, this is done in the GET method, but here is an issue when determining what data is the replacement data and what data is the query data - therefore only the id should be used as the query data (because it cant be changed), an the rest is the replacement data)
-
-		because of this it becomes: get | add, edit, remove   or   get, remove | add, edit    (because it could make sense for remove to query too because it doesn't have replacement data, but not add because it doesn't need a query), it comes down to consistency, get could take a single object, add, edit, remove, could take an array of objects (and return single success/failure?), what about get taking an array and returning an array
-		
-		//L multiple resources with one request: https://stackoverflow.com/questions/32098423/rest-updating-multiple-resources-with-one-request-is-it-standard-or-to-be-avo
-
-
-	//R ErrList
-		ErrorList should not be a wrapper for a list of errors, ErrorList should be a version of a single error that has multiple 'parallel' parts (ie: adding a user and having an issue with multiple fields - its still a single error with one resource (a user) but there are multiple parts to the error that need to be evaluated in parallel not in sequence)
-		
-		would this not mean that requests are also evaluated in parallel? that response arrays should all have Success or ErrorList wrappers?, wouldn't this be redundant - if everything is already an array why have a wrapper for it? what would be the default wrapper for request data like editTracks([{}, {}, ...]) ?
-
-	//G JAVASCRIPT GUIDELINES
-		when returning a promise / async function, use return await Promise()
-		//L https://stackoverflow.com/questions/38708550/difference-between-return-await-promise-and-return-promise
-		//L https://www.reddit.com/r/javascript/comments/7idasp/await_vs_return_vs_return_await/ 
-		
-		//L proper use of array methods: https://medium.com/front-end-weekly/stop-array-foreach-and-start-using-filter-map-some-reduce-functions-298b4dabfa09
-	
-	//R CLASS NAMESPACES
-		I started using Object.assign() to supplement sj.Entity (and other classes) for server-specific functionality, however it was limiting me to shallow assignment - which required a bunch of functions to have prefixes (addPrepare, getPrepare, etc.), and I really wanted to avoid calling these functions like: this[`${method}Prepare`](), I wanted functional assignment much like class constructors, so I decided to switch to using  (function () {}).call()  which acts kind of reverse to how its used as 'super' in function classes, basically calling another constructor(?) later
-		
-		two ways to implement: namespace within the class - this requires those namespaced functions to be called via this.namespace.fn.call(this, ...), or just prefix the functions which requires them to be called via this[`${namespace}Fn`](...), still not sure which is better
-		
-		actually - don't do that namespace thing, as the namespace is still a reference to an object, so if a child class changes one of its properties, it changes it for all classes with that same namespace
-
-	//G FUNCTION MODIFICATION VS RETURN NEW
-		modifying & returning passed objects in functions, in general I'm deciding to modify passed objects in functions and return the same reference, however when the data-structure changes (nesting, cloning, etc.), the passed object should not be modified. this can be seen in sj.Entity.common() validation, where any nested validated properties are flattened into a root object
-*/
-//  ████████╗ ██████╗ ██████╗  ██████╗ 
-//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝  
-
-/*
-	// PRODUCTION
-		tree-shake any objects that don't need to be exported (remove from sj.x, just hae them locally defined)
-		after functions are mostly debugged - remove a lot of the .catch(propagate) - this is mainly tracing and unhandled error
-
-	// BEST PRACTICE
-		//L best practices: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
-		//L review common pg-promise mistakes: https://github.com/vitaly-t/pg-promise/wiki/Common-Mistakes#invalid-query-formatting-with-manual-string-concatenation-and-es6-template-strings
-
-	// SECURITY
-
-		issue for private query variables (eg password), if someone queries for users where password = x, the passwords wont be returned, but they will still receive a list of users that that query matches
-
-		//? user id being in the session.user object is basically the user's access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out - I think this info is never sent to the client, just stored in the server and accessed via cookie key
-		
-		permissions: [admin, self, password, link, public, etc.]
-
-		track names that don't fit the requirements (too short, too long, etc. will throw an error when trying to add, this isn't desirable because all the track names will be external) should use casting if those restrictions are necesary
-
-	// CONSIDER
-    	delegating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single 
-
-	// GENERAL
-		//! IMPORTANT //! check any CRUD functions (like addTrack()) that rely on the current state of the database for information - because asyncMap() functions are executed in parallel, and not in series, this could cause collisions
-		replace all database variables, column names, etc. with constants inside this file (or the db file)
-*/
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝ 
-// BUILT-IN
-// EXTERNAL
-// import fetch from 'node-fetch'; //C global.js uses fetch
- // INTERNAL
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../live-data-server.js */ "./source/server/live-data-server.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
+/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
+/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+// INTERNAL
 
 
 
@@ -990,17 +647,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-
-const sj = {}; //   ██████╗██╗      █████╗ ███████╗███████╗
-//  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
-//  ██║     ██║     ███████║███████╗███████╗
-//  ██║     ██║     ██╔══██║╚════██║╚════██║
-//  ╚██████╗███████╗██║  ██║███████║███████║
-//   ╚═════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝ 
-
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
   prototypeProperties: parent => ({
     async add(db) {
       return await this.constructor.add(this, db);
@@ -1022,23 +669,23 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 
   staticProperties(parent) {
     // CRUD METHODS
-    this.add = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+    this.add = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
       return await this.frame(db, query, 'add');
     };
 
-    this.get = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+    this.get = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
       return await this.frame(db, query, 'get');
     };
 
-    this.edit = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+    this.edit = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
       return await this.frame(db, query, 'edit');
     };
 
-    this.remove = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+    this.remove = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
       return await this.frame(db, query, 'remove');
     };
 
-    this.getMimic = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+    this.getMimic = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
       //C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
       return await this.frame(db, query, 'getMimic');
     }; // FRAME
@@ -1046,12 +693,12 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 
     this.frame = async function (db, anyEntities, methodName) {
       //C catch Entity
-      if (this === _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+      if (this === _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         origin: 'Entity.[CRUD]',
         reason: `cannot call CRUD method directly on Entity`
       }); //C cast as array
 
-      const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(anyEntities); //C shorthand
+      const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
 
       const isGetMimic = methodName === 'getMimic'; //C store getMimic
 
@@ -1063,11 +710,11 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"])); //C prepare
+        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])); //C prepare
 
-        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"])); //C accommodate
+        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])); //C accommodate
 
-        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]) : []; //C map
+        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]) : []; //C map
 
         const inputMapped = this.mapColumns(preparedEntities);
         const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
@@ -1076,18 +723,18 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         const inputAfter = isGetMimic ? inputMapped : [];
 
         if (!isGetMimic) {
-          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(inputMapped, async entity => {
+          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]);
+              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]);
+            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
             if (methodName !== 'remove') inputAfter.push(...after);
           }).catch(rejected => {
-            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["ErrorList"]({ ...this[methodName + 'Error'](),
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["ErrorList"]({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -1098,13 +745,13 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         const influencedAfter = [];
 
         if (!isGet) {
-          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]);
+          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]);
+            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
             influencedAfter.push(...after);
           }).catch(rejected => {
-            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["ErrorList"]({ ...this[methodName + 'Error'](),
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["ErrorList"]({ ...this[methodName + 'Error'](),
               content: rejected
             }));
           });
@@ -1115,21 +762,21 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]));
-      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
+        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]));
+      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
-      const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+      const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
       const timestamp = Date.now(); //C if get, don't notify
 
-      if (!isGet) shookGet.forEach(list => _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
+      if (!isGet) shookGet.forEach(list => _live_data_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
       else if (isGetMimic) return shookGet[1]; //C shake for return
 
-      const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
+      const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
       const built = shook.map(list => list.map(entity => new this(entity)));
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["SuccessList"]({ ...this[methodName + 'Success'](),
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["SuccessList"]({ ...this[methodName + 'Success'](),
         //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
         content: built[1],
         timestamp
@@ -1146,12 +793,12 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 
     this.validate = async function (entity, methodName) {
       const validated = {};
-      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(Object.keys(this.schema), async key => {
+      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
         const prop = this.schema[key]; //C catches
 
-        if (!(prop.rule instanceof _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_6__["default"])) {
+        if (!(prop.rule instanceof _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_5__["default"])) {
           // Rule1
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
             log: true,
             origin: 'Entity.validate()',
             message: 'validation error',
@@ -1161,20 +808,20 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         } //C check if optional and not empty, or if required
 
 
-        if (prop[methodName].check && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(entity[key]) || prop[methodName].check === 2) {
+        if (prop[methodName].check && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_10__["default"])(entity[key]) || prop[methodName].check === 2) {
           //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
           const checked = await prop.rule.check(entity[key], entity[prop.against]);
           validated[key] = checked.content;
           return checked;
         } else {
           //C don't pack into validated
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"]({
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
             origin: 'Entity.validate()',
             message: `optional ${key} is empty, skipped validation`
           });
         }
       }).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["ErrorList"]({
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["ErrorList"]({
           origin: 'Entity.validate()',
           message: 'one or more issues with properties',
           reason: 'validating properties returned one or more errors',
@@ -1202,7 +849,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         let mappedEntity = {};
         Object.keys(entity).forEach(key => {
           //C for each property
-          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(this.schema[key]) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.schema[key].columnName)) {
+          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(this.schema[key]) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(this.schema[key].columnName)) {
             //C if schema has property 
             mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
           } else {
@@ -1222,7 +869,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
           //C for each columnName
           let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
 
-          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(key)) {
+          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(key)) {
             //C set entity[key] as value of mappedEntity[columnName]
             entity[key] = mappedEntity[columnName];
           } else {
@@ -1237,7 +884,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
     this.queryOrder = `ORDER BY "id" ASC`; //C executes SQL queries
 
     this.addQuery = async function (t, mappedEntity) {
-      let values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+      let values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
       //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
       let row = await t.one(`
@@ -1245,9 +892,9 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
-          origin: `sj.${this.name}.add()`,
+          origin: `${this.name}.add()`,
           message: `could not add ${this.name}s`
         }));
       });
@@ -1255,16 +902,16 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
     };
 
     this.getQuery = async function (t, mappedEntity) {
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildWhere"])(mappedEntity);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildWhere"])(mappedEntity);
       let rows = await t.any(`
 				SELECT * 
 				FROM "sj"."${this.table}" 
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
-          origin: `sj.${this.name}.get()`,
+          origin: `${this.name}.get()`,
           message: `could not get ${this.name}s`
         }));
       });
@@ -1276,8 +923,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         id,
         ...mappedEntitySet
       } = mappedEntity;
-      let set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildSet"])(mappedEntitySet);
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildWhere"])({
+      let set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildSet"])(mappedEntitySet);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildWhere"])({
         id
       });
       let row = await t.one(`
@@ -1286,9 +933,9 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
-          origin: `sj.${this.name}.edit()`,
+          origin: `${this.name}.edit()`,
           message: `could not edit ${this.names}`
         }));
       });
@@ -1296,15 +943,15 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
     };
 
     this.removeQuery = async function (t, mappedEntity) {
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__["buildWhere"])(mappedEntity);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildWhere"])(mappedEntity);
       let row = await t.one(`
 				DELETE FROM "sj"."${this.table}" 
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
-          origin: `sj.${this.name}.remove()`,
+          origin: `${this.name}.remove()`,
           message: `could not remove ${this.names}s`
         }));
       });
@@ -1319,123 +966,147 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 
     this.addSuccess = function () {
       return {
-        origin: `sj.${this.name}.add()`,
+        origin: `${this.name}.add()`,
         message: `added ${this.name}s`
       };
     };
 
     this.getSuccess = function () {
       return {
-        origin: `sj.${this.name}.get()`,
+        origin: `${this.name}.get()`,
         message: `retrieved ${this.name}s`
       };
     };
 
     this.editSuccess = function () {
       return {
-        origin: `sj.${this.name}.edit()`,
+        origin: `${this.name}.edit()`,
         message: `edited ${this.name}s`
       };
     };
 
     this.removeSuccess = function () {
       return {
-        origin: `sj.${this.name}.get()`,
+        origin: `${this.name}.get()`,
         message: `removed ${this.name}s`
       };
     };
 
     this.addError = function () {
       return {
-        origin: `sj.${this.name}.add()`,
+        origin: `${this.name}.add()`,
         message: `failed to add ${this.name}s`
       };
     };
 
     this.getError = function () {
       return {
-        origin: `sj.${this.name}.get()`,
+        origin: `${this.name}.get()`,
         message: `failed to retrieve ${this.name}s`
       };
     };
 
     this.editError = function () {
       return {
-        origin: `sj.${this.name}.edit()`,
+        origin: `${this.name}.edit()`,
         message: `failed to edit ${this.name}s`
       };
     };
 
     this.removeError = function () {
       return {
-        origin: `sj.${this.name}.remove()`,
+        origin: `${this.name}.remove()`,
         message: `failed to remove ${this.name}s`
       };
     };
   }
 
 });
-_shared_source_js__WEBPACK_IMPORTED_MODULE_7__["default"].augmentClass({
-  constructorProperties: parent => ({
-    defaults: {
-      serverTestProp: null
-    }
-  })
-}); //  ██╗   ██╗███████╗███████╗██████╗ 
-//  ██║   ██║██╔════╝██╔════╝██╔══██╗
-//  ██║   ██║███████╗█████╗  ██████╔╝
-//  ██║   ██║╚════██║██╔══╝  ██╔══██╗
-//  ╚██████╔╝███████║███████╗██║  ██║
-//   ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝ 
+/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"]);
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].augmentClass({
-  staticProperties(parent) {
-    // CRUD
-    this.addPrepare = this.editPrepare = async function (t, user) {
-      let newUser = Object.assign([], user); //C hash password
-      //TODO might be a vulnerability here with this string check
+/***/ }),
 
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(newUser.password)) {
-        newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_12__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-            log: true,
-            origin: 'User.add()',
-            message: 'failed to add user',
-            reason: 'hash failed',
-            content: rejected
-          });
-        });
-      }
+/***/ "./source/server/entities/index.js":
+/*!*****************************************!*\
+  !*** ./source/server/entities/index.js ***!
+  \*****************************************/
+/*! exports provided: Entity, Playlist, Track, User */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-      return newUser;
-    };
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Entity", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-    this.queryOrder = 'ORDER BY "id" ASC';
-  }
+/* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/server/entities/playlist.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-}); //  ██████╗ ██╗      █████╗ ██╗   ██╗██╗     ██╗███████╗████████╗
-//  ██╔══██╗██║     ██╔══██╗╚██╗ ██╔╝██║     ██║██╔════╝╚══██╔══╝
-//  ██████╔╝██║     ███████║ ╚████╔╝ ██║     ██║███████╗   ██║   
-//  ██╔═══╝ ██║     ██╔══██║  ╚██╔╝  ██║     ██║╚════██║   ██║   
-//  ██║     ███████╗██║  ██║   ██║   ███████╗██║███████║   ██║   
-//  ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚══════╝   ╚═╝    
+/* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/server/entities/track.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].augmentClass({
+/* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/server/entities/user.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./source/server/entities/playlist.js":
+/*!********************************************!*\
+  !*** ./source/server/entities/playlist.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Playlist"].augmentClass({
   staticProperties: parent => ({
     // CRUD
     queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
   })
-}); //  ████████╗██████╗  █████╗  ██████╗██╗  ██╗
-//  ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
-//     ██║   ██████╔╝███████║██║     █████╔╝ 
-//     ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ 
-//     ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
-//     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ 
+});
+/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Playlist"]);
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
+/***/ }),
+
+/***/ "./source/server/entities/track.js":
+/*!*****************************************!*\
+  !*** ./source/server/entities/track.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
+/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+// INTERNAL
+
+
+
+
+
+
+
+
+
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].augmentClass({
   prototypeProperties(parent) {
-    this.order = async function (db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
-      return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(this));
+    this.order = async function (db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+      return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
     };
   },
 
@@ -1445,7 +1116,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
         //TODO Possible issue here where the condition following && could evaluate first. Not sure what the precedense is.
-        entity.source = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(entity.source) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(entity.source.name) ? entity.source.name : undefined;
+        entity.source = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(entity.source) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(entity.source.name) ? entity.source.name : undefined;
       });
       return newEntities;
     };
@@ -1456,8 +1127,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
         id: Symbol()
       };
 
-      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(newTrack.position)) {
-        let existingTracks = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].get({
+      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(newTrack.position)) {
+        let existingTracks = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].get({
           playlistId: newTrack.playlistId
         }, t).then(result => result.content);
         newTrack.position = existingTracks.length;
@@ -1480,7 +1151,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
       //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
       //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
       await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
           log: false,
           origin: 'Track.move()',
           message: 'could not order tracks, database error',
@@ -1488,13 +1159,13 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
           cssClass: 'notifyError'
         }));
       });
-      return await this.order(t, tracks).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"]);
+      return await this.order(t, tracks).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
     };
 
     this.addAfter = this.getAfter = this.editAfter = this.deleteAfter = async function (t, entities) {
       let newEntities = entities.slice();
       newEntities.forEach(entity => {
-        entity.source = _shared_source_js__WEBPACK_IMPORTED_MODULE_7__["default"].instances.find(source => source.name === entity.source);
+        entity.source = _shared_source_js__WEBPACK_IMPORTED_MODULE_4__["default"].instances.find(source => source.name === entity.source);
       });
       return newEntities;
     }; // UTIL
@@ -1512,13 +1183,13 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
       //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
       //C filter out tracks
       let inputTracks = tracks.filter(track => //C without an id (including symbol)
-      (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
-      !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+      (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
+      !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
       inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
       if (inputTracks.length === 0) {
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["SuccessList"]({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
           origin: 'Track.order()',
           message: 'track positions did not need to be set'
         });
@@ -1530,13 +1201,13 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
         const influencedTracks = [];
         const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
 
-        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(inputTracks, async (track, index) => {
+        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
           const storePlaylist = function (playlistId, existingTracks) {
-            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(playlistId)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(playlistId)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
               origin: 'Track.order()',
               reason: `playlistId is not an integer: ${playlistId}`
             });
-            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
               origin: 'Track.order()',
               reason: `existingTracks is not an array: ${existingTracks}`
             }); //C stores playlist in playlists if not already stored
@@ -1564,11 +1235,11 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
           const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; //C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
           //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
-          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
+          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_2__["pgp"].as.format(`
+					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = (
@@ -1578,7 +1249,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
 						)
 					`, track.id);
           const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-            throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+            throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
               log: false,
               origin: 'Track.order()',
               message: 'could not move tracks'
@@ -1592,7 +1263,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
             delete t.playlistId;
           });
 
-          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
             //C if not switching playlists
             //C group by action
             currentPlaylistStored['inputsTo' + action].push(track);
@@ -1604,7 +1275,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
 							FROM "sj"."tracks" 
 							WHERE "playlistId" = $1
 						`, track.playlistId).catch(rejected => {
-              throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+              throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
                 log: false,
                 origin: 'Track.order()',
                 message: 'could not move tracks'
@@ -1619,12 +1290,12 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
             anotherPlaylistStored.inputsToAdd.push(track);
           }
 
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"]({
+          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
             origin: 'Track.order()',
             message: "retrieved track's playlist"
           });
         }).catch(rejected => {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["ErrorList"]({
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["ErrorList"]({
             origin: 'Track.order() - movingTracks iterator',
             message: `could not retrieve some track's playlist`,
             content: rejected
@@ -1641,15 +1312,15 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
           playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
 
           playlist.inputsToPosition.forEach(trackToPosition => {
-            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].number.test(trackToPosition.position)) {
+            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(trackToPosition.position)) {
               trackToPosition.position === Infinity;
             }
           }); //C sort
 
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
 
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
           //console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
           //console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
           //console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
@@ -1712,7 +1383,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
             delete inputTrack.position;
           }
         });
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["SuccessList"]({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
           origin: 'Track.order()',
           message: 'influenced tracks calculated',
           content: influencedTracks
@@ -1769,7 +1440,54 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (sj);
+/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]);
+
+/***/ }),
+
+/***/ "./source/server/entities/user.js":
+/*!****************************************!*\
+  !*** ./source/server/entities/user.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants.js */ "./source/server/constants.js");
+
+
+
+
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["User"].augmentClass({
+  staticProperties(parent) {
+    // CRUD
+    this.addPrepare = this.editPrepare = async function (t, user) {
+      let newUser = Object.assign([], user); //C hash password
+      //TODO might be a vulnerability here with this string check
+
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(newUser.password)) {
+        newUser.password = await bcrypt.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_3__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+            log: true,
+            origin: 'User.add()',
+            message: 'failed to add user',
+            reason: 'hash failed',
+            content: rejected
+          });
+        });
+      }
+
+      return newUser;
+    };
+
+    this.queryOrder = 'ORDER BY "id" ASC';
+  }
+
+});
+/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["User"]);
 
 /***/ }),
 
@@ -1797,10 +1515,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(socket_io__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! http */ "http");
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
-/* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
+/* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
+/* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -1850,7 +1567,12 @@ __webpack_require__.r(__webpack_exports__);
  //TODO consider changing to the https module?
 // INTERNAL
 // import { clientOptions, clientIndexFileName } from '../config/webpack.config.js';
-
+// import {
+// 	Entity,
+// 	User,
+// 	Playlist,
+// 	Track,
+// } from './entities/index.js'; //! Side effects //TODO make it so that these are properly imported.
 
 
 
@@ -1894,7 +1616,7 @@ __webpack_require__.r(__webpack_exports__);
 
 (async function () {
   // Initialize the database.
-  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_11__["default"])().catch(rejected => {
+  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_10__["default"])().catch(rejected => {
     console.error(rejected);
   });
   const routerOptions = {};
@@ -1923,7 +1645,7 @@ __webpack_require__.r(__webpack_exports__);
   	}
   */
 
-  const router = Object(_routes_js__WEBPACK_IMPORTED_MODULE_9__["default"])(routerOptions);
+  const router = Object(_routes_js__WEBPACK_IMPORTED_MODULE_8__["default"])(routerOptions);
   const PORT = process.env.PORT || 3000; // KOA
 
   const app = new koa__WEBPACK_IMPORTED_MODULE_2___default.a();
@@ -1949,7 +1671,7 @@ __webpack_require__.r(__webpack_exports__);
   const server = http__WEBPACK_IMPORTED_MODULE_7___default.a.createServer(app.callback()); // SOCKET IO
 
   const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_6___default.a(server);
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_10__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
   //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
   //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗  
   //  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝  
@@ -2000,7 +1722,7 @@ __webpack_require__.r(__webpack_exports__);
 
   app.use(router.allowedMethods()); // LIVE DATA
 
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_10__["default"].start({
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].start({
     app,
     socket: socketIO.of('/live-data')
   }); //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
@@ -2065,7 +1787,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
@@ -2129,7 +1851,7 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
       console.log('CONNECT', socket.id); //C if user is logged in, give the socketId to the session
       //! I don't think the cookie session receives this, though it isn't needed there so far
 
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = socket.id;
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = socket.id;
       socket.on('disconnect', async reason => {
         console.log('DISCONNECT', socket.id);
         await this.disconnect(socket.id).catch(rejected => {
@@ -2137,7 +1859,7 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
           if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_3__["default"], 'Base')) rejected.announce();else console.error('subscription disconnect error:', rejected);
         }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].defaults.socketId;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].defaults.socketId;
       });
       socket.on('subscribe', async ({
         table,
@@ -2146,11 +1868,11 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
         console.log('SUBSCRIBE', socket.id); //C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
         //TODO socketId validator, this is all that really matters here
 
-        const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
+        const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
           socketId: socket.id
         }); //! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
-        const result = await this.add(_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user); //!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
+        const result = await this.add(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user); //!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
         //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
         //C using fclone to drop circular references
 
@@ -2161,10 +1883,10 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
         query
       }, callback) => {
         console.log('UNSUBSCRIBE', socket.id);
-        const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
+        const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
           socketId: socket.id
         });
-        const result = await this.remove(_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user);
+        const result = await this.remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user);
         callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
       });
       socket.on('error', reason => {
@@ -2223,7 +1945,7 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
 
     Object.assign(subscription.user, user);
     return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"]({
-      origin: 'sj.addSubscriber()',
+      origin: 'addSubscriber()',
       message: 'added subscriber',
       content: processedQuery
     });
@@ -2271,7 +1993,7 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
     }
 
     return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"]({
-      origin: 'sj.removeSubscriber()',
+      origin: 'removeSubscriber()',
       message: 'removed subscriber',
       content: processedQuery
     });
@@ -2425,16 +2147,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
 /* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
-/* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
-/* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
+/* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
+/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2508,8 +2230,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
  //! side-effects
+
 
 
 
@@ -2584,13 +2306,13 @@ __webpack_require__.r(__webpack_exports__);
 
   apiRouter.get('/*', async (ctx, next) => {
     // Set GET request bodies as the parsed body parameter (if it exists).
-    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_9__["GET_BODY"]];
+    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_8__["GET_BODY"]];
 
     try {
       ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
     } catch (error) {
       ctx.response.body = 400;
-      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["ParseError"]({
+      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["ParseError"]({
         message: error.message,
         userMessage: 'Request failed due to an internal error.',
         input: queryBody
@@ -2599,70 +2321,70 @@ __webpack_require__.r(__webpack_exports__);
 
     await next();
   }).post('/log', async (ctx, next) => {
-    ctx.response.body = new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_12__["Success"]({
+    ctx.response.body = new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_11__["Success"]({
       origin: 'routes.js /log POST',
       message: 'received client log message'
     });
   }) // auth
   .get('/spotify/authRequestStart', async (ctx, next) => {
     //C retrieves an auth request URL and it's respective local key (for event handling)
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.startAuthRequest().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].startAuthRequest().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }).get('/spotify/authRedirect', async (ctx, next) => {
     //C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
     //! this URL is sensitive to the url given to spotify developer site (i think)
-    await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.receiveAuthRequest(ctx.request.query).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].receiveAuthRequest(ctx.request.query).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
     await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
       root: root
     });
   }).post('/spotify/authRequestEnd', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.endAuthRequest(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].endAuthRequest(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }).post('/spotify/exchangeToken', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.exchangeToken(ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].exchangeToken(ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }).get('/spotify/refreshToken', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].spotify.refreshToken(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].refreshToken(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }).get('/youtube/credentials', async (ctx, next) => {
-    ctx.response.body = await _global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].youtube.getCredentials().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["youtube"].getCredentials().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }) // session
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["login"](_db_js__WEBPACK_IMPORTED_MODULE_16__["default"], ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["login"](_db_js__WEBPACK_IMPORTED_MODULE_15__["default"], ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }).get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["get"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["get"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }).delete('/session', async (ctx, next) => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["logout"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["logout"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }) //TODO condense this
   // user
-  .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["User"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }) // playlist
-  .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Playlist"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }) // track
-  .post(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).get(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).patch(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
-  }).delete(`/${_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__["Track"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }) // catch
   .all('/*', async (ctx, next) => {
-    ctx.response.body = new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_11__["Err"]({
+    ctx.response.body = new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_10__["Err"]({
       log: true,
       origin: 'apiRouter',
       message: 'could not process request',
@@ -2703,7 +2425,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
-      //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
+      //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 
       ctx.redirect('/login');
@@ -2745,7 +2467,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "logout", function() { return logout; });
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
@@ -2761,8 +2483,8 @@ __webpack_require__.r(__webpack_exports__);
 
 async function login(db, ctx, user) {
   //C validate
-  user.name = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.name.rule.check(user.name).then(result => result.content);
-  user.password = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.password.rule.check(user.password).then(result => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  user.name = await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.name.rule.check(user.name).then(result => result.content);
+  user.password = await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.password.rule.check(user.password).then(result => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
   //C get password
 
   let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
@@ -2805,7 +2527,7 @@ async function login(db, ctx, user) {
       message: 'could not login, database error'
     }));
   });
-  ctx.session.user = new _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](user);
+  ctx.session.user = new _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](user);
   return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
     origin: 'login()',
     message: 'user logged in',
@@ -2838,7 +2560,7 @@ async function logout(ctx) {
 ;
 
 async function isLoggedIn(ctx) {
-  if (!(ctx.session.user instanceof _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ctx.session.user.constructorName === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.test(ctx.session.user.id)) {
+  if (!(ctx.session.user instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ctx.session.user.constructorName === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.test(ctx.session.user.id)) {
     throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
       log: true,
       origin: 'isLoggedIn()',
@@ -2861,6 +2583,298 @@ async function isLoggedIn(ctx) {
 }
 
 ;
+
+/***/ }),
+
+/***/ "./source/server/sources/index.js":
+/*!****************************************!*\
+  !*** ./source/server/sources/index.js ***!
+  \****************************************/
+/*! exports provided: spotify, youtube */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _spotify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./spotify.js */ "./source/server/sources/spotify.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "spotify", function() { return _spotify_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+
+/* harmony import */ var _youtube_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./youtube.js */ "./source/server/sources/youtube.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "youtube", function() { return _youtube_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+
+
+
+/***/ }),
+
+/***/ "./source/server/sources/spotify.js":
+/*!******************************************!*\
+  !*** ./source/server/sources/spotify.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! spotify-web-api-node */ "spotify-web-api-node");
+/* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../session-methods.js */ "./source/server/session-methods.js");
+//TODO consider moving this over to the globals-server stuff
+//C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
+// EXTERNAL
+//import btoa from 'btoa';
+ //L https://github.com/thelinmichael/spotify-web-api-node
+// INTERNAL
+
+
+
+
+
+
+
+
+
+const spotify = new _shared_source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
+  name: 'spotify',
+  register: true,
+  api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default.a({
+    //C create api object and set credentials in constructor
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    redirectUri: process.env.SPOTIFY_REDIRECT_URI
+  }),
+
+  get scopes() {
+    //? why does this need to be a getter?, i think it was because one of the properties needed to be dynamic and react to authRequestManually
+    return [
+    /* //C
+    contains an array of all scopes sent with the auth request
+              'streaming', 'user-read-birthdate', 'user-read-email', 'user-read-private' are required for the web playback sdk
+    'user-modify-playback-state' is required to operate the playback
+              show_dialog sets whether or not to force the user to approve the request each time
+    
+    state gets returned back with the request, TODO use with hashes to verfy that the response came from the expected source
+    */
+    // users
+    'user-read-private', 'user-read-email', 'user-read-birthdate', // spotify connect
+    'user-read-currently-playing', 'user-modify-playback-state', 'user-read-playback-state', // streaming
+    'streaming'];
+  },
+
+  authRequestManually: true,
+  makeAuthRequestURL: function (key) {
+    //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.api._credentials.clientId) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.api._credentials.clientSecret) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.api._credentials.redirectUri)) {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        log: true,
+        origin: 'spotify.makeAuthRequestURL()',
+        message: 'one or more api credentials are missing or of the wrong type',
+        content: {
+          clientId: this.api._credentials.clientId,
+          clientSecret: this.api._credentials.clientSecret,
+          redirectUri: this.api._credentials.redirectUri
+        }
+      });
+    } //! the show_dialog query parameter isn't available in the createAuthorizeURL, so it is manually added
+
+
+    return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`;
+  }
+}); //TODO make any property available for Source
+
+Object.assign(spotify, {
+  startAuthRequest: async function () {
+    let pack = await auth.addRequestKey();
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+      authRequestKey: pack.key,
+      authRequestTimestamp: pack.timestamp,
+      authRequestTimeout: pack.timeout,
+      authRequestURL: this.makeAuthRequestURL(pack.key)
+    });
+  },
+  receiveAuthRequest: async function (query) {
+    //C receives and transforms credentials from spotify after the user confirms the authorization
+
+    /*//C spotify authorization guide
+    	//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
+    			if the user accepts the request:
+    	code	An authorization code that can be exchanged for an access token.
+    	state	The value of the state parameter supplied in the request.
+    			if the user denies the request, or if an error has occured
+    	error	The reason authorization failed, for example: “access_denied” 
+    	state	The value of the state parameter supplied in the request.
+    			//TODO create error parser for spotify api
+    */
+    //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
+    await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
+
+    if (query.code === undefined) {
+      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        log: true,
+        origin: 'receiveAuthRequest()',
+        message: 'spotify authorization failed',
+        reason: 'code is missing',
+        content: query
+      }));
+    } //C ensure that spotify didn't send an error
+
+
+    if (query.error !== undefined) {
+      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        log: true,
+        origin: 'receiveAuthRequest()',
+        message: 'spotify authorization failed',
+        reason: query.error,
+        content: query
+      }));
+    } //C send the event and credentials for endAuthRequest() to pick up
+
+
+    emitter.emit(query.state, new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+      //? sj.success here?
+      authRequestKey: query.state,
+      //? is this needed anymore?
+      authCode: query.code
+    }));
+  },
+  endAuthRequest: async function (credentials) {
+    //C catches events emitted by receiveAuthRequest() and sends them to the waiting router request
+    return await new Promise((resolve, reject) => {
+      //! needs to be a promise wrapper because emitter.once uses a callback function
+      //C setup listener for authRequestKey
+      emitter.once(credentials.authRequestKey, result => {
+        resolve(result);
+      }); //C setup timeout
+
+      Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(credentials.authRequestTimeout).then(() => {
+        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+          log: true,
+          origin: 'sj.spotify.endAuthRequest()',
+          message: 'request timeout'
+        }));
+      });
+    });
+  },
+  exchangeToken: async function (ctx, credentials) {
+    //C exchange auth code for access and refresh tokens
+    //C exchangeToken() is only outside of endAuthRequest() because the auth window should close and not have to wait for the exchange to happen - to reduce flickering of the redirect page
+    //C grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
+    let timestamp = Date.now(); //C exchange the auth code for tokens
+    //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
+
+    let result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'https://accounts.spotify.com/api/token', {
+      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"])({
+        grant_type: 'authorization_code',
+        code: credentials.authCode,
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+        //C only used for validation, no need to make a second redirect handler
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
+
+      }),
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["URL_HEADER"]
+    }).catch(rejected => {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        log: true,
+        message: 'failed to authorize spotify',
+        reason: 'token exchange failed',
+        content: rejected
+      });
+    }); //C store refresh token in database
+    //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
+
+    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_8__["get"](ctx).then(result => result.content);
+    await _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].edit({
+      id: me.id,
+      spotifyRefreshToken: result.refresh_token
+    }).then(resolved => {}); //C repack and return
+
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+      accessToken: result.access_token,
+      expires: timestamp + result.expires_in,
+      //refreshToken: result.refresh_token,
+      scopes: result.scope.split(' ') //C result.token_type is the only omitted property, this is always 'Bearer'
+
+    });
+  },
+  refreshToken: async function (ctx) {
+    //C get the refresh token from the database
+    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_8__["get"](ctx).then(result => result.content);
+    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    //TODO reconsider this string test
+
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].visibleString.test(refreshToken)) {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["AuthRequired"]();
+    } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
+
+
+    let timestamp = Date.now();
+    let result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'https://accounts.spotify.com/api/token', {
+      body: Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["encodeProperties"])({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET
+      }),
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["URL_HEADER"]
+    }).catch(rejected => {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        log: true,
+        message: 'failed to authorize spotify',
+        reason: 'token refresh failed',
+        content: rejected
+      });
+    }); //C if a new refresh token was sent
+
+    if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(result.refresh_token)) {
+      //? better validation?
+      //C store it
+      await _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].edit({
+        id: me.id,
+        spotifyRefreshToken: result.refresh_token
+      });
+    } //C send only the accessToken and the expiry time
+
+
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+      origin: 'sj.spotify.refreshToken()',
+      accessToken: result.access_token,
+      expires: timestamp + result.expires_in
+    });
+  }
+});
+/* harmony default export */ __webpack_exports__["default"] = (spotify);
+
+/***/ }),
+
+/***/ "./source/server/sources/youtube.js":
+/*!******************************************!*\
+  !*** ./source/server/sources/youtube.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
+
+const youtube = new _shared_source_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  name: 'youtube',
+  register: true
+});
+Object.assign(youtube, {
+  getCredentials: async () => ({
+    apiKey: process.env.YOUTUBE_API_KEY,
+    clientId: process.env.YOUTUBE_CLIENT_ID
+  })
+});
+/* harmony default export */ __webpack_exports__["default"] = (youtube);
 
 /***/ }),
 
@@ -4102,7 +4116,7 @@ const Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule',
     async checkType(value) {
       //C check against each datatype
       for (let i = 0; i < this.dataTypes.length; i++) {
-        if ( // Quick hack for replacing sj.isType which checks against custom types like 'array' and 'integer'
+        if ( // Quick hack for replacing isType which checks against custom types like 'array' and 'integer'
         typeof value === this.dataTypes[i] || this.dataTypes[i] === 'array' && Array.isArray(value) || this.dataTypes[i] === 'integer' && Number.isInteger(value)) {
           return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
             origin: `${this.origin}.checkType()`,
@@ -4641,7 +4655,7 @@ const Credentials = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('
       //TODO this part should only be server-side 
       //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
       authRequestKey: Symbol(),
-      //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+      //! this shouldn't break checkKey(), but also shouldn't match anything
       authRequestTimestamp: 0,
       authRequestTimeout: 300000,
       //C default 5 minutes
@@ -7494,7 +7508,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ __webpack_exports__["default"] = (function (list) {
   //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
-  //! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
+  //! not called automatically by request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
   const indexed = {};
   Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {
     Object.keys(object).forEach(key => {

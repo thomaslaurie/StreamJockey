@@ -22,7 +22,7 @@ import {
 import {
 	Entity,
 	User,
-} from '../shared/entities/index.js';
+} from './entities/index.js';
 import {
 	LiveTable,
 	LiveQuery,
@@ -178,7 +178,7 @@ export default {
 		Object.assign(subscription.user, user);
 
 		return new Success({
-			origin: 'sj.addSubscriber()',
+			origin: 'addSubscriber()',
 			message: 'added subscriber',
 			content: processedQuery,
 		});
@@ -231,7 +231,7 @@ export default {
 		}
 	
 		return new Success({
-			origin: 'sj.removeSubscriber()',
+			origin: 'removeSubscriber()',
 			message: 'removed subscriber',
 			content: processedQuery,
 		});

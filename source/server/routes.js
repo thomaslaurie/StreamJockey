@@ -80,7 +80,6 @@ import sourcePath from '../node-utility/source-path.cjs';
 import {
 	clientIndexFileName,
 } from '../config/project-paths.js';
-import sj from './global-server.js';
 import auth from './auth.js'; //! side-effects
 import {
 	GET_BODY,
@@ -98,12 +97,16 @@ import {
 	User,
 	Playlist,
 	Track,
-} from '../shared/entities/index.js';
+} from './entities/index.js';
 import {
 	returnPropagate,
 } from '../shared/propagate.js';
 import * as session from '../server/session-methods.js';
 import database from './db.js';
+import {
+	spotify,
+	youtube,
+} from './sources/index.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -200,26 +203,26 @@ export default function ({replaceIndex}) {
 	// auth
 	.get('/spotify/authRequestStart', async (ctx, next) => {
 		//C retrieves an auth request URL and it's respective local key (for event handling)
-		ctx.response.body = await sj.spotify.startAuthRequest().catch(returnPropagate);
+		ctx.response.body = await spotify.startAuthRequest().catch(returnPropagate);
 	})
 	.get('/spotify/authRedirect', async (ctx, next) => { 
 		//C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
 		//! this URL is sensitive to the url given to spotify developer site (i think)
-		await sj.spotify.receiveAuthRequest(ctx.request.query).catch(returnPropagate);
+		await spotify.receiveAuthRequest(ctx.request.query).catch(returnPropagate);
 		await send(ctx, app, {root: root});
 	})
 	.post('/spotify/authRequestEnd', async (ctx, next) => {
-		ctx.response.body = await sj.spotify.endAuthRequest(ctx.request.body).catch(returnPropagate);
+		ctx.response.body = await spotify.endAuthRequest(ctx.request.body).catch(returnPropagate);
 	})
 	.post('/spotify/exchangeToken', async (ctx, next) => {
-		ctx.response.body = await sj.spotify.exchangeToken(ctx, ctx.request.body).catch(returnPropagate);
+		ctx.response.body = await spotify.exchangeToken(ctx, ctx.request.body).catch(returnPropagate);
 	})
 	.get('/spotify/refreshToken', async (ctx, next) => {
-		ctx.response.body = await sj.spotify.refreshToken(ctx).catch(returnPropagate);
+		ctx.response.body = await spotify.refreshToken(ctx).catch(returnPropagate);
 	})
 
 	.get('/youtube/credentials', async (ctx, next) => {
-		ctx.response.body = await sj.youtube.getCredentials().catch(returnPropagate);
+		ctx.response.body = await youtube.getCredentials().catch(returnPropagate);
 	})
 
 	// session
@@ -330,7 +333,7 @@ export default function ({replaceIndex}) {
 		} 
 		
 		//C redirect if not logged in
-		if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use sj.isLoggedIn, though that isn't perfect yet and it's async
+		if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
 			ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 			ctx.redirect('/login');
 			return;

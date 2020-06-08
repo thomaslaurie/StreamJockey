@@ -56,7 +56,7 @@ const Rule1 = Base.makeClass('Rule', Base, {
 			//C check against each datatype
 			for (let i = 0; i < this.dataTypes.length; i++) {
 				if (
-					// Quick hack for replacing sj.isType which checks against custom types like 'array' and 'integer'
+					// Quick hack for replacing isType which checks against custom types like 'array' and 'integer'
 					typeof value === this.dataTypes[i] ||
 					(this.dataTypes[i] === 'array' && Array.isArray(value)) ||
 					(this.dataTypes[i] === 'integer' && Number.isInteger(value))

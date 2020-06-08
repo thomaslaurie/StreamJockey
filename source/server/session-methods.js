@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 // INTERNAL
 import { 
 	User,
-} from '../shared/entities/index.js';
+} from './entities/index.js';
 import {
 	Err,
 } from '../shared/legacy-classes/error.js';

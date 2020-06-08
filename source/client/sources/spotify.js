@@ -70,7 +70,7 @@ const spotify = new Source({
 		this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 	
 		return new Success({
-			origin: 'sj.spotify.auth()',
+			origin: 'spotify.auth()',
 			message: 'authorized spotify',
 		});
 		
@@ -147,7 +147,7 @@ const spotify = new Source({
 			} else if (result instanceof Err) {
 				throw propagate(result);
 			} else {
-				//C assign sj.spotify.credentials
+				//C assign spotify.credentials
 				that.credentials.accessToken = result.accessToken;
 				that.credentials.expires = result.accessToken;
 			}	
@@ -751,7 +751,7 @@ spotify.playback = new Playback({
 					//reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: {
-					origin: 'sj.spotify.playback.actions.start()',
+					origin: 'spotify.playback.actions.start()',
 				},
 			});
 			//TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
@@ -771,7 +771,7 @@ spotify.playback = new Playback({
 					//reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: {
-					origin: 'sj.spotify.playback.actions.pause()',
+					origin: 'spotify.playback.actions.pause()',
 				},
 			});
 		},
@@ -789,7 +789,7 @@ spotify.playback = new Playback({
 					//reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: {
-					origin: 'sj.spotify.playback.actions.resume()',
+					origin: 'spotify.playback.actions.resume()',
 				},
 			});
 		},
@@ -811,7 +811,7 @@ spotify.playback = new Playback({
 					//reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: {
-					origin: 'sj.spotify.playback.actions.seek()',
+					origin: 'spotify.playback.actions.seek()',
 				},
 			});
 		},
@@ -829,7 +829,7 @@ spotify.playback = new Playback({
 					//reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: {
-					origin: 'sj.spotify.playback.actions.volume()',
+					origin: 'spotify.playback.actions.volume()',
 				},
 			});
 		},

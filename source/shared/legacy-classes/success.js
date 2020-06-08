@@ -37,7 +37,7 @@ export const Credentials = Base.makeClass('Credentials', Success, {
 		defaults: {
 			//TODO this part should only be server-side 
 			//TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-			authRequestKey: Symbol(), //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+			authRequestKey: Symbol(), //! this shouldn't break checkKey(), but also shouldn't match anything
 			authRequestTimestamp: 0,
 			authRequestTimeout: 300000, //C default 5 minutes
 			authRequestURL: '',

@@ -19282,7 +19282,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
       _this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
       return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
-        origin: 'sj.spotify.auth()',
+        origin: 'spotify.auth()',
         message: 'authorized spotify'
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
 
@@ -19363,7 +19363,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
           } else if (result instanceof _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]) {
             throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])(result);
           } else {
-            //C assign sj.spotify.credentials
+            //C assign spotify.credentials
             that.credentials.accessToken = result.accessToken;
             that.credentials.expires = result.accessToken;
           }
@@ -20040,7 +20040,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
 
           },
           timeoutError: {
-            origin: 'sj.spotify.playback.actions.start()'
+            origin: 'spotify.playback.actions.start()'
           }
         }); //TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
 
@@ -20077,7 +20077,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
 
           },
           timeoutError: {
-            origin: 'sj.spotify.playback.actions.pause()'
+            origin: 'spotify.playback.actions.pause()'
           }
         });
       })();
@@ -20111,7 +20111,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
 
           },
           timeoutError: {
-            origin: 'sj.spotify.playback.actions.resume()'
+            origin: 'spotify.playback.actions.resume()'
           }
         });
       })();
@@ -20150,7 +20150,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
 
           },
           timeoutError: {
-            origin: 'sj.spotify.playback.actions.seek()'
+            origin: 'spotify.playback.actions.seek()'
           }
         });
       })();
@@ -20182,7 +20182,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
 
           },
           timeoutError: {
-            origin: 'sj.spotify.playback.actions.volume()'
+            origin: 'spotify.playback.actions.volume()'
           }
         });
       })();
@@ -20241,12 +20241,12 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
       //TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
       //C watch for gapi to be assigned by using a setter with a deferred promise
       //L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
-      //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
+      //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
       var loaded = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
         log: false,
-        origin: 'sj.youtube.auth()',
+        origin: 'youtube.auth()',
         reason: 'gapi loading timed out'
       }));
       Object.defineProperty(window, 'gapi', {
@@ -20258,7 +20258,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
         },
 
         set(value) {
-          //R gapi was first going to be stored on sj.youtube, however after gapi.cient.init() is called, gapi gets some cross-origin data defined on it. this is an issue when attempting to copy its data via fClone, as a cross-origin error will be thrown.
+          //R gapi was first going to be stored on youtube, however after gapi.cient.init() is called, gapi gets some cross-origin data defined on it. this is an issue when attempting to copy its data via fClone, as a cross-origin error will be thrown.
           window.gapi2 = value;
           loaded.resolve();
         }
@@ -20488,7 +20488,7 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
         yield runHTMLScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
         var deferred = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-          origin: 'sj.youtube loadPlayer()',
+          origin: 'youtube loadPlayer()',
           reason: 'youtube iframe player load timed out'
         }));
 
@@ -20516,7 +20516,7 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
                     //TODO handle error?
                     yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
                     deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
-                      origin: 'sj.youtube loadPlayer()',
+                      origin: 'youtube loadPlayer()',
                       reason: 'youtube iframe player loaded'
                     }));
                   })();
@@ -20682,7 +20682,7 @@ youtube.formatContentDetails = function (contentDetails) {
 }, youtube.formatSnippet = function (snippet) {
   var pack = {};
   if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(snippet)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-    origin: 'sj.youtube.formatSnippet()',
+    origin: 'youtube.formatSnippet()',
     reason: 'snippet is not an object'
   }); //C assuming title format of 'Artist - Title'
   //C splits on dash between one or any whitespace
@@ -39563,7 +39563,7 @@ var Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule', _
       return _asyncToGenerator(function* () {
         //C check against each datatype
         for (var i = 0; i < _this.dataTypes.length; i++) {
-          if ( // Quick hack for replacing sj.isType which checks against custom types like 'array' and 'integer'
+          if ( // Quick hack for replacing isType which checks against custom types like 'array' and 'integer'
           typeof value === _this.dataTypes[i] || _this.dataTypes[i] === 'array' && Array.isArray(value) || _this.dataTypes[i] === 'integer' && Number.isInteger(value)) {
             return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
               origin: "".concat(_this.origin, ".checkType()"),
@@ -40123,7 +40123,7 @@ var Credentials = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Cr
       //TODO this part should only be server-side 
       //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
       authRequestKey: Symbol(),
-      //! this shouldn't break sj.checkKey(), but also shouldn't match anything
+      //! this shouldn't break checkKey(), but also shouldn't match anything
       authRequestTimestamp: 0,
       authRequestTimeout: 300000,
       //C default 5 minutes
@@ -43227,7 +43227,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ __webpack_exports__["default"] = (function (list) {
   //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
-  //! not called automatically by sj.request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
+  //! not called automatically by request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
   var indexed = {};
   Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {
     Object.keys(object).forEach(key => {

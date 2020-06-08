@@ -52,7 +52,13 @@ import http from 'http'; //TODO consider changing to the https module?
 
 // INTERNAL
 // import { clientOptions, clientIndexFileName } from '../config/webpack.config.js';
-import sj from './global-server.js';
+
+// import {
+// 	Entity,
+// 	User,
+// 	Playlist,
+// 	Track,
+// } from './entities/index.js'; //! Side effects //TODO make it so that these are properly imported.
 import Router from './routes.js';
 import liveData from './live-data-server.js';
 import createDatabase from './database/create-database.js';

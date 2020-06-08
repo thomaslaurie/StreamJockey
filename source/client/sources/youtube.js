@@ -32,12 +32,12 @@ const youtube = new Source({
 
 		//C watch for gapi to be assigned by using a setter with a deferred promise
 		//L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
-		//OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: sj.Playback.requestTimeout});
+		//OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: Playback.requestTimeout});
 		//! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
 		window.gapi2 = window.gapi;
 		const loaded = new Deferred().timeout(Playback.requestTimeout, () => new Err({
 			log: false,
-			origin: 'sj.youtube.auth()',
+			origin: 'youtube.auth()',
 			reason: 'gapi loading timed out',
 		}));
 		Object.defineProperty(window, 'gapi', {
@@ -47,7 +47,7 @@ const youtube = new Source({
 				return window.gapi2;
 			},
 			set(value) {
-				//R gapi was first going to be stored on sj.youtube, however after gapi.cient.init() is called, gapi gets some cross-origin data defined on it. this is an issue when attempting to copy its data via fClone, as a cross-origin error will be thrown.
+				//R gapi was first going to be stored on youtube, however after gapi.cient.init() is called, gapi gets some cross-origin data defined on it. this is an issue when attempting to copy its data via fClone, as a cross-origin error will be thrown.
 				window.gapi2 = value;
 				loaded.resolve();
 			},
@@ -264,7 +264,7 @@ youtube.playback = new Playback({
 
 			//TODO choose timeout
 			const deferred = new Deferred().timeout(Playback.requestTimeout, () => new Err({
-				origin: 'sj.youtube loadPlayer()',
+				origin: 'youtube loadPlayer()',
 				reason: 'youtube iframe player load timed out',
 			}));
 
@@ -291,7 +291,7 @@ youtube.playback = new Playback({
 								//TODO handle error?
 								await context.dispatch('checkPlayback').catch(propagate);
 								deferred.resolve(new Success({
-									origin: 'sj.youtube loadPlayer()',
+									origin: 'youtube loadPlayer()',
 									reason: 'youtube iframe player loaded',
 								}));
 							},
@@ -421,7 +421,7 @@ youtube.formatContentDetails = function (contentDetails) {
 youtube.formatSnippet = function (snippet) {
 	const pack = {};
 	if (!rules.object.test(snippet)) throw new Err({
-		origin: 'sj.youtube.formatSnippet()',
+		origin: 'youtube.formatSnippet()',
 		reason: 'snippet is not an object',
 	});
 
