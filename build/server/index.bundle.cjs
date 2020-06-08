@@ -533,6 +533,182 @@ const PASSWORD_SALT_ROUNDS = 10;
 
 /***/ }),
 
+/***/ "./source/server/database/create-database.js":
+/*!***************************************************!*\
+  !*** ./source/server/database/create-database.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (async function () {
+  /*
+  	const schema = {
+  		name: 'sj',
+  		tables: {
+  			users: {
+  				name: 'users',
+  				columns: {
+  					id: {
+  						name: 'id',
+  					},
+  					name: {
+  						name: 'name',
+  					},
+  					password: {
+  						name: 'password',
+  					},
+  					email: {
+  						name: 'email',
+  					},
+  					spotifyRefreshToken: {
+  						name: 'spotifyRefreshToken',
+  					},
+  				},
+  			},
+  		},
+  	};
+  */
+  // initialize
+  return _db_js__WEBPACK_IMPORTED_MODULE_0__["default"].tx(async function (t) {
+    // TODO this will not alter tables if they do already exist (save this for migration)
+    // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
+    // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
+    // foreign keys - REFERENCES otherTable (column) *if the column is omitted then the primary key of the referenced table is used
+    // ON DELETE CASCADE also removes any referencing rows when the referenced row is removed
+    // TODO CHECK constraint that visibility, source matches possible  states
+    // quotes: https://stackoverflow.com/questions/41396195/what-is-the-difference-between-single-quotes-and-double-quotes-in-postgresql
+    // default constraint names: https://stackoverflow.com/questions/4107915/postgresql-default-constraint-names
+    if (false) {} // TODO add self, public, & private VIEWs for tables (if relevant)
+    // !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
+    // !!! column names are camelCase (because they get converted to properties), everything else is underscore
+
+
+    return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+        log: true,
+        origin: 'schema initialization',
+        message: 'database error',
+        reason: rejected.message,
+        content: rejected,
+        target: 'notify',
+        cssClass: 'notifyError'
+      });
+    }).then(resolved => {
+      // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
+      //! spotifyRefreshToken is specifically pascal case to match object property names
+      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
+				"id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
+				"name" text CONSTRAINT "users_name_key" UNIQUE,
+				"password" text,
+				"email" text CONSTRAINT "users_email_key" UNIQUE,
+				"spotifyRefreshToken" text
+			);`).catch(rejected => {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+          log: true,
+          origin: 'users table initialization',
+          message: 'database error',
+          reason: rejected.message,
+          content: rejected,
+          target: 'notify',
+          cssClass: 'notifyError'
+        });
+      });
+    }).then(resolved => {
+      //L views: https://www.postgresql.org/docs/8.1/static/tutorial-views.html
+      //L create or replace: https://stackoverflow.com/questions/48662843/what-is-the-equivalent-of-create-view-if-not-exists-in-postresql
+      return t.none(`CREATE OR REPLACE VIEW "sj"."users_self" AS
+				SELECT id, name, email 
+				FROM "sj"."users"
+			;`).catch(rejected => {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+          log: true,
+          origin: 'users_self initialization',
+          message: 'database error',
+          reason: rejected.message,
+          content: rejected,
+          target: 'notify',
+          cssClass: 'notifyError'
+        });
+      });
+    }).then(resolved => {
+      return t.none(`CREATE OR REPLACE VIEW "sj"."users_public" AS
+				SELECT id, name
+				FROM "sj"."users"
+			;`).catch(rejected => {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+          log: true,
+          origin: 'users_public initialization',
+          message: 'database error',
+          reason: rejected.message,
+          content: rejected,
+          target: 'notify',
+          cssClass: 'notifyError'
+        });
+      });
+    }).then(resolved => {
+      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
+				"id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
+				"userId" integer CONSTRAINT "playlists_userId_fkey" REFERENCES "sj"."users" ON DELETE CASCADE ON UPDATE CASCADE,
+				"name" text,
+				"visibility" text,
+				"description" text,
+				"image" text,
+				"color" text,
+				
+				CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
+			);`).catch(rejected => {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+          log: true,
+          origin: 'playlists table initialization',
+          message: 'database error',
+          reason: rejected.message,
+          content: rejected,
+          target: 'notify',
+          cssClass: 'notifyError'
+        });
+      });
+    }).then(resolved => {
+      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
+				"id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
+				"playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
+				"position" integer,
+				"source" text,
+				"sourceId" text,
+				"name" text,
+				"duration" integer,
+				"artists" text ARRAY DEFAULT ARRAY[]::text[],
+
+				CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
+			);`).catch(rejected => {
+        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
+          log: true,
+          origin: 'tracks table initialization',
+          message: 'database error',
+          reason: rejected.message,
+          content: rejected,
+          target: 'notify',
+          cssClass: 'notifyError'
+        });
+      });
+    }).catch(rejected => {
+      throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rejected);
+    });
+  }).catch(rejected => {
+    throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rejected);
+  });
+});
+;
+
+/***/ }),
+
 /***/ "./source/server/database/sql-builders.js":
 /*!************************************************!*\
   !*** ./source/server/database/sql-builders.js ***!
@@ -817,179 +993,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const sj = {}; //  ██╗   ██╗████████╗██╗██╗     
-//  ██║   ██║╚══██╔══╝██║██║     
-//  ██║   ██║   ██║   ██║██║     
-//  ██║   ██║   ██║   ██║██║     
-//  ╚██████╔╝   ██║   ██║███████╗
-//   ╚═════╝    ╚═╝   ╚═╝╚══════╝ 
-// POSTGRES
-//? this should be called once on startup, where should this go?
-
-(async () => {
-  /*
-  	const schema = {
-  		name: 'sj',
-  		tables: {
-  			users: {
-  				name: 'users',
-  				columns: {
-  					id: {
-  						name: 'id',
-  					},
-  					name: {
-  						name: 'name',
-  					},
-  					password: {
-  						name: 'password',
-  					},
-  					email: {
-  						name: 'email',
-  					},
-  					spotifyRefreshToken: {
-  						name: 'spotifyRefreshToken',
-  					},
-  				},
-  			},
-  		},
-  	};
-  */
-  // initialize
-  return _db_js__WEBPACK_IMPORTED_MODULE_2__["default"].tx(async function (t) {
-    // TODO this will not alter tables if they do already exist (save this for migration)
-    // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
-    // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
-    // foreign keys - REFERENCES otherTable (column) *if the column is omitted then the primary key of the referenced table is used
-    // ON DELETE CASCADE also removes any referencing rows when the referenced row is removed
-    // TODO CHECK constraint that visibility, source matches possible  states
-    // quotes: https://stackoverflow.com/questions/41396195/what-is-the-difference-between-single-quotes-and-double-quotes-in-postgresql
-    // default constraint names: https://stackoverflow.com/questions/4107915/postgresql-default-constraint-names
-    if (false) {} // TODO add self, public, & private VIEWs for tables (if relevant)
-    // !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
-    // !!! column names are camelCase (because they get converted to properties), everything else is underscore
-
-
-    return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-        log: true,
-        origin: 'schema initialization',
-        message: 'database error',
-        reason: rejected.message,
-        content: rejected,
-        target: 'notify',
-        cssClass: 'notifyError'
-      });
-    }).then(resolved => {
-      // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
-      //! spotifyRefreshToken is specifically pascal case to match object property names
-      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
-				"id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
-                "name" text CONSTRAINT "users_name_key" UNIQUE,
-                "password" text,
-				"email" text CONSTRAINT "users_email_key" UNIQUE,
-				"spotifyRefreshToken" text
-            );`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-          log: true,
-          origin: 'users table initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
-        });
-      });
-    }).then(resolved => {
-      //L views: https://www.postgresql.org/docs/8.1/static/tutorial-views.html
-      //L create or replace: https://stackoverflow.com/questions/48662843/what-is-the-equivalent-of-create-view-if-not-exists-in-postresql
-      return t.none(`CREATE OR REPLACE VIEW "sj"."users_self" AS
-                SELECT id, name, email 
-                FROM "sj"."users"
-            ;`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-          log: true,
-          origin: 'users_self initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
-        });
-      });
-    }).then(resolved => {
-      return t.none(`CREATE OR REPLACE VIEW "sj"."users_public" AS
-                SELECT id, name
-                FROM "sj"."users"
-            ;`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-          log: true,
-          origin: 'users_public initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
-        });
-      });
-    }).then(resolved => {
-      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
-                "id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
-                "userId" integer CONSTRAINT "playlists_userId_fkey" REFERENCES "sj"."users" ON DELETE CASCADE ON UPDATE CASCADE,
-                "name" text,
-                "visibility" text,
-                "description" text,
-                "image" text,
-                "color" text,
-                
-                CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
-            );`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-          log: true,
-          origin: 'playlists table initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
-        });
-      });
-    }).then(resolved => {
-      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
-                "id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
-                "playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
-                "position" integer,
-                "source" text,
-                "sourceId" text,
-                "name" text,
-                "duration" integer,
-                "artists" text ARRAY DEFAULT ARRAY[]::text[],
-
-                CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
-            );`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-          log: true,
-          origin: 'tracks table initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
-        });
-      });
-    }).catch(rejected => {
-      throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"])(rejected);
-    });
-  }).catch(rejected => {
-    throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["default"])(rejected);
-  });
-})().then(resolved => {
-  new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"]({
-    origin: 'initialize database',
-    message: 'database initialized'
-  });
-}).catch(rejected => {
-  console.log(rejected);
-}); //   ██████╗██╗      █████╗ ███████╗███████╗
+const sj = {}; //   ██████╗██╗      █████╗ ███████╗███████╗
 //  ██╔════╝██║     ██╔══██╗██╔════╝██╔════╝
 //  ██║     ██║     ███████║███████╗███████╗
 //  ██║     ██║     ██╔══██║╚════██║╚════██║
@@ -1796,6 +1800,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 /* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
 /* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
+/* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -1848,6 +1853,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -1884,8 +1890,13 @@ __webpack_require__.r(__webpack_exports__);
 		mode: serverOptions['client-mode'],
 	}));
 */
+//TODO top level await
 
 (async function () {
+  // Initialize the database.
+  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_11__["default"])().catch(rejected => {
+    console.error(rejected);
+  });
   const routerOptions = {};
   /* webpack-dev-middleware
   	const config = clientOptions({}, {

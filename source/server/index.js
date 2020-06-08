@@ -55,6 +55,7 @@ import http from 'http'; //TODO consider changing to the https module?
 import sj from './global-server.js';
 import Router from './routes.js';
 import liveData from './live-data-server.js';
+import createDatabase from './database/create-database.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -94,7 +95,13 @@ import liveData from './live-data-server.js';
 	}));
 */
 
+//TODO top level await
 (async function () {
+	// Initialize the database.
+	await createDatabase().catch((rejected) => {
+		console.error(rejected);
+	});
+
 	const routerOptions = {};
 
 	/* webpack-dev-middleware
