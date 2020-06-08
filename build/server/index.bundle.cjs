@@ -519,6 +519,20 @@ Object.assign(_global_server_js__WEBPACK_IMPORTED_MODULE_4__["default"].youtube,
 
 /***/ }),
 
+/***/ "./source/server/constants.js":
+/*!************************************!*\
+  !*** ./source/server/constants.js ***!
+  \************************************/
+/*! exports provided: PASSWORD_SALT_ROUNDS */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PASSWORD_SALT_ROUNDS", function() { return PASSWORD_SALT_ROUNDS; });
+const PASSWORD_SALT_ROUNDS = 10;
+
+/***/ }),
+
 /***/ "./source/server/database/sql-builders.js":
 /*!************************************************!*\
   !*** ./source/server/database/sql-builders.js ***!
@@ -690,6 +704,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
 /* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/sql-builders.js */ "./source/server/database/sql-builders.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/server/constants.js");
+/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -799,30 +815,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const sj = {}; //TODO refactor this function out in favor of more specific validators.
-// global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
 
-function isEmpty(input) {
-  //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-  return !(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.test(input) || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].number.test(input) || //C check for empty and whitespace strings and string conversions of null and undefined
-  //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(input) && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(input) && Object.keys(input).length > 0 || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(input) && input.length > 0);
-}
 
-; //  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝    
-// BCRYPT
-
-const saltRounds = 10; // DATABASE
-
-sj.db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]; //C for use of db with globals so that db doesn't have to be imported twice
-// LIVE DATA
-
-sj.liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //  ██╗   ██╗████████╗██╗██╗     
+const sj = {}; //  ██╗   ██╗████████╗██╗██╗     
 //  ██║   ██║╚══██╔══╝██║██║     
 //  ██║   ██║   ██║   ██║██║     
 //  ██║   ██║   ██║   ██║██║     
@@ -860,7 +855,7 @@ sj.liveData = _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"]; //  
   	};
   */
   // initialize
-  return sj.db.tx(async function (t) {
+  return _db_js__WEBPACK_IMPORTED_MODULE_2__["default"].tx(async function (t) {
     // TODO this will not alter tables if they do already exist (save this for migration)
     // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
     // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
@@ -1023,24 +1018,24 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 
   staticProperties(parent) {
     // CRUD METHODS
-    this.add = async function (query, db = sj.db) {
+    this.add = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
       return await this.frame(db, query, 'add');
     };
 
-    this.get = async function (query, db = sj.db) {
+    this.get = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
       return await this.frame(db, query, 'get');
     };
 
-    this.edit = async function (query, db = sj.db) {
+    this.edit = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
       return await this.frame(db, query, 'edit');
     };
 
-    this.remove = async function (query, db = sj.db) {
+    this.remove = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
       return await this.frame(db, query, 'remove');
     };
 
-    this.getMimic = async function (query, db = sj.db) {
-      //C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.liveData.notify()
+    this.getMimic = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
+      //C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
       return await this.frame(db, query, 'getMimic');
     }; // FRAME
 
@@ -1124,7 +1119,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
 
       const timestamp = Date.now(); //C if get, don't notify
 
-      if (!isGet) shookGet.forEach(list => sj.liveData.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
+      if (!isGet) shookGet.forEach(list => _live_data_server_js__WEBPACK_IMPORTED_MODULE_3__["default"].notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
       else if (isGetMimic) return shookGet[1]; //C shake for return
 
       const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
@@ -1162,7 +1157,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Entity"].augmentClass({
         } //C check if optional and not empty, or if required
 
 
-        if (prop[methodName].check && !isEmpty(entity[key]) || prop[methodName].check === 2) {
+        if (prop[methodName].check && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(entity[key]) || prop[methodName].check === 2) {
           //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
           const checked = await prop.rule.check(entity[key], entity[prop.against]);
           validated[key] = checked.content;
@@ -1397,7 +1392,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].augmentClass({
       //TODO might be a vulnerability here with this string check
 
       if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(newUser.password)) {
-        newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, saltRounds).catch(rejected => {
+        newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_12__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
           throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
             log: true,
             origin: 'User.add()',
@@ -1435,7 +1430,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].augmentClass(
 
 _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
   prototypeProperties(parent) {
-    this.order = async function (db = sj.db) {
+    this.order = async function (db = _db_js__WEBPACK_IMPORTED_MODULE_2__["default"]) {
       return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(this));
     };
   },
@@ -1513,8 +1508,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].augmentClass({
       //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
       //C filter out tracks
       let inputTracks = tracks.filter(track => //C without an id (including symbol)
-      (!isEmpty(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
-      !isEmpty(track.position) || track.position === null || !isEmpty(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+      (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
+      !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_13__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
       inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
@@ -1800,6 +1795,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_7__);
 /* harmony import */ var _global_server_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./global-server.js */ "./source/server/global-server.js");
 /* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -1849,6 +1845,7 @@ __webpack_require__.r(__webpack_exports__);
  //TODO consider changing to the https module?
 // INTERNAL
 // import { clientOptions, clientIndexFileName } from '../config/webpack.config.js';
+
 
 
  //  ██╗███╗   ██╗██╗████████╗
@@ -1941,7 +1938,7 @@ __webpack_require__.r(__webpack_exports__);
   const server = http__WEBPACK_IMPORTED_MODULE_7___default.a.createServer(app.callback()); // SOCKET IO
 
   const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_6___default.a(server);
-  _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].liveData.socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_10__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
   //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
   //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗  
   //  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝  
@@ -1992,7 +1989,7 @@ __webpack_require__.r(__webpack_exports__);
 
   app.use(router.allowedMethods()); // LIVE DATA
 
-  _global_server_js__WEBPACK_IMPORTED_MODULE_8__["default"].liveData.start({
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_10__["default"].start({
     app,
     socket: socketIO.of('/live-data')
   }); //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
@@ -2013,6 +2010,30 @@ __webpack_require__.r(__webpack_exports__);
     console.log('Unhandled Rejection at:', p, '\n Reason:', reason); //TODO handle
   });
 })();
+
+/***/ }),
+
+/***/ "./source/server/legacy/is-empty.js":
+/*!******************************************!*\
+  !*** ./source/server/legacy/is-empty.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return isEmpty; });
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+//TODO refactor this function out in favor of more specific validators.
+// global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
+
+function isEmpty(input) {
+  //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
+  return !(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].boolean.test(input) || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(input) || //C check for empty and whitespace strings and string conversions of null and undefined
+  //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
+  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(input) && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(input) && Object.keys(input).length > 0 || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(input) && input.length > 0);
+}
+;
 
 /***/ }),
 
@@ -2163,7 +2184,7 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
 
     const table = this.findTable(Entity);
     if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-      origin: 'sj.liveData.add()',
+      origin: 'liveData.add()',
       reason: 'table is not an LiveTable'
     }); //C find liveQuery, add if it doesn't exist
 
@@ -2204,7 +2225,7 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
 
     const table = this.findTable(Entity);
     if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-      origin: 'sj.liveData.remove()',
+      origin: 'liveData.remove()',
       reason: 'table is not an LiveTable'
     }); //C find liveQuery index
 
@@ -2249,7 +2270,7 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
     //C for each liveQuery
     const table = this.findTable(Entity);
     if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
-      origin: 'sj.liveData.notify()',
+      origin: 'liveData.notify()',
       reason: 'table is not an LiveTable'
     });
 
@@ -2402,6 +2423,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../shared/entities/index.js */ "./source/shared/entities/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2477,6 +2499,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
  //! side-effects
+
 
 
 
@@ -2592,7 +2615,7 @@ __webpack_require__.r(__webpack_exports__);
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["login"](_global_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].db, ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["login"](_db_js__WEBPACK_IMPORTED_MODULE_16__["default"], ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);
   }).get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
     ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_15__["get"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_14__["returnPropagate"]);

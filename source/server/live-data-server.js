@@ -150,7 +150,7 @@ export default {
 		//C find table
 		const table = this.findTable(Entity);
 		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-			origin: 'sj.liveData.add()',
+			origin: 'liveData.add()',
 			reason: 'table is not an LiveTable',
 		});
 
@@ -192,7 +192,7 @@ export default {
 		//C find table
 		const table = this.findTable(Entity);
 		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-			origin: 'sj.liveData.remove()',
+			origin: 'liveData.remove()',
 			reason: 'table is not an LiveTable',
 		});
 
@@ -241,7 +241,7 @@ export default {
 		//C for each liveQuery
 		const table = this.findTable(Entity);
 		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-			origin: 'sj.liveData.notify()',
+			origin: 'liveData.notify()',
 			reason: 'table is not an LiveTable',
 		});
 

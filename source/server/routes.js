@@ -103,6 +103,7 @@ import {
 	returnPropagate,
 } from '../shared/propagate.js';
 import * as session from '../server/session-methods.js';
+import database from './db.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -225,7 +226,7 @@ export default function ({replaceIndex}) {
 	//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 	//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
 	.post('/session', async (ctx, next) => {
-		ctx.response.body = await session.login(sj.db, ctx, ctx.request.body).catch(returnPropagate);
+		ctx.response.body = await session.login(database, ctx, ctx.request.body).catch(returnPropagate);
 	})
 	.get('/session', async (ctx, next) => {
 		//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information

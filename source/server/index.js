@@ -54,6 +54,7 @@ import http from 'http'; //TODO consider changing to the https module?
 // import { clientOptions, clientIndexFileName } from '../config/webpack.config.js';
 import sj from './global-server.js';
 import Router from './routes.js';
+import liveData from './live-data-server.js';
 
 
 //  ██╗███╗   ██╗██╗████████╗
@@ -152,7 +153,7 @@ import Router from './routes.js';
 
 	// SOCKET IO
 	const socketIO = new SocketIO(server);
-	sj.liveData.socket = socketIO.of('/live-data');
+	liveData.socket = socketIO.of('/live-data');
 
 
 	//  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
@@ -211,7 +212,7 @@ import Router from './routes.js';
 
 
 	// LIVE DATA
-	sj.liveData.start({
+	liveData.start({
 		app,
 		socket: socketIO.of('/live-data'),
 	});

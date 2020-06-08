@@ -135,40 +135,12 @@ import {
 	buildWhere,
 	buildSet,
 } from './database/sql-builders.js';
+import {
+	PASSWORD_SALT_ROUNDS,
+} from './constants.js';
+import isEmpty from './legacy/is-empty.js';
 
 const sj = {};
-
-//TODO refactor this function out in favor of more specific validators.
-// global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
-function isEmpty(input) {
-	//C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-	return !(
-		rules.boolean.test(input) ||
-        rules.number.test(input) || 
-        //C check for empty and whitespace strings and string conversions of null and undefined
-        //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
-        (rules.string.test(input) && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined') ||
-        (rules.object.test(input) && Object.keys(input).length > 0) ||
-        (rules.array.test(input) && input.length > 0)
-	);
-};
-
-
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝    
-
-// BCRYPT
-const saltRounds = 10; 
-
-// DATABASE
-sj.db = database; //C for use of db with globals so that db doesn't have to be imported twice
-
-// LIVE DATA
-sj.liveData = liveData;
 
 
 //  ██╗   ██╗████████╗██╗██╗     
@@ -210,7 +182,7 @@ sj.liveData = liveData;
 	*/
 
     // initialize
-    return sj.db.tx(async function (t) {
+    return database.tx(async function (t) {
         // TODO this will not alter tables if they do already exist (save this for migration)
         
         // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
@@ -386,20 +358,20 @@ Entity.augmentClass({
 	}),
 	staticProperties(parent) {
 		// CRUD METHODS
-		this.add = async function (query, db = sj.db) {
+		this.add = async function (query, db = database) {
 			return await this.frame(db, query, 'add');
 		};
-		this.get = async function (query, db = sj.db) {
+		this.get = async function (query, db = database) {
 			return await this.frame(db, query, 'get');
 		};
-		this.edit = async function (query, db = sj.db) {
+		this.edit = async function (query, db = database) {
 			return await this.frame(db, query, 'edit');
 		};
-		this.remove = async function (query, db = sj.db) {
+		this.remove = async function (query, db = database) {
 			return await this.frame(db, query, 'remove');
 		};
-		this.getMimic = async function (query, db = sj.db) {
-			//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in sj.liveData.notify()
+		this.getMimic = async function (query, db = database) {
+			//C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
 			return await this.frame(db, query, 'getMimic');
 		};
 
@@ -499,7 +471,7 @@ Entity.augmentClass({
 			const timestamp = Date.now();
 
 			//C if get, don't notify
-			if (!isGet) shookGet.forEach(list => sj.liveData.notify(this, list, timestamp, methodName));
+			if (!isGet) shookGet.forEach(list => liveData.notify(this, list, timestamp, methodName));
 			//C if getMimic, return shookGet-after
 			else if (isGetMimic) return shookGet[1]; 
 
@@ -768,7 +740,7 @@ User.augmentClass({
 			//C hash password
 			//TODO might be a vulnerability here with this string check
 			if (rules.string.test(newUser.password)) {
-				newUser.password = await bcrypt.hash(newUser.password, saltRounds).catch(rejected => {
+				newUser.password = await bcrypt.hash(newUser.password, PASSWORD_SALT_ROUNDS).catch(rejected => {
 					throw new Err({
 						log: true,
 						origin: 'User.add()',
@@ -811,7 +783,7 @@ Playlist.augmentClass({
 
 Track.augmentClass({
 	prototypeProperties(parent) {
-		this.order = async function (db = sj.db) {
+		this.order = async function (db = database) {
 			return await this.constructor.order(db, any(this));
 		};
 	},
