@@ -2285,7 +2285,7 @@ __webpack_require__.r(__webpack_exports__);
   //TODO there has to be a cleaner way of doing this (especially the replace manipulation)
   //R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
   // const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-  const root = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5___default()('../build/client');
+  const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__["clientBuildDirectory"];
   const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__["UIMainFileName"]}`; // router
 
   const router = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a();
