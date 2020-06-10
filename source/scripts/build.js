@@ -12,6 +12,9 @@ import webpack from 'webpack';
 import asyncSpawn from '../node-utility/async-spawn.js';
 import getModule from '../node-utility/get-module.js';
 import {clientOptions, serverOptions} from '../config/webpack.config.js';
+import {
+	serverBuildFile,
+} from '../config/project-paths.js';
 
 
 //  ██████╗ ██╗   ██╗██╗██╗     ██████╗ 
@@ -50,7 +53,7 @@ import {clientOptions, serverOptions} from '../config/webpack.config.js';
 			// off, compile, watch, refresh
 			server: 'compile',
 			// path to server file
-			start: '',
+			start: serverBuildFile,
 		},
 	});
 

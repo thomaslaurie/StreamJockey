@@ -26,6 +26,7 @@
 			However, with a custom node globals polyfill: //L https://github.com/webpack/webpack/issues/1599#issuecomment-550291610 __dirname can now be properly polyfilled.
 		Even though __dirname will now work properly, this cjs workaround is still the preferred way as it can be used in raw ES Modules.	
 */
+//R Currying this function won't work. __dirname will only apply to the exact file it is used in.
 
 const {resolve} = require('path');
 module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePaths);

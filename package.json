@@ -2,7 +2,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "node source/scripts/build.js --start=build/server/index.bundle.cjs",
+		"build": "node source/scripts/build.js --start=build/server/main.bundle.cjs",
 		"build:client": "npm run build -- --client-only",
 		"build:server": "npm run build -- --server-only",
 		"build:full": "npm run build -- --client=watch --server=refresh",

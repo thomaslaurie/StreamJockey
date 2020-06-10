@@ -51,14 +51,8 @@ import SocketIO from 'socket.io'; //L socket io: https://socket.io/docs/emit-che
 import http from 'http'; //TODO consider changing to the https module?
 
 // INTERNAL
-// import { clientOptions, clientIndexFileName } from '../config/webpack.config.js';
+// import { clientOptions, UIMainFileName } from '../config/webpack.config.js';
 
-// import {
-// 	Entity,
-// 	User,
-// 	Playlist,
-// 	Track,
-// } from './entities/index.js'; //! Side effects //TODO make it so that these are properly imported.
 import Router from './routes.js';
 import liveData from './live-data-server.js';
 import createDatabase from './database/create-database.js';
@@ -128,7 +122,7 @@ import createDatabase from './database/create-database.js';
 			});
 
 			routerOptions.replaceIndex = function (ctx) {
-				const filename = path.resolve(config.output.path, clientIndexFileName);
+				const filename = path.resolve(config.output.path, UIMainFileName);
 				ctx.response.type = 'html';
 				ctx.response.body = koaWebpackMiddleware.devMiddleware.fileSystem.createReadStream(filename);
 			};

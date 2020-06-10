@@ -1,13 +1,14 @@
 //! this needs to be in its own file (not at the top of index.js) because imports are hoisted, which causes dotenv.config() to run after any module that uses environment variables immediately, which makes them undefined
 //L https://stackoverflow.com/questions/42817339/es6-import-happening-before-env-import
-import sourcePath from '../node-utility/source-path.cjs';
 import dotenv from 'dotenv';
+import {dotEnvFile} from './project-paths.js';
 
 dotenv.config({
-	path: sourcePath('config/.env'),
+	path: dotEnvFile,
 });
 
-//R The 'canary string' should be an environment variable that is committed to the repo that tests weather the passed environment variables are available and accurate. It should be identical to the CANARY environment variable.
+// The CANARY environment variable is committed to the repo and tests that environment variables are properly imported and accurate. Here it is imported and compared against an identical, hard-coded string.
+//TODO Consider creating a test file for this instead?
 if (process.env.CANARY !== 'canaryString') {
 	throw new Error('Environment variables are not available.');
 }

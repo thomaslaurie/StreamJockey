@@ -56,8 +56,14 @@ import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
 import nodeExternals from 'webpack-node-externals';
 
 // INTERNAL
-import { clientIndexFileName } from './project-paths.js';
-import sourcePath from '../node-utility/source-path.cjs';
+import {
+	serverBuildDirectory,
+	clientBuildDirectory,
+	serverMainFile,
+	clientMainFile,
+	UIMainFile,
+	CSSDirectory,
+} from './project-paths.js';
 
 
 //   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗ 
@@ -110,12 +116,12 @@ export const clientOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'web',
 	entry: {
-		index: sourcePath('client/index.js'),
+		main: clientMainFile,
 	},
 	output: {
 		filename: '[name].bundle.js',
 		chunkFilename: '[name].chunk.js',
-		path: sourcePath('../build/client'),
+		path: clientBuildDirectory,
 		//TODO This is explicitly required for webpack-dev-middleware, not 100% sure what it should be yet though.
 		//publicPath: 'dist/', //C the prefix that gets added to resource requests, //L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
 		//TODO consider tossing not-yet-bundled resources into dist too (clientIndex, css)
@@ -147,7 +153,7 @@ export const clientOptions = (env, argv) => ({
 							//! Apparently breaks sass source-maps.
 							prependData: `@import 'global.scss';`,
 							sassOptions: {
-								includePaths: [sourcePath('client/ui/css')],
+								includePaths: [CSSDirectory],
 							},
 							// data: `@import '${sourcePath(`client/ui/${clientIndex}`)}';`,
 						},
@@ -161,7 +167,7 @@ export const clientOptions = (env, argv) => ({
 		...common.plugins(env, argv),
 		new VueLoaderPlugin(),
 		new HtmlWebpackPlugin({
-			template: sourcePath(`client/ui/${clientIndexFileName}`),
+			template: UIMainFile,
 		}),
 	],
 });
@@ -169,12 +175,12 @@ export const serverOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'node',
 	entry: {
-		index: sourcePath('server/index.js'),
+		main: serverMainFile,
 	},
 	output: {
 		//! Compiling as a CJS file
 		filename: '[name].bundle.cjs',
-		path: sourcePath('../build/server'),
+		path: serverBuildDirectory,
 	},
 	module: {
 		rules: [common.babelRule({node: true})],

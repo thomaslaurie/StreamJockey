@@ -5,7 +5,7 @@
 /******/ 	// object to store loaded chunks
 /******/ 	// "0" means "already loaded"
 /******/ 	var installedChunks = {
-/******/ 		"index": 0
+/******/ 		"main": 0
 /******/ 	};
 /******/
 /******/ 	// The require function
@@ -94,7 +94,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./source/server/index.js");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./source/server/main.js");
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -108,17 +108,17 @@
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
-/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! dotenv */ "dotenv");
-/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(dotenv__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dotenv */ "dotenv");
+/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dotenv__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _project_paths_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./project-paths.js */ "./source/config/project-paths.js");
 //! this needs to be in its own file (not at the top of index.js) because imports are hoisted, which causes dotenv.config() to run after any module that uses environment variables immediately, which makes them undefined
 //L https://stackoverflow.com/questions/42817339/es6-import-happening-before-env-import
 
 
-dotenv__WEBPACK_IMPORTED_MODULE_1___default.a.config({
-  path: _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('config/.env')
-}); //R The 'canary string' should be an environment variable that is committed to the repo that tests weather the passed environment variables are available and accurate. It should be identical to the CANARY environment variable.
+dotenv__WEBPACK_IMPORTED_MODULE_0___default.a.config({
+  path: _project_paths_js__WEBPACK_IMPORTED_MODULE_1__["dotEnvFile"]
+}); // The CANARY environment variable is committed to the repo and tests that environment variables are properly imported and accurate. Here it is imported and compared against an identical, hard-coded string.
+//TODO Consider creating a test file for this instead?
 
 if (process.env.CANARY !== 'canaryString') {
   throw new Error('Environment variables are not available.');
@@ -130,19 +130,53 @@ if (process.env.CANARY !== 'canaryString') {
 /*!****************************************!*\
   !*** ./source/config/project-paths.js ***!
   \****************************************/
-/*! exports provided: clientIndexFileName, defaultTestGlob, testSuffix */
+/*! exports provided: serverBuildDirectory, clientBuildDirectory, serverBuildFile, serverDirectory, clientDirectory, serverMainFile, clientMainFile, dotEnvFile, UIMainFileName, UIMainFile, CSSDirectory, testSuffix, defaultTestGlob */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientIndexFileName", function() { return clientIndexFileName; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultTestGlob", function() { return defaultTestGlob; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverBuildDirectory", function() { return serverBuildDirectory; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientBuildDirectory", function() { return clientBuildDirectory; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverBuildFile", function() { return serverBuildFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverDirectory", function() { return serverDirectory; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientDirectory", function() { return clientDirectory; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "serverMainFile", function() { return serverMainFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clientMainFile", function() { return clientMainFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "dotEnvFile", function() { return dotEnvFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UIMainFileName", function() { return UIMainFileName; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UIMainFile", function() { return UIMainFile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CSSDirectory", function() { return CSSDirectory; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "testSuffix", function() { return testSuffix; });
-//G Put any commonly needed paths/filenames in here.
-//G Require sourcePath if needed.
-const clientIndexFileName = 'index.html';
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultTestGlob", function() { return defaultTestGlob; });
+/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node-utility/source-path.cjs */ "./source/node-utility/source-path.cjs");
+/* harmony import */ var _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0__);
+//G Put any hard-coded project paths/names here.
+ // Build (outside source)
+
+const buildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('../build');
+const serverBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(buildDirectory, 'server');
+const clientBuildDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(buildDirectory, 'client');
+const serverBuildFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(serverBuildDirectory, 'main.bundle.cjs'); //TODO extract filename
+// Source
+
+const serverDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('server');
+const clientDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('client');
+const serverMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(serverDirectory, 'main.js');
+const clientMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(clientDirectory, 'main.js'); // Config
+
+const configDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()('config');
+const dotEnvFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(configDirectory, '.env'); // UI
+
+const UIDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(clientDirectory, 'ui');
+const UIMainFileName = 'index.html';
+const UIMainFile = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(UIDirectory, UIMainFileName); // CSS
+
+const CSSDirectory = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_0___default()(UIDirectory, 'css'); // Misc
+// Suffix for test files.
+
+const testSuffix = '.test.js'; // Default glob used for Ava test selection.
+
 const defaultTestGlob = 'shared/utility';
-const testSuffix = '.test.js';
 
 /***/ }),
 
@@ -181,6 +215,7 @@ const testSuffix = '.test.js';
 			However, with a custom node globals polyfill: //L https://github.com/webpack/webpack/issues/1599#issuecomment-550291610 __dirname can now be properly polyfilled.
 		Even though __dirname will now work properly, this cjs workaround is still the preferred way as it can be used in raw ES Modules.	
 */
+//R Currying this function won't work. __dirname will only apply to the exact file it is used in.
 
 const {resolve} = __webpack_require__(/*! path */ "path");
 module.exports = (...relativePaths) => resolve(__dirname, '../', ...relativePaths);
@@ -1491,261 +1526,6 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["User"].augmentClass({
 
 /***/ }),
 
-/***/ "./source/server/index.js":
-/*!********************************!*\
-  !*** ./source/server/index.js ***!
-  \********************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _config_environment_variables_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/environment-variables.js */ "./source/config/environment-variables.js");
-/* harmony import */ var minimist__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! minimist */ "minimist");
-/* harmony import */ var minimist__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(minimist__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa */ "koa");
-/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var koa_webpack__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-webpack */ "koa-webpack");
-/* harmony import */ var koa_webpack__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_webpack__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! koa-bodyparser */ "koa-bodyparser");
-/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(koa_bodyparser__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! koa-session */ "koa-session");
-/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(koa_session__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! socket.io */ "socket.io");
-/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(socket_io__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! http */ "http");
-/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
-// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
-// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
-// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
-// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
-// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
-// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
-
-/*
-	//L process.env: https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
-	//L dotenv:  https://www.npmjs.com/package/dotenv
-*/
-//  ████████╗ ██████╗ ██████╗  ██████╗ 
-//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
-
-/* 
-	Put api keys into .env after creating methods to access them
-	Some best practices: https://www.codementor.io/mattgoldspink/nodejs-best-practices-du1086jja
-	Middleware best practices https://github.com/koajs/koa/blob/master/docs/guide.md
-
-	errors thrown in some places (like routes) still aren't caught
-*/
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-// TOP
- // BUILT-IN
-// EXTERNAL
-
-
- //L https://github.com/koajs
-
-
- //L https://github.com/koajs/bodyparser
-
- //L https://github.com/koajs/session
-//L https://github.com/socketio/socket.io#in-conjunction-with-koa
-
- //L socket io: https://socket.io/docs/emit-cheatsheet
-
- //TODO consider changing to the https module?
-// INTERNAL
-// import { clientOptions, clientIndexFileName } from '../config/webpack.config.js';
-// import {
-// 	Entity,
-// 	User,
-// 	Playlist,
-// 	Track,
-// } from './entities/index.js'; //! Side effects //TODO make it so that these are properly imported.
-
-
-
- //  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
-
-/* webpack-dev-middleware
-	// OPTIONS
-	const serverOptions = parser(process.argv.slice(2), {
-		string: [
-			'client',
-			'client-mode',
-		],
-		default: {
-			// Options
-			// 'off'      - assume code is already built/watched by another process
-			// 'compile'  - builds the client code once
-			// 'watch'    - watches the client code
-			// 'refresh'  - use webpack-dev-middleware
-			// 'hot'      - use webpack HMR
-			'client': 'off',
-			// Options
-			// 'development' - passed to webpack
-			// 'production'  - passed to webpack
-			'client-mode': 'development',
-		},
-	});
-
-	// INTERPRET
-	const useMiddleware = (serverOptions.client === 'refresh' || serverOptions.client === 'hot');
-
-	const compiler = webpack(client({}, {
-		mode: serverOptions['client-mode'],
-	}));
-*/
-//TODO top level await
-
-(async function () {
-  // Initialize the database.
-  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_10__["default"])().catch(rejected => {
-    console.error(rejected);
-  });
-  const routerOptions = {};
-  /* webpack-dev-middleware
-  	const config = clientOptions({}, {
-  		mode: serverOptions['client-mode'],
-  	});
-  
-  	let koaWebpackMiddleware;
-  
-  	if (useMiddleware) {
-  		koaWebpackMiddleware = await koaWebpack({
-  			// compiler: compiler,
-  			config,
-  			devMiddleware: {
-  				methods: ['HEAD', 'GET', 'POST', 'PATCH', 'DELETE'],
-  			},
-  			hotClient: false,
-  		});
-  
-  		routerOptions.replaceIndex = function (ctx) {
-  			const filename = path.resolve(config.output.path, clientIndexFileName);
-  			ctx.response.type = 'html';
-  			ctx.response.body = koaWebpackMiddleware.devMiddleware.fileSystem.createReadStream(filename);
-  		};
-  	}
-  */
-
-  const router = Object(_routes_js__WEBPACK_IMPORTED_MODULE_8__["default"])(routerOptions);
-  const PORT = process.env.PORT || 3000; // KOA
-
-  const app = new koa__WEBPACK_IMPORTED_MODULE_2___default.a();
-  app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
-  const sessionConfig = {
-    //TODO random keys: //L https://randomkeygen.com/
-    //C (string)(default is koa:sess) cookie key
-    key: 'koa:sess',
-    //C (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
-    maxAge: 86400000,
-    //C (boolean)(default true) can overwrite or not
-    overwrite: true,
-    //C (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side script (so that they can only be opened by the server)
-    httpOnly: true,
-    //C (boolean)(default true) signed or not , signed cookies verify that the data is unchanged on the client side
-    signed: true,
-    //C (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
-    rolling: true,
-    //C (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
-    renew: false
-  }; //L https://github.com/socketio/socket.io#in-conjunction-with-koa
-
-  const server = http__WEBPACK_IMPORTED_MODULE_7___default.a.createServer(app.callback()); // SOCKET IO
-
-  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_6___default.a(server);
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
-  //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
-  //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗  
-  //  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝  
-  //  ██║ ╚═╝ ██║██║██████╔╝██████╔╝███████╗███████╗╚███╔███╔╝██║  ██║██║  ██║███████╗
-  //  ╚═╝     ╚═╝╚═╝╚═════╝ ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
-
-  /* Timer / Logger
-  	// response timer
-  	app.use(async (ctx, next) => {
-  		const start = Date.now();
-  		await next();
-  		const ms = Date.now() - start;
-  		ctx.response.set('response-time', `${ms}ms`);
-  	});
-  
-  	// request logger
-  	app.use(async (ctx, next) => {
-  		console.log(`${ctx.request.method} ${ctx.request.path}`);
-  		await next();
-  	});
-  */
-  // BODY PARSER
-
-  app.use(koa_bodyparser__WEBPACK_IMPORTED_MODULE_4___default()()); // SESSION
-
-  app.use(koa_session__WEBPACK_IMPORTED_MODULE_5___default()(sessionConfig, app));
-  /* View Counter
-  	app.use(async (ctx, next) => {
-  		// ignore favicon
-  		// TODO this doesn't work as it's processing two 'requests' per view - the page and it's resources
-  		if (ctx.request.path !== '/favicon.ico') {
-  			let n = ctx.session.views || 0;
-  			ctx.session.views = ++n;
-  		} 
-  		//console.log(ctx.session.views + ' views');
-  		await next();
-  	});
-  */
-
-  /* webpack-dev-middleware
-  	if (useMiddleware) {
-  		app.use(koaWebpackMiddleware);
-  	}
-  */
-  // ROUTES
-
-  app.use(router.routes()); //L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
-
-  app.use(router.allowedMethods()); // LIVE DATA
-
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].start({
-    app,
-    socket: socketIO.of('/live-data')
-  }); //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
-  //  ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║
-  //  ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║
-  //  ██║     ██║╚════██║   ██║   ██╔══╝  ██║╚██╗██║
-  //  ███████╗██║███████║   ██║   ███████╗██║ ╚████║
-  //  ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝
-  // START SERVER
-  //G Connect at http://localhost:<PORT>
-
-  server.listen(PORT, () => {
-    console.log(`\n█████████████████████████████`);
-    console.log(`SERVER LISTENING ON PORT ${PORT}`);
-  }); //L unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar
-
-  process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at:', p, '\n Reason:', reason); //TODO handle
-  });
-})();
-
-/***/ }),
-
 /***/ "./source/server/legacy/is-empty.js":
 /*!******************************************!*\
   !*** ./source/server/legacy/is-empty.js ***!
@@ -2065,6 +1845,255 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
 
 /***/ }),
 
+/***/ "./source/server/main.js":
+/*!*******************************!*\
+  !*** ./source/server/main.js ***!
+  \*******************************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _config_environment_variables_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/environment-variables.js */ "./source/config/environment-variables.js");
+/* harmony import */ var minimist__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! minimist */ "minimist");
+/* harmony import */ var minimist__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(minimist__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa */ "koa");
+/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var koa_webpack__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-webpack */ "koa-webpack");
+/* harmony import */ var koa_webpack__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_webpack__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! koa-bodyparser */ "koa-bodyparser");
+/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(koa_bodyparser__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! koa-session */ "koa-session");
+/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(koa_session__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! socket.io */ "socket.io");
+/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(socket_io__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! http */ "http");
+/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
+/* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+
+/*
+	//L process.env: https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
+	//L dotenv:  https://www.npmjs.com/package/dotenv
+*/
+//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+
+/* 
+	Put api keys into .env after creating methods to access them
+	Some best practices: https://www.codementor.io/mattgoldspink/nodejs-best-practices-du1086jja
+	Middleware best practices https://github.com/koajs/koa/blob/master/docs/guide.md
+
+	errors thrown in some places (like routes) still aren't caught
+*/
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+// TOP
+ // BUILT-IN
+// EXTERNAL
+
+
+ //L https://github.com/koajs
+
+
+ //L https://github.com/koajs/bodyparser
+
+ //L https://github.com/koajs/session
+//L https://github.com/socketio/socket.io#in-conjunction-with-koa
+
+ //L socket io: https://socket.io/docs/emit-cheatsheet
+
+ //TODO consider changing to the https module?
+// INTERNAL
+// import { clientOptions, UIMainFileName } from '../config/webpack.config.js';
+
+
+
+ //  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+
+/* webpack-dev-middleware
+	// OPTIONS
+	const serverOptions = parser(process.argv.slice(2), {
+		string: [
+			'client',
+			'client-mode',
+		],
+		default: {
+			// Options
+			// 'off'      - assume code is already built/watched by another process
+			// 'compile'  - builds the client code once
+			// 'watch'    - watches the client code
+			// 'refresh'  - use webpack-dev-middleware
+			// 'hot'      - use webpack HMR
+			'client': 'off',
+			// Options
+			// 'development' - passed to webpack
+			// 'production'  - passed to webpack
+			'client-mode': 'development',
+		},
+	});
+
+	// INTERPRET
+	const useMiddleware = (serverOptions.client === 'refresh' || serverOptions.client === 'hot');
+
+	const compiler = webpack(client({}, {
+		mode: serverOptions['client-mode'],
+	}));
+*/
+//TODO top level await
+
+(async function () {
+  // Initialize the database.
+  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_10__["default"])().catch(rejected => {
+    console.error(rejected);
+  });
+  const routerOptions = {};
+  /* webpack-dev-middleware
+  	const config = clientOptions({}, {
+  		mode: serverOptions['client-mode'],
+  	});
+  
+  	let koaWebpackMiddleware;
+  
+  	if (useMiddleware) {
+  		koaWebpackMiddleware = await koaWebpack({
+  			// compiler: compiler,
+  			config,
+  			devMiddleware: {
+  				methods: ['HEAD', 'GET', 'POST', 'PATCH', 'DELETE'],
+  			},
+  			hotClient: false,
+  		});
+  
+  		routerOptions.replaceIndex = function (ctx) {
+  			const filename = path.resolve(config.output.path, UIMainFileName);
+  			ctx.response.type = 'html';
+  			ctx.response.body = koaWebpackMiddleware.devMiddleware.fileSystem.createReadStream(filename);
+  		};
+  	}
+  */
+
+  const router = Object(_routes_js__WEBPACK_IMPORTED_MODULE_8__["default"])(routerOptions);
+  const PORT = process.env.PORT || 3000; // KOA
+
+  const app = new koa__WEBPACK_IMPORTED_MODULE_2___default.a();
+  app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
+  const sessionConfig = {
+    //TODO random keys: //L https://randomkeygen.com/
+    //C (string)(default is koa:sess) cookie key
+    key: 'koa:sess',
+    //C (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
+    maxAge: 86400000,
+    //C (boolean)(default true) can overwrite or not
+    overwrite: true,
+    //C (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side script (so that they can only be opened by the server)
+    httpOnly: true,
+    //C (boolean)(default true) signed or not , signed cookies verify that the data is unchanged on the client side
+    signed: true,
+    //C (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
+    rolling: true,
+    //C (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
+    renew: false
+  }; //L https://github.com/socketio/socket.io#in-conjunction-with-koa
+
+  const server = http__WEBPACK_IMPORTED_MODULE_7___default.a.createServer(app.callback()); // SOCKET IO
+
+  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_6___default.a(server);
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
+  //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
+  //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗  
+  //  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝  
+  //  ██║ ╚═╝ ██║██║██████╔╝██████╔╝███████╗███████╗╚███╔███╔╝██║  ██║██║  ██║███████╗
+  //  ╚═╝     ╚═╝╚═╝╚═════╝ ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
+
+  /* Timer / Logger
+  	// response timer
+  	app.use(async (ctx, next) => {
+  		const start = Date.now();
+  		await next();
+  		const ms = Date.now() - start;
+  		ctx.response.set('response-time', `${ms}ms`);
+  	});
+  
+  	// request logger
+  	app.use(async (ctx, next) => {
+  		console.log(`${ctx.request.method} ${ctx.request.path}`);
+  		await next();
+  	});
+  */
+  // BODY PARSER
+
+  app.use(koa_bodyparser__WEBPACK_IMPORTED_MODULE_4___default()()); // SESSION
+
+  app.use(koa_session__WEBPACK_IMPORTED_MODULE_5___default()(sessionConfig, app));
+  /* View Counter
+  	app.use(async (ctx, next) => {
+  		// ignore favicon
+  		// TODO this doesn't work as it's processing two 'requests' per view - the page and it's resources
+  		if (ctx.request.path !== '/favicon.ico') {
+  			let n = ctx.session.views || 0;
+  			ctx.session.views = ++n;
+  		} 
+  		//console.log(ctx.session.views + ' views');
+  		await next();
+  	});
+  */
+
+  /* webpack-dev-middleware
+  	if (useMiddleware) {
+  		app.use(koaWebpackMiddleware);
+  	}
+  */
+  // ROUTES
+
+  app.use(router.routes()); //L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
+
+  app.use(router.allowedMethods()); // LIVE DATA
+
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].start({
+    app,
+    socket: socketIO.of('/live-data')
+  }); //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
+  //  ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║
+  //  ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║
+  //  ██║     ██║╚════██║   ██║   ██╔══╝  ██║╚██╗██║
+  //  ███████╗██║███████║   ██║   ███████╗██║ ╚████║
+  //  ╚══════╝╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝
+  // START SERVER
+  //G Connect at http://localhost:<PORT>
+
+  server.listen(PORT, () => {
+    console.log(`\n█████████████████████████████`);
+    console.log(`SERVER LISTENING ON PORT ${PORT}`);
+  }); //L unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar
+
+  process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at:', p, '\n Reason:', reason); //TODO handle
+  });
+})();
+
+/***/ }),
+
 /***/ "./source/server/parse-postgres-error.js":
 /*!***********************************************!*\
   !*** ./source/server/parse-postgres-error.js ***!
@@ -2257,7 +2286,7 @@ __webpack_require__.r(__webpack_exports__);
   //R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
   // const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
   const root = _node_utility_source_path_cjs__WEBPACK_IMPORTED_MODULE_5___default()('../build/client');
-  const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__["clientIndexFileName"]}`; // router
+  const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_6__["UIMainFileName"]}`; // router
 
   const router = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a();
   const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a(); //   █████╗ ██████╗ ██╗

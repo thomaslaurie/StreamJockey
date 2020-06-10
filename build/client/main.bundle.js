@@ -36,7 +36,7 @@
 /******/ 	// undefined = chunk not loaded, null = chunk preloaded/prefetched
 /******/ 	// Promise = chunk loading, 0 = chunk loaded
 /******/ 	var installedChunks = {
-/******/ 		"index": 0
+/******/ 		"main": 0
 /******/ 	};
 /******/
 /******/
@@ -196,7 +196,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./source/client/index.js");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./source/client/main.js");
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -16482,311 +16482,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/client/index.js":
-/*!********************************!*\
-  !*** ./source/client/index.js ***!
-  \********************************/
-/*! no exports provided */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vendor/vue.esm.browser.js */ "./source/client/vendor/vue.esm.browser.js");
-/* harmony import */ var _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./vendor/vue-router.esm.browser.js */ "./source/client/vendor/vue-router.esm.browser.js");
-/* harmony import */ var _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./vendor/vuex.esm.browser.js */ "./source/client/vendor/vuex.esm.browser.js");
-/* harmony import */ var socket_io_client__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! socket.io-client */ "./node_modules/socket.io-client/lib/index.js");
-/* harmony import */ var socket_io_client__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(socket_io_client__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _live_data_client_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./live-data-client.js */ "./source/client/live-data-client.js");
-/* harmony import */ var _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./universal-playback-module.js */ "./source/client/universal-playback-module.js");
-/* harmony import */ var _ui_vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./ui/vue/main/AppMain.vue */ "./source/client/ui/vue/main/AppMain.vue");
-/* harmony import */ var _ui_vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui/vue/page/HomePage.vue */ "./source/client/ui/vue/page/HomePage.vue");
-/* harmony import */ var _ui_vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./ui/vue/page/UserPage.vue */ "./source/client/ui/vue/page/UserPage.vue");
-/* harmony import */ var _ui_vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./ui/vue/page/PlaylistPage.vue */ "./source/client/ui/vue/page/PlaylistPage.vue");
-/* harmony import */ var _ui_vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./ui/vue/page/TrackPage.vue */ "./source/client/ui/vue/page/TrackPage.vue");
-/* harmony import */ var _ui_vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui/vue/page/AddPlaylistPage.vue */ "./source/client/ui/vue/page/AddPlaylistPage.vue");
-/* harmony import */ var _ui_vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ui/vue/page/TestPage.vue */ "./source/client/ui/vue/page/TestPage.vue");
-/* harmony import */ var _ui_vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./ui/vue/page/EntryPage.vue */ "./source/client/ui/vue/page/EntryPage.vue");
-/* harmony import */ var _ui_vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./ui/vue/page/AuthRedirectPage.vue */ "./source/client/ui/vue/page/AuthRedirectPage.vue");
-/* harmony import */ var _ui_vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./ui/vue/page/ErrorPage.vue */ "./source/client/ui/vue/page/ErrorPage.vue");
-/* harmony import */ var _ui_vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./ui/vue/page/NotFoundPage.vue */ "./source/client/ui/vue/page/NotFoundPage.vue");
-/* harmony import */ var _ui_vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./ui/vue/page/DatabasePage.vue */ "./source/client/ui/vue/page/DatabasePage.vue");
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
-// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
-// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
-// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
-// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
-// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
-
-/*
-	//G VUE GUIDES
-		//! don't use arrow functions for components: //L https://vuejs.org/v2/guide/instance.html#Data-and-Methods
-		//L don't use arrow functions on any component options properties (created, data, etc.) as this will not be available: https://vuejs.org/v2/guide/instance.html#Instance-Lifecycle-Hooks
-		   
-		//L methods vs computed vs watch: https://flaviocopes.com/vue-methods-watchers-computed-properties/
-		//L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
-		   
-		//L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
-		//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
-		
-		//L https://vuejs.org/v2/cookbook/form-validation.html
-		
-		//L Object Reactivity: https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
-		//G no property creation - use Vue.set(obj, key, val)
-		//G no property deletion - use Vue.delete(obj, key)
-
-		//L Array Reactivity: https://vuejs.org/v2/guide/list.html#Caveats
-		//G no setting item by index (arr[i] = val) - use Vue.set(arr, index, val) or arr.splice(index, 1, val)
-		//G no setting array length (arr.length = length) - use arr.splice(length)
-    	
-
-	ASYNC COMPONENTS
-		async components are created by using 'factory functions' in place of the component object, 
-		these return promises which are only resolved when the component needs to be rendered.
-		furthermore - for error handling, this factory function can also return an object with 
-		{
-			component: [promise], 
-			loading: [component], 
-			error: [component], 
-			delay: [number ms], 
-			timeout: [number ms],
-		}
-		which renders the respective component based on the state of the component promise (resolved, loading, or rejected)
-		
-		//L https://vuejs.org/v2/guide/components-dynamic-async.html#Handling-Loading-State
-
-		//R async components don't seem to have any way to pass props, they seem to only be meant to load components from files,
-		//R i want to use them because the loading, error, delay, etc. stuff sounds great - might have to manually create an asyc data loader like this however, or maybe try to access props outside/before component is created? 
-		//L this way? https://stackoverflow.com/questions/38344091/vuejs-can-we-give-props-to-async-component-via-dynamic-component-pattern-compo
-
-		//OLD
-		let PlaylistListItem = Vue.component('playlist-list-item', () => {
-				return {
-					//C The component to load (should be a Promise)
-					//! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
-					//L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
-					component: (async function {
-						// let playlist = await sj.Playlist.get(new sj.Playlist({
-						//     id: //TODO,
-						// }));
-						await wait(2000);
-						
-						// let _this = this;
-						// this.$nextTick(() => {
-						//     console.log('HERE: ', JSON.stringify(_this.$options._parentVnode.data));
-						// });
-
-						//console.log('ID:', id);
-
-						let playlist = new sj.Playlist({
-							//id: id,
-							name: 'test',
-						});
-
-						return {
-							data: () => ({
-								playlist: playlist,
-							}),
-							props: {
-								id: Number,
-							},
-							template: `
-								<li class='playlist-list-item'>
-									<p>blah{{id}}blah</p>
-									<p>{{playlist.name}}</p>
-									<button>Open</button>
-									<button>Play</button>
-								</li>
-							`,
-						}
-					})(),
-
-					//C A component to use while the async component is loading
-					loading: {
-						template: `
-							<p>LOADING</p>
-						`,
-					},
-
-					//C A component to use if the load fails
-					error: {
-						template: `
-							<p>ERROR</p>
-						`,
-					},
-
-					//C Delay before showing the loading component. Default: 200ms.
-					delay: 500,
-
-					//C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
-					//! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
-					//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
-					//timeout: 10000,
-				}
-		});
-
-		//L how to use dynamic components: https://alligator.io/vuejs/dynamic-components/
-
-	
-	VUE REACTIVITY CAVEATS
-		//L https://v1.vuejs.org/guide/reactivity.html#How-Changes-Are-Tracked
-		//L https://v1.vuejs.org/guide/list.html#Caveats
-		//L https://vuex.vuejs.org/guide/mutations.html#mutations-follow-vue-s-reactivity-rules
-*/
-//  ████████╗ ██████╗ ██████╗  ██████╗ 
-//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
-
-/*
-	//TODO//L list transitions: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
-
-    //TODO //L dynamic list rendering: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
-    
-	//? is v-model secure? it updates a variable with whatever is in the input
-
-	//TODO Change name from index.js to something else, (remember to update webpack config). Maybe 'main' or something vue related because this mainly wires up vue.
-*/
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-// EXTERNAL
-//L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js
- //L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return)
-
- //L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
-
-
- // INTERNAL
-
-
- //  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
-// VUE
-//TODO vue dev suppressions
-
-_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.productionTip = false;
-_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.devtools = false;
-_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
-_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"]); //OLD//L global mixins: https://vuejs.org/v2/guide/mixins.html#Global-Mixin, so that sj does not have to be imported into every component
-//OLD//G to access mixin before component creation (ie inside data function), use this.$root.x instead of this.x
-//  ██╗   ██╗██╗   ██╗███████╗
-//  ██║   ██║██║   ██║██╔════╝
-//  ██║   ██║██║   ██║█████╗  
-//  ╚██╗ ██╔╝██║   ██║██╔══╝  
-//   ╚████╔╝ ╚██████╔╝███████╗
-//    ╚═══╝   ╚═════╝ ╚══════╝
-
-
-
-
-
-
-
-
-
-
-
-
-
-var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
-  //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-  mode: 'history',
-  routes: [{
-    path: '/',
-    component: _ui_vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
-    children: [{
-      path: '/',
-      component: _ui_vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_7__["default"]
-    }, {
-      path: '/user/:id',
-      component: _ui_vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
-    }, {
-      path: '/playlist/:id',
-      component: _ui_vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_9__["default"]
-    }, {
-      path: '/track/:id',
-      component: _ui_vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_10__["default"]
-    }, {
-      path: '/add',
-      component: _ui_vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_11__["default"]
-    }, {
-      path: '/test',
-      component: _ui_vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_12__["default"]
-    }]
-  }, {
-    //C login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
-    path: '/login',
-    component: _ui_vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_13__["default"]
-  }, {
-    path: '/error',
-    component: _ui_vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_15__["default"]
-  }, {
-    path: '/database',
-    component: _ui_vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_17__["default"]
-  }, {
-    path: '/*/authRedirect',
-    component: _ui_vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_14__["default"]
-  }, {
-    //C catch invalid url paths 
-    path: '*',
-    component: _ui_vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
-  }]
-});
-var store = new _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Store({
-  modules: {
-    liveData: _live_data_client_js__WEBPACK_IMPORTED_MODULE_4__["default"],
-    //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
-    player: _objectSpread({}, _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__["default"], {
-      namespaced: true
-    })
-  },
-  state: {//L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
-    //R Don't store the user here. Server-side authorization uses session.user, client-side should fetch one's own user.
-  },
-  actions: {//G all actions are async via dispatch('functionName', payload)
-    //TODO errors should be handled in these actions
-  },
-  mutations: {//G these are bare-bones setters, data should already be checked and formatted
-  },
-  getters: {}
-});
-var vm = new _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
-  el: '#app',
-  router,
-  store,
-
-  created() {
-    var _this = this;
-
-    return _asyncToGenerator(function* () {
-      yield _this.$store.dispatch('start', new socket_io_client__WEBPACK_IMPORTED_MODULE_3___default.a('/live-data'));
-      yield _this.$store.dispatch('player/startClock');
-    })();
-  }
-
-});
-
-/***/ }),
-
 /***/ "./source/client/live-data-client.js":
 /*!*******************************************!*\
   !*** ./source/client/live-data-client.js ***!
@@ -18361,6 +18056,311 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     }
 
   }
+});
+
+/***/ }),
+
+/***/ "./source/client/main.js":
+/*!*******************************!*\
+  !*** ./source/client/main.js ***!
+  \*******************************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./vendor/vue.esm.browser.js */ "./source/client/vendor/vue.esm.browser.js");
+/* harmony import */ var _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./vendor/vue-router.esm.browser.js */ "./source/client/vendor/vue-router.esm.browser.js");
+/* harmony import */ var _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./vendor/vuex.esm.browser.js */ "./source/client/vendor/vuex.esm.browser.js");
+/* harmony import */ var socket_io_client__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! socket.io-client */ "./node_modules/socket.io-client/lib/index.js");
+/* harmony import */ var socket_io_client__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(socket_io_client__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _live_data_client_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./live-data-client.js */ "./source/client/live-data-client.js");
+/* harmony import */ var _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./universal-playback-module.js */ "./source/client/universal-playback-module.js");
+/* harmony import */ var _ui_vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./ui/vue/main/AppMain.vue */ "./source/client/ui/vue/main/AppMain.vue");
+/* harmony import */ var _ui_vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./ui/vue/page/HomePage.vue */ "./source/client/ui/vue/page/HomePage.vue");
+/* harmony import */ var _ui_vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./ui/vue/page/UserPage.vue */ "./source/client/ui/vue/page/UserPage.vue");
+/* harmony import */ var _ui_vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./ui/vue/page/PlaylistPage.vue */ "./source/client/ui/vue/page/PlaylistPage.vue");
+/* harmony import */ var _ui_vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./ui/vue/page/TrackPage.vue */ "./source/client/ui/vue/page/TrackPage.vue");
+/* harmony import */ var _ui_vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./ui/vue/page/AddPlaylistPage.vue */ "./source/client/ui/vue/page/AddPlaylistPage.vue");
+/* harmony import */ var _ui_vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./ui/vue/page/TestPage.vue */ "./source/client/ui/vue/page/TestPage.vue");
+/* harmony import */ var _ui_vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./ui/vue/page/EntryPage.vue */ "./source/client/ui/vue/page/EntryPage.vue");
+/* harmony import */ var _ui_vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./ui/vue/page/AuthRedirectPage.vue */ "./source/client/ui/vue/page/AuthRedirectPage.vue");
+/* harmony import */ var _ui_vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./ui/vue/page/ErrorPage.vue */ "./source/client/ui/vue/page/ErrorPage.vue");
+/* harmony import */ var _ui_vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./ui/vue/page/NotFoundPage.vue */ "./source/client/ui/vue/page/NotFoundPage.vue");
+/* harmony import */ var _ui_vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./ui/vue/page/DatabasePage.vue */ "./source/client/ui/vue/page/DatabasePage.vue");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
+// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
+// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
+// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
+// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
+// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+
+/*
+	//G VUE GUIDES
+		//! don't use arrow functions for components: //L https://vuejs.org/v2/guide/instance.html#Data-and-Methods
+		//L don't use arrow functions on any component options properties (created, data, etc.) as this will not be available: https://vuejs.org/v2/guide/instance.html#Instance-Lifecycle-Hooks
+		   
+		//L methods vs computed vs watch: https://flaviocopes.com/vue-methods-watchers-computed-properties/
+		//L using computed to swap dynamic components: https://alligator.io/vuejs/dynamic-components
+		   
+		//L referencing registered components: https://forum.vuejs.org/t/list-registered-vue-components/7556
+		//R locally registering a component doesn't instance it into the parent component, it just makes it available to use as a html tag that vue will recognize, therefore for dynamic components which only use the <component> tag, is it even necessary to register them?
+		
+		//L https://vuejs.org/v2/cookbook/form-validation.html
+		
+		//L Object Reactivity: https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+		//G no property creation - use Vue.set(obj, key, val)
+		//G no property deletion - use Vue.delete(obj, key)
+
+		//L Array Reactivity: https://vuejs.org/v2/guide/list.html#Caveats
+		//G no setting item by index (arr[i] = val) - use Vue.set(arr, index, val) or arr.splice(index, 1, val)
+		//G no setting array length (arr.length = length) - use arr.splice(length)
+    	
+
+	ASYNC COMPONENTS
+		async components are created by using 'factory functions' in place of the component object, 
+		these return promises which are only resolved when the component needs to be rendered.
+		furthermore - for error handling, this factory function can also return an object with 
+		{
+			component: [promise], 
+			loading: [component], 
+			error: [component], 
+			delay: [number ms], 
+			timeout: [number ms],
+		}
+		which renders the respective component based on the state of the component promise (resolved, loading, or rejected)
+		
+		//L https://vuejs.org/v2/guide/components-dynamic-async.html#Handling-Loading-State
+
+		//R async components don't seem to have any way to pass props, they seem to only be meant to load components from files,
+		//R i want to use them because the loading, error, delay, etc. stuff sounds great - might have to manually create an asyc data loader like this however, or maybe try to access props outside/before component is created? 
+		//L this way? https://stackoverflow.com/questions/38344091/vuejs-can-we-give-props-to-async-component-via-dynamic-component-pattern-compo
+
+		//OLD
+		let PlaylistListItem = Vue.component('playlist-list-item', () => {
+				return {
+					//C The component to load (should be a Promise)
+					//! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
+					//L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
+					component: (async function {
+						// let playlist = await sj.Playlist.get(new sj.Playlist({
+						//     id: //TODO,
+						// }));
+						await wait(2000);
+						
+						// let _this = this;
+						// this.$nextTick(() => {
+						//     console.log('HERE: ', JSON.stringify(_this.$options._parentVnode.data));
+						// });
+
+						//console.log('ID:', id);
+
+						let playlist = new sj.Playlist({
+							//id: id,
+							name: 'test',
+						});
+
+						return {
+							data: () => ({
+								playlist: playlist,
+							}),
+							props: {
+								id: Number,
+							},
+							template: `
+								<li class='playlist-list-item'>
+									<p>blah{{id}}blah</p>
+									<p>{{playlist.name}}</p>
+									<button>Open</button>
+									<button>Play</button>
+								</li>
+							`,
+						}
+					})(),
+
+					//C A component to use while the async component is loading
+					loading: {
+						template: `
+							<p>LOADING</p>
+						`,
+					},
+
+					//C A component to use if the load fails
+					error: {
+						template: `
+							<p>ERROR</p>
+						`,
+					},
+
+					//C Delay before showing the loading component. Default: 200ms.
+					delay: 500,
+
+					//C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
+					//! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
+					//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
+					//timeout: 10000,
+				}
+		});
+
+		//L how to use dynamic components: https://alligator.io/vuejs/dynamic-components/
+
+	
+	VUE REACTIVITY CAVEATS
+		//L https://v1.vuejs.org/guide/reactivity.html#How-Changes-Are-Tracked
+		//L https://v1.vuejs.org/guide/list.html#Caveats
+		//L https://vuex.vuejs.org/guide/mutations.html#mutations-follow-vue-s-reactivity-rules
+*/
+//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ██║   ██║██║  ██║██║   ██║
+//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+
+/*
+	//TODO//L list transitions: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
+
+    //TODO //L dynamic list rendering: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
+    
+	//? is v-model secure? it updates a variable with whatever is in the input
+
+	//TODO Change name from index.js to something else, (remember to update webpack config). Maybe 'main' or something vue related because this mainly wires up vue.
+*/
+//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
+//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
+//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
+//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
+//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
+//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+// EXTERNAL
+//L https://cdn.jsdelivr.net/npm/vue@2.6.8/dist/vue.esm.browser.js
+ //L https://unpkg.com/vue-router@3.0.2/ //! manually converted to esm (remove closure & export default instead of return)
+
+ //L https://unpkg.com/vuex@3.1.0/dist/vuex.esm.js //! manually converted to browser (removed process.env.NODE_ENV !== 'production' references)
+
+
+ // INTERNAL
+
+
+ //  ██╗███╗   ██╗██╗████████╗
+//  ██║████╗  ██║██║╚══██╔══╝
+//  ██║██╔██╗ ██║██║   ██║   
+//  ██║██║╚██╗██║██║   ██║   
+//  ██║██║ ╚████║██║   ██║   
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+// VUE
+//TODO vue dev suppressions
+
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.productionTip = false;
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].config.devtools = false;
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]);
+_vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"].use(_vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"]); //OLD//L global mixins: https://vuejs.org/v2/guide/mixins.html#Global-Mixin, so that sj does not have to be imported into every component
+//OLD//G to access mixin before component creation (ie inside data function), use this.$root.x instead of this.x
+//  ██╗   ██╗██╗   ██╗███████╗
+//  ██║   ██║██║   ██║██╔════╝
+//  ██║   ██║██║   ██║█████╗  
+//  ╚██╗ ██╔╝██║   ██║██╔══╝  
+//   ╚████╔╝ ╚██████╔╝███████╗
+//    ╚═══╝   ╚═════╝ ╚══════╝
+
+
+
+
+
+
+
+
+
+
+
+
+
+var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
+  //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+  mode: 'history',
+  routes: [{
+    path: '/',
+    component: _ui_vue_main_AppMain_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    children: [{
+      path: '/',
+      component: _ui_vue_page_HomePage_vue__WEBPACK_IMPORTED_MODULE_7__["default"]
+    }, {
+      path: '/user/:id',
+      component: _ui_vue_page_UserPage_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
+    }, {
+      path: '/playlist/:id',
+      component: _ui_vue_page_PlaylistPage_vue__WEBPACK_IMPORTED_MODULE_9__["default"]
+    }, {
+      path: '/track/:id',
+      component: _ui_vue_page_TrackPage_vue__WEBPACK_IMPORTED_MODULE_10__["default"]
+    }, {
+      path: '/add',
+      component: _ui_vue_page_AddPlaylistPage_vue__WEBPACK_IMPORTED_MODULE_11__["default"]
+    }, {
+      path: '/test',
+      component: _ui_vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_12__["default"]
+    }]
+  }, {
+    //C login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
+    path: '/login',
+    component: _ui_vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_13__["default"]
+  }, {
+    path: '/error',
+    component: _ui_vue_page_ErrorPage_vue__WEBPACK_IMPORTED_MODULE_15__["default"]
+  }, {
+    path: '/database',
+    component: _ui_vue_page_DatabasePage_vue__WEBPACK_IMPORTED_MODULE_17__["default"]
+  }, {
+    path: '/*/authRedirect',
+    component: _ui_vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_14__["default"]
+  }, {
+    //C catch invalid url paths 
+    path: '*',
+    component: _ui_vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
+  }]
+});
+var store = new _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Store({
+  modules: {
+    liveData: _live_data_client_js__WEBPACK_IMPORTED_MODULE_4__["default"],
+    //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
+    player: _objectSpread({}, _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__["default"], {
+      namespaced: true
+    })
+  },
+  state: {//L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
+    //R Don't store the user here. Server-side authorization uses session.user, client-side should fetch one's own user.
+  },
+  actions: {//G all actions are async via dispatch('functionName', payload)
+    //TODO errors should be handled in these actions
+  },
+  mutations: {//G these are bare-bones setters, data should already be checked and formatted
+  },
+  getters: {}
+});
+var vm = new _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  el: '#app',
+  router,
+  store,
+
+  created() {
+    var _this = this;
+
+    return _asyncToGenerator(function* () {
+      yield _this.$store.dispatch('start', new socket_io_client__WEBPACK_IMPORTED_MODULE_3___default.a('/live-data'));
+      yield _this.$store.dispatch('player/startClock');
+    })();
+  }
+
 });
 
 /***/ }),
@@ -44499,4 +44499,4 @@ __webpack_require__.r(__webpack_exports__);
 /***/ })
 
 /******/ });
-//# sourceMappingURL=index.bundle.js.map
+//# sourceMappingURL=main.bundle.js.map

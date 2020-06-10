@@ -78,7 +78,7 @@ import {
 } from '../shared/utility/index.js';
 import sourcePath from '../node-utility/source-path.cjs';
 import {
-	clientIndexFileName,
+	UIMainFileName,
 } from '../config/project-paths.js';
 import auth from './auth.js'; //! side-effects
 import {
@@ -123,7 +123,7 @@ export default function ({replaceIndex}) {
 	//R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
 	// const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
 	const root = sourcePath('../build/client');
-	const app = `/${clientIndexFileName}`;
+	const app = `/${UIMainFileName}`;
 
 	// router
 	const router = new Router();
