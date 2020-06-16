@@ -1,3 +1,6 @@
+/* eslint-disable */
+//! Specifically don't want eslint to auto-fix the indentation in this file.
+
 import test from 'ava';
 import {tabIndented, spaceIndented} from './indented-template.js';
 

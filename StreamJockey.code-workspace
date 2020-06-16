@@ -10,6 +10,9 @@
 			"postgres",
 			"spotify",
 			"youtube"
-		]
-	}
+		],
+		"eslint.options": {
+			"configFile": "source/config/eslint.cjs"
+		}
+	},
 }
