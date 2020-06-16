@@ -42037,12 +42037,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultOptions", function() { return defaultOptions; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return deepCompare; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compareUnorderedArrays", function() { return compareUnorderedArrays; });
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+/* harmony import */ var _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
+/* harmony import */ var _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 
 
@@ -42060,23 +42062,23 @@ var logDifferenceFunction = function logDifferenceFunction(key, aValue, bValue) 
 };
 
 var defaultOptions = {
-  //C 0 based, will call depth+1 layers of comparisons
+  // 0 based, will call depth+1 layers of comparisons
   depth: 1,
-  //C used for custom comparisons (like un-ordered lists)
-  //! do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property
-  compareFunction: compareUnorderedArrays = (a, b) => a === b,
-  //C used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
-  //C used for custom key selection (inherited, enumerable, symbol, etc.)
+  // Used for custom comparisons (like un-ordered lists).
+  //! Do not use a compare function that is or contains deepCompare, else falsy comparisons will run deepCompare twice per property.
+  compareFunction: (a, b) => a === b,
+  // Used to compare object keys with specific attributes (enumerable, symbol, inherited, etc.)
+  // Used for custom key selection (inherited, enumerable, symbol, etc.)
   selectFunction: Object.keys,
-  //C true:  compare selected key-values on x to the same key-values anywhere on y
-  //C false: compare selected key-values on x to the same key-values selected on y
+  // true:  compare selected key-values on x to the same key-values anywhere on y.
+  // false: compare selected key-values on x to the same key-values selected on y.
   anywhere: false,
-  //C true:  compares a against b 
-  //C false: compares a against b and b against a
-  //? what if subsetting needs to stop a specific depth?
-  //R no need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
+  // true:  compares a against b.
+  // false: compares a against b and b against a.
+  //? What if subsetting needs to stop a specific depth?
+  //R No need to specify dual-subset, because then a and b would be identical sets, which is equivalent to specifying no subset
   subset: false,
-  //C compare result for values that are too deep
+  // Compare result for values that are too deep.
   resultIfTooDeep: false,
   logDifference: false
 };
@@ -42098,11 +42100,11 @@ function deepCompare(a, b) {
 
   if (compareFunction(a, b, options)) return true; // compare properties
 
-  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(b)) {
+  if (_validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(a) && _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"].test(b)) {
     var result = true; // selected keys
 
     var aSelectedKeys = selectFunction(a);
-    var bSelectedKeys = selectFunction(b); //C compare all selected key-values of a to the same (any or selected) key-value of b
+    var bSelectedKeys = selectFunction(b); // Compare all selected key-values of a to the same (any or selected) key-value of b.
 
     for (var key of aSelectedKeys) {
       var aValue = a[key];
@@ -42115,16 +42117,16 @@ function deepCompare(a, b) {
     }
 
     if (!subset) {
-      //C compare remaining selected key-values of b to the same (any or non-existent) key-value of a
-      //C compare 
+      // Compare remaining selected key-values of b to the same (any or non-existent) key-value of a.
+      // Compare
       //R prevents shared selected keys from being compared twice
       for (var _key of bSelectedKeys) {
         if (!aSelectedKeys.includes(_key)) {
-          //C exclude shared selected keys
-          //C no need to check for the same selected key in a, they have been excluded
+          // Exclude shared selected keys.
+          // No need to check for the same selected key in a, they have been excluded.
           var _aValue = anywhere ? a[_key] : undefined;
 
-          var _bValue = b[_key]; //! value order is not flipped, this would cause the subset to go both ways
+          var _bValue = b[_key]; //! Value order is not flipped, this would cause the subset to go both ways.
 
           if (!compareDeeper(_aValue, _bValue, options)) {
             result = false;
@@ -42138,30 +42140,29 @@ function deepCompare(a, b) {
   }
 
   return false;
-}
-; // COMPARE FUNCTIONS
+} // COMPARE FUNCTIONS
+//TODO This function doesn't appear to have been tested (specifically with subset).
 
 function compareUnorderedArrays(a, b, options) {
   //R The 'anywhere' option isn't relevant here because arrays cannot inherit index properties. (Even with a replaced prototype, deleted 'hole', etc.)
   // If a and b are arrays:
-  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(a) && _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(b)) {
+  if (_validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"].test(a) && _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"].test(b)) {
     // Match if:
     var result = true; // All items of a exist in b.
 
     if (a.some(item => !b.includes(item))) result = false; // And if not a subset comparison.
 
-    if (!subset) {
+    if (!options.subset) {
       // All items of b exist in a.
       if (b.some(item => !a.includes(item))) result = false;
     }
 
     return result;
-  } else {
-    // Use the default compare function.
-    return defaultOptions.compareFunction(a, b, options);
-  }
-}
-; //L diagrams: https://www.figma.com/file/57kSw6SaPX3qJUSdzMpfJo/Object-Property-Locations-Comparison?node-id=0%3A1
+  } // Else use the default compare function.
+
+
+  return defaultOptions.compareFunction(a, b, options);
+} //L diagrams: https://www.figma.com/file/57kSw6SaPX3qJUSdzMpfJo/Object-Property-Locations-Comparison?node-id=0%3A1
 
 /* differences from original
 	renamed to 'deepCompare'
@@ -42604,7 +42605,9 @@ function getOwnKeysOf(object, filter) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return pick; });
+/* harmony import */ var _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
+/* harmony import */ var _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../validation/rules/arrays.js */ "./source/shared/utility/validation/rules/arrays.js");
 // Copies all non-undefined properties of an object onto a new object.
 //! Invokes getters.
 //! Does not copy descriptors.
@@ -42612,9 +42615,10 @@ __webpack_require__.r(__webpack_exports__);
 //R Why not use destructuring?
 //R It wouldn't be possible to store a preset list of properties to pick.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (oldObject, keys) {
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.validate(oldObject);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(keys); //R Keys can be anything, and will be converted to the proper format.
+
+function pick(oldObject, keys) {
+  _validation_rules_objects_index_js__WEBPACK_IMPORTED_MODULE_0__["object"].validate(oldObject);
+  _validation_rules_arrays_js__WEBPACK_IMPORTED_MODULE_1__["array"].validate(keys); //R Keys can be anything, and will be converted to the proper format.
 
   var newObject = {};
 
@@ -42624,8 +42628,7 @@ __webpack_require__.r(__webpack_exports__);
   }
 
   return newObject;
-});
-;
+}
 
 /***/ }),
 
@@ -43114,25 +43117,25 @@ function _ref() {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../index.js */ "./source/shared/utility/index.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return appendQueryParameters; });
+/* harmony import */ var _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/rules/strings.js */ "./source/shared/utility/validation/rules/strings.js");
 // Appends more query parameters to a URL that may or may not already have query parameters.
 //TODO Consider fully validating.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (url) {
-  _index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(url);
+function appendQueryParameters(url) {
+  _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__["string"].validate(url);
 
   for (var _len = arguments.length, queryParameters = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     queryParameters[_key - 1] = arguments[_key];
   }
 
   for (var queryParameter of queryParameters) {
-    _index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(queryParameter);
+    _validation_rules_strings_js__WEBPACK_IMPORTED_MODULE_0__["string"].validate(queryParameter);
   }
 
   var appendCharacter = url.includes('?') ? '&' : '?';
   return "".concat(url).concat(appendCharacter).concat(queryParameters.join('&'));
-});
-;
+}
 
 /***/ }),
 
@@ -43963,18 +43966,24 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
-/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../index.js */ "./source/shared/utility/validation/rules/index.js");
-/* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/index.js */ "./source/shared/utility/object/index.js");
+/* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
+/* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../strings.js */ "./source/shared/utility/validation/rules/strings.js");
+/* harmony import */ var _numbers_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../numbers.js */ "./source/shared/utility/validation/rules/numbers.js");
+/* harmony import */ var _boolean_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../boolean.js */ "./source/shared/utility/validation/rules/boolean.js");
+/* harmony import */ var _object_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../object/index.js */ "./source/shared/utility/object/index.js");
+
+
+
 
 
 
 /* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   validator(value) {
-    if (!_index_js__WEBPACK_IMPORTED_MODULE_1__["object"].test(value)) {
+    if (!_objects_index_js__WEBPACK_IMPORTED_MODULE_1__["object"].test(value)) {
       throw new Error('Query parameters is not an object.');
     }
 
-    Object(_object_index_js__WEBPACK_IMPORTED_MODULE_2__["forKeysOf"])(value, {
+    Object(_object_index_js__WEBPACK_IMPORTED_MODULE_5__["forKeysOf"])(value, {
       own: true,
       named: true,
       enumerable: true,
@@ -43985,7 +43994,7 @@ __webpack_require__.r(__webpack_exports__);
       callback(obj, key) {
         var parameterValue = obj[key];
 
-        if (!(_index_js__WEBPACK_IMPORTED_MODULE_1__["string"].test(parameterValue) || _index_js__WEBPACK_IMPORTED_MODULE_1__["number"].test(parameterValue) || _index_js__WEBPACK_IMPORTED_MODULE_1__["boolean"].test(parameterValue))) {
+        if (!(_strings_js__WEBPACK_IMPORTED_MODULE_2__["string"].test(parameterValue) || _numbers_js__WEBPACK_IMPORTED_MODULE_3__["number"].test(parameterValue) || _boolean_js__WEBPACK_IMPORTED_MODULE_4__["default"].test(parameterValue))) {
           throw new Error("Query parameter '".concat(key, "' is not a string, number, or boolean."));
         }
       }

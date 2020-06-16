@@ -145,6 +145,7 @@ const rules = {
 		number: {
 			'no-floating-decimal': [on],
 			'no-magic-numbers':    [on, {
+				ignore: [0, 1],
 				ignoreArrayIndexes: true,
 			}],
 			'no-octal':                [on],
@@ -488,16 +489,6 @@ const rules = {
 			'no-mixed-spaces-and-tabs': [on, 'smart-tabs'],
 		},
 		spaces: {
-			//TODO Ensure that this doesn't mess with any horizontal spacing used.
-			'no-multi-spaces': [on, {
-				ignoreEOLComments: true,
-				exceptions:        {
-					Property:           true,
-					BinaryExpression:   true,
-					VariableDeclarator: true,
-					ImportDeclaration:  true,
-				},
-			}],
 			'no-trailing-spaces': [on, {
 				skipBlankLines: false,
 				ignoreComments: false,
@@ -557,13 +548,14 @@ const rules = {
 					//TODO Add tag letters here.
 				],
 			}],
+
+			// Horizontal alignment used in many different places.
+			'no-multi-spaces': [off],
 		},
 	},
 	comments: {
-		'capitalized-comments': [on, 'always', {
-			ignoreInlineComments:      false,
-			ignoreConsecutiveComments: true,
-		}],
+		// Not feasible as there are too many cases where a lowercase comment is valid (literals).
+		'capitalized-comments':  [off],
 		'no-warning-comments':   [off],
 		'line-comment-position': [off],
 		'no-inline-comments':    [off],

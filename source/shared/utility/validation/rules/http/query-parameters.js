@@ -1,10 +1,8 @@
 import Rule from '../../rule.js';
-import {
-	object,
-	string,
-	number,
-	boolean,
-} from '../index.js';
+import {object} from '../objects/index.js';
+import {string} from '../strings.js';
+import {number} from '../numbers.js';
+import boolean from '../boolean.js';
 import {forKeysOf} from '../../../object/index.js';
 
 export default new Rule({
