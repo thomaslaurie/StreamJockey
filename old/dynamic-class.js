@@ -158,11 +158,11 @@
 //TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
 //TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
 
-import define from './object/define.js';
-import {forOwnKeysOf, getOwnKeysOf} from './object/keys-of.js';
-import Rule from './validation/rule.js';
-import {rules} from './validation/index.js';
-import {Interface, SymbolInterface} from './validation/interface.js';
+import define from '../source/shared/utility/object/define.js';
+import {forOwnKeysOf, getOwnKeysOf} from '../source/shared/utility/object/keys-of.js';
+import Rule from '../source/shared/utility/validation/rule.js';
+import {rules} from '../source/shared/utility/validation/index.js';
+import {Interface, SymbolInterface} from '../source/shared/utility/validation/interface.js';
 
 // VALIDATION
 const customRules = {};

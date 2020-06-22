@@ -1,7 +1,7 @@
 import test from 'ava';
 import dynamicClass from './dynamic-class.js';
-import deepCompare  from './object/deep-compare.js';
-import boolCatch    from './bool-catch.js';
+import deepCompare  from '../source/shared/utility/object/deep-compare.js';
+import boolCatch    from '../source/shared/utility/bool-catch.js';
 
 // LINKS
 const ClassA = class ClassA {

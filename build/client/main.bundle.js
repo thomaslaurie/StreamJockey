@@ -38975,27 +38975,20 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CustomError; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
-/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('CustomError', {
-  extends: Error,
-  // Extract message from options and pass it properly to Error.
-  intercept: function intercept() {
+class CustomError extends Error {
+  constructor() {
     var {
-      message
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    return {
-      superArguments: [message]
-    };
-  },
-
-  instance() {
-    var {
+      // Extract message from options and pass it properly to Error.
+      message,
       // User-readable message.
       // Alternative to the native Error class' 'message' property which should not be exposed to the user by default.
-      //!//G sj.Error.message -> CustomError.userMessage, sj.Error.reason => CustomError.message
+      //! //G sj.Error.message -> CustomError.userMessage, sj.Error.reason => CustomError.message
       userMessage = ''
     } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    super(message);
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
       reason: {
         value: userMessage,
@@ -39004,7 +38997,7 @@ __webpack_require__.r(__webpack_exports__);
     });
   }
 
-}));
+}
 
 /***/ }),
 
@@ -39017,20 +39010,26 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return HTTPError; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 
-/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('HTTPError', {
-  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
 
-  instance() {
-    var {
+class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  constructor() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        {
       code = 400,
       // HTTPS Response Status Code
-      type = 'Bad Request' // Human-readable code name.
+      type = 'Bad Request'
+    } = _ref,
+        rest = _objectWithoutProperties(_ref, ["code", "type"]);
 
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    super(rest);
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
       code: {
         value: code,
@@ -39043,7 +39042,7 @@ __webpack_require__.r(__webpack_exports__);
     });
   }
 
-}));
+}
 
 /***/ }),
 
@@ -39088,8 +39087,8 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return InternalError; });
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -39103,22 +39102,20 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 // Used for errors that are caused by internal mistakes in the code. 
 // ie. Not the user's fault.
 
-
-/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('InternalError', {
-  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
-  intercept: (_ref) => {
-    var {
+class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        {
       userMessage = 'An internal error has occurred'
     } = _ref,
         rest = _objectWithoutProperties(_ref, ["userMessage"]);
 
-    return {
-      nextArguments: _objectSpread({
-        userMessage
-      }, rest)
-    };
+    super(_objectSpread({
+      userMessage
+    }, rest));
   }
-}));
+
+}
 
 /***/ }),
 
@@ -39131,23 +39128,30 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ParseError; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 
-/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('ParseError', {
-  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
 
-  instance() {
-    var {
+class ParseError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  constructor() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        {
       input
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    } = _ref,
+        rest = _objectWithoutProperties(_ref, ["input"]);
+
+    super(rest);
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
       input
     });
   }
 
-}));
+}
 
 /***/ }),
 
@@ -39160,24 +39164,30 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return UnexpectedValueThrown; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 
-/* harmony default export */ __webpack_exports__["default"] = (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["dynamicClass"].create('UnexpectedValueThrown', {
-  extends: _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"],
 
-  instance() {
-    var {
-      value // The value that was thrown.
+class UnexpectedValueThrown extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  constructor() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        {
+      value
+    } = _ref,
+        rest = _objectWithoutProperties(_ref, ["value"]);
 
-    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    super(rest);
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
       value
     });
   }
 
-}));
+}
 
 /***/ }),
 
@@ -40826,6 +40836,155 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/shared/utility/class-parts.js":
+/*!**********************************************!*\
+  !*** ./source/shared/utility/class-parts.js ***!
+  \**********************************************/
+/*! exports provided: default, initPrototype, initStatic, prototypeSuper, staticSuper */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassParts; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initPrototype", function() { return initPrototype; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initStatic", function() { return initStatic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "prototypeSuper", function() { return prototypeSuper; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticSuper", function() { return staticSuper; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
+/* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
+/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
+//G Constructor size can be reduced if the class is simple enough by simply passing the entire options parameter to the intercept/instance parts and letting them do the destructuring. (Though this could duplicate validation, if two parts use the same option).
+//R Using a baked-in .call() because its shorter and it reduces the risk of using the part without a target.
+//R Decided against shorthands because the default syntax can just be used if a less-explicit/quicker definition is desired.
+//R Augmenting a class with prototype and static parts does not count as a 'side-effect' as described in this explanation: //L https://stackoverflow.com/a/49776306
+
+
+
+var wrappedPartInterface = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__["SymbolInterface"]({
+  marker: _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__["SymbolInterface"].exists
+}); // Marks the passed function as wrapped.
+
+function mark(func) {
+  _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(func, {
+    [wrappedPartInterface.keys.marker]: true
+  });
+  return func;
+} // Validate, wrap, and marks the passed part.
+
+
+function wrapIntercept(interceptor) {
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(interceptor);
+  return mark(function () {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return interceptor.call(null, ...args);
+  });
+}
+
+function wrapInstance(initializer) {
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(initializer);
+  return mark(function (instance) {
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.validate(instance);
+
+    for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      args[_key2 - 1] = arguments[_key2];
+    }
+
+    return initializer.call(instance, ...args);
+  });
+}
+
+function wrapPrototype(initializer) {
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(initializer);
+  return mark(Class => {
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.validate(Class === null || Class === void 0 ? void 0 : Class.prototype);
+    return initializer.call(Class.prototype);
+  });
+}
+
+function wrapStatic(initializer) {
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate(initializer);
+  return mark(Class => {
+    _validation_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.validate(Class);
+    return initializer.call(Class);
+  });
+}
+
+class ClassParts {
+  constructor() {
+    var {
+      intercept = () => {},
+      instance = () => {},
+      prototype = () => {},
+      static: s = () => {}
+    } = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    // Wrapping & Validation
+    var wrappedIntercept = wrappedPartInterface.test(intercept) ? intercept : wrapIntercept(intercept);
+    var wrappedInstance = wrappedPartInterface.test(instance) ? instance : wrapInstance(instance);
+    var wrappedPrototype = wrappedPartInterface.test(prototype) ? prototype : wrapPrototype(prototype);
+    var wrappedStatic = wrappedPartInterface.test(s) ? s : wrapStatic(s); // Initialization
+
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
+      intercept: wrappedIntercept,
+      instance: wrappedInstance,
+      prototype: wrappedPrototype,
+      static: wrappedStatic
+    });
+  }
+
+} // Immediately wraps and invokes the passed part.
+//R Intercept and instance parts not included because they can be called directly from the constructor.
+
+function initPrototype(Class, initializer) {
+  return wrapPrototype(initializer)(Class);
+}
+function initStatic(Class, initializer) {
+  return wrapStatic(initializer)(Class);
+} // Replacements for the 'super' keyword inside prototype and static methods.
+//R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
+
+function prototypeSuper(Class) {
+  return Object.getPrototypeOf(Class.prototype);
+}
+function staticSuper(Class) {
+  return Object.getPrototypeOf(Class);
+} // EXAMPLE
+
+/*
+	import partsA from 'somewhere.js';
+	import partsB from 'somewhereElse.js';
+
+	class X {
+		constructor(a, b, c) {
+			partsB.intercept(a, c);
+			const {x, y, z} = partsA.intercept(a, b, c);
+			<some interception without parts>
+
+			super(x, y);
+
+			partsA.instance(this, z);
+			partsB.instance(this, a, c);
+			<some instance initialization without parts>
+		}
+	}
+
+	partsA.prototype(X);
+	partsB.prototype(X);
+	initPrototype(X, () => {
+		<some prototype initialization without parts>
+	});
+
+	partsA.static(X);
+	partsB.static(X);
+	initStatic(X, () => {
+		<some static initialization without parts>
+	});
+*/
+
+/***/ }),
+
 /***/ "./source/shared/utility/combinations.js":
 /*!***********************************************!*\
   !*** ./source/shared/utility/combinations.js ***!
@@ -41007,766 +41166,6 @@ class Deferred extends Promise {
 
 /***/ }),
 
-/***/ "./source/shared/utility/dynamic-class.js":
-/*!************************************************!*\
-  !*** ./source/shared/utility/dynamic-class.js ***!
-  \************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
-/* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/rule.js */ "./source/shared/utility/validation/rule.js");
-/* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
-/* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
-
-function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
-
-/* //R
-	CLASS COMPOSITION (
-		This module seem like it would work well with composition: 'class composition'.
-		Use for shallow but present class structures.
-	)
-
-	//L functional classes: https://stackoverflow.com/questions/15192722/javascript-extending-class
-
-	CLASS V FUNCTION DIFFERENCES (
-		//L https://medium.com/beginners-guide-to-mobile-web-development/super-and-extends-in-javascript-es6-understanding-the-tough-parts-6120372d3420
-		//L Native classes are actually different: see classtraphobic
-
-		class             <---> function
-		super(...args);   <---> Parent.call(this, ...args);
-
-		if child:
-		_                 <---> prototype of Class is Parent.
-		_                 <---> Class           has a non-writable, non-enumerable, non-configurable prototype property that is an object with its prototype as Parent.prototype.
-		_                 <---> Class.prototype has a non-writable, non-enumerable, non-configurable constructor property that points to Class.
-		if not child:
-		_                 <---> Class.prototype must have it's writable attribute changed from true to false.
-
-		not reproducible:
-		this before super <---> All interactions except direct references to this can be trapped with a Proxy.
-		Class() cannot be called directly <---> Cannot reproduce this behaviour without wrapping the Class itself in a proxy.
-
-		FUNCTIONAL IMPLEMENTATION (
-			const Class = {[name]: function (...args) {
-				// INTERCEPT
-				const interceptedArgs = this.constructor[iface.intercept].call(proxy, ...args);
-
-				// EXTEND
-				if (isChild) Parent.call(this, ...interceptedArgs);
-
-				// INSTANCE
-				const transfers = this.constructor[iface.instance].call(this, ...interceptedArgs);
-				this.constructor[iface.instanceTransfer](transfers, this);
-			}}[name];
-
-			if (isChild) {
-				// Set prototype.
-				Object.setPrototypeOf(Class, Parent);
-				// Set Class.prototype to a new object that inherits from Parent.prototype and set writable, enumerable, configurable as false.
-				define.hiddenConstant(Class, {prototype: Object.create(Parent.prototype)});
-				// Give Class.prototype a constant constructor property.
-				define.hiddenConstant(Class.prototype, {constructor: Class});
-			} else {
-				// Set Class.prototype to itself and set writable to false. function prototypes are writable but Class prototypes are not.
-				define.hiddenConstant(Class, {prototype: Class.prototype});
-			}
-		)
-	)
-
-	//OLD INTERCEPT PROXY (
-		Removed this from intercept.call(proxy, ...args); because Proxy cannot be as easily poly-filled as classes can.
-
-		This is also more consistent: referencing this in any way will work, but not actually point to this. Instead of throwing an error in all cases except when it is directly referenced.
-
-		const throwOnThisReference = function () {
-			throw new ReferenceError(`Cannot use 'this' keyword in intercept.`);
-		};
-		const proxy = new Proxy({}, {
-			// all possible traps
-			getPrototypeOf:           throwOnThisReference,
-			setPrototypeOf:           throwOnThisReference,
-			isExtensible:             throwOnThisReference,
-			preventExtensions:        throwOnThisReference,
-			getOwnPropertyDescriptor: throwOnThisReference,
-			defineProperty:           throwOnThisReference,
-			has:                      throwOnThisReference,
-			get:                      throwOnThisReference,
-			set:                      throwOnThisReference,
-			deleteProperty:           throwOnThisReference,
-			ownKeys:                  throwOnThisReference,
-			apply:                    throwOnThisReference,
-			construct:                throwOnThisReference,
-		});
-	)
-
-	INTERCEPT
-		Main issue is that the arguments used by the instance function may be different than the arguments passed to super.
-		Would have to create a 'filter' function for super.
-		The problem with that is its interaction with the layer system isn't clear.
-		At the same time, I can't think of a reason why multiple intercept layers would want to modify the interceptedArgs output (other than to change the incoming signature).
-		This problem seems to be created by having '3' phases, '2' in/out phases works but 3 doesn't.
-		Maybe just only use the signature of the top-most layer? But then what happens if a lower layer changes the subclass?
-		Actually I think the right solution is to use the filter functions in forward order.
-		The original implementation is actually incorrect: a lower layer could have a different sub-class with a different signature, of which the higher layers know nothing about and would pass the wrong super signature. - It would have made more sense to have the intercept going in forward order too. (But then the signature wouldn't be able to be changed).
-		Basically, both the input signature and the parent class need to be augment-able, which requires the lowest layer to be the respective first and last thing to touch these parts. Which requires an in/out system.
-
-		There doesn't need to be an 'in' step for the instance parts, because subclasses should follow the substitution principle, and anything done by a sub-class should be compatible with the super class.
-		Also higher layers should not be concerned with creating incompatibilities with lower layers, because the lower layers should have 'knowledge' of the higher layers.
-
-
-		Ok, so the intercept phase needs an input/output layer ordering. But every other phase (instance, prototype, static) only needs an output layer ordering due because sub-classes and layers should obey the substitution principle: anything that happened to the class upstream (due to inserted subclassing, layer logic, etc.) should be fully compatible with the downstream, higher layers.
-		! The reason the input phase is different, is because class signatures do not have to obey this substitution principle. Which means that lower layers have to accommodate the assumptions (input signature, output signature) of higher layers.
-
-		TODO trying to find a way to make this more elegant
-
-		Split everything into single files so that dependencies are clear.
-		Rewrite with new syntax.
-
-		Start with parts with 0 dependencies, then work up. (Doing it the other way around didn't work.)
-
-		Get rid of wrapper objects, they're too cumbersome and cause too many dependencies.
-
-
-		3 things to pass:
-		input arguments for next layer
-			input arguments for the next layer default to the layers own input arguments, but could be changed if for example the lower layer modifies the class' signature
-		arguments to super
-			arguments to super default to the input arguments for the next layer (if at the top), 
-		scope variables to instance function
-			scope variables default to the input arguments for the next layer
-			scope variables should only be available within the layer
-			the use case for this is passing one modified value to the superclass, but keeping the original argument and passing it to the instance initializer
-
-		arguments to super only applies to highest layer,
-		extends only applies to the lowest layer (with conditions)
-		one problem: if a lower layer changes the extends class, the highest class has no knowledge, in this case the signatures may not match (unless the signatures follow the substitution principle, ie using a superclass signature for a subclass.... no actually, this is the reverse)
-			maybe, the super arguments could be a function, that works in the forward direction, they take the arguments to be passed to super (from a possible higher layer, or self), but they also have a closure to the current intercept function, (Ie is defined in the return), that way the super arguments can be passed back down and modified according to the extends class appropriately
-				actually, what if the instance function is defined in the return, that would create the closure, but it would be less aligned
-
-		outputArguments
-		superArguments
-		scopeVariables / closureVariables / instance function with inherent closure
-
-
-		CURRENT PLAN
-
-		INTERCEPT FUNCTION
-			has 'input arguments'
-			returns an object with:
-				'output arguments' array
-					which are passed to a higher layer
-						so that different layer signatures can be supported
-						the lower layers must accommodate (or have knowledge of) higher layers
-					is basically the return of the intercept function, but is put alongside other functions because they need closures
-					if no higher layer exists, these get passed to the same layer's 'super arguments'
-					defaults to the 'input arguments'
-				'super arguments' function
-					which takes the output of higher layer's 'super arguments' function
-					and passes its output to lower layer's 'super arguments' function
-					if no lower layer exists, the output is passed to super
-					if no higher layer exists, it gets passed the 'output arguments'
-					defaults to returning what ever it was passed
-				'instance arguments' array
-					which are passed to the same layer's instance function
-						used as 'scope' variables, to store variables that aren't used by higher layers or super, but the instance
-					defaults to the 'input arguments'
-*/
-//TODO//! Need a way to hoist the static class reference. Or else there is no way (without augmentation) to reference the exact constructor. (this.constructor will be different for sub-classes.) This should go along-side duper, but how to add it with instances?
-// Maybe, using a function for each layer would allow that? Giving direct reference to the class being defined. This however would not be contextual between instance/prototype/static
-// Maybe passing a separate super parameter in the top level function would help with this: superPrototype, superStatic, etc.
-// Even if this overarching function declaration works with super and hoisting, can it solve anything related to the awkward intercept function?
-//TODO should it be possible to change the class parent? it would effectively only allow changing it to a subclass (unless already defined layers should be redefined), or maybe augmentation in general is just a bad idea.
-//TODO Consider the name 'CompositeClass', as it seems the composition structure will end up being more useful than the 'dynamic-ness' of it.
-
-
-
-
- // VALIDATION
-
-var customRules = {};
-_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(customRules, {
-  layers: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(value);
-      var currentExtends;
-
-      for (var layer of value) {
-        customRules.layer.validate(layer); // If layers define an extension class, they must be the same as or descend from all extension classes of higher layers.
-
-        if (layer.extends !== undefined && currentExtends !== undefined) {
-          if (layer.extends === currentExtends || currentExtends.isPrototypeOf(layer.extends)) {
-            currentExtends = layer.extends;
-          } else {
-            //TODO write test
-            throw new Error('Dynamic Class layer cannot extend a class that is not equal to or the descendant of a class extended by a higher layer.');
-          }
-        }
-      }
-    },
-
-    caster(reference) {
-      // Undefined defaults to empty array.
-      if (reference.value === undefined) reference.value = []; // Cast all items in array to layers.
-
-      if (reference.value instanceof Array) {
-        reference.value = reference.value.map(layer => {
-          return customRules.layer.validateCast(layer)[0];
-        });
-      } // Else cannot cast non-undefined, non-arrays.
-
-    }
-
-  }),
-  layer: new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["Interface"]({
-    //R Wrap the test functions to ensure that they doesn't get modified.
-    extends: value => customRules.extends.validate(value),
-    intercept: value => customRules.intercept.test(value),
-    instance: value => customRules.instance.test(value),
-    prototype: value => customRules.prototype.test(value),
-    static: value => customRules.static.test(value)
-  }, {
-    caster(reference) {
-      // Undefined defaults to empty object.
-      if (reference.value === undefined) reference.value = {}; // Set defaults for undefined properties.
-
-      if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(reference.value)) {
-        var _reference$value = reference.value,
-            {
-          extends: e,
-          intercept = () => {},
-          instance = () => {},
-          prototype = () => {},
-          static: s = () => {}
-        } = _reference$value,
-            rest = _objectWithoutProperties(_reference$value, ["extends", "intercept", "instance", "prototype", "static"]); // Replace with new object.
-
-
-        reference.value = _objectSpread({
-          extends: e,
-          intercept,
-          instance,
-          prototype,
-          static: s
-        }, rest);
-      } // Else, not possible to cast non-undefined, non-object to layer.
-
-    }
-
-  }),
-  name: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(value)) {
-        throw new Error("'name' option must be a string, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  //! These must use the same keys that are expected on a layer object.
-  extends: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      // Must be undefined or a constructor.
-      if (!(value === undefined || _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].constructor.test(value))) {
-        throw new Error("'extends' option must be undefined or a constructor, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  intercept: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'intercept' option must be a function, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  instance: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'instance' option must be a function, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  prototype: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'prototype' option must be a function, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  static: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'static' option must be a function, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  instanceTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'instanceTransfer' option must be a function, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  prototypeTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'prototypeTransfer' option must be a function, not a ".concat(typeof value));
-      }
-    }
-
-  }),
-  staticTransfer: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_2__["default"]({
-    validator(value) {
-      if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(value)) {
-        throw new Error("'staticTransfer' option must be a function, not a ".concat(typeof value));
-      }
-    }
-
-  })
-}); // UTILITY FUNCTIONS
-
-function processArguments() {
-  var arg0 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-  var name;
-  var layers;
-
-  for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    args[_key - 1] = arguments[_key];
-  }
-
-  if (_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.test(arg0)) {
-    // If first argument is a string, consider it the name.
-    name = arg0;
-    layers = [...args];
-  } else {
-    // Else consider it a layer.
-    name = ''; // Native function and class' 'name' property defaults to an empty string.
-
-    layers = [arg0, ...args];
-  }
-
-  return {
-    name: customRules.name.validate(name)[0],
-    layers: customRules.layers.validateCast(layers)[0]
-  };
-}
-
-;
-
-function getParent(layers) {
-  // Returns the last defined 'extends' property.
-  for (var i = layers.length - 1; i >= 0; i--) {
-    var Parent = layers[i].extends;
-    if (Parent !== undefined) return Parent;
-  }
-
-  return undefined;
-}
-
-;
-
-function doIntercept(args, layers) {
-  // Store:
-  // Current intercept arguments for intercept chaining.
-  var nextArgs = args; // All super arguments getters for later iteration. They will be evaluated in the super chain.
-
-  var getSuperArgsList = []; // All instance arguments for later iteration.
-
-  var instanceArgsList = []; // Loop backwards over intercept functions.
-
-  for (var i = layers.length - 1; i >= 0; i--) {
-    var _layers$i$intercept$c;
-
-    var currentArguments = nextArgs; // Call with null as this to throw on any object-like operations on this.
-
-    var result = (_layers$i$intercept$c = layers[i].intercept.call(null, ...currentArguments)) !== null && _layers$i$intercept$c !== void 0 ? _layers$i$intercept$c : {};
-
-    var {
-      //R All functions will be passed their default return. That way defaults can be easily extended, and all three options are more similar.
-      nextArguments = function () {
-        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          args[_key2] = arguments[_key2];
-        }
-
-        return args;
-      },
-      superArguments = function () {
-        for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-          args[_key3] = arguments[_key3];
-        }
-
-        return args;
-      },
-      instanceArguments = function () {
-        for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-          args[_key4] = arguments[_key4];
-        }
-
-        return args;
-      }
-    } = result,
-        rest = _objectWithoutProperties(result, ["nextArguments", "superArguments", "instanceArguments"]); // Validate return object.
-
-
-    var restKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getOwnKeysOf"])(rest);
-
-    if (restKeys.length !== 0) {
-      throw new Error("Intercept function has extra return properties: [".concat(restKeys.join(', '), "], this is probably a mistake."));
-    } // Transform array shorthands into functions.
-
-
-    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(nextArguments)) {
-      (function () {
-        var shorthand = nextArguments;
-
-        nextArguments = () => shorthand;
-      })();
-    }
-
-    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(superArguments)) {
-      (function () {
-        var shorthand = superArguments;
-
-        superArguments = () => shorthand;
-      })();
-    }
-
-    if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.test(instanceArguments)) {
-      (function () {
-        var shorthand = instanceArguments;
-
-        instanceArguments = () => shorthand;
-      })();
-    } // Validate
-
-
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(nextArguments);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(superArguments);
-    _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(instanceArguments); // Store
-
-    nextArgs = _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(nextArguments(...currentArguments))[0];
-    getSuperArgsList[i] = superArguments;
-    instanceArgsList[i] = _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(instanceArguments(...currentArguments))[0];
-  } // Return for use by super-chain and instance function iteration.
-
-
-  return {
-    nextArgs,
-    getSuperArgsList,
-    instanceArgsList
-  };
-}
-
-;
-
-function doInstance(layers, instanceArgsList) {
-  // Loop forwards over instance functions.
-  for (var i = 0; i < layers.length; i++) {
-    // Pass the instance inputs from the respective intercept function.
-    layers[i].instance.call(this, ...instanceArgsList[i]);
-  }
-}
-
-; // INTERFACE
-
-var dynamicClass = new _validation_interface_js__WEBPACK_IMPORTED_MODULE_4__["SymbolInterface"]({
-  layers: value => customRules.layers.test(value)
-}); // FACTORIES
-// Stored directly on the dynamicClass interface for ease of access.
-
-_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
-  baseCreate() {
-    var {
-      name,
-      layers
-    } = processArguments(...arguments);
-    var Parent = getParent(layers);
-    var isChild = Parent !== undefined; // Freeze the layers so that they cannot be further modified.
-    //G If augmentation is desired it should be done non-destructively by adding to the layers array.
-
-    for (var layer of layers) {
-      Object.freeze(layer);
-    } // DEFINITION
-    //R class syntax was necessary because it doesn't seem possible to replicate the non-callable nature of classes without using a Proxy.
-    //R This ensures that no undiscovered differences slip by.
-    //R Definition still had to be duplicated because optional extension and super calls don't seem possible.
-
-
-    var Class;
-
-    if (isChild) {
-      Class = {
-        [name]: class extends Parent {
-          constructor() {
-            var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
-
-            for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-              args[_key5] = arguments[_key5];
-            }
-
-            var {
-              nextArgs,
-              getSuperArgsList,
-              instanceArgsList
-            } = doIntercept.call(null, args, layers); // SUPER
-            // Once all layers have intercepted, pass the nextArguments (from the highest layer) to its getSuperArguments function.
-
-            var superArguments = nextArgs; // Loop forwards over getSuperArguments functions.
-
-            for (var i = 0; i < layers.length; i++) {
-              var currentSuperArguments = superArguments; // Set the next superArguments
-
-              superArguments = _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate(getSuperArgsList[i](...currentSuperArguments))[0];
-            }
-
-            super(...superArguments); // INSTANCE
-
-            doInstance.call(this, layers, instanceArgsList);
-          }
-
-        }
-      }[name];
-    } else {
-      Class = {
-        [name]: class {
-          constructor() {
-            var layers = Class[dynamicClass.keys.layers]; // INTERCEPT
-
-            for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-              args[_key6] = arguments[_key6];
-            }
-
-            var {
-              instanceArgsList
-            } = doIntercept.call(null, args, layers); // INSTANCE
-
-            doInstance.call(this, layers, instanceArgsList);
-          }
-
-        }
-      }[name];
-    } // STORE PARTS
-    //R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
-
-
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenWritable(Class, {
-      [dynamicClass.keys.layers]: layers
-    });
-    /* //G//!
-    	The 'duper' parameter should replace uses of 'super' in methods.
-    	Unlike 'super', 'duper' can also be used on regular functions.
-    			Because 'duper' is a closure, it is a valid replacement for 'super' because they both are not dynamic. 
-    	The object that they reference does not change even if the method assigned on a different object.
-    			If a dynamic behavior is desired, use Object.getPrototypeOf(Object.getPrototypeOf(this)); instead.
-    */
-    //TODO consider not putting duper in an options container, I don't believe there should be any more arguments
-
-    for (var _layer of layers) {
-      // PROTOTYPE
-      _layer.prototype.call(Class.prototype, {
-        duper: Object.getPrototypeOf(Class.prototype)
-      }); // STATIC
-
-
-      _layer.static.call(Class, {
-        duper: Object.getPrototypeOf(Class)
-      });
-    }
-
-    return Class;
-  },
-
-  /* //R
-  	The augmentation function exists for two main reasons:
-  	It brings any closure setup back inside to the single function call.
-  	It removes the risk of implementing the augmentation wrong (say by forgetting to use a closure and instead referencing the class that is being mutated, this would cause a recursive function).
-  
-  	//! If a layers' intercept function discards arguments, layers above it won't be able to recover them.
-  	//G The safest way is to always return the same signature.
-  */
-  baseAugment(Class) {
-    var currentParent = Object.getPrototypeOf(Class);
-
-    for (var _len7 = arguments.length, args = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
-      args[_key7 - 1] = arguments[_key7];
-    }
-
-    var [newLayers] = customRules.layers.validateCast(args);
-    var newLayersParent = getParent(newLayers); // Ensure new layers do not extend a different class.
-
-    if (!(newLayersParent === undefined || newLayersParent === currentParent)) {
-      throw new Error('Cannot augment class to extend another class.');
-    } // New prototype and static parts must be called immediately, as they are only called once when the class is created.
-    //! There is a chance that the class may have been modified between creation and augmentation, avoid doing this as it could create inconsistencies when augmenting.
-
-
-    for (var newLayer of newLayers) {
-      // PROTOTYPE
-      newLayer.prototype.call(Class.prototype, {
-        duper: Object.getPrototypeOf(Class.prototype)
-      }); // STATIC
-
-      newLayer.static.call(Class, {
-        duper: Object.getPrototypeOf(Class)
-      });
-    }
-
-    Class[dynamicClass.keys.layers].push(...newLayers);
-    return Class;
-  }
-
-}); // SHORT-HAND WRAPPERS
-
-function wrapParts(layers, keyWrapperPairs) {
-  var [newLayers] = customRules.layers.validateCast(layers);
-  return newLayers.map(layer => {
-    // Clone the layer to avoid mutation.
-    var newLayer = _objectSpread({}, layer);
-
-    var _loop = function _loop(key, wrapper) {
-      // Create a closure for the layer part.
-      var part = newLayer[key]; // Validate layer part and wrapper.
-
-      customRules[key].validate(part);
-      _validation_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate(wrapper); // Replace the part.
-
-      newLayer[key] = function () {
-        for (var _len8 = arguments.length, args = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-          args[_key8] = arguments[_key8];
-        }
-
-        return wrapper.call(this, part, ...args);
-      };
-    };
-
-    for (var [key, wrapper] of keyWrapperPairs) {
-      _loop(key, wrapper);
-    } // Replace the layer.
-
-
-    return newLayer;
-  });
-}
-
-;
-
-function baseVanillaShorthandWrapper(part, enumerableCondition) {
-  var _part$call;
-
-  for (var _len9 = arguments.length, args = new Array(_len9 > 2 ? _len9 - 2 : 0), _key9 = 2; _key9 < _len9; _key9++) {
-    args[_key9 - 2] = arguments[_key9];
-  }
-
-  var transfers = (_part$call = part.call(this, ...args)) !== null && _part$call !== void 0 ? _part$call : {};
-  Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["forOwnKeysOf"])(transfers, (transfers, key) => {
-    var descriptor = Object.getOwnPropertyDescriptor(transfers, key);
-    /* force descriptors
-    	writable:     true (data descriptors) - fresh assignment
-    	configurable: true                    - fresh assignment
-    	enumerable:   conditional (
-    		instance value:     enumerable    - fresh assignment, 
-    												[[Define]] semantics of the class fields proposal
-    		instance function:  enumerable    ~ object literal declaration (both functions and methods),
-    												same as instance value
-    		instance accessor:  enumerable    ~ object literal declaration
-    												same as instance value
-    				prototype value:    nonEnumerable ~ same as method and accessor
-    		prototype function: nonEnumerable - class method
-    		prototype accessor: nonEnumerable - class accessor
-    				static value:       enumerable    - static class field of the class fields proposal
-    		static function:    nonEnumerable - static class method
-    		static accessor:    nonEnumerable - static accessor
-    	)
-    */
-
-    if (descriptor.writable === false) descriptor.writable = true;
-    descriptor.configurable = true;
-    descriptor.enumerable = enumerableCondition(descriptor);
-    Object.defineProperty(this, key, descriptor);
-  });
-}
-
-;
-
-function instanceVanillaShorthandWrapper(part) {
-  for (var _len10 = arguments.length, args = new Array(_len10 > 1 ? _len10 - 1 : 0), _key10 = 1; _key10 < _len10; _key10++) {
-    args[_key10 - 1] = arguments[_key10];
-  }
-
-  return baseVanillaShorthandWrapper.call(this, part, () => true, ...args);
-}
-
-;
-
-function prototypeVanillaShorthandWrapper(part) {
-  for (var _len11 = arguments.length, args = new Array(_len11 > 1 ? _len11 - 1 : 0), _key11 = 1; _key11 < _len11; _key11++) {
-    args[_key11 - 1] = arguments[_key11];
-  }
-
-  return baseVanillaShorthandWrapper.call(this, part, () => false, ...args);
-}
-
-;
-
-function staticVanillaShorthandWrapper(part) {
-  for (var _len12 = arguments.length, args = new Array(_len12 > 1 ? _len12 - 1 : 0), _key12 = 1; _key12 < _len12; _key12++) {
-    args[_key12 - 1] = arguments[_key12];
-  }
-
-  return baseVanillaShorthandWrapper.call(this, part, descriptor => descriptor.writable !== undefined && typeof descriptor.value !== 'function', ...args);
-}
-
-;
-
-function applyVanillaShorthandWrappers(layer) {
-  return wrapParts(layer, [['instance', instanceVanillaShorthandWrapper], ['prototype', prototypeVanillaShorthandWrapper], ['static', staticVanillaShorthandWrapper]]);
-}
-
-; // SHORT-HAND FACTORIES
-
-_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass, {
-  /* Enables the use of shorthand return objects for layer parts.
-  	//R These functions use 'vanilla' shorthands, which try to stay as close to the native class behavior as possible. This is so that converting between vanilla classes and dynamic classes is as easy as possible.
-  	//G If a different set of shorthands are desired, create new functions that mutate the layers array similar to the applyVanillaShorthandWrappers function.
-  */
-  create() {
-    var {
-      name,
-      layers
-    } = processArguments(...arguments);
-    var wrappedLayers = applyVanillaShorthandWrappers(layers);
-    return dynamicClass.baseCreate(name, ...wrappedLayers);
-  },
-
-  augment(Class) {
-    for (var _len13 = arguments.length, layers = new Array(_len13 > 1 ? _len13 - 1 : 0), _key13 = 1; _key13 < _len13; _key13++) {
-      layers[_key13 - 1] = arguments[_key13];
-    }
-
-    var wrappedLayers = applyVanillaShorthandWrappers(layers);
-    return dynamicClass.baseAugment(Class, ...wrappedLayers);
-  }
-
-});
-/* harmony default export */ __webpack_exports__["default"] = (dynamicClass);
-
-/***/ }),
-
 /***/ "./source/shared/utility/format-ms.js":
 /*!********************************************!*\
   !*** ./source/shared/utility/format-ms.js ***!
@@ -41794,7 +41193,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, combinations, Deferred, dynamicClass, formatMs, constants, keyCode, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, formatMs, constants, keyCode, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -41865,14 +41264,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _clamp_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./clamp.js */ "./source/shared/utility/clamp.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clamp", function() { return _clamp_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
 
-/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./combinations.js */ "./source/shared/utility/combinations.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+/* harmony import */ var _class_parts_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./class-parts.js */ "./source/shared/utility/class-parts.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ClassParts", function() { return _class_parts_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
 
-/* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./deferred.js */ "./source/shared/utility/deferred.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+/* harmony import */ var _combinations_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./combinations.js */ "./source/shared/utility/combinations.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "combinations", function() { return _combinations_js__WEBPACK_IMPORTED_MODULE_9__["default"]; });
 
-/* harmony import */ var _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./dynamic-class.js */ "./source/shared/utility/dynamic-class.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "dynamicClass", function() { return _dynamic_class_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+/* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./deferred.js */ "./source/shared/utility/deferred.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
 /* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./format-ms.js */ "./source/shared/utility/format-ms.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });

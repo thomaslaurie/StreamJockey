@@ -3,7 +3,6 @@
 // Uses a similar format to Promise.allSettled()
 
 import {
-	dynamicClass,
 	define,
 	Rule,
 } from '../shared/utility/index.js';
@@ -16,8 +15,8 @@ const statusRule = new Rule({
 	},
 });
 
-export default dynamicClass.create('CustomError', {
-	instance({
+export default class Result {
+	constructor({
 		status = 'rejected',
 		value,
 	}) {
@@ -27,5 +26,5 @@ export default dynamicClass.create('CustomError', {
 			status,
 			value,
 		});
-	},
-});
+	}
+}

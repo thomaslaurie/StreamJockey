@@ -1,6 +1,7 @@
 //G Constructor size can be reduced if the class is simple enough by simply passing the entire options parameter to the intercept/instance parts and letting them do the destructuring. (Though this could duplicate validation, if two parts use the same option).
 //R Using a baked-in .call() because its shorter and it reduces the risk of using the part without a target.
 //R Decided against shorthands because the default syntax can just be used if a less-explicit/quicker definition is desired.
+//R Augmenting a class with prototype and static parts does not count as a 'side-effect' as described in this explanation: //L https://stackoverflow.com/a/49776306
 
 import define from './object/define.js';
 import {SymbolInterface} from './validation/interface.js';
