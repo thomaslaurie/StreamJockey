@@ -41564,7 +41564,7 @@ _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(dynamicClass,
     //R The reason class parts are stored on the class then referenced directly instead of with a closure is to make augmentation easier. Augmenting with closures only was turning out to be a hassle and complicated how the 'augmentation' tree would be preserved. Mutating the class parts directly is much easier to reason about. This way the constructor parts can be modified while also keeping the reference to the same class.
 
 
-    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenProperty(Class, {
+    _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].hiddenWritable(Class, {
       [dynamicClass.keys.layers]: layers
     });
     /* //G//!
@@ -42193,7 +42193,7 @@ __webpack_require__.r(__webpack_exports__);
 var ownKeys = function ownKeys(object) {
   //! Duplicated from keys-of.js
   return [...Object.getOwnPropertyNames(object), ...Object.getOwnPropertySymbols(object)];
-}; //C define is a container for less verbose versions of Object.defineProperty()
+}; // Define is a container for less verbose versions of Object.defineProperty()
 //G if modifications are required, write a different define function
 
 /* //R
@@ -42209,22 +42209,9 @@ var ownKeys = function ownKeys(object) {
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  // Guaranteed to be constant.
-  constant(target, properties) {
-    for (var key of ownKeys(properties)) {
-      Object.defineProperty(target, key, {
-        value: properties[key],
-        writable: false,
-        enumerable: true,
-        configurable: false
-      });
-    }
-
-    return target;
-  },
-
-  // Same as object property assignment. //! Can be set to {writable: false}
-  property(target, properties) {
+  //G Same as object property assignment.
+  //! Can be re-configured.
+  writable(target, properties) {
     for (var key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
         value: properties[key],
@@ -42237,7 +42224,24 @@ var ownKeys = function ownKeys(object) {
     return target;
   },
 
-  // Guaranteed to be variable. //! Has an accessor-descriptor.
+  //G Intended for properties that will soon be re-defined as constants.
+  //! Can be re-configured.
+  nonWritable(target, properties) {
+    for (var key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: false,
+        enumerable: true,
+        configurable: true
+      });
+    }
+
+    return target;
+  },
+
+  // Guaranteed to be variable.
+  //! Has an accessor-descriptor.
+  //R A data descriptor with {writable: true, configurable: false} is not used here because the ECMAScript standard still allows writable to be set to false, despite configurable being false.
   variable(target, properties) {
     var _loop = function _loop(key) {
       var closureValue = properties[key];
@@ -42258,15 +42262,17 @@ var ownKeys = function ownKeys(object) {
     for (var key of ownKeys(properties)) {
       _loop(key);
     }
+
+    return target;
   },
 
-  // Non-enumerable versions.
-  hiddenConstant(target, properties) {
+  // Guaranteed to be constant.
+  constant(target, properties) {
     for (var key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
         value: properties[key],
         writable: false,
-        enumerable: false,
+        enumerable: true,
         configurable: false
       });
     }
@@ -42274,11 +42280,25 @@ var ownKeys = function ownKeys(object) {
     return target;
   },
 
-  hiddenProperty(target, properties) {
+  // Non-enumerable versions.
+  hiddenWritable(target, properties) {
     for (var key of ownKeys(properties)) {
       Object.defineProperty(target, key, {
         value: properties[key],
         writable: true,
+        enumerable: false,
+        configurable: true
+      });
+    }
+
+    return target;
+  },
+
+  hiddenNonWritable(target, properties) {
+    for (var key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: false,
         enumerable: false,
         configurable: true
       });
@@ -42307,6 +42327,21 @@ var ownKeys = function ownKeys(object) {
     for (var key of ownKeys(properties)) {
       _loop2(key);
     }
+
+    return target;
+  },
+
+  hiddenConstant(target, properties) {
+    for (var key of ownKeys(properties)) {
+      Object.defineProperty(target, key, {
+        value: properties[key],
+        writable: false,
+        enumerable: false,
+        configurable: false
+      });
+    }
+
+    return target;
   },
 
   getter(target, properties) {
@@ -42414,6 +42449,8 @@ var ownKeys = function ownKeys(object) {
     for (var key of ownKeys(properties)) {
       _loop3(key);
     }
+
+    return target;
   }
 
 });
@@ -43503,25 +43540,24 @@ class VirtualInterface extends _rule_js__WEBPACK_IMPORTED_MODULE_3__["default"] 
   }
 
 }
-
-;
 /*
 	Interface and SymbolInterface take a single tests object.
 
 	This tests object should have keys as the interface property names and values as the validator functions for those interface properties.
 
-	Tests have two signatures: (value) and (object, key). 
+	Tests have two signatures: (value) and (object, key).
 	When they are stored on the interface.tests object, both signatures will be wrapped in a function with a (object, key) signature.
-	
+
 	//G Use tests with the (object, key) signature when the getter for object[key] should not be invoked during validation of the interface.
-	//! Be aware that default and rest parameters are not counted. 
+	//! Be aware that default and rest parameters are not counted.
 	//G Manually re-define the validator.length property if a specific behavior is desired.
 	//! The validator.length property will be set to non-configurable when it is passed in.
 
 */
 
+
 class Interface extends VirtualInterface {
-  // Interface accepts both named and symbol keys. 
+  // Interface accepts both named and symbol keys.
   // The same keys must be used for implementations.
   constructor(properties, options) {
     _rules_index_js__WEBPACK_IMPORTED_MODULE_4__["object"].validate(properties);
@@ -43535,7 +43571,6 @@ class Interface extends VirtualInterface {
   }
 
 }
-;
 class SymbolInterface extends VirtualInterface {
   // SymbolInterface creates substitute symbols for ALL interface keys.
   // Implementations must use the substituted symbols as the property keys.
@@ -43553,7 +43588,6 @@ class SymbolInterface extends VirtualInterface {
   }
 
 }
-;
 
 /***/ }),
 

@@ -91,25 +91,25 @@ class VirtualInterface extends Rule {
 	// Minimal test to ensure interface property exists in object.
 	static exists(object, key) {
 		return key in object;
-	};
-};
+	}
+}
 
 /*
 	Interface and SymbolInterface take a single tests object.
 
 	This tests object should have keys as the interface property names and values as the validator functions for those interface properties.
 
-	Tests have two signatures: (value) and (object, key). 
+	Tests have two signatures: (value) and (object, key).
 	When they are stored on the interface.tests object, both signatures will be wrapped in a function with a (object, key) signature.
-	
+
 	//G Use tests with the (object, key) signature when the getter for object[key] should not be invoked during validation of the interface.
-	//! Be aware that default and rest parameters are not counted. 
+	//! Be aware that default and rest parameters are not counted.
 	//G Manually re-define the validator.length property if a specific behavior is desired.
 	//! The validator.length property will be set to non-configurable when it is passed in.
 
 */
 export class Interface extends VirtualInterface {
-	// Interface accepts both named and symbol keys. 
+	// Interface accepts both named and symbol keys.
 	// The same keys must be used for implementations.
 	constructor(properties, options) {
 		rules.object.validate(properties);
@@ -123,7 +123,7 @@ export class Interface extends VirtualInterface {
 
 		super(packs, options);
 	}
-};
+}
 
 export class SymbolInterface extends VirtualInterface {
 	// SymbolInterface creates substitute symbols for ALL interface keys.
@@ -141,4 +141,4 @@ export class SymbolInterface extends VirtualInterface {
 
 		super(packs, options);
 	}
-};
+}

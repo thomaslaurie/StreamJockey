@@ -325,7 +325,6 @@ const rules = {
 		}],
 		'no-caller':         [on],
 		'no-invalid-this':   [on],
-		'no-useless-call':   [on],
 		'no-useless-return': [on],
 		'wrap-iife':         [on, 'inside', {
 			functionPrototypeMethods: true,
@@ -341,6 +340,8 @@ const rules = {
 		// Re-introducing 'this' to a function that had bind removed will cause more issues than removing bind from a function without 'this'.
 		'no-extra-bind':            [off],
 		'default-param-last':       [off],
+		// .call(null, ...) is useful for functions that shouldn't be referencing `this`. Also for consistency, all functions in a group may want to be invoked with .call() even if some don't need it.
+		'no-useless-call':          [off],
 		arrow:                      {
 			'implicit-arrow-linebreak': [on, 'beside'],
 			'arrow-parens':             [on, 'always'],
@@ -508,24 +509,29 @@ const rules = {
 			}],
 			'space-infix-ops':              [on],
 
-			//TODO Verify that this is working properly.
 			'key-spacing': [on, {
-				singleLine: {
-					beforeColon: false,
-					afterColon:  true,
-					mode:        'minimum',
-				},
-				multiLine: {
-					beforeColon: false,
-					afterColon:  true,
-					mode:        'minimum',
-				},
-				align: {
-					beforeColon: false,
-					afterColon:  true,
-					mode:        'strict',
-					on:          'value',
-				},
+				beforeColon: false,
+				afterColon:  true,
+				mode: 'minimum',
+				// Align not turned on because it can't be limited to same-type-properties.
+				/* With align:
+					singleLine: {
+						beforeColon: false,
+						afterColon:  true,
+						mode:        'minimum',
+					},
+					multiLine: {
+						beforeColon: false,
+						afterColon:  true,
+						mode:        'minimum',
+					},
+					align: {
+						beforeColon: false,
+						afterColon:  true,
+						mode:        'strict',
+						on:          'value',
+					},
+				*/
 			}],
 			'no-whitespace-before-property': [on],
 

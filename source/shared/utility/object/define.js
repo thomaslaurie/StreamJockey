@@ -12,7 +12,7 @@ const ownKeys = function (object) {
 	];
 };
 
-//C define is a container for less verbose versions of Object.defineProperty()
+// Define is a container for less verbose versions of Object.defineProperty()
 //G if modifications are required, write a different define function
 /* //R
 	Initially thought it would be useful to have configurable (loose) constants and non-configurable variables. However:
@@ -26,6 +26,47 @@ const ownKeys = function (object) {
 */
 
 export default {
+	//G Same as object property assignment.
+	//! Can be re-configured.
+	writable(target, properties) {
+		for (const key of ownKeys(properties)) {
+			Object.defineProperty(target, key, {
+				value: properties[key],
+				writable:     true,
+				enumerable:   true,
+				configurable: true,
+			});
+		}
+		return target;
+	},
+	//G Intended for properties that will soon be re-defined as constants.
+	//! Can be re-configured.
+	nonWritable(target, properties) {
+		for (const key of ownKeys(properties)) {
+			Object.defineProperty(target, key, {
+				value: properties[key],
+				writable:     false,
+				enumerable:   true,
+				configurable: true,
+			});
+		}
+		return target;
+	},
+	// Guaranteed to be variable.
+	//! Has an accessor-descriptor.
+	//R A data descriptor with {writable: true, configurable: false} is not used here because the ECMAScript standard still allows writable to be set to false, despite configurable being false.
+	variable(target, properties) {
+		for (const key of ownKeys(properties)) {
+			let closureValue = properties[key];
+			Object.defineProperty(target, key, {
+				get() { return closureValue },
+				set(value) { closureValue = value },
+				enumerable:   true,
+				configurable: false,
+			});
+		}
+		return target;
+	},
 	// Guaranteed to be constant.
 	constant(target, properties) {
 		for (const key of ownKeys(properties)) {
@@ -38,48 +79,24 @@ export default {
 		}
 		return target;
 	},
-	// Same as object property assignment. //! Can be set to {writable: false}
-	property(target, properties) {
+
+	// Non-enumerable versions.
+	hiddenWritable(target, properties) {
 		for (const key of ownKeys(properties)) {
 			Object.defineProperty(target, key, {
 				value: properties[key],
 				writable:     true,
-				enumerable:   true,
+				enumerable:   false,
 				configurable: true,
 			});
 		}
 		return target;
 	},
-	// Guaranteed to be variable. //! Has an accessor-descriptor.
-	variable(target, properties) { 
-		for (const key of ownKeys(properties)) {
-			let closureValue = properties[key];
-			Object.defineProperty(target, key, {
-				get() { return closureValue; },
-				set(value) { closureValue = value; },
-				enumerable:   true,
-				configurable: false,
-			});
-		}
-	},
-
-	// Non-enumerable versions.
-	hiddenConstant(target, properties) {
+	hiddenNonWritable(target, properties) {
 		for (const key of ownKeys(properties)) {
 			Object.defineProperty(target, key, {
 				value: properties[key],
 				writable:     false,
-				enumerable:   false,
-				configurable: false,
-			});
-		}
-		return target;
-	},
-	hiddenProperty(target, properties) {
-		for (const key of ownKeys(properties)) {
-			Object.defineProperty(target, key, {
-				value: properties[key],
-				writable:     true,
 				enumerable:   false,
 				configurable: true,
 			});
@@ -96,6 +113,18 @@ export default {
 				configurable: false,
 			});
 		}
+		return target;
+	},
+	hiddenConstant(target, properties) {
+		for (const key of ownKeys(properties)) {
+			Object.defineProperty(target, key, {
+				value: properties[key],
+				writable:     false,
+				enumerable:   false,
+				configurable: false,
+			});
+		}
+		return target;
 	},
 
 	getter(target, properties) {
@@ -147,7 +176,7 @@ export default {
 	},
 
 	identity(target, properties) {
-		for(const key of ownKeys(properties)) {
+		for (const key of ownKeys(properties)) {
 			Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(properties, key));
 		}
 		return target;
@@ -187,5 +216,6 @@ export default {
 				configurable: false,
 			});
 		}
+		return target;
 	},
 };

@@ -1,3 +1,6 @@
+//TODO Create test for define.nonWritable.
+//TODO Add tests that ensure the target is returned.
+
 import test from 'ava';
 import define from './define.js';
 
@@ -17,7 +20,7 @@ test('cannot redefine constant', (t) => {
 });
 
 // VARIABLE
-define.property(object, {v: 'v'});
+define.writable(object, {v: 'v'});
 test('can set variable', (t) => {
 	t.notThrows(() => {
 		object.v = 'not v';
@@ -61,7 +64,7 @@ test('accessor has setter', (t) => {
 });
 
 // MULTIPLES
-define.property(object, {
+define.writable(object, {
 	one: 'one',
 	two: 'two',
 	three: 'three',
