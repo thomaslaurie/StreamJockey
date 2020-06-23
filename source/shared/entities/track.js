@@ -34,7 +34,7 @@ export default Base.makeClass('Track', Entity, {
 			sourceId:	null, // TODO assumes ids are unique, even across all sources
 			artists:	[],
 			name:		null,
-			duration:	null, //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
+			duration:	null, //! Don't use 0 here as it counts as a 'set' value.
 			link:		null,
 		},
 	}),

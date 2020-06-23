@@ -14,8 +14,8 @@ export default new Rule({
 			symbol:        true,
 
 			inherited: false,
-		}).length === 0) {
-			throw new Error('Object is not populated.');
+		}).length > 0) {
+			throw new Error('Object is not empty.');
 		}
 	},
 });
