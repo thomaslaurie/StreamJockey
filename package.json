@@ -2,10 +2,10 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "node source/scripts/build.js --start=build/server/main.bundle.cjs",
+		"build": "node source/scripts/build.js",
 		"build:client": "npm run build -- --client-only",
 		"build:server": "npm run build -- --server-only",
-		"build:full": "npm run build -- --client=watch --server=refresh",
+		"build:live": "npm run build -- --client=watch --server=refresh",
 		"test": "node source/scripts/test.js",
 		"circular": "npx madge --circular source/shared/utility/index.js",
 		"lint": "npx eslint --config ./source/config/eslint.cjs \"source/**/*.{c,}js\"",
@@ -30,7 +30,7 @@
 		"pg-promise": "10.5.2",
 		"sass-loader": "^8.0.2",
 		"socket.io": "^2.3.0",
-		"source-map-support": "^0.5.16",
+		"source-map-support": "^0.5.19",
 		"spotify-web-api-node": "^4.0.0",
 		"valid-url": "^1.0.9"
 	},

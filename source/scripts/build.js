@@ -14,6 +14,7 @@ import getModule from '../node-utility/get-module.js';
 import {clientOptions, serverOptions} from '../config/webpack.config.js';
 import {
 	serverBuildFile,
+	serverBuildDirectory,
 } from '../config/project-paths.js';
 
 
@@ -27,7 +28,7 @@ import {
 (async () => {
 	// TIMER
 	const startTime = process.hrtime();
-	
+
 	// OPTIONS
 	const parser = await getModule('minimist', 'devDependencies');
 	const args = parser(process.argv.slice(2), {
@@ -58,18 +59,18 @@ import {
 	});
 
 	// INTERPRET OPTIONS
-	const buildClientHere = 
-		args.client === 'compile' ||
-		args.client === 'watch';
-	const buildServerHere = 
-		args.server === 'compile' ||
-		args.server === 'watch'   ||
-		args.server === 'refresh';
+	const buildClientHere
+		=  args.client === 'compile'
+		|| args.client === 'watch';
+	const buildServerHere
+		=  args.server === 'compile'
+		|| args.server === 'watch'
+		|| args.server === 'refresh';
 	const buildHere = buildClientHere || buildServerHere;
 	const watch = buildHere && (
-		args.client === 'watch' ||
-		args.server === 'watch' ||
-		args.server === 'refresh'
+		   args.client === 'watch'
+		|| args.server === 'watch'
+		|| args.server === 'refresh'
 	);
 	const startServer = args.start !== '';
 
@@ -92,7 +93,8 @@ import {
 		const compiler = webpack(config);
 
 		// BUILD HANDLER
-		let resolve, reject;
+		let resolve;
+		let reject;
 		const compilerPromise = new Promise((res, rej) => {
 			resolve = res;
 			reject = rej;
@@ -105,7 +107,7 @@ import {
 			console.log(stats.toString({colors: true}));
 			resolve(stats);
 		};
-	
+
 		// BUILD
 		if (watch) {
 			const watchOptions = {};
@@ -118,18 +120,15 @@ import {
 
 	// START SERVER
 	if (startServer) {
-		//TODO Get the build directory from some constant.
-		const serverDirectory = args.start.slice(0, args.start.lastIndexOf('/') + 1);
-		const serverFilename  = args.start.slice(args.start.lastIndexOf('/') + 1);
 		const node = args.server === 'refresh' ? 'nodemon' : 'node';
-		
-		await asyncSpawn(`cd ${serverDirectory} && npx ${node} --require source-map-support/register ${serverFilename}`);
+
+		await asyncSpawn(`cd ${serverBuildDirectory} && npx ${node} --require source-map-support/register ${serverBuildFile}`);
 	}
 
 	// TIMER
 	const [buildTime] = process.hrtime(startTime);
 	console.log(`\nBuild Time: ${buildTime} seconds\n`);
-})().catch(error => {
+})().catch((error) => {
 	console.error(error);
 	process.exitCode = 1;
 });

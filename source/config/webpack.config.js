@@ -45,12 +45,11 @@
 //  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
 
 // BUILT-IN
-import path from 'path';
 
 // EXTERNAL
 import webpack from 'webpack';
 import CWP from 'clean-webpack-plugin';
-const CleanWebpackPlugin = CWP.CleanWebpackPlugin;
+const {CleanWebpackPlugin} = CWP;
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
 import nodeExternals from 'webpack-node-externals';
@@ -78,14 +77,10 @@ const common = {
 	options: (env, argv) => ({
 		//L https://webpack.js.org/configuration/mode
 		mode: argv.mode,
-		//L https://webpack.js.org/configuration/devtool
-		//! 'eval-source-map' doesn't seem to work with source-map-support.
-		//L https://www.npmjs.com/package/source-map-support
-		devtool: argv.mode === 'development' ? 'source-map' : undefined,
 	}),
 	babelRule(targets) {
 		return {
-			test: /\.js$/,
+			test: /\.js$/u,
 			use: {
 				loader: 'babel-loader',
 				options: {
@@ -101,6 +96,7 @@ const common = {
 						'@babel/plugin-proposal-export-namespace-from',
 						'@babel/plugin-proposal-optional-chaining',
 					],
+					sourceMaps: true,
 				},
 			},
 		};
@@ -123,19 +119,23 @@ export const clientOptions = (env, argv) => ({
 		chunkFilename: '[name].chunk.js',
 		path: clientBuildDirectory,
 		//TODO This is explicitly required for webpack-dev-middleware, not 100% sure what it should be yet though.
-		//publicPath: 'dist/', //C the prefix that gets added to resource requests, //L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
+		// publicPath: 'dist/', // the prefix that gets added to resource requests, //L publicPath is just a prefix and needs a following '/': https://github.com/GoogleChrome/workbox/issues/1548
 		//TODO consider tossing not-yet-bundled resources into dist too (clientIndex, css)
-		publicPath: '/', 
+		publicPath: '/',
 	},
+	//L https://webpack.js.org/configuration/devtool
+	//! 'eval-source-map' doesn't seem to work with source-map-support.
+	//L https://www.npmjs.com/package/source-map-support
+	devtool: argv.mode === 'development' ? 'source-map' : undefined,
 	module: {
 		rules: [
 			{
 				//L https://vue-loader.vuejs.org/guide/#manual-configuration
-				test: /\.vue$/,
+				test: /\.vue$/u,
 				loader: 'vue-loader',
 			},
 			{
-				test: /\.css$/,
+				test: /\.css$/u,
 				use: [
 					'vue-style-loader',
 					'css-loader',
@@ -143,7 +143,7 @@ export const clientOptions = (env, argv) => ({
 			},
 			{
 				//L https://vue-loader.vuejs.org/guide/pre-processors.html#sass
-				test: /\.scss$/,
+				test: /\.scss$/u,
 				use: [
 					'vue-style-loader',
 					'css-loader',
@@ -171,6 +171,7 @@ export const clientOptions = (env, argv) => ({
 		}),
 	],
 });
+
 export const serverOptions = (env, argv) => ({
 	...common.options(env, argv),
 	target: 'node',
@@ -182,14 +183,36 @@ export const serverOptions = (env, argv) => ({
 		filename: '[name].bundle.cjs',
 		path: serverBuildDirectory,
 	},
+	// Required for SourceMapDevToolPlugin to work.
+	devtool: false,
 	module: {
 		rules: [common.babelRule({node: true})],
 	},
 	plugins: [
 		...common.plugins(env, argv),
-		{ /* custom node globals polyfill */
+		new webpack.SourceMapDevToolPlugin({
+			//R Webpack creates sourcemaps with the source content embedded in the files themselves, rather than pointing to the actual source files. This doesn't appear to be compatible with the idea of clicking URL directly from console-logged stack-traces, as the URL isn't valid from the perspective of the file-system.
+			//L This behavior is described here: https://github.com/webpack/webpack/issues/559, https://sourcemaps.info/spec.html
+			//G To override the default Webpack behavior and use non-self-contained source-maps, Webpack's custom prefix must be removed and the source URLs must point to the actual source files.
+
+			// Explicit 'filename' option forces non-inline source-maps.
+			//L Default from: https://stackoverflow.com/questions/52228650/configure-sourcemapdevtoolplugin-to-generate-source-map
+			filename: '[file].map[query]',
+			// Removes the 'webpack:///' prefix from the source URLs.
+			//? Not sure if 'fallbackModuleFilenameTemplate' is needed too?
+			moduleFilenameTemplate: '[absolute-resource-path]',
+			// Removes sourceContent from the source-maps.
+			noSources: true,
+
+			// Modified the default pattern from SourceMapDevToolPlugin to include .cjs files.
+			// Original: /\.(m?js|css)($|\?)/i
+			//L Source code: https://github.com/webpack/webpack/blob/28bb0c59c0d5a8d2d1192b4c19217f7ed59785f9/lib/SourceMapDevToolPlugin.js#L141
+			test: /\.(?:[mc]?js|css)(?:$|\?)/iu,
+		}),
+		{
+			/* custom node globals polyfill */
 			//L From: https://github.com/webpack/webpack/issues/1599#issuecomment-550291610
-			//G//! Works with default node-global config settings (replaces node: {__dirname: true}).
+			//G //! Works with default node-global config settings (replaces node: {__dirname: true}).
 			apply(compiler) {
 				function setModuleConstant(expressionName, fn) {
 					compiler.hooks.normalModuleFactory.tap('MyPlugin', factory => {
@@ -201,14 +224,9 @@ export const serverOptions = (env, argv) => ({
 						});
 					});
 				}
-		
-				setModuleConstant('__filename', function (module) {
-					return module.resource;
-				});
-		
-				setModuleConstant('__dirname', function (module) {
-					return module.context;
-				});
+
+				setModuleConstant('__filename', (module) => module.resource);
+				setModuleConstant('__dirname',  (module) => module.context);
 			},
 		},
 		/* //OLD If bundling node_modules:
@@ -217,10 +235,10 @@ export const serverOptions = (env, argv) => ({
 			new IgnorePlugin(/^pg-native$/),
 			//L Required to patch socket.io: https://github.com/socketio/engine.io/issues/575#issuecomment-578081012
 			new IgnorePlugin(/^uws$/),
-		*/	
+		*/
 	],
 	externals: [
-		//C Don't bundle node_modules.
+		// Don't bundle node_modules.
 		nodeExternals(),
 	],
 });
