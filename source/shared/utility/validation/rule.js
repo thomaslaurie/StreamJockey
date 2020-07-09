@@ -7,22 +7,24 @@
 
 //TODO consider duplicating define here, so that define can use rules
 
+//TODO consider allowing a shorthand parameter, where a single function argument defaults to the validator.
+
 import define from '../object/define.js';
 import {formReferences, extractValues} from '../reference.js';
 import boolCatch from '../bool-catch.js';
 
 export class Rule {
 	constructor({
-		/* //G 
+		/* //G
 			Should do nothing on success, throw on failure.
 			Should have one or many sequential and/or parallel conditions.
 			May be sync or async.
-			
+
 			If using other rules' validators, use validate() and pass the same arguments.
-		*/ 
+		*/
 		validator = function () {
 			throw new Error('A validator has not been created for this rule.');
-		}, 
+		},
 		/* //G
 			Receives Reference instances as its arguments.
 			Should modify Reference instance 'value' property on success, throw on failure.
@@ -49,72 +51,72 @@ export class Rule {
 		// store
 		define.identity(this, rest);
 		define.constant(this, {validator, caster});
-		
+
 		// false when x.constructor.name === 'AsyncFunction'
 		const validatorIsSynchronous = this.validator.constructor.name === 'Function';
 		const casterIsSynchronous    = this.caster.constructor.name === 'Function';
 
+		// Validate/test functions are bound to the instance because they may be copied to another object.
+
 		if (validatorIsSynchronous) {
 			define.constant(this, {
-				validate(...args) {
+				validate: (function validate(...args) {
 					this.validator(...args);
 					return args;
-				},
-				test(...args) {
+				}).bind(this),
+				test: (function test(...args) {
 					return boolCatch(() => this.validate(...args));
-				},
+				}).bind(this),
 			});
 		} else {
 			define.constant(this, {
-				async validate(...args) {
+				validate: (async function validate(...args) {
 					await this.validator(...args);
 					return args;
-				},
-				async test(...args) {
-					return boolCatch(async () => await this.validate(...args));
-				},
+				}).bind(this),
+				test: (async function test(...args) {
+					return boolCatch(async () => this.validate(...args));
+				}).bind(this),
 			});
 		}
 
 		if (validatorIsSynchronous && casterIsSynchronous) {
 			define.constant(this, {
-				validateCast(...args) {
+				validateCast: (function validateCast(...args) {
 					// If call is the entry-point, will convert values to reference-values. If call is nested, nothing will change.
 					const references = formReferences(args);
 
 					try {
 						this.caster(...references);
 					} catch (e) {} // Suppress casting errors, just get as far as possible.
-	
+
 					const values = extractValues(references);
 					this.validate(...values);
 					return values;
-				},
-				testCast(...args) {
+				}).bind(this),
+				testCast: (function testCast(...args) {
 					return boolCatch(() => this.validateCast(...args));
-				},
+				}).bind(this),
 			});
 		} else {
 			define.constant(this, {
-				async validateCast(...args) {
+				validateCast: (async function validateCast(...args) {
 					const references = formReferences(args);
 
 					try {
 						await this.caster(...references);
 					} catch (e) {}
-	
+
 					const values = extractValues(references);
 					await this.validate(...values);
 					return values;
-				},
-				async testCast(...args) {
-					return boolCatch(async () => await this.validateCast(...args));
-				},
+				}).bind(this),
+				testCast: (async function testCast(...args) {
+					return boolCatch(async () => this.validateCast(...args));
+				}).bind(this),
 			});
 		}
 	}
-};
+}
 
 export default Rule;
-
-

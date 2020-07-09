@@ -4,6 +4,7 @@ import {
 	asyncMap,
 	any,
 	rules,
+	forKeysOf,
 } from '../../shared/utility/index.js';
 import database from '../db.js';
 import liveData from '../live-data-server.js';
@@ -15,7 +16,6 @@ import {
 	Success,
 	SuccessList,
 } from '../../shared/legacy-classes/success.js';
-import Rule1 from '../../shared/legacy-classes/rule1.js';
 import {
 	Entity,
 } from '../../shared/entities/index.js';
@@ -27,6 +27,10 @@ import {
 	buildSet,
 } from '../database/sql-builders.js';
 import isEmpty from '../legacy/is-empty.js';
+import CustomError from '../../shared/errors/custom-error.js';
+import {
+	MultipleErrors,
+} from '../../shared/errors/index.js';
 
 Entity.augmentClass({
 	prototypeProperties: parent => ({
@@ -87,10 +91,10 @@ Entity.augmentClass({
 				const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
 				//C validate
-				const validatedEntities = await asyncMap(beforeEntities, async entity => await this.validate(entity, methodName).catch(propagate));
+				const validatedEntities = await asyncMap(beforeEntities, async entity => await this.validate(entity, methodName).catch(propagate)).catch(MultipleErrors.throw);
 
 				//C prepare
-				const preparedEntities = await asyncMap(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(propagate));
+				const preparedEntities = await asyncMap(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(propagate)).catch(MultipleErrors.throw);
 
 				//C accommodate
 				const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(propagate) : [];
@@ -114,12 +118,7 @@ Entity.augmentClass({
 						//C after, ignore remove (still needs to execute though)
 						const after = await this[methodName+'Query'](t, entity).then(any).catch(propagate);
 						if (methodName !== 'remove') inputAfter.push(...after);
-					}).catch(rejected => {
-						throw propagate(new ErrorList({
-							...this[methodName+'Error'](),
-							content: rejected,
-						}));
-					});
+					}).catch(MultipleErrors.throw);
 				}
 
 				//C execute SQL for influenced
@@ -132,12 +131,7 @@ Entity.augmentClass({
 
 						const after = await this.editQuery(t, influencedEntity).then(any).catch(propagate);
 						influencedAfter.push(...after);
-					}).catch(rejected => {
-						throw propagate(new ErrorList({
-							...this[methodName+'Error'](),
-							content: rejected,
-						}));
-					});
+					}).catch(MultipleErrors.throw);
 				}
 
 
@@ -148,7 +142,7 @@ Entity.augmentClass({
 				const unmapped = all.map(list => this.unmapColumns(list));
 
 				//C process
-				return await asyncMap(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(propagate));
+				return await asyncMap(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(propagate)).catch(MultipleErrors.throw);
 			}).catch(propagate); //! finish the transaction here so that notify won't be called before the database has updated
 
 			//C shake for subscriptions with getOut filter
@@ -191,41 +185,23 @@ Entity.augmentClass({
 		//C validates each using Entity.schema
 		this.validate = async function (entity, methodName) {
 			const validated = {};
-			await asyncMap(Object.keys(this.schema), async key => {
-				const prop = this.schema[key];
+			await asyncMap(Object.keys(this.schema), async (key) => {
+				const {
+					rule: validator,
+					[methodName]: {check},
+				} = this.schema[key];
+				const isRequired = check === 2;
+				const isOptional = check === 1;
 
-				//C catches
-				if (!(prop.rule instanceof Rule1)) { // Rule1
-					throw new Err({
-						log: true,
-						origin: 'Entity.validate()',
-						message: 'validation error',
-						reason: `${key}'s rule is not an Rule1`,
-						content: prop,
-					});
-				}
+				rules.func.validate(validator);
 
-				//C check if optional and not empty, or if required
-				if ((prop[methodName].check && !isEmpty(entity[key])) || prop[methodName].check === 2) {
-					//G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
-					const checked = await prop.rule.check(entity[key], entity[prop.against]);
-					validated[key] = checked.content;
-					return checked;
-				} else {
-					//C don't pack into validated
-					return new Success({
-						origin: 'Entity.validate()',
-						message: `optional ${key} is empty, skipped validation`,
-					});
+				const value = entity[key];
+
+				if (isRequired || (isOptional && !isEmpty(value))) {
+					await validator(value);
+					validated[key] = value;
 				}
-			}).catch(rejected => {
-				throw new ErrorList({
-					origin: 'Entity.validate()',
-					message: 'one or more issues with properties',
-					reason: 'validating properties returned one or more errors',
-					content: rejected,
-				});
-			});
+			}).catch(MultipleErrors.throw);
 
 			return validated;
 		};

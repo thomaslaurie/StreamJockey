@@ -21,6 +21,9 @@ import {
 import propagate from '../../shared/propagate.js';
 import parsePostgresError from '../parse-postgres-error.js';
 import isEmpty from '../legacy/is-empty.js';
+import {
+	MultipleErrors,
+} from '../../shared/errors/index.js';
 
 Track.augmentClass({
 	prototypeProperties(parent) {
@@ -237,12 +240,11 @@ Track.augmentClass({
 						origin: 'Track.order()',
 						message: "retrieved track's playlist",
 					});
-				}).catch(rejected => {
-					throw new ErrorList({
-						origin: 'Track.order() - movingTracks iterator',
-						message: `could not retrieve some track's playlist`,
-						content: rejected,
-					});
+				}).catch((rejected) => {
+					throw new MultipleErrors({
+						userMessage: `could not retrieve some track's playlist`,
+						errors: rejected,
+					})
 				});
 	
 				//console.log('playlists.length:', playlists.length, '\n ---');

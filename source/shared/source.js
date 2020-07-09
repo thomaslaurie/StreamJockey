@@ -1,6 +1,6 @@
 import Base from './legacy-classes/base.js';
 import InternalError from './errors/internal-error.js';
-import { 
+import {
 	Credentials,
 } from './legacy-classes/success.js';
 
@@ -13,9 +13,9 @@ export default Base.makeClass('Source', Base, {
 			register: false,
 			nullPrefix: '',
 			idPrefix: '',
-			
+
 			credentials: new Credentials(),
-	
+
 			//TODO this should only be server-side
 			api: {},
 			scopes: [],
@@ -28,7 +28,7 @@ export default Base.makeClass('Source', Base, {
 			if (this.register) this.constructor.register(this);
 		},
 	}),
-	
+
 	staticProperties: (parent) => ({
 		instances: [],
 		register(source) {
@@ -40,7 +40,10 @@ export default Base.makeClass('Source', Base, {
 			this.instances.push(source);
 		},
 		find(name) {
-			return this.instances.find(instance => instance.name === name);
+			return this.instances.find((instance) => instance.name === name);
+		},
+		isRegistered(name) {
+			return this.find(name) !== undefined;
 		},
 	}),
 });

@@ -1,3 +1,5 @@
+//TODO Add test for transferred validate/test functions. These should not cause any issues because they are bound to their instance.
+
 import test from 'ava';
 import boolCatch from '../bool-catch.js';
 import Rule from './rule.js';

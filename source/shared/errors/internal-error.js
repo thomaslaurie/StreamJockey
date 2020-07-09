@@ -5,7 +5,7 @@ import CustomError from './custom-error.js';
 
 export default class InternalError extends CustomError {
 	constructor({
-		userMessage = 'An internal error has occurred',
+		userMessage = 'An internal error has occurred.',
 		...rest
 	} = {}) {
 		super({

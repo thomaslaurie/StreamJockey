@@ -6,14 +6,17 @@ import {
 	required,
 	auto,
 } from './schema-states.js';
-import Rule1 from '../legacy-classes/rule1.js';
+import * as projectRules from '../project-rules.js';
+import {
+	rules,
+} from '../utility/index.js';
 
 export default Base.makeClass('Playlist', Entity, {
-	constructorParts: parent => ({
+	constructorParts: (parent) => ({
 		defaults: {
 			// OVERWRITE
 			content: [], //? is this required to be an array, tracks aren't stored here anymore
-	
+
 			// NEW
 			userId: undefined,
 			name: '',
@@ -29,8 +32,8 @@ export default Base.makeClass('Playlist', Entity, {
 		this.schema = {
 			id: {
 				columnName: 'id',
-				rule: Rule1.id,
-	
+				rule: projectRules.id.validate,
+
 				add: auto,
 				get: optional,
 				edit: required,
@@ -38,8 +41,8 @@ export default Base.makeClass('Playlist', Entity, {
 			},
 			userId: {
 				columnName: 'userId',
-				rule: Rule1.id,
-	
+				rule: projectRules.id.validate,
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -47,19 +50,8 @@ export default Base.makeClass('Playlist', Entity, {
 			},
 			name: {
 				columnName: 'name',
-				rule: new Rule1({
-					origin: 'playlistNameRules()',
-					message: 'name validated',
-					target: 'playlistName',
-					cssClass: 'inputError',
-				
-					valueName: 'Name',
-					trim: true,
-				
-					min: Rule1.nameMinLength,
-					max: Rule1.stringMaxLength,  
-				}),
-	
+				rule: projectRules.name.validate,
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -67,18 +59,8 @@ export default Base.makeClass('Playlist', Entity, {
 			},
 			description: {
 				columnName: 'description',
-				rule: new Rule1({
-					origin: 'descriptionRules()',
-					message: 'description validated',
-					target: 'playlistDescription',
-					cssClass: 'inputError',
-				
-					valueName: 'Description',
-				
-					max: Rule1.bigStringMaxLength,
-					trim: true,
-				}),
-	
+				rule: projectRules.description.validate,
+
 				add: optional,
 				get: optional,
 				edit: optional,
@@ -86,8 +68,8 @@ export default Base.makeClass('Playlist', Entity, {
 			},
 			visibility: {
 				columnName: 'visibility',
-				rule: Rule1.visibility,
-	
+				rule: projectRules.visibilityState.validate,
+
 				add: optional,
 				get: optional,
 				edit: optional,
@@ -95,8 +77,8 @@ export default Base.makeClass('Playlist', Entity, {
 			},
 			image: {
 				columnName: 'image',
-				rule: Rule1.image,
-	
+				rule: rules.string.validate, //TODO Image url rule.
+
 				add: optional,
 				get: optional,
 				edit: optional,
@@ -104,8 +86,8 @@ export default Base.makeClass('Playlist', Entity, {
 			},
 			color: {
 				columnName: 'color',
-				rule: Rule1.color,
-	
+				rule: projectRules.color.validate,
+
 				add: optional,
 				get: optional,
 				edit: optional,

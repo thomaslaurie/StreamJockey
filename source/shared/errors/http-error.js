@@ -14,11 +14,11 @@ export default class HTTPError extends CustomError {
 		define.validatedVariable(this, {
 			code: {
 				value: code,
-				validator: rules.integer.validate.bind(rules.integer),
+				validator: rules.integer.validate,
 			},
 			type: {
 				value: type,
-				validator: rules.string.validate.bind(rules.string),
+				validator: rules.string.validate,
 			},
 		});
 	}

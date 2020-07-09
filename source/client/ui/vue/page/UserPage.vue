@@ -16,7 +16,7 @@
 		data() { return {
 			//OVERWRITES
 			Entity: User,
-			sQuery: {id: this.$route.params.id},
+			sQuery: {id: Number.parseInt(this.$route.params.id)}, //TODO properly cast
 		}; },
         methods: {
 			// NEW

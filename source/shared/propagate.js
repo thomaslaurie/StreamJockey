@@ -7,10 +7,12 @@ import safeStringify from './derived-utility/safe-stringify.js';
 import UnexpectedValueThrown from './errors/unexpected-value-thrown.js';
 
 // Wraps the passed value in an Error instance if it isn't one. Then throws it.
-export default function (value, overwriteOptions) {
+export default function propagate(value, overwriteOptions) {
 	if (value instanceof Error) {
 		throw value;
 	} else {
+		console.log(value instanceof Error);
+		console.log(typeof value);
 		throw new UnexpectedValueThrown({
 			message: `An unexpected value has been thrown: ${safeStringify(value)}`,
 			userMessage: 'An unexpected error has occurred.',
@@ -18,14 +20,18 @@ export default function (value, overwriteOptions) {
 			value,
 		});
 	}
-};
+}
 
 // Propagates a value, but returns it instead of throwing it.
 //TODO Consider refactoring implementations of this out, into a better solution.
 export function returnPropagate(value, overwriteOptions) {
 	try {
-		propagate(value, overwriteOptions);
+		return propagate(value, overwriteOptions);
 	} catch (error) {
 		return error;
 	}
-};
+}
+
+export function logPropagate(value, overwriteOptions) {
+	console.error(returnPropagate(value, overwriteOptions));
+}

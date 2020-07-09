@@ -6,11 +6,11 @@ import {
 	required,
 	auto,
 } from './schema-states.js';
-import Rule1 from '../legacy-classes/rule1.js';
 import {
 	rules,
 } from '../utility/index.js';
 import Source from '../source.js';
+import * as projectRules from '../project-rules.js';
 
 export default Base.makeClass('Track', Entity, {
 	constructorParts: parent => ({
@@ -44,7 +44,7 @@ export default Base.makeClass('Track', Entity, {
 		this.schema = {
 			id: {
 				columnName: 'id',
-				rule: Rule1.id,
+				rule: projectRules.id.validate,
 	
 				add: auto,
 				get: optional,
@@ -53,8 +53,8 @@ export default Base.makeClass('Track', Entity, {
 			},
 			playlistId: {
 				columnName: 'playlistId',
-				rule: Rule1.id,
-	
+				rule: projectRules.id.validate,
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -62,8 +62,8 @@ export default Base.makeClass('Track', Entity, {
 			},
 			position: {
 				columnName: 'position',
-				rule: Rule1.posInt,
-	
+				rule: projectRules.position.validate,
+
 				add: optional,
 				get: optional,
 				edit: optional,
@@ -71,17 +71,8 @@ export default Base.makeClass('Track', Entity, {
 			},
 			name: {
 				columnName: 'name',
-				rule: new Rule1({
-					origin: 'trackNameRules()',
-					message: 'name validated',
-				
-					valueName: 'Name',
-					trim: true,
-				
-					min: Rule1.nameMinLength,
-					max: Rule1.stringMaxLength,  
-				}),
-	
+				rule: projectRules.name.validate,
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -89,8 +80,8 @@ export default Base.makeClass('Track', Entity, {
 			},
 			duration: {
 				columnName: 'duration',
-				rule: Rule1.posInt,
-	
+				rule: rules.nonNegativeInteger.validate, //TODO Expand
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -98,19 +89,8 @@ export default Base.makeClass('Track', Entity, {
 			},
 			source: {
 				columnName: 'source',
-				rule: new Rule1({
-					origin: 'sourceRules',
-					message: 'source validated',
-				
-					valueName: 'Source',
-				
-					useAgainst: false, //TODO sourceList isn't populated in global.js, but main.js
-	
-					custom: function (value) {
-						return Source.instances.some(source => value === source.name);
-					}
-				}),
-	
+				rule: projectRules.registeredSource.validate,
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -118,15 +98,8 @@ export default Base.makeClass('Track', Entity, {
 			},
 			sourceId: {
 				columnName: 'sourceId',
-				rule: new Rule1({
-					origin: 'sourceIdRules',
-					message: 'source id validated',
-				
-					valueName: 'Source ID',
-				
-					//? any source id rules (other than being a string)? length? trim?
-				}),
-	
+				rule: rules.string.validate, //TODO Expand
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -134,20 +107,13 @@ export default Base.makeClass('Track', Entity, {
 			},
 			artists: {
 				columnName: 'artists',
-				rule: new Rule1({
-					origin: 'Rule1s.artists',
-					message: 'artists validated',
-			
-					valueName: 'Artists',
-			
-					dataTypes: ['array'],
-				}),
-	
+				rule: rules.array.validate, //TODO Expand
+
 				add: required,
 				get: optional,
 				edit: optional,
 				remove: unused,
-			}
+			},
 		};
 		this.updateFilters();
 

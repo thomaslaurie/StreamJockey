@@ -664,12 +664,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../live-data-server.js */ "./source/server/live-data-server.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
-/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
-/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
+/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
+/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+/* harmony import */ var _shared_errors_custom_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/errors/custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 // INTERNAL
 
 
@@ -682,7 +683,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
+
+_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].augmentClass({
   prototypeProperties: parent => ({
     async add(db) {
       return await this.constructor.add(this, db);
@@ -728,7 +730,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
 
     this.frame = async function (db, anyEntities, methodName) {
       //C catch Entity
-      if (this === _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+      if (this === _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         origin: 'Entity.[CRUD]',
         reason: `cannot call CRUD method directly on Entity`
       }); //C cast as array
@@ -745,11 +747,11 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
         //C process
         const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])); //C prepare
+        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw); //C prepare
 
-        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])); //C accommodate
+        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw); //C accommodate
 
-        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]) : []; //C map
+        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]) : []; //C map
 
         const inputMapped = this.mapColumns(preparedEntities);
         const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
@@ -761,18 +763,14 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
           await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
             //C before, ignore add
             if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
               inputBefore.push(...before);
             } //C after, ignore remove (still needs to execute though)
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
             if (methodName !== 'remove') inputAfter.push(...after);
-          }).catch(rejected => {
-            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["ErrorList"]({ ...this[methodName + 'Error'](),
-              content: rejected
-            }));
-          });
+          }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
         } //C execute SQL for influenced
 
 
@@ -781,15 +779,11 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
 
         if (!isGet) {
           await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
             influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
             influencedAfter.push(...after);
-          }).catch(rejected => {
-            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"])(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["ErrorList"]({ ...this[methodName + 'Error'](),
-              content: rejected
-            }));
-          });
+          }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
         } //C group for iteration
 
 
@@ -797,8 +791,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
 
         const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]));
-      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
+        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
+      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
       //C shake for subscriptions with getOut filter
 
       const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
@@ -829,40 +823,22 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
     this.validate = async function (entity, methodName) {
       const validated = {};
       await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
-        const prop = this.schema[key]; //C catches
+        const {
+          rule: validator,
+          [methodName]: {
+            check
+          }
+        } = this.schema[key];
+        const isRequired = check === 2;
+        const isOptional = check === 1;
+        _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(validator);
+        const value = entity[key];
 
-        if (!(prop.rule instanceof _shared_legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_5__["default"])) {
-          // Rule1
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-            log: true,
-            origin: 'Entity.validate()',
-            message: 'validation error',
-            reason: `${key}'s rule is not an Rule1`,
-            content: prop
-          });
-        } //C check if optional and not empty, or if required
-
-
-        if (prop[methodName].check && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_10__["default"])(entity[key]) || prop[methodName].check === 2) {
-          //G the against property can be specified in the schema and then assigned to the entity[againstName] before validation
-          const checked = await prop.rule.check(entity[key], entity[prop.against]);
-          validated[key] = checked.content;
-          return checked;
-        } else {
-          //C don't pack into validated
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
-            origin: 'Entity.validate()',
-            message: `optional ${key} is empty, skipped validation`
-          });
+        if (isRequired || isOptional && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__["default"])(value)) {
+          await validator(value);
+          validated[key] = value;
         }
-      }).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["ErrorList"]({
-          origin: 'Entity.validate()',
-          message: 'one or more issues with properties',
-          reason: 'validating properties returned one or more errors',
-          content: rejected
-        });
-      });
+      }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
       return validated;
     }; //C modifies each after validation
 
@@ -919,7 +895,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
     this.queryOrder = `ORDER BY "id" ASC`; //C executes SQL queries
 
     this.addQuery = async function (t, mappedEntity) {
-      let values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+      let values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
       //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
       let row = await t.one(`
@@ -927,7 +903,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
 				$1:raw 
 				RETURNING *
 			`, [values]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
           origin: `${this.name}.add()`,
           message: `could not add ${this.name}s`
@@ -937,14 +913,14 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
     };
 
     this.getQuery = async function (t, mappedEntity) {
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildWhere"])(mappedEntity);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildWhere"])(mappedEntity);
       let rows = await t.any(`
 				SELECT * 
 				FROM "sj"."${this.table}" 
 				WHERE $1:raw
 				${this.queryOrder}
 			`, [where]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
           origin: `${this.name}.get()`,
           message: `could not get ${this.name}s`
@@ -958,8 +934,8 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
         id,
         ...mappedEntitySet
       } = mappedEntity;
-      let set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildSet"])(mappedEntitySet);
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildWhere"])({
+      let set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildSet"])(mappedEntitySet);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildWhere"])({
         id
       });
       let row = await t.one(`
@@ -968,7 +944,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
 				WHERE $2:raw 
 				RETURNING *
 			`, [set, where]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
           origin: `${this.name}.edit()`,
           message: `could not edit ${this.names}`
@@ -978,13 +954,13 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
     };
 
     this.removeQuery = async function (t, mappedEntity) {
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_9__["buildWhere"])(mappedEntity);
+      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildWhere"])(mappedEntity);
       let row = await t.one(`
 				DELETE FROM "sj"."${this.table}" 
 				WHERE $1:raw 
 				RETURNING *
 			`, where).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           log: false,
           origin: `${this.name}.remove()`,
           message: `could not remove ${this.names}s`
@@ -1057,7 +1033,7 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].augmentClass({
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"]);
+/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"]);
 
 /***/ }),
 
@@ -1128,7 +1104,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
 /* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 // INTERNAL
+
 
 
 
@@ -1330,10 +1308,9 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].augmentClass({
             message: "retrieved track's playlist"
           });
         }).catch(rejected => {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["ErrorList"]({
-            origin: 'Track.order() - movingTracks iterator',
-            message: `could not retrieve some track's playlist`,
-            content: rejected
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"]({
+            userMessage: `could not retrieve some track's playlist`,
+            errors: rejected
           });
         }); //console.log('playlists.length:', playlists.length, '\n ---');
         //C calculate new track positions required to accommodate input tracks' positions
@@ -1541,12 +1518,11 @@ __webpack_require__.r(__webpack_exports__);
 // global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
 
 function isEmpty(input) {
-  //C null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-  return !(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].boolean.test(input) || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(input) || //C check for empty and whitespace strings and string conversions of null and undefined
-  //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step
+  // null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
+  return !(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].boolean.test(input) || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(input) || // Check for empty and whitespace strings and string conversions of null and undefined.
+  //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step.
   _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(input) && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(input) && Object.keys(input).length > 0 || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(input) && input.length > 0);
 }
-;
 
 /***/ }),
 
@@ -1570,6 +1546,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -1587,12 +1564,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+//  ██║██╔██╗ ██║██║   ██║
+//  ██║██║╚██╗██║██║   ██║
+//  ██║██║ ╚████║██║   ██║
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
 //TODO this may be unrelated but it seems the liveQueries here are also piling up
@@ -1618,60 +1596,82 @@ _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["Subscription"].augmentClass({
     this.app = app;
     this.socket = socket;
     this.socket.use((socket, next) => {
-      //C give the cookie session to the socket
-      //C uses a temporary koa context to decrypt the session
+      // Give the cookie session to the socket.
+      // Uses a temporary koa context to decrypt the session.
       //L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
       //L https://github.com/koajs/session/issues/53#issuecomment-311601304
-      //!//? socket.session is static, whereas koa ctx.session is dynamic, that is I'm not sure that this is linked in any way to the cookie session
+      //! //? socket.session is static, whereas koa ctx.session is dynamic, that is I'm not sure that this is linked in any way to the cookie session
       //L https://socket.io/docs/server-api/#namespace-use-fn
       socket.session = this.app.createContext(socket.request, new http__WEBPACK_IMPORTED_MODULE_0___default.a.OutgoingMessage()).session;
       next();
     });
     this.socket.on('connect', socket => {
-      console.log('CONNECT', socket.id); //C if user is logged in, give the socketId to the session
-      //! I don't think the cookie session receives this, though it isn't needed there so far
+      try {
+        console.log('CONNECT', socket.id); // If user is logged in, give the socketId to the session.
+        //! I don't think the cookie session receives this, though it isn't needed there so far
 
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = socket.id;
-      socket.on('disconnect', async reason => {
-        console.log('DISCONNECT', socket.id);
-        await this.disconnect(socket.id).catch(rejected => {
-          //TODO handle better
-          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_3__["default"], 'Base')) rejected.announce();else console.error('subscription disconnect error:', rejected);
-        }); //? socket won't be used anymore, so does anything really need to be deleted here?
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = socket.id;
+        socket.on('disconnect', async reason => {
+          try {
+            console.log('DISCONNECT', socket.id);
+            await this.disconnect(socket.id).catch(rejected => {
+              //TODO handle better
+              if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_3__["default"], 'Base')) rejected.announce();else console.error('subscription disconnect error:', rejected);
+            }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].defaults.socketId;
-      });
-      socket.on('subscribe', async ({
-        table,
-        query
-      }, callback) => {
-        console.log('SUBSCRIBE', socket.id); //C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
-        //TODO socketId validator, this is all that really matters here
-
-        const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
-          socketId: socket.id
-        }); //! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
-
-        const result = await this.add(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user); //!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
-        //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
-        //C using fclone to drop circular references
-
-        callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
-      });
-      socket.on('unsubscribe', async ({
-        table,
-        query
-      }, callback) => {
-        console.log('UNSUBSCRIBE', socket.id);
-        const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
-          socketId: socket.id
+            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) {
+              socket.session.user.socketId = _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].defaults.socketId;
+            }
+          } catch (error) {
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+          }
         });
-        const result = await this.remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user);
-        callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
-      });
-      socket.on('error', reason => {
-        console.error('ERROR', socket.id, reason);
-      });
+        socket.on('subscribe', async ({
+          table,
+          query
+        }, callback) => {
+          try {
+            console.log('SUBSCRIBE', socket.id); // if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
+            //TODO socketId validator, this is all that really matters here
+
+            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
+              socketId: socket.id
+            }); //! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
+
+            const result = await this.add(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
+            //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
+            // Using fclone to drop circular reference.s
+
+            callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
+          } catch (error) {
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+          }
+        });
+        socket.on('unsubscribe', async ({
+          table,
+          query
+        }, callback) => {
+          try {
+            console.log('UNSUBSCRIBE', socket.id);
+            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
+              socketId: socket.id
+            });
+            const result = await this.remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user);
+            callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
+          } catch (error) {
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+          }
+        });
+        socket.on('error', reason => {
+          try {
+            console.error('ERROR', socket.id, reason);
+          } catch (error) {
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+          }
+        });
+      } catch (error) {
+        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+      }
     });
   },
 
@@ -1906,6 +1906,7 @@ __webpack_require__.r(__webpack_exports__);
 // TOP
  // BUILT-IN
 // EXTERNAL
+// import 'source-map-support/register';
 
 
  //L https://github.com/koajs
@@ -2164,6 +2165,7 @@ function parsePostgresError(pgError, sjError) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return routes; });
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
@@ -2226,12 +2228,12 @@ __webpack_require__.r(__webpack_exports__);
 
 	//R use query parameters for api get requests where multiple params may be needed or optional, use the single path parameters for page get requests where we're looking for a simple unique route
 */
-//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ████████╗ ██████╗ ██████╗  ██████╗
 //  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
 //     ██║   ██║   ██║██║  ██║██║   ██║
 //     ██║   ██║   ██║██║  ██║██║   ██║
 //     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝
 
 /*
 	consider using a separate router for source-api requests (sourceRouter)
@@ -2271,12 +2273,12 @@ __webpack_require__.r(__webpack_exports__);
 
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+//  ██║██╔██╗ ██║██║   ██║
+//  ██║██║╚██╗██║██║   ██║
+//  ██║██║ ╚████║██║   ██║
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 
-/* harmony default export */ __webpack_exports__["default"] = (function ({
+function routes({
   replaceIndex
 }) {
   // path
@@ -2333,7 +2335,9 @@ __webpack_require__.r(__webpack_exports__);
   //! Be aware, the first time this was tried it caused issues with liveQueries not working.
   // server-side data & processing requests
 
-  apiRouter.get('/*', async (ctx, next) => {
+  apiRouter.all('/*', async (ctx, next) => {
+    await next().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["logPropagate"]);
+  }).get('/*', async (ctx, next) => {
     // Set GET request bodies as the parsed body parameter (if it exists).
     const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_8__["GET_BODY"]];
 
@@ -2356,11 +2360,11 @@ __webpack_require__.r(__webpack_exports__);
     });
   }) // auth
   .get('/spotify/authRequestStart', async (ctx, next) => {
-    //C retrieves an auth request URL and it's respective local key (for event handling)
+    // Retrieves an auth request URL and it's respective local key (for event handling).
     ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].startAuthRequest().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
   }).get('/spotify/authRedirect', async (ctx, next) => {
-    //C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
-    //! this URL is sensitive to the url given to spotify developer site (i think)
+    // Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
+    //! This URL is sensitive to the url given to spotify developer site (I think).
     await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].receiveAuthRequest(ctx.request.query).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
     await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
       root: root
@@ -2377,7 +2381,11 @@ __webpack_require__.r(__webpack_exports__);
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["login"](_db_js__WEBPACK_IMPORTED_MODULE_15__["default"], ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    //----------
+    //TODO //! returnPropagate isnt doing jack here, throwing inside session.login() wasn't showing any errors/
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["login"](_db_js__WEBPACK_IMPORTED_MODULE_15__["default"], ctx, ctx.request.body).catch(e => {
+      console.error(e);
+    });
   }).get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
     ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["get"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
@@ -2477,8 +2485,7 @@ __webpack_require__.r(__webpack_exports__);
     ctx.body = ctx.body + '.all /* reached'; //G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
   });
   return router;
-});
-;
+}
 
 /***/ }),
 
@@ -2511,12 +2518,12 @@ __webpack_require__.r(__webpack_exports__);
  // CREATE
 
 async function login(db, ctx, user) {
-  //C validate
-  user.name = await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.name.rule.check(user.name).then(result => result.content);
-  user.password = await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.password.rule.check(user.password).then(result => result.content); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
-  //C get password
+  // Validate
+  await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.name.rule(user.name);
+  await _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"].schema.password.rule(user.password); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
+  // Get password.
 
-  let existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
+  const existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
     return resolved.password;
   }).catch(rejected => {
     throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
@@ -2524,9 +2531,9 @@ async function login(db, ctx, user) {
       origin: 'login()',
       message: 'could not login, database error'
     }));
-  }); //C check password
+  }); // Check password.
 
-  let isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.compare(user.password, existingPassword).catch(rejected => {
+  const isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.compare(user.password, existingPassword).catch(rejected => {
     throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
       log: true,
       origin: 'login()',
@@ -2546,7 +2553,7 @@ async function login(db, ctx, user) {
       target: 'loginPassword',
       cssClass: 'inputError'
     });
-  } //C get user
+  } // Get user
 
 
   user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
@@ -2562,8 +2569,7 @@ async function login(db, ctx, user) {
     message: 'user logged in',
     content: ctx.session.user
   });
-}
-; // READ
+} // READ
 
 async function get(ctx) {
   await isLoggedIn(ctx).catch(rejected => {
@@ -2574,8 +2580,7 @@ async function get(ctx) {
     origin: 'getMe()',
     content: ctx.session.user
   });
-}
-; // UPDATE
+} // UPDATE
 //?
 // DELETE
 
@@ -2586,10 +2591,13 @@ async function logout(ctx) {
     message: 'user logged out'
   });
 }
-;
 
 async function isLoggedIn(ctx) {
-  if (!(ctx.session.user instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ctx.session.user.constructorName === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.test(ctx.session.user.id)) {
+  var _ctx$session$user, _ctx$session$user2;
+
+  console.log(ctx.session.user);
+
+  if (!(ctx.session.user instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.constructorName) === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.test((_ctx$session$user2 = ctx.session.user) === null || _ctx$session$user2 === void 0 ? void 0 : _ctx$session$user2.id)) {
     throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
       log: true,
       origin: 'isLoggedIn()',
@@ -2600,18 +2608,16 @@ async function isLoggedIn(ctx) {
       cssClass: 'notifyError' // TODO consider denial error rather than error error (you messed up vs I messed up)
 
     });
-  } //C redundancy check to make sure id is right format
+  } // Redundancy check to make sure id is right format.
 
 
-  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.validate(ctx.session.user.id); //TODO this doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page)
+  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.validate(ctx.session.user.id); //TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
 
   return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
     origin: 'isLoggedIn()',
     message: 'user is logged in'
   });
 }
-
-;
 
 /***/ }),
 
@@ -3168,7 +3174,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+
 
 
 
@@ -3194,7 +3202,7 @@ __webpack_require__.r(__webpack_exports__);
     this.schema = {
       id: {
         columnName: 'id',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
@@ -3202,7 +3210,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       userId: {
         columnName: 'userId',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3210,16 +3218,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       name: {
         columnName: 'name',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'playlistNameRules()',
-          message: 'name validated',
-          target: 'playlistName',
-          cssClass: 'inputError',
-          valueName: 'Name',
-          trim: true,
-          min: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMinLength,
-          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].stringMaxLength
-        }),
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3227,15 +3226,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       description: {
         columnName: 'description',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'descriptionRules()',
-          message: 'description validated',
-          target: 'playlistDescription',
-          cssClass: 'inputError',
-          valueName: 'Description',
-          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].bigStringMaxLength,
-          trim: true
-        }),
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["description"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3243,7 +3234,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       visibility: {
         columnName: 'visibility',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].visibility,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["visibilityState"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3251,7 +3242,8 @@ __webpack_require__.r(__webpack_exports__);
       },
       image: {
         columnName: 'image',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].image,
+        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].string.validate,
+        //TODO Image url rule.
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3259,7 +3251,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       color: {
         columnName: 'color',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].color,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["color"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3323,9 +3315,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 
 
 
@@ -3336,8 +3328,8 @@ __webpack_require__.r(__webpack_exports__);
   constructorParts: parent => ({
     beforeInitialize(accessory) {
       //C find existing source by track.source.name and set it as the reference
-      if (_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(accessory.options.source)) {
-        const found = _source_js__WEBPACK_IMPORTED_MODULE_5__["default"].instances.find(source => source.name === accessory.options.source.name);
+      if (_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(accessory.options.source)) {
+        const found = _source_js__WEBPACK_IMPORTED_MODULE_4__["default"].instances.find(source => source.name === accessory.options.source.name);
         if (found) accessory.options.source = found;else new Warn({
           origin: 'Track.beforeInitialize()',
           reason: 'source was passed but it is not an existing source',
@@ -3359,7 +3351,7 @@ __webpack_require__.r(__webpack_exports__);
       artists: [],
       name: null,
       duration: null,
-      //! cannot be 0 or else it will not trigger sj.isEmpty() and will actually be set as 0
+      //! Don't use 0 here as it counts as a 'set' value.
       link: null
     }
   }),
@@ -3369,7 +3361,7 @@ __webpack_require__.r(__webpack_exports__);
     this.schema = {
       id: {
         columnName: 'id',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["id"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
@@ -3377,7 +3369,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       playlistId: {
         columnName: 'playlistId',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["id"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3385,7 +3377,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       position: {
         columnName: 'position',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].posInt,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["position"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3393,14 +3385,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       name: {
         columnName: 'name',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'trackNameRules()',
-          message: 'name validated',
-          valueName: 'Name',
-          trim: true,
-          min: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMinLength,
-          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].stringMaxLength
-        }),
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["name"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3408,7 +3393,8 @@ __webpack_require__.r(__webpack_exports__);
       },
       duration: {
         columnName: 'duration',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].posInt,
+        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].nonNegativeInteger.validate,
+        //TODO Expand
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3416,16 +3402,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       source: {
         columnName: 'source',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'sourceRules',
-          message: 'source validated',
-          valueName: 'Source',
-          useAgainst: false,
-          //TODO sourceList isn't populated in global.js, but main.js
-          custom: function (value) {
-            return _source_js__WEBPACK_IMPORTED_MODULE_5__["default"].instances.some(source => value === source.name);
-          }
-        }),
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["registeredSource"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3433,12 +3410,8 @@ __webpack_require__.r(__webpack_exports__);
       },
       sourceId: {
         columnName: 'sourceId',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'sourceIdRules',
-          message: 'source id validated',
-          valueName: 'Source ID' //? any source id rules (other than being a string)? length? trim?
-
-        }),
+        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.validate,
+        //TODO Expand
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3446,12 +3419,8 @@ __webpack_require__.r(__webpack_exports__);
       },
       artists: {
         columnName: 'artists',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'Rule1s.artists',
-          message: 'artists validated',
-          valueName: 'Artists',
-          dataTypes: ['array']
-        }),
+        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate,
+        //TODO Expand
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3479,7 +3448,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../legacy-classes/rule1.js */ "./source/shared/legacy-classes/rule1.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+
 
 
 
@@ -3503,7 +3474,7 @@ __webpack_require__.r(__webpack_exports__);
       //G 0 = unused, 1 = optional, 2 = required
       id: {
         columnName: 'id',
-        rule: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].id,
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
@@ -3511,16 +3482,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       name: {
         columnName: 'name',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'userNameRules',
-          message: 'username validated',
-          target: 'registerUserName',
-          cssClass: 'inputError',
-          valueName: 'Username',
-          trim: true,
-          min: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMinLength,
-          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].nameMaxLength
-        }),
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3528,18 +3490,8 @@ __webpack_require__.r(__webpack_exports__);
       },
       email: {
         columnName: 'email',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'emailRules',
-          message: 'email validated',
-          target: 'registerEmail',
-          cssClass: 'inputError',
-          valueName: 'E-mail',
-          trim: true,
-          min: 3,
-          max: _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"].stringMaxLength //TODO useFilter: ___, filterMessage: ___, 
-          //L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-
-        }),
+        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].string.validate,
+        //TODO Email rule.
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
         edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
@@ -3547,16 +3499,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       password: {
         columnName: 'password',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'passwordRules',
-          message: 'password validated',
-          target: 'registerPassword',
-          cssClass: 'inputError',
-          valueName: 'Password',
-          min: 6,
-          max: 72 //! as per bcrypt
-
-        }),
+        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["password"].validate,
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
         get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
         edit: {
@@ -3568,12 +3511,8 @@ __webpack_require__.r(__webpack_exports__);
       },
       spotifyRefreshToken: {
         columnName: 'spotifyRefreshToken',
-        rule: new _legacy_classes_rule1_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
-          origin: 'spotifyRefreshTokenRules',
-          message: 'token validated',
-          valueName: 'Token' //TODO empty for now
-
-        }),
+        rule: () => {},
+        //TODO empty for now
         add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
         get: {
           in: false,
@@ -3605,18 +3544,18 @@ __webpack_require__.r(__webpack_exports__);
 
 class CustomError extends Error {
   constructor({
-    // Extract message from options and pass it properly to Error.
-    message,
     // User-readable message.
     // Alternative to the native Error class' 'message' property which should not be exposed to the user by default.
     //! //G sj.Error.message -> CustomError.userMessage, sj.Error.reason => CustomError.message
-    userMessage = ''
+    userMessage = '',
+    // Extract message from options and pass it properly to Error.
+    message = userMessage
   } = {}) {
     super(message);
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
       reason: {
         value: userMessage,
-        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string)
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate
       }
     });
   }
@@ -3651,11 +3590,11 @@ class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]
     _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
       code: {
         value: code,
-        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer)
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.validate
       },
       type: {
         value: type,
-        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate.bind(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string)
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate
       }
     });
   }
@@ -3668,7 +3607,7 @@ class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]
 /*!***************************************!*\
   !*** ./source/shared/errors/index.js ***!
   \***************************************/
-/*! exports provided: CustomError, HTTPError, InternalError, ParseError, UnexpectedValueThrown */
+/*! exports provided: CustomError, HTTPError, InternalError, MultipleErrors, ParseError, UnexpectedValueThrown */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3682,11 +3621,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _multiple_errors_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./multiple-errors.js */ "./source/shared/errors/multiple-errors.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MultipleErrors", function() { return _multiple_errors_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+
 
 
 
@@ -3712,7 +3655,7 @@ __webpack_require__.r(__webpack_exports__);
 
 class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
   constructor({
-    userMessage = 'An internal error has occurred',
+    userMessage = 'An internal error has occurred.',
     ...rest
   } = {}) {
     super({
@@ -3722,6 +3665,51 @@ class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["defau
   }
 
 }
+
+/***/ }),
+
+/***/ "./source/shared/errors/multiple-errors.js":
+/*!*************************************************!*\
+  !*** ./source/shared/errors/multiple-errors.js ***!
+  \*************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MultipleErrors; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+// Used for errors that get thrown in parallel.
+
+
+class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  constructor({
+    userMessage = 'Some errors have occurred.',
+    errors,
+    ...rest
+  } = {}) {
+    super({
+      userMessage,
+      ...rest
+    });
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].validatedVariable(this, {
+      errors: {
+        value: errors,
+        validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate
+      }
+    });
+  }
+
+}
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(MultipleErrors, {
+  throw(errors) {
+    throw new MultipleErrors({
+      errors
+    });
+  }
+
+});
 
 /***/ }),
 
@@ -4081,558 +4069,6 @@ const Timeout = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Time
 
 /***/ }),
 
-/***/ "./source/shared/legacy-classes/rule1.js":
-/*!***********************************************!*\
-  !*** ./source/shared/legacy-classes/rule1.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./success.js */ "./source/shared/legacy-classes/success.js");
-
-
-
-const Rule1 = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Rule', _base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  //G//! arrow functions may be used to shorten object returns, however they should must not use 'this'
-  constructorParts: parent => ({
-    //G//! 'this' refers to the static class inside constructorParts(), however 'this' refers to the instance inside before/afterInitialize()
-    defaults: {
-      // NEW
-      valueName: 'input',
-      trim: false,
-      dataTypes: ['string'],
-      min: 0,
-      max: Infinity,
-      //! remember to set useAgainst: true, if passing a value2 to use
-      useAgainst: false,
-      //C this is a reference value and should not be able to be equal to anything,
-      //R this is to prevent a user from somehow passing in boolean false, thus making it equal to the against value and passing a password check
-      againstValue: {},
-
-      get againstMessage() {
-        //! this reveals password2 when checking two passwords - simply overwrite this get function to a custom message
-        let againstValueName = this.againstValue; //C join array of values if matching against multiple values
-
-        if (Array.isArray(this.againstValue)) {
-          againstValueName = this.againstValue.join(', ');
-        }
-
-        return `${this.valueName} did not match against these values: ${againstValueName}`;
-      },
-
-      //! remember to set useFilter: true, if passing a value2 to use
-      useFilter: false,
-      //C match nothing //TODO verify this
-      //L https://stackoverflow.com/questions/2930182/regex-to-not-match-any-characters
-      filterExpression: '\\b\\B',
-      filterRequirements: 'none',
-
-      get filterMessage() {
-        return `${this.valueName} did not meet these requirements: ${this.filterRequirements}`;
-      },
-
-      custom: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    //TODO how to deal with returning the password field since its sensitive
-    async checkType(value) {
-      //C check against each datatype
-      for (let i = 0; i < this.dataTypes.length; i++) {
-        if ( // Quick hack for replacing isType which checks against custom types like 'array' and 'integer'
-        typeof value === this.dataTypes[i] || this.dataTypes[i] === 'array' && Array.isArray(value) || this.dataTypes[i] === 'integer' && Number.isInteger(value)) {
-          return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-            origin: `${this.origin}.checkType()`,
-            message: 'validated data type',
-            content: value
-          });
-        } //C parse strings for numbers
-
-
-        if (typeof value === 'string') {
-          let parsed = Number.parseFloat(value);
-
-          if (this.dataTypes[i] === 'number' && !Number.isNaN(parsed) || this.dataTypes[i] === 'integer' && Number.isInteger(parsed)) {
-            return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-              origin: `${this.origin}.checkType()`,
-              message: 'validated data type',
-              content: parsed
-            });
-          } //TODO parse strings for boolean & symbols & other?
-
-        }
-      } //C throw if no matches
-
-
-      throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-        log: true,
-        origin: `${this.origin}.checkType()`,
-        message: `${this.valueName} must be a ${this.dataTypes.join(' or ')}`,
-        content: value
-      });
-    },
-
-    async checkSize(value) {
-      let m = `${this.valueName} must be between ${this.min} and ${this.max}`;
-
-      if (typeof value === 'string') {
-        //C string length
-        if (!(value.length >= this.min && value.length <= this.max)) {
-          throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            log: true,
-            origin: `${this.origin}.checkSize()`,
-            message: `${m} characters long`,
-            content: value
-          });
-        }
-      } else if (typeof value === 'number') {
-        //C number size
-        if (!(value >= this.min && value <= this.max)) {
-          throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            log: true,
-            origin: `${this.origin}.checkSize()`,
-            message: `${m} items long`,
-            content: value
-          });
-        }
-      }
-
-      return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-        origin: `${this.origin}.checkSize()`,
-        content: value
-      });
-    },
-
-    async checkAgainst(value, value2) {
-      //C custom againstValue
-      if (value2 !== undefined) {
-        this.againstValue = value2;
-      }
-
-      if (Array.isArray(this.againstValue)) {
-        //C arrays
-        //R indexOf apparently uses === so this should be fine
-        //L https://stackoverflow.com/questions/44172530/array-indexof-insensitive-data-type
-        if (this.againstValue.indexOf(value) === -1) {
-          throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            log: true,
-            origin: `${this.origin}.checkAgainst() array`,
-            message: this.againstMessage,
-            content: value
-          });
-        }
-      } else {
-        //C base value
-        if (!(value === this.againstValue)) {
-          throw new _error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            log: true,
-            origin: `${this.origin}.checkAgainst() non-array`,
-            message: this.againstMessage,
-            content: value
-          });
-        }
-      }
-
-      return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-        origin: `${this.origin}.checkAgainst()`,
-        content: value
-      });
-    },
-
-    async checkFilter(value, value2) {
-      //C custom againstValue
-      if (value2 === undefined) {
-        this.filterExpression = value2;
-      } //TODO
-
-
-      return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-        origin: `${this.origin}.checkAgainst()`,
-        content: value
-      });
-    },
-
-    async checkCustom(value) {
-      if (typeof this.custom === 'function') {
-        return this.custom(value);
-      } else {
-        return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-          origin: `${this.origin}.checkCustom()`,
-          content: value
-        });
-      }
-    },
-
-    /* //OLD
-    	//TODO //! convert this.dataType to this.dataTypes forEach loop if re implementing this as in checkType()
-    	checkType(value) {
-    		let t = sj.typeOf(value);
-    				//C if value is a string and dataType is a number or integer
-    				if (this.dataType === 'number' && t === 'string') {
-    			//C	try to parse the string and check if it is a number
-    			//L	https://www.w3schools.com/jsref/jsref_parsefloat.asp
-    			let p = parseFloat(value);
-    			if (!Number.isNaN(p)) {
-    				//C if so, convert it to the parsed number and return
-    				value = p;
-    				return true;
-    			}
-    			return false;
-    		}
-    		if (this.dataType === 'integer') {
-    			if (t === 'string') {
-    				let p = parseInt(value);
-    				if (Number.isInteger(p)) {
-    					value = p;
-    					return true;
-    				}
-    				return false;
-    			}
-    					// if not a string, just see if its an integer
-    			return Number.isInteger(value);
-    		}
-    				return t === this.dataType;
-    	}
-    	checkSize(value) {
-    		if (sj.typeOf(value) === 'string' || sj.typeOf(value) === 'array') {
-    			return value.length >= this.min && value.length <= this.max;
-    		} else if (sj.typeOf(value) === 'number') {
-    			return value >= this.min && value <= this.max;
-    		} else {
-    			return true;
-    		}
-    	}	
-    	checkAgainst(value, value2) {
-    		// allow custom check against value
-    		if (sj.typeOf(value2) !== 'undefined') {
-    			this.againstValue = value2;
-    		}
-    				if (Array.isArray(this.againstValue)) {
-    			return this.againstValue.indexOf(value) !== -1;
-    		} else {
-    			//! no type coercion
-    			return value === this.againstValue;
-    		}
-    	}	
-    	checkFilter(value, value2) {
-    		//TODO regex, similar to checkAgainst
-    		return true;
-    	}
-    */
-    //! validation and type conversion (and //TODO security, and database checks) are all part of this Rules check
-    //TODO should Rule1 be exposed in globals if it contains the security checks? is that safe? - ideally, database checks should also be implemented so 'name already taken' errors show up at the same time basic validation errors do. Basically theres three waves in most cases - isLoggedIn (ok to be in a separate wave because it should rarely happen, and assumes the user knows what they're doing except being logged in - or would this be useful in the same wave too?), basic validation, database validation. < SHOULD ALL VALIDATION CHECKS BE IN ONE WAVE?
-    //! to use the possibly modified value from check(), set the input value to equal the result.content
-    async check(value, value2) {
-      //L Guard Clauses: https://medium.com/@scadge/if-statements-design-guard-clauses-might-be-all-you-need-67219a1a981a
-      //C Guard clauses (for me) should be positively-phrased conditions - but wrapped in a single negation: if(!(desiredCondition)) {}
-      //C trim
-      if (this.trim && typeof value === 'string') {
-        value = value.trim();
-      } //C checks & possibly modifies
-
-
-      value = await this.checkType(value).then(resolved => resolved === null || resolved === void 0 ? void 0 : resolved.content); //R no need to catch and return the content as it will be in the thrown error anyways
-
-      await this.checkSize(value);
-
-      if (this.useAgainst) {
-        await this.checkAgainst(value, value2);
-      }
-
-      if (this.useFilter) {
-        await this.checkFilter(value, value2);
-      }
-
-      if (typeof this.custom === 'function') {
-        await this.checkCustom(value);
-      }
-      /*
-      	if (!this.checkType(value)) {
-      		throw new Err({
-      			log: this.log,
-      			origin: this.origin,
-      			message: `${this.valueName} must be a ${this.dataType}`,
-      		})
-      	}
-      	if (this.trim && sj.typeOf(value) === 'string') {
-      		value = value.trim();
-      	}
-      
-      	if (!this.checkSize(value)) {
-      		let message = `${this.valueName} must be between ${this.min} and ${this.max}`;
-      		if (sj.typeOf(value) === 'string') {
-      			message = `${message} characters long`;
-      		} else if (sj.typeOf(value) === 'array') {
-      			message = `${message} items long`;
-      		}
-      				throw new Err({
-      			log: this.log,
-      			origin: this.origin,
-      			message: message,
-      		});
-      	}
-      	if (this.useAgainst && !this.checkAgainst(value, value2)) {
-      		throw new Err({
-      			log: this.log,
-      			origin: this.origin,
-      			message: this.againstMessage,
-      		});
-      	}
-      	if (this.useFilter && !this.checkFilter(value, value2)) {
-      		throw new Err({
-      			log: this.log,
-      			origin: this.origin,
-      			message: this.filterMessage,
-      		});
-      	}
-      */
-      //C remove error-related properties
-
-
-      this.target = undefined; //TODO consider inputCorrect styling
-
-      this.cssClass = undefined;
-      this.content = value; //C transform object (this will strip any irrelevant properties away)
-
-      return new _success_js__WEBPACK_IMPORTED_MODULE_2__["Success"](this);
-    }
-    /* //OLD decided this was redundant
-    	//C checks an object's property and possibly modify it, this is done so that properties can be passed and modified by reference for lists
-    	//? this may not be needed over check(), see Rule1.checkRuleSet() in global-server.js
-    	async checkProperty(obj, prop, value2) {
-    		//C validate arguments
-    		if (!sj.isType(obj, 'object')) {
-    			throw new Err({
-    				log: true,
-    				origin: 'Rule1.checkProperty()',
-    				message: 'validation error',
-    				reason: `Rule1.checkProperty()'s first argument is not an object`,
-    				content: obj,
-    			});
-    		}
-    		if (!prop in obj) {
-    			//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    			throw new Err({
-    				log: true,
-    				origin: 'Rule1.checkProperty()',
-    				message: 'validation error',
-    				reason: `Rule1.checkProperty()'s object argument is missing a '${prop}' property`,
-    				content: obj,
-    			});
-    		}
-    				//C check rules
-    		let result = this.check(obj[prop], value2).catch(rejected => {
-    			//C throw error if failed 
-    			//! do not modify the original property, so that Err.content is not relied upon to always be the original property
-    			throw propagate(rejected);
-    		});
-    				//C modify and return if successful
-    		obj[prop] = result.content;
-    		return result;
-    	}
-    */
-
-    /* //OLD, new check ruleset was created in global-server.js
-    	static async checkRuleSet(ruleSet) {
-    		//C takes a 2D array of [[Rule1, obj, propertyName, value2(optional)], [], [], ...]
-    		return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => {
-    			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-    					//C validate arguments
-    			if (!rules instanceof this) {
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() is missing a Rule1 object`,
-    					content: rules,
-    				});
-    			}
-    					//C check, return errors too
-    			return await rules.checkProperty(obj, prop, value2).catch(sj.andResolve);
-    		})).then(resolved => {
-    			//C filter for Success objects
-    			return sj.filterList(resolved, Success, new Success({
-    				origin: 'Rule1.checkRuleSet()',
-    				message: 'all rules validated',
-    			}), new Err({
-    				origin: 'Rule1.checkRuleSet()',
-    				message: 'one or more issues with rules',
-    				reason: 'validation functions returned one or more errors',
-    			}));
-    		}).catch(rejected => {
-    			throw propagate(rejected);
-    		});
-    	}
-    */
-
-    /* //OLD
-    	//! checkRuleSet takes a reference object and the property name, value modification is then done automatically
-    	static async checkRuleSet(ruleSet) {
-    		//C takes a 2D array of [[Rule1, obj, propertyName, value2(optional)], [], [], ...]
-    				return Promise.all(ruleSet.map(async ([rules, obj, prop, value2]) => { 
-    			//L destructuring: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-    					//C validate arguments
-    			if (!(rules instanceof Rule1)) {
-    				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
-    				//? is it possible to dynamically get this class
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() is missing a Rule1 object`,
-    					content: rules,
-    				});
-    			}
-    			if (!(typeof obj === 'object' && sj.typeOf(obj) !== 'null')) {
-    				//R cannot use just sj.typeOf(obj) here because it won't properly recognize any 'object'
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() is missing an object argument`,
-    					content: obj,
-    				});
-    			}
-    			if (!(prop in obj)) {
-    				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in
-    				return new Err({
-    					log: true,
-    					origin: 'checkRuleSet()',
-    					message: 'validation error',
-    					reason: `checkRuleSet() obj is missing a '${prop}' property`,
-    					content: obj,
-    				});
-    			}
-    					let result = new Err(); //? why is this here
-    					//C call check() with 1 or 2 values
-    			if (sj.typeOf(value2) === 'undefined') {
-    				result = await rules.check(obj[prop]).then(sj.sj.andResolve());
-    			} else {
-    				result = await rules.check(obj[prop], value2).then(sj.sj.andResolve());
-    			}
-    					//C pass the possibly modified value back to the original object
-    			obj[prop] = result.content;
-    					return result;
-    		})).then(resolved => {
-    			return sj.filterList(resolved, Success, new Success({
-    				origin: 'checkRuleSet()',
-    				message: 'all rules validated',
-    			}), new Err({
-    				origin: 'checkRuleSet()',
-    				message: 'one or more issues with fields',
-    				reason: 'validation functions returned one or more errors',
-    			}));
-    		}).catch(rejected => {
-    			throw propagate(rejected);
-    		});
-    	}
-    */
-
-
-  }),
-  staticProperties: parent => ({
-    //! string to be hashed must not be greater than 72 characters (//? or bytes???),
-    stringMaxLength: 100,
-    bigStringMaxLength: 2000,
-    nameMinLength: 3,
-    nameMaxLength: 16,
-    defaultColor: '#ffffff',
-    visibilityStates: ['public', 'private', 'linkOnly']
-  })
-});
-Rule1.augmentClass({
-  //C add custom Rule1s as statics of Rule1
-  staticProperties: parent => ({
-    none: new Rule1({
-      origin: 'noRules',
-      message: 'value validated',
-      valueName: 'Value',
-      dataTypes: ['string', 'number', 'boolean', 'array'] //TODO etc. or just make functionality for this
-
-    }),
-    posInt: new Rule1({
-      origin: 'positiveIntegerRules',
-      message: 'number validated',
-      valueName: 'Number',
-      dataTypes: ['integer']
-    }),
-    id: new Rule1({
-      origin: 'idRules',
-      message: 'id validated',
-      valueName: 'id',
-      dataTypes: ['integer']
-    }),
-    image: new Rule1({
-      origin: 'imageRules',
-      message: 'image validated',
-      target: 'playlistImage',
-      cssClass: 'inputError',
-      valueName: 'image',
-      trim: true,
-      max: Rule1.bigStringMaxLength,
-      // TODO filter: ___,
-      filterMessage: 'Image must be a valid url'
-    }),
-    color: new Rule1({
-      origin: 'colorRules',
-      message: 'color validated',
-      target: 'playlistColor',
-      cssClass: 'inputError',
-      valueName: 'color',
-      trim: true,
-      filter: '/#([a-f0-9]{3}){1,2}\b/',
-      //TODO is this correct?
-      filterMessage: 'Color must be in hex format #XXXXXX'
-    }),
-    visibility: new Rule1({
-      origin: 'visibilityRules',
-      message: 'visibility validated',
-      target: 'playlistVisibility',
-      cssClass: 'inputError',
-      valueName: 'Visibility',
-      useAgainst: true,
-      againstValue: Rule1.visibilityStates,
-      againstMessage: 'please select a valid visibility level'
-    }),
-    //TODO other / old
-    //? not sure what these were used for
-    self: new Rule1({
-      origin: 'selfRules',
-      message: 'self validated',
-      target: 'notify',
-      cssClass: 'notifyError',
-      valueName: 'Id',
-      dataTypes: ['integer'],
-      useAgainst: true,
-      //! ctx.session.user.id shouldn't be used here because there is no guarantee ctx.session.user exists
-      againstMessage: 'you are not the owner of this'
-    }),
-    setPassword: new Rule1({
-      origin: 'setPasswordRules',
-      message: 'password validated',
-      target: 'registerPassword',
-      cssClass: 'inputError',
-      valueName: 'Password',
-      min: 6,
-      max: 72,
-      //! as per bcrypt
-      useAgainst: true,
-
-      get againstMessage() {
-        return 'Passwords do not match';
-      }
-
-    })
-  })
-});
-/* harmony default export */ __webpack_exports__["default"] = (Rule1);
-
-/***/ }),
-
 /***/ "./source/shared/legacy-classes/success.js":
 /*!*************************************************!*\
   !*** ./source/shared/legacy-classes/success.js ***!
@@ -4805,16 +4241,141 @@ const Subscription = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["defau
 
 /***/ }),
 
-/***/ "./source/shared/propagate.js":
-/*!************************************!*\
-  !*** ./source/shared/propagate.js ***!
-  \************************************/
-/*! exports provided: default, returnPropagate */
+/***/ "./source/shared/project-rules.js":
+/*!****************************************!*\
+  !*** ./source/shared/project-rules.js ***!
+  \****************************************/
+/*! exports provided: id, position, name, description, color, password, registeredSource, visibilityState */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "id", function() { return id; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "position", function() { return position; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "name", function() { return name; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "description", function() { return description; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "color", function() { return color; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "password", function() { return password; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "registeredSource", function() { return registeredSource; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibilityState", function() { return visibilityState; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./source.js */ "./source/shared/source.js");
+//G This file is for global rules that are opinionated for this project.
+// For example: all identifiers shall be non-negative integers.
+//TODO Create test file. Had an error where value was being compared rather than value.length.
+//----------
+//TODO: server source maps, better route error handling, fix error handling specifically in session.login
+
+const id = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value);
+  },
+
+  caster(reference) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validateCast(reference); // Cannot cast any further than a nonNegativeInteger.
+  }
+
+}); //TODO Consider renaming this and have 'position' refer to 1-based indices.
+
+const position = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(value);
+  },
+
+  caster(reference) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validateCast(reference); // Cannot cast any further than a nonNegativeInteger.
+  }
+
+}); // Extracted Rules
+//TODO Move these to a better location.
+// stringMaxLength: 100,
+// bigStringMaxLength: 2000,
+// nameMinLength: 3,
+// nameMaxLength: 16,
+
+const nameMinLength = 3;
+const nameMaxLength = 100;
+const name = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].trimmedString.validate(value);
+
+    if (!(nameMinLength <= value.length && value.length <= nameMaxLength)) {
+      throw new Error(`Name is not between ${nameMinLength} and ${nameMaxLength} characters long.`);
+    }
+  }
+
+});
+const descriptionMaxLength = 2000;
+const description = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].trimmedString.validate(value);
+
+    if (!(value.length <= descriptionMaxLength)) {
+      throw new Error(`Description is not under ${descriptionMaxLength} characters long.`);
+    }
+  }
+
+});
+const color = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  filter: '/#([a-f0-9]{3}){1,2}\b/',
+  //TODO is this correct?
+  filterMessage: 'Color must be in hex format #XXXXXX',
+
+  validator(value) {
+    if (!/^#([a-f0-9]{3}){1,2}$/.test(value)) {
+      throw new Error('Value is not a color.');
+    }
+  }
+
+});
+const passwordMinLength = 6;
+const passwordMaxLength = 72; //! As per bcrypt.
+
+const password = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].trimmedString.validate(value);
+
+    if (!(passwordMinLength <= value.length && value.length <= passwordMaxLength)) {
+      throw new Error(`Password is not between ${passwordMinLength} and ${passwordMaxLength} characters long.`);
+    }
+  }
+
+}); // Very Opinionated
+
+
+const registeredSource = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    if (!_source_js__WEBPACK_IMPORTED_MODULE_1__["default"].isRegistered(value)) {
+      throw new Error('Source is not registered.');
+    }
+  }
+
+});
+const visibilityStates = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Enum"]('public', 'private', 'linkOnly'); // Basically an enum.
+
+const visibilityState = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
+  validator(value) {
+    if (!_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Enum"].hasKey(visibilityStates, value)) {
+      throw new Error('Value is not a valid visibility state.');
+    }
+  }
+
+});
+
+/***/ }),
+
+/***/ "./source/shared/propagate.js":
+/*!************************************!*\
+  !*** ./source/shared/propagate.js ***!
+  \************************************/
+/*! exports provided: default, returnPropagate, logPropagate */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return propagate; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "returnPropagate", function() { return returnPropagate; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "logPropagate", function() { return logPropagate; });
 /* harmony import */ var _derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./derived-utility/safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
 /* harmony import */ var _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
 // Takes an input (which was thrown), re-throws it if its already an Error, otherwise wraps it in an error instance and throws that.
@@ -4824,10 +4385,12 @@ __webpack_require__.r(__webpack_exports__);
 
  // Wraps the passed value in an Error instance if it isn't one. Then throws it.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (value, overwriteOptions) {
+function propagate(value, overwriteOptions) {
   if (value instanceof Error) {
     throw value;
   } else {
+    console.log(value instanceof Error);
+    console.log(typeof value);
     throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
       message: `An unexpected value has been thrown: ${Object(_derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value)}`,
       userMessage: 'An unexpected error has occurred.',
@@ -4835,18 +4398,19 @@ __webpack_require__.r(__webpack_exports__);
       value
     });
   }
-});
-; // Propagates a value, but returns it instead of throwing it.
+} // Propagates a value, but returns it instead of throwing it.
 //TODO Consider refactoring implementations of this out, into a better solution.
 
 function returnPropagate(value, overwriteOptions) {
   try {
-    propagate(value, overwriteOptions);
+    return propagate(value, overwriteOptions);
   } catch (error) {
     return error;
   }
 }
-;
+function logPropagate(value, overwriteOptions) {
+  console.error(returnPropagate(value, overwriteOptions));
+}
 
 /***/ }),
 
@@ -5016,6 +4580,10 @@ __webpack_require__.r(__webpack_exports__);
 
     find(name) {
       return this.instances.find(instance => instance.name === name);
+    },
+
+    isRegistered(name) {
+      return this.find(name) !== undefined;
     }
 
   })
@@ -5050,14 +4618,17 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return asyncMap; });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 // Executes an async function for each item in an array.
 // When all async functions are settled, returns an array of results if all are fulfilled, but throws the array of results if any reject.
 //G Callback takes same argument order as Array.map callback.
 //! Can mutate the original array.
+//! The thrown value will not be an Error object.
+//G If an Error object is desired use a wrapper like .catch(MultipleErrors.throw);
 //TODO The semantics of this might not be correct - why would a mixed list of fulfilled and rejected values be useful? The rejected promises are also all caught so basic throws aren't useful. Maybe explicitly filtering out fulfillments from the thrown array would be better? To fix this would require going in and ensuring all uses work with this change.
 
-/* harmony default export */ __webpack_exports__["default"] = (async function (array, mapFunction) {
+async function asyncMap(array, mapFunction) {
   // Validate.
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(mapFunction); // Wait for every promise to settle.
@@ -5081,11 +4652,10 @@ __webpack_require__.r(__webpack_exports__);
 
   if (allFulfilled) {
     return fulfilledResults;
-  } else {
-    throw rejectedResults;
   }
-});
-;
+
+  throw rejectedResults;
+}
 
 /***/ }),
 
@@ -5386,6 +4956,8 @@ class ClassParts {
   }
 
 } // Immediately wraps and invokes the passed part.
+//G Only useful for cases where a reference to 'this' is preferable over <Class> or <Class>.prototype.
+//? Not sure if this is even really necessary.
 //R Intercept and instance parts not included because they can be called directly from the constructor.
 
 function initPrototype(Class, initializer) {
@@ -5395,6 +4967,7 @@ function initStatic(Class, initializer) {
   return wrapStatic(initializer)(Class);
 } // Replacements for the 'super' keyword inside prototype and static methods.
 //R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
+//TODO Consider renaming to superPrototype & superStatic.
 
 function prototypeSuper(Class) {
   return Object.getPrototypeOf(Class.prototype);
@@ -5609,6 +5182,95 @@ class Deferred extends Promise {
 
 /***/ }),
 
+/***/ "./source/shared/utility/enum.js":
+/*!***************************************!*\
+  !*** ./source/shared/utility/enum.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Enum; });
+/* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
+/* harmony import */ var _validation_rule_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+/* harmony import */ var _keyify_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./keyify.js */ "./source/shared/utility/keyify.js");
+
+
+
+
+class Enum {
+  constructor(...keys) {
+    // Non-key values are keyified.
+    // Symbol-keys stay intact.
+    // Duplicate keys are squashed.
+    for (const key of keys) {
+      this[key] = Symbol();
+    }
+
+    Object.freeze(this);
+  }
+
+}
+_object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(Enum, {
+  instanceRule: new _validation_rule_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
+    validator(value) {
+      if (!(value instanceof Enum)) {
+        throw new Error(`Value is not an Enum.`);
+      }
+    }
+
+  }),
+  keyAttributes: {
+    own: true,
+    named: true,
+    enumerable: true,
+    inherited: false,
+    symbol: false,
+    nonEnumerable: false
+  },
+
+  //G Useful for validating Enum values in internal code.
+  hasValue(e, value) {
+    this.instanceRule.validate(e);
+    const enumKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
+    return enumKeys.some(key => e[key] === value);
+  },
+
+  //G Useful for validating Enum keys from external data (JSON).
+  //! Matching values in this method have no guarantee of originating from the enum. Ie. they can be fabricated.
+  hasKey(e, value) {
+    this.instanceRule.validate(e);
+    const enumKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
+    const key = Object(_keyify_js__WEBPACK_IMPORTED_MODULE_3__["default"])(value);
+    return enumKeys.includes(key);
+  },
+
+  // Converts a unique enum value to its key.
+  //G Useful for preparing an enum value for external data (JSON).
+  //! Will return a symbol if the enum value was keyed with one.
+  valueToKey(e, value) {
+    this.instanceRule.validate(e);
+    const enumKeys = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
+    const foundKey = enumKeys.find(key => e[key] === value);
+
+    if (typeof foundKey !== 'symbol') {
+      throw new Error('Enum does not contain the passed value.');
+    }
+
+    return foundKey;
+  },
+
+  getKeys(e) {
+    this.instanceRule.validate(e);
+    return Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(e, this.keyAttributes);
+  }
+
+});
+
+/***/ }),
+
 /***/ "./source/shared/utility/format-ms.js":
 /*!********************************************!*\
   !*** ./source/shared/utility/format-ms.js ***!
@@ -5636,7 +5298,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!****************************************!*\
   !*** ./source/shared/utility/index.js ***!
   \****************************************/
-/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, formatMs, constants, keyCode, reference, repeat */
+/*! exports provided: any, asyncMap, dynamicSort, one, stableSort, deepCompare, define, forKeysOf, getKeysOf, pick, capitalizeFirstCharacter, escapeRegExp, spaceIndented, tabIndented, replaceAll, setTimer, wait, appendQueryParameters, encodeProperties, decodeProperties, encodeList, decodeList, rules, flexTest, Interface, SymbolInterface, Rule, boolCatch, clamp, ClassParts, combinations, Deferred, Enum, formatMs, constants, keyCode, keyify, reference, repeat */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5716,18 +5378,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _deferred_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./deferred.js */ "./source/shared/utility/deferred.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Deferred", function() { return _deferred_js__WEBPACK_IMPORTED_MODULE_10__["default"]; });
 
-/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./format-ms.js */ "./source/shared/utility/format-ms.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
+/* harmony import */ var _enum_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./enum.js */ "./source/shared/utility/enum.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Enum", function() { return _enum_js__WEBPACK_IMPORTED_MODULE_11__["default"]; });
 
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./constants.js */ "./source/shared/utility/constants.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_12__; });
-/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./key-code.js */ "./source/shared/utility/key-code.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_13__; });
-/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./reference.js */ "./source/shared/utility/reference.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_14__["default"]; });
+/* harmony import */ var _format_ms_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./format-ms.js */ "./source/shared/utility/format-ms.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "formatMs", function() { return _format_ms_js__WEBPACK_IMPORTED_MODULE_12__["default"]; });
 
-/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./constants.js */ "./source/shared/utility/constants.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "constants", function() { return _constants_js__WEBPACK_IMPORTED_MODULE_13__; });
+/* harmony import */ var _key_code_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./key-code.js */ "./source/shared/utility/key-code.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "keyCode", function() { return _key_code_js__WEBPACK_IMPORTED_MODULE_14__; });
+/* harmony import */ var _keyify_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./keyify.js */ "./source/shared/utility/keyify.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "keyify", function() { return _keyify_js__WEBPACK_IMPORTED_MODULE_15__["default"]; });
+
+/* harmony import */ var _reference_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./reference.js */ "./source/shared/utility/reference.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "reference", function() { return _reference_js__WEBPACK_IMPORTED_MODULE_16__["default"]; });
+
+/* harmony import */ var _repeat_js__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./repeat.js */ "./source/shared/utility/repeat.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "repeat", function() { return _repeat_js__WEBPACK_IMPORTED_MODULE_17__["default"]; });
 
 // NESTED
 
@@ -5744,7 +5412,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
  //TODO constants aren't exported, find an elegant way to do this.
+
 
 
 
@@ -5862,6 +5532,37 @@ function verify(list, key) {
   throw new Error('Invalid key.');
 }
 ;
+
+/***/ }),
+
+/***/ "./source/shared/utility/keyify.js":
+/*!*****************************************!*\
+  !*** ./source/shared/utility/keyify.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return keyify; });
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+//G Casts any value as an object key, using the exact same method.
+
+function keyify(value) {
+  // Create a null object with only one property.
+  const nullObject = Object.create(null);
+  nullObject[value] = true; // Find that objects only key.
+
+  const [keyifiedValue] = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(nullObject, {
+    own: true,
+    named: true,
+    symbol: true,
+    enumerable: true,
+    nonEnumerable: false,
+    inherited: false
+  });
+  return keyifiedValue;
+}
 
 /***/ }),
 
@@ -6244,7 +5945,9 @@ const ownKeys = function (object) {
         throw new Error('Config is not an object.');
       }
 
-      const validator = config.validator; //! Duplicated from ../validation/rules/functions.js
+      const {
+        validator
+      } = config; //! Duplicated from ../validation/rules/functions.js
 
       if (typeof validator !== 'function') {
         throw new Error('Validator is not a function.');
@@ -6326,6 +6029,8 @@ __webpack_require__.r(__webpack_exports__);
 // forKeysOf calls a function for all keys of an object that match the specified attributes.
 // getKeysOf returns an array of  all keys of an object that match the specified attributes and filter.
 // Attributes default to own, named, enumerable keys. This is the same as Object.keys().
+//R These functions have no short-circuiting and probably can be optimized, but objects shouldn't be having excessively large amounts of keys anyways.
+//G To check if a key is in an object with a filter. Use getKeysOf(...args).includes(key);
 //! Duplicated code in define.js to remove a circular dependency.
  // Importing directly instead of from ../validation/rules/index.js to avoid circular reference.
 
@@ -6387,7 +6092,6 @@ function forKeysOf(object, optionsOrCallback = {}) {
     }
   }
 }
-;
 function getKeysOf(object, optionsOrFilter = {}) {
   // OPTIONS / VALIDATION
   const options = typeof optionsOrFilter === 'function' ? {
@@ -6416,7 +6120,6 @@ function getKeysOf(object, optionsOrFilter = {}) {
   });
   return keys;
 }
-;
 const own = {
   own: true,
   named: true,
@@ -6430,13 +6133,11 @@ function forOwnKeysOf(object, callback) {
     callback
   });
 }
-;
 function getOwnKeysOf(object, filter) {
   return getKeysOf(object, { ...own,
     filter
   });
 }
-;
 
 /***/ }),
 
@@ -7362,17 +7063,17 @@ __webpack_require__.r(__webpack_exports__);
 //TODO ensure that validate and validateCast both return values
 //TODO rename to .validate(), .test(), .cast(), .testCast()
 //TODO consider duplicating define here, so that define can use rules
+//TODO consider allowing a shorthand parameter, where a single function argument defaults to the validator.
 
 
 
 class Rule {
   constructor({
-    /* //G 
+    /* //G
     	Should do nothing on success, throw on failure.
     	Should have one or many sequential and/or parallel conditions.
     	May be sync or async.
-    	
-    	If using other rules' validators, use validate() and pass the same arguments.
+    			If using other rules' validators, use validate() and pass the same arguments.
     */
     validator = function () {
       throw new Error('A validator has not been created for this rule.');
@@ -7404,37 +7105,33 @@ class Rule {
     }); // false when x.constructor.name === 'AsyncFunction'
 
     const validatorIsSynchronous = this.validator.constructor.name === 'Function';
-    const casterIsSynchronous = this.caster.constructor.name === 'Function';
+    const casterIsSynchronous = this.caster.constructor.name === 'Function'; // Validate/test functions are bound to the instance because they may be copied to another object.
 
     if (validatorIsSynchronous) {
       _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        validate(...args) {
+        validate: function validate(...args) {
           this.validator(...args);
           return args;
-        },
-
-        test(...args) {
+        }.bind(this),
+        test: function test(...args) {
           return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validate(...args));
-        }
-
+        }.bind(this)
       });
     } else {
       _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        async validate(...args) {
+        validate: async function validate(...args) {
           await this.validator(...args);
           return args;
-        },
-
-        async test(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => await this.validate(...args));
-        }
-
+        }.bind(this),
+        test: async function test(...args) {
+          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => this.validate(...args));
+        }.bind(this)
       });
     }
 
     if (validatorIsSynchronous && casterIsSynchronous) {
       _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        validateCast(...args) {
+        validateCast: function validateCast(...args) {
           // If call is the entry-point, will convert values to reference-values. If call is nested, nothing will change.
           const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
 
@@ -7446,16 +7143,14 @@ class Rule {
           const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
           this.validate(...values);
           return values;
-        },
-
-        testCast(...args) {
+        }.bind(this),
+        testCast: function testCast(...args) {
           return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(() => this.validateCast(...args));
-        }
-
+        }.bind(this)
       });
     } else {
       _object_define_js__WEBPACK_IMPORTED_MODULE_0__["default"].constant(this, {
-        async validateCast(...args) {
+        validateCast: async function validateCast(...args) {
           const references = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["formReferences"])(args);
 
           try {
@@ -7465,18 +7160,15 @@ class Rule {
           const values = Object(_reference_js__WEBPACK_IMPORTED_MODULE_1__["extractValues"])(references);
           await this.validate(...values);
           return values;
-        },
-
-        async testCast(...args) {
-          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => await this.validateCast(...args));
-        }
-
+        }.bind(this),
+        testCast: async function testCast(...args) {
+          return Object(_bool_catch_js__WEBPACK_IMPORTED_MODULE_2__["default"])(async () => this.validateCast(...args));
+        }.bind(this)
       });
     }
   }
 
 }
-;
 /* harmony default export */ __webpack_exports__["default"] = (Rule);
 
 /***/ }),
@@ -7732,7 +7424,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************!*\
   !*** ./source/shared/utility/validation/rules/index.js ***!
   \*********************************************************/
-/*! exports provided: body, headers, queryParameters, object, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, populatedString, symbol */
+/*! exports provided: body, headers, queryParameters, object, emptyObject, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7746,6 +7438,8 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _objects_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./objects/index.js */ "./source/shared/utility/validation/rules/objects/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["object"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "emptyObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["emptyObject"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _objects_index_js__WEBPACK_IMPORTED_MODULE_1__["populatedObject"]; });
 
@@ -7794,6 +7488,8 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["visibleString"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "invisibleString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["invisibleString"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["populatedString"]; });
 
 /* harmony import */ var _symbol_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./symbol.js */ "./source/shared/utility/validation/rules/symbol.js");
@@ -7824,39 +7520,22 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
-/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+/* harmony import */ var _keyify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../keyify.js */ "./source/shared/utility/keyify.js");
 
-
-
-const keyify = function (value) {
-  // Create a null object with only one property.
-  const nullObject = Object.create(null);
-  nullObject[value] = true; // Find that only property's key.
-
-  const [keyifiedValue] = Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(nullObject, {
-    own: true,
-    named: true,
-    symbol: true,
-    enumerable: true,
-    nonEnumerable: false,
-    inherited: false
-  });
-  return keyifiedValue;
-};
 
 /* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   // Keys that won't be cast / have already been cast as a result of being used as a property key.
   //! Does not include numbers, those get cast to strings.
   validator(value) {
-    const keyifiedValue = keyify(value);
+    const keyifiedValue = Object(_keyify_js__WEBPACK_IMPORTED_MODULE_1__["default"])(value);
 
     if (value !== keyifiedValue) {
-      throw 'Value is not keyified.';
+      throw new Error('Value is not keyified.');
     }
   },
 
   caster(reference) {
-    reference.value = keyify(reference.value);
+    reference.value = Object(_keyify_js__WEBPACK_IMPORTED_MODULE_1__["default"])(reference.value);
   }
 
 }));
@@ -8025,11 +7704,46 @@ const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
 /***/ }),
 
+/***/ "./source/shared/utility/validation/rules/objects/empty-object.js":
+/*!************************************************************************!*\
+  !*** ./source/shared/utility/validation/rules/objects/empty-object.js ***!
+  \************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../rule.js */ "./source/shared/utility/validation/rule.js");
+/* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
+/* harmony import */ var _object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../object/keys-of.js */ "./source/shared/utility/object/keys-of.js");
+
+
+
+/* harmony default export */ __webpack_exports__["default"] = (new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    _object_js__WEBPACK_IMPORTED_MODULE_1__["default"].validate(value);
+
+    if (Object(_object_keys_of_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(value, {
+      own: true,
+      enumerable: true,
+      nonEnumerable: true,
+      named: true,
+      symbol: true,
+      inherited: false
+    }).length > 0) {
+      throw new Error('Object is not empty.');
+    }
+  }
+
+}));
+
+/***/ }),
+
 /***/ "./source/shared/utility/validation/rules/objects/index.js":
 /*!*****************************************************************!*\
   !*** ./source/shared/utility/validation/rules/objects/index.js ***!
   \*****************************************************************/
-/*! exports provided: object, populatedObject */
+/*! exports provided: object, emptyObject, populatedObject */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8037,8 +7751,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _object_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object.js */ "./source/shared/utility/validation/rules/objects/object.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "object", function() { return _object_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./populated-object.js */ "./source/shared/utility/validation/rules/objects/populated-object.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _empty_object_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./empty-object.js */ "./source/shared/utility/validation/rules/objects/empty-object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "emptyObject", function() { return _empty_object_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+
+/* harmony import */ var _populated_object_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./populated-object.js */ "./source/shared/utility/validation/rules/objects/populated-object.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "populatedObject", function() { return _populated_object_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
 
 
 
@@ -8107,7 +7825,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************************!*\
   !*** ./source/shared/utility/validation/rules/strings.js ***!
   \***********************************************************/
-/*! exports provided: string, trimmedString, visibleString, populatedString */
+/*! exports provided: string, trimmedString, visibleString, invisibleString, populatedString */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8115,6 +7833,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "string", function() { return string; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "trimmedString", function() { return trimmedString; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibleString", function() { return visibleString; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "invisibleString", function() { return invisibleString; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "populatedString", function() { return populatedString; });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 
@@ -8142,7 +7861,7 @@ const trimmedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
     string.validate(value); //TODO Create a thorough test for this.
     //TODO See https://en.wikipedia.org/wiki/Whitespace_character
     //! If this gets changed, ensure the caster .trim() function is updated too.
-    //L from the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
+    //L From the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
 
     if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) {
       throw new Error('String has leading and/or trailing whitespace.');
@@ -8160,7 +7879,21 @@ const visibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
     string.validate(value);
 
     if (trimmedString.validateCast(value) === '') {
-      throw 'String is not visible.';
+      throw new Error('String is not visible.');
+    }
+  },
+
+  caster(reference) {
+    string.validateCast(reference); // Cannot cast any further than a string.
+  }
+
+});
+const invisibleString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    string.validate(value);
+
+    if (trimmedString.validateCast(value) !== '') {
+      throw new Error('String is visible.');
     }
   },
 
@@ -8174,7 +7907,7 @@ const populatedString = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
     string.validate(value);
 
     if (value === '') {
-      throw 'String is not populated.';
+      throw new Error('String is not populated.');
     }
   },
 
@@ -8430,3 +8163,4 @@ module.exports = require("valid-url");
 /***/ })
 
 /******/ });
+//# sourceMappingURL=main.bundle.cjs.map

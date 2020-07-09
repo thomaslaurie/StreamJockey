@@ -38,6 +38,9 @@ import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	asyncMap,
 } from '../shared/utility/index.js';
+import {
+	MultipleErrors,
+} from '../shared/errors/index.js';
 
 
 const Command = Base.makeClass('Command', Base, {
@@ -142,7 +145,7 @@ const Start = Base.makeClass('Start', Command, {
 			//C pause all
 			await asyncMap(this.sourceInstances, async source => {
 				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
-			});
+			}).catch(MultipleErrors.throw);
 
 			//C change startingTrackSubscription to subscription of the new track
 			context.commit('setStartingTrackSubscription', await context.dispatch('resubscribe', {
@@ -208,7 +211,7 @@ const Toggle = Base.makeClass('Toggle', Command, {
 					//C pause all or rest
 					if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
 				}
-			});
+			}).catch(MultipleErrors.throw);
 		},
 	}),
 });
@@ -260,10 +263,10 @@ const Volume = Base.makeClass('Volume', Command, {
 		async trigger(context) {
 			await parent.prototype.trigger.call(this, context);
 
-			//C adjust volume on all sources
+			// adjust volume on all sources
 			await asyncMap(this.sourceInstances, async source => {
 				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/volume`, this.volume);
-			});
+			}).catch(MultipleErrors.throw);
 		},
 	}),
 });
@@ -272,12 +275,12 @@ const Volume = Base.makeClass('Volume', Command, {
 // These methods have references to constructors that are not available at declaration:
 // Command
 Command.prototype.identicalCondition = function (otherCommand) {
-	//C otherCommand must be an sj.Command, and have the same playback-state properties
+	// otherCommand must be an sj.Command, and have the same playback-state properties
 	return isInstanceOf(otherCommand, Command, 'Command') && otherCommand.source === this.source;
 };
 // Start, Resume, Pause, Seek
 Start.prototype.collapseCondition = function (otherCommand) {
-	//C collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
+	// collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
 	return parent.prototype.collapseCondition.call(this, otherCommand)
 	|| otherCommand.constructor === Start
 	|| otherCommand.constructor === Resume 

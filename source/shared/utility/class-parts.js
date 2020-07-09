@@ -72,6 +72,8 @@ export default class ClassParts {
 }
 
 // Immediately wraps and invokes the passed part.
+//G Only useful for cases where a reference to 'this' is preferable over <Class> or <Class>.prototype.
+//? Not sure if this is even really necessary.
 //R Intercept and instance parts not included because they can be called directly from the constructor.
 export function initPrototype(Class, initializer) {
 	return wrapPrototype(initializer)(Class);
@@ -82,6 +84,7 @@ export function initStatic(Class, initializer) {
 
 // Replacements for the 'super' keyword inside prototype and static methods.
 //R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
+//TODO Consider renaming to superPrototype & superStatic.
 export function prototypeSuper(Class) {
 	return Object.getPrototypeOf(Class.prototype);
 }

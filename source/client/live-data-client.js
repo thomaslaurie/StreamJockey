@@ -302,6 +302,8 @@ import {
 //  ██║ ╚═╝ ██║╚██████╔╝██████╔╝╚██████╔╝███████╗███████╗
 //  ╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚══════╝╚══════╝
 
+//! //TODO Create wrapper around socket to handle errors, much like middleware. Errors aren't being communicated to the client. They are just getting thrown on the server side right now.
+
 export default {
 	state: {
 		tables: LiveTable.makeTables(),
@@ -707,7 +709,6 @@ export default {
 				reason: 'table is not an LiveTable',
 				content: table,
 			});
-			
 
 			//C subscribe on server 
 			const preparedQuery = any(query).map((q) => pick(q, Entity.filters.getIn));
@@ -849,11 +850,11 @@ export default {
 			if (pack.edited)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onEdit'});
 			if (pack.removed)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onRemove'});
 		},
-		
+
 
 		// SERVER
 		async serverSubscribe(context, {table, query}) {
-			return await new Promise((resolve, reject) => {
+			return new Promise((resolve, reject) => {
 				const clearTimer = setTimer(context.state.timeout, () => {
 					reject(new Err({
 						log: true,

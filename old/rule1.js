@@ -1,10 +1,10 @@
-import Base from './base.js';
+import Base from '../source/shared/legacy-classes/base.js';
 import {
 	Err,
-} from './error.js';
+} from '../source/shared/legacy-classes/error.js';
 import {
 	Success,
-} from './success.js';
+} from '../source/shared/legacy-classes/success.js';
 
 const Rule1 = Base.makeClass('Rule', Base, {
 	//G//! arrow functions may be used to shorten object returns, however they should must not use 'this'

@@ -10,7 +10,7 @@
 		data() { return {
 			// OVERWRITES
 			Entity: Track,
-			sQuery: {id: this.$route.params.id},
+			sQuery: {id: Number.parseInt(this.$route.params.id)}, //TODO Properly cast
 		}; },
     }
 </script>

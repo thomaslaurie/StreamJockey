@@ -2,6 +2,8 @@
 // getKeysOf returns an array of  all keys of an object that match the specified attributes and filter.
 // Attributes default to own, named, enumerable keys. This is the same as Object.keys().
 
+//R These functions have no short-circuiting and probably can be optimized, but objects shouldn't be having excessively large amounts of keys anyways.
+//G To check if a key is in an object with a filter. Use getKeysOf(...args).includes(key);
 //! Duplicated code in define.js to remove a circular dependency.
 
 import flexTest from '../validation/flex-test.js';
@@ -20,14 +22,14 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 
 	rules.object.validate(object);
 	rules.object.validate(options);
-	
+
 	const {
 		own = true,
 		inherited = false,
-		
+
 		named = true,
 		symbol = false,
-		
+
 		enumerable = true,
 		nonEnumerable = false,
 
@@ -47,13 +49,13 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 			target = Object.getPrototypeOf(target);
 		}
 	}
-	
+
 	const visitedKeys = [];
 	for (const target of chain) {
 		const targetKeys = [];
 
 		// NAMED / SYMBOL
-		if (named)  targetKeys.push(...Object.getOwnPropertyNames  (target));
+		if (named)  targetKeys.push(...Object.getOwnPropertyNames(target));
 		if (symbol) targetKeys.push(...Object.getOwnPropertySymbols(target));
 
 		for (const targetKey of targetKeys) {
@@ -71,7 +73,7 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 			}
 		}
 	}
-};
+}
 export function getKeysOf(object, optionsOrFilter = {}) {
 	// OPTIONS / VALIDATION
 	const options = (
@@ -82,9 +84,9 @@ export function getKeysOf(object, optionsOrFilter = {}) {
 
 	rules.object.validate(object);
 	rules.object.validate(options);
-	
+
 	const {
-		filter = (object, key) => true, 
+		filter = (object, key) => true,
 		...rest
 	} = options;
 
@@ -108,7 +110,7 @@ export function getKeysOf(object, optionsOrFilter = {}) {
 	});
 
 	return keys;
-};
+}
 
 const own = {
 	own:           true,
@@ -121,7 +123,7 @@ const own = {
 };
 export function forOwnKeysOf(object, callback) {
 	return forKeysOf(object, {...own, callback});
-};
+}
 export function getOwnKeysOf(object, filter) {
 	return getKeysOf(object, {...own, filter});
-};
+}

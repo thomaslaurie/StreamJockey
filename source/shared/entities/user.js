@@ -1,15 +1,18 @@
 import Base from '../legacy-classes/base.js';
 import Entity from './entity.js';
-import { 
+import {
 	unused,
 	optional,
 	required,
 	auto,
 } from './schema-states.js';
-import Rule1 from '../legacy-classes/rule1.js';
+import * as projectRules from '../project-rules.js';
+import {
+	rules,
+} from '../utility/index.js';
 
 export default Base.makeClass('User', Entity, {
-	constructorParts: parent => ({
+	constructorParts: (parent) => ({
 		defaults: {
 			// NEW
 			name: '',
@@ -27,8 +30,8 @@ export default Base.makeClass('User', Entity, {
 			//G 0 = unused, 1 = optional, 2 = required
 			id: {
 				columnName: 'id',
-				rule: Rule1.id,
-	
+				rule: projectRules.id.validate,
+
 				add: auto,
 				get: optional,
 				edit: required,
@@ -36,19 +39,8 @@ export default Base.makeClass('User', Entity, {
 			},
 			name: {
 				columnName: 'name',
-				rule: new Rule1({
-					origin: 'userNameRules',
-					message: 'username validated',
-					target: 'registerUserName',
-					cssClass: 'inputError',
-				
-					valueName: 'Username',
-					trim: true,
-				
-					min: Rule1.nameMinLength,
-					max: Rule1.nameMaxLength,
-				}),
-	
+				rule: projectRules.name.validate,
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -56,22 +48,8 @@ export default Base.makeClass('User', Entity, {
 			},
 			email: {
 				columnName: 'email',
-				rule: new Rule1({
-					origin: 'emailRules',
-					message: 'email validated',
-					target: 'registerEmail',
-					cssClass: 'inputError',
-				
-					valueName: 'E-mail',
-					trim: true,
-				
-					min: 3,
-					max: Rule1.stringMaxLength,
-				
-					//TODO useFilter: ___, filterMessage: ___, 
-					//L https://stackoverflow.com/questions/46155/how-to-validate-an-email-address-in-javascript
-				}),
-	
+				rule: rules.string.validate, //TODO Email rule.
+
 				add: required,
 				get: optional,
 				edit: optional,
@@ -79,18 +57,8 @@ export default Base.makeClass('User', Entity, {
 			},
 			password: {
 				columnName: 'password',
-				rule: new Rule1({
-					origin: 'passwordRules',
-					message: 'password validated',
-					target: 'registerPassword',
-					cssClass: 'inputError',
-				
-					valueName: 'Password',
-				
-					min: 6,
-					max: 72, //! as per bcrypt
-				}),
-	
+				rule: projectRules.password.validate,
+
 				add: required,
 				get: unused,
 				edit: {
@@ -102,14 +70,8 @@ export default Base.makeClass('User', Entity, {
 			},
 			spotifyRefreshToken: {
 				columnName: 'spotifyRefreshToken',
-				rule: new Rule1({
-					origin: 'spotifyRefreshTokenRules',
-					message: 'token validated',
-				
-					valueName: 'Token',
-					//TODO empty for now
-				}),
-	
+				rule: () => {}, //TODO empty for now
+
 				add: unused,
 				get: {
 					in: false,

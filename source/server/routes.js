@@ -40,12 +40,12 @@
 */
 
 
-//  ████████╗ ██████╗ ██████╗  ██████╗ 
+//  ████████╗ ██████╗ ██████╗  ██████╗
 //  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
 //     ██║   ██║   ██║██║  ██║██║   ██║
 //     ██║   ██║   ██║██║  ██║██║   ██║
 //     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝
 
 /*
 	consider using a separate router for source-api requests (sourceRouter)
@@ -101,6 +101,7 @@ import {
 } from './entities/index.js';
 import {
 	returnPropagate,
+	logPropagate,
 } from '../shared/propagate.js';
 import * as session from '../server/session-methods.js';
 import database from './db.js';
@@ -111,19 +112,19 @@ import {
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+//  ██║██╔██╗ ██║██║   ██║
+//  ██║██║╚██╗██║██║   ██║
+//  ██║██║ ╚████║██║   ██║
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 
-export default function ({replaceIndex}) {
+export default function routes({replaceIndex}) {
 	// path
 	//L make own __dirname since it isn't exposed in modules: https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
 	//L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
 	//TODO there has to be a cleaner way of doing this (especially the replace manipulation)
 	//R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
 	// const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-	const root = clientBuildDirectory ;
+	const root = clientBuildDirectory;
 	const app = `/${UIMainFileName}`;
 
 	// router
@@ -177,123 +178,131 @@ export default function ({replaceIndex}) {
 
 	// server-side data & processing requests
 	apiRouter
-	.get('/*', async (ctx, next) => {
-		// Set GET request bodies as the parsed body parameter (if it exists).
-		const queryBody = ctx.request.query[GET_BODY];
-		try {
-			ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
-		} catch (error) {
-			ctx.response.body = 400;
-			ctx.response.body = new ParseError({
-				message: error.message,
-				userMessage: 'Request failed due to an internal error.',
-				input: queryBody,
+		.all('/*', async (ctx, next) => {
+			await next().catch(logPropagate);
+		})
+
+		.get('/*', async (ctx, next) => {
+			// Set GET request bodies as the parsed body parameter (if it exists).
+			const queryBody = ctx.request.query[GET_BODY];
+			try {
+				ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
+			} catch (error) {
+				ctx.response.body = 400;
+				ctx.response.body = new ParseError({
+					message: error.message,
+					userMessage: 'Request failed due to an internal error.',
+					input: queryBody,
+				});
+			}
+
+			await next();
+		})
+
+		.post('/log', async (ctx, next) => {
+			ctx.response.body = new Success({
+				origin: 'routes.js /log POST',
+				message: 'received client log message',
 			});
-		}
+		})
 
-		await next();
-	})
+		// auth
+		.get('/spotify/authRequestStart', async (ctx, next) => {
+			// Retrieves an auth request URL and it's respective local key (for event handling).
+			ctx.response.body = await spotify.startAuthRequest().catch(returnPropagate);
+		})
+		.get('/spotify/authRedirect', async (ctx, next) => { 
+			// Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
+			//! This URL is sensitive to the url given to spotify developer site (I think).
+			await spotify.receiveAuthRequest(ctx.request.query).catch(returnPropagate);
+			await send(ctx, app, {root: root});
+		})
+		.post('/spotify/authRequestEnd', async (ctx, next) => {
+			ctx.response.body = await spotify.endAuthRequest(ctx.request.body).catch(returnPropagate);
+		})
+		.post('/spotify/exchangeToken', async (ctx, next) => {
+			ctx.response.body = await spotify.exchangeToken(ctx, ctx.request.body).catch(returnPropagate);
+		})
+		.get('/spotify/refreshToken', async (ctx, next) => {
+			ctx.response.body = await spotify.refreshToken(ctx).catch(returnPropagate);
+		})
 
-	.post('/log', async (ctx, next) => {
-		ctx.response.body = new Success({
-			origin: 'routes.js /log POST',
-			message: 'received client log message',
+		.get('/youtube/credentials', async (ctx, next) => {
+			ctx.response.body = await youtube.getCredentials().catch(returnPropagate);
+		})
+
+		// session
+		//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
+		//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
+		.post('/session', async (ctx, next) => {
+			//----------
+			//TODO //! returnPropagate isnt doing jack here, throwing inside session.login() wasn't showing any errors/
+			ctx.response.body = await session.login(database, ctx, ctx.request.body).catch(e => {
+				console.error(e);
+			});
+		})
+		.get('/session', async (ctx, next) => {
+			//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
+			ctx.response.body = await session.get(ctx).catch(returnPropagate);
+		})
+		.delete('/session', async (ctx, next) => {
+			ctx.response.body = await session.logout(ctx).catch(returnPropagate);
+		})
+
+
+		//TODO condense this
+		// user
+		.post(`/${User.table}`, async (ctx, next) => {
+			ctx.response.body = await User.add(ctx.request.body).catch(returnPropagate);
+		})
+		.get(`/${User.table}`, async (ctx, next) => {
+			ctx.response.body = await User.get(ctx.request.body).catch(returnPropagate);
+		})
+		.patch(`/${User.table}`, async (ctx, next) => {
+			ctx.response.body = await User.edit(ctx.request.body).catch(returnPropagate);
+		})
+		.delete(`/${User.table}`, async (ctx, next) => {
+			ctx.response.body = await User.remove(ctx.request.body).catch(returnPropagate);
+		})
+
+		// playlist
+		.post(`/${Playlist.table}`, async (ctx, next) => {
+			ctx.response.body = await Playlist.add(ctx.request.body).catch(returnPropagate);
+		})
+		.get(`/${Playlist.table}`, async (ctx, next) => {
+			ctx.response.body = await Playlist.get(ctx.request.body).catch(returnPropagate);
+		})
+		.patch(`/${Playlist.table}`, async (ctx, next) => {
+			ctx.response.body = await Playlist.edit(ctx.request.body).catch(returnPropagate);
+		})
+		.delete(`/${Playlist.table}`, async (ctx, next) => {
+			ctx.response.body = await Playlist.remove(ctx.request.body).catch(returnPropagate);
+		})
+
+		// track
+		.post(`/${Track.table}`, async (ctx, next) => {
+			ctx.response.body = await Track.add(ctx.request.body).catch(returnPropagate);
+		})
+		.get(`/${Track.table}`, async (ctx, next) => {
+			ctx.response.body = await Track.get(ctx.request.body).catch(returnPropagate);
+		})
+		.patch(`/${Track.table}`, async (ctx, next) => {
+			ctx.response.body = await Track.edit(ctx.request.body).catch(returnPropagate);
+		})
+		.delete(`/${Track.table}`, async (ctx, next) => {
+			ctx.response.body = await Track.remove(ctx.request.body).catch(returnPropagate);
+		})
+
+		// catch
+		.all('/*', async (ctx, next) => {
+			ctx.response.body = new Err({
+				log: true,
+				origin: 'apiRouter',
+				message: 'could not process request',
+				reason: 'invalid api command',
+				content: ctx.request.body,
+			});
 		});
-	})
-
-	// auth
-	.get('/spotify/authRequestStart', async (ctx, next) => {
-		//C retrieves an auth request URL and it's respective local key (for event handling)
-		ctx.response.body = await spotify.startAuthRequest().catch(returnPropagate);
-	})
-	.get('/spotify/authRedirect', async (ctx, next) => { 
-		//C receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client
-		//! this URL is sensitive to the url given to spotify developer site (i think)
-		await spotify.receiveAuthRequest(ctx.request.query).catch(returnPropagate);
-		await send(ctx, app, {root: root});
-	})
-	.post('/spotify/authRequestEnd', async (ctx, next) => {
-		ctx.response.body = await spotify.endAuthRequest(ctx.request.body).catch(returnPropagate);
-	})
-	.post('/spotify/exchangeToken', async (ctx, next) => {
-		ctx.response.body = await spotify.exchangeToken(ctx, ctx.request.body).catch(returnPropagate);
-	})
-	.get('/spotify/refreshToken', async (ctx, next) => {
-		ctx.response.body = await spotify.refreshToken(ctx).catch(returnPropagate);
-	})
-
-	.get('/youtube/credentials', async (ctx, next) => {
-		ctx.response.body = await youtube.getCredentials().catch(returnPropagate);
-	})
-
-	// session
-	//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
-	//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
-	.post('/session', async (ctx, next) => {
-		ctx.response.body = await session.login(database, ctx, ctx.request.body).catch(returnPropagate);
-	})
-	.get('/session', async (ctx, next) => {
-		//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-		ctx.response.body = await session.get(ctx).catch(returnPropagate);
-	})
-	.delete('/session', async (ctx, next) => {
-		ctx.response.body = await session.logout(ctx).catch(returnPropagate);
-	})
-
-
-	//TODO condense this
-	// user
-	.post(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.add(ctx.request.body).catch(returnPropagate);
-	})
-	.get(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.get(ctx.request.body).catch(returnPropagate);
-	})
-	.patch(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.edit(ctx.request.body).catch(returnPropagate);
-	})
-	.delete(`/${User.table}`, async (ctx, next) => {
-		ctx.response.body = await User.remove(ctx.request.body).catch(returnPropagate);
-	})
-
-	// playlist
-	.post(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.add(ctx.request.body).catch(returnPropagate);
-	})
-	.get(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.get(ctx.request.body).catch(returnPropagate);
-	})
-	.patch(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.edit(ctx.request.body).catch(returnPropagate);
-	})
-	.delete(`/${Playlist.table}`, async (ctx, next) => {
-		ctx.response.body = await Playlist.remove(ctx.request.body).catch(returnPropagate);
-	})
-
-	// track
-	.post(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.add(ctx.request.body).catch(returnPropagate);
-	})
-	.get(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.get(ctx.request.body).catch(returnPropagate);
-	})
-	.patch(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.edit(ctx.request.body).catch(returnPropagate);
-	})
-	.delete(`/${Track.table}`, async (ctx, next) => {
-		ctx.response.body = await Track.remove(ctx.request.body).catch(returnPropagate);
-	})
-
-	// catch
-	.all('/*', async (ctx, next) => {
-		ctx.response.body = new Err({
-			log: true,
-			origin: 'apiRouter',
-			message: 'could not process request',
-			reason: 'invalid api command',
-			content: ctx.request.body,
-		});
-	});
 
 	//L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 	router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); 
@@ -307,53 +316,53 @@ export default function ({replaceIndex}) {
 	//  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 
 	router
-	.get('/*', async (ctx, next) => {
-		/*
-			//C pages are accessed through the base GET method, serve any public files here
-			//! static resource references in index.html should be absolute '/foo', not relative './foo'
+		.get('/*', async (ctx, next) => {
+			/*
+				//C pages are accessed through the base GET method, serve any public files here
+				//! static resource references in index.html should be absolute '/foo', not relative './foo'
 
-			//! "Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header"
-			//L https://developers.google.com/web/fundamentals/primers/modules
+				//! "Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header"
+				//L https://developers.google.com/web/fundamentals/primers/modules
 
-			//TODO //! errors thrown here aren't caught - fix this here and everywhere else
-		*/
+				//TODO //! errors thrown here aren't caught - fix this here and everywhere else
+			*/
 
-		//L temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
-		if (ctx.request.path === '/favicon.ico') {
-			ctx.response.status = 204;
-			return;
-			//TODO add it and remove this block
-		}
+			//L temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+			if (ctx.request.path === '/favicon.ico') {
+				ctx.response.status = 204;
+				return;
+				//TODO add it and remove this block
+			}
 
-		//C serve resources
-		if (fs.existsSync(path.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
-			await send(ctx, ctx.request.path, {root: root});
-			return;
-			//TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
-			//TODO webpack might have a better way to identify static resources
-		} 
-		
-		//C redirect if not logged in
-		if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
-			ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
-			ctx.redirect('/login');
-			return;
-		}
-
-		/* webpack-dev-middleware
-			if (replaceIndex !== undefined) {
-				replaceIndex(ctx);
+			//C serve resources
+			if (fs.existsSync(path.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
+				await send(ctx, ctx.request.path, {root: root});
+				return;
+				//TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
+				//TODO webpack might have a better way to identify static resources
 			} 
-			else {
-		*/
-		//C otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
-		//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-		await send(ctx, app, {root: root});
-	})
-	.all('/*', async (ctx, next) => {
-		ctx.body = ctx.body + '.all /* reached';
-		//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
-	});	
+			
+			//C redirect if not logged in
+			if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
+				ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
+				ctx.redirect('/login');
+				return;
+			}
+
+			/* webpack-dev-middleware
+				if (replaceIndex !== undefined) {
+					replaceIndex(ctx);
+				} 
+				else {
+			*/
+			//C otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
+			//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+			await send(ctx, app, {root: root});
+		})
+		.all('/*', async (ctx, next) => {
+			ctx.body = ctx.body + '.all /* reached';
+			//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
+		});
 
 	return router;
-};
+}

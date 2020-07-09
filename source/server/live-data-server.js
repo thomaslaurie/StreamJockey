@@ -12,7 +12,7 @@ import fclone from 'fclone';
 // INTERNAL
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 import Base from '../shared/legacy-classes/base.js';
-import { 
+import {
 	Err,
 } from '../shared/legacy-classes/error.js';
 import {
@@ -29,13 +29,16 @@ import {
 	Subscription,
 } from '../shared/live-data.js';
 import isInstanceOf from '../shared/is-instance-of.js';
+import {
+	logPropagate,
+} from '../shared/propagate.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
+//  ██║██╔██╗ ██║██║   ██║
+//  ██║██║╚██╗██║██║   ██║
+//  ██║██║ ╚████║██║   ██║
+//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
@@ -67,67 +70,89 @@ export default {
 		this.socket = socket;
 
 		this.socket.use((socket, next) => {
-			//C give the cookie session to the socket
-			//C uses a temporary koa context to decrypt the session
+			// Give the cookie session to the socket.
+			// Uses a temporary koa context to decrypt the session.
 			//L https://medium.com/@albertogasparin/sharing-koa-session-with-socket-io-8d36ac877bc2
 			//L https://github.com/koajs/session/issues/53#issuecomment-311601304
-			//!//? socket.session is static, whereas koa ctx.session is dynamic, that is I'm not sure that this is linked in any way to the cookie session
+			//! //? socket.session is static, whereas koa ctx.session is dynamic, that is I'm not sure that this is linked in any way to the cookie session
 			//L https://socket.io/docs/server-api/#namespace-use-fn
 			socket.session = this.app.createContext(socket.request, new http.OutgoingMessage()).session;
 			next();
 		});
 
 		this.socket.on('connect', (socket) => {
-			console.log('CONNECT', socket.id);
-			
-			//C if user is logged in, give the socketId to the session
-			//! I don't think the cookie session receives this, though it isn't needed there so far
-			if (isInstanceOf(socket.session.user, User, 'User')) socket.session.user.socketId = socket.id;
+			try {
+				console.log('CONNECT', socket.id);
 
-			socket.on('disconnect', async (reason) => {
-				console.log('DISCONNECT', socket.id);
+				// If user is logged in, give the socketId to the session.
+				//! I don't think the cookie session receives this, though it isn't needed there so far
+				if (isInstanceOf(socket.session.user, User, 'User')) socket.session.user.socketId = socket.id;
 
-				await this.disconnect(socket.id).catch(rejected => { 
-					//TODO handle better
-					if (isInstanceOf(rejected, Base, 'Base')) rejected.announce();
-					else console.error('subscription disconnect error:', rejected);
+				socket.on('disconnect', async (reason) => {
+					try {
+						console.log('DISCONNECT', socket.id);
+
+						await this.disconnect(socket.id).catch(rejected => { 
+							//TODO handle better
+							if (isInstanceOf(rejected, Base, 'Base')) rejected.announce();
+							else console.error('subscription disconnect error:', rejected);
+						});
+
+						//? socket won't be used anymore, so does anything really need to be deleted here?
+						if (isInstanceOf(socket.session.user, User, 'User')) {
+							socket.session.user.socketId = User.defaults.socketId;
+						}
+					} catch (error) {
+						logPropagate(error);
+					}
 				});
-				
-				//? socket won't be used anymore, so does anything really need to be deleted here?
-				if (isInstanceOf(socket.session.user, User, 'User')) socket.session.user.socketId = User.defaults.socketId;
-			});
 
-			socket.on('subscribe', async ({table, query}, callback) => {
-				console.log('SUBSCRIBE', socket.id);
+				socket.on('subscribe', async ({table, query}, callback) => {
+					try {
+						console.log('SUBSCRIBE', socket.id);
 
-				//C if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
-				//TODO socketId validator, this is all that really matters here
-				const user = isInstanceOf(socket.session.user, User, 'User')
-					? socket.session.user
-					: new User({socketId: socket.id});
-					
-				//! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
-				const result = await this.add(Entity.tableToEntity(table), query, user);
+						// if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
+						//TODO socketId validator, this is all that really matters here
+						const user = isInstanceOf(socket.session.user, User, 'User')
+							? socket.session.user
+							: new User({socketId: socket.id});
 
-				//!//G do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow
-				//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
-				//C using fclone to drop circular references
-				callback(fclone(result));		
-			});
-			socket.on('unsubscribe', async ({table, query}, callback) => {
-				console.log('UNSUBSCRIBE', socket.id);
+						//! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
+						const result = await this.add(Entity.tableToEntity(table), query, user);
 
-				const user = isInstanceOf(socket.session.user, User, 'User')
-					? socket.session.user
-					: new User({socketId: socket.id});
+						//! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
+						//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
+						// Using fclone to drop circular reference.s
+						callback(fclone(result));
+					} catch (error) {
+						logPropagate(error);
+					}
+				});
+				socket.on('unsubscribe', async ({table, query}, callback) => {
+					try {
+						console.log('UNSUBSCRIBE', socket.id);
 
-				const result = await this.remove(Entity.tableToEntity(table), query, user);
-				callback(fclone(result));
-			});
+						const user = isInstanceOf(socket.session.user, User, 'User')
+							? socket.session.user
+							: new User({socketId: socket.id});
 
-			socket.on('error', (reason) => {
-				console.error('ERROR', socket.id, reason);
-			});
+						const result = await this.remove(Entity.tableToEntity(table), query, user);
+						callback(fclone(result));
+					} catch (error) {
+						logPropagate(error);
+					}
+				});
+
+				socket.on('error', (reason) => {
+					try {
+						console.error('ERROR', socket.id, reason);
+					} catch (error) {
+						logPropagate(error);
+					}
+				});
+			} catch (error) {
+				logPropagate(error);
+			}
 		});
 	},
 

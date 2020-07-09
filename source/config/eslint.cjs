@@ -23,6 +23,7 @@ const rules = {
 	variables: {
 		'no-delete-var': [on],
 		'no-shadow':     [on, {
+			//TODO //? builtinGlobals triggers for all properties of 'window', some of which are very generic like 'name'.
 			builtinGlobals: true,
 			hoist:          'functions',
 			allow:          [],
@@ -542,7 +543,9 @@ const rules = {
 
 			'block-spacing':  [on, 'always'],
 			'spaced-comment': [on, 'always', {
-				exceptions: [],
+				exceptions: [
+					'-',
+				],
 				markers:    [
 					'/',
 					'TODO',

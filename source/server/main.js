@@ -40,6 +40,7 @@ import '../config/environment-variables.js';
 // BUILT-IN
 
 // EXTERNAL
+// import 'source-map-support/register';
 import parser from 'minimist';
 import Koa from 'koa'; //L https://github.com/koajs
 import koaWebpack from 'koa-webpack';
@@ -215,7 +216,7 @@ import createDatabase from './database/create-database.js';
 	app.use(router.routes());
 
 	//L https://github.com/alexmingoia/koa-router#routerallowedmethodsoptions--function
-	app.use(router.allowedMethods()); 
+	app.use(router.allowedMethods());
 
 
 	// LIVE DATA

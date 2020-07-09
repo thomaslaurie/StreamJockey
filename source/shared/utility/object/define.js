@@ -191,7 +191,7 @@ export default {
 			if (config === null || !(typeof config === 'object' || typeof config === 'function')) {
 				throw new Error('Config is not an object.');
 			}
-			const validator = config.validator;
+			const {validator} = config;
 			//! Duplicated from ../validation/rules/functions.js
 			if (typeof validator !== 'function') {
 				throw new Error('Validator is not a function.');
