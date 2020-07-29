@@ -1,3 +1,5 @@
+//G VS Code may remove empty whitespace lines inside string templates. This will set the base indentation to 0. To avoid this, un-check the 'trim auto whitespace' setting.
+
 export const tabIndented   = (strings, ...expressions) => indented(strings, expressions, '	');
 export const spaceIndented = (strings, ...expressions) => indented(strings, expressions, ' ');
 
@@ -23,7 +25,7 @@ function indented(stringsFrozen, expressions, indentCharacter) {
 			//R Don't follow start (^) or precede end ($), because otherwise indentation characters in single line strings and strings between variables will get matched.
 		*/
 		const matches = string.match(
-			new RegExp(`(?<=\n)(${indentCharacter}*)(?=[^${indentCharacter}\n])`, 'g')
+			new RegExp(`(?<=\n)(${indentCharacter}*)(?=([^${indentCharacter}\n]|$))`, 'g')
 		);
 
 		if (matches !== null) indents.push(...matches);

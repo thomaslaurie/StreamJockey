@@ -128,6 +128,18 @@ test('expression with same indentation does not get shortened', (t) => {
         ${'bar\n        baz'}
     `, `foo\nbar\n        baz`);
 });
+test('expressions only', (t) => {
+	t.is(tabIndented`
+		${'foo'}
+		${'bar'}
+		${'baz'}
+	`, `foo\nbar\nbaz`);
+	t.is(spaceIndented`
+        ${'foo'}
+        ${'bar'}
+        ${'baz'}
+    `, `foo\nbar\nbaz`);
+});
 
 //  ███████╗███████╗██████╗  ██████╗ 
 //  ╚══███╔╝██╔════╝██╔══██╗██╔═══██╗
@@ -256,13 +268,13 @@ t.is(spaceIndented`
 
  `, ``);
 });
-test('new-line, indent, new-line = indent', (t) => {
+test('new-line, indent, new-line = empty', (t) => {
 t.is(tabIndented`
 	
-`, `	`);
+`, ``);
 t.is(spaceIndented`
  
-`, ` `);
+`, ``);
 });
 test('indent, new-line, new-line = indent, new-line', (t) => {
 t.is(tabIndented`	
