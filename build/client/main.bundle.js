@@ -18334,24 +18334,13 @@ var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__[
     component: _ui_vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
   }]
 });
-console.log(_universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
 var store = new _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Store({
   modules: {
     liveData: _live_data_client_js__WEBPACK_IMPORTED_MODULE_4__["default"],
     //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
     player: _objectSpread({}, _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__["default"], {
       namespaced: true
-    }),
-    foo: {
-      namespaced: true,
-      state: () => ({}),
-      getters: {
-        popular() {
-          return 'asdf';
-        }
-
-      }
-    }
+    })
   },
   state: {//L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
     //R Don't store the user here. Server-side authorization uses session.user, client-side should fetch one's own user.
