@@ -99,7 +99,6 @@ export async function logout(ctx) {
 
 
 async function isLoggedIn(ctx) {
-	console.log(ctx.session.user);
 	if (!(ctx.session.user instanceof User || ctx.session.user?.constructorName === 'User') || !rules.integer.test(ctx.session.user?.id)) {
 		throw new Err({
 			log: true,

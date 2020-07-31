@@ -2595,8 +2595,6 @@ async function logout(ctx) {
 async function isLoggedIn(ctx) {
   var _ctx$session$user, _ctx$session$user2;
 
-  console.log(ctx.session.user);
-
   if (!(ctx.session.user instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.constructorName) === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.test((_ctx$session$user2 = ctx.session.user) === null || _ctx$session$user2 === void 0 ? void 0 : _ctx$session$user2.id)) {
     throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
       log: true,
@@ -4871,7 +4869,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************************************!*\
   !*** ./source/shared/utility/class-parts.js ***!
   \**********************************************/
-/*! exports provided: default, initPrototype, initStatic, prototypeSuper, staticSuper */
+/*! exports provided: default, initPrototype, initStatic, superPrototype, superStatic */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4879,8 +4877,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassParts; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initPrototype", function() { return initPrototype; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initStatic", function() { return initStatic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "prototypeSuper", function() { return prototypeSuper; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticSuper", function() { return staticSuper; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superPrototype", function() { return superPrototype; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superStatic", function() { return superStatic; });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
@@ -4967,12 +4965,11 @@ function initStatic(Class, initializer) {
   return wrapStatic(initializer)(Class);
 } // Replacements for the 'super' keyword inside prototype and static methods.
 //R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
-//TODO Consider renaming to superPrototype & superStatic.
 
-function prototypeSuper(Class) {
+function superPrototype(Class) {
   return Object.getPrototypeOf(Class.prototype);
 }
-function staticSuper(Class) {
+function superStatic(Class) {
   return Object.getPrototypeOf(Class);
 } // EXAMPLE
 
@@ -5938,6 +5935,7 @@ const ownKeys = function (object) {
 
   validatedVariable(target, properties) {
     //? It doesn't seem possible to modify this variable's descriptor to writable: false, because its not a data property. Wouldn't this make it even more variable-like than a variable it self? Maybe consider this approach for a 'guaranteed variable'? Then consider renaming define.variable to define.property.
+    //TODO Change 'value' to 'initialValue' as that is more clear.
     for (const key of ownKeys(properties)) {
       const config = properties[key]; //! Duplicated from ../validation/rules/objects/object.js
 
@@ -6383,6 +6381,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return tabIndented; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return spaceIndented; });
+//G VS Code may remove empty whitespace lines inside string templates. This will set the base indentation to 0. To avoid this, un-check the 'trim auto whitespace' setting.
 const tabIndented = (strings, ...expressions) => indented(strings, expressions, '	');
 const spaceIndented = (strings, ...expressions) => indented(strings, expressions, ' ');
 
@@ -6403,7 +6402,7 @@ function indented(stringsFrozen, expressions, indentCharacter) {
     	
     	//R Don't follow start (^) or precede end ($), because otherwise indentation characters in single line strings and strings between variables will get matched.
     */
-    const matches = string.match(new RegExp(`(?<=\n)(${indentCharacter}*)(?=[^${indentCharacter}\n])`, 'g'));
+    const matches = string.match(new RegExp(`(?<=\n)(${indentCharacter}*)(?=([^${indentCharacter}\n]|$))`, 'g'));
     if (matches !== null) indents.push(...matches);
   } // Get the smallest indent amount.
 
@@ -7424,7 +7423,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************!*\
   !*** ./source/shared/utility/validation/rules/index.js ***!
   \*********************************************************/
-/*! exports provided: body, headers, queryParameters, object, emptyObject, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
+/*! exports provided: body, headers, queryParameters, object, emptyObject, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7480,6 +7479,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveInteger"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "unitInterval", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["unitInterval"]; });
 
 /* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["string"]; });
@@ -7546,7 +7547,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************************!*\
   !*** ./source/shared/utility/validation/rules/numbers.js ***!
   \***********************************************************/
-/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger */
+/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7562,6 +7563,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return nonPositiveInteger; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unitInterval", function() { return unitInterval; });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 //TODO Create a lint rule to warn against ".validateCast(reference.value);" inside casters. This doesn't pass the nested cast value back up to the parent cast function.
 //TODO Create tests for this.
@@ -7698,6 +7700,15 @@ const negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   caster(reference) {
     negativeNumber.validateCast(reference);
     integer.validateCast(reference);
+  }
+
+}); //? Is there a better name for this?
+
+const unitInterval = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (!(0 <= value && value <= 1)) {
+      throw new Error('Value is not a number between 0 and 1.');
+    }
   }
 
 });

@@ -11,20 +11,19 @@
 
 /* //R
 	I considered instead of updating playback state in each source function upon Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
-	
+
 	I thought because track info is also needed (in addition to playback state) that a final checkPlayback() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
 	This resolution suggests using track objects everywhere as parameters rather than ids; this should be possible because the user is never going to be blindly playing id strings without the app first searching and tying down its additional metadata.
 */
 /* //R
-	I considered that setting knownPlayback.progress upon start() (0) and seek() (ms) may wipeout any official information from checkPlayback() or listeners, as any information that arrives between sending and receiving the request will be wiped out upon resolution (with less valuable, inferred information). 
-	
+	I considered that setting knownPlayback.progress upon start() (0) and seek() (ms) may wipeout any official information from checkPlayback() or listeners, as any information that arrives between sending and receiving the request will be wiped out upon resolution (with less valuable, inferred information).
+
 	However unless the information is being sent from a synchronous or local source (which actually is likely), that information should not be sent and received between the time-span it takes for the playback request to be sent and received - therefore it must be sent before and therefore less accurate/valuable than even the inferred progress information.
 
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlayback() to get more accurate information.
 */
 
-import Base from '../shared/legacy-classes/base.js';
 import {
 	Track,
 } from './entities/index.js';
@@ -37,271 +36,290 @@ import {
 import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	asyncMap,
+	define,
+	rules,
 } from '../shared/utility/index.js';
 import {
 	MultipleErrors,
 } from '../shared/errors/index.js';
+import {
+	superPrototype,
+} from '../shared/utility/class-parts.js';
 
+class Command {
+	constructor(options = {}) {
+		const {
+			source,
+			sourceInstances = [],
+		} = options;
 
-const Command = Base.makeClass('Command', Base, {
-	constructorParts: parent => ({
-		beforeInitialize(accessory) {
-			//G must be given a source
-			//TODO The non-instance source casting actually seems necessary here for some reason.
-			//TODO Find a better way to convert from non-instance to instance.
-			/*
-			if (!sj.isType(accessory.options.source, sj.Source)) {
-				throw new Err({
-					origin: 'sj.Command.beforeInitialize()',
-					message: 'no source is active to receive this command',
-					reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
-					content: accessory.options.source,
-				});
-			}
-			*/
-		},
-		defaults: {
-			source: undefined,
-			sourceInstances: [],
-		},
-		afterInitialize(accessory) {
-			this.collapsedCommands = []; //C an array used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated
-			this.fullResolve = function (success) {
-				//C resolve collapsed commands
-				this.collapsedCommands.forEach(collapsedCommand => {
-					collapsedCommand.resolve(new Success({
-						origin: 'resolvePlus()',
-						reason: 'command was collapsed',
-					}));
-				});
-				//C resolve self
-				this.resolve(success);
-			};
-			this.fullReject = function (error) {
-				//C//! RESOLVE collapsed commands
-				this.collapsedCommands.forEach(a => {
-					a.resolve(new Success({
-						origin: 'resolvePlus()',
-						reason: 'command was collapsed',
-					}));
-				});
-				//C reject self
-				this.reject(error);
-			};
+		//TODO Validate source.
+		//! Non-instance sources are getting passed here (I think).
+		//TODO Need to find a proper way to cast or ensure that source is an instance.
 
-			this.resolve = function () {
-				throw new Err({
-					origin: 'sj.Command.resolve()',
-					reason: 'command.resolve called but it has not been given a resolve function',
-				});
-			};
-			this.resolve = function () {
-				throw new Err({
-					origin: 'sj.Command.reject()',
-					reason: 'command.reject called but it has not been given a reject function',
-				});
-			};
-		},
-	}),
-	prototypeProperties: parent => ({
-		collapseCondition(otherCommand) {
-			//C collapse if identical
-			return this.identicalCondition(otherCommand);
-		},
-		annihilateCondition: otherCommand => false,
-		async trigger(context) {
-			//C load the player if not loaded
-			if (context.state[this.source.name].player === null) await context.dispatch(`${this.source.name}/loadPlayer`);
-		},
-	}),
+		define.constant(this, {
+			source,
+			sourceInstances,
+
+			// Used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated.
+			collapsedCommands: [],
+		});
+
+		// Promise resolve & reject functions will be stored on these properties so that the command can act as a deferred promise.
+		define.validatedVariable(this, {
+			resolve: {
+				value() {
+					throw new Err({
+						origin: 'sj.Command.resolve()',
+						reason: 'command.resolve called but it has not been given a resolve function',
+					});
+				},
+				validator: rules.func.validate,
+			},
+			reject: {
+				value() {
+					throw new Err({
+						origin: 'sj.Command.reject()',
+						reason: 'command.reject called but it has not been given a reject function',
+					});
+				},
+				validator: rules.func.validate,
+			},
+		});
+	}
+}
+define.constant(Command.prototype, {
+	fullResolve(success) {
+		// Resolve collapsed commands.
+		this.collapsedCommands.forEach((collapsedCommand) => {
+			collapsedCommand.resolve(new Success({
+				origin: 'resolvePlus()',
+				reason: 'command was collapsed',
+			}));
+		});
+		// Resolve self.
+		this.resolve(success);
+	},
+	fullReject(error) {
+		//! RESOLVE collapsed commands.
+		this.collapsedCommands.forEach((collapsedCommand) => {
+			collapsedCommand.resolve(new Success({
+				origin: 'resolvePlus()',
+				reason: 'command was collapsed',
+			}));
+		});
+		// Reject self.
+		this.reject(error);
+	},
+
+	collapseCondition(otherCommand) {
+		// Collapse if identical.
+		return this.identicalCondition(otherCommand);
+	},
+	annihilateCondition()  {
+		return false;
+	},
+	identicalCondition(otherCommand) {
+		// otherCommand must be an Command, and have the same playback-state properties.
+		return isInstanceOf(otherCommand, Command, 'Command')
+			&& otherCommand.source === this.source;
+	},
+
+	async trigger(context) {
+		// Load the player if not loaded.
+		if (context.state[this.source.name].player === null) {
+			await context.dispatch(`${this.source.name}/loadPlayer`);
+		}
+	},
 });
-const Start = Base.makeClass('Start', Command, {
-	constructorParts: parent => ({
-		beforeInitialize(accessory) {
-			//G must be given a track
-			if (!isInstanceOf(accessory.options.track, Track, 'Track')) throw new Err({
-				origin: 'sj.Start.beforeInitialize()',
-				reason: 'sj.Start instance.track must be an Track',
-				content: accessory.options.track,
-			});
-		},
-		defaults: {
-			track: undefined,
-			isPlaying: true,
-			progress: 0,
-		},
-	}),
-	prototypeProperties: parent => ({
-		identicalCondition(otherCommand) {
-			return parent.prototype.identicalCondition.call(this, otherCommand) 
-			&& isInstanceOf(otherCommand.track, Track, 'Track') //C catch non-Tracks
-			&& otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
+
+export class Toggle extends Command {
+	constructor(options = {}) {
+		const {isPlaying} = options;
+
+		rules.boolean.validate(isPlaying);
+
+		super(options);
+
+		define.constant(this, {isPlaying});
+	}
+}
+define.constant(Toggle.prototype, {
+	identicalCondition(otherCommand) {
+		return (
+			   superPrototype(Toggle).identicalCondition.call(this, otherCommand)
 			&& otherCommand.isPlaying === this.isPlaying
-			&& otherCommand.progress === this.progress;
-		},
-		async trigger(context) {
-			await parent.prototype.trigger.call(this, context);
-
-			//C pause all
-			await asyncMap(this.sourceInstances, async source => {
-				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
-			}).catch(MultipleErrors.throw);
-
-			//C change startingTrackSubscription to subscription of the new track
-			context.commit('setStartingTrackSubscription', await context.dispatch('resubscribe', {
-				subscription: context.state.startingTrackSubscription,
-
-				Entity: Track,
-				query: {id: this.track.id},
-				options: {}, //TODO //?
-			}, {root: true})); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
-
-			//C start target
-			await context.dispatch(`${this.source.name}/start`, this.track);
-
-			//C transfer subscription from starting to current
-			context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
-			context.commit('setStartingTrackSubscription', null);
-
-			//C change source
-			context.commit('setSource', this.source);
-		},
-	}),
-});
-const Toggle = Base.makeClass('Toggle', Command, {
-	//? pause command might not have a desired progress?
-	//TODO toggle resume seems to be broken, maybe because of CORS?
-	// "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
-	constructorParts: parent => ({
-		beforeInitialize({options}) {
-			//G isPlaying must be manually set to true or false
-			if (options.isPlaying !== true && options.isPlaying !== false) throw new Err({
-				origin: 'sj.Toggle',
-				reason: `Toggle isPlaying must be true or false: ${options.isPlaying}`,
-				content: options.isPlaying,
-			});
-		},
-		defaults: {
-			isPlaying: undefined,
-		},
-	}),
-	prototypeProperties: parent => ({
-		identicalCondition(otherCommand) {
-			return parent.prototype.identicalCondition.call(this, otherCommand)
-			&& otherCommand.isPlaying === this.isPlaying;
-		},
-		//! sj.Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates
-		annihilateCondition(otherCommand) {
-			return parent.prototype.annihilateCondition.call(this, otherCommand)
-			|| ( 
-				//C same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts)
-				parent.prototype.identicalCondition.call(this, otherCommand)
+		);
+	},
+	//! Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
+	annihilateCondition(otherCommand) {
+		return (
+			superPrototype(Toggle).annihilateCondition.call(this, otherCommand)
+			|| (
+				// Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
+				superPrototype(Toggle).identicalCondition.call(this, otherCommand)
 				&& otherCommand.isPlaying === !this.isPlaying
 				&& otherCommand.constructor === this.constructor
-			);
-		},
-		async trigger(context) {
-			await parent.prototype.trigger.call(this, context);
+			)
+		);
+	},
+	async trigger(context) {
+		await superPrototype(Toggle).trigger.call(this, context);
 
-			await asyncMap(this.sourceInstances, async source => {
-				if (this.isPlaying && source === this.source) {
-					//C resume target if resuming
-					await context.dispatch(`${source.name}/resume`);
-				} else {
-					//C pause all or rest
-					if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/pause`);
-				}
-			}).catch(MultipleErrors.throw);
-		},
-	}),
+		await asyncMap(this.sourceInstances, async (source) => {
+			if (this.isPlaying && source === this.source) {
+				// Resume target if resuming.
+				await context.dispatch(`${source.name}/resume`);
+			} else if (context.state[source.name].player !== null) {
+				// Pause all or rest.
+				await context.dispatch(`${source.name}/pause`);
+			}
+		}).catch(MultipleErrors.throw);
+	},
 });
-const Seek = Base.makeClass('Seek', Command, {
-	constructorParts: parent => ({
-		beforeInitialize({options}) {
-			//G progress must be manually set between 0 and 1\
-			if (options.progress < 0 || 1 < options.progress) throw new Err({
-				origin: 'sj.Seek.trigger()',
-				reason: `seek progress is not a number between 0 and 1: ${options.progress}`,
-				content: options.progress,
-			});
-		},
-		defaults: {
-			progress: undefined,
-		},
-	}),
-	prototypeProperties: parent => ({
-		identicalCondition(otherCommand) {
-			return parent.prototype.identicalCondition.call(this, otherCommand)
+
+export class Seek extends Command {
+	constructor(options = {}) {
+		const {progress} = options;
+
+		rules.unitInterval.validate(progress);
+
+		super(options);
+
+		define.constant(this, {progress});
+	}
+}
+define.constant(Seek.prototype, {
+	collapseCondition(otherCommand) {
+		return superPrototype(Seek).collapseCondition.call(this, otherCommand)
+			|| otherCommand.constructor === Seek;
+	},
+	identicalCondition(otherCommand) {
+		return superPrototype(Seek).identicalCondition.call(this, otherCommand)
 			&& otherCommand.progress === this.progress;
-		},
-		async trigger(context) {			
-			await parent.prototype.trigger.call(this, context);
+	},
+	async trigger(context) {
+		await superPrototype(Seek).trigger.call(this, context);
 
-			await context.dispatch(`${this.source.name}/seek`, this.progress);
-		},
-	}),
+		await context.dispatch(`${this.source.name}/seek`, this.progress);
+	},
 });
-const Volume = Base.makeClass('Volume', Command, {
-	constructorParts: parent => ({
-		beforeInitialize({options}) {
-			//G volume must be manually set between 0 and 1
-			if (options.volume < 0 || 1 < options.volume) throw new Err({
-				origin: 'sj.Volume.trigger()',
-				reason: `volume is not a number between 0 and 1: ${options.volume}`,
-				content: options.volume,
-			});
-		},
-		defaults: {
-			volume: undefined,
-		},
-	}),
-	prototypeProperties: parent => ({
-		identicalCondition(otherCommand) {
-			return parent.prototype.identicalCondition.call(this, otherCommand)
+
+export class Volume extends Command {
+	constructor(options = {}) {
+		const {volume} = options;
+
+		rules.unitInterval.validate(volume);
+
+		super(options);
+
+		define.constant(this, {volume});
+	}
+}
+define.constant(Volume.prototype, {
+	collapseCondition(otherCommand) {
+		return superPrototype(Volume).collapseCondition.call(this, otherCommand)
+			|| otherCommand.constructor === Volume;
+	},
+	identicalCondition(otherCommand) {
+		return superPrototype(Volume).identicalCondition.call(this, otherCommand)
 			&& otherCommand.volume === this.volume;
-		},
-		async trigger(context) {
-			await parent.prototype.trigger.call(this, context);
+	},
+	async trigger(context) {
+		await superPrototype(Volume).trigger.call(this, context);
 
-			// adjust volume on all sources
-			await asyncMap(this.sourceInstances, async source => {
-				if (context.state[source.name].player !== null) await context.dispatch(`${source.name}/volume`, this.volume);
-			}).catch(MultipleErrors.throw);
-		},
-	}),
+		// Adjust volume on all sources.
+		await asyncMap(this.sourceInstances, async (source) => {
+			if (context.state[source.name].player !== null) {
+				await context.dispatch(`${source.name}/volume`, this.volume);
+			}
+		}).catch(MultipleErrors.throw);
+	},
 });
 
-// COMMAND EXTERNALS
-// These methods have references to constructors that are not available at declaration:
-// Command
-Command.prototype.identicalCondition = function (otherCommand) {
-	// otherCommand must be an sj.Command, and have the same playback-state properties
-	return isInstanceOf(otherCommand, Command, 'Command') && otherCommand.source === this.source;
-};
-// Start, Resume, Pause, Seek
-Start.prototype.collapseCondition = function (otherCommand) {
-	// collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
-	return parent.prototype.collapseCondition.call(this, otherCommand)
-	|| otherCommand.constructor === Start
-	|| otherCommand.constructor === Resume 
-	|| otherCommand.constructor === Pause 
-	|| otherCommand.constructor === Seek;
-};
-// Seek
-Seek.prototype.collapseCondition = function (otherCommand) {
-	return parent.prototype.collapseCondition.call(this, otherCommand)
-	|| otherCommand.constructor === Seek;
-};
-// Volume
-Volume.prototype.collapseCondition = function (otherCommand) {
-	return parent.prototype.collapseCondition.call(this, otherCommand)
-	|| otherCommand.constructor === Volume;
-};
+export class Start extends Command {
+	constructor(options = {}) {
+		const {
+			track,
+			isPlaying = true,
+			progress = 0,
+		} = options;
 
-export {
-	Command,
-	Start,
-	Toggle,
-	Seek,
-	Volume,
-};
+		if (!isInstanceOf(track, Track, 'Track')) {
+			throw new Err({
+				origin: 'sj.Start.beforeInitialize()',
+				reason: 'sj.Start instance.track must be an Track',
+				content: track,
+			});
+		}
+
+		super(options);
+
+		define.constant(this, {
+			track,
+		});
+		define.validatedVariable(this, {
+			isPlaying: {
+				value: isPlaying,
+				validator: rules.boolean.validate,
+			},
+			progress: {
+				value: progress,
+				validator: rules.unitInterval.validate,
+			},
+		});
+	}
+}
+define.constant(Start.prototype, {
+	collapseCondition(otherCommand) {
+		// Collapses parent condition, any Start, Toggle, or Seek.
+		//TODO //? Tight coupling?
+		return superPrototype(Start).collapseCondition.call(this, otherCommand)
+			|| otherCommand.constructor === Start
+			|| otherCommand.constructor === Toggle
+			|| otherCommand.constructor === Seek;
+	},
+	identicalCondition(otherCommand) {
+		return (
+			   superPrototype(Start).identicalCondition.call(this, otherCommand)
+			// Catch non-Tracks.
+			&& isInstanceOf(otherCommand.track, Track, 'Track')
+			//! Compare tracks by their sourceId not by their reference.
+			&& otherCommand.track.sourceId === this.track.sourceId
+			&& otherCommand.isPlaying === this.isPlaying
+			&& otherCommand.progress === this.progress
+		);
+	},
+	async trigger(context) {
+		await superPrototype(Start).trigger.call(this, context);
+
+		// Pause all.
+		await asyncMap(this.sourceInstances, async (source) => {
+			if (context.state[source.name].player !== null) {
+				await context.dispatch(`${source.name}/pause`);
+			}
+		}).catch(MultipleErrors.throw);
+
+		// Change startingTrackSubscription to subscription of the new track.
+		context.commit('setStartingTrackSubscription', await context.dispatch('resubscribe', {
+			subscription: context.state.startingTrackSubscription,
+
+			Entity: Track,
+			query: {id: this.track.id},
+			options: {}, //TODO //?
+		}, {
+			//L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
+			root: true,
+		}));
+
+		// Start target.
+		await context.dispatch(`${this.source.name}/start`, this.track);
+
+		// Transfer subscription from starting to current.
+		context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
+		context.commit('setStartingTrackSubscription', null);
+
+		// Change source.
+		context.commit('setSource', this.source);
+	},
+});

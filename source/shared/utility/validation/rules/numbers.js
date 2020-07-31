@@ -122,3 +122,12 @@ export const negativeInteger = new Rule({
 		integer.validateCast(reference);
 	},
 });
+
+//? Is there a better name for this?
+export const unitInterval = new Rule({
+	validator(value) {
+		if (!(0 <= value && value <= 1)) {
+			throw new Error('Value is not a number between 0 and 1.');
+		}
+	},
+});

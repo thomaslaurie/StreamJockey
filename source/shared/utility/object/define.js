@@ -184,6 +184,7 @@ export default {
 
 	validatedVariable(target, properties) {
 		//? It doesn't seem possible to modify this variable's descriptor to writable: false, because its not a data property. Wouldn't this make it even more variable-like than a variable it self? Maybe consider this approach for a 'guaranteed variable'? Then consider renaming define.variable to define.property.
+		//TODO Change 'value' to 'initialValue' as that is more clear.
 
 		for (const key of ownKeys(properties)) {
 			const config = properties[key];

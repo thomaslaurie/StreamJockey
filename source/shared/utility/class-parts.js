@@ -84,11 +84,10 @@ export function initStatic(Class, initializer) {
 
 // Replacements for the 'super' keyword inside prototype and static methods.
 //R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
-//TODO Consider renaming to superPrototype & superStatic.
-export function prototypeSuper(Class) {
+export function superPrototype(Class) {
 	return Object.getPrototypeOf(Class.prototype);
 }
-export function staticSuper(Class) {
+export function superStatic(Class) {
 	return Object.getPrototypeOf(Class);
 }
 

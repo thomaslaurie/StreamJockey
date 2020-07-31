@@ -16002,23 +16002,22 @@ module.exports = yeast;
 /*!***********************************!*\
   !*** ./source/client/commands.js ***!
   \***********************************/
-/*! exports provided: Command, Start, Toggle, Seek, Volume */
+/*! exports provided: Toggle, Seek, Volume, Start */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Command", function() { return Command; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Start", function() { return Start; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Toggle", function() { return Toggle; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Seek", function() { return Seek; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Volume", function() { return Volume; });
-/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Start", function() { return Start; });
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -16034,15 +16033,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 /* //R
 	I considered instead of updating playback state in each source function upon Success, to do a second and final checkPlayback() once updatePlayback() succeeds (this would require two api calls, but I thought it could be simpler (but would it?)).
-	
+
 	I thought because track info is also needed (in addition to playback state) that a final checkPlayback() would be needed to verify the post-update track info, (this came from not knowing what track was playing when starting one for the first time), however this info should already be known from the fetched and displayed track (object), so all of these functions actually do have the ability to update information when resolved.
 
 	This resolution suggests using track objects everywhere as parameters rather than ids; this should be possible because the user is never going to be blindly playing id strings without the app first searching and tying down its additional metadata.
 */
 
 /* //R
-	I considered that setting knownPlayback.progress upon start() (0) and seek() (ms) may wipeout any official information from checkPlayback() or listeners, as any information that arrives between sending and receiving the request will be wiped out upon resolution (with less valuable, inferred information). 
-	
+	I considered that setting knownPlayback.progress upon start() (0) and seek() (ms) may wipeout any official information from checkPlayback() or listeners, as any information that arrives between sending and receiving the request will be wiped out upon resolution (with less valuable, inferred information).
+
 	However unless the information is being sent from a synchronous or local source (which actually is likely), that information should not be sent and received between the time-span it takes for the playback request to be sent and received - therefore it must be sent before and therefore less accurate/valuable than even the inferred progress information.
 
 	Then I realized that any checks to playback state will have the same offset error as the playback requests so it makes no sense to even checkPlayback() to get more accurate information.
@@ -16054,314 +16053,315 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-var Command = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Command', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {//G must be given a source
-      //TODO The non-instance source casting actually seems necessary here for some reason.
-      //TODO Find a better way to convert from non-instance to instance.
 
-      /*
-      if (!sj.isType(accessory.options.source, sj.Source)) {
-      	throw new Err({
-      		origin: 'sj.Command.beforeInitialize()',
-      		message: 'no source is active to receive this command',
-      		reason: `sj.Command instance.source must be an sj.Source: ${accessory.options.source}`,
-      		content: accessory.options.source,
-      	});
+class Command {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      source,
+      sourceInstances = []
+    } = options; //TODO Validate source.
+    //! Non-instance sources are getting passed here (I think).
+    //TODO Need to find a proper way to cast or ensure that source is an instance.
+
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+      source,
+      sourceInstances,
+      // Used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated.
+      collapsedCommands: []
+    }); // Promise resolve & reject functions will be stored on these properties so that the command can act as a deferred promise.
+
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].validatedVariable(this, {
+      resolve: {
+        value() {
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+            origin: 'sj.Command.resolve()',
+            reason: 'command.resolve called but it has not been given a resolve function'
+          });
+        },
+
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].func.validate
+      },
+      reject: {
+        value() {
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+            origin: 'sj.Command.reject()',
+            reason: 'command.reject called but it has not been given a reject function'
+          });
+        },
+
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].func.validate
       }
-      */
-    },
+    });
+  }
 
-    defaults: {
-      source: undefined,
-      sourceInstances: []
-    },
+}
 
-    afterInitialize(accessory) {
-      this.collapsedCommands = []; //C an array used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Command.prototype, {
+  fullResolve(success) {
+    // Resolve collapsed commands.
+    this.collapsedCommands.forEach(collapsedCommand => {
+      collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
+        origin: 'resolvePlus()',
+        reason: 'command was collapsed'
+      }));
+    }); // Resolve self.
 
-      this.fullResolve = function (success) {
-        //C resolve collapsed commands
-        this.collapsedCommands.forEach(collapsedCommand => {
-          collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-            origin: 'resolvePlus()',
-            reason: 'command was collapsed'
-          }));
-        }); //C resolve self
+    this.resolve(success);
+  },
 
-        this.resolve(success);
-      };
+  fullReject(error) {
+    //! RESOLVE collapsed commands.
+    this.collapsedCommands.forEach(collapsedCommand => {
+      collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
+        origin: 'resolvePlus()',
+        reason: 'command was collapsed'
+      }));
+    }); // Reject self.
 
-      this.fullReject = function (error) {
-        //C//! RESOLVE collapsed commands
-        this.collapsedCommands.forEach(a => {
-          a.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-            origin: 'resolvePlus()',
-            reason: 'command was collapsed'
-          }));
-        }); //C reject self
+    this.reject(error);
+  },
 
-        this.reject(error);
-      };
+  collapseCondition(otherCommand) {
+    // Collapse if identical.
+    return this.identicalCondition(otherCommand);
+  },
 
-      this.resolve = function () {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'sj.Command.resolve()',
-          reason: 'command.resolve called but it has not been given a resolve function'
-        });
-      };
+  annihilateCondition() {
+    return false;
+  },
 
-      this.resolve = function () {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'sj.Command.reject()',
-          reason: 'command.reject called but it has not been given a reject function'
-        });
-      };
-    }
+  identicalCondition(otherCommand) {
+    // otherCommand must be an Command, and have the same playback-state properties.
+    return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
+  },
 
-  }),
-  prototypeProperties: parent => ({
-    collapseCondition(otherCommand) {
-      //C collapse if identical
-      return this.identicalCondition(otherCommand);
-    },
+  trigger(context) {
+    var _this = this;
 
-    annihilateCondition: otherCommand => false,
+    return _asyncToGenerator(function* () {
+      // Load the player if not loaded.
+      if (context.state[_this.source.name].player === null) {
+        yield context.dispatch("".concat(_this.source.name, "/loadPlayer"));
+      }
+    })();
+  }
 
-    trigger(context) {
-      var _this = this;
-
-      return _asyncToGenerator(function* () {
-        //C load the player if not loaded
-        if (context.state[_this.source.name].player === null) yield context.dispatch("".concat(_this.source.name, "/loadPlayer"));
-      })();
-    }
-
-  })
 });
-var Start = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Start', Command, {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      //G must be given a track
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(accessory.options.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+class Toggle extends Command {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      isPlaying
+    } = options;
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].boolean.validate(isPlaying);
+    super(options);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+      isPlaying
+    });
+  }
+
+}
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Toggle.prototype, {
+  identicalCondition(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
+  },
+
+  //! Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
+  annihilateCondition(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
+    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
+  },
+
+  trigger(context) {
+    var _this2 = this;
+
+    return _asyncToGenerator(function* () {
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).trigger.call(_this2, context);
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
+        var _ref = _asyncToGenerator(function* (source) {
+          if (_this2.isPlaying && source === _this2.source) {
+            // Resume target if resuming.
+            yield context.dispatch("".concat(source.name, "/resume"));
+          } else if (context.state[source.name].player !== null) {
+            // Pause all or rest.
+            yield context.dispatch("".concat(source.name, "/pause"));
+          }
+        });
+
+        return function (_x) {
+          return _ref.apply(this, arguments);
+        };
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
+    })();
+  }
+
+});
+class Seek extends Command {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      progress
+    } = options;
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].unitInterval.validate(progress);
+    super(options);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+      progress
+    });
+  }
+
+}
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Seek.prototype, {
+  collapseCondition(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
+  },
+
+  identicalCondition(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
+  },
+
+  trigger(context) {
+    var _this3 = this;
+
+    return _asyncToGenerator(function* () {
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Seek).trigger.call(_this3, context);
+      yield context.dispatch("".concat(_this3.source.name, "/seek"), _this3.progress);
+    })();
+  }
+
+});
+class Volume extends Command {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      volume
+    } = options;
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].unitInterval.validate(volume);
+    super(options);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+      volume
+    });
+  }
+
+}
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Volume.prototype, {
+  collapseCondition(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
+  },
+
+  identicalCondition(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
+  },
+
+  trigger(context) {
+    var _this4 = this;
+
+    return _asyncToGenerator(function* () {
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
+
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
+        var _ref2 = _asyncToGenerator(function* (source) {
+          if (context.state[source.name].player !== null) {
+            yield context.dispatch("".concat(source.name, "/volume"), _this4.volume);
+          }
+        });
+
+        return function (_x2) {
+          return _ref2.apply(this, arguments);
+        };
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
+    })();
+  }
+
+});
+class Start extends Command {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      track,
+      isPlaying = true,
+      progress = 0
+    } = options;
+
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
         origin: 'sj.Start.beforeInitialize()',
         reason: 'sj.Start instance.track must be an Track',
-        content: accessory.options.track
+        content: track
       });
-    },
-
-    defaults: {
-      track: undefined,
-      isPlaying: true,
-      progress: 0
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') //C catch non-Tracks
-      && otherCommand.track.sourceId === this.track.sourceId //! compare tracks by their sourceId not by their reference
-      && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
-    },
-
-    trigger(context) {
-      var _this2 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this2, context); //C pause all
-
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
-          var _ref = _asyncToGenerator(function* (source) {
-            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
-          });
-
-          return function (_x) {
-            return _ref.apply(this, arguments);
-          };
-        }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw); //C change startingTrackSubscription to subscription of the new track
-
-        context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
-          subscription: context.state.startingTrackSubscription,
-          Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"],
-          query: {
-            id: _this2.track.id
-          },
-          options: {} //TODO //?
-
-        }, {
-          root: true
-        }))); //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
-        //C start target
-
-        yield context.dispatch("".concat(_this2.source.name, "/start"), _this2.track); //C transfer subscription from starting to current
-
-        context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
-        context.commit('setStartingTrackSubscription', null); //C change source
-
-        context.commit('setSource', _this2.source);
-      })();
     }
 
-  })
+    super(options);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+      track
+    });
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].validatedVariable(this, {
+      isPlaying: {
+        value: isPlaying,
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].boolean.validate
+      },
+      progress: {
+        value: progress,
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].unitInterval.validate
+      }
+    });
+  }
+
+}
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Start.prototype, {
+  collapseCondition(otherCommand) {
+    // Collapses parent condition, any Start, Toggle, or Seek.
+    //TODO //? Tight coupling?
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
+  },
+
+  identicalCondition(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
+    && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') //! Compare tracks by their sourceId not by their reference.
+    && otherCommand.track.sourceId === this.track.sourceId && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
+  },
+
+  trigger(context) {
+    var _this5 = this;
+
+    return _asyncToGenerator(function* () {
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
+
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
+        var _ref3 = _asyncToGenerator(function* (source) {
+          if (context.state[source.name].player !== null) {
+            yield context.dispatch("".concat(source.name, "/pause"));
+          }
+        });
+
+        return function (_x3) {
+          return _ref3.apply(this, arguments);
+        };
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
+
+      context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
+        subscription: context.state.startingTrackSubscription,
+        Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"],
+        query: {
+          id: _this5.track.id
+        },
+        options: {} //TODO //?
+
+      }, {
+        //L https://vuex.vuejs.org/guide/modules.html#accessing-global-assets-in-namespaced-modules
+        root: true
+      }))); // Start target.
+
+      yield context.dispatch("".concat(_this5.source.name, "/start"), _this5.track); // Transfer subscription from starting to current.
+
+      context.commit('setCurrentTrackSubscription', context.state.startingTrackSubscription);
+      context.commit('setStartingTrackSubscription', null); // Change source.
+
+      context.commit('setSource', _this5.source);
+    })();
+  }
+
 });
-var Toggle = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Toggle', Command, {
-  //? pause command might not have a desired progress?
-  //TODO toggle resume seems to be broken, maybe because of CORS?
-  // "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.spotify.com/v1/melody/v1/logging/track_stream_verification. (Reason: CORS request did not succeed).""
-  constructorParts: parent => ({
-    beforeInitialize(_ref2) {
-      var {
-        options
-      } = _ref2;
-      //G isPlaying must be manually set to true or false
-      if (options.isPlaying !== true && options.isPlaying !== false) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'sj.Toggle',
-        reason: "Toggle isPlaying must be true or false: ".concat(options.isPlaying),
-        content: options.isPlaying
-      });
-    },
-
-    defaults: {
-      isPlaying: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
-    },
-
-    //! sj.Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates
-    annihilateCondition(otherCommand) {
-      return parent.prototype.annihilateCondition.call(this, otherCommand) || //C same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts)
-      parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
-    },
-
-    trigger(context) {
-      var _this3 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this3, context);
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["asyncMap"])(_this3.sourceInstances, /*#__PURE__*/function () {
-          var _ref3 = _asyncToGenerator(function* (source) {
-            if (_this3.isPlaying && source === _this3.source) {
-              //C resume target if resuming
-              yield context.dispatch("".concat(source.name, "/resume"));
-            } else {
-              //C pause all or rest
-              if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/pause"));
-            }
-          });
-
-          return function (_x2) {
-            return _ref3.apply(this, arguments);
-          };
-        }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw);
-      })();
-    }
-
-  })
-});
-var Seek = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Seek', Command, {
-  constructorParts: parent => ({
-    beforeInitialize(_ref4) {
-      var {
-        options
-      } = _ref4;
-      //G progress must be manually set between 0 and 1\
-      if (options.progress < 0 || 1 < options.progress) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'sj.Seek.trigger()',
-        reason: "seek progress is not a number between 0 and 1: ".concat(options.progress),
-        content: options.progress
-      });
-    },
-
-    defaults: {
-      progress: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
-    },
-
-    trigger(context) {
-      var _this4 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this4, context);
-        yield context.dispatch("".concat(_this4.source.name, "/seek"), _this4.progress);
-      })();
-    }
-
-  })
-});
-var Volume = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Volume', Command, {
-  constructorParts: parent => ({
-    beforeInitialize(_ref5) {
-      var {
-        options
-      } = _ref5;
-      //G volume must be manually set between 0 and 1
-      if (options.volume < 0 || 1 < options.volume) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'sj.Volume.trigger()',
-        reason: "volume is not a number between 0 and 1: ".concat(options.volume),
-        content: options.volume
-      });
-    },
-
-    defaults: {
-      volume: undefined
-    }
-  }),
-  prototypeProperties: parent => ({
-    identicalCondition(otherCommand) {
-      return parent.prototype.identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
-    },
-
-    trigger(context) {
-      var _this5 = this;
-
-      return _asyncToGenerator(function* () {
-        yield parent.prototype.trigger.call(_this5, context); // adjust volume on all sources
-
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
-          var _ref6 = _asyncToGenerator(function* (source) {
-            if (context.state[source.name].player !== null) yield context.dispatch("".concat(source.name, "/volume"), _this5.volume);
-          });
-
-          return function (_x3) {
-            return _ref6.apply(this, arguments);
-          };
-        }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw);
-      })();
-    }
-
-  })
-}); // COMMAND EXTERNALS
-// These methods have references to constructors that are not available at declaration:
-// Command
-
-Command.prototype.identicalCondition = function (otherCommand) {
-  // otherCommand must be an sj.Command, and have the same playback-state properties
-  return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
-}; // Start, Resume, Pause, Seek
-
-
-Start.prototype.collapseCondition = function (otherCommand) {
-  // collapses parent condition, any sj.Starts, sj.Resumes, sj.Pauses, or sj.Seeks
-  return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Resume || otherCommand.constructor === Pause || otherCommand.constructor === Seek;
-}; // Seek
-
-
-Seek.prototype.collapseCondition = function (otherCommand) {
-  return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
-}; // Volume
-
-
-Volume.prototype.collapseCondition = function (otherCommand) {
-  return parent.prototype.collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
-};
-
-
 
 /***/ }),
 
@@ -40392,7 +40392,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!**********************************************!*\
   !*** ./source/shared/utility/class-parts.js ***!
   \**********************************************/
-/*! exports provided: default, initPrototype, initStatic, prototypeSuper, staticSuper */
+/*! exports provided: default, initPrototype, initStatic, superPrototype, superStatic */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -40400,8 +40400,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassParts; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initPrototype", function() { return initPrototype; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initStatic", function() { return initStatic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "prototypeSuper", function() { return prototypeSuper; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "staticSuper", function() { return staticSuper; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superPrototype", function() { return superPrototype; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "superStatic", function() { return superStatic; });
 /* harmony import */ var _object_define_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./object/define.js */ "./source/shared/utility/object/define.js");
 /* harmony import */ var _validation_interface_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./validation/interface.js */ "./source/shared/utility/validation/interface.js");
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./validation/index.js */ "./source/shared/utility/validation/index.js");
@@ -40498,12 +40498,11 @@ function initStatic(Class, initializer) {
   return wrapStatic(initializer)(Class);
 } // Replacements for the 'super' keyword inside prototype and static methods.
 //R Intercept and instance parts not included because super is different in the constructor and should be called separately from these parts.
-//TODO Consider renaming to superPrototype & superStatic.
 
-function prototypeSuper(Class) {
+function superPrototype(Class) {
   return Object.getPrototypeOf(Class.prototype);
 }
-function staticSuper(Class) {
+function superStatic(Class) {
   return Object.getPrototypeOf(Class);
 } // EXAMPLE
 
@@ -41534,6 +41533,7 @@ var ownKeys = function ownKeys(object) {
     };
 
     //? It doesn't seem possible to modify this variable's descriptor to writable: false, because its not a data property. Wouldn't this make it even more variable-like than a variable it self? Maybe consider this approach for a 'guaranteed variable'? Then consider renaming define.variable to define.property.
+    //TODO Change 'value' to 'initialValue' as that is more clear.
     for (var key of ownKeys(properties)) {
       _loop3(key);
     }
@@ -41973,6 +41973,7 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "tabIndented", function() { return tabIndented; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "spaceIndented", function() { return spaceIndented; });
+//G VS Code may remove empty whitespace lines inside string templates. This will set the base indentation to 0. To avoid this, un-check the 'trim auto whitespace' setting.
 var tabIndented = function tabIndented(strings) {
   for (var _len = arguments.length, expressions = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     expressions[_key - 1] = arguments[_key];
@@ -42005,7 +42006,7 @@ function indented(stringsFrozen, expressions, indentCharacter) {
     	
     	//R Don't follow start (^) or precede end ($), because otherwise indentation characters in single line strings and strings between variables will get matched.
     */
-    var matches = string.match(new RegExp("(?<=\n)(".concat(indentCharacter, "*)(?=[^").concat(indentCharacter, "\n])"), 'g'));
+    var matches = string.match(new RegExp("(?<=\n)(".concat(indentCharacter, "*)(?=([^").concat(indentCharacter, "\n]|$))"), 'g'));
     if (matches !== null) indents.push(...matches);
   } // Get the smallest indent amount.
 
@@ -43137,7 +43138,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!*********************************************************!*\
   !*** ./source/shared/utility/validation/rules/index.js ***!
   \*********************************************************/
-/*! exports provided: body, headers, queryParameters, object, emptyObject, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
+/*! exports provided: body, headers, queryParameters, object, emptyObject, populatedObject, array, boolean, constructor, func, key, number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval, string, trimmedString, visibleString, invisibleString, populatedString, symbol */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -43193,6 +43194,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["positiveInteger"]; });
 
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["negativeInteger"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "unitInterval", function() { return _numbers_js__WEBPACK_IMPORTED_MODULE_7__["unitInterval"]; });
 
 /* harmony import */ var _strings_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./strings.js */ "./source/shared/utility/validation/rules/strings.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "string", function() { return _strings_js__WEBPACK_IMPORTED_MODULE_8__["string"]; });
@@ -43259,7 +43262,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************************************!*\
   !*** ./source/shared/utility/validation/rules/numbers.js ***!
   \***********************************************************/
-/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger */
+/*! exports provided: number, nonNaNNumber, integer, nonNegativeNumber, nonPositiveNumber, positiveNumber, negativeNumber, nonNegativeInteger, nonPositiveInteger, positiveInteger, negativeInteger, unitInterval */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -43275,6 +43278,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nonPositiveInteger", function() { return nonPositiveInteger; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "positiveInteger", function() { return positiveInteger; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "negativeInteger", function() { return negativeInteger; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unitInterval", function() { return unitInterval; });
 /* harmony import */ var _rule_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../rule.js */ "./source/shared/utility/validation/rule.js");
 //TODO Create a lint rule to warn against ".validateCast(reference.value);" inside casters. This doesn't pass the nested cast value back up to the parent cast function.
 //TODO Create tests for this.
@@ -43411,6 +43415,15 @@ var negativeInteger = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
   caster(reference) {
     negativeNumber.validateCast(reference);
     integer.validateCast(reference);
+  }
+
+}); //? Is there a better name for this?
+
+var unitInterval = new _rule_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+  validator(value) {
+    if (!(0 <= value && value <= 1)) {
+      throw new Error('Value is not a number between 0 and 1.');
+    }
   }
 
 });
