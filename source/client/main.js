@@ -259,12 +259,21 @@ const router = new VueRouter({
 		}
 	],
 });
+console.log(universalPlaybackModule);
 const store = new VueX.Store({
 	modules: {
 		liveData, //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
 		player: {
 			...universalPlaybackModule,
 			namespaced: true,
+		},
+		foo: {
+			namespaced: true,
+
+			state: () => ({}),
+			getters: {
+				popular () { return 'asdf' } 
+			}
 		},
 	},
 

@@ -18334,13 +18334,24 @@ var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__[
     component: _ui_vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
   }]
 });
+console.log(_universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
 var store = new _vendor_vuex_esm_browser_js__WEBPACK_IMPORTED_MODULE_2__["default"].Store({
   modules: {
     liveData: _live_data_client_js__WEBPACK_IMPORTED_MODULE_4__["default"],
     //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
     player: _objectSpread({}, _universal_playback_module_js__WEBPACK_IMPORTED_MODULE_5__["default"], {
       namespaced: true
-    })
+    }),
+    foo: {
+      namespaced: true,
+      state: () => ({}),
+      getters: {
+        popular() {
+          return 'asdf';
+        }
+
+      }
+    }
   },
   state: {//L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
     //R Don't store the user here. Server-side authorization uses session.user, client-side should fetch one's own user.
@@ -18379,13 +18390,13 @@ var vm = new _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"](
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Playback; });
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -18407,594 +18418,613 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
- // PLAYBACK
+class Playback {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      state,
+      actions,
+      mutations,
+      getters,
+      modules
+    } = options; //! New property objects must be created here so that instances do not all use the same reference.
 
-var Playback = _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Playback', _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts(parent) {
-    return {
-      defaults: {
-        // NEW
-        state: undefined,
-        actions: undefined,
-        mutations: undefined,
-        getters: undefined,
-        modules: undefined
-      },
-
-      afterInitialize() {
-        //C state has to be initialized here because it needs an instanced reference to a state object (cannot pass one as the default or else all instances will refer to the same state object)
-        //C because of how constructor defaults work with references, the instanced defaults have to be created in afterInitialize()
-        this.state = _objectSpread({}, this.constructor.baseState, {}, this.state);
-        this.actions = _objectSpread({}, this.constructor.baseActions, {}, this.actions);
-        this.mutations = _objectSpread({}, this.constructor.baseMutations, {}, this.mutations);
-        this.baseGetters = _objectSpread({}, this.constructor.baseGetters, {}, this.getters);
-        this.baseModules = _objectSpread({}, this.constructor.baseModules, {}, this.getters);
-      }
-
-    };
-  },
-
-  staticProperties: parent => ({
-    requestTimeout: 5000,
-    baseState: {
-      source: null,
-      player: null,
-      track: null,
-      isPlaying: false,
-      progress: 0,
-      volume: 1,
-      //G all state properties should be updated at the same time
-      timestamp: Date.now(),
-      //R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
-      startingTrack: null
-    },
-    baseActions: {
-      start(context, track) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters,
-            state
-          } = context;
-          var timeBefore = Date.now();
-          /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
-          	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
-          		origin: 'sj.Playback.baseActions.start()',
-          		reason: 'start state timed out',
-          	}));
-          			const unwatch = context.watch(
-          		//C pack desired state
-          		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}), 
-          		//C evaluate state conditions
-          		({sourceId, isPlaying, progress}) => {
-          			if (
-          				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-          				sourceId === track.sourceId &&
-          				isPlaying === true &&
-          				progress <= (Date.now() - timeBefore) / duration
-          			) {
-          				deferred.resolve();
-          			}
-          		}, 
-          		{deep: true, immediate: true}
-          	);
-          */
-          //C trigger api
-
-          yield dispatch('baseStart', track);
-          /* //TODO same here
-          	//C wait for desired state
-          	await deferred;
-          	unwatch();
-          */
-          //C Wait for the desired state.
-
-          yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-            yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["wait"])(100);
-            return {
-              sourceId: getters.sourceId,
-              isPlaying: state.isPlaying,
-              progress: state.progress
-            };
-          }), {
-            until(_ref2) {
-              var {
-                sourceId,
-                isPlaying,
-                progress
-              } = _ref2;
-              //C track must have the right id, be playing, near the start (within the time from when the call was made to now)
-              return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
-            }
-
-          });
-          console.log('reached');
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-            origin: 'sj.Playback.baseActions.start()',
-            reason: 'start command completed'
-          });
-        })();
-      }
-      /* //OLD
-      	async preserveLocalMetadata(context, track) {
-      		if (!sj.isType(track, Track)) throw new Err({
-      			origin: 'preserveLocalMetadata()',
-      			reason: 'track is not an Track',
-      		});
-      				//C default local metadata as foreign track
-      		let local = Track.filters.localMetadata.reduce((obj, key) => {
-      			obj[key] = null;
-      			return obj;
-      		}, {});
-      				//C set local as current or starting track if matching
-      		if (sj.isType(context.state.track, Object) && 
-      		track.sourceId === context.state.track.sourceId)			local = context.state.track;
-      		else if (sj.isType(context.state.startingTrack, Object) && 
-      		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;				
-      				//C return new track with localMetadata properties replaced
-      		return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
-      	},
-      */
-
-
-    },
-    baseMutations: {
-      setState(state, values) {
-        Object.assign(state, values);
-      },
-
-      setStartingTrack(state, track) {
-        state.startingTrack = track;
-      },
-
-      removeStartingTrack(state, track) {
-        state.startingTrack = null;
-      }
-
-    },
-    baseGetters: {
-      //C safe getters for track properties
-      sourceId: state => {
-        var _state$track;
-
-        return state === null || state === void 0 ? void 0 : (_state$track = state.track) === null || _state$track === void 0 ? void 0 : _state$track.sourceId;
-      },
-      duration: state => {
-        var _state$track2;
-
-        return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
-      },
-      //C state conditions for command resolution
-      isStarted: (state, _ref3) => {
-        var {
-          sourceId,
-          duration
-        } = _ref3;
-        return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration;
-      } //TODO
-      // isPaused:
-      // isResumed:
-      // isSeeked:
-      // isVolumed:
-
-    },
-    baseModules: {}
-  })
-}); // PLAYBACK EXTERNALS
-
-Playback.createUniversalModule = function (sourceInstances) {
-  // Add source instance playback modules as sub-module of the universal module.
-  var modules = {};
-
-  for (var sourceInstance of sourceInstances) {
-    modules[sourceInstance.name] = _objectSpread({}, sourceInstance.playback, {
-      namespaced: true
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
+      state: _objectSpread({}, this.constructor.baseState, {}, state),
+      actions: _objectSpread({}, this.constructor.baseActions, {}, actions),
+      mutations: _objectSpread({}, this.constructor.baseMutations, {}, mutations),
+      getters: _objectSpread({}, this.constructor.baseGetters, {}, getters),
+      modules: _objectSpread({}, this.constructor.baseModules, {}, modules)
     });
   }
 
-  return new Playback({
-    //G main playback module for app
-    modules,
-    state: {
-      // CLOCK 
-      //C basically a reactive Date.now(), so far just used for updating playback progress
-      clock: Date.now(),
-      clockIntervalId: null,
-      // QUEUE
+}
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playback, {
+  requestTimeout: 5000,
+  baseState: {
+    source: null,
+    player: null,
+    track: null,
+    isPlaying: false,
+    progress: 0,
+    volume: 1,
+    //G all state properties should be updated at the same time
+    timestamp: Date.now(),
+    //R between the start and resolution of a start command, there will be events on the current track and the new track. as the playback state only stores one active track, one of these tracks will be recognized as a foreign track, regardless of when the new local metadata gets set. eventually the data will line up, but it will cause flickering for interface elements while the command is processing as the local metadata will go from A to null to B. to prevent this, store the starting track to also be used in the foreign track check.
+    startingTrack: null
+  },
+  baseActions: {
+    start(context, track) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters,
+          state
+        } = context;
+        var timeBefore = Date.now();
+        /* //TODO take out polling in favor of a more reactive approach //R context.watch isn't available here
+        	const deferred = new Deferred().timeout(sj.Playback.requestTimeout, () => new Err({
+        		origin: 'sj.Playback.baseActions.start()',
+        		reason: 'start state timed out',
+        	}));
+        			const unwatch = context.watch(
+        		//C pack desired state
+        		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}),
+        		//C evaluate state conditions
+        		({sourceId, isPlaying, progress}) => {
+        			if (
+        				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+        				sourceId === track.sourceId &&
+        				isPlaying === true &&
+        				progress <= (Date.now() - timeBefore) / duration
+        			) {
+        				deferred.resolve();
+        			}
+        		},
+        		{deep: true, immediate: true}
+        	);
+        */
+        // Trigger api.
 
-      /* //R Old Queue Thought Process
-      		//  //R
-      	// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
-      	// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
-      	// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
-      	// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
-      	// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
-      	// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
-      				TODO checkPlaybackState every command just like before, find a better way
-      		// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
-      		// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information), 
-      				Command Failure Handling 
-      		// 	!!! old, meant for individual command types
-      					// send command, change pendingCommand to true, wait
-      		// 	if success: change pendingCommand to false
-      		// 		if queuedCommand exists: change command to queuedCommand, clear queued command, repeat...
-      		// 		else: nothing
-      		// 	if failure: 
-      		// 		if queuedCommand exists: change pendingCommand to false, change command to queuedCommand, clear queued command, repeat... // pendingCommands aren't desired if queuedCommands exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
-      		// 		else: trigger auto-retry process
-      		// 			if success: repeat...
-      		// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
-      */
-      commandQueue: [],
-      sentCommand: null,
-      // PLAYBACK STATE
-      //C source is used to select the proper playback state for actualPlayback
-      source: null,
-      // List of active source instances for actions to modify the playback of.
-      sourceInstances,
-      // LOCAL TRACKS
-      currentTrackSubscription: null,
-      startingTrackSubscription: null
-    },
-    actions: {
-      // CLOCK
-      startClock(context) {
-        return _asyncToGenerator(function* () {
-          yield context.dispatch('stopClock');
-          var id = setInterval(() => context.commit('updateClock'), 100); //C clock refresh rate
+        yield dispatch('baseStart', track);
+        /* //TODO same here
+        	//C wait for desired state
+        	await deferred;
+        	unwatch();
+        */
+        // Wait for the desired state.
 
-          context.commit('setClockIntervalId', id);
-        })();
-      },
-
-      stopClock(context) {
-        return _asyncToGenerator(function* () {
-          clearInterval(context.state.clockIntervalId);
-          context.commit('setClockIntervalId', null);
-        })();
-      },
-
-      // QUEUE
-      //TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
-      pushCommand(context, command) {
-        return _asyncToGenerator(function* () {
-          //C Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
-          var push = true; //C remove redundant commands if necessary
-
-          var compact = function compact(i) {
-            if (i >= 0) {
-              //R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
-              if (command.collapseCondition(context.state.commandQueue[i])) {
-                //C if last otherCommand collapses, this command gets pushed
-                push = true; //C store otherCommand on this command
-
-                command.collapsedCommands.unshift(context.state.commandQueue[i]); //C remove otherCommand
-
-                context.commit('removeQueuedCommand', i); //C analyze next otherCommand
-
-                compact(i - 1);
-              } else if (command.annihilateCondition(context.state.commandQueue[i])) {
-                //C if last otherCommand annihilates, this command doesn't get pushed
-                push = false;
-                command.collapsedCommands.unshift(context.state.commandQueue[i]);
-                context.commit('removeQueuedCommand', i);
-                compact(i - 1);
-              } else {
-                //C if otherCommand does not collapse or annihilate, escape
-                return;
-              }
-            }
+        yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+          var waitInterval = 100;
+          yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"])(waitInterval);
+          return {
+            sourceId: getters.sourceId,
+            isPlaying: state.isPlaying,
+            progress: state.progress,
+            duration: state.track.duration
           };
+        }), {
+          until(_ref2) {
+            var {
+              sourceId,
+              isPlaying,
+              progress,
+              duration
+            } = _ref2;
+            // Track must have the right id, be playing, near the start (within the time from when the call was made to now).
+            return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
+          }
 
-          compact(context.state.commandQueue.length - 1);
-          if ( //C if there is a sent command and identical to the sent command,
-          context.state.sentCommand !== null && command.identicalCondition(context.state.sentCommand) || //C or if there isn't a sent command and identical to the actual playback
-          context.state.sentCommand === null && command.identicalCondition(context.getters.actualPlayback)) push === false; //C don't push
-          //C route command resolve/reject to this result promise
+        });
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
+          origin: 'sj.Playback.baseActions.start()',
+          reason: 'start command completed'
+        });
+      })();
+    }
+    /* //OLD
+    	async preserveLocalMetadata(context, track) {
+    		if (!sj.isType(track, Track)) throw new Err({
+    			origin: 'preserveLocalMetadata()',
+    			reason: 'track is not an Track',
+    		});
+    				//C default local metadata as foreign track
+    		let local = Track.filters.localMetadata.reduce((obj, key) => {
+    			obj[key] = null;
+    			return obj;
+    		}, {});
+    				//C set local as current or starting track if matching
+    		if (sj.isType(context.state.track, Object) &&
+    		track.sourceId === context.state.track.sourceId)			local = context.state.track;
+    		else if (sj.isType(context.state.startingTrack, Object) &&
+    		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;
+    				//C return new track with localMetadata properties replaced
+    		return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
+    	},
+    */
 
-          var resultPromise = new Promise((resolve, reject) => {
-            command.resolve = resolve;
-            command.reject = reject;
-          }); //C push command to the queue or resolve it (because it has been collapsed)
 
-          if (push) context.commit('pushQueuedCommand', command);else command.fullResolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
+  },
+  baseMutations: {
+    setState(state, values) {
+      Object.assign(state, values);
+    },
+
+    setStartingTrack(state, track) {
+      state.startingTrack = track;
+    },
+
+    removeStartingTrack(state) {
+      state.startingTrack = null;
+    }
+
+  },
+  baseGetters: {
+    // Safe getters for track properties.
+    sourceId: state => {
+      var _state$track;
+
+      return state === null || state === void 0 ? void 0 : (_state$track = state.track) === null || _state$track === void 0 ? void 0 : _state$track.sourceId;
+    },
+    duration: state => {
+      var _state$track2;
+
+      return state === null || state === void 0 ? void 0 : (_state$track2 = state.track) === null || _state$track2 === void 0 ? void 0 : _state$track2.duration;
+    },
+    // State conditions for command resolution.
+    isStarted: (state, _ref3) => {
+      var {
+        sourceId,
+        duration
+      } = _ref3;
+      return (id, timeBefore) => sourceId === id && state.isPlaying === true && state.progress <= (Date.now() - timeBefore) / duration //TODO Extract to function, theres another place where this is done.
+      ;
+    } //TODO
+    // isPaused:
+    // isResumed:
+    // isSeeked:
+    // isVolumed:
+
+  },
+  baseModules: {},
+  universalState: sourceInstances => ({
+    // CLOCK
+    // Basically a reactive Date.now(), so far just used for updating playback progress.
+    clock: Date.now(),
+    clockIntervalId: null,
+    // QUEUE
+
+    /* //R Old Queue Thought Process
+    		//  //R
+    	// 	Problem:	Starting a spotify and youtube track rapidly would cause both to play at the same time
+    	// 	Symptom:	Spotify then Youtube -> checkPlayback() was setting spotify.isPlaying to false immediately after spotify.start() resolved
+    	// 				Youtube then Spotify -> youtube.pause() would not stick when called immediately after youtube.start() resolved
+    	// 	Cause:		It was discovered through immediate checkPlayback() calls that the api playback calls don't resolve when the desired playback is achieved but only when the call is successfully received
+    	// 	Solution:	Playback functions need a different way of verifying their success if they are going to work how I originally imagined they did. Try verifying playback by waiting for event listeners?
+    	// 				Putting a short delay between sj.Playback.queue calls gives enough time for the apis to sort themselves out.
+    			TODO checkPlaybackState every command just like before, find a better way
+    		// TODO in queue system, when to checkPlaybackState? only when conflicts arise?
+    		// (maybe also: if the user requests the same thing thats happening, insert a check to verify that the playback information is correct incase the user has more recent information),
+    			Command Failure Handling
+    		// 	!!! old, meant for individual command types
+    				// send command, change pendingCommand to true, wait
+    		// 	if success: change pendingCommand to false
+    		// 		if queuedCommand exists: change command to queuedCommand, clear queued command, repeat...
+    		// 		else: nothing
+    		// 	if failure:
+    		// 		if queuedCommand exists: change pendingCommand to false, change command to queuedCommand, clear queued command, repeat... // pendingCommands aren't desired if queuedCommands exist, and therefore are only waiting for resolve to be overwritten (to avoid sending duplicate requests)
+    		// 		else: trigger auto-retry process
+    		// 			if success: repeat...
+    		// 			if failure: change pendingCommand to false, trigger manual-retry process which basically sends a completely new request...
+    */
+    commandQueue: [],
+    sentCommand: null,
+    // PLAYBACK STATE
+    // Source is used to select the proper playback state for actualPlayback.
+    source: null,
+    // List of active source instances for actions to modify the playback of.
+    sourceInstances,
+    // LOCAL TRACKS
+    currentTrackSubscription: null,
+    startingTrackSubscription: null
+  }),
+  universalActions: () => ({
+    // CLOCK
+    startClock(context) {
+      return _asyncToGenerator(function* () {
+        yield context.dispatch('stopClock');
+        var clockRefreshRate = 100;
+        var id = setInterval(() => context.commit('updateClock'), clockRefreshRate);
+        context.commit('setClockIntervalId', id);
+      })();
+    },
+
+    stopClock(context) {
+      return _asyncToGenerator(function* () {
+        clearInterval(context.state.clockIntervalId);
+        context.commit('setClockIntervalId', null);
+      })();
+    },
+
+    // QUEUE
+    //TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
+    pushCommand(context, command) {
+      return _asyncToGenerator(function* () {
+        // Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
+        var push = true; // Remove redundant commands if necessary.
+
+        var compact = function compact(i) {
+          if (i >= 0) {
+            //R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
+            if (command.collapseCondition(context.state.commandQueue[i])) {
+              // If last otherCommand collapses, this command gets pushed.
+              push = true; // Store otherCommand on this command.
+
+              command.collapsedCommands.unshift(context.state.commandQueue[i]); // Remove otherCommand.
+
+              context.commit('removeQueuedCommand', i); // Analyze next otherCommand.
+
+              compact(i - 1);
+            } else if (command.annihilateCondition(context.state.commandQueue[i])) {
+              // If last otherCommand annihilates, this command doesn't get pushed.
+              push = false;
+              command.collapsedCommands.unshift(context.state.commandQueue[i]);
+              context.commit('removeQueuedCommand', i);
+              compact(i - 1);
+            } // If otherCommand does not collapse or annihilate, escape.
+
+          }
+        };
+
+        compact(context.state.commandQueue.length - 1);
+
+        if ( // If there is a sent command and identical to the sent command,
+        context.state.sentCommand !== null && command.identicalCondition(context.state.sentCommand) || // or if there isn't a sent command and identical to the actual playback.
+        context.state.sentCommand === null && command.identicalCondition(context.getters.actualPlayback)) {
+          // Don't push.
+          push = false;
+        } // Route command resolve/reject to this result promise.
+
+
+        var resultPromise = new Promise((resolve, reject) => {
+          command.resolve = resolve;
+          command.reject = reject;
+        }); // Push command to the queue or resolve it (because it has been collapsed).
+
+        if (push) {
+          context.commit('pushQueuedCommand', command);
+        } else {
+          command.fullResolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
             origin: 'pushCommand()',
             reason: 'command was annihilated'
-          })); //C send next command  //! do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed
-
-          context.dispatch('nextCommand'); //C await for the command to resolve
-
-          return yield resultPromise;
-        })();
-      },
-
-      nextCommand(context) {
-        return _asyncToGenerator(function* () {
-          //C don't do anything if another command is still processing or if no queued commands exist
-          if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return; //C move the command from the queue to sent
-
-          context.commit('setSentCommand', context.state.commandQueue[0]);
-          context.commit('removeQueuedCommand', 0); //C trigger and resolve the command
-
-          yield context.state.sentCommand.trigger(context).then(resolved => context.state.sentCommand.fullResolve(resolved), rejected => context.state.sentCommand.fullReject(rejected)); //C mark the sent command as finished
-
-          context.commit('removeSentCommand'); //C send next command //! do not await, this just restarts the nextCommand cycle
-
-          context.dispatch('nextCommand');
-        })();
-      },
-
-      // PLAYBACK FUNCTIONS
-      //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
-      // BASIC
-      start(_ref4, track) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            state: {
-              sourceInstances
-            }
-          } = _ref4;
-          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Start"]({
-            source: track.source,
-            //! uses track's source
-            sourceInstances,
-            track
           }));
-        })();
-      },
+        } // Send next command.
+        //! Do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed.
 
-      pause(_ref5) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters: {
-              desiredSource: source
-            },
-            state: {
-              sourceInstances
-            }
-          } = _ref5;
-          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Toggle"]({
-            source,
-            //! other non-start basic playback functions just use the current desiredPlayback source
-            sourceInstances,
-            isPlaying: false
-          }));
-        })();
-      },
 
-      resume(_ref6) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters: {
-              desiredSource: source
-            },
-            state: {
-              sourceInstances
-            }
-          } = _ref6;
-          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Toggle"]({
-            source,
-            sourceInstances,
-            isPlaying: true
-          }));
-        })();
-      },
+        context.dispatch('nextCommand'); // Await for the command to resolve.
 
-      seek(_ref7, progress) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters: {
-              desiredSource: source
-            },
-            state: {
-              sourceInstances
-            }
-          } = _ref7;
-          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Seek"]({
-            source,
-            sourceInstances,
-            progress
-          }));
-        })();
-      },
-
-      volume(_ref8, volume) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters: {
-              desiredSource: source
-            },
-            state: {
-              sourceInstances
-            }
-          } = _ref8;
-          //TODO volume should change volume on all sources
-          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Volume"]({
-            source,
-            sourceInstances,
-            volume
-          }));
-        })();
-      },
-
-      // HIGHER LEVEL
-      toggle(_ref9) {
-        return _asyncToGenerator(function* () {
-          var {
-            dispatch,
-            getters: {
-              desiredSource: source,
-              desiredIsPlaying: isPlaying
-            },
-            state: {
-              sourceInstances
-            }
-          } = _ref9;
-          return yield dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_6__["Toggle"]({
-            source,
-            sourceInstances,
-            isPlaying: !isPlaying
-          }));
-        })();
-      }
-
+        return resultPromise;
+      })();
     },
-    mutations: {
-      // CLOCK
-      updateClock(state) {
-        state.clock = Date.now();
-      },
 
-      setClockIntervalId(state, id) {
-        state.clockIntervalId = id;
-      },
+    nextCommand(context) {
+      return _asyncToGenerator(function* () {
+        // Don't do anything if another command is still processing or if no queued commands exist.
+        if (context.state.sentCommand !== null || context.state.commandQueue.length <= 0) return; // Move the command from the queue to sent.
 
-      // QUEUE
-      pushQueuedCommand(state, command) {
-        state.commandQueue.push(command);
-      },
+        context.commit('setSentCommand', context.state.commandQueue[0]);
+        context.commit('removeQueuedCommand', 0); // Trigger and resolve the command.
 
-      removeQueuedCommand(state, index) {
-        state.commandQueue.splice(index, 1);
-      },
+        yield context.state.sentCommand.trigger(context).then(resolved => context.state.sentCommand.fullResolve(resolved), rejected => context.state.sentCommand.fullReject(rejected)); // Mark the sent command as finished.
 
-      setSentCommand(state, command) {
-        state.sentCommand = command;
-      },
+        context.commit('removeSentCommand'); // Send next command //! do not await, this just restarts the nextCommand cycle.
 
-      removeSentCommand(state) {
-        state.sentCommand = null;
-      },
-
-      // PLAYBACK STATE
-      setSource(state, source) {
-        state.source = source;
-      },
-
-      // LOCAL TRACKS
-      setCurrentTrackSubscription(state, subscription) {
-        state.currentTrackSubscription = subscription;
-      },
-
-      setStartingTrackSubscription(state, subscription) {
-        state.startingTrackSubscription = subscription;
-      }
-
+        context.dispatch('nextCommand');
+      })();
     },
-    getters: {
-      /*
-      	// PLAYBACK STATE
-      	actualPlayback(state, getters) {
-      		//C return null playback state if no source
-      		if (state.source === null) return {...sj.Playback.baseState};
-      					//C get the source state
-      		const sourceState = state[state.source.name];
-      					//C use inferredProgress or regular progress depending on isPlaying
-      		//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
-      		if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
-      		else return sourceState;
-      	},		
-      	inferredProgress(state) {
-      		if (state.source === null) return -1;
-      		//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
-      		const sourceState = state[state.source.name];
-      		const elapsedTime = state.clock - sourceState.timestamp;
-      		const elapsedProgress = elapsedTime / sourceState.track.duration;
-      		return clamp(sourceState.progress + elapsedProgress, 0, 1);
-      	},
-      	desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
-      		//! this will update x-times per second when playing as the track progress is constantly updating
-      		return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
-      	},
-      */
-      // ACTUAL
-      sourceOrBase: (state, getters) => key => {
-        if (state.source === null) return Playback.baseState[key];else return state[state.source.name][key];
-      },
-      actualSource: (state, getters) => {
-        return state.source;
-      },
-      actualTrack: (state, getters, rootState, rootGetters) => {
-        var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(sourceOrBaseTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track')) {
-          //C if the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes
-          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(getters.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(getters.startingTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
-        }
+    // PLAYBACK FUNCTIONS
+    //G the main playback module's commands, in addition to mappings for basic playback functions, should store all the higher-level, behavioral playback functions (like toggle)
+    // BASIC
+    start(_ref4, track) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          state: {
+            sourceInstances
+          }
+        } = _ref4;
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Start"]({
+          source: track.source,
+          //! Uses track's source.
+          sourceInstances,
+          track
+        }));
+      })();
+    },
 
-        return sourceOrBaseTrack;
-      },
-      actualIsPlaying: (state, getters) => getters.sourceOrBase('isPlaying'),
-      actualProgress: (state, getters) => {
-        var _state$source;
+    pause(_ref5) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters: {
+            desiredSource: source
+          },
+          state: {
+            sourceInstances
+          }
+        } = _ref5;
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Toggle"]({
+          source,
+          //! other non-start basic playback functions just use the current desiredPlayback source
+          sourceInstances,
+          isPlaying: false
+        }));
+      })();
+    },
 
-        var progress = getters.sourceOrBase('progress');
-        var source = state === null || state === void 0 ? void 0 : state[state === null || state === void 0 ? void 0 : (_state$source = state.source) === null || _state$source === void 0 ? void 0 : _state$source.name];
+    resume(_ref6) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters: {
+            desiredSource: source
+          },
+          state: {
+            sourceInstances
+          }
+        } = _ref6;
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Toggle"]({
+          source,
+          sourceInstances,
+          isPlaying: true
+        }));
+      })();
+    },
 
-        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
-          //C if playing, return inferred progress
-          var elapsedTime = state.clock - state[state.source.name].timestamp;
-          var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
-          progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
-        }
+    seek(_ref7, progress) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters: {
+            desiredSource: source
+          },
+          state: {
+            sourceInstances
+          }
+        } = _ref7;
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Seek"]({
+          source,
+          sourceInstances,
+          progress
+        }));
+      })();
+    },
 
-        return progress;
-      },
-      actualVolume: (state, getters) => getters.sourceOrBase('volume'),
-      actualPlayback: (state, getters) => ({
-        //! this will update as fast as progress does
-        source: getters.actualSource,
-        track: getters.actualTrack,
-        isPlaying: getters.actualIsPlaying,
-        progress: getters.actualProgress,
-        volume: getters.actualVolume
-      }),
-      // DESIRED
-      flattenPlayback: (state, getters) => key => {
-        //C value starts as the actualValue
-        var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["capitalizeFirstCharacter"])(key))]; //C then if defined, sentCommand
+    volume(_ref8, volume) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters: {
+            desiredSource: source
+          },
+          state: {
+            sourceInstances
+          }
+        } = _ref8;
+        //TODO Volume should change volume on all sources.
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Volume"]({
+          source,
+          sourceInstances,
+          volume
+        }));
+      })();
+    },
 
-        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
-          value = state.sentCommand[key];
-        } //C then if defined, each queuedCommand
-
-
-        for (var queuedCommand of state.commandQueue) {
-          if (queuedCommand[key] !== undefined) value = queuedCommand[key];
-        }
-
-        return value;
-      },
-      desiredSource: (state, getters) => getters.flattenPlayback('source'),
-      desiredTrack: (state, getters) => getters.flattenPlayback('track'),
-      desiredIsPlaying: (state, getters) => getters.flattenPlayback('isPlaying'),
-      desiredProgress: (state, getters) => getters.flattenPlayback('progress'),
-      desiredVolume: (state, getters) => getters.flattenPlayback('volume'),
-      desiredPlayback: (state, getters) => ({
-        source: getters.actualSource,
-        track: getters.desiredTrack,
-        isPlaying: getters.desiredIsPlaying,
-        progress: getters.desiredProgress,
-        volume: getters.desiredVolume
-      }),
-      // LOCAL TRACKS
-      currentTrack: (state, getters, rootState, rootGetters) => {
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));else return null;
-      },
-      startingTrack: (state, getters, rootState, rootGetters) => {
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));else return null;
-      }
+    // HIGHER LEVEL
+    toggle(_ref9) {
+      return _asyncToGenerator(function* () {
+        var {
+          dispatch,
+          getters: {
+            desiredSource: source,
+            desiredIsPlaying: isPlaying
+          },
+          state: {
+            sourceInstances
+          }
+        } = _ref9;
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Toggle"]({
+          source,
+          sourceInstances,
+          isPlaying: !isPlaying
+        }));
+      })();
     }
-  });
-};
 
-/* harmony default export */ __webpack_exports__["default"] = (Playback);
+  }),
+  universalMutations: () => ({
+    // CLOCK
+    updateClock(state) {
+      state.clock = Date.now();
+    },
+
+    setClockIntervalId(state, id) {
+      state.clockIntervalId = id;
+    },
+
+    // QUEUE
+    pushQueuedCommand(state, command) {
+      state.commandQueue.push(command);
+    },
+
+    removeQueuedCommand(state, index) {
+      state.commandQueue.splice(index, 1);
+    },
+
+    setSentCommand(state, command) {
+      state.sentCommand = command;
+    },
+
+    removeSentCommand(state) {
+      state.sentCommand = null;
+    },
+
+    // PLAYBACK STATE
+    setSource(state, source) {
+      state.source = source;
+    },
+
+    // LOCAL TRACKS
+    setCurrentTrackSubscription(state, subscription) {
+      state.currentTrackSubscription = subscription;
+    },
+
+    setStartingTrackSubscription(state, subscription) {
+      state.startingTrackSubscription = subscription;
+    }
+
+  }),
+  universalGetters: () => ({
+    /*
+    	// PLAYBACK STATE
+    	actualPlayback(state, getters) {
+    		//C return null playback state if no source
+    		if (state.source === null) return {...sj.Playback.baseState};
+    				//C get the source state
+    		const sourceState = state[state.source.name];
+    				//C use inferredProgress or regular progress depending on isPlaying
+    		//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
+    		if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
+    		else return sourceState;
+    	},
+    	inferredProgress(state) {
+    		if (state.source === null) return -1;
+    		//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
+    		const sourceState = state[state.source.name];
+    		const elapsedTime = state.clock - sourceState.timestamp;
+    		const elapsedProgress = elapsedTime / sourceState.track.duration;
+    		return clamp(sourceState.progress + elapsedProgress, 0, 1);
+    	},
+    	desiredPlayback({sentCommand, commandQueue}, {actualPlayback}) {
+    		//! this will update x-times per second when playing as the track progress is constantly updating
+    		return Object.assign({}, actualPlayback, sentCommand, ...commandQueue);
+    	},
+    */
+    // ACTUAL
+    sourceOrBase: state => key => {
+      if (state.source === null) {
+        return Playback.baseState[key];
+      }
+
+      return state[state.source.name][key];
+    },
+    actualSource: state => {
+      return state.source;
+    },
+    actualTrack: (state, getters) => {
+      var sourceOrBaseTrack = getters.sourceOrBase('track');
+
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(sourceOrBaseTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
+        // If the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes.
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(getters.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(getters.startingTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+      }
+
+      return sourceOrBaseTrack;
+    },
+    actualIsPlaying: (state, getters) => getters.sourceOrBase('isPlaying'),
+    actualProgress: (state, getters) => {
+      var _state$source;
+
+      var progress = getters.sourceOrBase('progress');
+      var source = state === null || state === void 0 ? void 0 : state[state === null || state === void 0 ? void 0 : (_state$source = state.source) === null || _state$source === void 0 ? void 0 : _state$source.name];
+
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
+        // If playing, return inferred progress.
+        var elapsedTime = state.clock - state[state.source.name].timestamp;
+        var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
+        progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
+      }
+
+      return progress;
+    },
+    actualVolume: (state, getters) => getters.sourceOrBase('volume'),
+    actualPlayback: (state, getters) => ({
+      //! this will update as fast as progress does
+      source: getters.actualSource,
+      track: getters.actualTrack,
+      isPlaying: getters.actualIsPlaying,
+      progress: getters.actualProgress,
+      volume: getters.actualVolume
+    }),
+    // DESIRED
+    flattenPlayback: (state, getters) => key => {
+      // Value starts as the actualValue.
+      var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["capitalizeFirstCharacter"])(key))]; // Then if defined, sentCommand.
+
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
+        value = state.sentCommand[key];
+      } // Then if defined, each queuedCommand.
+
+
+      for (var queuedCommand of state.commandQueue) {
+        if (queuedCommand[key] !== undefined) value = queuedCommand[key];
+      }
+
+      return value;
+    },
+    desiredSource: (state, getters) => getters.flattenPlayback('source'),
+    desiredTrack: (state, getters) => getters.flattenPlayback('track'),
+    desiredIsPlaying: (state, getters) => getters.flattenPlayback('isPlaying'),
+    desiredProgress: (state, getters) => getters.flattenPlayback('progress'),
+    desiredVolume: (state, getters) => getters.flattenPlayback('volume'),
+    desiredPlayback: (state, getters) => ({
+      source: getters.actualSource,
+      track: getters.desiredTrack,
+      isPlaying: getters.desiredIsPlaying,
+      progress: getters.desiredProgress,
+      volume: getters.desiredVolume
+    }),
+    // LOCAL TRACKS
+    currentTrack: (state, getters, rootState, rootGetters) => {
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) {
+        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));
+      }
+
+      return null;
+    },
+    startingTrack: (state, getters, rootState, rootGetters) => {
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) {
+        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));
+      }
+
+      return null;
+    }
+  }),
+
+  createUniversalModule(sourceInstances) {
+    // Add source instance playback modules as sub-module of the universal module.
+    var modules = {};
+
+    for (var sourceInstance of sourceInstances) {
+      modules[sourceInstance.name] = _objectSpread({}, sourceInstance.playback, {
+        namespaced: true
+      });
+    }
+
+    return new Playback({
+      //G Main playback module for app.
+      modules,
+      state: this.universalState(sourceInstances),
+      actions: this.universalActions(),
+      mutations: this.universalMutations(),
+      getters: this.universalGetters()
+    });
+  }
+
+});
 
 /***/ }),
 
