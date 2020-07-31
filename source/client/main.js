@@ -259,7 +259,6 @@ const router = new VueRouter({
 		}
 	],
 });
-console.log(universalPlaybackModule);
 const store = new VueX.Store({
 	modules: {
 		liveData, //TODO consider name-spacing liveData module, just remember to add the namespace where its functions are used
@@ -267,16 +266,7 @@ const store = new VueX.Store({
 			...universalPlaybackModule,
 			namespaced: true,
 		},
-		foo: {
-			namespaced: true,
-
-			state: () => ({}),
-			getters: {
-				popular () { return 'asdf' } 
-			}
-		},
 	},
-
 	state: {
 		//L handle page refreshes: https://github.com/robinvdvleuten/vuex-persistedstate
 		//R Don't store the user here. Server-side authorization uses session.user, client-side should fetch one's own user.
