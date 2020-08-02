@@ -4,4 +4,4 @@ export default function (value, Class, className) {
 };
 
 // Things that are matching constructorName
-// User, Track, (Probably playlist?)
+// User, Track

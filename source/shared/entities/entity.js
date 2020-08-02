@@ -1,11 +1,10 @@
-import Base from '../legacy-classes/base.js';
 import {
 	Err,
 } from '../legacy-classes/error.js';
 import {
 	Success,
 } from '../legacy-classes/success.js';
-
+/*
 export default Base.makeClass('Entity', Success, {
 	constructorParts: parent => ({
 		afterInitialize(accessory) {
@@ -89,11 +88,10 @@ export default Base.makeClass('Entity', Success, {
 		}
 	},
 });
+*/
 
-/*
 import {
 	define,
-	rules,
 	getKeysOf,
 	pick,
 } from '../utility/index.js';
@@ -105,20 +103,10 @@ export default class Entity extends Success {
 
 		super(options);
 
-		define.validatedVariable(this, {
-			id: {
-				value: id,
-				validator(value) {
-					if (!(value === undefined || rules.nonNegativeInteger.test(value))) {
-						throw new Error('Id is not undefined or a non-negative integer.');
-					}
-				},
-			},
+		define.writable(this, {
+			id,
 			//R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
-			filters: {
-				value: {},
-				validator: rules.object.validator,
-			},
+			filters: {},
 		});
 
 		// Set instance filters to use the instance and the static filters.
@@ -140,12 +128,9 @@ define.getter(Entity, {
 	},
 });
 //TODO Can this be locked down as a constant? (See updateFilters()).
-define.validatedVariable(Entity, {
+define.writable(Entity, {
 	filters: {
-		value: {
-			id: ['id'],
-		},
-		validator: rules.object.validate,
+		id: ['id'],
 	},
 });
 define.constant(Entity, {
@@ -195,4 +180,3 @@ define.constant(Entity, {
 		//R any metadata (table) should be sent separately (or implicitly) from the query
 	},
 });
-*/

@@ -38435,9 +38435,10 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
+/* harmony import */ var _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -38446,195 +38447,178 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
-
-/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Entity', _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"], {
-  constructorParts: parent => ({
-    afterInitialize(accessory) {
-      var that = this; //? is this necessary?
-
-      this.filters = {};
-      Object.keys(that.constructor.filters).forEach(key => {
-        Object.defineProperties(that.filters, {
-          [key]: {
-            get: function get() {
-              return pick(that, that.constructor.filters[key]);
-            }
-          }
-        });
-      });
-    },
-
-    defaults: {
-      // NEW
-      id: undefined
-    }
-  }),
-
-  staticProperties(parent) {
-    // GETTER
-    Object.defineProperty(this, 'table', {
-      get: function get() {
-        return "".concat(this.name.charAt(0).toLowerCase() + this.name.slice(1), "s"); //! lowercase, plural of name
-      }
-    });
-    return {
-      //TODO how to make these immutable?
-      //C list of references to child classes, these should be added in the child's static constructor
-      children: [],
-      filters: {
-        id: ['id']
-      },
-
-      //C automatically create new filters based on schema
-      updateFilters() {
-        var methodNames = ['add', 'get', 'edit', 'remove'];
-        var types = ['in', 'out', 'check'];
-        var schemaFilters = {};
-        Object.keys(this.schema).forEach(key => {
-          //C for each property
-          methodNames.forEach(methodName => {
-            //C for each crud method
-            types.forEach(type => {
-              //C for each filter type
-              if (this.schema[key][methodName][type]) {
-                //C if property is optional or required
-                var filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
-
-                if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-                schemaFilters[filterName].push(key);
-              }
-            });
-          });
-        });
-        this.filters = _objectSpread({}, this.filters, {}, schemaFilters);
-      },
-
-      tableToEntity(tableName) {
-        //TODO Revaluate this.
-        var FoundEntity = this.children.find(child => child.table === tableName);
-
-        if (!(new FoundEntity() instanceof this)) {
-          throw new _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            origin: 'Entity.tableToEntity()',
-            reason: "table is not recognized: ".concat(tableName),
-            content: tableName
-          });
-        }
-
-        return FoundEntity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-        //R any metadata (table) should be sent separately (or implicitly) from the query
-      }
-
-    };
-  }
-
-}));
 /*
-import {
-	define,
-	rules,
-	getKeysOf,
-	pick,
-} from '../utility/index.js';
-
-//TODO Remove Success extension.
-export default class Entity extends Success {
-	constructor(options = {}) {
-		const {id} = options;
-
-		super(options);
-
-		define.validatedVariable(this, {
-			id: {
-				value: id,
-				validator(value) {
-					if (!(value === undefined || rules.nonNegativeInteger.test(value))) {
-						throw new Error('Id is not undefined or a non-negative integer.');
-					}
-				},
-			},
-			//R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
-			filters: {
-				value: {},
-				validator: rules.object.validator,
-			},
-		});
-
-		// Set instance filters to use the instance and the static filters.
-		//TODO Refactor this, filters shouldn't be using the same name, its a bit confusing.
-		const that = this;
-		const staticFilters = this.constructor.filters;
-		getKeysOf(staticFilters).forEach((key) => {
-			define.getter(this.filters, {
-				get [key]() {
-					return pick(that, staticFilters[key]);
-				},
-			});
-		});
-	}
-}
-define.getter(Entity, {
-	get table() {
-		return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
-	},
-});
-//TODO Can this be locked down as a constant? (See updateFilters()).
-define.validatedVariable(Entity, {
-	filters: {
-		value: {
-			id: ['id'],
-		},
-		validator: rules.object.validate,
-	},
-});
-define.constant(Entity, {
-	// List of references to child classes, these should be added in the child's static constructor.
-	children: [],
-
-	// Automatically create new filters based on schema.
-	updateFilters() {
-		const methodNames = ['add', 'get', 'edit', 'remove'];
-		const types = ['in', 'out', 'check'];
-
-		const schemaFilters = {};
-
-		Object.keys(this.schema).forEach((key) => { // For each property,
-			methodNames.forEach((methodName) => {   // for each crud method,
-				types.forEach((type) => {           // for each filter type:
-					if (this.schema[key][methodName][type]) { // If property is optional or required:
-						const filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
-						if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-						schemaFilters[filterName].push(key);
+export default Base.makeClass('Entity', Success, {
+	constructorParts: parent => ({
+		afterInitialize(accessory) {
+			const that = this; //? is this necessary?
+			this.filters = {};
+			Object.keys(that.constructor.filters).forEach(key => {
+				Object.defineProperties(that.filters, {
+					[key]: {
+						get: function () { 
+							return pick(that, that.constructor.filters[key]);
+						}
 					}
 				});
 			});
-		});
+		},
+		defaults: {
+			// NEW
+			id: undefined,
+		},
+	}),
+	staticProperties(parent) {
+		// GETTER
+		Object.defineProperty(this, 'table', {
+			get: function () {
+				return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
+			},
+		}); 
 
-		this.filters = {
-			...this.filters,
-			...schemaFilters,
-		};
-	},
+		return {
+			//TODO how to make these immutable?
 
-	tableToEntity(tableName) {
-		//TODO Revaluate this.
-		const FoundEntity = this.children.find((child) => child.table === tableName);
+			//C list of references to child classes, these should be added in the child's static constructor
+			children: [],
 
-		if (!((new FoundEntity()) instanceof this)) {
-			throw new Err({
-				origin: 'Entity.tableToEntity()',
-				reason: `table is not recognized: ${tableName}`,
-				content: tableName,
-			});
+			filters: {
+				id: ['id'],
+			},
+
+			//C automatically create new filters based on schema
+			updateFilters() {
+				let methodNames = ['add', 'get', 'edit', 'remove'];
+				let types = ['in', 'out', 'check'];
+			
+				let schemaFilters = {};
+			
+				Object.keys(this.schema).forEach(key => { //C for each property
+					methodNames.forEach(methodName => { //C for each crud method
+						types.forEach(type => { //C for each filter type
+							if (this.schema[key][methodName][type]) { //C if property is optional or required
+								let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
+								if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+								schemaFilters[filterName].push(key);
+							}
+						});
+					});
+				});
+			
+				this.filters = {
+					...this.filters,
+					...schemaFilters,
+				};
+			},
+
+			tableToEntity(tableName) {
+				//TODO Revaluate this.
+				const FoundEntity = this.children.find(child => child.table === tableName);
+
+				if (!((new FoundEntity()) instanceof this)) {
+					throw new Err({
+						origin: 'Entity.tableToEntity()',
+						reason: `table is not recognized: ${tableName}`,
+						content: tableName,
+					});
+				}
+					
+				return FoundEntity;
+
+				//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+				//R any metadata (table) should be sent separately (or implicitly) from the query
+			},
 		}
-
-		return FoundEntity;
-
-		//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-		//R any metadata (table) should be sent separately (or implicitly) from the query
 	},
 });
 */
+
+ //TODO Remove Success extension.
+
+class Entity extends _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"] {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      id
+    } = options;
+    super(options);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+      id,
+      //R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
+      filters: {}
+    }); // Set instance filters to use the instance and the static filters.
+    //TODO Refactor this, filters shouldn't be using the same name, its a bit confusing.
+
+    var that = this;
+    var staticFilters = this.constructor.filters;
+    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(staticFilters).forEach(key => {
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].getter(this.filters, {
+        get [key]() {
+          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(that, staticFilters[key]);
+        }
+
+      });
+    });
+  }
+
+}
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].getter(Entity, {
+  get table() {
+    return "".concat(this.name.charAt(0).toLowerCase() + this.name.slice(1), "s"); //! lowercase, plural of name
+  }
+
+}); //TODO Can this be locked down as a constant? (See updateFilters()).
+
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(Entity, {
+  filters: {
+    id: ['id']
+  }
+});
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Entity, {
+  // List of references to child classes, these should be added in the child's static constructor.
+  children: [],
+
+  // Automatically create new filters based on schema.
+  updateFilters() {
+    var methodNames = ['add', 'get', 'edit', 'remove'];
+    var types = ['in', 'out', 'check'];
+    var schemaFilters = {};
+    Object.keys(this.schema).forEach(key => {
+      // For each property,
+      methodNames.forEach(methodName => {
+        // for each crud method,
+        types.forEach(type => {
+          // for each filter type:
+          if (this.schema[key][methodName][type]) {
+            // If property is optional or required:
+            var filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
+
+            if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+            schemaFilters[filterName].push(key);
+          }
+        });
+      });
+    });
+    this.filters = _objectSpread({}, this.filters, {}, schemaFilters);
+  },
+
+  tableToEntity(tableName) {
+    //TODO Revaluate this.
+    var FoundEntity = this.children.find(child => child.table === tableName);
+
+    if (!(new FoundEntity() instanceof this)) {
+      throw new _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__["Err"]({
+        origin: 'Entity.tableToEntity()',
+        reason: "table is not recognized: ".concat(tableName),
+        content: tableName
+      });
+    }
+
+    return FoundEntity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+    //R any metadata (table) should be sent separately (or implicitly) from the query
+  }
+
+});
 
 /***/ }),
 
@@ -38816,127 +38800,143 @@ var auto = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 
 
 
 
 
-
-/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Track', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      //C find existing source by track.source.name and set it as the reference
-      if (_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(accessory.options.source)) {
-        var found = _source_js__WEBPACK_IMPORTED_MODULE_4__["default"].instances.find(source => source.name === accessory.options.source.name);
-        if (found) accessory.options.source = found;else new Warn({
-          origin: 'Track.beforeInitialize()',
-          reason: 'source was passed but it is not an existing source',
-          content: accessory.options.source
-        });
-      }
-
-      ;
-    },
-
-    defaults: {
-      // NEW
-      playlistId: null,
-      position: null,
-      source: null,
-      //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-      sourceId: null,
-      // TODO assumes ids are unique, even across all sources
-      artists: [],
-      name: null,
-      duration: null,
+class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    super(options);
+    var {
+      playlistId = null,
+      position = null,
+      //TODO assumes ids are unique, even across all sources
+      sourceId = null,
+      artists = [],
+      name = null,
       //! Don't use 0 here as it counts as a 'set' value.
-      link: null
-    }
-  }),
+      duration = null,
+      link = null
+    } = options; //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
 
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      id: {
-        columnName: 'id',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
-      },
-      playlistId: {
-        columnName: 'playlistId',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      position: {
-        columnName: 'position',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["position"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      name: {
-        columnName: 'name',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["name"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      duration: {
-        columnName: 'duration',
-        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].nonNegativeInteger.validate,
-        //TODO Expand
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      source: {
-        columnName: 'source',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_5__["registeredSource"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      sourceId: {
-        columnName: 'sourceId',
-        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].string.validate,
-        //TODO Expand
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      artists: {
-        columnName: 'artists',
-        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.validate,
-        //TODO Expand
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+    var {
+      source = null
+    } = options; // Find existing source by track.source.name and set it as the reference.
+
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(source)) {
+      var found = _source_js__WEBPACK_IMPORTED_MODULE_3__["default"].instances.find(sourceInstance => sourceInstance.name === source.name);
+
+      if (found) {
+        source = found;
+      } else {
+        throw new Error('Source was passed but it is not an existing source.');
       }
-    };
-    this.updateFilters(); //G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
+    }
 
-    this.filters.localMetadata = ['id', 'playlistId', 'position'];
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+      playlistId,
+      position,
+      sourceId,
+      artists,
+      name,
+      duration,
+      link,
+      source
+    }); //TODO Ensure that this is only used as an instance then remove this.
+
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      constructorName: 'Track'
+    });
   }
 
-}));
+}
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Track, {
+  schema: {
+    id: {
+      columnName: 'id',
+      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["id"].validate,
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["auto"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"]
+    },
+    playlistId: {
+      columnName: 'playlistId',
+      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["id"].validate,
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
+    },
+    position: {
+      columnName: 'position',
+      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["position"].validate,
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
+    },
+    name: {
+      columnName: 'name',
+      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["name"].validate,
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
+    },
+    duration: {
+      columnName: 'duration',
+      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].nonNegativeInteger.validate,
+      //TODO Expand
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
+    },
+    source: {
+      columnName: 'source',
+      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["registeredSource"].validate,
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
+    },
+    sourceId: {
+      columnName: 'sourceId',
+      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
+      //TODO Expand
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
+    },
+    artists: {
+      columnName: 'artists',
+      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].array.validate,
+      //TODO Expand
+      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
+      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
+      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
+    }
+  }
+});
+_entity_js__WEBPACK_IMPORTED_MODULE_0__["default"].children.push(Track); // Update filters after schema is defined.
+
+Track.updateFilters(); // Add an additional filter 'localMetadata'.
+//G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
+
+_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Track.filters, {
+  localMetadata: ['id', 'playlistId', 'position']
+});
 
 /***/ }),
 
@@ -39334,7 +39334,7 @@ __webpack_require__.r(__webpack_exports__);
   return value instanceof Class || (value === null || value === void 0 ? void 0 : value.constructorName) === className;
 });
 ; // Things that are matching constructorName
-// User, Track, (Probably playlist?)
+// User, Track
 
 /***/ }),
 
