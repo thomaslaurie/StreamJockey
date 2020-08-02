@@ -1540,14 +1540,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
-/* harmony import */ var _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 //  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
 //  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
 //  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
@@ -1558,7 +1557,6 @@ __webpack_require__.r(__webpack_exports__);
  //TODO consider changing to the https module?
 
  // INTERNAL
-
 
 
 
@@ -1581,11 +1579,11 @@ __webpack_require__.r(__webpack_exports__);
 
 class Subscription {
   constructor(options = {}) {
-    _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["subscriptionParts"].instance(this, options);
+    _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["subscriptionParts"].instance(this, options);
     const {
       user = null
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_10__["define"].writable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_9__["define"].writable(this, {
       user
     });
   }
@@ -1595,7 +1593,7 @@ class Subscription {
 /* harmony default export */ __webpack_exports__["default"] = ({
   app: null,
   socket: null,
-  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"].makeTables(),
+  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].makeTables(),
 
   start({
     app,
@@ -1618,20 +1616,20 @@ class Subscription {
         console.log('CONNECT', socket.id); // If user is logged in, give the socketId to the session.
         //! I don't think the cookie session receives this, though it isn't needed there so far
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) socket.session.user.socketId = socket.id;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User')) socket.session.user.socketId = socket.id;
         socket.on('disconnect', async reason => {
           try {
             console.log('DISCONNECT', socket.id);
             await this.disconnect(socket.id).catch(rejected => {
               //TODO handle better
-              if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, _shared_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_3__["default"], 'Base')) rejected.announce();else console.error('subscription disconnect error:', rejected);
+              console.error('subscription disconnect error:', rejected);
             }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User')) {
-              socket.session.user.socketId = _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].defaults.socketId;
+            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User')) {
+              socket.session.user.socketId = _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].defaults.socketId;
             }
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
           }
         });
         socket.on('subscribe', async ({
@@ -1642,17 +1640,17 @@ class Subscription {
             console.log('SUBSCRIBE', socket.id); // if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
             //TODO socketId validator, this is all that really matters here
 
-            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
+            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"]({
               socketId: socket.id
             }); //! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
-            const result = await this.add(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
+            const result = await this.add(_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
             //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
             // Using fclone to drop circular reference.s
 
             callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
           }
         });
         socket.on('unsubscribe', async ({
@@ -1661,24 +1659,24 @@ class Subscription {
         }, callback) => {
           try {
             console.log('UNSUBSCRIBE', socket.id);
-            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"]({
+            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"]({
               socketId: socket.id
             });
-            const result = await this.remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_6__["Entity"].tableToEntity(table), query, user);
+            const result = await this.remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].tableToEntity(table), query, user);
             callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
           }
         });
         socket.on('error', reason => {
           try {
             console.error('ERROR', socket.id, reason);
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
           }
         });
       } catch (error) {
-        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"])(error);
+        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
       }
     });
   },
@@ -1704,15 +1702,15 @@ class Subscription {
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
       origin: 'liveData.add()',
       reason: 'table is not an LiveTable'
     }); //C find liveQuery, add if it doesn't exist
 
     let liveQuery = this.findLiveQuery(table, processedQuery);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"], 'LiveQuery')) {
-      liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) {
+      liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"]({
         table,
         query: processedQuery
       });
@@ -1722,7 +1720,7 @@ class Subscription {
 
     let subscription = this.findSubscription(liveQuery, user);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, Subscription, 'Subscription')) {
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, Subscription, 'Subscription')) {
       subscription = new Subscription({
         liveQuery,
         user
@@ -1732,7 +1730,7 @@ class Subscription {
 
 
     Object.assign(subscription.user, user);
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"]({
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
       origin: 'addSubscriber()',
       message: 'added subscriber',
       content: processedQuery
@@ -1745,14 +1743,14 @@ class Subscription {
     const processedQuery = await Entity.getMimic(query); //C find table
 
     const table = this.findTable(Entity);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
       origin: 'liveData.remove()',
       reason: 'table is not an LiveTable'
     }); //C find liveQuery index
 
     const liveQuery = this.findLiveQuery(table, processedQuery);
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Warn"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
       origin: 'Subscriptions.remove()',
       message: 'no subscription found for this query',
       content: {
@@ -1764,7 +1762,7 @@ class Subscription {
 
     const subscription = this.findSubscription(liveQuery, user);
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Warn"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
       origin: 'Subscriptions.remove()',
       message: 'no subscriber found for this user',
       content: {
@@ -1780,7 +1778,7 @@ class Subscription {
       this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
     }
 
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_5__["Success"]({
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
       origin: 'removeSubscriber()',
       message: 'removed subscriber',
       content: processedQuery
@@ -1790,7 +1788,7 @@ class Subscription {
   async notify(Entity, entities, timestamp) {
     //C for each liveQuery
     const table = this.findTable(Entity);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_7__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_4__["Err"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
       origin: 'liveData.notify()',
       reason: 'table is not an LiveTable'
     });

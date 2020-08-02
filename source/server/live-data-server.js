@@ -11,7 +11,6 @@ import fclone from 'fclone';
 
 // INTERNAL
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
-import Base from '../shared/legacy-classes/base.js';
 import {
 	Err,
 } from '../shared/legacy-classes/error.js';
@@ -98,8 +97,7 @@ export default {
 
 						await this.disconnect(socket.id).catch(rejected => { 
 							//TODO handle better
-							if (isInstanceOf(rejected, Base, 'Base')) rejected.announce();
-							else console.error('subscription disconnect error:', rejected);
+							console.error('subscription disconnect error:', rejected);
 						});
 
 						//? socket won't be used anymore, so does anything really need to be deleted here?
