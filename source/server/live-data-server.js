@@ -26,12 +26,15 @@ import {
 import {
 	LiveTable,
 	LiveQuery,
-	Subscription,
+	subscriptionParts,
 } from '../shared/live-data.js';
 import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	logPropagate,
 } from '../shared/propagate.js';
+import {
+	define,
+} from '../shared/utility/index.js';
 
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
@@ -49,13 +52,14 @@ import {
 
 //TODO sockets need better error handling just like the koa router
 
-Subscription.augmentClass({
-	constructorParts: parent => ({
-		defaults: {
-			user: null,
-		},
-	}),
-});
+class Subscription {
+	constructor(options = {}) {
+		subscriptionParts.instance(this, options);
+
+		const {user = null} = options;
+		define.writable(this, {user});
+	}
+}
 
 export default {
 	app: null,

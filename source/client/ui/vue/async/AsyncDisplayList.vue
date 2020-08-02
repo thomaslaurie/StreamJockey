@@ -32,6 +32,7 @@
 		computed: {
 			// OVERWRITES
 			liveContent() {
+				//! These seem to be incrementally added. Maybe create a more efficient function that adds all at once/
 				if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return any(this.$store.getters.getLiveData(this.subscription));
 				else return [];
 			},

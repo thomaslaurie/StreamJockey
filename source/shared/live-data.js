@@ -1,75 +1,88 @@
-import Base from './legacy-classes/base.js';
 import {
 	Entity,
 } from './entities/index.js';
-import { 
+import {
 	any,
+	define,
+	rules,
+	ClassParts,
 } from './utility/index.js';
 
-export const LiveTable = Base.makeClass('LiveTable', Base, {
-	constructorParts: parent => ({
-		defaults: {
-			Entity: undefined,
-		},
-		afterInitialize() {
-			Object.assign(this, {
-				liveQueries: [],
-				cachedEntities: [],
-			});
-		},
-	}),
-	staticProperties: parent => ({
-		makeTables(tableKeys) {
-			return new Map(Entity.children.map(EntityClass => [EntityClass, new this({Entity: EntityClass})]));
-		},
-	}),
-});
-export const CachedEntity = Base.makeClass('CachedEntity', Base, {
-	constructorParts: parent => ({
-		defaults: {
-			table: undefined,
-			entity: undefined,
-		},
-		afterInitialize() {
-			Object.assign(this, {
-				liveQueryRefs: [],
+export class LiveTable {
+	constructor(options = {}) {
+		const {Entity} = options;
 
-				timestamp: 0,
-			});
-		},
-	}),
+		//TODO See if any of these can be validated or made constant.
+		define.writable(this, {
+			Entity,
+			liveQueries:    [],
+			cachedEntities: [],
+		});
+	}
+}
+define.constant(LiveTable, {
+	makeTables() {
+		return new Map(Entity.children.map((EntityClass) => [EntityClass, new this({Entity: EntityClass})]));
+	},
 });
-export const LiveQuery = Base.makeClass('LiveQuery', Base, {
-	constructorParts: parent => ({
-		beforeInitialize(accessory) {
-			if (Array.isArray(accessory.options.query)) {
-				accessory.options.query = any(accessory.options.query);
-			}
-		},
-		defaults: {
-			table: undefined,
-			query: undefined,
-		},
-		afterInitialize() {
-			Object.assign(this, {
-				cachedEntityRefs: [],
-				subscriptions: [],
 
-				timestamp: 0,
-			});
-		},
-	}),
-});
-export const Subscription = Base.makeClass('Subscription', Base, {
-	//? should this inherit from Success since it will be returned from a function>
-	constructorParts: parent => ({
-		defaults: {
-			liveQuery: undefined,
+export class CachedEntity {
+	constructor(options = {}) {
+		const {
+			table,
+			entity,
+		} = options;
 
-			onUpdate() {}, //C any update
-			onAdd() {}, //C entities added
-			onEdit() {}, //C entities data changed
-			onRemove() {}, //C entities removed
-		},
-	}),
+		//TODO See if any of these can be validated or made constant.
+		define.writable(this, {
+			table,
+			entity,
+			liveQueryRefs: [],
+			timestamp: 0,
+		});
+	}
+}
+
+export class LiveQuery {
+	constructor(options = {}) {
+		const {table} = options;
+		let   {query} = options;
+
+		//? Not sure why this is being done.
+		if (rules.array.test(query)) query = any(query);
+
+		define.writable(this, {
+			table,
+			query,
+			cachedEntityRefs: [],
+			subscriptions:    [],
+			timestamp: 0,
+		});
+	}
+}
+
+// live-data-server uses an augmented Subscription class.
+export const subscriptionParts = new ClassParts({
+	instance(options = {}) {
+		const {
+			liveQuery,
+			onUpdate = () => {}, // Any update.
+			onAdd    = () => {}, // Entities added.
+			onEdit   = () => {}, // Entities data changed.
+			onRemove = () => {}, // Entities removed.
+		} = options;
+
+		define.writable(this, {
+			liveQuery,
+			onUpdate,
+			onAdd,
+			onEdit,
+			onRemove,
+		});
+	},
 });
+export class Subscription {
+	constructor(options = {}) {
+		subscriptionParts.instance(this, options);
+	}
+}

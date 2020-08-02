@@ -54,6 +54,7 @@ export default {
 	},
 	// Guaranteed to be variable.
 	//! Has an accessor-descriptor.
+	//! Will cause Vue's (at least version 2) reactivity to break if used in a place where a normal property is expected.
 	//R A data descriptor with {writable: true, configurable: false} is not used here because the ECMAScript standard still allows writable to be set to false, despite configurable being false.
 	variable(target, properties) {
 		for (const key of ownKeys(properties)) {

@@ -267,7 +267,7 @@ import {
 	rules,
 } from '../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
-import { 
+import {
 	Unreachable,
 	Err,
 } from '../shared/legacy-classes/error.js';
@@ -304,6 +304,8 @@ import {
 
 //! //TODO Create wrapper around socket to handle errors, much like middleware. Errors aren't being communicated to the client. They are just getting thrown on the server side right now.
 
+//TODO //? This has mutations that don't modify state, only the object that was passed in, why?
+
 export default {
 	state: {
 		tables: LiveTable.makeTables(),
@@ -339,12 +341,16 @@ export default {
 			});
 
 			//C get all liveQuery.cachedEntityRefs.entity
+			
+			//TODO Race condition here.
 			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-				if (!isInstanceOf(cachedEntityRef, CachedEntity, 'CachedEntity')) throw new Err({
-					origin: 'getLiveData()',
-					reason: 'cachedEntityRef is not a cachedEntity',
-					content: fclone(cachedEntityRef),
-				});
+				if (!isInstanceOf(cachedEntityRef, CachedEntity, 'CachedEntity')) {
+					throw new Err({
+						origin: 'getLiveData()',
+						reason: 'cachedEntityRef is not a cachedEntity',
+						content: fclone(cachedEntityRef),
+					});
+				}
 				return cachedEntityRef.entity;
 			});
 		},
@@ -425,7 +431,7 @@ export default {
 			//C find cachedEntity by entity
 			const cachedEntity = context.getters.findCachedEntity({table, entity});
 			if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) throw new Unreachable({origin: 'addCachedEntity()'});
-
+			
 			//C shorthand
 			const liveQueryRefs = cachedEntity.liveQueryRefs;
 			const cachedEntityRefs = liveQuery.cachedEntityRefs;
@@ -1001,7 +1007,6 @@ export default {
 					let notified = false;
 					let notifiedResult = {};
 					context.state.socket.on('notify', notifyResult => { //? when is this listener removed?
-						console.log('CALLED');
 						notifiedResult = notifyResult;
 						if (deepCompare(queryPack.query, notifyResult.changed, {subset: true})) notified = true;
 					});

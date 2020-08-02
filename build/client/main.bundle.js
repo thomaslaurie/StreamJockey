@@ -614,6 +614,7 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
   computed: {
     // OVERWRITES
     liveContent() {
+      //! These seem to be incrementally added. Maybe create a more efficient function that adds all at once/
       if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));else return [];
     },
 
@@ -16786,6 +16787,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //  ██║ ╚═╝ ██║╚██████╔╝██████╔╝╚██████╔╝███████╗███████╗
 //  ╚═╝     ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ╚══════╝╚══════╝
 //! //TODO Create wrapper around socket to handle errors, much like middleware. Errors aren't being communicated to the client. They are just getting thrown on the server side right now.
+//TODO //? This has mutations that don't modify state, only the object that was passed in, why?
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   state: {
@@ -16829,13 +16831,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         reason: "liveQuery is not an LiveQuery",
         content: liveQuery
       }); //C get all liveQuery.cachedEntityRefs.entity
+      //TODO Race condition here.
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'getLiveData()',
-          reason: 'cachedEntityRef is not a cachedEntity',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(cachedEntityRef)
-        });
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) {
+          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+            origin: 'getLiveData()',
+            reason: 'cachedEntityRef is not a cachedEntity',
+            content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(cachedEntityRef)
+          });
+        }
+
         return cachedEntityRef.entity;
       });
     },
@@ -17741,7 +17747,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               var notifiedResult = {};
               context.state.socket.on('notify', notifyResult => {
                 //? when is this listener removed?
-                console.log('CALLED');
                 notifiedResult = notifyResult;
                 if (Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(queryPack.query, notifyResult.changed, {
                   subset: true
@@ -38524,6 +38529,112 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   }
 
 }));
+/*
+import {
+	define,
+	rules,
+	getKeysOf,
+	pick,
+} from '../utility/index.js';
+
+//TODO Remove Success extension.
+export default class Entity extends Success {
+	constructor(options = {}) {
+		const {id} = options;
+
+		super(options);
+
+		define.validatedVariable(this, {
+			id: {
+				value: id,
+				validator(value) {
+					if (!(value === undefined || rules.nonNegativeInteger.test(value))) {
+						throw new Error('Id is not undefined or a non-negative integer.');
+					}
+				},
+			},
+			//R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
+			filters: {
+				value: {},
+				validator: rules.object.validator,
+			},
+		});
+
+		// Set instance filters to use the instance and the static filters.
+		//TODO Refactor this, filters shouldn't be using the same name, its a bit confusing.
+		const that = this;
+		const staticFilters = this.constructor.filters;
+		getKeysOf(staticFilters).forEach((key) => {
+			define.getter(this.filters, {
+				get [key]() {
+					return pick(that, staticFilters[key]);
+				},
+			});
+		});
+	}
+}
+define.getter(Entity, {
+	get table() {
+		return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
+	},
+});
+//TODO Can this be locked down as a constant? (See updateFilters()).
+define.validatedVariable(Entity, {
+	filters: {
+		value: {
+			id: ['id'],
+		},
+		validator: rules.object.validate,
+	},
+});
+define.constant(Entity, {
+	// List of references to child classes, these should be added in the child's static constructor.
+	children: [],
+
+	// Automatically create new filters based on schema.
+	updateFilters() {
+		const methodNames = ['add', 'get', 'edit', 'remove'];
+		const types = ['in', 'out', 'check'];
+
+		const schemaFilters = {};
+
+		Object.keys(this.schema).forEach((key) => { // For each property,
+			methodNames.forEach((methodName) => {   // for each crud method,
+				types.forEach((type) => {           // for each filter type:
+					if (this.schema[key][methodName][type]) { // If property is optional or required:
+						const filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
+						if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+						schemaFilters[filterName].push(key);
+					}
+				});
+			});
+		});
+
+		this.filters = {
+			...this.filters,
+			...schemaFilters,
+		};
+	},
+
+	tableToEntity(tableName) {
+		//TODO Revaluate this.
+		const FoundEntity = this.children.find((child) => child.table === tableName);
+
+		if (!((new FoundEntity()) instanceof this)) {
+			throw new Err({
+				origin: 'Entity.tableToEntity()',
+				reason: `table is not recognized: ${tableName}`,
+				content: tableName,
+			});
+		}
+
+		return FoundEntity;
+
+		//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+		//R any metadata (table) should be sent separately (or implicitly) from the query
+	},
+});
+*/
 
 /***/ }),
 
@@ -39222,7 +39333,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = (function (value, Class, className) {
   return value instanceof Class || (value === null || value === void 0 ? void 0 : value.constructorName) === className;
 });
-;
+; // Things that are matching constructorName
+// User, Track, (Probably playlist?)
 
 /***/ }),
 
@@ -39593,7 +39705,7 @@ var Credentials = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Cr
 /*!************************************!*\
   !*** ./source/shared/live-data.js ***!
   \************************************/
-/*! exports provided: LiveTable, CachedEntity, LiveQuery, Subscription */
+/*! exports provided: LiveTable, CachedEntity, LiveQuery, subscriptionParts, Subscription */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -39601,96 +39713,105 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveTable", function() { return LiveTable; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CachedEntity", function() { return CachedEntity; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveQuery", function() { return LiveQuery; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "subscriptionParts", function() { return subscriptionParts; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Subscription", function() { return Subscription; });
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 
+class LiveTable {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      Entity
+    } = options; //TODO See if any of these can be validated or made constant.
 
-var LiveTable = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('LiveTable', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      Entity: undefined
-    },
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      Entity,
+      liveQueries: [],
+      cachedEntities: []
+    });
+  }
 
-    afterInitialize() {
-      Object.assign(this, {
-        liveQueries: [],
-        cachedEntities: []
-      });
-    }
+}
+_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(LiveTable, {
+  makeTables() {
+    return new Map(_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Entity"].children.map(EntityClass => [EntityClass, new this({
+      Entity: EntityClass
+    })]));
+  }
 
-  }),
-  staticProperties: parent => ({
-    makeTables(tableKeys) {
-      return new Map(_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Entity"].children.map(EntityClass => [EntityClass, new this({
-        Entity: EntityClass
-      })]));
-    }
-
-  })
 });
-var CachedEntity = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('CachedEntity', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      table: undefined,
-      entity: undefined
-    },
+class CachedEntity {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      table,
+      entity
+    } = options; //TODO See if any of these can be validated or made constant.
 
-    afterInitialize() {
-      Object.assign(this, {
-        liveQueryRefs: [],
-        timestamp: 0
-      });
-    }
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      table,
+      entity,
+      liveQueryRefs: [],
+      timestamp: 0
+    });
+  }
 
-  })
+}
+class LiveQuery {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      table
+    } = options;
+    var {
+      query
+    } = options; //? Not sure why this is being done.
+
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      table,
+      query,
+      cachedEntityRefs: [],
+      subscriptions: [],
+      timestamp: 0
+    });
+  }
+
+} // live-data-server uses an augmented Subscription class.
+
+var subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+  instance() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      liveQuery,
+      onUpdate = () => {},
+      // Any update.
+      onAdd = () => {},
+      // Entities added.
+      onEdit = () => {},
+      // Entities data changed.
+      onRemove = () => {} // Entities removed.
+
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      liveQuery,
+      onUpdate,
+      onAdd,
+      onEdit,
+      onRemove
+    });
+  }
+
 });
-var LiveQuery = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('LiveQuery', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts: parent => ({
-    beforeInitialize(accessory) {
-      if (Array.isArray(accessory.options.query)) {
-        accessory.options.query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(accessory.options.query);
-      }
-    },
+class Subscription {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    subscriptionParts.instance(this, options);
+  }
 
-    defaults: {
-      table: undefined,
-      query: undefined
-    },
-
-    afterInitialize() {
-      Object.assign(this, {
-        cachedEntityRefs: [],
-        subscriptions: [],
-        timestamp: 0
-      });
-    }
-
-  })
-});
-var Subscription = _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Subscription', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  //? should this inherit from Success since it will be returned from a function>
-  constructorParts: parent => ({
-    defaults: {
-      liveQuery: undefined,
-
-      onUpdate() {},
-
-      //C any update
-      onAdd() {},
-
-      //C entities added
-      onEdit() {},
-
-      //C entities data changed
-      onRemove() {} //C entities removed
-
-
-    }
-  })
-});
+}
 
 /***/ }),
 
@@ -40126,12 +40247,13 @@ function _test() {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return any; });
 /* harmony import */ var _validation_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../validation/index.js */ "./source/shared/utility/validation/index.js");
 // Wraps a value in an array. If the value is already an array, its items get spread into a fresh one.
 
-/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+function any(value) {
   return _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(value) ? [...value] : [value];
-});
+}
 
 /***/ }),
 
@@ -41345,6 +41467,7 @@ var ownKeys = function ownKeys(object) {
 
   // Guaranteed to be variable.
   //! Has an accessor-descriptor.
+  //! Will cause Vue's (at least version 2) reactivity to break if used in a place where a normal property is expected.
   //R A data descriptor with {writable: true, configurable: false} is not used here because the ECMAScript standard still allows writable to be set to false, despite configurable being false.
   variable(target, properties) {
     var _loop = function _loop(key) {
