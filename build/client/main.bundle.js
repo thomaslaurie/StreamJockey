@@ -16375,90 +16375,103 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Start.p
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-//! Side Effects
+//! Side Effects //? Not quite sure of this.
 
 
- // ENTITY CRUD METHODS
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Entity"].augmentClass({
-  prototypeProperties: () => ({
-    add() {
-      var _this = this;
 
-      return _asyncToGenerator(function* () {
-        return yield _this.constructor.add(_this);
-      })();
-    },
-
-    get() {
-      var _this2 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield _this2.constructor.get(_this2);
-      })();
-    },
-
-    edit() {
-      var _this3 = this;
-
-      return _asyncToGenerator(function* () {
-        //! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited.
-        return yield _this3.constructor.edit(_this3);
-      })();
-    },
-
-    remove() {
-      var _this4 = this;
-
-      return _asyncToGenerator(function* () {
-        return yield _this4.constructor.remove(_this4);
-      })();
+class Entity extends _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"] {
+  constructor() {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
     }
 
-  }),
-  staticProperties: () => ({
-    add(query) {
-      var _this5 = this;
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].instance(this, ...args);
+  }
 
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
-      })();
-    },
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].prototype(Entity);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].static(Entity);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Entity.prototype, {
+  add() {
+    var _this = this;
 
-    get(query) {
-      var _this6 = this;
+    return _asyncToGenerator(function* () {
+      return _this.constructor.add(_this);
+    })();
+  },
 
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
-      })();
-    },
+  get() {
+    var _this2 = this;
 
-    edit(query) {
-      var _this7 = this;
+    return _asyncToGenerator(function* () {
+      return _this2.constructor.get(_this2);
+    })();
+  },
 
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
-      })();
-    },
+  edit() {
+    var _this3 = this;
 
-    remove(query) {
-      var _this8 = this;
+    return _asyncToGenerator(function* () {
+      //! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited.
+      return _this3.constructor.edit(_this3);
+    })();
+  },
 
-      return _asyncToGenerator(function* () {
-        return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
-      })();
-    }
+  remove() {
+    var _this4 = this;
 
-  })
+    return _asyncToGenerator(function* () {
+      return _this4.constructor.remove(_this4);
+    })();
+  }
+
 });
-/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Entity"]);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Entity, {
+  add(query) {
+    var _this5 = this;
+
+    return _asyncToGenerator(function* () {
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
+    })();
+  },
+
+  get(query) {
+    var _this6 = this;
+
+    return _asyncToGenerator(function* () {
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
+    })();
+  },
+
+  edit(query) {
+    var _this7 = this;
+
+    return _asyncToGenerator(function* () {
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
+    })();
+  },
+
+  remove(query) {
+    var _this8 = this;
+
+    return _asyncToGenerator(function* () {
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
+    })();
+  }
+
+});
 
 /***/ }),
 
@@ -16474,16 +16487,112 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Entity", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Playlist"]; });
+/* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/client/entities/playlist.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"]; });
+/* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/client/entities/track.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"]; });
+/* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/client/entities/user.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
- // Re-exporting shared entities so that client files can import entities all from the same folder.
 
 
+
+
+
+/***/ }),
+
+/***/ "./source/client/entities/playlist.js":
+/*!********************************************!*\
+  !*** ./source/client/entities/playlist.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Playlist; });
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+
+
+class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["playlistParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["playlistParts"].instance(this, ...args);
+  }
+
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["playlistParts"].prototype(Playlist);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["playlistParts"].static(Playlist);
+
+/***/ }),
+
+/***/ "./source/client/entities/track.js":
+/*!*****************************************!*\
+  !*** ./source/client/entities/track.js ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+
+
+class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["trackParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["trackParts"].instance(this, ...args);
+  }
+
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["trackParts"].prototype(Track);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["trackParts"].static(Track);
+
+/***/ }),
+
+/***/ "./source/client/entities/user.js":
+/*!****************************************!*\
+  !*** ./source/client/entities/user.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return User; });
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+
+
+class User extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["userParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["userParts"].instance(this, ...args);
+  }
+
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["userParts"].prototype(User);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["userParts"].static(User);
 
 /***/ }),
 
@@ -16505,9 +16614,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_test_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/test.js */ "./source/shared/test.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./sources/index.js */ "./source/client/sources/index.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -16777,10 +16884,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+ // import test from '../shared/test.js';
 
-
-
- //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
+ // import {
+// 	spotify,
+// } from './sources/index.js';
+//  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
 //  ████╗ ████║██╔═══██╗██╔══██╗██║   ██║██║     ██╔════╝
 //  ██╔████╔██║██║   ██║██║  ██║██║   ██║██║     █████╗  
 //  ██║╚██╔╝██║██║   ██║██║  ██║██║   ██║██║     ██╔══╝  
@@ -16791,7 +16900,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   state: {
-    tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].makeTables(),
+    tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].makeTables({
+      User: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"],
+      Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"],
+      Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]
+    }),
     socket: null,
     timeout: 10000 //C 10 seconds
 
@@ -16819,14 +16932,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     getLiveData: state => subscription => {
       //C validate
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         origin: 'getLiveData()',
         reason: 'subscription is not an Subscription',
         content: subscription
       }); //C shorten
 
       var liveQuery = subscription.liveQuery;
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         origin: 'getLiveData()',
         reason: "liveQuery is not an LiveQuery",
         content: liveQuery
@@ -16834,7 +16947,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       //TODO Race condition here.
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) {
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) {
           throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
             origin: 'getLiveData()',
             reason: 'cachedEntityRef is not a cachedEntity',
@@ -16970,7 +17083,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = liveQuery.table; //C add cachedEntity to table if it doesn't exist
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(context.getters.findCachedEntity({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(context.getters.findCachedEntity({
           table,
           entity
         }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) {
@@ -16988,7 +17101,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           entity
         });
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
           origin: 'addCachedEntity()'
         }); //C shorthand
 
@@ -17113,7 +17226,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref18;
 
         //C if the liveQuery cannot be found
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(context.getters.findLiveQuery({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(context.getters.findLiveQuery({
           table,
           query
         }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) {
@@ -17130,7 +17243,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table,
             query
           });
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
+          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
             origin: 'addLiveQuery()'
           }); //C trigger the initial update
 
@@ -17246,7 +17359,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             entity
           });
 
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
+          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
             origin: 'update()'
           }); //C edit the cachedEntity (won't edit if data is old, or unchanged)
 
@@ -17304,7 +17417,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         }); //! this should never fail
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
           origin: 'addSubscription()',
           reason: 'liveQuery not found in table',
           content: liveQuery
@@ -17374,7 +17487,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }); //C shorten
 
         var table = context.getters.findTable(Entity);
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'subscribe()',
           reason: 'table is not an LiveTable',
           content: table
@@ -17405,7 +17518,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref23;
 
         //C validate //! return early if not a subscription
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) {
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) {
           if (strict) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
             origin: 'unsubscribe()',
             reason: 'subscription is not an Subscription',
@@ -17415,7 +17528,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
         var liveQuery = subscription.liveQuery;
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'unsubscribe()',
           reason: "liveQuery is not an LiveQuery",
           content: liveQuery
@@ -17427,7 +17540,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           content: query
         });
         var table = liveQuery.table;
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'unsubscribe()',
           reason: 'table is not an LiveTable',
           content: table
@@ -17466,7 +17579,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
         //C strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-        if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'change()',
           reason: 'subscription is not an Subscription',
           content: subscription
@@ -17509,7 +17622,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(timestamp)) timestamp = Date.now(); //C shorten
 
         var table = context.getters.findTable(TargetEntity);
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'update()',
           reason: 'table is not an LiveTable',
           content: {
@@ -17521,7 +17634,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           query
         });
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'update()',
           reason: "liveQuery is not an LiveQuery",
           content: {
@@ -17574,7 +17687,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else {
+            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else {
               resolve(result);
             }
           });
@@ -17600,7 +17713,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else resolve(result);
+            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else resolve(result);
           });
         }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
       })();
@@ -17694,7 +17807,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               query,
               timestamp
             } = _ref30;
-            var TargetEntity = _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].tableToEntity(table);
+            var TargetEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].tableToEntity(table);
             context.dispatch('update', {
               Entity: TargetEntity,
               query,
@@ -17708,362 +17821,325 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }()); //C socket test
         //TODO rewrite this
 
-        context.state.socket.test = /*#__PURE__*/_asyncToGenerator(function* () {
-          _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].placeholder = {
-            playlistId: 2,
-            name: 'placeholder name',
-            duration: 1234,
-            source: _sources_index_js__WEBPACK_IMPORTED_MODULE_10__["spotify"],
-            sourceId: 'placeholderSourceId',
-            artists: ['foo', 'bar']
-          };
-          _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"].placeholder = {
-            userId: 3,
-            name: 'placeholder name',
-            description: 'placeholder description'
-          };
-          _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].placeholder = {
-            name: 'placeholder name',
-            email: 'placeholder email',
-            password: 'placeholder password'
-          };
-
-          var wrap = /*#__PURE__*/function () {
-            var _ref33 = _asyncToGenerator(function* (Entity, queryPack, data, predoF, doF, undoF, data2) {
-              //C subscribe
-              var subscribeResult = yield new Promise((resolve, reject) => {
-                context.state.socket.emit('subscribe', queryPack, result => {
-                  if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(result, _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"], 'Success')) {
-                    resolve(result);
-                  } else {
-                    reject(result);
-                  }
-                });
-              });
-              var accessory = {};
-              var predoResult = yield predoF(Entity, data, accessory, data2); //C make listener
-
-              var notified = false;
-              var notifiedResult = {};
-              context.state.socket.on('notify', notifyResult => {
-                //? when is this listener removed?
-                notifiedResult = notifyResult;
-                if (Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(queryPack.query, notifyResult.changed, {
-                  subset: true
-                })) notified = true;
-              }); //C do
-
-              var mainResult = yield doF(Entity, data, accessory, data2); //C wait some time for notification to come back
-
-              yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(1000); //C undo
-
-              var undoResult = yield undoF(Entity, data, accessory, data2); //C unsubscribe
-
-              var unsubscribeResult = yield new Promise((resolve, reject) => {
-                context.state.socket.emit('unsubscribe', queryPack, result => {
-                  if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(result, _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"], 'Success')) {
-                    resolve(result);
-                  } else {
-                    reject(result);
-                  }
-                });
-              });
-              if (!notified) console.log('query:', queryPack.query, 'changed:', notifiedResult.changed);
-              return notified;
-            });
-
-            return function wrap(_x3, _x4, _x5, _x6, _x7, _x8, _x9) {
-              return _ref33.apply(this, arguments);
-            };
-          }();
-
-          var add = /*#__PURE__*/function () {
-            var _ref34 = _asyncToGenerator(function* (Entity, queryPack, data) {
-              return yield wrap(Entity, queryPack, data, /*#__PURE__*/_asyncToGenerator(function* () {
-                return undefined;
-              }), /*#__PURE__*/function () {
-                var _ref36 = _asyncToGenerator(function* (Entity, data, accessory) {
-                  var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, data));
-                  accessory.id = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(addResult.content).id;
-                  return addResult;
-                });
-
-                return function (_x13, _x14, _x15) {
-                  return _ref36.apply(this, arguments);
-                };
-              }(), /*#__PURE__*/function () {
-                var _ref37 = _asyncToGenerator(function* (Entity, data, accessory) {
-                  return yield Entity.remove({
-                    id: accessory.id
-                  }); //C delete generated id
-                });
-
-                return function (_x16, _x17, _x18) {
-                  return _ref37.apply(this, arguments);
-                };
-              }());
-            });
-
-            return function add(_x10, _x11, _x12) {
-              return _ref34.apply(this, arguments);
-            };
-          }();
-
-          var edit = /*#__PURE__*/function () {
-            var _ref38 = _asyncToGenerator(function* (Entity, queryPack, dataBefore, dataAfter) {
-              dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
-
-              return yield wrap(Entity, queryPack, dataBefore, /*#__PURE__*/function () {
-                var _ref39 = _asyncToGenerator(function* (Entity, dataBefore, accessory, dataAfter) {
-                  var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, dataBefore));
-                  accessory.id = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(addResult.content).id;
-                  return addResult;
-                });
-
-                return function (_x23, _x24, _x25, _x26) {
-                  return _ref39.apply(this, arguments);
-                };
-              }(), /*#__PURE__*/function () {
-                var _ref40 = _asyncToGenerator(function* (Entity, dataBefore, accessory, dataAfter) {
-                  return yield Entity.edit(_objectSpread({}, dataAfter, {
-                    id: accessory.id
-                  }));
-                });
-
-                return function (_x27, _x28, _x29, _x30) {
-                  return _ref40.apply(this, arguments);
-                };
-              }(), /*#__PURE__*/function () {
-                var _ref41 = _asyncToGenerator(function* (Entity, dataBefore, accessory, dataAfter) {
-                  return yield Entity.remove({
-                    id: accessory.id
-                  });
-                });
-
-                return function (_x31, _x32, _x33, _x34) {
-                  return _ref41.apply(this, arguments);
-                };
-              }(), dataAfter);
-            });
-
-            return function edit(_x19, _x20, _x21, _x22) {
-              return _ref38.apply(this, arguments);
-            };
-          }();
-
-          var remove = /*#__PURE__*/function () {
-            var _ref42 = _asyncToGenerator(function* (Entity, queryPack, data) {
-              return yield wrap(Entity, queryPack, data, /*#__PURE__*/function () {
-                var _ref43 = _asyncToGenerator(function* (Entity, data, accessory) {
-                  var addResult = yield Entity.add(_objectSpread({}, Entity.placeholder, {}, data));
-                  accessory.id = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(addResult.content).id;
-                  return addResult;
-                });
-
-                return function (_x38, _x39, _x40) {
-                  return _ref43.apply(this, arguments);
-                };
-              }(), /*#__PURE__*/function () {
-                var _ref44 = _asyncToGenerator(function* (Entity, data, accessory) {
-                  return yield Entity.remove({
-                    id: accessory.id
-                  });
-                });
-
-                return function (_x41, _x42, _x43) {
-                  return _ref44.apply(this, arguments);
-                };
-              }(), /*#__PURE__*/_asyncToGenerator(function* () {
-                return undefined;
-              }));
-            });
-
-            return function remove(_x35, _x36, _x37) {
-              return _ref42.apply(this, arguments);
-            };
-          }();
-
-          Object(_shared_test_js__WEBPACK_IMPORTED_MODULE_8__["default"])([//['add track name', 			true === await add(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
-          //['add playlist name', 		true === await add(Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
-          //['add user name', 			true === await add(User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
-          //['edit existing name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
-          //['edit to new name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
-          ['remove track name', true === (yield remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"], {
-            table: 'tracks',
-            query: {
-              name: 'some name'
-            }
-          }, {
-            name: 'some name'
-          }))], ['remove playlist name', true === (yield remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"], {
-            table: 'playlists',
-            query: {
-              name: 'some name'
-            }
-          }, {
-            name: 'some name'
-          }))], ['remove user name', true === (yield remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], {
-            table: 'users',
-            query: {
-              name: 'some name'
-            }
-          }, {
-            name: 'some name'
-          }))]], 'context.state.socket.test()');
-          delete _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].placeholder;
-          delete _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"].placeholder;
-          delete _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].placeholder;
-        }); //await context.state.socket.test();
+        /*
+        context.state.socket.test = async function () {
+        	Track.placeholder = {
+        		playlistId: 2, 
+        		name: 'placeholder name', 
+        		duration: 1234, 
+        		source: spotify, 
+        		sourceId: 'placeholderSourceId', 
+        		artists: ['foo', 'bar'],
+        	};
+        	Playlist.placeholder = {
+        		userId: 3,
+        		name: 'placeholder name',
+        		description: 'placeholder description',
+        	};
+        	User.placeholder = {
+        		name: 'placeholder name',
+        		email: 'placeholder email',
+        		password: 'placeholder password',
+        	};
+        
+        	let wrap = async function (Entity, queryPack, data, predoF, doF, undoF, data2) {
+        		//C subscribe
+        		let subscribeResult = await new Promise((resolve, reject) => {
+        			context.state.socket.emit('subscribe', queryPack, result => {
+        				if (isInstanceOf(result, Success, 'Success')) {
+        					resolve(result);
+        				} else {
+        					reject(result);
+        				}
+        			});
+        		});
+        
+        		let accessory = {};
+        		let predoResult = await predoF(Entity, data, accessory, data2);
+        
+        		//C make listener
+        		let notified = false;
+        		let notifiedResult = {};
+        		context.state.socket.on('notify', notifyResult => { //? when is this listener removed?
+        			notifiedResult = notifyResult;
+        			if (deepCompare(queryPack.query, notifyResult.changed, {subset: true})) notified = true;
+        		});
+        
+        		//C do
+        		let mainResult = await doF(Entity, data, accessory, data2);
+        
+        		//C wait some time for notification to come back
+        		await wait(1000);
+        
+        		//C undo
+        		let undoResult = await undoF(Entity, data, accessory, data2);
+        
+        		//C unsubscribe
+        		let unsubscribeResult = await new Promise((resolve, reject) => {
+        			context.state.socket.emit('unsubscribe', queryPack, result => {
+        				if (isInstanceOf(result, Success, 'Success')) {
+        					resolve(result);
+        				} else {
+        					reject(result);
+        				}
+        			});
+        		});
+        
+        		if (!notified) console.log('query:', queryPack.query, 'changed:', notifiedResult.changed)
+        		return notified;
+        	};
+        
+        	let add = async function (Entity, queryPack, data) {
+        		return await wrap(Entity, queryPack, data,
+        			async () => undefined, 
+        			async (Entity, data, accessory) => {
+        				let addResult = await Entity.add({
+        					...Entity.placeholder, //C fill in missing data
+        					...data,
+        				});
+        				accessory.id = one(addResult.content).id;
+        				return addResult;
+        			}, 
+        			async (Entity, data, accessory) => {
+        				return await Entity.remove({id: accessory.id}); //C delete generated id
+        			}
+        		);
+        	};
+        	let edit = async function (Entity, queryPack, dataBefore, dataAfter) {
+        		dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
+        
+        		return await wrap(Entity, queryPack, dataBefore,
+        			async (Entity, dataBefore, accessory, dataAfter) => {
+        				let addResult = await Entity.add({
+        					...Entity.placeholder,
+        					...dataBefore,
+        				});
+        				accessory.id = one(addResult.content).id;
+        				return addResult;
+        			},
+        			async (Entity, dataBefore, accessory, dataAfter) => {
+        				return await Entity.edit({
+        					...dataAfter,
+        					id: accessory.id,
+        				});
+        			}, async (Entity, dataBefore, accessory, dataAfter) => {
+        				return await Entity.remove({id: accessory.id});
+        			},
+        			dataAfter,
+        		);
+        	};
+        	let remove = async function (Entity, queryPack, data) {
+        		return await wrap(Entity, queryPack, data,
+        			async (Entity, data, accessory) => {
+        				let addResult = await Entity.add({
+        					...Entity.placeholder,
+        					...data,
+        				});
+        				accessory.id = one(addResult.content).id;
+        				return addResult;
+        			},
+        			async (Entity, data, accessory) => {
+        				return await Entity.remove({id: accessory.id});
+        			},
+        			async() => undefined,
+        		);
+        	};
+        
+        
+        	test([
+        		//['add track name', 			true === await add(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'})],
+        		//['add playlist name', 		true === await add(Playlist, {table: 'playlists', query: {name: 'new name'}}, {name: 'new name'})],
+        		//['add user name', 			true === await add(User, {table: 'users', query: {name: 'new name'}}, {name: 'new name'})],
+        
+        		//['edit existing name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'new name'}, {name: 'not new name'})],
+        		//['edit to new name', 		true === await edit(Track, {table: 'tracks', query: {name: 'new name'}}, {name: 'not new name'}, {name: 'new name'})],
+        
+        
+        		['remove track name', 		true === await remove(Track, {table: 'tracks', query: {name: 'some name'}}, {name: 'some name'})],
+        		['remove playlist name', 	true === await remove(Playlist, {table: 'playlists', query: {name: 'some name'}}, {name: 'some name'})],
+        		['remove user name', 		true === await remove(User, {table: 'users', query: {name: 'some name'}}, {name: 'some name'})],
+        		
+        	], 'context.state.socket.test()');
+        
+        
+        	delete Track.placeholder;
+        	delete Playlist.placeholder;
+        	delete User.placeholder;
+        };
+        */
+        //await context.state.socket.test();
         //C module test
         // await context.dispatch('test');
       })();
-    },
-
-    test(context) {
-      return _asyncToGenerator(function* () {
-        //TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
-        //C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
-        yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(2000);
-        var tests = [];
-
-        var uniqueName = () => "liveQuery".concat(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["keyCode"].create(7));
-
-        var uniqueDuration = () => Math.round(Math.random() * 100000);
-
-        var updated = false; //C rapidly checks updated until it is true, then resets it
-
-        var waitForUpdate = /*#__PURE__*/function () {
-          var _ref46 = _asyncToGenerator(function* () {
-            var delay = 50;
-            yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-              yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(delay);
-              delay = delay * 1.25;
-              return;
-            }), {
-              until() {
-                if (updated) {
-                  updated = false;
-                  return true;
-                } else {
-                  return false;
-                }
-              },
-
-              timeout: 2000,
-
-              onTimeout() {
-                throw new Error('LiveData update timed out.');
-              }
-
-            });
-          });
-
-          return function waitForUpdate() {
-            return _ref46.apply(this, arguments);
-          };
-        }(); // CREATE
-
-
-        var user = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"]({
-          name: uniqueName(),
-          email: uniqueName(),
-          password: 'placeholder',
-          password2: 'placeholder'
-        }).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
-        var playlist = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"]({
-          userId: user.id,
-          name: uniqueName(),
-          description: 'placeholder'
-        }).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
-        var track = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]({
-          playlistId: playlist.id,
-          source: _sources_index_js__WEBPACK_IMPORTED_MODULE_10__["spotify"],
-          sourceId: 'placeholder',
-          name: uniqueName(),
-          duration: uniqueDuration()
-        }).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]); // MAKE SUBSCRIPTION
-
-        var onAddCount = 0;
-        var onEditCount = 0;
-        var onRemoveCount = 0;
-        var trackSubscription = yield context.dispatch('subscribe', {
-          Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"],
-          query: {
-            name: track.name
-          },
-          options: {
-            onUpdate() {
-              updated = true;
-            },
-
-            onAdd() {
-              onAddCount++;
-            },
-
-            onEdit() {
-              onEditCount++;
-            },
-
-            onRemove() {
-              onRemoveCount++;
-            }
-
-          }
-        });
-        tests.push(['isSubscription', Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_9__["default"])(trackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')]); // ITERATE
-
-        var iterations = Math.round(Math.random() * 10) + 5;
-        var xTracks = [];
-        console.log('iterations:', iterations); // BEFORE
-
-        var entityRefsLengthBefore = trackSubscription.liveQuery.cachedEntityRefs.length;
-        var entitiesLengthBefore = trackSubscription.liveQuery.table.cachedEntities.length;
-        var addedBefore = 0;
-        var editedBefore = 0;
-        var removedBefore = 0;
-        tests.push(['cachedEntityRefs length before', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore], ['cachedEntities length before', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore], ['lengthBefore', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore], ['noneAdded', onAddCount === addedBefore], ['noneEdited', onEditCount === editedBefore], ['noneRemoved', onRemoveCount === removedBefore]); // ADD
-
-        for (var i = 0; i < iterations; i++) {
-          xTracks[i] = yield new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"](_objectSpread({}, track, {
-            position: undefined
-          })).add().then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
-        }
-
-        yield waitForUpdate(); //console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
-
-        tests.push(['cachedEntityRefs length afterAdd', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations], ['cachedEntities length afterAdd', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations], ['lengthAfterAdd', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations], ['xAddedAfterAdd', onAddCount === iterations], ['xEditedAfterAdd', onEditCount === editedBefore], ['xRemovedAfterAdd', onRemoveCount === removedBefore]); // EDIT
-
-        for (var _i = 0; _i < iterations; _i++) {
-          xTracks[_i].duration = uniqueDuration();
-          yield xTracks[_i].edit();
-        }
-
-        yield waitForUpdate(); //console.log('xAfterEdit', onAddCount, onEditCount, onRemoveCount);
-
-        tests.push(['cachedEntityRefs length afterEdit', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations], ['cachedEntities length afterEdit', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations], ['lengthAfterEdit', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations], ['xAddedAfterEdit', onAddCount === iterations], ['xEditedAfterEdit', onEditCount === iterations], ['xRemovedAfterEdit', onRemoveCount === removedBefore]); // REMOVE
-
-        for (var _i2 = iterations - 1; _i2 > -1; _i2--) {
-          //! remove in reverse order, as original order caused the re-ordering of track positions, causing an onEdit callback for all tracks
-          yield xTracks[_i2].remove();
-        }
-
-        yield waitForUpdate(); //console.log('xAfterRemove', onAddCount, onEditCount, onRemoveCount);
-
-        tests.push(['cachedEntityRefs length afterRemove', trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore], ['cachedEntities length afterRemove', trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore], ['lengthAfterRemove', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore], ['xAddedAfterRemove', onAddCount === iterations], ['xEditedAfterRemove', onEditCount === iterations], ['xRemovedAfterRemove', onRemoveCount === iterations]);
-        yield context.dispatch('unsubscribe', {
-          subscription: trackSubscription,
-          strict: true
-        }); // DELETE
-
-        yield track.remove();
-        yield playlist.remove();
-        yield user.remove(); //TODO add tests for convergent liveQueries
-
-        var passed = yield Object(_shared_test_js__WEBPACK_IMPORTED_MODULE_8__["default"])([...tests], 'liveQuery'); //C this refreshes the page until the test fails
-
-        if (passed) document.location.reload();
-      })();
     }
+    /*
+    async test(context) {
+    	//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
+    			//C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
+    	await wait(2000);
+    			const tests = [];
+    	
+    	const uniqueName = () => `liveQuery${keyCode.create(7)}`;
+    	const uniqueDuration = () => Math.round(Math.random()*100000);
+    			let updated = false;
+    	//C rapidly checks updated until it is true, then resets it
+    	const waitForUpdate = async function () {
+    		let delay = 50;
+    		await repeat.async(async () => {
+    			await wait(delay);
+    			delay = delay * 1.25;
+    			return;
+    		}, {
+    			until() {
+    				if (updated) {
+    					updated = false;
+    					return true;
+    				} else {
+    					return false;
+    				}
+    			},
+    			timeout: 2000,
+    			onTimeout() {
+    				throw new Error('LiveData update timed out.');
+    			},
+    		});
+    	};
+    			// CREATE
+    	const user = await new User({
+    		name: uniqueName(),
+    		email: uniqueName(),
+    		password: 'placeholder',
+    		password2: 'placeholder',
+    	}).add().then((result) => result.content).then(one);
+    	const playlist = await new Playlist({
+    		userId: user.id,
+    		name: uniqueName(),
+    		description: 'placeholder',
+    	}).add().then((result) => result.content).then(one);
+    	const track = await new Track({
+    		playlistId: playlist.id,
+    		source: spotify,
+    		sourceId: 'placeholder',
+    		name: uniqueName(),
+    		duration: uniqueDuration(),
+    	}).add().then((result) => result.content).then(one);
+    			
+    	// MAKE SUBSCRIPTION
+    	let onAddCount = 0;
+    	let onEditCount = 0;
+    	let onRemoveCount = 0;
+    			
+    	const trackSubscription = await context.dispatch('subscribe', {
+    		Entity: Track,
+    		query: {name: track.name},
+    		options: {
+    			onUpdate() {
+    				updated = true;
+    			},
+    			onAdd() {
+    				onAddCount++;
+    			},
+    			onEdit() {
+    				onEditCount++;
+    			},
+    			onRemove() {
+    				onRemoveCount++;
+    			},
+    		},
+    	});
+    	tests.push(
+    		['isSubscription', isInstanceOf(trackSubscription, Subscription, 'Subscription')]
+    	);
+    			
+    	// ITERATE
+    	const iterations = Math.round(Math.random() * 10) + 5;
+    	const xTracks = [];
+    			console.log('iterations:', iterations);
+    			// BEFORE
+    	const entityRefsLengthBefore = trackSubscription.liveQuery.cachedEntityRefs.length;
+    	const entitiesLengthBefore = trackSubscription.liveQuery.table.cachedEntities.length;
+    	const addedBefore = 0;
+    	const editedBefore = 0;
+    	const removedBefore = 0;
+    	tests.push(
+    		['cachedEntityRefs length before',
+    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
+    		['cachedEntities length before',
+    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
+    		['lengthBefore',	context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
+    				['noneAdded',		onAddCount === addedBefore],
+    		['noneEdited',		onEditCount === editedBefore],
+    		['noneRemoved',		onRemoveCount === removedBefore],
+    	);		
+    	
+    	// ADD
+    	for (let i = 0; i < iterations; i++) {
+    		xTracks[i] = await new Track({
+    			...track, 
+    			position: undefined,
+    		}).add().then((result) => result.content).then(one);
+    	}
+    	await waitForUpdate();
+    	//console.log('xAfterAdd', onAddCount, onEditCount, onRemoveCount);
+    	tests.push(
+    		['cachedEntityRefs length afterAdd',
+    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
+    		['cachedEntities length afterAdd',
+    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
+    		['lengthAfterAdd',		context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
+    				['xAddedAfterAdd',		onAddCount === iterations],
+    		['xEditedAfterAdd',		onEditCount === editedBefore],
+    		['xRemovedAfterAdd',	onRemoveCount === removedBefore],
+    	);
+    			// EDIT
+    	for (let i = 0; i < iterations; i++) {
+    		xTracks[i].duration = uniqueDuration();
+    		await xTracks[i].edit();
+    	}
+    	await waitForUpdate();
+    	//console.log('xAfterEdit', onAddCount, onEditCount, onRemoveCount);
+    	tests.push(
+    		['cachedEntityRefs length afterEdit',
+    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore + iterations],
+    		['cachedEntities length afterEdit',
+    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore + iterations],
+    		['lengthAfterEdit', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore + iterations],
+    				['xAddedAfterEdit', onAddCount === iterations],
+    		['xEditedAfterEdit', onEditCount === iterations],
+    		['xRemovedAfterEdit', onRemoveCount === removedBefore],
+    	);
+    			// REMOVE
+    	for (let i = iterations-1; i > -1; i--) { 
+    		//! remove in reverse order, as original order caused the re-ordering of track positions, causing an onEdit callback for all tracks
+    		await xTracks[i].remove();
+    	}
+    	await waitForUpdate();
+    	//console.log('xAfterRemove', onAddCount, onEditCount, onRemoveCount);
+    	tests.push(
+    		['cachedEntityRefs length afterRemove',
+    		trackSubscription.liveQuery.cachedEntityRefs.length === entityRefsLengthBefore],
+    		['cachedEntities length afterRemove',
+    		trackSubscription.liveQuery.table.cachedEntities.length === entitiesLengthBefore],
+    		['lengthAfterRemove', context.getters.getLiveData(trackSubscription).length === entityRefsLengthBefore],
+    				['xAddedAfterRemove', onAddCount === iterations],
+    		['xEditedAfterRemove', onEditCount === iterations],
+    		['xRemovedAfterRemove', onRemoveCount === iterations],
+    	);
+    			await context.dispatch('unsubscribe', {subscription: trackSubscription, strict: true});
+    	
+    	// DELETE
+    	await track.remove();
+    	await playlist.remove();
+    	await user.remove();
+    			//TODO add tests for convergent liveQueries
+    	const passed = await test([
+    		...tests,
+    	], 'liveQuery');
+    			//C this refreshes the page until the test fails
+    	if (passed) document.location.reload();
+    },
+    */
+
 
   }
 });
@@ -38426,19 +38502,17 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/entities/entity.js":
-/*!******************************************!*\
-  !*** ./source/shared/entities/entity.js ***!
-  \******************************************/
+/***/ "./source/shared/entityParts/entity.js":
+/*!*********************************************!*\
+  !*** ./source/shared/entityParts/entity.js ***!
+  \*********************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
 /* harmony import */ var _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -38447,102 +38521,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
-/*
-export default Base.makeClass('Entity', Success, {
-	constructorParts: parent => ({
-		afterInitialize(accessory) {
-			const that = this; //? is this necessary?
-			this.filters = {};
-			Object.keys(that.constructor.filters).forEach(key => {
-				Object.defineProperties(that.filters, {
-					[key]: {
-						get: function () { 
-							return pick(that, that.constructor.filters[key]);
-						}
-					}
-				});
-			});
-		},
-		defaults: {
-			// NEW
-			id: undefined,
-		},
-	}),
-	staticProperties(parent) {
-		// GETTER
-		Object.defineProperty(this, 'table', {
-			get: function () {
-				return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
-			},
-		}); 
-
-		return {
-			//TODO how to make these immutable?
-
-			//C list of references to child classes, these should be added in the child's static constructor
-			children: [],
-
-			filters: {
-				id: ['id'],
-			},
-
-			//C automatically create new filters based on schema
-			updateFilters() {
-				let methodNames = ['add', 'get', 'edit', 'remove'];
-				let types = ['in', 'out', 'check'];
-			
-				let schemaFilters = {};
-			
-				Object.keys(this.schema).forEach(key => { //C for each property
-					methodNames.forEach(methodName => { //C for each crud method
-						types.forEach(type => { //C for each filter type
-							if (this.schema[key][methodName][type]) { //C if property is optional or required
-								let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
-								if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-								schemaFilters[filterName].push(key);
-							}
-						});
-					});
-				});
-			
-				this.filters = {
-					...this.filters,
-					...schemaFilters,
-				};
-			},
-
-			tableToEntity(tableName) {
-				//TODO Revaluate this.
-				const FoundEntity = this.children.find(child => child.table === tableName);
-
-				if (!((new FoundEntity()) instanceof this)) {
-					throw new Err({
-						origin: 'Entity.tableToEntity()',
-						reason: `table is not recognized: ${tableName}`,
-						content: tableName,
-					});
-				}
-					
-				return FoundEntity;
-
-				//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-				//R any metadata (table) should be sent separately (or implicitly) from the query
-			},
-		}
-	},
-});
-*/
-
- //TODO Remove Success extension.
-
-class Entity extends _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"] {
-  constructor() {
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+  instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var {
       id
     } = options;
-    super(options);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       id,
       //R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
       filters: {}
@@ -38551,97 +38536,81 @@ class Entity extends _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Su
 
     var that = this;
     var staticFilters = this.constructor.filters;
-    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(staticFilters).forEach(key => {
-      _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].getter(this.filters, {
+    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(staticFilters).forEach(key => {
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this.filters, {
         get [key]() {
-          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(that, staticFilters[key]);
+          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, staticFilters[key]);
         }
 
       });
     });
-  }
-
-}
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].getter(Entity, {
-  get table() {
-    return "".concat(this.name.charAt(0).toLowerCase() + this.name.slice(1), "s"); //! lowercase, plural of name
-  }
-
-}); //TODO Can this be locked down as a constant? (See updateFilters()).
-
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(Entity, {
-  filters: {
-    id: ['id']
-  }
-});
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Entity, {
-  // List of references to child classes, these should be added in the child's static constructor.
-  children: [],
-
-  // Automatically create new filters based on schema.
-  updateFilters() {
-    var methodNames = ['add', 'get', 'edit', 'remove'];
-    var types = ['in', 'out', 'check'];
-    var schemaFilters = {};
-    Object.keys(this.schema).forEach(key => {
-      // For each property,
-      methodNames.forEach(methodName => {
-        // for each crud method,
-        types.forEach(type => {
-          // for each filter type:
-          if (this.schema[key][methodName][type]) {
-            // If property is optional or required:
-            var filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
-
-            if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-            schemaFilters[filterName].push(key);
-          }
-        });
-      });
-    });
-    this.filters = _objectSpread({}, this.filters, {}, schemaFilters);
   },
 
-  tableToEntity(tableName) {
-    //TODO Revaluate this.
-    var FoundEntity = this.children.find(child => child.table === tableName);
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this, {
+      get table() {
+        return "".concat(this.name.charAt(0).toLowerCase() + this.name.slice(1), "s"); //! lowercase, plural of name
+      }
 
-    if (!(new FoundEntity() instanceof this)) {
-      throw new _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__["Err"]({
-        origin: 'Entity.tableToEntity()',
-        reason: "table is not recognized: ".concat(tableName),
-        content: tableName
-      });
-    }
+    }); //TODO Can this be locked down as a constant? (See updateFilters()).
 
-    return FoundEntity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-    //R any metadata (table) should be sent separately (or implicitly) from the query
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      filters: {
+        id: ['id']
+      }
+    });
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      // Automatically create new filters based on schema.
+      updateFilters() {
+        var methodNames = ['add', 'get', 'edit', 'remove'];
+        var types = ['in', 'out', 'check'];
+        var schemaFilters = {};
+        Object.keys(this.schema).forEach(key => {
+          // For each property,
+          methodNames.forEach(methodName => {
+            // for each crud method,
+            types.forEach(type => {
+              // for each filter type:
+              if (this.schema[key][methodName][type]) {
+                // If property is optional or required:
+                var filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
+
+                if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+                schemaFilters[filterName].push(key);
+              }
+            });
+          });
+        });
+        this.filters = _objectSpread({}, this.filters, {}, schemaFilters);
+      }
+
+    });
   }
 
-});
+}));
 
 /***/ }),
 
-/***/ "./source/shared/entities/index.js":
-/*!*****************************************!*\
-  !*** ./source/shared/entities/index.js ***!
-  \*****************************************/
-/*! exports provided: Entity, Playlist, Track, User */
+/***/ "./source/shared/entityParts/index.js":
+/*!********************************************!*\
+  !*** ./source/shared/entityParts/index.js ***!
+  \********************************************/
+/*! exports provided: entityParts, playlistParts, trackParts, userParts */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Entity", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entityParts/entity.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "entityParts", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entities/playlist.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entityParts/playlist.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "playlistParts", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/shared/entities/track.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/shared/entityParts/track.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trackParts", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/shared/entities/user.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/shared/entityParts/user.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "userParts", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
 
 
@@ -38650,102 +38619,104 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/entities/playlist.js":
-/*!********************************************!*\
-  !*** ./source/shared/entities/playlist.js ***!
-  \********************************************/
+/***/ "./source/shared/entityParts/playlist.js":
+/*!***********************************************!*\
+  !*** ./source/shared/entityParts/playlist.js ***!
+  \***********************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
 
 
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+  instance() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      userId,
+      name = '',
+      visibility = '',
+      description = '',
+      color = '',
+      image = ''
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+      userId,
+      name,
+      visibility,
+      description,
+      color,
+      image
+    });
+  },
 
-
-/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Playlist', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      content: [],
-      //? is this required to be an array, tracks aren't stored here anymore
-      // NEW
-      userId: undefined,
-      name: '',
-      visibility: '',
-      description: '',
-      color: '',
-      image: ''
-    }
-  }),
-
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      id: {
-        columnName: 'id',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
-      },
-      userId: {
-        columnName: 'userId',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      name: {
-        columnName: 'name',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      description: {
-        columnName: 'description',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["description"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      visibility: {
-        columnName: 'visibility',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["visibilityState"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      image: {
-        columnName: 'image',
-        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].string.validate,
-        //TODO Image url rule.
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      color: {
-        columnName: 'color',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["color"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      schema: {
+        id: {
+          columnName: 'id',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
+        },
+        userId: {
+          columnName: 'userId',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        name: {
+          columnName: 'name',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["name"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        description: {
+          columnName: 'description',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["description"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        visibility: {
+          columnName: 'visibility',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["visibilityState"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        image: {
+          columnName: 'image',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
+          //TODO Image url rule.
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        color: {
+          columnName: 'color',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["color"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        }
       }
-    };
+    });
     this.updateFilters();
   }
 
@@ -38753,10 +38724,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/entities/schema-states.js":
-/*!*************************************************!*\
-  !*** ./source/shared/entities/schema-states.js ***!
-  \*************************************************/
+/***/ "./source/shared/entityParts/schema-states.js":
+/*!****************************************************!*\
+  !*** ./source/shared/entityParts/schema-states.js ***!
+  \****************************************************/
 /*! exports provided: unused, optional, required, auto */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -38791,30 +38762,26 @@ var auto = {
 
 /***/ }),
 
-/***/ "./source/shared/entities/track.js":
-/*!*****************************************!*\
-  !*** ./source/shared/entities/track.js ***!
-  \*****************************************/
+/***/ "./source/shared/entityParts/track.js":
+/*!********************************************!*\
+  !*** ./source/shared/entityParts/track.js ***!
+  \********************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 
 
 
 
-
-class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+  instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
     var {
       playlistId = null,
       position = null,
@@ -38831,8 +38798,8 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       source = null
     } = options; // Find existing source by track.source.name and set it as the reference.
 
-    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(source)) {
-      var found = _source_js__WEBPACK_IMPORTED_MODULE_3__["default"].instances.find(sourceInstance => sourceInstance.name === source.name);
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(source)) {
+      var found = _source_js__WEBPACK_IMPORTED_MODULE_2__["default"].instances.find(sourceInstance => sourceInstance.name === source.name);
 
       if (found) {
         source = found;
@@ -38841,7 +38808,7 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       }
     }
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       playlistId,
       position,
       sourceId,
@@ -38852,181 +38819,193 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       source
     }); //TODO Ensure that this is only used as an instance then remove this.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       constructorName: 'Track'
+    });
+  },
+
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      schema: {
+        id: {
+          columnName: 'id',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
+        },
+        playlistId: {
+          columnName: 'playlistId',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        position: {
+          columnName: 'position',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["position"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        name: {
+          columnName: 'name',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        duration: {
+          columnName: 'duration',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].nonNegativeInteger.validate,
+          //TODO Expand
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        source: {
+          columnName: 'source',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["registeredSource"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        sourceId: {
+          columnName: 'sourceId',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.validate,
+          //TODO Expand
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        artists: {
+          columnName: 'artists',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.validate,
+          //TODO Expand
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        }
+      }
+    }); // Update filters after schema is defined.
+
+    this.updateFilters(); // Add an additional filter 'localMetadata'.
+    //G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
+
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this.filters, {
+      localMetadata: ['id', 'playlistId', 'position']
     });
   }
 
-}
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Track, {
-  schema: {
-    id: {
-      columnName: 'id',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["id"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["auto"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"]
-    },
-    playlistId: {
-      columnName: 'playlistId',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["id"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    position: {
-      columnName: 'position',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["position"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    name: {
-      columnName: 'name',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["name"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    duration: {
-      columnName: 'duration',
-      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].nonNegativeInteger.validate,
-      //TODO Expand
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    source: {
-      columnName: 'source',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["registeredSource"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    sourceId: {
-      columnName: 'sourceId',
-      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
-      //TODO Expand
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    artists: {
-      columnName: 'artists',
-      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].array.validate,
-      //TODO Expand
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    }
-  }
-});
-_entity_js__WEBPACK_IMPORTED_MODULE_0__["default"].children.push(Track); // Update filters after schema is defined.
-
-Track.updateFilters(); // Add an additional filter 'localMetadata'.
-//G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
-
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Track.filters, {
-  localMetadata: ['id', 'playlistId', 'position']
-});
+}));
 
 /***/ }),
 
-/***/ "./source/shared/entities/user.js":
-/*!****************************************!*\
-  !*** ./source/shared/entities/user.js ***!
-  \****************************************/
+/***/ "./source/shared/entityParts/user.js":
+/*!*******************************************!*\
+  !*** ./source/shared/entityParts/user.js ***!
+  \*******************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
 
 
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+  instance() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      name = '',
+      email = '',
+      password = '',
+      password2 = '',
+      spotifyRefreshToken = null,
+      //?
+      socketId = null
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+      name,
+      email,
+      password,
+      password2,
+      spotifyRefreshToken,
+      socketId
+    }); //TODO Ensure that this is only used as an instance then remove this.
 
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      constructorName: 'User'
+    });
+  },
 
-/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('User', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      name: '',
-      email: '',
-      password: '',
-      password2: '',
-      spotifyRefreshToken: null,
-      socketId: null
-    }
-  }),
-
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      //G 0 = unused, 1 = optional, 2 = required
-      id: {
-        columnName: 'id',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
-      },
-      name: {
-        columnName: 'name',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      email: {
-        columnName: 'email',
-        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].string.validate,
-        //TODO Email rule.
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      password: {
-        columnName: 'password',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["password"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
-        edit: {
-          in: true,
-          out: false,
-          check: 1
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      schema: {
+        //G 0 = unused, 1 = optional, 2 = required
+        id: {
+          columnName: 'id',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
         },
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      spotifyRefreshToken: {
-        columnName: 'spotifyRefreshToken',
-        rule: () => {},
-        //TODO empty for now
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
-        get: {
-          in: false,
-          out: true,
-          check: 0
+        name: {
+          columnName: 'name',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["name"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
         },
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+        email: {
+          columnName: 'email',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
+          //TODO Email rule.
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        password: {
+          columnName: 'password',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["password"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"],
+          edit: {
+            in: true,
+            out: false,
+            check: 1
+          },
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        spotifyRefreshToken: {
+          columnName: 'spotifyRefreshToken',
+          rule: () => {},
+          //TODO empty for now
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"],
+          get: {
+            in: false,
+            out: true,
+            check: 0
+          },
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        }
       }
-    };
+    });
     this.updateFilters();
   }
 
@@ -39715,9 +39694,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveQuery", function() { return LiveQuery; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "subscriptionParts", function() { return subscriptionParts; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Subscription", function() { return Subscription; });
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
-
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 class LiveTable {
   constructor() {
@@ -39726,7 +39703,7 @@ class LiveTable {
       Entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       Entity,
       liveQueries: [],
       cachedEntities: []
@@ -39734,11 +39711,31 @@ class LiveTable {
   }
 
 }
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(LiveTable, {
-  makeTables() {
-    return new Map(_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Entity"].children.map(EntityClass => [EntityClass, new this({
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(LiveTable, {
+  tableEntities: [],
+
+  makeTables(_ref) {
+    var {
+      User,
+      Playlist,
+      Track
+    } = _ref;
+    this.tableEntities.push(User, Playlist, Track);
+    return new Map(this.tableEntities.map(EntityClass => [EntityClass, new this({
       Entity: EntityClass
     })]));
+  },
+
+  tableToEntity(tableName) {
+    //TODO Refactor this.
+    var FoundEntity = this.tableEntities.find(tableEntity => tableEntity.table === tableName);
+
+    if (FoundEntity === undefined) {
+      throw new Error("Could not convert table name ".concat(tableName, " to an entity class. The corresponding entity class was not found."));
+    }
+
+    return FoundEntity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+    //R any metadata (table) should be sent separately (or implicitly) from the query
   }
 
 });
@@ -39750,7 +39747,7 @@ class CachedEntity {
       entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       table,
       entity,
       liveQueryRefs: [],
@@ -39769,8 +39766,8 @@ class LiveQuery {
       query
     } = options; //? Not sure why this is being done.
 
-    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(query)) query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       table,
       query,
       cachedEntityRefs: [],
@@ -39781,7 +39778,7 @@ class LiveQuery {
 
 } // live-data-server uses an augmented Subscription class.
 
-var subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+var subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["ClassParts"]({
   instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var {
@@ -39795,7 +39792,7 @@ var subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Clas
       onRemove = () => {} // Entities removed.
 
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       liveQuery,
       onUpdate,
       onAdd,
@@ -40195,49 +40192,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/test.js":
-/*!*******************************!*\
-  !*** ./source/shared/test.js ***!
-  \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return test; });
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
-
-function test(_x, _x2) {
-  return _test.apply(this, arguments);
-}
-
-function _test() {
-  _test = _asyncToGenerator(function* (tests, origin) {
-    var failCount = 0;
-
-    for (var [name, _test2] of tests) {
-      if (!_test2) {
-        console.error("".concat(origin, " - test failed: ").concat(name));
-        failCount++;
-      }
-    }
-
-    if (failCount === 0) {
-      console.log("%c".concat(origin, " - all tests passed"), 'background-color: #d0efd8');
-      return true;
-    } else {
-      return false;
-    }
-  });
-  return _test.apply(this, arguments);
-}
-
-;
-
-/***/ }),
-
 /***/ "./source/shared/utility/array/any.js":
 /*!********************************************!*\
   !*** ./source/shared/utility/array/any.js ***!
@@ -40628,7 +40582,7 @@ class ClassParts {
   }
 
 } // Immediately wraps and invokes the passed part.
-//G Only useful for cases where a reference to 'this' is preferable over <Class> or <Class>.prototype.
+//G Only useful for cases where a ClassParts instance has not been created.
 //? Not sure if this is even really necessary.
 //R Intercept and instance parts not included because they can be called directly from the constructor.
 

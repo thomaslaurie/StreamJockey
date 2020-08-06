@@ -7,7 +7,7 @@
 		"build:server": "npm run build -- --server-only",
 		"build:live": "npm run build -- --client=watch --server=refresh",
 		"test": "node source/scripts/test.js",
-		"circular": "npx madge --circular source/shared/utility/index.js",
+		"circular": "npx madge --circular source/shared/utility/index.js source/client/main.js source/server/main.js ",
 		"lint": "npx eslint --config ./source/config/eslint.cjs \"source/**/*.{c,}js\"",
 		"lint:test": "npx eslint --config ./source/config/eslint.cjs source/config/eslint-test.js"
 	},

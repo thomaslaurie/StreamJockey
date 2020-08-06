@@ -161,7 +161,6 @@ import SocketIO from 'socket.io-client';
 import liveData from './live-data-client.js';
 import universalPlaybackModule from './universal-playback-module.js';
 
-
 //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║   
@@ -171,7 +170,7 @@ import universalPlaybackModule from './universal-playback-module.js';
 
 // VUE
 //TODO vue dev suppressions
-Vue.config.productionTip = false; 
+Vue.config.productionTip = false;
 Vue.config.devtools = false;
 
 Vue.use(VueRouter);

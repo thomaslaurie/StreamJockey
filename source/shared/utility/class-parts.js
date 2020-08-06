@@ -72,7 +72,7 @@ export default class ClassParts {
 }
 
 // Immediately wraps and invokes the passed part.
-//G Only useful for cases where a reference to 'this' is preferable over <Class> or <Class>.prototype.
+//G Only useful for cases where a ClassParts instance has not been created.
 //? Not sure if this is even really necessary.
 //R Intercept and instance parts not included because they can be called directly from the constructor.
 export function initPrototype(Class, initializer) {

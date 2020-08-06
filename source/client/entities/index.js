@@ -1,8 +1,4 @@
-export {default as Entity} from './entity.js';
-
-// Re-exporting shared entities so that client files can import entities all from the same folder.
-export {
-	Playlist,
-	Track,
-	User,
-} from '../../shared/entities/index.js';
+export {default as Entity}   from './entity.js';
+export {default as Playlist} from './playlist.js';
+export {default as Track}    from './track.js';
+export {default as User}     from './user.js';

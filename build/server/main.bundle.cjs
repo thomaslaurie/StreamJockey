@@ -659,18 +659,17 @@ const schema = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
-/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
-/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
-/* harmony import */ var _shared_errors_custom_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/errors/custom-error.js */ "./source/shared/errors/custom-error.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
+/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
+/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 // INTERNAL
 
 
@@ -682,358 +681,393 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+class Entity extends _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"] {
+  constructor(...args) {
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].instance(this, ...args);
+  }
+
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].prototype(Entity);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].static(Entity);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity.prototype, {
+  async add(db) {
+    return this.constructor.add(this, db);
+  },
+
+  async get(db) {
+    return this.constructor.get(this, db);
+  },
+
+  async edit(db) {
+    return this.constructor.edit(this, db);
+  },
+
+  async remove(db) {
+    return this.constructor.remove(this, db);
+  }
+
+});
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(Entity, {
+  notify() {
+    throw new Error('LiveData has not yet been initialized for client notifications.');
+  }
+
+});
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+  // CRUD METHODS
+  async add(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+    return this.frame(db, query, 'add');
+  },
+
+  async get(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+    return this.frame(db, query, 'get');
+  },
+
+  async edit(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+    return this.frame(db, query, 'edit');
+  },
+
+  async remove(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+    return this.frame(db, query, 'remove');
+  },
+
+  async getMimic(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+    // getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
+    return this.frame(db, query, 'getMimic');
+  },
+
+  // FRAME
+  async frame(db, anyEntities, methodName) {
+    //C catch Entity
+    if (this === Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      origin: 'Entity.[CRUD]',
+      reason: `cannot call CRUD method directly on Entity`
+    }); //C cast as array
+
+    const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
+
+    const isGetMimic = methodName === 'getMimic'; //C store getMimic
+
+    if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
+
+    const isGet = methodName === 'get';
+    const accessory = {};
+    const after = await db.tx(async t => {
+      //C process
+      const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
+
+      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw); //C prepare
+
+      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw); //C accommodate
+
+      const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]) : []; //C map
+
+      const inputMapped = this.mapColumns(preparedEntities);
+      const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
+
+      const inputBefore = [];
+      const inputAfter = isGetMimic ? inputMapped : [];
+
+      if (!isGetMimic) {
+        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
+          //C before, ignore add
+          if (!isGet && methodName !== 'add') {
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+            inputBefore.push(...before);
+          } //C after, ignore remove (still needs to execute though)
 
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].augmentClass({
-  prototypeProperties: parent => ({
-    async add(db) {
-      return await this.constructor.add(this, db);
-    },
-
-    async get(db) {
-      return await this.constructor.get(this, db);
-    },
-
-    async edit(db) {
-      return await this.constructor.edit(this, db);
-    },
-
-    async remove(db) {
-      return await this.constructor.remove(this, db);
-    }
-
-  }),
-
-  staticProperties(parent) {
-    // CRUD METHODS
-    this.add = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-      return await this.frame(db, query, 'add');
-    };
-
-    this.get = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-      return await this.frame(db, query, 'get');
-    };
-
-    this.edit = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-      return await this.frame(db, query, 'edit');
-    };
-
-    this.remove = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-      return await this.frame(db, query, 'remove');
-    };
-
-    this.getMimic = async function (query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-      //C getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
-      return await this.frame(db, query, 'getMimic');
-    }; // FRAME
+          const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+          if (methodName !== 'remove') inputAfter.push(...after);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
+      } //C execute SQL for influenced
 
 
-    this.frame = async function (db, anyEntities, methodName) {
-      //C catch Entity
-      if (this === _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'Entity.[CRUD]',
-        reason: `cannot call CRUD method directly on Entity`
-      }); //C cast as array
+      const influencedBefore = [];
+      const influencedAfter = [];
 
-      const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
-
-      const isGetMimic = methodName === 'getMimic'; //C store getMimic
-
-      if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
-
-      const isGet = methodName === 'get';
-      const accessory = {};
-      const after = await db.tx(async t => {
-        //C process
-        const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
-
-        const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw); //C prepare
-
-        const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw); //C accommodate
-
-        const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]) : []; //C map
-
-        const inputMapped = this.mapColumns(preparedEntities);
-        const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
-
-        const inputBefore = [];
-        const inputAfter = isGetMimic ? inputMapped : [];
-
-        if (!isGetMimic) {
-          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
-            //C before, ignore add
-            if (!isGet && methodName !== 'add') {
-              const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
-              inputBefore.push(...before);
-            } //C after, ignore remove (still needs to execute though)
+      if (!isGet) {
+        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
+          const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+          influencedBefore.push(...before);
+          const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+          influencedAfter.push(...after);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
+      } //C group for iteration
 
 
-            const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
-            if (methodName !== 'remove') inputAfter.push(...after);
-          }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
-        } //C execute SQL for influenced
+      const all = [inputBefore, inputAfter, influencedBefore, influencedAfter]; //C unmap
 
+      const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-        const influencedBefore = [];
-        const influencedAfter = [];
+      return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
+    //C shake for subscriptions with getOut filter
 
-        if (!isGet) {
-          await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
-            influencedBefore.push(...before);
-            const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
-            influencedAfter.push(...after);
-          }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
-        } //C group for iteration
+    const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
+    const timestamp = Date.now(); //C if get, don't notify
 
-        const all = [inputBefore, inputAfter, influencedBefore, influencedAfter]; //C unmap
+    if (!isGet) shookGet.forEach(list => this.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
+    else if (isGetMimic) return shookGet[1]; //C shake for return
 
-        const unmapped = all.map(list => this.unmapColumns(list)); //C process
+    const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
-        return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
-      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
-      //C shake for subscriptions with getOut filter
+    const built = shook.map(list => list.map(entity => new this(entity)));
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({ ...this[methodName + 'Success'](),
+      //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
+      content: built[1],
+      timestamp
+    });
+  }
 
-      const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+}); // FRAME PARTS
+//G all of these parts are dependant on each other (eg. accessory), so it is ok to make assumptions between these functions
+// Processes all before validation.
 
-      const timestamp = Date.now(); //C if get, don't notify
+async function baseBefore(t, entities) {
+  return entities.slice();
+}
 
-      if (!isGet) shookGet.forEach(list => _live_data_server_js__WEBPACK_IMPORTED_MODULE_2__["default"].notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
-      else if (isGetMimic) return shookGet[1]; //C shake for return
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+  addBefore: baseBefore,
+  getBefore: baseBefore,
+  editBefore: baseBefore,
+  removeBefore: baseBefore,
 
-      const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
-
-      const built = shook.map(list => list.map(entity => new this(entity)));
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["SuccessList"]({ ...this[methodName + 'Success'](),
-        //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
-        content: built[1],
-        timestamp
-      });
-    }; // FRAME PARTS
-    //G all of these parts are dependant on each other (eg. accessory), so it is ok to make assumptions between these functions
-    //C processes all before validation
-
-
-    this.addBefore = this.getBefore = this.editBefore = this.removeBefore = async function (t, entities, accessory) {
-      return entities.slice();
-    }; //C validates each using Entity.schema
-
-
-    this.validate = async function (entity, methodName) {
-      const validated = {};
-      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
-        const {
-          rule: validator,
-          [methodName]: {
-            check
-          }
-        } = this.schema[key];
-        const isRequired = check === 2;
-        const isOptional = check === 1;
-        _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(validator);
-        const value = entity[key];
-
-        if (isRequired || isOptional && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__["default"])(value)) {
-          await validator(value);
-          validated[key] = value;
+  // Validates each using Entity.schema
+  async validate(entity, methodName) {
+    const validated = {};
+    await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(Object.keys(this.schema), async key => {
+      const {
+        rule: validator,
+        [methodName]: {
+          check
         }
-      }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["MultipleErrors"].throw);
-      return validated;
-    }; //C modifies each after validation
+      } = this.schema[key];
+      const isRequired = check === 2;
+      const isOptional = check === 1;
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(validator);
+      const value = entity[key];
 
+      if (isRequired || isOptional && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(value)) {
+        await validator(value);
+        validated[key] = value;
+      }
+    }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
+    return validated;
+  }
 
-    this.addPrepare = this.getPrepare = this.editPrepare = this.removePrepare = async function (t, entity, accessory) {
-      return Object.assign({}, entity);
-    }; //C modifies input entities, returns other influenced entities. checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities
+}); // Modifies each after validation.
 
+async function basePrepare(t, entity) {
+  return { ...entity
+  };
+}
 
-    this.addAccommodate = this.getAccommodate = this.editAccommodate = this.removeAccommodate = async function (t, entities, accessory) {
-      return [];
-    }; //C maps js property names to database column names
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+  addPrepare: basePrepare,
+  getPrepare: basePrepare,
+  editPrepare: basePrepare,
+  removePrepare: basePrepare
+}); // Modifies input entities, returns other influenced entities. checks validated entities against each other and the database to avoid property collisions, calculates the changes required to accommodate the input entities.
 
+async function baseAccommodate() {
+  return [];
+}
 
-    this.mapColumns = function (entities) {
-      //C switches entities' js named keys for column named keys based on schema
-      return entities.map(entity => {
-        //C for each entity
-        let mappedEntity = {};
-        Object.keys(entity).forEach(key => {
-          //C for each property
-          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(this.schema[key]) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(this.schema[key].columnName)) {
-            //C if schema has property 
-            mappedEntity[this.schema[key].columnName] = entity[key]; //C set mappedEntity[columnName] as property value
-          } else {
-            console.warn(`Entity.mapColumns() - property ${key} in entity not found in schema`);
-          }
-        });
-        return mappedEntity;
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+  addAccommodate: baseAccommodate,
+  getAccommodate: baseAccommodate,
+  editAccommodate: baseAccommodate,
+  removeAccommodate: baseAccommodate,
+
+  // Maps js property names to database column names.
+  mapColumns(entities) {
+    // Switches entities' js named keys for column named keys based on schema.
+    return entities.map(entity => {
+      // For each entity.
+      const mappedEntity = {};
+      Object.keys(entity).forEach(key => {
+        // For each property.
+        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(this.schema[key]) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(this.schema[key].columnName)) {
+          // If schema has property.
+          mappedEntity[this.schema[key].columnName] = entity[key]; // Set mappedEntity[columnName] as property value.
+        } else {
+          console.warn(`Entity.mapColumns() - property ${key} in entity not found in schema`);
+        }
       });
-    };
+      return mappedEntity;
+    });
+  },
 
-    this.unmapColumns = function (mappedEntities) {
-      //C inverse of mapColumns()
-      return mappedEntities.map(mappedEntity => {
-        //C for each entity
-        let entity = {};
-        Object.keys(mappedEntity).forEach(columnName => {
-          //C for each columnName
-          let key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); //C find key in schema with same columnName
+  unmapColumns(mappedEntities) {
+    // Inverse of mapColumns().
+    return mappedEntities.map(mappedEntity => {
+      // For each entity.
+      const entity = {};
+      Object.keys(mappedEntity).forEach(columnName => {
+        // For each columnName.
+        const key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); // Find key in schema with same columnName.
 
-          if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(key)) {
-            //C set entity[key] as value of mappedEntity[columnName]
-            entity[key] = mappedEntity[columnName];
-          } else {
-            console.warn(`Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
-          }
-        });
-        return entity;
+        if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(key)) {
+          // Set entity[key] as value of mappedEntity[columnName].
+          entity[key] = mappedEntity[columnName];
+        } else {
+          console.warn(`Entity.unmapColumns() - column ${columnName} in mappedEntity not found in schema`);
+        }
       });
-    }; //! this should be overwritten with different ORDER BY columns
+      return entity;
+    });
+  },
 
+  //! this should be overwritten with different ORDER BY columns
+  queryOrder: `ORDER BY "id" ASC`,
 
-    this.queryOrder = `ORDER BY "id" ASC`; //C executes SQL queries
+  // Executes SQL queries.
+  async addQuery(t, mappedEntity) {
+    const values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+    //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
-    this.addQuery = async function (t, mappedEntity) {
-      let values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
-      //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
-
-      let row = await t.one(`
-				INSERT INTO "sj"."${this.table}" 
-				$1:raw 
-				RETURNING *
-			`, [values]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          log: false,
-          origin: `${this.name}.add()`,
-          message: `could not add ${this.name}s`
-        }));
-      });
-      return row;
-    };
-
-    this.getQuery = async function (t, mappedEntity) {
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildWhere"])(mappedEntity);
-      let rows = await t.any(`
-				SELECT * 
-				FROM "sj"."${this.table}" 
-				WHERE $1:raw
-				${this.queryOrder}
-			`, [where]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          log: false,
-          origin: `${this.name}.get()`,
-          message: `could not get ${this.name}s`
-        }));
-      });
-      return rows;
-    };
-
-    this.editQuery = async function (t, mappedEntity) {
-      let {
-        id,
-        ...mappedEntitySet
-      } = mappedEntity;
-      let set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildSet"])(mappedEntitySet);
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildWhere"])({
-        id
-      });
-      let row = await t.one(`
-				UPDATE "sj"."${this.table}" 
-				SET $1:raw 
-				WHERE $2:raw 
-				RETURNING *
-			`, [set, where]).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          log: false,
-          origin: `${this.name}.edit()`,
-          message: `could not edit ${this.names}`
-        }));
-      });
-      return row;
-    };
-
-    this.removeQuery = async function (t, mappedEntity) {
-      let where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_8__["buildWhere"])(mappedEntity);
-      let row = await t.one(`
-				DELETE FROM "sj"."${this.table}" 
-				WHERE $1:raw 
-				RETURNING *
-			`, where).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          log: false,
-          origin: `${this.name}.remove()`,
-          message: `could not remove ${this.names}s`
-        }));
-      });
-      return row;
-    }; //C processes all after execution
-
-
-    this.addAfter = this.getAfter = this.editAfter = this.removeAfter = async function (t, entities, accessory) {
-      return entities.slice();
-    }; //C custom SuccessList and ErrorList
-
-
-    this.addSuccess = function () {
-      return {
+    return t.one(`
+			INSERT INTO "sj"."${this.table}" 
+			$1:raw 
+			RETURNING *
+		`, [values]).catch(rejected => {
+      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+        log: false,
         origin: `${this.name}.add()`,
-        message: `added ${this.name}s`
-      };
-    };
+        message: `could not add ${this.name}s`
+      }));
+    });
+  },
 
-    this.getSuccess = function () {
-      return {
+  async getQuery(t, mappedEntity) {
+    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildWhere"])(mappedEntity);
+    return t.any(`
+			SELECT * 
+			FROM "sj"."${this.table}" 
+			WHERE $1:raw
+			${this.queryOrder}
+		`, [where]).catch(rejected => {
+      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+        log: false,
         origin: `${this.name}.get()`,
-        message: `retrieved ${this.name}s`
-      };
-    };
+        message: `could not get ${this.name}s`
+      }));
+    });
+  },
 
-    this.editSuccess = function () {
-      return {
+  async editQuery(t, mappedEntity) {
+    const {
+      id,
+      ...mappedEntitySet
+    } = mappedEntity;
+    const set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildSet"])(mappedEntitySet);
+    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildWhere"])({
+      id
+    });
+    return t.one(`
+			UPDATE "sj"."${this.table}" 
+			SET $1:raw 
+			WHERE $2:raw 
+			RETURNING *
+		`, [set, where]).catch(rejected => {
+      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+        log: false,
         origin: `${this.name}.edit()`,
-        message: `edited ${this.name}s`
-      };
-    };
+        message: `could not edit ${this.names}`
+      }));
+    });
+  },
 
-    this.removeSuccess = function () {
-      return {
-        origin: `${this.name}.get()`,
-        message: `removed ${this.name}s`
-      };
-    };
-
-    this.addError = function () {
-      return {
-        origin: `${this.name}.add()`,
-        message: `failed to add ${this.name}s`
-      };
-    };
-
-    this.getError = function () {
-      return {
-        origin: `${this.name}.get()`,
-        message: `failed to retrieve ${this.name}s`
-      };
-    };
-
-    this.editError = function () {
-      return {
-        origin: `${this.name}.edit()`,
-        message: `failed to edit ${this.name}s`
-      };
-    };
-
-    this.removeError = function () {
-      return {
+  async removeQuery(t, mappedEntity) {
+    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildWhere"])(mappedEntity);
+    return t.one(`
+			DELETE FROM "sj"."${this.table}" 
+			WHERE $1:raw 
+			RETURNING *
+		`, where).catch(rejected => {
+      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+        log: false,
         origin: `${this.name}.remove()`,
-        message: `failed to remove ${this.name}s`
-      };
+        message: `could not remove ${this.names}s`
+      }));
+    });
+  }
+
+}); // Processes all after execution.
+
+async function baseAfter(t, entities, accessory) {
+  return entities.slice();
+}
+
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
+  addAfter: baseAfter,
+  getAfter: baseAfter,
+  editAfter: baseAfter,
+  removeAfter: baseAfter,
+
+  // Custom SuccessList and ErrorList.
+  addSuccess() {
+    return {
+      origin: `${this.name}.add()`,
+      message: `added ${this.name}s`
+    };
+  },
+
+  getSuccess() {
+    return {
+      origin: `${this.name}.get()`,
+      message: `retrieved ${this.name}s`
+    };
+  },
+
+  editSuccess() {
+    return {
+      origin: `${this.name}.edit()`,
+      message: `edited ${this.name}s`
+    };
+  },
+
+  removeSuccess() {
+    return {
+      origin: `${this.name}.get()`,
+      message: `removed ${this.name}s`
+    };
+  },
+
+  addError() {
+    return {
+      origin: `${this.name}.add()`,
+      message: `failed to add ${this.name}s`
+    };
+  },
+
+  getError() {
+    return {
+      origin: `${this.name}.get()`,
+      message: `failed to retrieve ${this.name}s`
+    };
+  },
+
+  editError() {
+    return {
+      origin: `${this.name}.edit()`,
+      message: `failed to edit ${this.name}s`
+    };
+  },
+
+  removeError() {
+    return {
+      origin: `${this.name}.remove()`,
+      message: `failed to remove ${this.name}s`
     };
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"]);
 
 /***/ }),
 
@@ -1074,15 +1108,26 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Playlist; });
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Playlist"].augmentClass({
-  staticProperties: parent => ({
-    // CRUD
-    queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
-  })
+
+
+class Playlist extends _entity_js__WEBPACK_IMPORTED_MODULE_2__["default"] {
+  constructor(...args) {
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].instance(this, ...args);
+  }
+
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].prototype(Playlist);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["playlistParts"].static(Playlist);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Playlist, {
+  queryOrder: 'ORDER BY "userId" ASC, "id" ASC'
 });
-/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Playlist"]);
 
 /***/ }),
 
@@ -1095,16 +1140,18 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Playlist"].augmentClass(
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
 /* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/source.js */ "./source/shared/source.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
 /* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
 // INTERNAL
 
 
@@ -1116,343 +1163,370 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].augmentClass({
-  prototypeProperties(parent) {
-    this.order = async function (db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-      return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
+
+class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_10__["default"] {
+  constructor(...args) {
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].instance(this, ...args);
+  }
+
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].prototype(Track);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].static(Track);
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track.prototype, {
+  async order(db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+    return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
+  }
+
+}); // CRUD
+
+async function baseBefore(t, entities) {
+  let newEntities = entities.slice();
+  newEntities.forEach(entity => {
+    //TODO Possible issue here where the condition following && could evaluate first. Not sure what the precedense is.
+    entity.source = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(entity.source) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(entity.source.name) ? entity.source.name : undefined;
+  });
+  return newEntities;
+}
+
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
+  addBefore: baseBefore,
+  getBefore: baseBefore,
+  editBefore: baseBefore,
+  removeBefore: baseBefore,
+
+  async addPrepare(t, track) {
+    //C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
+    let newTrack = { ...track,
+      id: Symbol()
+    };
+
+    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(newTrack.position)) {
+      let existingTracks = await Track.get({
+        playlistId: newTrack.playlistId
+      }, t).then(result => result.content);
+      newTrack.position = existingTracks.length;
+    }
+
+    return newTrack;
+  },
+
+  async removePrepare(t, track) {
+    //C set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
+    return { ...track,
+      position: null
     };
   },
 
-  staticProperties(parent) {
-    // CRUD
-    this.addBefore = this.getBefore = this.editBefore = this.removeBefore = async function (t, entities) {
-      let newEntities = entities.slice();
-      newEntities.forEach(entity => {
-        //TODO Possible issue here where the condition following && could evaluate first. Not sure what the precedense is.
-        entity.source = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(entity.source) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(entity.source.name) ? entity.source.name : undefined;
+  queryOrder: 'ORDER BY "playlistId" ASC, "position" ASC'
+});
+
+async function baseAccommodate(t, tracks) {
+  //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
+  //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
+  //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
+  await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
+    throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+      log: false,
+      origin: 'Track.move()',
+      message: 'could not order tracks, database error',
+      target: 'notify',
+      cssClass: 'notifyError'
+    }));
+  });
+  return await this.order(t, tracks).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
+}
+
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
+  addAccommodate: baseAccommodate,
+  editAccommodate: baseAccommodate,
+  removeAccommodate: baseAccommodate
+});
+
+async function baseAfter(t, entities) {
+  let newEntities = entities.slice();
+  newEntities.forEach(entity => {
+    entity.source = _shared_source_js__WEBPACK_IMPORTED_MODULE_4__["default"].instances.find(source => source.name === entity.source);
+  });
+  return newEntities;
+}
+
+;
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
+  addAfter: baseAfter,
+  getAfter: baseAfter,
+  editAfter: baseAfter,
+  deleteAfter: baseAfter,
+
+  // UTIL
+  async order(db, tracks) {
+    //C takes a list of input tracks for an INSERT, UPDATE, or DELETE query
+    //! properties should be validated at this point
+    //! tracks to be added must have a Symbol() id, this will be removed
+    //! tracks to be deleted must have a null position, this will be removed
+    //C modifies the input track's positions, if needed
+    //C returns a list of influenced tracks with modified positions, if needed
+    //C out-of-bounds positions will be repositioned at the start or end of the playlist
+    //C duplicate positions will be repositioned in order of input order
+    //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
+    //C filter out tracks
+    let inputTracks = tracks.filter(track => //C without an id (including symbol)
+    (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
+    !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+
+    inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
+
+    if (inputTracks.length === 0) {
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
+        origin: 'Track.order()',
+        message: 'track positions did not need to be set'
       });
-      return newEntities;
-    };
-
-    this.addPrepare = async function (t, track) {
-      //C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
-      let newTrack = { ...track,
-        id: Symbol()
-      };
-
-      if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(newTrack.position)) {
-        let existingTracks = await _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].get({
-          playlistId: newTrack.playlistId
-        }, t).then(result => result.content);
-        newTrack.position = existingTracks.length;
-      }
-
-      return newTrack;
-    };
-
-    this.removePrepare = async function (t, track) {
-      //C set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
-      return { ...track,
-        position: null
-      };
-    };
-
-    this.queryOrder = 'ORDER BY "playlistId" ASC, "position" ASC';
-
-    this.addAccommodate = this.editAccommodate = this.removeAccommodate = async function (t, tracks) {
-      //L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
-      //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
-      //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-      await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-        throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-          log: false,
-          origin: 'Track.move()',
-          message: 'could not order tracks, database error',
-          target: 'notify',
-          cssClass: 'notifyError'
-        }));
-      });
-      return await this.order(t, tracks).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
-    };
-
-    this.addAfter = this.getAfter = this.editAfter = this.deleteAfter = async function (t, entities) {
-      let newEntities = entities.slice();
-      newEntities.forEach(entity => {
-        entity.source = _shared_source_js__WEBPACK_IMPORTED_MODULE_4__["default"].instances.find(source => source.name === entity.source);
-      });
-      return newEntities;
-    }; // UTIL
+    } //console.log('inputTracks.length:', inputTracks.length, '\n ---');
 
 
-    this.order = async function (db, tracks) {
-      //C takes a list of input tracks for an INSERT, UPDATE, or DELETE query
-      //! properties should be validated at this point
-      //! tracks to be added must have a Symbol() id, this will be removed
-      //! tracks to be deleted must have a null position, this will be removed
-      //C modifies the input track's positions, if needed
-      //C returns a list of influenced tracks with modified positions, if needed
-      //C out-of-bounds positions will be repositioned at the start or end of the playlist
-      //C duplicate positions will be repositioned in order of input order
-      //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
-      //C filter out tracks
-      let inputTracks = tracks.filter(track => //C without an id (including symbol)
-      (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
-      !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+    return await db.tx(async t => {
+      const playlists = [];
+      const influencedTracks = [];
+      const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
 
-      inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
+      await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
+        const storePlaylist = function (playlistId, existingTracks) {
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(playlistId)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+            origin: 'Track.order()',
+            reason: `playlistId is not an integer: ${playlistId}`
+          });
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+            origin: 'Track.order()',
+            reason: `existingTracks is not an array: ${existingTracks}`
+          }); //C stores playlist in playlists if not already stored
 
-      if (inputTracks.length === 0) {
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
-          origin: 'Track.order()',
-          message: 'track positions did not need to be set'
-        });
-      } //console.log('inputTracks.length:', inputTracks.length, '\n ---');
+          let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
 
-
-      return await db.tx(async t => {
-        const playlists = [];
-        const influencedTracks = [];
-        const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
-
-        await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
-          const storePlaylist = function (playlistId, existingTracks) {
-            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(playlistId)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-              origin: 'Track.order()',
-              reason: `playlistId is not an integer: ${playlistId}`
+          if (!existingPlaylist) {
+            playlists.push({
+              id: playlistId,
+              original: existingTracks,
+              //C move actions, these have priority positioning
+              inputsToMove: [],
+              inputsToAdd: [],
+              inputsToRemove: []
             });
-            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-              origin: 'Track.order()',
-              reason: `existingTracks is not an array: ${existingTracks}`
-            }); //C stores playlist in playlists if not already stored
+            existingPlaylist = playlists[playlists.length - 1];
+          }
 
-            let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
-
-            if (!existingPlaylist) {
-              playlists.push({
-                id: playlistId,
-                original: existingTracks,
-                //C move actions, these have priority positioning
-                inputsToMove: [],
-                inputsToAdd: [],
-                inputsToRemove: []
-              });
-              existingPlaylist = playlists[playlists.length - 1];
-            }
-
-            return existingPlaylist;
-          }; //C temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
+          return existingPlaylist;
+        }; //C temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
 
 
-          track[inputIndex] = index; //C determine move action
+        track[inputIndex] = index; //C determine move action
 
-          const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; //C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
-          //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
+        const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; //C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
+        //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
-          const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
+        const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
+					SELECT "id", "position", "playlistId"
+					FROM "sj"."tracks" 
+					WHERE "playlistId" = $1
+				`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
+					SELECT "id", "position", "playlistId"
+					FROM "sj"."tracks" 
+					WHERE "playlistId" = (
+						SELECT "playlistId"
+						FROM "sj"."tracks"
+						WHERE "id" = $1
+					)
+				`, track.id);
+        const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
+          throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+            log: false,
+            origin: 'Track.order()',
+            message: 'could not move tracks'
+          }));
+        }); //C store
+
+        const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
+        //C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
+
+        currentPlaylistStored.original.forEach(t => {
+          delete t.playlistId;
+        });
+
+        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
+          //C if not switching playlists
+          //C group by action
+          currentPlaylistStored['inputsTo' + action].push(track);
+        } else {
+          //C if switching playlists
+          //C this should catch tracks with playlistIds but no position
+          const anotherPlaylist = await t.any(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
-						SELECT "id", "position", "playlistId"
-						FROM "sj"."tracks" 
-						WHERE "playlistId" = (
-							SELECT "playlistId"
-							FROM "sj"."tracks"
-							WHERE "id" = $1
-						)
-					`, track.id);
-          const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
+					`, track.playlistId).catch(rejected => {
             throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
               log: false,
               origin: 'Track.order()',
               message: 'could not move tracks'
             }));
-          }); //C store
-
-          const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
-          //C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
-
-          currentPlaylistStored.original.forEach(t => {
+          });
+          const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
+          anotherPlaylistStored.original.forEach(t => {
             delete t.playlistId;
-          });
+          }); //C track is removed from its current playlist, and added to another playlist
 
-          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
-            //C if not switching playlists
-            //C group by action
-            currentPlaylistStored['inputsTo' + action].push(track);
-          } else {
-            //C if switching playlists
-            //C this should catch tracks with playlistIds but no position
-            const anotherPlaylist = await t.any(`
-							SELECT "id", "position", "playlistId"
-							FROM "sj"."tracks" 
-							WHERE "playlistId" = $1
-						`, track.playlistId).catch(rejected => {
-              throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-                log: false,
-                origin: 'Track.order()',
-                message: 'could not move tracks'
-              }));
-            });
-            const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
-            anotherPlaylistStored.original.forEach(t => {
-              delete t.playlistId;
-            }); //C track is removed from its current playlist, and added to another playlist
+          currentPlaylistStored.inputsToRemove.push(track);
+          anotherPlaylistStored.inputsToAdd.push(track);
+        }
 
-            currentPlaylistStored.inputsToRemove.push(track);
-            anotherPlaylistStored.inputsToAdd.push(track);
-          }
-
-          return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
-            origin: 'Track.order()',
-            message: "retrieved track's playlist"
-          });
-        }).catch(rejected => {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"]({
-            userMessage: `could not retrieve some track's playlist`,
-            errors: rejected
-          });
-        }); //console.log('playlists.length:', playlists.length, '\n ---');
-        //C calculate new track positions required to accommodate input tracks' positions
-
-        playlists.forEach(playlist => {
-          //C populate others with tracks in original that are not in inputsTo Add, Remove, or Move
-          //! inputsToRemove can be ignored from this point on, these tracks aren't included in others and wont be added to the final ordered list
-          playlist.others = playlist.original.filter(originalTrack => !playlist.inputsToAdd.some(addingTrack => addingTrack.id === originalTrack.id) && !playlist.inputsToRemove.some(trackToRemove => trackToRemove.id === originalTrack.id) && !playlist.inputsToMove.some(movingTrack => movingTrack.id === originalTrack.id)); //console.log('playlist.others.length:', playlist.others.length);
-          //C combine both adding and moving, 
-
-          playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
-
-          playlist.inputsToPosition.forEach(trackToPosition => {
-            if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(trackToPosition.position)) {
-              trackToPosition.position === Infinity;
-            }
-          }); //C sort
-
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
-
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
-          Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
-          //console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
-          //console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
-          //console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
-          //C inputIndex is no longer needed, remove it from anything it was added to
-
-          playlist.inputsToPosition.forEach(trackToPosition => {
-            delete trackToPosition[inputIndex];
-          });
-          playlist.inputsToRemove.forEach(trackToRemove => {
-            delete trackToRemove[inputIndex];
-          }); //C populate merged by filling others tracks around combined tracks
-
-          playlist.merged = []; //! these are copies that will be emptied below
-
-          playlist.inputsToPositionCopy = [...playlist.inputsToPosition];
-          playlist.othersCopy = [...playlist.others];
-          let i = 0;
-
-          while (playlist.othersCopy.length > 0) {
-            if (playlist.inputsToPositionCopy.length > 0 && playlist.inputsToPositionCopy[0].position <= i) {
-              //C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
-              //C this will properly handle negative and duplicate positions
-              //G shift removes the first item of an array and returns that item
-              playlist.merged.push(playlist.inputsToPositionCopy.shift());
-            } else {
-              //C else - transfer the next others track
-              playlist.merged.push(playlist.othersCopy.shift());
-            }
-
-            i++;
-          } //C push rest of combined tracks
-          //R this method was chosen over including combined.length > 0 in the while condition to prevent needless loops caused by ridiculously high positions, this was also chosen over original.length because adding + moving tracks could be greater the playlist length
-          //L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
-
-
-          playlist.merged.push(...playlist.inputsToPositionCopy);
-          playlist.inputsToPositionCopy.length = 0; //! remove combined tracks for consistent behavior
-          //C populate playlist.influenced with all non-input tracks that have moved
-
-          playlist.influenced = playlist.merged.filter((mergedTrack, index) => {
-            let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
-            let influenced = inOthers && index !== inOthers.position; //C assign new positions (inputTracks too)
-
-            mergedTrack.position = index;
-            return influenced;
-          }); //console.log('playlist.merged.length:', playlist.merged.length);
-          //console.log('playlist.merged:\n', playlist.merged, '\n ---');
-          //console.log('playlist.influenced.length:', playlist.influenced.length);
-          //console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
-
-          influencedTracks.push(...playlist.influenced);
-        }); //C remove temporary symbol id from add tracks and null position from delete tracks
-
-        inputTracks.forEach(inputTrack => {
-          if (typeof inputTrack.id === 'symbol') {
-            delete inputTrack.id;
-          }
-
-          if (inputTrack.position === null) {
-            delete inputTrack.position;
-          }
-        });
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
           origin: 'Track.order()',
-          message: 'influenced tracks calculated',
-          content: influencedTracks
+          message: "retrieved track's playlist"
         });
+      }).catch(rejected => {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"]({
+          userMessage: `could not retrieve some track's playlist`,
+          errors: rejected
+        });
+      }); //console.log('playlists.length:', playlists.length, '\n ---');
+      //C calculate new track positions required to accommodate input tracks' positions
+
+      playlists.forEach(playlist => {
+        //C populate others with tracks in original that are not in inputsTo Add, Remove, or Move
+        //! inputsToRemove can be ignored from this point on, these tracks aren't included in others and wont be added to the final ordered list
+        playlist.others = playlist.original.filter(originalTrack => !playlist.inputsToAdd.some(addingTrack => addingTrack.id === originalTrack.id) && !playlist.inputsToRemove.some(trackToRemove => trackToRemove.id === originalTrack.id) && !playlist.inputsToMove.some(movingTrack => movingTrack.id === originalTrack.id)); //console.log('playlist.others.length:', playlist.others.length);
+        //C combine both adding and moving, 
+
+        playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
+
+        playlist.inputsToPosition.forEach(trackToPosition => {
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(trackToPosition.position)) {
+            trackToPosition.position === Infinity;
+          }
+        }); //C sort
+
+        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+
+        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
+        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
+        //console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
+        //console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
+        //console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
+        //C inputIndex is no longer needed, remove it from anything it was added to
+
+        playlist.inputsToPosition.forEach(trackToPosition => {
+          delete trackToPosition[inputIndex];
+        });
+        playlist.inputsToRemove.forEach(trackToRemove => {
+          delete trackToRemove[inputIndex];
+        }); //C populate merged by filling others tracks around combined tracks
+
+        playlist.merged = []; //! these are copies that will be emptied below
+
+        playlist.inputsToPositionCopy = [...playlist.inputsToPosition];
+        playlist.othersCopy = [...playlist.others];
+        let i = 0;
+
+        while (playlist.othersCopy.length > 0) {
+          if (playlist.inputsToPositionCopy.length > 0 && playlist.inputsToPositionCopy[0].position <= i) {
+            //C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
+            //C this will properly handle negative and duplicate positions
+            //G shift removes the first item of an array and returns that item
+            playlist.merged.push(playlist.inputsToPositionCopy.shift());
+          } else {
+            //C else - transfer the next others track
+            playlist.merged.push(playlist.othersCopy.shift());
+          }
+
+          i++;
+        } //C push rest of combined tracks
+        //R this method was chosen over including combined.length > 0 in the while condition to prevent needless loops caused by ridiculously high positions, this was also chosen over original.length because adding + moving tracks could be greater the playlist length
+        //L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
+
+
+        playlist.merged.push(...playlist.inputsToPositionCopy);
+        playlist.inputsToPositionCopy.length = 0; //! remove combined tracks for consistent behavior
+        //C populate playlist.influenced with all non-input tracks that have moved
+
+        playlist.influenced = playlist.merged.filter((mergedTrack, index) => {
+          let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
+          let influenced = inOthers && index !== inOthers.position; //C assign new positions (inputTracks too)
+
+          mergedTrack.position = index;
+          return influenced;
+        }); //console.log('playlist.merged.length:', playlist.merged.length);
+        //console.log('playlist.merged:\n', playlist.merged, '\n ---');
+        //console.log('playlist.influenced.length:', playlist.influenced.length);
+        //console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
+
+        influencedTracks.push(...playlist.influenced);
+      }); //C remove temporary symbol id from add tracks and null position from delete tracks
+
+      inputTracks.forEach(inputTrack => {
+        if (typeof inputTrack.id === 'symbol') {
+          delete inputTrack.id;
+        }
+
+        if (inputTrack.position === null) {
+          delete inputTrack.position;
+        }
       });
-      /* Thought Process
-      				if any tracks have position set,
-      		do the move function
-      		order
-      	after deleting tracks
-      		order
-      
-      	idea: get the tracklist, then do the moving and ordering outside, at the same time - then update all at once
-      	the fetched array won't have holes in it, just the position numbers (which is good?)
-      
-      	//R initial idea wrong: 
-      	tracks must be in order of their positions for the move to be applied properly (ie tracks with positions: 3, 4, 5 will all be inserted inbetween tracks 2 and 3) - updating in the order 5, 4, 3 would result in later tracks pushing the already placed tracks down (so their positions end up being 7, 5, 3)
-      	it needs to go in decending order because of the nature of how the move function works - affecting only tracks below it
-      
-      
-      	//R wrong, because this done simultaneously (not in sequence) it will separate adjacent inserted positions (0i, 1i) will insert into a full list (o) as (0i, 0o, 1i, 1o), doing this in sequence would require reordering (updating of new positions) the tracks after each insert (might be resource intensive)
-      	get input
-      		stable sort by position
-      	get tracks
-      		stable sort by position
-      		prepend item with position -Infinity
-      		append item with position Infinity
-      
-      	for each input (in reverse order, so that inputs with same positions do not get their order reversed)
-      		find where position is greater than i.position and less than or equal to i+1.position
-      		splice(i+1, 0, input)
-      	
-      
-      	final idea: 
-      		get the existing list, remove tracks to be inserted
-      		sort each list
-      		for the length of the combined lists, for integers 0 to length
-      			if there is a track in the input list at (or less than) the index - push the next one
-      			else push the next track in the existing list
-      		if there are any remaining tracks in the input list (for example a big hole that makes the last few tracks larger than the sum of both lists), push them in order to the end of the list
-      		lastly do a order to remove duplicates and holes
-      
-      		this essentially 'fills' the existing tracks around the set positions of the input tracks
-      	
-      		for Track.order()
-      			there is a recursive loop hazard in here (basically if Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
-      	
-      		//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
-      					//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
-      		//! requires the INSERT command to be executed one at at a time for each input track
-      		//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
-      */
-    };
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
+        origin: 'Track.order()',
+        message: 'influenced tracks calculated',
+        content: influencedTracks
+      });
+    });
+    /* Thought Process
+    			if any tracks have position set,
+    		do the move function
+    		order
+    	after deleting tracks
+    		order
+    
+    	idea: get the tracklist, then do the moving and ordering outside, at the same time - then update all at once
+    	the fetched array won't have holes in it, just the position numbers (which is good?)
+    
+    	//R initial idea wrong: 
+    	tracks must be in order of their positions for the move to be applied properly (ie tracks with positions: 3, 4, 5 will all be inserted inbetween tracks 2 and 3) - updating in the order 5, 4, 3 would result in later tracks pushing the already placed tracks down (so their positions end up being 7, 5, 3)
+    	it needs to go in decending order because of the nature of how the move function works - affecting only tracks below it
+    
+    
+    	//R wrong, because this done simultaneously (not in sequence) it will separate adjacent inserted positions (0i, 1i) will insert into a full list (o) as (0i, 0o, 1i, 1o), doing this in sequence would require reordering (updating of new positions) the tracks after each insert (might be resource intensive)
+    	get input
+    		stable sort by position
+    	get tracks
+    		stable sort by position
+    		prepend item with position -Infinity
+    		append item with position Infinity
+    
+    	for each input (in reverse order, so that inputs with same positions do not get their order reversed)
+    		find where position is greater than i.position and less than or equal to i+1.position
+    		splice(i+1, 0, input)
+    	
+    
+    	final idea: 
+    		get the existing list, remove tracks to be inserted
+    		sort each list
+    		for the length of the combined lists, for integers 0 to length
+    			if there is a track in the input list at (or less than) the index - push the next one
+    			else push the next track in the existing list
+    		if there are any remaining tracks in the input list (for example a big hole that makes the last few tracks larger than the sum of both lists), push them in order to the end of the list
+    		lastly do a order to remove duplicates and holes
+    
+    		this essentially 'fills' the existing tracks around the set positions of the input tracks
+    
+    		for Track.order()
+    			there is a recursive loop hazard in here (basically if Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
+    
+    		//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
+    				//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
+    		//! requires the INSERT command to be executed one at at a time for each input track
+    		//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
+    */
   }
 
 });
-/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]);
 
 /***/ }),
 
@@ -1465,41 +1539,57 @@ _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"].augmentClass({
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants.js */ "./source/server/constants.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return User; });
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
+/* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../constants.js */ "./source/server/constants.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+// EXTERNAL
+ // INTERNAL
 
 
 
 
-_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["User"].augmentClass({
-  staticProperties(parent) {
-    // CRUD
-    this.addPrepare = this.editPrepare = async function (t, user) {
-      let newUser = Object.assign([], user); //C hash password
-      //TODO might be a vulnerability here with this string check
 
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(newUser.password)) {
-        newUser.password = await bcrypt.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_3__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-            log: true,
-            origin: 'User.add()',
-            message: 'failed to add user',
-            reason: 'hash failed',
-            content: rejected
-          });
-        });
-      }
 
-      return newUser;
-    };
-
-    this.queryOrder = 'ORDER BY "id" ASC';
+class User extends _entity_js__WEBPACK_IMPORTED_MODULE_5__["default"] {
+  constructor(...args) {
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].intercept(...args);
+    super(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].instance(this, ...args);
   }
 
+}
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].prototype(User);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].static(User);
+
+async function basePrepare(t, user) {
+  const newUser = new User(user); // Hash password.
+  //TODO might be a vulnerability here with this string check
+
+  if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(newUser.password)) {
+    newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_4__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
+        log: true,
+        origin: 'User.add()',
+        message: 'failed to add user',
+        reason: 'hash failed',
+        content: rejected
+      });
+    });
+  }
+
+  return newUser;
+}
+
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(User, {
+  addPrepare: basePrepare,
+  editPrepare: basePrepare,
+  queryOrder: 'ORDER BY "id" ASC'
 });
-/* harmony default export */ __webpack_exports__["default"] = (_shared_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["User"]);
 
 /***/ }),
 
@@ -1547,12 +1637,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+//! Side-effects
+//TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
+// when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
+//TODO this may be unrelated but it seems the liveQueries here are also piling up
+//TODO It seems like many subscriptions are being called but not as many un-subscriptions.
+//TODO sockets need better error handling just like the koa router
 // EXTERNAL
  //TODO consider changing to the https module?
 
@@ -1565,17 +1655,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
- //  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║
-//  ██║██║╚██╗██║██║   ██║
-//  ██║██║ ╚████║██║   ██║
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
-//TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
-// when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
-//TODO this may be unrelated but it seems the liveQueries here are also piling up
-//TODO It seems like many subscriptions are being called but not as many un-subscriptions.
-//TODO sockets need better error handling just like the koa router
+
 
 class Subscription {
   constructor(options = {}) {
@@ -1590,17 +1670,21 @@ class Subscription {
 
 }
 
-/* harmony default export */ __webpack_exports__["default"] = ({
+const liveDataServer = {
   app: null,
   socket: null,
-  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].makeTables(),
+  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].makeTables({
+    User: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"],
+    Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"],
+    Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]
+  }),
 
   start({
     app,
-    socket
+    socket: liveDataSocket
   }) {
     this.app = app;
-    this.socket = socket;
+    this.socket = liveDataSocket;
     this.socket.use((socket, next) => {
       // Give the cookie session to the socket.
       // Uses a temporary koa context to decrypt the session.
@@ -1617,7 +1701,7 @@ class Subscription {
         //! I don't think the cookie session receives this, though it isn't needed there so far
 
         if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User')) socket.session.user.socketId = socket.id;
-        socket.on('disconnect', async reason => {
+        socket.on('disconnect', async () => {
           try {
             console.log('DISCONNECT', socket.id);
             await this.disconnect(socket.id).catch(rejected => {
@@ -1642,9 +1726,9 @@ class Subscription {
 
             const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"]({
               socketId: socket.id
-            }); //! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
+            }); //! using LiveTable.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
-            const result = await this.add(_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
+            const result = await this.add(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
             //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
             // Using fclone to drop circular reference.s
 
@@ -1662,7 +1746,7 @@ class Subscription {
             const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"]({
               socketId: socket.id
             });
-            const result = await this.remove(_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].tableToEntity(table), query, user);
+            const result = await this.remove(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].tableToEntity(table), query, user);
             callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
           } catch (error) {
             Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
@@ -1695,17 +1779,21 @@ class Subscription {
     return liveQuery.subscriptions.find(subscription => subscription.user.socketId === user.socketId);
   },
 
-  //C subscribers/users are identified by their socketId, this is so that not-logged-in clients can still subscribe to data, while still allowing the full user object to be the subscriber
+  // Subscribers/users are identified by their socketId, this is so that not-logged-in clients can still subscribe to data, while still allowing the full user object to be the subscriber.
   async add(Entity, query, user) {
-    //C process query
-    //TODO//? getMimic was being called with this query: [{playlistId: null}], twice, very rapidly, however even though they are the same query, the one called second resolves before the first one, why? afaik this isn't causing any issues, but it could later
-    const processedQuery = await Entity.getMimic(query); //C find table
+    // Process query.
+    //TODO //? getMimic was being called with this query: [{playlistId: null}], twice, very rapidly, however even though they are the same query, the one called second resolves before the first one, why? afaik this isn't causing any issues, but it could later.
+    const processedQuery = await Entity.getMimic(query); // Find table.
 
     const table = this.findTable(Entity);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-      origin: 'liveData.add()',
-      reason: 'table is not an LiveTable'
-    }); //C find liveQuery, add if it doesn't exist
+
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        origin: 'liveData.add()',
+        reason: 'table is not an LiveTable'
+      });
+    } // Find liveQuery, add if it doesn't exist.
+
 
     let liveQuery = this.findLiveQuery(table, processedQuery);
 
@@ -1715,7 +1803,7 @@ class Subscription {
         query: processedQuery
       });
       this.findTable(Entity).liveQueries.push(liveQuery);
-    } //C find subscription, add if it doesn't exist
+    } // Find subscription, add if it doesn't exist.
 
 
     let subscription = this.findSubscription(liveQuery, user);
@@ -1726,7 +1814,7 @@ class Subscription {
         user
       });
       liveQuery.subscriptions.push(subscription);
-    } //C update user
+    } // Update user.
 
 
     Object.assign(subscription.user, user);
@@ -1739,40 +1827,52 @@ class Subscription {
 
   async remove(Entity, query, user) {
     //? if the client unsubscribes on the client-side but is unable to unsubscribe on the server-side, the subscription will sit there (and send messages) until the client disconnects, is this ok? maybe consider a timeout system?
-    //C process query
-    const processedQuery = await Entity.getMimic(query); //C find table
+    // Process query.
+    const processedQuery = await Entity.getMimic(query); // Find table.
 
     const table = this.findTable(Entity);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-      origin: 'liveData.remove()',
-      reason: 'table is not an LiveTable'
-    }); //C find liveQuery index
+
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        origin: 'liveData.remove()',
+        reason: 'table is not an LiveTable'
+      });
+    } // Find liveQuery index.
+
 
     const liveQuery = this.findLiveQuery(table, processedQuery);
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
-      origin: 'Subscriptions.remove()',
-      message: 'no subscription found for this query',
-      content: {
-        Entity,
-        query: processedQuery,
-        liveQueryIndex
-      }
-    }); //C find subscription
+
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) {
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
+        origin: 'Subscriptions.remove()',
+        message: 'no subscription found for this query',
+        content: {
+          Entity,
+          query: processedQuery,
+          liveQueryIndex
+        }
+      });
+    } // Find subscription.
+
 
     const subscription = this.findSubscription(liveQuery, user);
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
-      origin: 'Subscriptions.remove()',
-      message: 'no subscriber found for this user',
-      content: {
-        liveQuerySubscriptions: liveQuery.subscriptions,
-        socketId: user.socketId,
-        subscriptionIndex
-      }
-    }); //C remove subscription
 
-    liveQuery.subscriptions.splice(subscriptionIndex, 1); //C if no more subscriptions, remove liveQuery
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) {
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
+        origin: 'Subscriptions.remove()',
+        message: 'no subscriber found for this user',
+        content: {
+          liveQuerySubscriptions: liveQuery.subscriptions,
+          socketId: user.socketId,
+          subscriptionIndex
+        }
+      });
+    } // Remove subscription.
+
+
+    liveQuery.subscriptions.splice(subscriptionIndex, 1); // If no more subscriptions, remove liveQuery.
 
     if (liveQuery.subscriptions.length <= 0) {
       this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
@@ -1786,28 +1886,31 @@ class Subscription {
   },
 
   async notify(Entity, entities, timestamp) {
-    //C for each liveQuery
+    // For each liveQuery.
     const table = this.findTable(Entity);
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-      origin: 'liveData.notify()',
-      reason: 'table is not an LiveTable'
-    });
+
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) {
+      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        origin: 'liveData.notify()',
+        reason: 'table is not an LiveTable'
+      });
+    }
 
     for (const liveQuery of table.liveQueries) {
-      //C for each passed entity
+      // For each passed entity.
       for (const entity of entities) {
-        //C if any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new
+        // If any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new.
         //R query is an array of object queries, must iterate each then subset match, or else nothing will match because query switches from superset to subset
         if (liveQuery.query.some(part => Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(part, entity, {
           compareFunction: _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["compareUnorderedArrays"],
           subset: true,
           resultIfTooDeep: true
         })) && timestamp > liveQuery.timestamp) {
-          //C set the new timestamp
-          liveQuery.timestamp = timestamp; //C for each subscription
+          // Set the new timestamp.
+          liveQuery.timestamp = timestamp; // For each subscription.
 
           for (const subscription of liveQuery.subscriptions) {
-            //C emit a socket notification to the subscriber
+            // Emit a socket notification to the subscriber.
             this.socket.to(subscription.user.socketId).emit('notify', {
               table: Entity.table,
               query: liveQuery.query,
@@ -1822,19 +1925,17 @@ class Subscription {
   async disconnect(socketId) {
     //? unsubscribe all on disconnect and resubscribe all on connect? or have a timeout system?
     //! this doesn't use the remove() method, because the specific subscription (query + user) aren't known, this finds all subscriptions with that user
-    for (const pair of this.tables) {
-      const table = pair[1];
-
+    for (const [, table] of this.tables) {
       for (let i = table.liveQueries.length - 1; i > -1; i--) {
-        const liveQuery = table.liveQueries[i]; //C for each subscription
+        const liveQuery = table.liveQueries[i]; // For each subscription.
 
         for (let j = liveQuery.subscriptions.length - 1; j > -1; j--) {
-          const subscription = liveQuery.subscriptions[j]; //C if it matches the passed user (by socketId), remove it
+          const subscription = liveQuery.subscriptions[j]; // If it matches the passed user (by socketId), remove it.
 
           if (subscription.user.socketId === socketId) {
             liveQuery.subscriptions.splice(j, 1);
           }
-        } //C if the liveQuery no longer has any subscriptions, remove it
+        } // If the liveQuery no longer has any subscriptions, remove it.
 
 
         if (liveQuery.subscriptions.length <= 0) table.liveQueries.splice(i, 1);
@@ -1842,7 +1943,12 @@ class Subscription {
     }
   }
 
-});
+}; // Supply Entity with its needed dependency to live-data-server.
+//R //! This is to avoid a circular dependency, however it is a side-effect.
+//TODO Resolve this side-effect.
+
+_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].notify = liveDataServer.notify.bind(liveDataServer);
+/* harmony default export */ __webpack_exports__["default"] = (liveDataServer);
 /* //TODO test:
 	no duplicate live queries
 	subscriptions get removed on disconnect
@@ -3036,116 +3142,25 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/entities/entity.js":
-/*!******************************************!*\
-  !*** ./source/shared/entities/entity.js ***!
-  \******************************************/
+/***/ "./source/shared/entityParts/entity.js":
+/*!*********************************************!*\
+  !*** ./source/shared/entityParts/entity.js ***!
+  \*********************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
 /* harmony import */ var _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
 
-/*
-export default Base.makeClass('Entity', Success, {
-	constructorParts: parent => ({
-		afterInitialize(accessory) {
-			const that = this; //? is this necessary?
-			this.filters = {};
-			Object.keys(that.constructor.filters).forEach(key => {
-				Object.defineProperties(that.filters, {
-					[key]: {
-						get: function () { 
-							return pick(that, that.constructor.filters[key]);
-						}
-					}
-				});
-			});
-		},
-		defaults: {
-			// NEW
-			id: undefined,
-		},
-	}),
-	staticProperties(parent) {
-		// GETTER
-		Object.defineProperty(this, 'table', {
-			get: function () {
-				return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
-			},
-		}); 
-
-		return {
-			//TODO how to make these immutable?
-
-			//C list of references to child classes, these should be added in the child's static constructor
-			children: [],
-
-			filters: {
-				id: ['id'],
-			},
-
-			//C automatically create new filters based on schema
-			updateFilters() {
-				let methodNames = ['add', 'get', 'edit', 'remove'];
-				let types = ['in', 'out', 'check'];
-			
-				let schemaFilters = {};
-			
-				Object.keys(this.schema).forEach(key => { //C for each property
-					methodNames.forEach(methodName => { //C for each crud method
-						types.forEach(type => { //C for each filter type
-							if (this.schema[key][methodName][type]) { //C if property is optional or required
-								let filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); //C add it to the specific filter
-								if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-								schemaFilters[filterName].push(key);
-							}
-						});
-					});
-				});
-			
-				this.filters = {
-					...this.filters,
-					...schemaFilters,
-				};
-			},
-
-			tableToEntity(tableName) {
-				//TODO Revaluate this.
-				const FoundEntity = this.children.find(child => child.table === tableName);
-
-				if (!((new FoundEntity()) instanceof this)) {
-					throw new Err({
-						origin: 'Entity.tableToEntity()',
-						reason: `table is not recognized: ${tableName}`,
-						content: tableName,
-					});
-				}
-					
-				return FoundEntity;
-
-				//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-				//R any metadata (table) should be sent separately (or implicitly) from the query
-			},
-		}
-	},
-});
-*/
-
- //TODO Remove Success extension.
-
-class Entity extends _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"] {
-  constructor(options = {}) {
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+  instance(options = {}) {
     const {
       id
     } = options;
-    super(options);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       id,
       //R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
       filters: {}
@@ -3154,99 +3169,83 @@ class Entity extends _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Su
 
     const that = this;
     const staticFilters = this.constructor.filters;
-    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["getKeysOf"])(staticFilters).forEach(key => {
-      _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].getter(this.filters, {
+    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(staticFilters).forEach(key => {
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this.filters, {
         get [key]() {
-          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(that, staticFilters[key]);
+          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, staticFilters[key]);
         }
 
       });
     });
-  }
-
-}
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].getter(Entity, {
-  get table() {
-    return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
-  }
-
-}); //TODO Can this be locked down as a constant? (See updateFilters()).
-
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(Entity, {
-  filters: {
-    id: ['id']
-  }
-});
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Entity, {
-  // List of references to child classes, these should be added in the child's static constructor.
-  children: [],
-
-  // Automatically create new filters based on schema.
-  updateFilters() {
-    const methodNames = ['add', 'get', 'edit', 'remove'];
-    const types = ['in', 'out', 'check'];
-    const schemaFilters = {};
-    Object.keys(this.schema).forEach(key => {
-      // For each property,
-      methodNames.forEach(methodName => {
-        // for each crud method,
-        types.forEach(type => {
-          // for each filter type:
-          if (this.schema[key][methodName][type]) {
-            // If property is optional or required:
-            const filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
-
-            if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
-            schemaFilters[filterName].push(key);
-          }
-        });
-      });
-    });
-    this.filters = { ...this.filters,
-      ...schemaFilters
-    };
   },
 
-  tableToEntity(tableName) {
-    //TODO Revaluate this.
-    const FoundEntity = this.children.find(child => child.table === tableName);
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this, {
+      get table() {
+        return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
+      }
 
-    if (!(new FoundEntity() instanceof this)) {
-      throw new _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__["Err"]({
-        origin: 'Entity.tableToEntity()',
-        reason: `table is not recognized: ${tableName}`,
-        content: tableName
-      });
-    }
+    }); //TODO Can this be locked down as a constant? (See updateFilters()).
 
-    return FoundEntity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
-    //R any metadata (table) should be sent separately (or implicitly) from the query
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      filters: {
+        id: ['id']
+      }
+    });
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      // Automatically create new filters based on schema.
+      updateFilters() {
+        const methodNames = ['add', 'get', 'edit', 'remove'];
+        const types = ['in', 'out', 'check'];
+        const schemaFilters = {};
+        Object.keys(this.schema).forEach(key => {
+          // For each property,
+          methodNames.forEach(methodName => {
+            // for each crud method,
+            types.forEach(type => {
+              // for each filter type:
+              if (this.schema[key][methodName][type]) {
+                // If property is optional or required:
+                const filterName = methodName + type.charAt(0).toUpperCase() + type.slice(1); // Add it to the specific filter.
+
+                if (!schemaFilters[filterName]) schemaFilters[filterName] = [];
+                schemaFilters[filterName].push(key);
+              }
+            });
+          });
+        });
+        this.filters = { ...this.filters,
+          ...schemaFilters
+        };
+      }
+
+    });
   }
 
-});
+}));
 
 /***/ }),
 
-/***/ "./source/shared/entities/index.js":
-/*!*****************************************!*\
-  !*** ./source/shared/entities/index.js ***!
-  \*****************************************/
-/*! exports provided: Entity, Playlist, Track, User */
+/***/ "./source/shared/entityParts/index.js":
+/*!********************************************!*\
+  !*** ./source/shared/entityParts/index.js ***!
+  \********************************************/
+/*! exports provided: entityParts, playlistParts, trackParts, userParts */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Entity", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entityParts/entity.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "entityParts", function() { return _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entities/playlist.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Playlist", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _playlist_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./playlist.js */ "./source/shared/entityParts/playlist.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "playlistParts", function() { return _playlist_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/shared/entities/track.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Track", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./track.js */ "./source/shared/entityParts/track.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "trackParts", function() { return _track_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/shared/entities/user.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "User", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _user_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./user.js */ "./source/shared/entityParts/user.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "userParts", function() { return _user_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
 
 
@@ -3255,102 +3254,103 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/entities/playlist.js":
-/*!********************************************!*\
-  !*** ./source/shared/entities/playlist.js ***!
-  \********************************************/
+/***/ "./source/shared/entityParts/playlist.js":
+/*!***********************************************!*\
+  !*** ./source/shared/entityParts/playlist.js ***!
+  \***********************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
 
 
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+  instance(options = {}) {
+    const {
+      userId,
+      name = '',
+      visibility = '',
+      description = '',
+      color = '',
+      image = ''
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+      userId,
+      name,
+      visibility,
+      description,
+      color,
+      image
+    });
+  },
 
-
-/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Playlist', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      content: [],
-      //? is this required to be an array, tracks aren't stored here anymore
-      // NEW
-      userId: undefined,
-      name: '',
-      visibility: '',
-      description: '',
-      color: '',
-      image: ''
-    }
-  }),
-
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      id: {
-        columnName: 'id',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
-      },
-      userId: {
-        columnName: 'userId',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      name: {
-        columnName: 'name',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      description: {
-        columnName: 'description',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["description"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      visibility: {
-        columnName: 'visibility',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["visibilityState"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      image: {
-        columnName: 'image',
-        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].string.validate,
-        //TODO Image url rule.
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      color: {
-        columnName: 'color',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["color"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      schema: {
+        id: {
+          columnName: 'id',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
+        },
+        userId: {
+          columnName: 'userId',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        name: {
+          columnName: 'name',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["name"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        description: {
+          columnName: 'description',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["description"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        visibility: {
+          columnName: 'visibility',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["visibilityState"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        image: {
+          columnName: 'image',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
+          //TODO Image url rule.
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        color: {
+          columnName: 'color',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["color"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        }
       }
-    };
+    });
     this.updateFilters();
   }
 
@@ -3358,10 +3358,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/entities/schema-states.js":
-/*!*************************************************!*\
-  !*** ./source/shared/entities/schema-states.js ***!
-  \*************************************************/
+/***/ "./source/shared/entityParts/schema-states.js":
+/*!****************************************************!*\
+  !*** ./source/shared/entityParts/schema-states.js ***!
+  \****************************************************/
 /*! exports provided: unused, optional, required, auto */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -3396,29 +3396,25 @@ const auto = {
 
 /***/ }),
 
-/***/ "./source/shared/entities/track.js":
-/*!*****************************************!*\
-  !*** ./source/shared/entities/track.js ***!
-  \*****************************************/
+/***/ "./source/shared/entityParts/track.js":
+/*!********************************************!*\
+  !*** ./source/shared/entityParts/track.js ***!
+  \********************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 
 
 
 
-
-class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+  instance(options = {}) {
     const {
       playlistId = null,
       position = null,
@@ -3435,8 +3431,8 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       source = null
     } = options; // Find existing source by track.source.name and set it as the reference.
 
-    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(source)) {
-      const found = _source_js__WEBPACK_IMPORTED_MODULE_3__["default"].instances.find(sourceInstance => sourceInstance.name === source.name);
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(source)) {
+      const found = _source_js__WEBPACK_IMPORTED_MODULE_2__["default"].instances.find(sourceInstance => sourceInstance.name === source.name);
 
       if (found) {
         source = found;
@@ -3445,7 +3441,7 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       }
     }
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       playlistId,
       position,
       sourceId,
@@ -3456,181 +3452,192 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       source
     }); //TODO Ensure that this is only used as an instance then remove this.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       constructorName: 'Track'
+    });
+  },
+
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      schema: {
+        id: {
+          columnName: 'id',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
+        },
+        playlistId: {
+          columnName: 'playlistId',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        position: {
+          columnName: 'position',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["position"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        name: {
+          columnName: 'name',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        duration: {
+          columnName: 'duration',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].nonNegativeInteger.validate,
+          //TODO Expand
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        source: {
+          columnName: 'source',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["registeredSource"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        sourceId: {
+          columnName: 'sourceId',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.validate,
+          //TODO Expand
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        artists: {
+          columnName: 'artists',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.validate,
+          //TODO Expand
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        }
+      }
+    }); // Update filters after schema is defined.
+
+    this.updateFilters(); // Add an additional filter 'localMetadata'.
+    //G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
+
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this.filters, {
+      localMetadata: ['id', 'playlistId', 'position']
     });
   }
 
-}
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Track, {
-  schema: {
-    id: {
-      columnName: 'id',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["id"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["auto"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"]
-    },
-    playlistId: {
-      columnName: 'playlistId',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["id"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    position: {
-      columnName: 'position',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["position"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    name: {
-      columnName: 'name',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["name"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    duration: {
-      columnName: 'duration',
-      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].nonNegativeInteger.validate,
-      //TODO Expand
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    source: {
-      columnName: 'source',
-      rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_4__["registeredSource"].validate,
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    sourceId: {
-      columnName: 'sourceId',
-      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
-      //TODO Expand
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    },
-    artists: {
-      columnName: 'artists',
-      rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].array.validate,
-      //TODO Expand
-      add: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["required"],
-      get: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["optional"],
-      remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_1__["unused"]
-    }
-  }
-});
-_entity_js__WEBPACK_IMPORTED_MODULE_0__["default"].children.push(Track); // Update filters after schema is defined.
-
-Track.updateFilters(); // Add an additional filter 'localMetadata'.
-//G localMetadata is track properties that aren't derived from the source data, but instead created by the app or user. It must be preserved when using source data.
-
-_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Track.filters, {
-  localMetadata: ['id', 'playlistId', 'position']
-});
+}));
 
 /***/ }),
 
-/***/ "./source/shared/entities/user.js":
-/*!****************************************!*\
-  !*** ./source/shared/entities/user.js ***!
-  \****************************************/
+/***/ "./source/shared/entityParts/user.js":
+/*!*******************************************!*\
+  !*** ./source/shared/entityParts/user.js ***!
+  \*******************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entity.js */ "./source/shared/entities/entity.js");
-/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entities/schema-states.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
 
 
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+  instance(options = {}) {
+    const {
+      name = '',
+      email = '',
+      password = '',
+      password2 = '',
+      spotifyRefreshToken = null,
+      //?
+      socketId = null
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
+      name,
+      email,
+      password,
+      password2,
+      spotifyRefreshToken,
+      socketId
+    }); //TODO Ensure that this is only used as an instance then remove this.
 
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      constructorName: 'User'
+    });
+  },
 
-/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('User', _entity_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      name: '',
-      email: '',
-      password: '',
-      password2: '',
-      spotifyRefreshToken: null,
-      socketId: null
-    }
-  }),
-
-  staticProperties(parent) {
-    parent.children.push(this);
-    this.schema = {
-      //G 0 = unused, 1 = optional, 2 = required
-      id: {
-        columnName: 'id',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["auto"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"]
-      },
-      name: {
-        columnName: 'name',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      email: {
-        columnName: 'email',
-        rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].string.validate,
-        //TODO Email rule.
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      password: {
-        columnName: 'password',
-        rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["password"].validate,
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["required"],
-        get: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
-        edit: {
-          in: true,
-          out: false,
-          check: 1
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      schema: {
+        //G 0 = unused, 1 = optional, 2 = required
+        id: {
+          columnName: 'id',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["id"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"]
         },
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
-      },
-      spotifyRefreshToken: {
-        columnName: 'spotifyRefreshToken',
-        rule: () => {},
-        //TODO empty for now
-        add: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"],
-        get: {
-          in: false,
-          out: true,
-          check: 0
+        name: {
+          columnName: 'name',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["name"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
         },
-        edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["optional"],
-        remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_2__["unused"]
+        email: {
+          columnName: 'email',
+          rule: _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].string.validate,
+          //TODO Email rule.
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        password: {
+          columnName: 'password',
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_1__["password"].validate,
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
+          get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"],
+          edit: {
+            in: true,
+            out: false,
+            check: 1
+          },
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        },
+        spotifyRefreshToken: {
+          columnName: 'spotifyRefreshToken',
+          rule: () => {},
+          //TODO empty for now
+          add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"],
+          get: {
+            in: false,
+            out: true,
+            check: 0
+          },
+          edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
+          remove: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["unused"]
+        }
       }
-    };
+    });
     this.updateFilters();
   }
 
@@ -4259,9 +4266,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LiveQuery", function() { return LiveQuery; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "subscriptionParts", function() { return subscriptionParts; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Subscription", function() { return Subscription; });
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/shared/entities/index.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
-
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 class LiveTable {
   constructor(options = {}) {
@@ -4269,7 +4274,7 @@ class LiveTable {
       Entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       Entity,
       liveQueries: [],
       cachedEntities: []
@@ -4277,11 +4282,30 @@ class LiveTable {
   }
 
 }
-_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(LiveTable, {
-  makeTables() {
-    return new Map(_entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Entity"].children.map(EntityClass => [EntityClass, new this({
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(LiveTable, {
+  tableEntities: [],
+
+  makeTables({
+    User,
+    Playlist,
+    Track
+  }) {
+    this.tableEntities.push(User, Playlist, Track);
+    return new Map(this.tableEntities.map(EntityClass => [EntityClass, new this({
       Entity: EntityClass
     })]));
+  },
+
+  tableToEntity(tableName) {
+    //TODO Refactor this.
+    const FoundEntity = this.tableEntities.find(tableEntity => tableEntity.table === tableName);
+
+    if (FoundEntity === undefined) {
+      throw new Error(`Could not convert table name ${tableName} to an entity class. The corresponding entity class was not found.`);
+    }
+
+    return FoundEntity; //R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+    //R any metadata (table) should be sent separately (or implicitly) from the query
   }
 
 });
@@ -4292,7 +4316,7 @@ class CachedEntity {
       entity
     } = options; //TODO See if any of these can be validated or made constant.
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       table,
       entity,
       liveQueryRefs: [],
@@ -4310,8 +4334,8 @@ class LiveQuery {
       query
     } = options; //? Not sure why this is being done.
 
-    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query);
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(query)) query = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(query);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       table,
       query,
       cachedEntityRefs: [],
@@ -4322,7 +4346,7 @@ class LiveQuery {
 
 } // live-data-server uses an augmented Subscription class.
 
-const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["ClassParts"]({
   instance(options = {}) {
     const {
       liveQuery,
@@ -4335,7 +4359,7 @@ const subscriptionParts = new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Cl
       onRemove = () => {} // Entities removed.
 
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       liveQuery,
       onUpdate,
       onAdd,
@@ -5070,7 +5094,7 @@ class ClassParts {
   }
 
 } // Immediately wraps and invokes the passed part.
-//G Only useful for cases where a reference to 'this' is preferable over <Class> or <Class>.prototype.
+//G Only useful for cases where a ClassParts instance has not been created.
 //? Not sure if this is even really necessary.
 //R Intercept and instance parts not included because they can be called directly from the constructor.
 

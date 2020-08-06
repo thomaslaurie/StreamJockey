@@ -1,9 +1,14 @@
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
+//! Side-effects
+
+//TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
+// when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
+
+//TODO this may be unrelated but it seems the liveQueries here are also piling up
+
+//TODO It seems like many subscriptions are being called but not as many un-subscriptions.
+
+//TODO sockets need better error handling just like the koa router
+
 
 // EXTERNAL
 import http from 'http'; //TODO consider changing to the https module?
@@ -21,6 +26,8 @@ import {
 import {
 	Entity,
 	User,
+	Playlist,
+	Track,
 } from './entities/index.js';
 import {
 	LiveTable,
@@ -35,22 +42,6 @@ import {
 	define,
 } from '../shared/utility/index.js';
 
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║
-//  ██║██║╚██╗██║██║   ██║
-//  ██║██║ ╚████║██║   ██║
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
-
-//TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
-// when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
-
-//TODO this may be unrelated but it seems the liveQueries here are also piling up
-
-//TODO It seems like many subscriptions are being called but not as many un-subscriptions.
-
-//TODO sockets need better error handling just like the koa router
-
 class Subscription {
 	constructor(options = {}) {
 		subscriptionParts.instance(this, options);
@@ -60,17 +51,17 @@ class Subscription {
 	}
 }
 
-export default {
+const liveDataServer = {
 	app: null,
 	socket: null,
-	tables: LiveTable.makeTables(),
+	tables: LiveTable.makeTables({User, Playlist, Track}),
 
 	start({
 		app,
-		socket,
+		socket: liveDataSocket,
 	}) {
 		this.app = app;
-		this.socket = socket;
+		this.socket = liveDataSocket;
 
 		this.socket.use((socket, next) => {
 			// Give the cookie session to the socket.
@@ -91,11 +82,11 @@ export default {
 				//! I don't think the cookie session receives this, though it isn't needed there so far
 				if (isInstanceOf(socket.session.user, User, 'User')) socket.session.user.socketId = socket.id;
 
-				socket.on('disconnect', async (reason) => {
+				socket.on('disconnect', async () => {
 					try {
 						console.log('DISCONNECT', socket.id);
 
-						await this.disconnect(socket.id).catch(rejected => { 
+						await this.disconnect(socket.id).catch((rejected) => {
 							//TODO handle better
 							console.error('subscription disconnect error:', rejected);
 						});
@@ -119,8 +110,8 @@ export default {
 							? socket.session.user
 							: new User({socketId: socket.id});
 
-						//! using Entity.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
-						const result = await this.add(Entity.tableToEntity(table), query, user);
+						//! using LiveTable.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
+						const result = await this.add(LiveTable.tableToEntity(table), query, user);
 
 						//! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
 						//L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
@@ -138,7 +129,7 @@ export default {
 							? socket.session.user
 							: new User({socketId: socket.id});
 
-						const result = await this.remove(Entity.tableToEntity(table), query, user);
+						const result = await this.remove(LiveTable.tableToEntity(table), query, user);
 						callback(fclone(result));
 					} catch (error) {
 						logPropagate(error);
@@ -162,26 +153,28 @@ export default {
 		return this.tables.get(Entity);
 	},
 	findLiveQuery(table, query) {
-		return table.liveQueries.find(liveQuery => deepCompare(query, liveQuery.query, {compareFunction: compareUnorderedArrays}));
+		return table.liveQueries.find((liveQuery) => deepCompare(query, liveQuery.query, {compareFunction: compareUnorderedArrays}));
 	},
 	findSubscription(liveQuery, user) {
-		return liveQuery.subscriptions.find(subscription => subscription.user.socketId === user.socketId);
+		return liveQuery.subscriptions.find((subscription) => subscription.user.socketId === user.socketId);
 	},
-	
-	//C subscribers/users are identified by their socketId, this is so that not-logged-in clients can still subscribe to data, while still allowing the full user object to be the subscriber
+
+	// Subscribers/users are identified by their socketId, this is so that not-logged-in clients can still subscribe to data, while still allowing the full user object to be the subscriber.
 	async add(Entity, query, user) {
-		//C process query
-		//TODO//? getMimic was being called with this query: [{playlistId: null}], twice, very rapidly, however even though they are the same query, the one called second resolves before the first one, why? afaik this isn't causing any issues, but it could later
+		// Process query.
+		//TODO //? getMimic was being called with this query: [{playlistId: null}], twice, very rapidly, however even though they are the same query, the one called second resolves before the first one, why? afaik this isn't causing any issues, but it could later.
 		const processedQuery = await Entity.getMimic(query);
 
-		//C find table
+		// Find table.
 		const table = this.findTable(Entity);
-		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-			origin: 'liveData.add()',
-			reason: 'table is not an LiveTable',
-		});
+		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+			throw new Err({
+				origin: 'liveData.add()',
+				reason: 'table is not an LiveTable',
+			});
+		}
 
-		//C find liveQuery, add if it doesn't exist
+		// Find liveQuery, add if it doesn't exist.
 		let liveQuery = this.findLiveQuery(table, processedQuery);
 		if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
 			liveQuery = new LiveQuery({
@@ -191,7 +184,7 @@ export default {
 			this.findTable(Entity).liveQueries.push(liveQuery);
 		}
 
-		//C find subscription, add if it doesn't exist
+		// Find subscription, add if it doesn't exist.
 		let subscription = this.findSubscription(liveQuery, user);
 		if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
 			subscription = new Subscription({
@@ -201,7 +194,7 @@ export default {
 			liveQuery.subscriptions.push(subscription);
 		}
 
-		//C update user
+		// Update user.
 		Object.assign(subscription.user, user);
 
 		return new Success({
@@ -213,50 +206,56 @@ export default {
 	async remove(Entity, query, user) {
 		//? if the client unsubscribes on the client-side but is unable to unsubscribe on the server-side, the subscription will sit there (and send messages) until the client disconnects, is this ok? maybe consider a timeout system?
 
-		//C process query
+		// Process query.
 		const processedQuery = await Entity.getMimic(query);
-		
-		//C find table
-		const table = this.findTable(Entity);
-		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-			origin: 'liveData.remove()',
-			reason: 'table is not an LiveTable',
-		});
 
-		//C find liveQuery index
+		// Find table.
+		const table = this.findTable(Entity);
+		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+			throw new Err({
+				origin: 'liveData.remove()',
+				reason: 'table is not an LiveTable',
+			});
+		}
+
+		// Find liveQuery index.
 		const liveQuery = this.findLiveQuery(table, processedQuery);
 		const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-		if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery') || liveQueryIndex < 0) return new Warn({
-			origin: 'Subscriptions.remove()',
-			message: 'no subscription found for this query',
-			content: {
-				Entity,
-				query: processedQuery,
-				liveQueryIndex,
-			},
-		});
+		if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery') || liveQueryIndex < 0) {
+			return new Warn({
+				origin: 'Subscriptions.remove()',
+				message: 'no subscription found for this query',
+				content: {
+					Entity,
+					query: processedQuery,
+					liveQueryIndex,
+				},
+			});
+		}
 
-		//C find subscription
+		// Find subscription.
 		const subscription = this.findSubscription(liveQuery, user);
 		const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-		if (!isInstanceOf(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) return new Warn({
-			origin: 'Subscriptions.remove()',
-			message: 'no subscriber found for this user',
-			content: {
-				liveQuerySubscriptions: liveQuery.subscriptions,
-				socketId: user.socketId,
-				subscriptionIndex,
-			},
-		});
+		if (!isInstanceOf(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) {
+			return new Warn({
+				origin: 'Subscriptions.remove()',
+				message: 'no subscriber found for this user',
+				content: {
+					liveQuerySubscriptions: liveQuery.subscriptions,
+					socketId: user.socketId,
+					subscriptionIndex,
+				},
+			});
+		}
 
-		//C remove subscription
+		// Remove subscription.
 		liveQuery.subscriptions.splice(subscriptionIndex, 1);
 
-		//C if no more subscriptions, remove liveQuery
+		// If no more subscriptions, remove liveQuery.
 		if (liveQuery.subscriptions.length <= 0) {
 			this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
 		}
-	
+
 		return new Success({
 			origin: 'removeSubscriber()',
 			message: 'removed subscriber',
@@ -265,32 +264,34 @@ export default {
 	},
 
 	async notify(Entity, entities, timestamp) {
-		//C for each liveQuery
+		// For each liveQuery.
 		const table = this.findTable(Entity);
-		if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-			origin: 'liveData.notify()',
-			reason: 'table is not an LiveTable',
-		});
+		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+			throw new Err({
+				origin: 'liveData.notify()',
+				reason: 'table is not an LiveTable',
+			});
+		}
 
 		for (const liveQuery of table.liveQueries) {
-			//C for each passed entity
+			// For each passed entity.
 			for (const entity of entities) {
-				//C if any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new
+				// If any part of the liveQuery.query matches the entity as a subset && if the notification timestamp is new.
 				//R query is an array of object queries, must iterate each then subset match, or else nothing will match because query switches from superset to subset
 				if (
 					liveQuery.query.some(part => deepCompare(part, entity, {
 						compareFunction: compareUnorderedArrays,
 						subset: true,
 						resultIfTooDeep: true,
-					})) &&
-					timestamp > liveQuery.timestamp
+					}))
+					&& timestamp > liveQuery.timestamp
 				) {
-					//C set the new timestamp
+					// Set the new timestamp.
 					liveQuery.timestamp = timestamp;
 
-					//C for each subscription
+					// For each subscription.
 					for (const subscription of liveQuery.subscriptions) {
-						//C emit a socket notification to the subscriber
+						// Emit a socket notification to the subscriber.
 						this.socket.to(subscription.user.socketId).emit('notify', {
 							table: Entity.table,
 							query: liveQuery.query,
@@ -306,25 +307,31 @@ export default {
 		//? unsubscribe all on disconnect and resubscribe all on connect? or have a timeout system?
 		//! this doesn't use the remove() method, because the specific subscription (query + user) aren't known, this finds all subscriptions with that user
 
-		for (const pair of this.tables) {
-			const table = pair[1];
-			for (let i = table.liveQueries.length-1; i > -1; i--) {
+		for (const [, table] of this.tables) {
+			for (let i = table.liveQueries.length - 1; i > -1; i--) {
 				const liveQuery = table.liveQueries[i];
-				//C for each subscription
-				for (let j = liveQuery.subscriptions.length-1; j > -1; j--) {
+				// For each subscription.
+				for (let j = liveQuery.subscriptions.length - 1; j > -1; j--) {
 					const subscription = liveQuery.subscriptions[j];
-					//C if it matches the passed user (by socketId), remove it
+					// If it matches the passed user (by socketId), remove it.
 					if (subscription.user.socketId === socketId) {
 						liveQuery.subscriptions.splice(j, 1);
 					}
 				}
 
-				//C if the liveQuery no longer has any subscriptions, remove it
+				// If the liveQuery no longer has any subscriptions, remove it.
 				if (liveQuery.subscriptions.length <= 0) table.liveQueries.splice(i, 1);
 			}
 		}
 	},
 };
+
+// Supply Entity with its needed dependency to live-data-server.
+//R //! This is to avoid a circular dependency, however it is a side-effect.
+//TODO Resolve this side-effect.
+Entity.notify = liveDataServer.notify.bind(liveDataServer);
+
+export default liveDataServer;
 
 /* //TODO test:
 	no duplicate live queries

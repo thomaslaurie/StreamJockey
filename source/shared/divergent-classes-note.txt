@@ -1,0 +1,23 @@
+In this 
+
+	shared
+	/     \
+client   server
+
+model, 
+classes should NOT be defined at both the shared and client/server levels (without using an augmentation pattern). This is because any shared code that references the shared class, will have completely different instances than if the client/server classes were referenced.
+
+Any code that depends on divergent classes must either itself be divergent, or have an initializer where the client or server classes get passed.
+
+This is still preferable to augmentation because I believe augmentation counts as 'side-effects'. Currently and in the future there shouldn't be too many classes (in the entire project) that follow this divergent pattern.
+
+If some shared code needs to use either client or server classes, create a custom validator/test for it (consider adding a marker utility to ClassParts to make this easier). This hasn't been required yet.
+
+
+//DONE Move any shared entity classes out to client or server. Only have the parts remain.
+//DONE Convert anything that relied on the shared versions of these to an initializer.
+//DONE Complete the divergent classes to pass on all their arguments to the class parts and super.
+//UNEEDED Maybe create a marker instead?
+
+//DONE Replace Entity.children with an entityTypes list. This removes a circular dependency.
+//DONE Make sure this is done on both client and server.

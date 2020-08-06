@@ -259,11 +259,11 @@ import fclone from 'fclone';
 import {
 	pick,
 	setTimer,
-	wait,
-	one,
+	// wait,
+	// one,
 	any,
-	repeat,
-	keyCode,
+	// repeat,
+	// keyCode,
 	rules,
 } from '../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
@@ -272,7 +272,7 @@ import {
 	Err,
 } from '../shared/legacy-classes/error.js';
 import {
-	Success,
+	// Success,
 	Warn,
 } from '../shared/legacy-classes/success.js';
 import {
@@ -288,11 +288,11 @@ import {
 	Subscription,
 } from '../shared/live-data.js';
 import propagate from '../shared/propagate.js';
-import test from '../shared/test.js';
+// import test from '../shared/test.js';
 import isInstanceOf from '../shared/is-instance-of.js';
-import {
-	spotify,
-} from './sources/index.js';
+// import {
+// 	spotify,
+// } from './sources/index.js';
 
 
 //  ███╗   ███╗ ██████╗ ██████╗ ██╗   ██╗██╗     ███████╗
@@ -308,7 +308,7 @@ import {
 
 export default {
 	state: {
-		tables: LiveTable.makeTables(),
+		tables: LiveTable.makeTables({User, Playlist, Track}),
 		socket: null,
 		timeout: 10000, //C 10 seconds
 	},
@@ -323,7 +323,7 @@ export default {
 		findLiveQuery: state => ({table, query}) => {
 			return table.liveQueries.find(liveQuery => deepCompare(liveQuery.query, query, {compareFunction: compareUnorderedArrays}));
 		},
-		
+
 		getLiveData: state => subscription => {
 			//C validate
 			if (!isInstanceOf(subscription, Subscription, 'Subscription')) throw new Err({
@@ -962,12 +962,13 @@ export default {
 			});
 
 			context.state.socket.on('notify', async ({table, query, timestamp}) => {
-				const TargetEntity = Entity.tableToEntity(table);
+				const TargetEntity = LiveTable.tableToEntity(table);
 				context.dispatch('update', {Entity: TargetEntity, query, timestamp});
 			});
 
 			//C socket test
 			//TODO rewrite this
+			/*
 			context.state.socket.test = async function () {
 				Track.placeholder = {
 					playlistId: 2, 
@@ -1112,6 +1113,7 @@ export default {
 				delete Playlist.placeholder;
 				delete User.placeholder;
 			};
+			*/
 			//await context.state.socket.test();
 
 			
@@ -1119,6 +1121,7 @@ export default {
 			// await context.dispatch('test');
 		},
 
+		/*
 		async test(context) {
 			//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
 
@@ -1302,5 +1305,6 @@ export default {
 			//C this refreshes the page until the test fails
 			if (passed) document.location.reload();
 		},
+		*/
 	},
 };

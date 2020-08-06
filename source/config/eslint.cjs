@@ -30,6 +30,7 @@ const rules = {
 		}],
 		'no-shadow-restricted-names': [on],
 		'no-undef':                   [on],
+		//G If triggered by a de-structured array, values can be ignored with commas: const [x, , y] = foo;
 		'no-unused-vars':             [on, {
 			vars:               'all',
 			args:               'after-used',
@@ -146,7 +147,7 @@ const rules = {
 		number: {
 			'no-floating-decimal': [on],
 			'no-magic-numbers':    [on, {
-				ignore: [0, 1],
+				ignore: [-1, 0, 1],
 				ignoreArrayIndexes: true,
 			}],
 			'no-octal':                [on],

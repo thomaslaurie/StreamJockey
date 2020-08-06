@@ -1,7 +1,4 @@
 import {
-	Entity,
-} from './entities/index.js';
-import {
 	any,
 	define,
 	rules,
@@ -21,8 +18,21 @@ export class LiveTable {
 	}
 }
 define.constant(LiveTable, {
-	makeTables() {
-		return new Map(Entity.children.map((EntityClass) => [EntityClass, new this({Entity: EntityClass})]));
+	tableEntities: [],
+	makeTables({User, Playlist, Track}) {
+		this.tableEntities.push(User, Playlist, Track);
+		return new Map(this.tableEntities.map((EntityClass) => [EntityClass, new this({Entity: EntityClass})]));
+	},
+	tableToEntity(tableName) {
+		//TODO Refactor this.
+		const FoundEntity = this.tableEntities.find((tableEntity) => tableEntity.table === tableName);
+		if (FoundEntity === undefined) {
+			throw new Error(`Could not convert table name ${tableName} to an entity class. The corresponding entity class was not found.`);
+		}
+		return FoundEntity;
+
+		//R get requests should be a raw object, not an sj.Entity, because the queries are sensitive to extra/default information
+		//R any metadata (table) should be sent separately (or implicitly) from the query
 	},
 });
 
