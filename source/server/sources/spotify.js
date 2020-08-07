@@ -20,7 +20,7 @@ import {
 import { 
 	Credentials,
 } from '../../shared/legacy-classes/success.js';
-import Source from '../../shared/source.js';
+import Source from '../../server/source.js';
 import {
 	User,
 } from '../entities/index.js';

@@ -1,4 +1,4 @@
-import Source from '../../shared/source.js';
+import Source from '../../server/source.js';
 
 const youtube = new Source({
 	name: 'youtube',

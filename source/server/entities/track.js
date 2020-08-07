@@ -14,10 +14,11 @@ import {
 	Success,
 	SuccessList,
 } from '../../shared/legacy-classes/success.js';
-import Source from '../../shared/source.js';
+import Source from '../../server/source.js';
 import {
 	trackParts,
 } from '../../shared/entityParts/index.js';
+import {validateSource} from '../../shared/entityParts/track.js';
 import propagate from '../../shared/propagate.js';
 import parsePostgresError from '../parse-postgres-error.js';
 import isEmpty from '../legacy/is-empty.js';
@@ -31,6 +32,13 @@ export default class Track extends Entity {
 		trackParts.intercept(...args);
 		super(...args);
 		trackParts.instance(this, ...args);
+
+		const [{source}] = args;
+		validateSource({
+			instance: this,
+			SourceClass: Source,
+			value: source,
+		});
 	}
 }
 trackParts.prototype(Track);

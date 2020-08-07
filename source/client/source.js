@@ -10,25 +10,42 @@
 	still some issues with playback, try rapid clicking seek, etc.
 */
 
-import Source from '../shared/source.js';
+import sourceParts from '../shared/source-parts.js';
+import {define} from '../shared/utility/index.js';
 
-Source.augmentClass({
-	constructorParts(parent) {
-		return {
-			defaults: {
-				//TODO change these off undefined
-				auth: undefined,
-				request: undefined,
-				getAccessToken: undefined,
+export default class Source {
+	constructor(...args) {
+		sourceParts.intercept(...args);
+		sourceParts.instance(this, ...args);
+		const [{
+			//TODO Create defaults.
+			auth,
+			request,
+			getAccessToken,
 
-				search: undefined,
-	
-				player: undefined,
-				loadPlayer: undefined,
-				playback: undefined,
-			},
-		};
-	},
-});
+			search,
 
-export default Source;
+			player,
+			loadPlayer,
+			playback,
+		}] = args;
+
+		define.constant(this, {
+			auth,
+			request,
+			getAccessToken,
+
+			player,
+			loadPlayer,
+		});
+
+		//TODO Make these constant.
+		define.writable(this, {
+			search,
+			playback,
+		});
+	}
+}
+
+sourceParts.prototype(Source);
+sourceParts.static(Source);

@@ -9,7 +9,6 @@ import {
 	define,
 	ClassParts,
 } from '../utility/index.js';
-import Source from '../source.js';
 import * as projectRules from '../project-rules.js';
 
 export default new ClassParts({
@@ -26,19 +25,6 @@ export default new ClassParts({
 			link       = null,
 		} = options;
 
-		//! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-		let {source = null} = options;
-
-		// Find existing source by track.source.name and set it as the reference.
-		if (rules.object.test(source)) {
-			const found = Source.instances.find((sourceInstance) => sourceInstance.name === source.name);
-			if (found) {
-				source = found;
-			} else {
-				throw new Error('Source was passed but it is not an existing source.');
-			}
-		}
-
 		define.writable(this, {
 			playlistId,
 			position,
@@ -47,12 +33,8 @@ export default new ClassParts({
 			name,
 			duration,
 			link,
-
-			source,
-		});
-
-		//TODO Ensure that this is only used as an instance then remove this.
-		define.constant(this, {
+			
+			//TODO Ensure that this is only used as an instance then remove this.
 			constructorName: 'Track',
 		});
 	},
@@ -106,7 +88,9 @@ export default new ClassParts({
 				},
 				source: {
 					columnName: 'source',
-					rule: projectRules.registeredSource.validate,
+					//TODO Split source schema validation between client and server because they use different instances.
+					rule: () => {},
+					// rule: Source.validateRegistration.bind(Source),
 		
 					add: required,
 					get: optional,
@@ -144,3 +128,20 @@ export default new ClassParts({
 		});
 	},
 });
+
+export function validateSource({instance, SourceClass, value}) {
+	// Validate passed source against registered instances.
+	//R Must be defined on client/server because they use different Source classes.
+	let source = null;
+	if (rules.object.test(value)) {
+		const found = SourceClass.instances.find((sourceInstance) => sourceInstance.name === value.name);
+		if (found) {
+			source = found;
+		} else {
+			throw new Error('Source was passed but it is not an existing source.');
+		}
+	}
+	define.writable(instance, {
+		source,
+	});
+}

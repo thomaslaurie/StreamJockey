@@ -1,11 +1,20 @@
-import Source from '../shared/source.js';
+import sourceParts from '../shared/source-parts.js';
+import {define} from '../shared/utility/index.js';
 
-Source.augmentClass({
-	constructorProperties: parent => ({
-		defaults: {
-			serverTestProp: null,
-		},
-	}),
-});
+export default class Source {
+	constructor(...args) {
+		sourceParts.intercept(...args);
+		sourceParts.instance(this, ...args);
 
-export default Source;
+		const [{
+			serverTestProp = null,
+		}] = args;
+
+		define.constant(this, {
+			serverTestProp,
+		});
+	}
+}
+
+sourceParts.prototype(Source);
+sourceParts.static(Source);

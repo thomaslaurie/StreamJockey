@@ -1917,7 +1917,7 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../shared/source.js */ "./source/shared/source.js");
+/* harmony import */ var _client_source_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../client/source.js */ "./source/client/source.js");
 /* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/client/ui/vue/track/TrackDisplayList.vue");
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../entities/index.js */ "./source/client/entities/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
@@ -1946,7 +1946,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       default: null,
 
       validator(value) {
-        return _shared_source_js__WEBPACK_IMPORTED_MODULE_1__["default"].instances.includes(value);
+        return _client_source_js__WEBPACK_IMPORTED_MODULE_1__["default"].instances.includes(value);
       }
 
     },
@@ -16546,6 +16546,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entity.js */ "./source/client/entities/entity.js");
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entityParts/track.js */ "./source/shared/entityParts/track.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+
+
 
 
 class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -16557,6 +16561,14 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["trackParts"].intercept(...args);
     super(...args);
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_1__["trackParts"].instance(this, ...args);
+    var [{
+      source
+    }] = args;
+    Object(_shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_2__["validateSource"])({
+      instance: this,
+      SourceClass: _source_js__WEBPACK_IMPORTED_MODULE_3__["default"],
+      value: source
+    });
   }
 
 }
@@ -19254,7 +19266,9 @@ function _logout() {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_source_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/source.js */ "./source/shared/source.js");
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Source; });
+/* harmony import */ var _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/source-parts.js */ "./source/shared/source-parts.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 //! Sources must manually set their playback.state.source as themselves.
 //R This caused a bug earlier when the playback got externalized and was no longer available in the initial afterInitialize step.
 
@@ -19267,24 +19281,42 @@ __webpack_require__.r(__webpack_exports__);
 	still some issues with playback, try rapid clicking seek, etc.
 */
 
-_shared_source_js__WEBPACK_IMPORTED_MODULE_0__["default"].augmentClass({
-  constructorParts(parent) {
-    return {
-      defaults: {
-        //TODO change these off undefined
-        auth: undefined,
-        request: undefined,
-        getAccessToken: undefined,
-        search: undefined,
-        player: undefined,
-        loadPlayer: undefined,
-        playback: undefined
-      }
-    };
+
+class Source {
+  constructor() {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].intercept(...args);
+    _shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].instance(this, ...args);
+    var [{
+      //TODO Create defaults.
+      auth,
+      request,
+      getAccessToken,
+      search,
+      player,
+      loadPlayer,
+      playback
+    }] = args;
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      auth,
+      request,
+      getAccessToken,
+      player,
+      loadPlayer
+    }); //TODO Make these constant.
+
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      search,
+      playback
+    });
   }
 
-});
-/* harmony default export */ __webpack_exports__["default"] = (_shared_source_js__WEBPACK_IMPORTED_MODULE_0__["default"]);
+}
+_shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].prototype(Source);
+_shared_source_parts_js__WEBPACK_IMPORTED_MODULE_0__["default"].static(Source);
 
 /***/ }),
 
@@ -38766,16 +38798,15 @@ var auto = {
 /*!********************************************!*\
   !*** ./source/shared/entityParts/track.js ***!
   \********************************************/
-/*! exports provided: default */
+/*! exports provided: default, validateSource */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validateSource", function() { return validateSource; });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../source.js */ "./source/shared/source.js");
-/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
-
+/* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 
 
 
@@ -38792,22 +38823,7 @@ __webpack_require__.r(__webpack_exports__);
       //! Don't use 0 here as it counts as a 'set' value.
       duration = null,
       link = null
-    } = options; //! before was sj.noSource, but this creates a circular reference error (only sometimes??)
-
-    var {
-      source = null
-    } = options; // Find existing source by track.source.name and set it as the reference.
-
-    if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(source)) {
-      var found = _source_js__WEBPACK_IMPORTED_MODULE_2__["default"].instances.find(sourceInstance => sourceInstance.name === source.name);
-
-      if (found) {
-        source = found;
-      } else {
-        throw new Error('Source was passed but it is not an existing source.');
-      }
-    }
-
+    } = options;
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       playlistId,
       position,
@@ -38816,10 +38832,7 @@ __webpack_require__.r(__webpack_exports__);
       name,
       duration,
       link,
-      source
-    }); //TODO Ensure that this is only used as an instance then remove this.
-
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      //TODO Ensure that this is only used as an instance then remove this.
       constructorName: 'Track'
     });
   },
@@ -38829,7 +38842,7 @@ __webpack_require__.r(__webpack_exports__);
       schema: {
         id: {
           columnName: 'id',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["id"].validate,
           add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["auto"],
           get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
           edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
@@ -38837,7 +38850,7 @@ __webpack_require__.r(__webpack_exports__);
         },
         playlistId: {
           columnName: 'playlistId',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["id"].validate,
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["id"].validate,
           add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
           get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
           edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
@@ -38845,7 +38858,7 @@ __webpack_require__.r(__webpack_exports__);
         },
         position: {
           columnName: 'position',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["position"].validate,
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["position"].validate,
           add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
           get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
           edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
@@ -38853,7 +38866,7 @@ __webpack_require__.r(__webpack_exports__);
         },
         name: {
           columnName: 'name',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["name"].validate,
+          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_2__["name"].validate,
           add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
           get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
           edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
@@ -38870,7 +38883,9 @@ __webpack_require__.r(__webpack_exports__);
         },
         source: {
           columnName: 'source',
-          rule: _project_rules_js__WEBPACK_IMPORTED_MODULE_3__["registeredSource"].validate,
+          //TODO Split source schema validation between client and server because they use different instances.
+          rule: () => {},
+          // rule: Source.validateRegistration.bind(Source),
           add: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["required"],
           get: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
           edit: _schema_states_js__WEBPACK_IMPORTED_MODULE_0__["optional"],
@@ -38906,6 +38921,30 @@ __webpack_require__.r(__webpack_exports__);
   }
 
 }));
+function validateSource(_ref) {
+  var {
+    instance,
+    SourceClass,
+    value
+  } = _ref;
+  // Validate passed source against registered instances.
+  //R Must be defined on client/server because they use different Source classes.
+  var source = null;
+
+  if (_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(value)) {
+    var found = SourceClass.instances.find(sourceInstance => sourceInstance.name === value.name);
+
+    if (found) {
+      source = found;
+    } else {
+      throw new Error('Source was passed but it is not an existing source.');
+    }
+  }
+
+  _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(instance, {
+    source
+  });
+}
 
 /***/ }),
 
@@ -38942,10 +38981,8 @@ __webpack_require__.r(__webpack_exports__);
       password,
       password2,
       spotifyRefreshToken,
-      socketId
-    }); //TODO Ensure that this is only used as an instance then remove this.
-
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      socketId,
+      //TODO Ensure that this is only used as an instance then remove this.
       constructorName: 'User'
     });
   },
@@ -39816,7 +39853,7 @@ class Subscription {
 /*!****************************************!*\
   !*** ./source/shared/project-rules.js ***!
   \****************************************/
-/*! exports provided: id, position, name, description, color, password, registeredSource, visibilityState */
+/*! exports provided: id, position, name, description, color, password, visibilityState */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -39827,10 +39864,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "description", function() { return description; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "color", function() { return color; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "password", function() { return password; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "registeredSource", function() { return registeredSource; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visibilityState", function() { return visibilityState; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./source.js */ "./source/shared/source.js");
 //G This file is for global rules that are opinionated for this project.
 // For example: all identifiers shall be non-negative integers.
 //TODO Create test file. Had an error where value was being compared rather than value.length.
@@ -39913,15 +39948,6 @@ var password = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
 
 }); // Very Opinionated
 
-
-var registeredSource = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
-  validator(value) {
-    if (!_source_js__WEBPACK_IMPORTED_MODULE_1__["default"].isRegistered(value)) {
-      throw new Error('Source is not registered.');
-    }
-  }
-
-});
 var visibilityStates = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Enum"]('public', 'private', 'linkOnly'); // Basically an enum.
 
 var visibilityState = new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["Rule"]({
@@ -40127,67 +40153,98 @@ function _ref2() {
 
 /***/ }),
 
-/***/ "./source/shared/source.js":
-/*!*********************************!*\
-  !*** ./source/shared/source.js ***!
-  \*********************************/
+/***/ "./source/shared/source-parts.js":
+/*!***************************************!*\
+  !*** ./source/shared/source-parts.js ***!
+  \***************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./legacy-classes/base.js */ "./source/shared/legacy-classes/base.js");
-/* harmony import */ var _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./errors/internal-error.js */ "./source/shared/errors/internal-error.js");
-/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./errors/internal-error.js */ "./source/shared/errors/internal-error.js");
+/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (_legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Source', _legacy_classes_base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      name: undefined,
-      //! source.name is a unique identifier
-      register: false,
-      nullPrefix: '',
-      idPrefix: '',
-      credentials: new _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Credentials"](),
-      //TODO this should only be server-side
-      api: {},
-      scopes: [],
-      authRequestManually: true,
-      makeAuthRequestURL: function makeAuthRequestURL() {}
-    },
 
-    afterInitialize(accessory) {
-      //C add source to static source list: sj.Source.instances
-      //R Must be manually declared to register, as otherwise, temporary initializations get added and cause issue.
-      if (this.register) this.constructor.register(this);
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
+  instance() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    var {
+      name,
+      register = false,
+      nullPrefix = '',
+      idPrefix = '',
+      credentials = new _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Credentials"](),
+      //TODO This should only be server-side.
+      api = {},
+      scopes = [],
+      authRequestManually = true,
+      makeAuthRequestURL = () => {}
+    } = options,
+        rest = _objectWithoutProperties(options, ["name", "register", "nullPrefix", "idPrefix", "credentials", "api", "scopes", "authRequestManually", "makeAuthRequestURL"]);
+
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, _objectSpread({
+      name,
+      register,
+      nullPrefix,
+      idPrefix,
+      credentials,
+      api,
+      scopes,
+      authRequestManually,
+      makeAuthRequestURL
+    }, rest)); // Add source to static source list: sj.Source.instances.
+    //R Must be manually declared to register, as otherwise, temporary initializations get added and cause issue.
+
+    if (this.register) {
+      this.constructor.register(this);
     }
+  },
 
-  }),
-  staticProperties: parent => ({
-    instances: [],
+  static() {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+      instances: [],
 
-    register(source) {
-      if (!(source instanceof this)) {
-        throw new _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
-          message: 'A non-Source was registered.'
-        });
+      register(source) {
+        if (!(source instanceof this)) {
+          throw new _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_0__["default"]({
+            message: 'A non-Source was registered.'
+          });
+        }
+
+        this.instances.push(source);
+      },
+
+      find(name) {
+        return this.instances.find(instance => instance.name === name);
+      },
+
+      isRegistered(name) {
+        return this.find(name) !== undefined;
+      },
+
+      validateRegistration(value) {
+        if (!this.isRegistered(value)) {
+          throw new Error('Source is not registered.');
+        }
       }
 
-      this.instances.push(source);
-    },
+    });
+  }
 
-    find(name) {
-      return this.instances.find(instance => instance.name === name);
-    },
-
-    isRegistered(name) {
-      return this.find(name) !== undefined;
-    }
-
-  })
 }));
 
 /***/ }),

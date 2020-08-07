@@ -29,10 +29,8 @@ export default new ClassParts({
 			password2,
 			spotifyRefreshToken,
 			socketId,
-		});
 
-		//TODO Ensure that this is only used as an instance then remove this.
-		define.constant(this, {
+			//TODO Ensure that this is only used as an instance then remove this.
 			constructorName: 'User',
 		});
 	},
@@ -95,7 +93,7 @@ export default new ClassParts({
 				},
 			},
 		});
-		
+
 		this.updateFilters();
 	},
 });

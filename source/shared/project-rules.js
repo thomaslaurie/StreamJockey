@@ -91,16 +91,6 @@ export const password = new Rule({
 
 // Very Opinionated
 
-import Source from './source.js';
-
-export const registeredSource = new Rule({
-	validator(value) {
-		if (!Source.isRegistered(value)) {
-			throw new Error('Source is not registered.');
-		}
-	},
-});
-
 const visibilityStates = new Enum(
 	'public',
 	'private',

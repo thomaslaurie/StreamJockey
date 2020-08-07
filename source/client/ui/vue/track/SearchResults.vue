@@ -4,7 +4,7 @@
 		keyCode,
 		rules,
 	} from '../../../../shared/utility/index.js';
-	import Source from '../../../../shared/source.js';
+	import Source from '../../../../client/source.js';
 	import TrackDisplayList from '../track/TrackDisplayList.vue';
 	import {
 		Track,
