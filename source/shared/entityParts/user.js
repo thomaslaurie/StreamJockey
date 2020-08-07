@@ -11,6 +11,8 @@ import {
 	ClassParts,
 } from '../utility/index.js';
 
+export const defaultSocketId = null;
+
 export default new ClassParts({
 	instance(options = {}) {
 		const {
@@ -19,7 +21,7 @@ export default new ClassParts({
 			password  = '',
 			password2 = '',
 			spotifyRefreshToken = null, //?
-			socketId = null,
+			socketId = defaultSocketId,
 		} = options;
 
 		define.writable(this, {

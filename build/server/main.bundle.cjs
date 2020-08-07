@@ -1647,6 +1647,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/entityParts/user.js */ "./source/shared/entityParts/user.js");
 //! Side-effects
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
@@ -1657,6 +1658,7 @@ __webpack_require__.r(__webpack_exports__);
  //TODO consider changing to the https module?
 
  // INTERNAL
+
 
 
 
@@ -1720,7 +1722,7 @@ const liveDataServer = {
             }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
             if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User')) {
-              socket.session.user.socketId = _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].defaults.socketId;
+              socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_10__["defaultSocketId"];
             }
           } catch (error) {
             Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
@@ -3594,17 +3596,19 @@ function validateSource({
 /*!*******************************************!*\
   !*** ./source/shared/entityParts/user.js ***!
   \*******************************************/
-/*! exports provided: default */
+/*! exports provided: defaultSocketId, default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultSocketId", function() { return defaultSocketId; });
 /* harmony import */ var _schema_states_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./schema-states.js */ "./source/shared/entityParts/schema-states.js");
 /* harmony import */ var _project_rules_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../project-rules.js */ "./source/shared/project-rules.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
 
 
+const defaultSocketId = null;
 /* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
   instance(options = {}) {
     const {
@@ -3614,7 +3618,7 @@ __webpack_require__.r(__webpack_exports__);
       password2 = '',
       spotifyRefreshToken = null,
       //?
-      socketId = null
+      socketId = defaultSocketId
     } = options;
     _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].writable(this, {
       name,
@@ -3951,208 +3955,87 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/shared/legacy-classes/base.js":
-/*!**********************************************!*\
-  !*** ./source/shared/legacy-classes/base.js ***!
-  \**********************************************/
+/***/ "./source/shared/legacy-classes/base-result.js":
+/*!*****************************************************!*\
+  !*** ./source/shared/legacy-classes/base-result.js ***!
+  \*****************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseResult; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-//TODO Refactor this out.
-//R Common ancestors are bad because they create very tightly coupled code.
 
-/* //R Thought Process
-	//R Initially only static methods and variables I decided to define outside the class because static variables requires the use of a getter, which felt hacky.
-	//R But when I needed to augment the constructor of a class I ran into problems, so I decided to define classes like this - with an anonymous function being called on a minimal class. It makes the location of instance methods, instance variables, static methods, and static variables more clear. It also makes augmenting (not extending) a class easier (specifically the defaults), this is important for divergent client and server classes.
-	//R finally I found that I was repeating some parts of this anonymous function like const parent = Object.getPrototypeOf(this); and return this;, so I decided to make a factory function for all descendants of sj.Base, and a similar augmentation function, this was also done partly so that defaults, instanceMethods, and statics can be laid out with similar hierarchy.
-*/
-//C manually create sj.Base
-//TODO - consider changing all the constructorParts into functions (like static/prototypeProperties) that return an object to be assigned, (I think this may help with the defaults reference issue), but that also still can execute code. Maybe when this is done, then these parts can be brought up to the top level because they will now have their own closure context to process in
-
-
-class Base {
-  constructor(options) {
-    //! defaults are retrieved in the function via the static this.constructor.defaults property
-    this.constructor.construct.call(this, options);
-  }
-
-} //G use makeClass and augmentClass with assignment functions that can manually assign properties via this.x = 'x', and/or return an object that has those properties assigned (may use an arrow function to shorten the syntax). both work the same way, but the manual assignment has is able to do more - make getters, execute 'on create' functionality, create closures for extension, and delete properties (//! don't do this though)
-//TODO consider deep defaults
-
-
-Base.makeClass = function (name, parent, {
-  //G may contain functions: beforeInitialize, afterInitialize; boolean: allowUnknown; and object: defaults
-  //! anything in here (including stuff that shouldn't be) will overwrite staticProperties 
-  constructorParts = parent => ({}),
-  //G instance methods
-  prototypeProperties = parent => ({}),
-  //G static properties & methods
-  staticProperties = parent => ({})
-}) {
-  //C creates a descendant class of Base with easily accessible properties for later augmentation, applies staticProperties, before/afterInitialize, allowUnknown, and defaults to static self and instanceMethods to instance prototype
-  // VALIDATE
-  if (!(typeof name === 'string')) throw 'Base.makeClass() - cannot make class, name is not a string'; //! don't convert Base to this here, it will break ChildClass.makeClass({'X', Base, {...}})
-
-  if (!(parent === Base || parent.prototype instanceof Base)) throw 'Base.makeClass() - cannot make class, parent is not of type Base'; //C dynamically create class using inferred function names
-  //L https://stackoverflow.com/questions/33605775/es6-dynamic-class-names/33611096\
-  //G Base descendants pass new static constructorParts to extend from their parent's constructorParts rather than having an extended constructor
-  //C the allows Base.construct() to only be called once, which simplifies their 'on create' functionality
-
-  const MadeClass = {
-    [name]: class extends parent {
-      constructor(options) {
-        super(options);
-      }
-
-    }
-  }[name]; // ASSIGN
-  //C use .call to set 'this' as MadeClass, pass parent for ease of use and to avoid repeating Object.getPrototypeOf(this)
-  //C undefined properties won't be passed, and parent's will be used when looked up
-  //! ensure each part is only called once, as they may also have alternative assignment methods (such as on create functionality and getter/setter assignment)
-  //! staticProperties is assigned before constructorParts so that constructorParts will take priority if there are collisions
-
-  Object.assign(MadeClass, staticProperties.call(MadeClass, parent));
-  /* //R thoughts on defaults
-  	//R my first thought was to have default values that are undefined to be undeclared as well, so that properties the properties won't show up and will be more useful when overwriting another
-  	//R I wanted to mimic this behavior with instance options - however, this would be inconsistent when using the spread operator, as it functions like Object.assign
-  	//R however I'm now realizing that this would be more consistent and clear
-  	//R I thought about doing three different 'defaults' objects, invisible (wont be declared if undefined, ie default undefined), normal, and 'fixed'(?), ones that cannot be changed by options
-  	//R but this doesn't seem right, for invisible: when making a new object I should really stay away from using the literal undefined value, and any spread operators used will still function as expected, for fixed, these can just be defaults as they are, because I really shouldn't be overwriting them with options anyways, and they can always be changed later anyways
-  */
-
-  Object.assign(MadeClass, {
-    //C constructorParts defaults
-    //! these require empty defaults because of how construct() works - they are composed together rather than inheriting from the parent
-    beforeInitialize() {},
-
-    afterInitialize() {},
-
-    defaults: {} //! allowUnknown DOES inherit from the parent and should not have a default to avoid overwriting the parent's true value with an undefined value defaulted to false
-
-  }, constructorParts.call(MadeClass, parent)); //C instance methods are assigned to the instance.prototype so that new methods aren't created for each instance
-
-  Object.assign(MadeClass.prototype, prototypeProperties.call(MadeClass.prototype, parent)); //? shouldn't the this reference be the parent.prototype?
-
-  return MadeClass;
-};
-
-Base.augmentClass = function ({
-  constructorParts = parent => ({}),
-  prototypeProperties = parent => ({}),
-  staticProperties = parent => ({})
-}) {
-  //C add or overwrite existing properties with new ones
-  //G to extend: store old property in a variable not attached to this (a closure) and then compose the new property with it
-  //! when not just returning an object for assignment, ensure existing properties aren't being deleted, it goes against what this method should do
-  //! make sure each part is ony called once (see makeClass)
-  const parent = Object.getPrototypeOf(this);
-  Object.assign(this, staticProperties.call(this, parent)); //C don't overwrite defaults, assign them too
-
-  const constructorPartsResult = constructorParts.call(this, parent);
-
-  if (constructorPartsResult instanceof Object) {
-    //! Object.assign can handle undefined, but destructuring can't which is why constructorPartsResult needs to be checked
+class BaseResult {
+  constructor(options = {}) {
     const {
-      defaults = {},
+      // debug
+      log = false,
+      // info
+      code = 200,
+      type = 'Ok',
+      origin = '',
+      trace = '',
+      // //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
+      // content
+      message = '',
+      reason = '',
+      content = {},
       ...rest
-    } = constructorPartsResult;
-    Object.assign(this, rest);
-    Object.assign(this.defaults, defaults);
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+      log,
+      code,
+      type,
+      origin,
+      trace,
+      message,
+      reason,
+      content,
+      ...rest
+    });
   }
 
-  Object.assign(this.prototype, prototypeProperties.call(this.prototype, parent.prototype));
-};
-
-Base.defaults = {
-  // debug
-  log: false,
-  // info
-  code: 200,
-  type: 'Ok',
-  origin: '',
-  trace: '',
-  // //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
-  // content
-  message: '',
-  reason: '',
-  content: {}
-};
-Base.allowUnknown = false;
-
-Base.afterInitialize = function (accessory) {};
-
-Base.beforeInitialize = function (accessory) {};
-
-Base.trace = function () {
-  try {
-    throw Error('');
-  } catch (e) {
-    //TODO figure out how to properly display newlines as strings inside objects
-    //C get stack
-    const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
-
-    const stackTrace1 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-
-    const stackTrace2 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
-
-    let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-    ignore = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(ignore.join('|'), '.', '\.');
-    const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
-    const stackTrace3 = Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["replaceAll"])(stackTrace2, exp, '');
-    return stackTrace0;
+}
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult.prototype, {
+  announce() {
+    //R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
+    console.log(`▮\n${this.constructorName} ${this.origin} ${this.message}\n${this.constructor.trace()}\n▮`); //OLD//! Don't add these back in, they will be a circular dependency.
+    // if (this instanceof Error) {
+    // 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
+    // } else if (this instanceof Warn) {
+    // 	console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
+    // } else {
+    // 	console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //
+    // }
   }
-};
 
-Base.prototype.announce = function () {
-  //R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-  console.log(`▮\n${this.constructorName} ${this.origin} ${this.message}\n${this.constructor.trace()}\n▮`); //OLD//! Don't add these back in, they will be a circular dependency.
-  // if (this instanceof Error) {
-  // 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-  // } else if (this instanceof Warn) {
-  // 	console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
-  // } else {
-  // 	console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //
-  // }
-};
+});
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
+  allowUnknown: false,
 
-Base.construct = function (options = {}) {
-  const accessory = {
-    options
-  }; //C get prototype chain
+  trace() {
+    try {
+      throw Error('');
+    } catch (e) {
+      //TODO figure out how to properly display newlines as strings inside objects
+      //C get stack
+      const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
 
-  const chain = [this.constructor]; //C push the prototype of the last item in the chain until Base is reached
+      const stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-  while (chain[chain.length - 1] !== Base) chain.push(Object.getPrototypeOf(chain[chain.length - 1])); //C call ancestor's and own beforeInitialize() in descending order
+      const stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
 
+      let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
+      ignore = replaceAll(ignore.join('|'), '.', '\.');
+      const exp = new RegExp(`(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:${ignore})(?:.+?(?=\\n|\n|\r|$))`, 'g');
+      const stackTrace3 = replaceAll(stackTrace2, exp, '');
+      return stackTrace0;
+    }
+  }
 
-  for (let i = chain.length - 1; i >= 0; i--) chain[i].beforeInitialize.call(this, accessory); //C store constructor.name on this instance as constructorName so that it can be stringified and rebuilt
-
-
-  this.constructorName = this.constructor.name; //C assign the ancestor's and own defaults in descending order
-
-  const extendedDefaults = {};
-
-  for (let i = chain.length - 1; i >= 0; i--) Object.assign(extendedDefaults, chain[i].defaults);
-
-  const composed = {}; //C assign all properties from options
-
-  if (this.allowUnknown) Object.assign(composed, extendedDefaults, options); //C or only assign properties declared in defaults
-  else Object.assign(composed, extendedDefaults, Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(options, Object.keys(extendedDefaults))); //C then assign to instance non-undefined properties (so that anything that has the value undefined, will be undeclared)
-  //? is this preferable to simply using assign defined in places where it's needed?
-
-  Object.keys(composed).forEach(key => {
-    if (composed[key] !== undefined) this[key] = composed[key];
-  }); //C call ancestor's and own afterInitialize in order
-
-  for (let i = chain.length - 1; i >= 0; i--) chain[i].afterInitialize.call(this, accessory);
-
-  if (this.log) this.announce();
-};
-
-/* harmony default export */ __webpack_exports__["default"] = (Base);
+});
 
 /***/ }),
 
@@ -4171,63 +4054,93 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AuthRequired", function() { return AuthRequired; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Unreachable", function() { return Unreachable; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Timeout", function() { return Timeout; });
-/* harmony import */ var _base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
-const Err = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Error', _base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      log: true,
-      //TODO remove log: true from errors
-      code: 400,
-      type: 'Bad Request'
-    }
-  })
-});
-const ErrorList = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('ErrorList', Err, {
-  constructorParts: parent => ({
-    //C wrapper for an array with one or more errors
-    defaults: {
-      // OVERWRITE
-      reason: 'one or more errors occurred with items',
-      content: []
-    }
-  })
-}); // CUSTOM ERROR
 
-const SilentError = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('SilentError', Err, {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      log: false
-    }
-  })
-});
-const AuthRequired = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('AuthRequired', Err, {
-  //C used to communicate to client that the server does not have the required tokens and that the client must authorize
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      message: 'authorization required'
-    }
-  })
-});
-const Unreachable = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Unreachable', Err, {
-  //C used to indicate an unreachable place in the code
-  constructorParts: parent => ({
-    defaults: {
-      message: 'code reached a place that should be unreachable'
-    }
-  })
-});
-const Timeout = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Timeout', Err, {
-  //C used to indicate a timed-out function
-  constructorParts: parent => ({
-    defaults: {
-      message: 'request timed out'
-    }
-  })
-});
+class Err extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      log = true,
+      code = 400,
+      type = 'Bad Request'
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      log,
+      code,
+      type
+    });
+  }
+
+} // Wrapper for an array with one or more errors.
+
+class ErrorList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      reason = 'one or more errors occurred with items',
+      content = []
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      reason,
+      content
+    });
+  }
+
+} // CUSTOM ERROR
+
+class SilentError extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      log = false
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      log
+    });
+  }
+
+} // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
+
+class AuthRequired extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      message = 'authorization required'
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      message
+    });
+  }
+
+} // Used to indicate an unreachable place in the code.
+
+class Unreachable extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      message = 'code reached a place that should be unreachable'
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      message
+    });
+  }
+
+} // Used to indicate a timed-out function.
+
+class Timeout extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      message = 'request timed out'
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      message
+    });
+  }
+
+}
 
 /***/ }),
 
@@ -4244,57 +4157,86 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SuccessList", function() { return SuccessList; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Warn", function() { return Warn; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Credentials", function() { return Credentials; });
-/* harmony import */ var _base_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base.js */ "./source/shared/legacy-classes/base.js");
+/* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
 
-const Success = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Success', _base_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-  constructorParts: parent => ({
-    defaults: {
-      // NEW
-      timestamp: undefined
-    }
-  })
-});
-const SuccessList = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('SuccessList', Success, {
-  constructorParts: parent => ({
-    //C wrapper for an array of successful items
-    defaults: {
-      // OVERWRITE
-      reason: 'all items successful',
-      content: []
-    }
-  })
-});
-const Warn = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Warn', Success, {
-  constructorParts: parent => ({
-    defaults: {
-      // OVERWRITE
-      log: true
-    }
-  })
-});
-const Credentials = _base_js__WEBPACK_IMPORTED_MODULE_0__["default"].makeClass('Credentials', Success, {
-  constructorParts: parent => ({
-    //TODO allowUnknown: true,
-    defaults: {
+
+class Success extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      timestamp
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      timestamp
+    });
+  }
+
+} // Wrapper for an array of successful items.
+
+class SuccessList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      reason = 'all items successful',
+      content = []
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      reason,
+      content
+    });
+  }
+
+}
+class Warn extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options);
+    const {
+      log = true
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      log
+    });
+  }
+
+}
+class Credentials extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor(options = {}) {
+    super(options); //TODO allowUnknown: true,
+
+    const {
       //TODO this part should only be server-side 
       //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-      authRequestKey: Symbol(),
+      authRequestKey = Symbol(),
       //! this shouldn't break checkKey(), but also shouldn't match anything
-      authRequestTimestamp: 0,
-      authRequestTimeout: 300000,
+      authRequestTimestamp = 0,
+      authRequestTimeout = 300000,
       //C default 5 minutes
-      authRequestURL: '',
-      authCode: Symbol(),
-      accessToken: Symbol(),
-      expires: 0,
-      refreshToken: Symbol(),
-      refreshBuffer: 60000,
+      authRequestURL = '',
+      authCode = Symbol(),
+      accessToken = Symbol(),
+      expires = 0,
+      refreshToken = Symbol(),
+      refreshBuffer = 60000,
       //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-      scopes: []
-    }
-  })
-});
+      scopes = []
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+      authRequestKey,
+      authRequestTimestamp,
+      authRequestTimeout,
+      authRequestURL,
+      authCode,
+      accessToken,
+      expires,
+      refreshToken,
+      refreshBuffer,
+      scopes
+    });
+  }
+
+}
 
 /***/ }),
 

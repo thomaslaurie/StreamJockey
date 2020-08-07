@@ -41,6 +41,7 @@ import {
 import {
 	define,
 } from '../shared/utility/index.js';
+import { defaultSocketId } from '../shared/entityParts/user.js';
 
 class Subscription {
 	constructor(options = {}) {
@@ -93,7 +94,7 @@ const liveDataServer = {
 
 						//? socket won't be used anymore, so does anything really need to be deleted here?
 						if (isInstanceOf(socket.session.user, User, 'User')) {
-							socket.session.user.socketId = User.defaults.socketId;
+							socket.session.user.socketId = defaultSocketId;
 						}
 					} catch (error) {
 						logPropagate(error);

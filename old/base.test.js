@@ -1,4 +1,4 @@
-import test from '../test.js';
+import test from '../source/shared/test.js';
 import Base from './base.js';
 
 (async function () {
