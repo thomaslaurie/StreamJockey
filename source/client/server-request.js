@@ -12,8 +12,8 @@ import {
 	constants,
 	appendQueryParameters,
 } from '../shared/utility/index.js';
-import { 
-	safeStringify 
+import {
+	safeStringify,
 } from '../shared/derived-utility/index.js';
 import {
 	HTTPError,

@@ -21,7 +21,6 @@ import {
 } from '../shared/legacy-classes/error.js';
 import {
 	Success,
-	Warn,
 } from '../shared/legacy-classes/success.js';
 import {
 	Entity,
@@ -41,7 +40,8 @@ import {
 import {
 	define,
 } from '../shared/utility/index.js';
-import { defaultSocketId } from '../shared/entityParts/user.js';
+import {defaultSocketId} from '../shared/entityParts/user.js';
+import Warn from '../shared/warn.js';
 
 class Subscription {
 	constructor(options = {}) {

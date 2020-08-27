@@ -4,7 +4,7 @@
 // EXTERNAL
 //import btoa from 'btoa';
 import SpotifyWebApi from 'spotify-web-api-node'; //L https://github.com/thelinmichael/spotify-web-api-node
- 
+
 // INTERNAL
 import {
 	wait,
@@ -13,13 +13,9 @@ import {
 	rules,
 } from '../../shared/utility/index.js';
 import request from '../../shared/request.js';
-import { 
-	AuthRequired, 
+import {
 	Err,
 } from '../../shared/legacy-classes/error.js';
-import { 
-	Credentials,
-} from '../../shared/legacy-classes/success.js';
 import Source from '../../server/source.js';
 import {
 	User,
@@ -28,6 +24,8 @@ import {
 	URL_HEADER,
 } from '../../shared/constants.js';
 import * as session from '../session-methods.js';
+import {AuthRequired} from '../../shared/errors/index.js';
+import Credentials from '../../shared/credentials.js';
 
 const spotify = new Source({
 	name: 'spotify',

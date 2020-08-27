@@ -1,7 +1,5 @@
 import InternalError from './errors/internal-error.js';
-import {
-	Credentials,
-} from './legacy-classes/success.js';
+import Credentials from './credentials.js';
 import {
 	define,
 	ClassParts,
@@ -69,7 +67,7 @@ export default new ClassParts({
 				if (!this.isRegistered(value)) {
 					throw new Error('Source is not registered.');
 				}
-			}
+			},
 		});
 	},
 });

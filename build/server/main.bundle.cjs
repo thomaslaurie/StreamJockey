@@ -1648,6 +1648,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/entityParts/user.js */ "./source/shared/entityParts/user.js");
+/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
 //! Side-effects
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
@@ -1658,6 +1659,7 @@ __webpack_require__.r(__webpack_exports__);
  //TODO consider changing to the https module?
 
  // INTERNAL
+
 
 
 
@@ -1856,7 +1858,7 @@ const liveDataServer = {
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
 
     if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) {
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_11__["default"]({
         origin: 'Subscriptions.remove()',
         message: 'no subscription found for this query',
         content: {
@@ -1872,7 +1874,7 @@ const liveDataServer = {
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
 
     if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) {
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_11__["default"]({
         origin: 'Subscriptions.remove()',
         message: 'no subscriber found for this user',
         content: {
@@ -2809,11 +2811,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/credentials.js */ "./source/shared/credentials.js");
 //TODO consider moving this over to the globals-server stuff
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 // EXTERNAL
@@ -2829,7 +2832,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
+
+const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
   name: 'spotify',
   register: true,
   api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default.a({
@@ -2880,7 +2884,7 @@ const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
 Object.assign(spotify, {
   startAuthRequest: async function () {
     let pack = await auth.addRequestKey();
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
       authRequestKey: pack.key,
       authRequestTimestamp: pack.timestamp,
       authRequestTimeout: pack.timeout,
@@ -2925,7 +2929,7 @@ Object.assign(spotify, {
     } //C send the event and credentials for endAuthRequest() to pick up
 
 
-    emitter.emit(query.state, new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+    emitter.emit(query.state, new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
       //? sj.success here?
       authRequestKey: query.state,
       //? is this needed anymore?
@@ -2967,7 +2971,7 @@ Object.assign(spotify, {
         client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
       }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["URL_HEADER"]
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["URL_HEADER"]
     }).catch(rejected => {
       throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         log: true,
@@ -2978,13 +2982,13 @@ Object.assign(spotify, {
     }); //C store refresh token in database
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_8__["get"](ctx).then(result => result.content);
-    await _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].edit({
+    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__["get"](ctx).then(result => result.content);
+    await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
     }).then(resolved => {}); //C repack and return
 
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
       accessToken: result.access_token,
       expires: timestamp + result.expires_in,
       //refreshToken: result.refresh_token,
@@ -2994,12 +2998,12 @@ Object.assign(spotify, {
   },
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
-    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_8__["get"](ctx).then(result => result.content);
-    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__["get"](ctx).then(result => result.content);
+    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].visibleString.test(refreshToken)) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["AuthRequired"]();
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"]();
     } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
@@ -3011,7 +3015,7 @@ Object.assign(spotify, {
         client_id: process.env.SPOTIFY_CLIENT_ID,
         client_secret: process.env.SPOTIFY_CLIENT_SECRET
       }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["URL_HEADER"]
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["URL_HEADER"]
     }).catch(rejected => {
       throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         log: true,
@@ -3024,14 +3028,14 @@ Object.assign(spotify, {
     if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(result.refresh_token)) {
       //? better validation?
       //C store it
-      await _entities_index_js__WEBPACK_IMPORTED_MODULE_6__["User"].edit({
+      await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
     } //C send only the accessToken and the expiry time
 
 
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Credentials"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
       origin: 'sj.spotify.refreshToken()',
       accessToken: result.access_token,
       expires: timestamp + result.expires_in
@@ -3067,6 +3071,73 @@ Object.assign(youtube, {
 
 /***/ }),
 
+/***/ "./source/shared/class-registry.js":
+/*!*****************************************!*\
+  !*** ./source/shared/class-registry.js ***!
+  \*****************************************/
+/*! exports provided: default, sharedRegistry */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassRegistry; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sharedRegistry", function() { return sharedRegistry; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+/*
+	Provides a system for determining the class to reconstruct from a raw object passed between the client and server.
+	Inheritance is preserved as child instances will overwrite their parent's id.
+	//! //G Id's must be hard-coded and not generated.
+		Otherwise different realms (client, server) would produce different keys.
+		Use the class name for simplicity.
+*/
+
+class ClassRegistry {
+  constructor(idKey) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(idKey);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      idKey,
+      registry: []
+    });
+  }
+
+}
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(ClassRegistry.prototype, {
+  defineId(target, id) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(id); // Must be writable so that sub-classes can overwrite the id with a more specific one.
+
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(target, {
+      [this.idKey]: id
+    });
+  },
+
+  register(Class, id) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].constructor.validate(Class);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(id);
+    this.registry.forEach(registered => {
+      if (registered.Class === Class) {
+        throw new Error('Cannot register auto constructable class, as the class has already been registered.');
+      }
+
+      if (registered.id === id) {
+        throw new Error('Cannot register auto constructable class, as the id has already been registered.');
+      }
+    });
+    this.registry.push({
+      Class,
+      id
+    });
+  },
+
+  autoConstruct(value) {
+    const registered = this.registry.find(registered => registered.id === (value === null || value === void 0 ? void 0 : value[this.idKey]));
+    return registered === undefined ? value : new registered.Class(value);
+  }
+
+});
+const sharedRegistry = new ClassRegistry('sharedRegistryIdKey');
+
+/***/ }),
+
 /***/ "./source/shared/constants.js":
 /*!************************************!*\
   !*** ./source/shared/constants.js ***!
@@ -3097,6 +3168,56 @@ const APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.
 
 /***/ }),
 
+/***/ "./source/shared/credentials.js":
+/*!**************************************!*\
+  !*** ./source/shared/credentials.js ***!
+  \**************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Credentials; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+
+class Credentials {
+  constructor(options = {}) {
+    //TODO allowUnknown: true,
+    const {
+      //TODO This part should only be server-side.
+      //TODO Consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials.
+      authRequestKey = Symbol(),
+      //! This shouldn't break checkKey(), but also shouldn't match anything.
+      authRequestTimestamp = 0,
+      authRequestTimeout = 300000,
+      // default 5 minutes
+      authRequestURL = '',
+      authCode = Symbol(),
+      accessToken = Symbol(),
+      expires = 0,
+      refreshToken = Symbol(),
+      refreshBuffer = 60000,
+      // 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
+      scopes = []
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+      authRequestKey,
+      authRequestTimestamp,
+      authRequestTimeout,
+      authRequestURL,
+      authCode,
+      accessToken,
+      expires,
+      refreshToken,
+      refreshBuffer,
+      scopes
+    });
+  }
+
+}
+
+/***/ }),
+
 /***/ "./source/shared/derived-utility/fetch.js":
 /*!************************************************!*\
   !*** ./source/shared/derived-utility/fetch.js ***!
@@ -3116,11 +3237,31 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./source/shared/derived-utility/image.js":
+/*!************************************************!*\
+  !*** ./source/shared/derived-utility/image.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return image; });
+/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+// Returns a deep-cloned value for the purposes of debugging.
+//! Will destroy any data not compatible with JSON.
+
+function image(value) {
+  return JSON.parse(Object(_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value));
+}
+
+/***/ }),
+
 /***/ "./source/shared/derived-utility/index.js":
 /*!************************************************!*\
   !*** ./source/shared/derived-utility/index.js ***!
   \************************************************/
-/*! exports provided: fetch, safeStringify, urlRule */
+/*! exports provided: fetch, image, safeStringify, urlRule */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3128,11 +3269,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/shared/derived-utility/fetch.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "safeStringify", function() { return _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _image_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./image.js */ "./source/shared/derived-utility/image.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "image", function() { return _image_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./url.js */ "./source/shared/derived-utility/url.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "urlRule", function() { return _url_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "safeStringify", function() { return _safe_stringify_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./url.js */ "./source/shared/derived-utility/url.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "urlRule", function() { return _url_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
 
 
 
@@ -3149,15 +3294,16 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return safeStringify; });
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
-//TODO//L Consider: https://www.npmjs.com/package/safe-stable-stringify
-//TODO//L Consider: https://www.npmjs.com/package/flatted <--- preserves circular JSON
+//TODO //L Consider: https://www.npmjs.com/package/safe-stable-stringify
+//TODO //L Consider: https://www.npmjs.com/package/flatted <--- preserves circular JSON
+//TODO //? Does this account for JSON.stringify() throwing on BigInt?
 
-/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+function safeStringify(value) {
   return JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(value));
-});
-;
+}
 
 /***/ }),
 
@@ -3695,6 +3841,38 @@ const defaultSocketId = null;
 
 /***/ }),
 
+/***/ "./source/shared/errors/auth-required.js":
+/*!***********************************************!*\
+  !*** ./source/shared/errors/auth-required.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AuthRequired; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
+
+ // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
+
+const sharedRegistryId = 'AuthRequired';
+class AuthRequired {
+  constructor(options = {}) {
+    const {
+      message = 'authorization required'
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+      message
+    });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].defineId(this, sharedRegistryId);
+  }
+
+}
+_class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(AuthRequired, sharedRegistryId);
+
+/***/ }),
+
 /***/ "./source/shared/errors/custom-error.js":
 /*!**********************************************!*\
   !*** ./source/shared/errors/custom-error.js ***!
@@ -3772,28 +3950,40 @@ class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]
 /*!***************************************!*\
   !*** ./source/shared/errors/index.js ***!
   \***************************************/
-/*! exports provided: CustomError, HTTPError, InternalError, MultipleErrors, ParseError, UnexpectedValueThrown */
+/*! exports provided: AuthRequired, CustomError, HTTPError, InternalError, InvalidStateError, MultipleErrors, ParseError, UnexpectedValueThrown, UnreachableError */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CustomError", function() { return _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _auth_required_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./auth-required.js */ "./source/shared/errors/auth-required.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AuthRequired", function() { return _auth_required_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _http_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./http-error.js */ "./source/shared/errors/http-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "HTTPError", function() { return _http_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CustomError", function() { return _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _http_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./http-error.js */ "./source/shared/errors/http-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "HTTPError", function() { return _http_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _multiple_errors_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./multiple-errors.js */ "./source/shared/errors/multiple-errors.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MultipleErrors", function() { return _multiple_errors_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony import */ var _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./invalid-state-error.js */ "./source/shared/errors/invalid-state-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InvalidStateError", function() { return _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+/* harmony import */ var _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./multiple-errors.js */ "./source/shared/errors/multiple-errors.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MultipleErrors", function() { return _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+
+/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+
+/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+/* harmony import */ var _unreachable_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./unreachable-error.js */ "./source/shared/errors/unreachable-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnreachableError", function() { return _unreachable_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+
+
 
 
 
@@ -3826,6 +4016,37 @@ class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["defau
     super({
       userMessage,
       ...rest
+    });
+  }
+
+}
+
+/***/ }),
+
+/***/ "./source/shared/errors/invalid-state-error.js":
+/*!*****************************************************!*\
+  !*** ./source/shared/errors/invalid-state-error.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return InvalidStateError; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../derived-utility/index.js */ "./source/shared/derived-utility/index.js");
+
+
+
+class InvalidStateError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  constructor({
+    state,
+    ...rest
+  } = {}) {
+    super(rest);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      state: Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["image"])(state)
     });
   }
 
@@ -3937,6 +4158,34 @@ class UnexpectedValueThrown extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1_
 
 /***/ }),
 
+/***/ "./source/shared/errors/unreachable-error.js":
+/*!***************************************************!*\
+  !*** ./source/shared/errors/unreachable-error.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return UnreachableError; });
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+//G Used when a supposedly unreachable code path has been reached.
+
+class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor({
+    message = 'An unreachable code-path has been reached.',
+    ...rest
+  } = {}) {
+    super({
+      message,
+      ...rest
+    });
+  }
+
+}
+
+/***/ }),
+
 /***/ "./source/shared/is-instance-of.js":
 /*!*****************************************!*\
   !*** ./source/shared/is-instance-of.js ***!
@@ -3992,8 +4241,8 @@ class BaseResult {
       trace,
       message,
       reason,
-      content,
-      ...rest
+      content // ...rest, this causes issues, child class instances (User) will become very large and take very long to stringify
+
     });
   }
 
@@ -4043,17 +4292,13 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
 /*!***********************************************!*\
   !*** ./source/shared/legacy-classes/error.js ***!
   \***********************************************/
-/*! exports provided: Err, ErrorList, SilentError, AuthRequired, Unreachable, Timeout */
+/*! exports provided: Err, ErrorList */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Err", function() { return Err; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ErrorList", function() { return ErrorList; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SilentError", function() { return SilentError; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AuthRequired", function() { return AuthRequired; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Unreachable", function() { return Unreachable; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Timeout", function() { return Timeout; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
@@ -4088,58 +4333,6 @@ class ErrorList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     });
   }
 
-} // CUSTOM ERROR
-
-class SilentError extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
-    const {
-      log = false
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      log
-    });
-  }
-
-} // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
-
-class AuthRequired extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
-    const {
-      message = 'authorization required'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      message
-    });
-  }
-
-} // Used to indicate an unreachable place in the code.
-
-class Unreachable extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
-    const {
-      message = 'code reached a place that should be unreachable'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      message
-    });
-  }
-
-} // Used to indicate a timed-out function.
-
-class Timeout extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
-    const {
-      message = 'request timed out'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      message
-    });
-  }
-
 }
 
 /***/ }),
@@ -4148,15 +4341,13 @@ class Timeout extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!*************************************************!*\
   !*** ./source/shared/legacy-classes/success.js ***!
   \*************************************************/
-/*! exports provided: Success, SuccessList, Warn, Credentials */
+/*! exports provided: Success, SuccessList */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SuccessList", function() { return SuccessList; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Warn", function() { return Warn; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Credentials", function() { return Credentials; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
@@ -4185,54 +4376,6 @@ class SuccessList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       reason,
       content
-    });
-  }
-
-}
-class Warn extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
-    const {
-      log = true
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      log
-    });
-  }
-
-}
-class Credentials extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options); //TODO allowUnknown: true,
-
-    const {
-      //TODO this part should only be server-side 
-      //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-      authRequestKey = Symbol(),
-      //! this shouldn't break checkKey(), but also shouldn't match anything
-      authRequestTimestamp = 0,
-      authRequestTimeout = 300000,
-      //C default 5 minutes
-      authRequestURL = '',
-      authCode = Symbol(),
-      accessToken = Symbol(),
-      expires = 0,
-      refreshToken = Symbol(),
-      refreshBuffer = 60000,
-      //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-      scopes = []
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      authRequestKey,
-      authRequestTimestamp,
-      authRequestTimeout,
-      authRequestURL,
-      authCode,
-      accessToken,
-      expires,
-      refreshToken,
-      refreshBuffer,
-      scopes
     });
   }
 
@@ -4650,7 +4793,7 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./errors/internal-error.js */ "./source/shared/errors/internal-error.js");
-/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _credentials_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./credentials.js */ "./source/shared/credentials.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 
 
@@ -4662,7 +4805,7 @@ __webpack_require__.r(__webpack_exports__);
       register = false,
       nullPrefix = '',
       idPrefix = '',
-      credentials = new _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Credentials"](),
+      credentials = new _credentials_js__WEBPACK_IMPORTED_MODULE_1__["default"](),
       //TODO This should only be server-side.
       api = {},
       scopes = [],
@@ -8098,6 +8241,38 @@ __webpack_require__.r(__webpack_exports__);
   }
 
 }));
+
+/***/ }),
+
+/***/ "./source/shared/warn.js":
+/*!*******************************!*\
+  !*** ./source/shared/warn.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Warn; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+
+class Warn {
+  constructor(options = {}) {
+    const {
+      log = true,
+      message,
+      reason,
+      content
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+      log,
+      message,
+      reason,
+      content
+    });
+  }
+
+}
 
 /***/ }),
 

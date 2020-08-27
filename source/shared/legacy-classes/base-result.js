@@ -32,7 +32,7 @@ export default class BaseResult {
 			reason,
 			content,
 
-			...rest,
+			// ...rest, this causes issues, child class instances (User) will become very large and take very long to stringify
 		});
 	}
 }

@@ -5,20 +5,20 @@ import {
 
 // CREATE
 export async function login(user) {
-	return await serverRequest('POST', 'session', new User(user));
+	return serverRequest('POST', 'session', new User(user));
 	//TODO Reconnect socket subscriptions to update subscriber info.
-};
+}
 
 // READ
 export async function get() {
-	return await serverRequest('GET', 'session');
-};
+	return serverRequest('GET', 'session');
+}
 
 // UPDATE
 //?
 
 // DELETE
 export async function logout() {
-	return await serverRequest('DELETE', 'session');
+	return serverRequest('DELETE', 'session');
 	//TODO Reconnect socket subscriptions to update subscriber info.
-};
+}

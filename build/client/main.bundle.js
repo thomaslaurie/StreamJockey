@@ -16622,11 +16622,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -16895,8 +16896,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
  // import test from '../shared/test.js';
+
+
 
  // import {
 // 	spotify,
@@ -16912,10 +16914,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   state: {
-    tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].makeTables({
-      User: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"],
-      Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"],
-      Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]
+    tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"].makeTables({
+      User: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"],
+      Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Playlist"],
+      Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"]
     }),
     socket: null,
     timeout: 10000 //C 10 seconds
@@ -16944,14 +16946,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     getLiveData: state => subscription => {
       //C validate
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         origin: 'getLiveData()',
         reason: 'subscription is not an Subscription',
         content: subscription
       }); //C shorten
 
       var liveQuery = subscription.liveQuery;
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
         origin: 'getLiveData()',
         reason: "liveQuery is not an LiveQuery",
         content: liveQuery
@@ -16959,7 +16961,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       //TODO Race condition here.
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) {
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
           throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
             origin: 'getLiveData()',
             reason: 'cachedEntityRef is not a cachedEntity',
@@ -17095,13 +17097,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = liveQuery.table; //C add cachedEntity to table if it doesn't exist
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(context.getters.findCachedEntity({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(context.getters.findCachedEntity({
           table,
           entity
-        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) {
+        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
           context.commit('pushCachedEntity', {
             cachedEntities: table.cachedEntities,
-            cachedEntity: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"]({
+            cachedEntity: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"]({
               table,
               entity
             })
@@ -17113,25 +17115,30 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           entity
         });
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
-          origin: 'addCachedEntity()'
-        }); //C shorthand
+
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+        } //C shorthand
+
 
         var liveQueryRefs = cachedEntity.liveQueryRefs;
         var cachedEntityRefs = liveQuery.cachedEntityRefs; //C find references
 
         var foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
         var foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
-        if (foundLiveQueryRef !== foundCachedEntityRef) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
-          origin: 'addCachedEntity()',
-          reason: 'either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen',
-          content: {
-            foundLiveQueryRef,
-            foundCachedEntityRef,
-            cachedEntity,
-            liveQuery
-          }
-        }); //C add refs to both liveQuery and cachedEntity if they don't exist
+
+        if (foundLiveQueryRef !== foundCachedEntityRef) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
+            message: 'Either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen.',
+            state: {
+              foundLiveQueryRef,
+              foundCachedEntityRef,
+              cachedEntity,
+              liveQuery
+            }
+          });
+        } //C add refs to both liveQuery and cachedEntity if they don't exist
+
 
         if (!foundLiveQueryRef) {
           context.commit('pushLiveQueryRef', {
@@ -17238,14 +17245,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref18;
 
         //C if the liveQuery cannot be found
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(context.getters.findLiveQuery({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(context.getters.findLiveQuery({
           table,
           query
-        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) {
+        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) {
           //C add it
           context.commit('pushLiveQuery', {
             liveQueries: table.liveQueries,
-            liveQuery: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"]({
+            liveQuery: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"]({
               table,
               query
             })
@@ -17255,9 +17262,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table,
             query
           });
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
-            origin: 'addLiveQuery()'
-          }); //C trigger the initial update
+
+          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+          } //C trigger the initial update
+
 
           yield context.dispatch('updateLiveQuery', {
             liveQuery,
@@ -17311,7 +17320,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = liveQuery; //C don't trigger update for calls older than the existing data
 
         if (callTimestamp <= liveQuery.timestamp) {
-          new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Warn"]({
+          new _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
             origin: 'update()',
             message: 'cachedEntities not updated because newer data has already been received',
             reason: "data timestamp: ".concat(liveQuery.timestamp, ", update timestamp: ").concat(callTimestamp)
@@ -17371,9 +17380,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             entity
           });
 
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["CachedEntity"], 'CachedEntity')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
-            origin: 'update()'
-          }); //C edit the cachedEntity (won't edit if data is old, or unchanged)
+          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+          } //C edit the cachedEntity (won't edit if data is old, or unchanged)
+
 
           var edited = yield context.dispatch('updateCachedEntity', {
             cachedEntity: _cachedEntity,
@@ -17429,13 +17439,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         }); //! this should never fail
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
-          origin: 'addSubscription()',
-          reason: 'liveQuery not found in table',
-          content: liveQuery
-        }); //C create a new subscription
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+        } //C create a new subscription
 
-        var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"](_objectSpread({}, options, {
+
+        var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"](_objectSpread({}, options, {
           liveQuery //C parent reference
 
         })); //C push and return
@@ -17499,7 +17508,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         }); //C shorten
 
         var table = context.getters.findTable(Entity);
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'subscribe()',
           reason: 'table is not an LiveTable',
           content: table
@@ -17530,7 +17539,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref23;
 
         //C validate //! return early if not a subscription
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) {
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"], 'Subscription')) {
           if (strict) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
             origin: 'unsubscribe()',
             reason: 'subscription is not an Subscription',
@@ -17540,7 +17549,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
         var liveQuery = subscription.liveQuery;
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'unsubscribe()',
           reason: "liveQuery is not an LiveQuery",
           content: liveQuery
@@ -17552,13 +17561,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           content: query
         });
         var table = liveQuery.table;
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'unsubscribe()',
           reason: 'table is not an LiveTable',
           content: table
         });
         var TargetEntity = table.Entity;
-        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'unsubscribe()',
           reason: 'Entity is not an LiveTable',
           content: TargetEntity
@@ -17591,7 +17600,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
         //C strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-        if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'change()',
           reason: 'subscription is not an Subscription',
           content: subscription
@@ -17621,7 +17630,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           timestamp
         } = _ref25;
         //C validate
-        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'update()',
           reason: 'Entity is not an Entity',
           content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(TargetEntity)
@@ -17634,7 +17643,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(timestamp)) timestamp = Date.now(); //C shorten
 
         var table = context.getters.findTable(TargetEntity);
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'update()',
           reason: 'table is not an LiveTable',
           content: {
@@ -17646,7 +17655,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           table,
           query
         });
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
           origin: 'update()',
           reason: "liveQuery is not an LiveQuery",
           content: {
@@ -17699,11 +17708,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else {
+            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else {
               resolve(result);
             }
           });
-        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
       })();
     },
 
@@ -17725,9 +17734,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else resolve(result);
+            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else resolve(result);
           });
-        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
       })();
     },
 
@@ -17819,7 +17828,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               query,
               timestamp
             } = _ref30;
-            var TargetEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].tableToEntity(table);
+            var TargetEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"].tableToEntity(table);
             context.dispatch('update', {
               Entity: TargetEntity,
               query,
@@ -19216,31 +19225,27 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 function login(_x) {
   return _login.apply(this, arguments);
-}
+} // READ
 
 function _login() {
   _login = _asyncToGenerator(function* (user) {
-    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_0__["default"])('POST', 'session', new _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](user)); //TODO Reconnect socket subscriptions to update subscriber info.
+    return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_0__["default"])('POST', 'session', new _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](user)); //TODO Reconnect socket subscriptions to update subscriber info.
   });
   return _login.apply(this, arguments);
 }
 
-; // READ
-
 function get() {
   return _get.apply(this, arguments);
-}
+} // UPDATE
+//?
+// DELETE
 
 function _get() {
   _get = _asyncToGenerator(function* () {
-    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_0__["default"])('GET', 'session');
+    return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_0__["default"])('GET', 'session');
   });
   return _get.apply(this, arguments);
 }
-
-; // UPDATE
-//?
-// DELETE
 
 function logout() {
   return _logout.apply(this, arguments);
@@ -19248,12 +19253,10 @@ function logout() {
 
 function _logout() {
   _logout = _asyncToGenerator(function* () {
-    return yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_0__["default"])('DELETE', 'session'); //TODO Reconnect socket subscriptions to update subscriber info.
+    return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_0__["default"])('DELETE', 'session'); //TODO Reconnect socket subscriptions to update subscriber info.
   });
   return _logout.apply(this, arguments);
 }
-
-;
 
 /***/ }),
 
@@ -19357,9 +19360,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
-/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -19383,7 +19387,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+
+var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
   register: true,
@@ -19493,8 +19498,9 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
       var refresh = /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(function* (that) {
           var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["returnPropagate"]);
+          result = _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_11__["sharedRegistry"].autoConstruct(result);
 
-          if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_8__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["AuthRequired"], 'AuthRequired')) {
+          if (result instanceof _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["AuthRequired"]) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
           } else if (result instanceof _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]) {
@@ -19577,7 +19583,7 @@ spotify.search = /*#__PURE__*/function () {
   };
 }();
 
-spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
+spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
   //G source-specific playback should be the basic playback functions that connects this app to the source's api
   state: {
     source: spotify
@@ -19632,7 +19638,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
                   stateCondition = () => false,
                   success = {},
                   error = {},
-                  timeoutError = {}
+                  timeoutError = new Error('awaitState timed out')
                 } = _ref4;
                 return new Promise( /*#__PURE__*/function () {
                   var _ref6 = _asyncToGenerator(function* (resolve, reject) {
@@ -19686,12 +19692,12 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
                     } //C if timed out, reject
 
 
-                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_10__["default"].requestTimeout);
+                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_9__["default"].requestTimeout);
 
                     if (!resolved) {
                       _this4.removeListener('player_state_changed', callback);
 
-                      reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Timeout"](timeoutError));
+                      reject(timeoutError);
                       resolved = true;
                     }
                   });
@@ -19776,7 +19782,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
                     return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result.device) && result.device.id === device_id;
                   },
 
-                  timeout: _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"].requestTimeout * 2
+                  timeout: _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"].requestTimeout * 2
                 }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
 
                 yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
@@ -19857,19 +19863,15 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
               //C 'returns a promise with a boolean for whether or not the connection was successful'
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
               //! do not resolve here, the player will trigger the 'ready' event when its truly ready
-              if (!resolved) reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-                origin: 'spotify.loadPlayer()',
-                message: 'spotify player failed to connect',
-                reason: 'spotify.connect() failed'
-              }));
+              if (!resolved) {
+                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                  origin: 'spotify.loadPlayer()',
+                  message: 'spotify player failed to connect',
+                  reason: 'spotify.connect() failed'
+                }));
+              }
             }, rejected => {
-              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Unreachable"]({
-                //C a rejection shouldn't be possible here
-                origin: 'spotify.loadPlayer()',
-                message: 'spotify player failed to connect',
-                reason: 'spotify.connect() failed, this should not be reachable',
-                content: rejected
-              }));
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["UnreachableError"]());
             });
             /* //R
             	//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
@@ -20176,9 +20178,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
             message: 'spotify track could not be started' //reason: JSON.parse(rejected.response).error.message,
 
           },
-          timeoutError: {
-            origin: 'spotify.playback.actions.start()'
-          }
+          timeoutError: new Error('spotify.playback.actions.start() timed out')
         }); //TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
 
         yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(1000);
@@ -20213,9 +20213,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
             message: 'spotify track could not be paused' //reason: JSON.parse(rejected.response).error.message,
 
           },
-          timeoutError: {
-            origin: 'spotify.playback.actions.pause()'
-          }
+          timeoutError: new Error('spotify.playback.actions.pause() timed out')
         });
       })();
     },
@@ -20247,9 +20245,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
             message: 'spotify track could not be resumed' //reason: JSON.parse(rejected.response).error.message,
 
           },
-          timeoutError: {
-            origin: 'spotify.playback.actions.resume()'
-          }
+          timeoutError: new Error('spotify.playback.actions.resume() timed out ')
         });
       })();
     },
@@ -20286,9 +20282,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
             message: 'spotify track could not be seeked' //reason: JSON.parse(rejected.response).error.message,
 
           },
-          timeoutError: {
-            origin: 'spotify.playback.actions.seek()'
-          }
+          timeoutError: new Error('spotify.playback.actions.seek() timed out')
         });
       })();
     },
@@ -20318,9 +20312,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
             message: 'spotify volume could not be set' //reason: JSON.parse(rejected.response).error.message,
 
           },
-          timeoutError: {
-            origin: 'spotify.playback.actions.volume()'
-          }
+          timeoutError: new Error('spotify.playback.actions.volume() timed out ')
         });
       })();
     }
@@ -38399,6 +38391,73 @@ var index_esm = {
 
 /***/ }),
 
+/***/ "./source/shared/class-registry.js":
+/*!*****************************************!*\
+  !*** ./source/shared/class-registry.js ***!
+  \*****************************************/
+/*! exports provided: default, sharedRegistry */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ClassRegistry; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sharedRegistry", function() { return sharedRegistry; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+/*
+	Provides a system for determining the class to reconstruct from a raw object passed between the client and server.
+	Inheritance is preserved as child instances will overwrite their parent's id.
+	//! //G Id's must be hard-coded and not generated.
+		Otherwise different realms (client, server) would produce different keys.
+		Use the class name for simplicity.
+*/
+
+class ClassRegistry {
+  constructor(idKey) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(idKey);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      idKey,
+      registry: []
+    });
+  }
+
+}
+_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(ClassRegistry.prototype, {
+  defineId(target, id) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(id); // Must be writable so that sub-classes can overwrite the id with a more specific one.
+
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(target, {
+      [this.idKey]: id
+    });
+  },
+
+  register(Class, id) {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].constructor.validate(Class);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(id);
+    this.registry.forEach(registered => {
+      if (registered.Class === Class) {
+        throw new Error('Cannot register auto constructable class, as the class has already been registered.');
+      }
+
+      if (registered.id === id) {
+        throw new Error('Cannot register auto constructable class, as the id has already been registered.');
+      }
+    });
+    this.registry.push({
+      Class,
+      id
+    });
+  },
+
+  autoConstruct(value) {
+    var registered = this.registry.find(registered => registered.id === (value === null || value === void 0 ? void 0 : value[this.idKey]));
+    return registered === undefined ? value : new registered.Class(value);
+  }
+
+});
+var sharedRegistry = new ClassRegistry('sharedRegistryIdKey');
+
+/***/ }),
+
 /***/ "./source/shared/constants.js":
 /*!************************************!*\
   !*** ./source/shared/constants.js ***!
@@ -38426,6 +38485,57 @@ var URL_HEADER = Object.freeze({
 });
 var GET_BODY = encodeURIComponent('body');
 var APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.
+
+/***/ }),
+
+/***/ "./source/shared/credentials.js":
+/*!**************************************!*\
+  !*** ./source/shared/credentials.js ***!
+  \**************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Credentials; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+
+class Credentials {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    //TODO allowUnknown: true,
+    var {
+      //TODO This part should only be server-side.
+      //TODO Consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials.
+      authRequestKey = Symbol(),
+      //! This shouldn't break checkKey(), but also shouldn't match anything.
+      authRequestTimestamp = 0,
+      authRequestTimeout = 300000,
+      // default 5 minutes
+      authRequestURL = '',
+      authCode = Symbol(),
+      accessToken = Symbol(),
+      expires = 0,
+      refreshToken = Symbol(),
+      refreshBuffer = 60000,
+      // 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
+      scopes = []
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+      authRequestKey,
+      authRequestTimestamp,
+      authRequestTimeout,
+      authRequestURL,
+      authCode,
+      accessToken,
+      expires,
+      refreshToken,
+      refreshBuffer,
+      scopes
+    });
+  }
+
+}
 
 /***/ }),
 
@@ -38464,11 +38574,31 @@ function _ref() {
 
 /***/ }),
 
+/***/ "./source/shared/derived-utility/image.js":
+/*!************************************************!*\
+  !*** ./source/shared/derived-utility/image.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return image; });
+/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+// Returns a deep-cloned value for the purposes of debugging.
+//! Will destroy any data not compatible with JSON.
+
+function image(value) {
+  return JSON.parse(Object(_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value));
+}
+
+/***/ }),
+
 /***/ "./source/shared/derived-utility/index.js":
 /*!************************************************!*\
   !*** ./source/shared/derived-utility/index.js ***!
   \************************************************/
-/*! exports provided: fetch, safeStringify, urlRule */
+/*! exports provided: fetch, image, safeStringify, urlRule */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -38476,11 +38606,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _fetch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./fetch.js */ "./source/shared/derived-utility/fetch.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fetch", function() { return _fetch_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "safeStringify", function() { return _safe_stringify_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _image_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./image.js */ "./source/shared/derived-utility/image.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "image", function() { return _image_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./url.js */ "./source/shared/derived-utility/url.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "urlRule", function() { return _url_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _safe_stringify_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./safe-stringify.js */ "./source/shared/derived-utility/safe-stringify.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "safeStringify", function() { return _safe_stringify_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+
+/* harmony import */ var _url_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./url.js */ "./source/shared/derived-utility/url.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "urlRule", function() { return _url_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
 
 
 
@@ -38497,15 +38631,16 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return safeStringify; });
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
-//TODO//L Consider: https://www.npmjs.com/package/safe-stable-stringify
-//TODO//L Consider: https://www.npmjs.com/package/flatted <--- preserves circular JSON
+//TODO //L Consider: https://www.npmjs.com/package/safe-stable-stringify
+//TODO //L Consider: https://www.npmjs.com/package/flatted <--- preserves circular JSON
+//TODO //? Does this account for JSON.stringify() throwing on BigInt?
 
-/* harmony default export */ __webpack_exports__["default"] = (function (value) {
+function safeStringify(value) {
   return JSON.stringify(fclone__WEBPACK_IMPORTED_MODULE_0___default()(value));
-});
-;
+}
 
 /***/ }),
 
@@ -39052,6 +39187,39 @@ var defaultSocketId = null;
 
 /***/ }),
 
+/***/ "./source/shared/errors/auth-required.js":
+/*!***********************************************!*\
+  !*** ./source/shared/errors/auth-required.js ***!
+  \***********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AuthRequired; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
+
+ // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
+
+var sharedRegistryId = 'AuthRequired';
+class AuthRequired {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      message = 'authorization required'
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+      message
+    });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].defineId(this, sharedRegistryId);
+  }
+
+}
+_class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(AuthRequired, sharedRegistryId);
+
+/***/ }),
+
 /***/ "./source/shared/errors/custom-error.js":
 /*!**********************************************!*\
   !*** ./source/shared/errors/custom-error.js ***!
@@ -39136,28 +39304,40 @@ class HTTPError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]
 /*!***************************************!*\
   !*** ./source/shared/errors/index.js ***!
   \***************************************/
-/*! exports provided: CustomError, HTTPError, InternalError, MultipleErrors, ParseError, UnexpectedValueThrown */
+/*! exports provided: AuthRequired, CustomError, HTTPError, InternalError, InvalidStateError, MultipleErrors, ParseError, UnexpectedValueThrown, UnreachableError */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CustomError", function() { return _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _auth_required_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./auth-required.js */ "./source/shared/errors/auth-required.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "AuthRequired", function() { return _auth_required_js__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _http_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./http-error.js */ "./source/shared/errors/http-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "HTTPError", function() { return _http_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CustomError", function() { return _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _http_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./http-error.js */ "./source/shared/errors/http-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "HTTPError", function() { return _http_error_js__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _multiple_errors_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./multiple-errors.js */ "./source/shared/errors/multiple-errors.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MultipleErrors", function() { return _multiple_errors_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _internal_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./internal-error.js */ "./source/shared/errors/internal-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InternalError", function() { return _internal_error_js__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony import */ var _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./invalid-state-error.js */ "./source/shared/errors/invalid-state-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "InvalidStateError", function() { return _invalid_state_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+/* harmony import */ var _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./multiple-errors.js */ "./source/shared/errors/multiple-errors.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "MultipleErrors", function() { return _multiple_errors_js__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+
+/* harmony import */ var _parse_error_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./parse-error.js */ "./source/shared/errors/parse-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ParseError", function() { return _parse_error_js__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+
+/* harmony import */ var _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./unexpected-value-thrown.js */ "./source/shared/errors/unexpected-value-thrown.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnexpectedValueThrown", function() { return _unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+/* harmony import */ var _unreachable_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./unreachable-error.js */ "./source/shared/errors/unreachable-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "UnreachableError", function() { return _unreachable_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+
+
 
 
 
@@ -39203,6 +39383,44 @@ class InternalError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["defau
     super(_objectSpread({
       userMessage
     }, rest));
+  }
+
+}
+
+/***/ }),
+
+/***/ "./source/shared/errors/invalid-state-error.js":
+/*!*****************************************************!*\
+  !*** ./source/shared/errors/invalid-state-error.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return InvalidStateError; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+/* harmony import */ var _derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../derived-utility/index.js */ "./source/shared/derived-utility/index.js");
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+
+
+
+class InvalidStateError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  constructor() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        {
+      state
+    } = _ref,
+        rest = _objectWithoutProperties(_ref, ["state"]);
+
+    super(rest);
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      state: Object(_derived_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["image"])(state)
+    });
   }
 
 }
@@ -39338,6 +39556,46 @@ class UnexpectedValueThrown extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1_
 
 /***/ }),
 
+/***/ "./source/shared/errors/unreachable-error.js":
+/*!***************************************************!*\
+  !*** ./source/shared/errors/unreachable-error.js ***!
+  \***************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return UnreachableError; });
+/* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
+
+function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+//G Used when a supposedly unreachable code path has been reached.
+
+class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        {
+      message = 'An unreachable code-path has been reached.'
+    } = _ref,
+        rest = _objectWithoutProperties(_ref, ["message"]);
+
+    super(_objectSpread({
+      message
+    }, rest));
+  }
+
+}
+
+/***/ }),
+
 /***/ "./source/shared/is-instance-of.js":
 /*!*****************************************!*\
   !*** ./source/shared/is-instance-of.js ***!
@@ -39367,12 +39625,6 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseResult; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
 
 function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
@@ -39398,7 +39650,7 @@ class BaseResult {
     } = options,
         rest = _objectWithoutProperties(options, ["log", "code", "type", "origin", "trace", "message", "reason", "content"]);
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, _objectSpread({
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       log,
       code,
       type,
@@ -39406,8 +39658,9 @@ class BaseResult {
       trace,
       message,
       reason,
-      content
-    }, rest));
+      content // ...rest, this causes issues, child class instances (User) will become very large and take very long to stringify
+
+    });
   }
 
 }
@@ -39456,17 +39709,13 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
 /*!***********************************************!*\
   !*** ./source/shared/legacy-classes/error.js ***!
   \***********************************************/
-/*! exports provided: Err, ErrorList, SilentError, AuthRequired, Unreachable, Timeout */
+/*! exports provided: Err, ErrorList */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Err", function() { return Err; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ErrorList", function() { return ErrorList; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SilentError", function() { return SilentError; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AuthRequired", function() { return AuthRequired; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Unreachable", function() { return Unreachable; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Timeout", function() { return Timeout; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
@@ -39503,62 +39752,6 @@ class ErrorList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
     });
   }
 
-} // CUSTOM ERROR
-
-class SilentError extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      log = false
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      log
-    });
-  }
-
-} // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
-
-class AuthRequired extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      message = 'authorization required'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      message
-    });
-  }
-
-} // Used to indicate an unreachable place in the code.
-
-class Unreachable extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      message = 'code reached a place that should be unreachable'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      message
-    });
-  }
-
-} // Used to indicate a timed-out function.
-
-class Timeout extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      message = 'request timed out'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      message
-    });
-  }
-
 }
 
 /***/ }),
@@ -39567,15 +39760,13 @@ class Timeout extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!*************************************************!*\
   !*** ./source/shared/legacy-classes/success.js ***!
   \*************************************************/
-/*! exports provided: Success, SuccessList, Warn, Credentials */
+/*! exports provided: Success, SuccessList */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SuccessList", function() { return SuccessList; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Warn", function() { return Warn; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Credentials", function() { return Credentials; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
@@ -39606,56 +39797,6 @@ class SuccessList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       reason,
       content
-    });
-  }
-
-}
-class Warn extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      log = true
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      log
-    });
-  }
-
-}
-class Credentials extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options); //TODO allowUnknown: true,
-
-    var {
-      //TODO this part should only be server-side 
-      //TODO consider finding a way to delete these properties if they aren't passed in so that Object.assign() can work without overwriting previous values with empty defaults, at the moment im using a plain object instead of this class to send credentials
-      authRequestKey = Symbol(),
-      //! this shouldn't break checkKey(), but also shouldn't match anything
-      authRequestTimestamp = 0,
-      authRequestTimeout = 300000,
-      //C default 5 minutes
-      authRequestURL = '',
-      authCode = Symbol(),
-      accessToken = Symbol(),
-      expires = 0,
-      refreshToken = Symbol(),
-      refreshBuffer = 60000,
-      //C 1 minute //TODO figure out what the expiry time is for these apis and change this to a more useful value
-      scopes = []
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      authRequestKey,
-      authRequestTimestamp,
-      authRequestTimeout,
-      authRequestURL,
-      authCode,
-      accessToken,
-      expires,
-      refreshToken,
-      refreshBuffer,
-      scopes
     });
   }
 
@@ -40109,7 +40250,7 @@ function _ref2() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _errors_internal_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./errors/internal-error.js */ "./source/shared/errors/internal-error.js");
-/* harmony import */ var _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _credentials_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./credentials.js */ "./source/shared/credentials.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -40133,7 +40274,7 @@ function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) r
       register = false,
       nullPrefix = '',
       idPrefix = '',
-      credentials = new _legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Credentials"](),
+      credentials = new _credentials_js__WEBPACK_IMPORTED_MODULE_1__["default"](),
       //TODO This should only be server-side.
       api = {},
       scopes = [],
@@ -43775,6 +43916,39 @@ __webpack_require__.r(__webpack_exports__);
   }
 
 }));
+
+/***/ }),
+
+/***/ "./source/shared/warn.js":
+/*!*******************************!*\
+  !*** ./source/shared/warn.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Warn; });
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
+
+class Warn {
+  constructor() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    var {
+      log = true,
+      message,
+      reason,
+      content
+    } = options;
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
+      log,
+      message,
+      reason,
+      content
+    });
+  }
+
+}
 
 /***/ }),
 

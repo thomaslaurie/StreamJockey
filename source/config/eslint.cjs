@@ -22,12 +22,15 @@ const on = 'warn';
 const rules = {
 	variables: {
 		'no-delete-var': [on],
-		'no-shadow':     [on, {
-			//TODO //? builtinGlobals triggers for all properties of 'window', some of which are very generic like 'name'.
-			builtinGlobals: true,
-			hoist:          'functions',
-			allow:          [],
-		}],
+		//R builtinGlobals triggers for all properties of 'window', some of which are very generic like 'name'.
+		//R There are also many common uses for shadowing that won't cause issues but cannot be exempt from this rule.
+		'no-shadow':     [off],
+		// 'no-shadow':     [on, {
+		// 	//TODO //?
+		// 	builtinGlobals: true,
+		// 	hoist:          'functions',
+		// 	allow:          [],
+		// }],
 		'no-shadow-restricted-names': [on],
 		'no-undef':                   [on],
 		//G If triggered by a de-structured array, values can be ignored with commas: const [x, , y] = foo;

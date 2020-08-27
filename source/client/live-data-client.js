@@ -272,10 +272,6 @@ import {
 	Err,
 } from '../shared/legacy-classes/error.js';
 import {
-	// Success,
-	Warn,
-} from '../shared/legacy-classes/success.js';
-import {
 	Entity,
 	User,
 	Playlist,
@@ -290,6 +286,11 @@ import {
 import propagate from '../shared/propagate.js';
 // import test from '../shared/test.js';
 import isInstanceOf from '../shared/is-instance-of.js';
+import {
+	UnreachableError,
+	InvalidStateError,
+} from '../shared/errors/index.js';
+import Warn from '../shared/warn.js';
 // import {
 // 	spotify,
 // } from './sources/index.js';
@@ -430,7 +431,9 @@ export default {
 
 			//C find cachedEntity by entity
 			const cachedEntity = context.getters.findCachedEntity({table, entity});
-			if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) throw new Unreachable({origin: 'addCachedEntity()'});
+			if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) {
+				throw new UnreachableError();
+			}
 			
 			//C shorthand
 			const liveQueryRefs = cachedEntity.liveQueryRefs;
@@ -439,16 +442,17 @@ export default {
 			//C find references
 			const foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
 			const foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
-			if (foundLiveQueryRef !== foundCachedEntityRef) throw new Unreachable({
-				origin: 'addCachedEntity()',
-				reason: 'either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen',
-				content: {
-					foundLiveQueryRef,
-					foundCachedEntityRef,
-					cachedEntity,
-					liveQuery,
-				},
-			});
+			if (foundLiveQueryRef !== foundCachedEntityRef) {
+				throw new InvalidStateError({
+					message: 'Either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen.',
+					state: {
+						foundLiveQueryRef,
+						foundCachedEntityRef,
+						cachedEntity,
+						liveQuery,
+					},
+				});
+			}
 
 			//C add refs to both liveQuery and cachedEntity if they don't exist
 			if (!foundLiveQueryRef) {
@@ -540,7 +544,9 @@ export default {
 				
 				//C find liveQuery
 				const liveQuery = context.getters.findLiveQuery({table, query});
-				if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Unreachable({origin: 'addLiveQuery()'});
+				if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+					throw new UnreachableError();
+				}
 
 				//C trigger the initial update
 				await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: Date.now()});
@@ -620,7 +626,9 @@ export default {
 
 				//C find it's cachedEntity
 				const cachedEntity = await context.getters.findCachedEntity({table, entity});
-				if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) throw new Unreachable({origin: 'update()'});
+				if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) {
+					throw new UnreachableError();
+				}
 
 				//C edit the cachedEntity (won't edit if data is old, or unchanged)
 				const edited = await context.dispatch('updateCachedEntity', {cachedEntity, entity, timestamp});
@@ -646,11 +654,9 @@ export default {
 
 			//C find the liveQuery
 			const liveQuery = context.getters.findLiveQuery({table, query}); //! this should never fail
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Unreachable({
-				origin: 'addSubscription()',
-				reason: 'liveQuery not found in table',
-				content: liveQuery,
-			});
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+				throw new UnreachableError();
+			}
 
 			//C create a new subscription
 			const subscription = new Subscription({

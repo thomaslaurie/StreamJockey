@@ -8,8 +8,7 @@ import {
 } from '../../shared/utility/index.js';
 import request from '../../shared/request.js';
 import serverRequest from '../server-request.js';
-import { 
-	AuthRequired, 
+import {
 	Unreachable,
 	Timeout,
 	Err,
@@ -28,9 +27,13 @@ import {
 	JSON_HEADER,
 	APP_NAME,
 } from '../../shared/constants.js';
-import isInstanceOf from '../../shared/is-instance-of.js';
 import Source from '../source.js';
 import Playback from '../playback.js';
+import {
+	UnreachableError,
+	AuthRequired,
+} from '../../shared/errors/index.js';
+import {sharedRegistry} from '../../shared/class-registry.js';
 
 const spotify = new Source({
 	//TODO make apiReady and playerReady checks
@@ -141,7 +144,8 @@ const spotify = new Source({
 		let that = this;
 		let refresh = async function (that) {
 			let result = await serverRequest('GET', `spotify/refreshToken`).catch(returnPropagate);
-			if (isInstanceOf(result, AuthRequired, 'AuthRequired')) {
+			result = sharedRegistry.autoConstruct(result);
+			if (result instanceof AuthRequired) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
 			} else if (result instanceof Err) {
@@ -254,7 +258,7 @@ spotify.playback = new Playback({
 						stateCondition = () => false, 
 						success = {}, 
 						error = {}, 
-						timeoutError = {}
+						timeoutError = new Error('awaitState timed out')
 					}) {
 						return new Promise(async (resolve, reject) => {
 							let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
@@ -299,7 +303,7 @@ spotify.playback = new Playback({
 							await wait(Playback.requestTimeout);
 							if (!resolved) {
 								this.removeListener('player_state_changed', callback);
-								reject(new Timeout(timeoutError));
+								reject(timeoutError);
 								resolved = true;
 							}
 						});
@@ -435,22 +439,19 @@ spotify.playback = new Playback({
 		
 		
 					//C connect player
-					player.connect().then(resolved => {
+					player.connect().then((resolved) => {
 						//C 'returns a promise with a boolean for whether or not the connection was successful'
 						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
 						//! do not resolve here, the player will trigger the 'ready' event when its truly ready
-						if (!resolved) reject(new Err({
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player failed to connect',
-							reason: 'spotify.connect() failed',
-						}));
-					}, rejected => {
-						reject(new Unreachable({ //C a rejection shouldn't be possible here
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player failed to connect',
-							reason: 'spotify.connect() failed, this should not be reachable',
-							content: rejected,
-						}));
+						if (!resolved) {
+							reject(new Err({
+								origin: 'spotify.loadPlayer()',
+								message: 'spotify player failed to connect',
+								reason: 'spotify.connect() failed',
+							}));
+						}
+					}, (rejected) => {
+						reject(new UnreachableError());
 					});
 		
 					/* //R
@@ -750,9 +751,7 @@ spotify.playback = new Playback({
 					message: 'spotify track could not be started',
 					//reason: JSON.parse(rejected.response).error.message,
 				},
-				timeoutError: {
-					origin: 'spotify.playback.actions.start()',
-				},
+				timeoutError: new Error('spotify.playback.actions.start() timed out'),
 			});
 			//TODO commands to pause the playback (possibly others too) are ignored by the player when they are called immediately after a track has started. This isn't an issue on my end, but with Spotify. There is some point even after the stateCondition above that the player is able to take more commands, but I cannot figure out what it is. It might be when the progress goes from 0 to not-0, but the second time, because the progress from the previous track lingers when the tracks are switched. So for now I've put a 1 second delay before the start command resolves. Yes its hacky, and it might break on slower connections, but it doesn't fatally break the app.
 			await wait(1000);
@@ -770,9 +769,7 @@ spotify.playback = new Playback({
 					message: 'spotify track could not be paused',
 					//reason: JSON.parse(rejected.response).error.message,
 				},
-				timeoutError: {
-					origin: 'spotify.playback.actions.pause()',
-				},
+				timeoutError: new Error('spotify.playback.actions.pause() timed out'),
 			});
 		},
 		async resume({state: {player}}) {
@@ -788,9 +785,7 @@ spotify.playback = new Playback({
 					message: 'spotify track could not be resumed',
 					//reason: JSON.parse(rejected.response).error.message,
 				},
-				timeoutError: {
-					origin: 'spotify.playback.actions.resume()',
-				},
+				timeoutError: new Error('spotify.playback.actions.resume() timed out '),
 			});
 		},
 		async seek({state, state: {player, track}}, progress) {
@@ -810,9 +805,7 @@ spotify.playback = new Playback({
 					message: 'spotify track could not be seeked',
 					//reason: JSON.parse(rejected.response).error.message,
 				},
-				timeoutError: {
-					origin: 'spotify.playback.actions.seek()',
-				},
+				timeoutError: new Error('spotify.playback.actions.seek() timed out'),
 			});
 		},
 		async volume({state: player}, volume) {
@@ -828,9 +821,7 @@ spotify.playback = new Playback({
 					message: 'spotify volume could not be set',
 					//reason: JSON.parse(rejected.response).error.message,
 				},
-				timeoutError: {
-					origin: 'spotify.playback.actions.volume()',
-				},
+				timeoutError: new Error('spotify.playback.actions.volume() timed out '),
 			});
 		},
 	},
