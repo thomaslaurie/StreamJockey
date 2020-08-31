@@ -12,7 +12,6 @@ import {
 } from '../../shared/legacy-classes/error.js';
 import {
 	Success,
-	SuccessList,
 } from '../../shared/legacy-classes/success.js';
 import {
 	entityParts,
@@ -28,6 +27,7 @@ import isEmpty from '../legacy/is-empty.js';
 import {
 	MultipleErrors,
 } from '../../shared/errors/index.js';
+import ContentContainer from '../../shared/content-container.js';
 
 
 export default class Entity extends Success {
@@ -173,10 +173,9 @@ define.constant(Entity, {
 		//C rebuild
 		const built = shook.map(list => list.map(entity => new this(entity)));
 
-		return new SuccessList({
-			...this[methodName+'Success'](),
+		return new ContentContainer({
 			//R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
-			content: built[1], 
+			content: built[1],
 			timestamp,
 		});
 	},
@@ -354,55 +353,4 @@ define.constant(Entity, {
 	getAfter:    baseAfter,
 	editAfter:   baseAfter,
 	removeAfter: baseAfter,
-
-	// Custom SuccessList and ErrorList.
-	addSuccess() {
-		return {
-			origin: `${this.name}.add()`,
-			message: `added ${this.name}s`,
-		};
-	},
-	getSuccess() {
-		return {
-			origin: `${this.name}.get()`,
-			message: `retrieved ${this.name}s`,
-		};
-	},
-	editSuccess() {
-		return {
-			origin: `${this.name}.edit()`,
-			message: `edited ${this.name}s`,
-		};
-	},
-	removeSuccess() {
-		return {
-			origin: `${this.name}.get()`,
-			message: `removed ${this.name}s`,
-		};
-	},
-
-	addError() {
-		return {
-			origin: `${this.name}.add()`,
-			message: `failed to add ${this.name}s`,
-		};
-	},
-	getError() {
-		return {
-			origin: `${this.name}.get()`,
-			message: `failed to retrieve ${this.name}s`,
-		};
-	},
-	editError() {
-		return {
-			origin: `${this.name}.edit()`,
-			message: `failed to edit ${this.name}s`,
-		};
-	},
-	removeError() {
-		return {
-			origin: `${this.name}.remove()`,
-			message: `failed to remove ${this.name}s`,
-		};
-	},
 });

@@ -670,7 +670,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
 /* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_content_container_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/content-container.js */ "./source/shared/content-container.js");
 // INTERNAL
+
 
 
 
@@ -816,7 +818,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
     const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
     const built = shook.map(list => list.map(entity => new this(entity)));
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({ ...this[methodName + 'Success'](),
+    return new _shared_content_container_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
       //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
       content: built[1],
       timestamp
@@ -1008,65 +1010,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   addAfter: baseAfter,
   getAfter: baseAfter,
   editAfter: baseAfter,
-  removeAfter: baseAfter,
-
-  // Custom SuccessList and ErrorList.
-  addSuccess() {
-    return {
-      origin: `${this.name}.add()`,
-      message: `added ${this.name}s`
-    };
-  },
-
-  getSuccess() {
-    return {
-      origin: `${this.name}.get()`,
-      message: `retrieved ${this.name}s`
-    };
-  },
-
-  editSuccess() {
-    return {
-      origin: `${this.name}.edit()`,
-      message: `edited ${this.name}s`
-    };
-  },
-
-  removeSuccess() {
-    return {
-      origin: `${this.name}.get()`,
-      message: `removed ${this.name}s`
-    };
-  },
-
-  addError() {
-    return {
-      origin: `${this.name}.add()`,
-      message: `failed to add ${this.name}s`
-    };
-  },
-
-  getError() {
-    return {
-      origin: `${this.name}.get()`,
-      message: `failed to retrieve ${this.name}s`
-    };
-  },
-
-  editError() {
-    return {
-      origin: `${this.name}.edit()`,
-      message: `failed to edit ${this.name}s`
-    };
-  },
-
-  removeError() {
-    return {
-      origin: `${this.name}.remove()`,
-      message: `failed to remove ${this.name}s`
-    };
-  }
-
+  removeAfter: baseAfter
 });
 
 /***/ }),
@@ -1245,7 +1189,7 @@ async function baseAccommodate(t, tracks) {
       cssClass: 'notifyError'
     }));
   });
-  return await this.order(t, tracks).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+  return await this.order(t, tracks).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
 }
 
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
@@ -1288,10 +1232,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
     if (inputTracks.length === 0) {
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
-        origin: 'Track.order()',
-        message: 'track positions did not need to be set'
-      });
+      return [];
     } //console.log('inputTracks.length:', inputTracks.length, '\n ---');
 
 
@@ -1481,11 +1422,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           delete inputTrack.position;
         }
       });
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["SuccessList"]({
-        origin: 'Track.order()',
-        message: 'influenced tracks calculated',
-        content: influencedTracks
-      });
+      return influencedTracks;
     });
     /* Thought Process
     			if any tracks have position set,
@@ -3168,6 +3105,30 @@ const APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.
 
 /***/ }),
 
+/***/ "./source/shared/content-container.js":
+/*!********************************************!*\
+  !*** ./source/shared/content-container.js ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ContentContainer; });
+/* harmony import */ var _utility__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility */ "./source/shared/utility/index.js");
+//G Should have a 'content' property, but can also be used to include metadata, like a timestamp.
+//TODO Expand into specific classes. Eg. TimestampedContent
+
+class ContentContainer {
+  constructor(options = {}) {
+    _utility__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, { ...options
+    });
+  }
+
+}
+
+/***/ }),
+
 /***/ "./source/shared/credentials.js":
 /*!**************************************!*\
   !*** ./source/shared/credentials.js ***!
@@ -4341,13 +4302,12 @@ class ErrorList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 /*!*************************************************!*\
   !*** ./source/shared/legacy-classes/success.js ***!
   \*************************************************/
-/*! exports provided: Success, SuccessList */
+/*! exports provided: Success */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SuccessList", function() { return SuccessList; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
@@ -4361,21 +4321,6 @@ class Success extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     } = options;
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       timestamp
-    });
-  }
-
-} // Wrapper for an array of successful items.
-
-class SuccessList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
-    const {
-      reason = 'all items successful',
-      content = []
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      reason,
-      content
     });
   }
 

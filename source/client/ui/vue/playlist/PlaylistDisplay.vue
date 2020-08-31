@@ -1,4 +1,6 @@
 <script>
+	//TODO Deleting a song that was playing will correctly delete it. However the UI wont show it (might have to do this with two songs). (Add 2 new tracks, play bottom one, delete both, notice that the first one wont delete).
+
 	import AsyncDisplay from '../async/AsyncDisplay.vue';
 	
 	import {

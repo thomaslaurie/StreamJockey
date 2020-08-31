@@ -1812,6 +1812,7 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+//TODO Deleting a song that was playing will correctly delete it. However the UI wont show it (might have to do this with two songs). (Add 2 new tracks, play bottom one, delete both, notice that the first one wont delete).
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -39760,13 +39761,12 @@ class ErrorList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] 
 /*!*************************************************!*\
   !*** ./source/shared/legacy-classes/success.js ***!
   \*************************************************/
-/*! exports provided: Success, SuccessList */
+/*! exports provided: Success */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SuccessList", function() { return SuccessList; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 // SUCCESS //C success and error objects are returned from functions (mostly async ones)
@@ -39781,22 +39781,6 @@ class Success extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
     } = options;
     _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
       timestamp
-    });
-  }
-
-} // Wrapper for an array of successful items.
-
-class SuccessList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      reason = 'all items successful',
-      content = []
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      reason,
-      content
     });
   }
 

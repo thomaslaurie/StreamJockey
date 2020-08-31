@@ -9,15 +9,3 @@ export class Success extends BaseResult {
 		define.writable(this, {timestamp});
 	}
 }
-
-// Wrapper for an array of successful items.
-export class SuccessList extends BaseResult {
-	constructor(options = {}) {
-		super(options);
-		const {
-			reason = 'all items successful',
-			content = [],
-		} = options;
-		define.writable(this, {reason, content});
-	}
-}

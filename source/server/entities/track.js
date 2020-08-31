@@ -12,7 +12,6 @@ import {
 } from '../../shared/legacy-classes/error.js';
 import {
 	Success,
-	SuccessList,
 } from '../../shared/legacy-classes/success.js';
 import Source from '../../server/source.js';
 import {
@@ -98,7 +97,7 @@ async function baseAccommodate(t, tracks) {
 			cssClass: 'notifyError',
 		}));
 	});
-	return await this.order(t, tracks).then((result) => result.content).catch(propagate);
+	return await this.order(t, tracks).catch(propagate);
 }
 define.constant(Track, {
 	addAccommodate:    baseAccommodate,
@@ -147,10 +146,7 @@ define.constant(Track, {
 
 		//C return early if none are moving
 		if (inputTracks.length === 0) {
-			return new SuccessList({
-				origin: 'Track.order()',
-				message: 'track positions did not need to be set',
-			});
+			return [];
 		}
 
 		//console.log('inputTracks.length:', inputTracks.length, '\n ---');
@@ -375,11 +371,7 @@ define.constant(Track, {
 				}
 			});
 
-			return new SuccessList({
-				origin: 'Track.order()',
-				message: 'influenced tracks calculated',
-				content: influencedTracks,
-			});
+			return influencedTracks;
 		});
 
 		/* Thought Process
