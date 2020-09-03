@@ -1,4 +1,5 @@
 // Used for errors that get thrown in parallel.
+//TODO Consider replacing with AggregateError (remember to add it to sharedRegistry like CustomError is)
 
 import {
 	define,

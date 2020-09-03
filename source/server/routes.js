@@ -86,11 +86,8 @@ import {
 	GET_BODY,
 } from '../shared/constants.js';
 import {
-	ParseError,
+	ParseError, InvalidStateError,
 } from '../shared/errors/index.js';
-import { 
-	Err,
-} from '../shared/legacy-classes/error.js';
 import {
 	Success,
 } from '../shared/legacy-classes/success.js';
@@ -295,12 +292,10 @@ export default function routes({replaceIndex}) {
 
 		// catch
 		.all('/*', async (ctx, next) => {
-			ctx.response.body = new Err({
-				log: true,
-				origin: 'apiRouter',
-				message: 'could not process request',
-				reason: 'invalid api command',
-				content: ctx.request.body,
+			ctx.response.body = new InvalidStateError({
+				userMessage: 'could not process request',
+				message: 'invalid api command',
+				state: ctx.request.body,
 			});
 		});
 

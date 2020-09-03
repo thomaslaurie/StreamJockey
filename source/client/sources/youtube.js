@@ -3,9 +3,6 @@ import {
 } from '../../shared/utility/index.js';
 import serverRequest from '../server-request.js';
 import {
-	Err,
-} from '../../shared/legacy-classes/error.js';
-import {
 	Success,
 } from '../../shared/legacy-classes/success.js';
 import {
@@ -16,6 +13,7 @@ import {
 } from '../../shared/propagate.js';
 import Source from '../source.js';
 import Playback from '../playback.js';
+import {CustomError, InvalidStateError} from '../../shared/errors/index.js';
 
 const youtube = new Source({
 	name: 'youtube',
@@ -35,10 +33,8 @@ const youtube = new Source({
 		//OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: Playback.requestTimeout});
 		//! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
 		window.gapi2 = window.gapi;
-		const loaded = new Deferred().timeout(Playback.requestTimeout, () => new Err({
-			log: false,
-			origin: 'youtube.auth()',
-			reason: 'gapi loading timed out',
+		const loaded = new Deferred().timeout(Playback.requestTimeout, () => new CustomError({
+			message: 'gapi loading timed out',
 		}));
 		Object.defineProperty(window, 'gapi', {
 			configurable: true,
@@ -139,7 +135,7 @@ const youtube = new Source({
 			await this.auth();
 		}
 
-		return await new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			// Wraps goog.Thenable which doesn't support the catch method.
 			gapi.client.request({
 				method,
@@ -159,10 +155,9 @@ const youtube = new Source({
 						4. Creating new keys.
 					//L See here: https://stackoverflow.com/a/27491718
 				*/
-				throw new Err({
-					reason: 'API key is invalid.',
-					message: 'YouTube credentials are invalid.',
-					content: rejected,
+				throw new InvalidStateError({
+					userMessage: 'YouTube credentials are invalid.',
+					state: rejected,
 				});
 			} else {
 				throw rejected;
@@ -227,20 +222,22 @@ youtube.search = async function ({
 		//C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
 		part: 'contentDetails',
 	});
-	if (searchResults.length !== videoResult.result.items.length) throw new Err({
-		origin: 'youtube.search()',
-		reason: 'search result length not equal to video result length',
-		content: {
-			searchLength: searchResults.length,
-			videoLength: videoResult.result.items.length,
-		},
-	});
+	if (searchResults.length !== videoResult.result.items.length) {
+		throw new InvalidStateError({
+			message: 'search result length not equal to video result length',
+			state: {
+				searchLength: searchResults.length,
+				videoLength: videoResult.result.items.length,
+			},
+		});
+	}
 	videoResult.result.items.forEach((item, index) => {
 		//C ensure that ids line up
-		if (searchResults[index].id.videoId !== item.id) throw new Err({
-			origin: 'youtube.search()',
-			reason: `search and video results at ${index} do not have the same id`,
-		});
+		if (searchResults[index].id.videoId !== item.id) {
+			throw new CustomError({
+				message: `search and video results at ${index} do not have the same id`,
+			});
+	}
 		//C append contentDetails part to the search results
 		searchResults[index].contentDetails = item.contentDetails;
 	});
@@ -263,9 +260,8 @@ youtube.playback = new Playback({
 			await runHTMLScript('https://www.youtube.com/iframe_api');
 
 			//TODO choose timeout
-			const deferred = new Deferred().timeout(Playback.requestTimeout, () => new Err({
-				origin: 'youtube loadPlayer()',
-				reason: 'youtube iframe player load timed out',
+			const deferred = new Deferred().timeout(Playback.requestTimeout, () => new CustomError({
+				message: 'youtube iframe player load timed out',
 			}));
 
 			window.onYouTubeIframeAPIReady = function () {
@@ -420,10 +416,11 @@ youtube.formatContentDetails = function (contentDetails) {
 },
 youtube.formatSnippet = function (snippet) {
 	const pack = {};
-	if (!rules.object.test(snippet)) throw new Err({
-		origin: 'youtube.formatSnippet()',
-		reason: 'snippet is not an object',
-	});
+	if (!rules.object.test(snippet)) {
+		throw new CustomError({
+			message: 'snippet is not an object',
+		});
+	}
 
 	//C assuming title format of 'Artist - Title'
 	//C splits on dash between one or any whitespace

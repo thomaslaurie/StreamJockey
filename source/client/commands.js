@@ -30,9 +30,6 @@ import {
 import {
 	Success,
 } from '../shared/legacy-classes/success.js';
-import {
-	Err,
-} from '../shared/legacy-classes/error.js';
 import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	asyncMap,
@@ -40,7 +37,7 @@ import {
 	rules,
 } from '../shared/utility/index.js';
 import {
-	MultipleErrors,
+	MultipleErrors, CustomError,
 } from '../shared/errors/index.js';
 import {
 	superPrototype,
@@ -69,18 +66,16 @@ class Command {
 		define.validatedVariable(this, {
 			resolve: {
 				value() {
-					throw new Err({
-						origin: 'sj.Command.resolve()',
-						reason: 'command.resolve called but it has not been given a resolve function',
+					throw new CustomError({
+						message: 'command.resolve called but it has not been given a resolve function',
 					});
 				},
 				validator: rules.func.validate,
 			},
 			reject: {
 				value() {
-					throw new Err({
-						origin: 'sj.Command.reject()',
-						reason: 'command.reject called but it has not been given a reject function',
+					throw new CustomError({
+						message: 'command.reject called but it has not been given a reject function',
 					});
 				},
 				validator: rules.func.validate,
@@ -246,10 +241,8 @@ export class Start extends Command {
 		} = options;
 
 		if (!isInstanceOf(track, Track, 'Track')) {
-			throw new Err({
-				origin: 'sj.Start.beforeInitialize()',
-				reason: 'sj.Start instance.track must be an Track',
-				content: track,
+			throw new CustomError({
+				message: 'sj.Start instance.track must be an Track',
 			});
 		}
 

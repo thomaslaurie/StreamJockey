@@ -2,6 +2,10 @@ import {
 	define,
 	rules,
 } from '../utility/index.js';
+import {sharedRegistry} from '../class-registry.js';
+
+// CustomError is registered to communicate an error via socket connection. See live-data-client.js
+const sharedRegistryId = 'CustomError';
 
 export default class CustomError extends Error {
 	constructor({
@@ -20,5 +24,9 @@ export default class CustomError extends Error {
 				validator: rules.string.validate,
 			},
 		});
+
+		sharedRegistry.defineId(this, sharedRegistryId);
 	}
 }
+
+sharedRegistry.register(CustomError, sharedRegistryId);

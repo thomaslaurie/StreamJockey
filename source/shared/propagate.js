@@ -7,12 +7,11 @@ import safeStringify from './derived-utility/safe-stringify.js';
 import UnexpectedValueThrown from './errors/unexpected-value-thrown.js';
 
 // Wraps the passed value in an Error instance if it isn't one. Then throws it.
+//TODO Consider replacing Error with CustomError so that it can be registered with the sharedRegistry. If this doesn't happen, there may be issues with error handling in live-data-client.js and socket errors.
 export default function propagate(value, overwriteOptions) {
 	if (value instanceof Error) {
 		throw value;
 	} else {
-		console.log(value instanceof Error);
-		console.log(typeof value);
 		throw new UnexpectedValueThrown({
 			message: `An unexpected value has been thrown: ${safeStringify(value)}`,
 			userMessage: 'An unexpected error has occurred.',

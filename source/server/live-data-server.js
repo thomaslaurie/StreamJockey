@@ -17,9 +17,6 @@ import fclone from 'fclone';
 // INTERNAL
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 import {
-	Err,
-} from '../shared/legacy-classes/error.js';
-import {
 	Success,
 } from '../shared/legacy-classes/success.js';
 import {
@@ -42,6 +39,7 @@ import {
 } from '../shared/utility/index.js';
 import {defaultSocketId} from '../shared/entityParts/user.js';
 import Warn from '../shared/warn.js';
+import { CustomError } from '../shared/errors/index.js';
 
 class Subscription {
 	constructor(options = {}) {
@@ -169,9 +167,8 @@ const liveDataServer = {
 		// Find table.
 		const table = this.findTable(Entity);
 		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
-			throw new Err({
-				origin: 'liveData.add()',
-				reason: 'table is not an LiveTable',
+			throw new CustomError({
+				message: 'table is not an LiveTable',
 			});
 		}
 
@@ -213,9 +210,8 @@ const liveDataServer = {
 		// Find table.
 		const table = this.findTable(Entity);
 		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
-			throw new Err({
-				origin: 'liveData.remove()',
-				reason: 'table is not an LiveTable',
+			throw new CustomError({
+				message: 'table is not an LiveTable',
 			});
 		}
 
@@ -268,9 +264,8 @@ const liveDataServer = {
 		// For each liveQuery.
 		const table = this.findTable(Entity);
 		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
-			throw new Err({
-				origin: 'liveData.notify()',
-				reason: 'table is not an LiveTable',
+			throw new CustomError({
+				message: 'table is not an LiveTable',
 			});
 		}
 

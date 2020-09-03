@@ -1,7 +1,4 @@
 import {
-	Err,
-} from '../legacy-classes/error.js';
-import {
 	define,
 	getKeysOf,
 	pick,

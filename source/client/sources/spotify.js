@@ -9,11 +9,6 @@ import {
 import request from '../../shared/request.js';
 import serverRequest from '../server-request.js';
 import {
-	Unreachable,
-	Timeout,
-	Err,
-} from '../../shared/legacy-classes/error.js';
-import {
 	Success,
 } from '../../shared/legacy-classes/success.js';
 import {
@@ -32,6 +27,8 @@ import Playback from '../playback.js';
 import {
 	UnreachableError,
 	AuthRequired,
+	InvalidStateError,
+	CustomError,
 } from '../../shared/errors/index.js';
 import {sharedRegistry} from '../../shared/class-registry.js';
 
@@ -148,7 +145,7 @@ const spotify = new Source({
 			if (result instanceof AuthRequired) {
 				//C call auth() if server doesn't have a refresh token
 				await that.auth();
-			} else if (result instanceof Err) {
+			} else if (result instanceof Error) {
 				throw propagate(result);
 			} else {
 				//C assign spotify.credentials
@@ -285,7 +282,7 @@ spotify.playback = new Playback({
 							await command().catch(rejected => {
 								if (!resolved) {
 									this.removeListener('player_state_changed', callback);
-									reject(new Err({...error, content: rejected}));
+									reject(new InvalidStateError({...error, state: rejected}));
 									resolved = true;
 								}
 							});
@@ -333,12 +330,11 @@ spotify.playback = new Playback({
 							device_ids: [device_id],
 							play: false, // keeps current playback state
 						}).catch(rejected => {
-							reject(new Err({
+							reject(new InvalidStateError({
 								//code: JSON.parse(error.response).error.status,
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player could not be loaded',
 								//reason: JSON.parse(error.response).error.message,
-								content: rejected,
+								userMessage: 'spotify player could not be loaded',
+								state: rejected,
 							}));
 						});
 
@@ -355,12 +351,11 @@ spotify.playback = new Playback({
 							await wait(delay);
 							delay = delay*2; //C double the delay each time
 							return await spotify.request('Get', 'me/player').catch(rejected => {
-								reject(new Err({
+								reject(new InvalidStateError({
+									userMessage: 'spotify player could not be loaded',
+									state: rejected,
 									//code: JSON.parse(error.response).error.status,
-									origin: 'spotify.loadPlayer()',
-									message: 'spotify player could not be loaded',
 									//reason: JSON.parse(error.response).error.message,
-									content: rejected,
 								}));
 
 								return {device: {id: device_id}}; //C break the loop after rejecting
@@ -400,29 +395,23 @@ spotify.playback = new Playback({
 					//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 					player.on('initialization_error', ({message}) => {
 						//C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-						reject(new Err({
-							log: true,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player encountered an initialization error',
-							reason: message,
+						reject(new CustomError({
+							userMessage: 'spotify player encountered an initialization error',
+							message,
 						}));
 					});
 					player.on('authentication_error', ({message}) => {
 						//C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-						reject(new Err({
-							log: true,
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player encountered an authentication error',
-							reason: message,
+						reject(new CustomError({
+							userMessage: 'spotify player encountered an authentication error',
+							message,
 						}));
 					});
 					player.on('account_error', ({message}) => {
 						//C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-						reject(new Err({
-							log: true,
-							origin: 'spotify.loadPlayer()',
-							message: 'this account does not have a valid Spotify Premium subscription',
-							reason: message,
+						reject(new CustomError({
+							userMessage: 'this account does not have a valid Spotify Premium subscription',
+							message,
 						}));
 					});
 		
@@ -444,10 +433,9 @@ spotify.playback = new Playback({
 						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
 						//! do not resolve here, the player will trigger the 'ready' event when its truly ready
 						if (!resolved) {
-							reject(new Err({
-								origin: 'spotify.loadPlayer()',
-								message: 'spotify player failed to connect',
-								reason: 'spotify.connect() failed',
+							reject(new CustomError({
+								userMessage: 'spotify player failed to connect',
+								message:'spotify.connect() failed',
 							}));
 						}
 					}, (rejected) => {
@@ -706,13 +694,11 @@ spotify.playback = new Playback({
 
 			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
 			const state = await context.state.player.getCurrentState().catch(rejected => {
-				throw new Err({
-					log: true,
+				throw new InvalidStateError({
+					userMessage: 'failed to check spotify playback state',
+					state: rejected,
 					//code: JSON.parse(rejected.response).error.status,
-					origin: 'spotify.checkPlayback()',
-					message: 'failed to check spotify playback state',
 					//reason: JSON.parse(rejected.response).error.message,
-					content: rejected,
 				});
 			});
 

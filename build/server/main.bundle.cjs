@@ -334,13 +334,14 @@ const PASSWORD_SALT_ROUNDS = 10;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return createDatabase; });
 /* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 
 
 
-/* harmony default export */ __webpack_exports__["default"] = (async function () {
+async function createDatabase() {
   /*
   	const schema = {
   		name: 'sj',
@@ -369,7 +370,7 @@ __webpack_require__.r(__webpack_exports__);
   	};
   */
   // initialize
-  return _db_js__WEBPACK_IMPORTED_MODULE_0__["default"].tx(async function (t) {
+  return _db_js__WEBPACK_IMPORTED_MODULE_0__["default"].tx(async t => {
     // TODO this will not alter tables if they do already exist (save this for migration)
     // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
     // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
@@ -384,14 +385,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
     return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-        log: true,
-        origin: 'schema initialization',
-        message: 'database error',
-        reason: rejected.message,
-        content: rejected,
-        target: 'notify',
-        cssClass: 'notifyError'
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+        userMessage: 'database error',
+        message: rejected.message,
+        state: rejected
       });
     }).then(resolved => {
       // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
@@ -403,14 +400,10 @@ __webpack_require__.r(__webpack_exports__);
 				"email" text CONSTRAINT "users_email_key" UNIQUE,
 				"spotifyRefreshToken" text
 			);`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-          log: true,
-          origin: 'users table initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+          userMessage: 'database error',
+          message: rejected.message,
+          state: rejected
         });
       });
     }).then(resolved => {
@@ -420,14 +413,10 @@ __webpack_require__.r(__webpack_exports__);
 				SELECT id, name, email 
 				FROM "sj"."users"
 			;`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-          log: true,
-          origin: 'users_self initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+          userMessage: 'database error',
+          message: rejected.message,
+          state: rejected
         });
       });
     }).then(resolved => {
@@ -435,14 +424,10 @@ __webpack_require__.r(__webpack_exports__);
 				SELECT id, name
 				FROM "sj"."users"
 			;`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-          log: true,
-          origin: 'users_public initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+          userMessage: 'database error',
+          message: rejected.message,
+          state: rejected
         });
       });
     }).then(resolved => {
@@ -457,14 +442,10 @@ __webpack_require__.r(__webpack_exports__);
 				
 				CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
 			);`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-          log: true,
-          origin: 'playlists table initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+          userMessage: 'database error',
+          message: rejected.message,
+          state: rejected
         });
       });
     }).then(resolved => {
@@ -480,23 +461,19 @@ __webpack_require__.r(__webpack_exports__);
 
 				CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
 			);`).catch(rejected => {
-        throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_1__["Err"]({
-          log: true,
-          origin: 'tracks table initialization',
-          message: 'database error',
-          reason: rejected.message,
-          content: rejected,
-          target: 'notify',
-          cssClass: 'notifyError'
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+          userMessage: 'database error',
+          message: rejected.message,
+          state: rejected
         });
       });
     }).catch(rejected => {
-      throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rejected);
+      throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__["default"])(rejected);
     });
   }).catch(rejected => {
-    throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_2__["default"])(rejected);
+    throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__["default"])(rejected);
   });
-});
+}
 ;
 
 /***/ }),
@@ -662,15 +639,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
-/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
-/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_content_container_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/content-container.js */ "./source/shared/content-container.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
+/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_content_container_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/content-container.js */ "./source/shared/content-container.js");
+/* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
 // INTERNAL
 
 
@@ -682,17 +658,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-class Entity extends _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"] {
+class Entity extends _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"] {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["entityParts"].intercept(...args);
     super(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].instance(this, ...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["entityParts"].instance(this, ...args);
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].prototype(Entity);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["entityParts"].static(Entity);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["entityParts"].prototype(Entity);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["entityParts"].static(Entity);
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity.prototype, {
   async add(db) {
     return this.constructor.add(this, db);
@@ -743,9 +718,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   // FRAME
   async frame(db, anyEntities, methodName) {
     //C catch Entity
-    if (this === Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      origin: 'Entity.[CRUD]',
-      reason: `cannot call CRUD method directly on Entity`
+    if (this === Entity) throw new CustomError({
+      message: `cannot call CRUD method directly on Entity`
     }); //C cast as array
 
     const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
@@ -760,11 +734,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       //C process
       const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
 
-      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw); //C prepare
+      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw); //C prepare
 
-      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw); //C accommodate
+      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw); //C accommodate
 
-      const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]) : []; //C map
+      const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]) : []; //C map
 
       const inputMapped = this.mapColumns(preparedEntities);
       const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
@@ -776,14 +750,14 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
         await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
           //C before, ignore add
           if (!isGet && methodName !== 'add') {
-            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+            const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
             inputBefore.push(...before);
           } //C after, ignore remove (still needs to execute though)
 
 
-          const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+          const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
           if (methodName !== 'remove') inputAfter.push(...after);
-        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw);
       } //C execute SQL for influenced
 
 
@@ -792,11 +766,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
       if (!isGet) {
         await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(influencedMapped, async influencedEntity => {
-          const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+          const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(influencedEntity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
           influencedBefore.push(...before);
-          const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+          const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
           influencedAfter.push(...after);
-        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw);
       } //C group for iteration
 
 
@@ -804,8 +778,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
       const unmapped = all.map(list => this.unmapColumns(list)); //C process
 
-      return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
-    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
+      return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw);
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
     //C shake for subscriptions with getOut filter
 
     const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
@@ -818,7 +792,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
     const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
 
     const built = shook.map(list => list.map(entity => new this(entity)));
-    return new _shared_content_container_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
+    return new _shared_content_container_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
       content: built[1],
       timestamp
@@ -854,11 +828,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(validator);
       const value = entity[key];
 
-      if (isRequired || isOptional && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_8__["default"])(value)) {
+      if (isRequired || isOptional && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_6__["default"])(value)) {
         await validator(value);
         validated[key] = value;
       }
-    }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["MultipleErrors"].throw);
+    }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw);
     return validated;
   }
 
@@ -930,7 +904,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
   // Executes SQL queries.
   async addQuery(t, mappedEntity) {
-    const values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
+    const values = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_5__["buildValues"])(mappedEntity); //? is returning * still needed when a final SELECT will be called? //TODO also remember to shake off undesired columns, like passwords
     //L use where clause as raw: https://github.com/vitaly-t/pg-promise#raw-text
 
     return t.one(`
@@ -938,27 +912,25 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			$1:raw 
 			RETURNING *
 		`, [values]).catch(rejected => {
-      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        log: false,
-        origin: `${this.name}.add()`,
-        message: `could not add ${this.name}s`
-      }));
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+        postgresError: rejected,
+        userMessage: `Could not add ${this.name}s.`
+      });
     });
   },
 
   async getQuery(t, mappedEntity) {
-    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildWhere"])(mappedEntity);
+    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_5__["buildWhere"])(mappedEntity);
     return t.any(`
 			SELECT * 
 			FROM "sj"."${this.table}" 
 			WHERE $1:raw
 			${this.queryOrder}
 		`, [where]).catch(rejected => {
-      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        log: false,
-        origin: `${this.name}.get()`,
-        message: `could not get ${this.name}s`
-      }));
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+        postgresError: rejected,
+        userMessage: `Could not get ${this.name}s.`
+      });
     });
   },
 
@@ -967,8 +939,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       id,
       ...mappedEntitySet
     } = mappedEntity;
-    const set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildSet"])(mappedEntitySet);
-    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildWhere"])({
+    const set = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_5__["buildSet"])(mappedEntitySet);
+    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_5__["buildWhere"])({
       id
     });
     return t.one(`
@@ -977,26 +949,24 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			WHERE $2:raw 
 			RETURNING *
 		`, [set, where]).catch(rejected => {
-      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        log: false,
-        origin: `${this.name}.edit()`,
-        message: `could not edit ${this.names}`
-      }));
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+        postgresError: rejected,
+        userMessage: `Could not edit ${this.name}s.`
+      });
     });
   },
 
   async removeQuery(t, mappedEntity) {
-    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_7__["buildWhere"])(mappedEntity);
+    const where = Object(_database_sql_builders_js__WEBPACK_IMPORTED_MODULE_5__["buildWhere"])(mappedEntity);
     return t.one(`
 			DELETE FROM "sj"."${this.table}" 
 			WHERE $1:raw 
 			RETURNING *
 		`, where).catch(rejected => {
-      throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_6__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        log: false,
-        origin: `${this.name}.remove()`,
-        message: `could not remove ${this.names}s`
-      }));
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+        postgresError: rejected,
+        userMessage: `Could not remove ${this.name}s.`
+      });
     });
   }
 
@@ -1087,16 +1057,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
-/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
-/* harmony import */ var _shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/entityParts/track.js */ "./source/shared/entityParts/track.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
-/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/entityParts/track.js */ "./source/shared/entityParts/track.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+/* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
 // INTERNAL
 
 
@@ -1109,25 +1078,24 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_11__["default"] {
+class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_9__["default"] {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["trackParts"].intercept(...args);
     super(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].instance(this, ...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["trackParts"].instance(this, ...args);
     const [{
       source
     }] = args;
-    Object(_shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_6__["validateSource"])({
+    Object(_shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_5__["validateSource"])({
       instance: this,
-      SourceClass: _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"],
+      SourceClass: _server_source_js__WEBPACK_IMPORTED_MODULE_3__["default"],
       value: source
     });
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].prototype(Track);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_5__["trackParts"].static(Track);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["trackParts"].prototype(Track);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_4__["trackParts"].static(Track);
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track.prototype, {
   async order(db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
     return await this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
@@ -1181,15 +1149,12 @@ async function baseAccommodate(t, tracks) {
   //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
   //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
   await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-    throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      log: false,
-      origin: 'Track.move()',
-      message: 'could not order tracks, database error',
-      target: 'notify',
-      cssClass: 'notifyError'
-    }));
+    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
+      postgresError: rejected,
+      userMessage: 'Could not order tracks, a database error has occurred.'
+    });
   });
-  return await this.order(t, tracks).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["default"]);
+  return await this.order(t, tracks).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
 }
 
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, {
@@ -1201,7 +1166,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 async function baseAfter(t, entities) {
   let newEntities = entities.slice();
   newEntities.forEach(entity => {
-    entity.source = _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"].instances.find(source => source.name === entity.source);
+    entity.source = _server_source_js__WEBPACK_IMPORTED_MODULE_3__["default"].instances.find(source => source.name === entity.source);
   });
   return newEntities;
 }
@@ -1226,8 +1191,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
     //C filter out tracks
     let inputTracks = tracks.filter(track => //C without an id (including symbol)
-    (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
-    !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_9__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+    (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
+    !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
     inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
 
@@ -1236,21 +1201,25 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     } //console.log('inputTracks.length:', inputTracks.length, '\n ---');
 
 
-    return await db.tx(async t => {
+    return db.tx(async t => {
       const playlists = [];
       const influencedTracks = [];
       const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
 
       await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
         const storePlaylist = function (playlistId, existingTracks) {
-          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(playlistId)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-            origin: 'Track.order()',
-            reason: `playlistId is not an integer: ${playlistId}`
-          });
-          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(existingTracks)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-            origin: 'Track.order()',
-            reason: `existingTracks is not an array: ${existingTracks}`
-          }); //C stores playlist in playlists if not already stored
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(playlistId)) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
+              message: `playlistId is not an integer: ${playlistId}`
+            });
+          }
+
+          if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(existingTracks)) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
+              message: `existingTracks is not an array: ${existingTracks}`
+            });
+          } //C stores playlist in playlists if not already stored
+
 
           let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
 
@@ -1289,11 +1258,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 					)
 				`, track.id);
         const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-          throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-            log: false,
-            origin: 'Track.order()',
-            message: 'could not move tracks'
-          }));
+          throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
+            postgresError: rejected,
+            userMessage: 'Could not move tracks.'
+          });
         }); //C store
 
         const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
@@ -1315,11 +1283,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
 					`, track.playlistId).catch(rejected => {
-            throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-              log: false,
-              origin: 'Track.order()',
-              message: 'could not move tracks'
-            }));
+            throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
+              postgresError: rejected,
+              userMessage: 'Could not move tracks.'
+            });
           });
           const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
           anotherPlaylistStored.original.forEach(t => {
@@ -1330,12 +1297,12 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           anotherPlaylistStored.inputsToAdd.push(track);
         }
 
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
           origin: 'Track.order()',
           message: "retrieved track's playlist"
         });
       }).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["MultipleErrors"]({
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["MultipleErrors"]({
           userMessage: `could not retrieve some track's playlist`,
           errors: rejected
         });
@@ -1490,10 +1457,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
-/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../constants.js */ "./source/server/constants.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+/* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants.js */ "./source/server/constants.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 // EXTERNAL
  // INTERNAL
 
@@ -1502,29 +1469,27 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class User extends _entity_js__WEBPACK_IMPORTED_MODULE_5__["default"] {
+class User extends _entity_js__WEBPACK_IMPORTED_MODULE_4__["default"] {
   constructor(...args) {
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].intercept(...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].intercept(...args);
     super(...args);
-    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].instance(this, ...args);
+    _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].instance(this, ...args);
   }
 
 }
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].prototype(User);
-_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["userParts"].static(User);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].prototype(User);
+_shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].static(User);
 
 async function basePrepare(t, user) {
   const newUser = new User(user); // Hash password.
   //TODO might be a vulnerability here with this string check
 
   if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(newUser.password)) {
-    newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_4__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        log: true,
-        origin: 'User.add()',
-        message: 'failed to add user',
-        reason: 'hash failed',
-        content: rejected
+    newUser.password = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.hash(newUser.password, _constants_js__WEBPACK_IMPORTED_MODULE_3__["PASSWORD_SALT_ROUNDS"]).catch(rejected => {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
+        userMessage: 'failed to add user',
+        message: 'hash failed',
+        state: rejected
       });
     });
   }
@@ -1537,6 +1502,66 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(User, {
   editPrepare: basePrepare,
   queryOrder: 'ORDER BY "id" ASC'
 });
+
+/***/ }),
+
+/***/ "./source/server/errors/postgres-error.js":
+/*!************************************************!*\
+  !*** ./source/server/errors/postgres-error.js ***!
+  \************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PostgresError; });
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
+//TODO any validation needed here?
+//TODO consider separating insertion checks into Conditions so multiple parameters are checked
+//TODO add targets and cssClasses to each violation case too
+
+
+class PostgresError extends _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__["CustomError"] {
+  constructor({
+    postgresError: {
+      message,
+      code,
+      constraint
+    } = {},
+    ...rest
+  } = {}) {
+    super(rest);
+    this.message = message; // Class 23 — Integrity Constraint Violation
+
+    if (code === '23505') {
+      // unique_violation
+      // Users
+      if (constraint === 'users_name_key') {
+        this.userMessage = 'this user name is already taken';
+      } else if (constraint === 'users_email_key') {
+        this.userMessage = 'this email is already in use'; // Playlists
+      } else if (constraint === 'playlists_userId_name_key') {
+        this.userMessage = 'you already have a playlist with this name'; // Tracks
+      } else if (constraint === 'tracks_position_key') {
+        this.userMessage = 'a track already exists at this position';
+      }
+    } else if (code === '23503') {
+      // foreign_key_violation
+      // Playlists
+      if (constraint === 'playlists_userId_fkey') {
+        this.userMessage = 'cannot add a playlist for an unknown user'; // Tracks
+      } else if (constraint === 'tracks_playlistId_fkey') {
+        this.userMessage = 'cannot add a track for an unknown playlist';
+      }
+    }
+
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+      code
+    });
+  }
+
+}
 
 /***/ }),
 
@@ -1577,15 +1602,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fclone */ "fclone");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/entityParts/user.js */ "./source/shared/entityParts/user.js");
-/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/entityParts/user.js */ "./source/shared/entityParts/user.js");
+/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 //! Side-effects
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
@@ -1610,11 +1635,11 @@ __webpack_require__.r(__webpack_exports__);
 
 class Subscription {
   constructor(options = {}) {
-    _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["subscriptionParts"].instance(this, options);
+    _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["subscriptionParts"].instance(this, options);
     const {
       user = null
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_9__["define"].writable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_8__["define"].writable(this, {
       user
     });
   }
@@ -1624,10 +1649,10 @@ class Subscription {
 const liveDataServer = {
   app: null,
   socket: null,
-  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].makeTables({
-    User: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"],
-    Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Playlist"],
-    Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]
+  tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"].makeTables({
+    User: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"],
+    Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Playlist"],
+    Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"]
   }),
 
   start({
@@ -1651,7 +1676,7 @@ const liveDataServer = {
         console.log('CONNECT', socket.id); // If user is logged in, give the socketId to the session.
         //! I don't think the cookie session receives this, though it isn't needed there so far
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User')) socket.session.user.socketId = socket.id;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"], 'User')) socket.session.user.socketId = socket.id;
         socket.on('disconnect', async () => {
           try {
             console.log('DISCONNECT', socket.id);
@@ -1660,11 +1685,11 @@ const liveDataServer = {
               console.error('subscription disconnect error:', rejected);
             }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User')) {
-              socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_10__["defaultSocketId"];
+            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"], 'User')) {
+              socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_9__["defaultSocketId"];
             }
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["logPropagate"])(error);
           }
         });
         socket.on('subscribe', async ({
@@ -1675,17 +1700,17 @@ const liveDataServer = {
             console.log('SUBSCRIBE', socket.id); // if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
             //TODO socketId validator, this is all that really matters here
 
-            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"]({
+            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"]({
               socketId: socket.id
             }); //! using LiveTable.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
-            const result = await this.add(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
+            const result = await this.add(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"].tableToEntity(table), query, user); //! //G Do not send back circular data in the acknowledgment callback, SocketIO will cause a stack overflow.
             //L https://www.reddit.com/r/node/comments/8diy81/what_is_rangeerror_maximum_call_stack_size/dxnkpf7?utm_source=share&utm_medium=web2x
             // Using fclone to drop circular reference.s
 
             callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["logPropagate"])(error);
           }
         });
         socket.on('unsubscribe', async ({
@@ -1694,24 +1719,24 @@ const liveDataServer = {
         }, callback) => {
           try {
             console.log('UNSUBSCRIBE', socket.id);
-            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"]({
+            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"]({
               socketId: socket.id
             });
-            const result = await this.remove(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"].tableToEntity(table), query, user);
+            const result = await this.remove(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"].tableToEntity(table), query, user);
             callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["logPropagate"])(error);
           }
         });
         socket.on('error', reason => {
           try {
             console.error('ERROR', socket.id, reason);
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["logPropagate"])(error);
           }
         });
       } catch (error) {
-        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["logPropagate"])(error);
+        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_7__["logPropagate"])(error);
       }
     });
   },
@@ -1738,18 +1763,17 @@ const liveDataServer = {
 
     const table = this.findTable(Entity);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'liveData.add()',
-        reason: 'table is not an LiveTable'
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["CustomError"]({
+        message: 'table is not an LiveTable'
       });
     } // Find liveQuery, add if it doesn't exist.
 
 
     let liveQuery = this.findLiveQuery(table, processedQuery);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery')) {
-      liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) {
+      liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"]({
         table,
         query: processedQuery
       });
@@ -1759,7 +1783,7 @@ const liveDataServer = {
 
     let subscription = this.findSubscription(liveQuery, user);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, Subscription, 'Subscription')) {
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, Subscription, 'Subscription')) {
       subscription = new Subscription({
         liveQuery,
         user
@@ -1769,7 +1793,7 @@ const liveDataServer = {
 
 
     Object.assign(subscription.user, user);
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
       origin: 'addSubscriber()',
       message: 'added subscriber',
       content: processedQuery
@@ -1783,10 +1807,9 @@ const liveDataServer = {
 
     const table = this.findTable(Entity);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'liveData.remove()',
-        reason: 'table is not an LiveTable'
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["CustomError"]({
+        message: 'table is not an LiveTable'
       });
     } // Find liveQuery index.
 
@@ -1794,8 +1817,8 @@ const liveDataServer = {
     const liveQuery = this.findLiveQuery(table, processedQuery);
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) {
-      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_11__["default"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) {
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
         origin: 'Subscriptions.remove()',
         message: 'no subscription found for this query',
         content: {
@@ -1810,8 +1833,8 @@ const liveDataServer = {
     const subscription = this.findSubscription(liveQuery, user);
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) {
-      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_11__["default"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) {
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_10__["default"]({
         origin: 'Subscriptions.remove()',
         message: 'no subscriber found for this user',
         content: {
@@ -1829,7 +1852,7 @@ const liveDataServer = {
       this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
     }
 
-    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+    return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
       origin: 'removeSubscriber()',
       message: 'removed subscriber',
       content: processedQuery
@@ -1840,10 +1863,9 @@ const liveDataServer = {
     // For each liveQuery.
     const table = this.findTable(Entity);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_6__["LiveTable"], 'LiveTable')) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'liveData.notify()',
-        reason: 'table is not an LiveTable'
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_11__["CustomError"]({
+        message: 'table is not an LiveTable'
       });
     }
 
@@ -1898,7 +1920,7 @@ const liveDataServer = {
 //R //! This is to avoid a circular dependency, however it is a side-effect.
 //TODO Resolve this side-effect.
 
-_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Entity"].notify = liveDataServer.notify.bind(liveDataServer);
+_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"].notify = liveDataServer.notify.bind(liveDataServer);
 /* harmony default export */ __webpack_exports__["default"] = (liveDataServer);
 /* //TODO test:
 	no duplicate live queries
@@ -2158,67 +2180,6 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/server/parse-postgres-error.js":
-/*!***********************************************!*\
-  !*** ./source/server/parse-postgres-error.js ***!
-  \***********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return parsePostgresError; });
-function parsePostgresError(pgError, sjError) {
-  //TODO any validation needed here?
-  //TODO consider separating insertion checks into Conditions so multiple parameters are checked
-  //TODO add targets and cssClasses to each violation case too
-  sjError.code = pgError.code;
-  sjError.reason = pgError.message;
-  sjError.content = pgError; // https://www.postgresql.org/docs/9.6/static/errcodes-appendix.html
-  // Class 23 — Integrity Constraint Violation
-
-  if (pgError.code === '23505') {
-    // unique_violation
-    // users
-    if (pgError.constraint === 'users_name_key') {
-      sjError.message = 'this user name is already taken';
-    }
-
-    if (pgError.constraint === 'users_email_key') {
-      sjError.message = 'this email is already in use';
-    } // playlists
-
-
-    if (pgError.constraint === 'playlists_userId_name_key') {
-      sjError.message = 'you already have a playlist with this name';
-    } // tracks
-
-
-    if (pgError.constraint === 'tracks_position_key') {
-      sjError.message = 'a track already exists at this position';
-    }
-  }
-
-  if (pgError.code === '23503') {
-    // foreign_key_violation
-    // playlists
-    if (pgError.constraint === 'playlists_userId_fkey') {
-      sjError.message = 'cannot add a playlist for an unknown user';
-    } // tracks
-
-
-    if (pgError.constraint === 'tracks_playlistId_fkey') {
-      sjError.message = 'cannot add a track for an unknown playlist';
-    }
-  }
-
-  sjError.announce();
-  return sjError;
-}
-;
-
-/***/ }),
-
 /***/ "./source/server/routes.js":
 /*!*********************************!*\
   !*** ./source/server/routes.js ***!
@@ -2244,13 +2205,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _auth_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./auth.js */ "./source/server/auth.js");
 /* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
-/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
+/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2333,7 +2293,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
  //  ██╗███╗   ██╗██╗████████╗
 //  ██║████╗  ██║██║╚══██╔══╝
 //  ██║██╔██╗ ██║██║   ██║
@@ -2399,7 +2358,7 @@ function routes({
   // server-side data & processing requests
 
   apiRouter.all('/*', async (ctx, next) => {
-    await next().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["logPropagate"]);
+    await next().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["logPropagate"]);
   }).get('/*', async (ctx, next) => {
     // Set GET request bodies as the parsed body parameter (if it exists).
     const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_8__["GET_BODY"]];
@@ -2417,79 +2376,77 @@ function routes({
 
     await next();
   }).post('/log', async (ctx, next) => {
-    ctx.response.body = new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_11__["Success"]({
+    ctx.response.body = new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_10__["Success"]({
       origin: 'routes.js /log POST',
       message: 'received client log message'
     });
   }) // auth
   .get('/spotify/authRequestStart', async (ctx, next) => {
     // Retrieves an auth request URL and it's respective local key (for event handling).
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].startAuthRequest().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_15__["spotify"].startAuthRequest().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }).get('/spotify/authRedirect', async (ctx, next) => {
     // Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
     //! This URL is sensitive to the url given to spotify developer site (I think).
-    await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].receiveAuthRequest(ctx.request.query).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    await _sources_index_js__WEBPACK_IMPORTED_MODULE_15__["spotify"].receiveAuthRequest(ctx.request.query).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
     await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
       root: root
     });
   }).post('/spotify/authRequestEnd', async (ctx, next) => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].endAuthRequest(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_15__["spotify"].endAuthRequest(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }).post('/spotify/exchangeToken', async (ctx, next) => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].exchangeToken(ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_15__["spotify"].exchangeToken(ctx, ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }).get('/spotify/refreshToken', async (ctx, next) => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["spotify"].refreshToken(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_15__["spotify"].refreshToken(ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }).get('/youtube/credentials', async (ctx, next) => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_16__["youtube"].getCredentials().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_15__["youtube"].getCredentials().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }) // session
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async (ctx, next) => {
     //----------
     //TODO //! returnPropagate isnt doing jack here, throwing inside session.login() wasn't showing any errors/
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["login"](_db_js__WEBPACK_IMPORTED_MODULE_15__["default"], ctx, ctx.request.body).catch(e => {
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_13__["login"](_db_js__WEBPACK_IMPORTED_MODULE_14__["default"], ctx, ctx.request.body).catch(e => {
       console.error(e);
     });
   }).get('/session', async (ctx, next) => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["get"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_13__["get"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }).delete('/session', async (ctx, next) => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_14__["logout"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_13__["logout"](ctx).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }) //TODO condense this
   // user
-  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["User"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["User"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }) // playlist
-  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Playlist"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Playlist"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }) // track
-  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
-  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_12__["Track"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_13__["returnPropagate"]);
+  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
+  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].table}`, async (ctx, next) => {
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_11__["Track"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_12__["returnPropagate"]);
   }) // catch
   .all('/*', async (ctx, next) => {
-    ctx.response.body = new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_10__["Err"]({
-      log: true,
-      origin: 'apiRouter',
-      message: 'could not process request',
-      reason: 'invalid api command',
-      content: ctx.request.body
+    ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+      userMessage: 'could not process request',
+      message: 'invalid api command',
+      state: ctx.request.body
     });
   }); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 
@@ -2567,10 +2524,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./parse-postgres-error.js */ "./source/server/parse-postgres-error.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 // EXTERNAL
  // INTERNAL
 
@@ -2589,45 +2546,35 @@ async function login(db, ctx, user) {
   const existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
     return resolved.password;
   }).catch(rejected => {
-    throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      log: false,
-      origin: 'login()',
-      message: 'could not login, database error'
-    }));
+    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
+      postgresError: rejected,
+      userMessage: 'Could not login, a database error has occurred.'
+    });
   }); // Check password.
 
   const isMatch = await bcryptjs__WEBPACK_IMPORTED_MODULE_0___default.a.compare(user.password, existingPassword).catch(rejected => {
-    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      log: true,
-      origin: 'login()',
-      message: 'server error',
-      reason: 'hash compare failed',
-      content: rejected,
-      target: 'loginPassword',
-      cssClass: 'inputError'
+    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
+      userMessage: 'server error',
+      message: 'hash compare failed',
+      state: rejected
     });
   });
 
   if (!isMatch) {
-    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      log: true,
-      origin: 'login()',
-      message: 'incorrect password',
-      target: 'loginPassword',
-      cssClass: 'inputError'
+    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
+      userMessage: 'incorrect password'
     });
   } // Get user
 
 
   user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-    throw Object(_parse_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__["default"])(rejected, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      log: false,
-      origin: 'login()',
-      message: 'could not login, database error'
-    }));
+    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
+      postgresError: rejected,
+      userMessage: 'Could not login, a database error has occurred.'
+    });
   });
   ctx.session.user = new _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"](user);
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
     origin: 'login()',
     message: 'user logged in',
     content: ctx.session.user
@@ -2639,7 +2586,7 @@ async function get(ctx) {
     //TODO Temporary until route error handling can be reworked.
     console.log('Error in server api session.get()', rejected);
   });
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
     origin: 'getMe()',
     content: ctx.session.user
   });
@@ -2649,7 +2596,7 @@ async function get(ctx) {
 
 async function logout(ctx) {
   delete ctx.session.user;
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
     origin: 'logout()',
     message: 'user logged out'
   });
@@ -2658,23 +2605,17 @@ async function logout(ctx) {
 async function isLoggedIn(ctx) {
   var _ctx$session$user, _ctx$session$user2;
 
-  if (!(ctx.session.user instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.constructorName) === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.test((_ctx$session$user2 = ctx.session.user) === null || _ctx$session$user2 === void 0 ? void 0 : _ctx$session$user2.id)) {
-    throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      log: true,
-      origin: 'isLoggedIn()',
-      code: 403,
-      message: 'you must be logged in to do this',
-      reason: 'user is not logged in',
-      target: 'notify',
-      cssClass: 'notifyError' // TODO consider denial error rather than error error (you messed up vs I messed up)
-
+  if (!(ctx.session.user instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.constructorName) === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].integer.test((_ctx$session$user2 = ctx.session.user) === null || _ctx$session$user2 === void 0 ? void 0 : _ctx$session$user2.id)) {
+    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
+      userMessage: 'you must be logged in to do this',
+      message: 'user is not logged in'
     });
   } // Redundancy check to make sure id is right format.
 
 
-  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_5__["rules"].integer.validate(ctx.session.user.id); //TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
+  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].integer.validate(ctx.session.user.id); //TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
 
-  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+  return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
     origin: 'isLoggedIn()',
     message: 'user is logged in'
   });
@@ -2747,13 +2688,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../session-methods.js */ "./source/server/session-methods.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/credentials.js */ "./source/shared/credentials.js");
+/* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/credentials.js */ "./source/shared/credentials.js");
 //TODO consider moving this over to the globals-server stuff
 //C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 // EXTERNAL
@@ -2769,8 +2709,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
+const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
   name: 'spotify',
   register: true,
   api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default.a({
@@ -2798,14 +2737,13 @@ const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
   },
 
   authRequestManually: true,
-  makeAuthRequestURL: function (key) {
+
+  makeAuthRequestURL(key) {
     //TODO make a better catch & handle, this is a temporary catch for undefined credentials as the error is silent until it arrives on spotify's end: 'Missing required parameter: client_id'
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.api._credentials.clientId) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.api._credentials.clientSecret) || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(this.api._credentials.redirectUri)) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        log: true,
-        origin: 'spotify.makeAuthRequestURL()',
-        message: 'one or more api credentials are missing or of the wrong type',
-        content: {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        userMessage: 'one or more api credentials are missing or of the wrong type',
+        state: {
           clientId: this.api._credentials.clientId,
           clientSecret: this.api._credentials.clientSecret,
           redirectUri: this.api._credentials.redirectUri
@@ -2816,19 +2754,21 @@ const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
 
     return this.api.createAuthorizeURL(this.scopes, key) + `&show_dialog=${this.authRequestManually}`;
   }
+
 }); //TODO make any property available for Source
 
 Object.assign(spotify, {
-  startAuthRequest: async function () {
+  async startAuthRequest() {
     let pack = await auth.addRequestKey();
-    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       authRequestKey: pack.key,
       authRequestTimestamp: pack.timestamp,
       authRequestTimeout: pack.timeout,
       authRequestURL: this.makeAuthRequestURL(pack.key)
     });
   },
-  receiveAuthRequest: async function (query) {
+
+  async receiveAuthRequest(query) {
     //C receives and transforms credentials from spotify after the user confirms the authorization
 
     /*//C spotify authorization guide
@@ -2845,34 +2785,31 @@ Object.assign(spotify, {
     await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
 
     if (query.code === undefined) {
-      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        log: true,
-        origin: 'receiveAuthRequest()',
-        message: 'spotify authorization failed',
-        reason: 'code is missing',
-        content: query
+      emitter.emit(query.state, new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        userMessage: 'spotify authorization failed',
+        message: 'code is missing',
+        state: query
       }));
     } //C ensure that spotify didn't send an error
 
 
     if (query.error !== undefined) {
-      emitter.emit(query.state, new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        log: true,
-        origin: 'receiveAuthRequest()',
-        message: 'spotify authorization failed',
-        reason: query.error,
-        content: query
+      emitter.emit(query.state, new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        userMessage: 'spotify authorization failed',
+        message: query.error,
+        state: query
       }));
     } //C send the event and credentials for endAuthRequest() to pick up
 
 
-    emitter.emit(query.state, new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    emitter.emit(query.state, new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       //? sj.success here?
       authRequestKey: query.state,
       //? is this needed anymore?
       authCode: query.code
     }));
   },
+
   endAuthRequest: async function (credentials) {
     //C catches events emitted by receiveAuthRequest() and sends them to the waiting router request
     return await new Promise((resolve, reject) => {
@@ -2883,10 +2820,8 @@ Object.assign(spotify, {
       }); //C setup timeout
 
       Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(credentials.authRequestTimeout).then(() => {
-        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          log: true,
-          origin: 'sj.spotify.endAuthRequest()',
-          message: 'request timeout'
+        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+          userMessage: 'request timeout'
         }));
       });
     });
@@ -2908,24 +2843,23 @@ Object.assign(spotify, {
         client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
       }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["URL_HEADER"]
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__["URL_HEADER"]
     }).catch(rejected => {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        log: true,
-        message: 'failed to authorize spotify',
-        reason: 'token exchange failed',
-        content: rejected
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        userMessage: 'failed to authorize spotify',
+        message: 'token exchange failed',
+        state: rejected
       });
     }); //C store refresh token in database
     //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
-    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__["get"](ctx).then(result => result.content);
-    await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].edit({
+    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_6__["get"](ctx).then(result => result.content);
+    await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
     }).then(resolved => {}); //C repack and return
 
-    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       accessToken: result.access_token,
       expires: timestamp + result.expires_in,
       //refreshToken: result.refresh_token,
@@ -2935,12 +2869,12 @@ Object.assign(spotify, {
   },
   refreshToken: async function (ctx) {
     //C get the refresh token from the database
-    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_7__["get"](ctx).then(result => result.content);
-    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_6__["get"](ctx).then(result => result.content);
+    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].visibleString.test(refreshToken)) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"]();
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["AuthRequired"]();
     } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
@@ -2952,27 +2886,26 @@ Object.assign(spotify, {
         client_id: process.env.SPOTIFY_CLIENT_ID,
         client_secret: process.env.SPOTIFY_CLIENT_SECRET
       }),
-      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["URL_HEADER"]
+      headers: _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__["URL_HEADER"]
     }).catch(rejected => {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        log: true,
-        message: 'failed to authorize spotify',
-        reason: 'token refresh failed',
-        content: rejected
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        userMessage: 'failed to authorize spotify',
+        message: 'token refresh failed',
+        state: rejected
       });
     }); //C if a new refresh token was sent
 
     if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(result.refresh_token)) {
       //? better validation?
       //C store it
-      await _entities_index_js__WEBPACK_IMPORTED_MODULE_5__["User"].edit({
+      await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
     } //C send only the accessToken and the expiry time
 
 
-    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       origin: 'sj.spotify.refreshToken()',
       accessToken: result.access_token,
       expires: timestamp + result.expires_in
@@ -3302,16 +3235,14 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
-
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["ClassParts"]({
   instance(options = {}) {
     const {
       id
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       id,
       //R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
       filters: {}
@@ -3320,10 +3251,10 @@ __webpack_require__.r(__webpack_exports__);
 
     const that = this;
     const staticFilters = this.constructor.filters;
-    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(staticFilters).forEach(key => {
-      _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this.filters, {
+    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(staticFilters).forEach(key => {
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].getter(this.filters, {
         get [key]() {
-          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, staticFilters[key]);
+          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(that, staticFilters[key]);
         }
 
       });
@@ -3331,19 +3262,19 @@ __webpack_require__.r(__webpack_exports__);
   },
 
   static() {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].getter(this, {
       get table() {
         return `${this.name.charAt(0).toLowerCase() + this.name.slice(1)}s`; //! lowercase, plural of name
       }
 
     }); //TODO Can this be locked down as a constant? (See updateFilters()).
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       filters: {
         id: ['id']
       }
     });
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
       // Automatically create new filters based on schema.
       updateFilters() {
         const methodNames = ['add', 'get', 'edit', 'remove'];
@@ -3814,8 +3745,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AuthRequired; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
+// Used to communicate to client that the server does not have the required tokens and that the client must authorize.
 
- // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
 
 const sharedRegistryId = 'AuthRequired';
 class AuthRequired {
@@ -3845,7 +3776,11 @@ _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(AuthR
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CustomError; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 
+ // CustomError is registered to communicate an error via socket connection. See live-data-client.js
+
+const sharedRegistryId = 'CustomError';
 class CustomError extends Error {
   constructor({
     // User-readable message.
@@ -3862,9 +3797,11 @@ class CustomError extends Error {
         validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate
       }
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].defineId(this, sharedRegistryId);
   }
 
 }
+_class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(CustomError, sharedRegistryId);
 
 /***/ }),
 
@@ -4028,6 +3965,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _custom_error_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./custom-error.js */ "./source/shared/errors/custom-error.js");
 // Used for errors that get thrown in parallel.
+//TODO Consider replacing with AggregateError (remember to add it to sharedRegistry like CustomError is)
 
 
 class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
@@ -4246,39 +4184,6 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
   }
 
 });
-
-/***/ }),
-
-/***/ "./source/shared/legacy-classes/error.js":
-/*!***********************************************!*\
-  !*** ./source/shared/legacy-classes/error.js ***!
-  \***********************************************/
-/*! exports provided: Err */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Err", function() { return Err; });
-/* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-
-
-class Err extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor(options = {}) {
-    super(options);
-    const {
-      log = true,
-      code = 400,
-      type = 'Bad Request'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      log,
-      code,
-      type
-    });
-  }
-
-}
 
 /***/ }),
 
@@ -4570,13 +4475,12 @@ __webpack_require__.r(__webpack_exports__);
 //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 
  // Wraps the passed value in an Error instance if it isn't one. Then throws it.
+//TODO Consider replacing Error with CustomError so that it can be registered with the sharedRegistry. If this doesn't happen, there may be issues with error handling in live-data-client.js and socket errors.
 
 function propagate(value, overwriteOptions) {
   if (value instanceof Error) {
     throw value;
   } else {
-    console.log(value instanceof Error);
-    console.log(typeof value);
     throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__["default"]({
       message: `An unexpected value has been thrown: ${Object(_derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value)}`,
       userMessage: 'An unexpected error has occurred.',

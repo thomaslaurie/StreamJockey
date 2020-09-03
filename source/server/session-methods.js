@@ -6,15 +6,13 @@ import {
 	User,
 } from './entities/index.js';
 import {
-	Err,
-} from '../shared/legacy-classes/error.js';
-import {
 	Success,
 } from '../shared/legacy-classes/success.js';
-import parsePostgresError from './parse-postgres-error.js';
 import {
 	rules,
 } from '../shared/utility/index.js';
+import PostgresError from './errors/postgres-error.js';
+import { InvalidStateError, CustomError } from '../shared/errors/index.js';
 
 
 // CREATE
@@ -24,45 +22,38 @@ export async function login(db, ctx, user) {
 	await User.schema.password.rule(user.password); //! this will error on stuff like 'password must be over x characters long' when really it should just be 'password incorrect', maybe just have a string check rule?
 
 	// Get password.
-	const existingPassword = await db.one('SELECT password FROM "sj"."users" WHERE "name" = $1', [user.name]).then(resolved => {
+	const existingPassword = await db.one(
+		'SELECT password FROM "sj"."users" WHERE "name" = $1',
+		[user.name],
+	).then((resolved) => {
 		return resolved.password;
-	}).catch(rejected => {
-		throw parsePostgresError(rejected, new Err({
-			log: false,
-			origin: 'login()',
-			message: 'could not login, database error',
-		}));
+	}).catch((rejected) => {
+		throw new PostgresError({
+			postgresError: rejected,
+			userMessage: 'Could not login, a database error has occurred.',
+		});
 	});
 
 	// Check password.
 	const isMatch = await bcrypt.compare(user.password, existingPassword).catch(rejected => {
-		throw new Err({
-			log: true,
-			origin: 'login()',
-			message: 'server error',
-			reason: 'hash compare failed',
-			content: rejected,
-			target: 'loginPassword',
-			cssClass: 'inputError',
+		throw new InvalidStateError({
+			userMessage: 'server error',
+			message: 'hash compare failed',
+			state: rejected,
 		});
 	});
 	if (!isMatch) {
-		throw new Err({
-			log: true,
-			origin: 'login()',
-			message: 'incorrect password',
-			target: 'loginPassword',
-			cssClass: 'inputError',
+		throw new CustomError({
+			userMessage: 'incorrect password',
 		});
 	}
 
 	// Get user
 	user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
-		throw parsePostgresError(rejected, new Err({
-			log: false,
-			origin: 'login()',
-			message: 'could not login, database error',
-		}));
+		throw new PostgresError({
+			postgresError: rejected,
+			userMessage: 'Could not login, a database error has occurred.',
+		});
 	});
 
 	ctx.session.user = new User(user);
@@ -100,15 +91,9 @@ export async function logout(ctx) {
 
 async function isLoggedIn(ctx) {
 	if (!(ctx.session.user instanceof User || ctx.session.user?.constructorName === 'User') || !rules.integer.test(ctx.session.user?.id)) {
-		throw new Err({
-			log: true,
-			origin: 'isLoggedIn()',
-			code: 403,
-
-			message: 'you must be logged in to do this',
-			reason: 'user is not logged in',
-			target: 'notify',
-			cssClass: 'notifyError', // TODO consider denial error rather than error error (you messed up vs I messed up)
+		throw new CustomError({
+			userMessage: 'you must be logged in to do this',
+			message: 'user is not logged in',
 		});
 	}
 	// Redundancy check to make sure id is right format.

@@ -315,14 +315,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! fclone */ "./node_modules/fclone/dist/fclone.js");
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/client/ui/vue/async/AsyncSwitch.vue");
-/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/client/ui/vue/async/AsyncDelay.vue");
-/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/client/ui/vue/async/AsyncLoading.vue");
-/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/client/ui/vue/async/AsyncError.vue");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/client/ui/vue/async/AsyncSwitch.vue");
+/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/client/ui/vue/async/AsyncDelay.vue");
+/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/client/ui/vue/async/AsyncLoading.vue");
+/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/client/ui/vue/async/AsyncError.vue");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../../../shared/errors/index.js */ "./source/shared/errors/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -343,11 +343,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display',
   components: {
-    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
     //TODO make actual default components
-    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_7__["default"],
-    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_8__["default"],
-    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_9__["default"]
+    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_7__["default"],
+    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
   },
 
   data() {
@@ -399,7 +399,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     liveContent() {
       //! one item here, uses any() in AsyncDisplayList
       //? should this type check go into usingLive?
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
       //R however the real issue was that because I am using slotted content, even though it isn't rendering due to the state property, the elements still require their data references (unlike v-if and other methods)
       //L using a custom directive was a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
     },
@@ -420,10 +420,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }
 
       ;
-      if (!isSubclass(this.Entity, _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"])) throw new this.Err({
-        origin: 'AsyncDisplay usingQuery()',
-        reason: 'attempting to use a query but Entity is not a child class of Entity',
-        content: this.fclone(this.Entity)
+      if (!isSubclass(this.Entity, _entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Entity"])) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+        message: 'attempting to use a query but Entity is not a child class of Entity',
+        state: this.fclone(this.Entity)
       });
       return !!(this.usingParent && this.pQuery || !this.usingParent && this.sQuery);
     },
@@ -477,14 +476,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //? what happens to then? if this promise doesn't resolve or reject is this eventually garbage collected?
 
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(_this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) _this.refreshPromise.then(_this.handleSuccess, _this.handleError);
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(_this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) _this.refreshPromise.then(_this.handleSuccess, _this.handleError);
       })();
     },
 
     startTimeouts() {
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) throw new this.Err({
-        origin: 'AsyncContent startTimeouts()',
-        reason: 'refresh promise must be an instance of Deferred'
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+        message: 'refresh promise must be an instance of Deferred'
       });
       this.clearDelay = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(this.delay, () => {
         //C switch state to 'loading' after delay time
@@ -492,9 +490,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       });
       this.clearTimeout = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(this.timeout, () => {
         //C reject after timeout time
-        this.refreshPromise.reject(new this.Err({
-          origin: 'AsyncDisplay.load()',
-          message: 'content request timed out'
+        this.refreshPromise.reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+          userMessage: 'content request timed out'
         }));
       });
     },
@@ -505,7 +502,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       //C clear
       (_this$clearDelay = this.clearDelay) === null || _this$clearDelay === void 0 ? void 0 : _this$clearDelay.call(this);
       (_this$clearTimeout = this.clearTimeout) === null || _this$clearTimeout === void 0 ? void 0 : _this$clearTimeout.call(this);
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) this.refreshPromise.cancel(); //C reset
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) this.refreshPromise.cancel(); //C reset
 
       this.clearDelay = null;
       this.clearTimeout = null;
@@ -16015,11 +16012,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Start", function() { return Start; });
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -16055,7 +16051,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
 class Command {
   constructor() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -16066,40 +16061,38 @@ class Command {
     //! Non-instance sources are getting passed here (I think).
     //TODO Need to find a proper way to cast or ensure that source is an instance.
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
       source,
       sourceInstances,
       // Used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated.
       collapsedCommands: []
     }); // Promise resolve & reject functions will be stored on these properties so that the command can act as a deferred promise.
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].validatedVariable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].validatedVariable(this, {
       resolve: {
         value() {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-            origin: 'sj.Command.resolve()',
-            reason: 'command.resolve called but it has not been given a resolve function'
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+            message: 'command.resolve called but it has not been given a resolve function'
           });
         },
 
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].func.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate
       },
       reject: {
         value() {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-            origin: 'sj.Command.reject()',
-            reason: 'command.reject called but it has not been given a reject function'
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+            message: 'command.reject called but it has not been given a reject function'
           });
         },
 
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].func.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate
       }
     });
   }
 
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Command.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Command.prototype, {
   fullResolve(success) {
     // Resolve collapsed commands.
     this.collapsedCommands.forEach(collapsedCommand => {
@@ -16135,7 +16128,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Command
 
   identicalCondition(otherCommand) {
     // otherCommand must be an Command, and have the same playback-state properties.
-    return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
+    return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
   },
 
   trigger(context) {
@@ -16156,31 +16149,31 @@ class Toggle extends Command {
     var {
       isPlaying
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].boolean.validate(isPlaying);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].boolean.validate(isPlaying);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
       isPlaying
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Toggle.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Toggle.prototype, {
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
   },
 
   //! Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
   annihilateCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
+    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
   },
 
   trigger(context) {
     var _this2 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Toggle).trigger.call(_this2, context);
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).trigger.call(_this2, context);
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(function* (source) {
           if (_this2.isPlaying && source === _this2.source) {
             // Resume target if resuming.
@@ -16194,7 +16187,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Toggle.
         return function (_x) {
           return _ref.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw);
     })();
   }
 
@@ -16205,28 +16198,28 @@ class Seek extends Command {
     var {
       progress
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].unitInterval.validate(progress);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].unitInterval.validate(progress);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
       progress
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Seek.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Seek.prototype, {
   collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
   },
 
   trigger(context) {
     var _this3 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Seek).trigger.call(_this3, context);
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Seek).trigger.call(_this3, context);
       yield context.dispatch("".concat(_this3.source.name, "/seek"), _this3.progress);
     })();
   }
@@ -16238,30 +16231,30 @@ class Volume extends Command {
     var {
       volume
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].unitInterval.validate(volume);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].unitInterval.validate(volume);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
       volume
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Volume.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Volume.prototype, {
   collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
   },
 
   trigger(context) {
     var _this4 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
 
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
         var _ref2 = _asyncToGenerator(function* (source) {
           if (context.state[source.name].player !== null) {
             yield context.dispatch("".concat(source.name, "/volume"), _this4.volume);
@@ -16271,7 +16264,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Volume.
         return function (_x2) {
           return _ref2.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw);
     })();
   }
 
@@ -16285,41 +16278,39 @@ class Start extends Command {
       progress = 0
     } = options;
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
-      throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        origin: 'sj.Start.beforeInitialize()',
-        reason: 'sj.Start instance.track must be an Track',
-        content: track
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+        message: 'sj.Start instance.track must be an Track'
       });
     }
 
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
       track
     });
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].validatedVariable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].validatedVariable(this, {
       isPlaying: {
         value: isPlaying,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].boolean.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].boolean.validate
       },
       progress: {
         value: progress,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].unitInterval.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].unitInterval.validate
       }
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Start.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Start.prototype, {
   collapseCondition(otherCommand) {
     // Collapses parent condition, any Start, Toggle, or Seek.
     //TODO //? Tight coupling?
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
-    && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') //! Compare tracks by their sourceId not by their reference.
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
+    && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') //! Compare tracks by their sourceId not by their reference.
     && otherCommand.track.sourceId === this.track.sourceId && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
   },
 
@@ -16327,9 +16318,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Start.p
     var _this5 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_6__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
 
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
         var _ref3 = _asyncToGenerator(function* (source) {
           if (context.state[source.name].player !== null) {
             yield context.dispatch("".concat(source.name, "/pause"));
@@ -16339,7 +16330,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["define"].constant(Start.p
         return function (_x3) {
           return _ref3.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
 
       context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
         subscription: context.state.startingTrackSubscription,
@@ -16622,13 +16613,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var fclone__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(fclone__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/class-registry.js */ "./source/shared/class-registry.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -16896,8 +16887,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
  // import test from '../shared/test.js';
+
 
 
 
@@ -16915,10 +16906,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   state: {
-    tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"].makeTables({
-      User: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"],
-      Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Playlist"],
-      Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"]
+    tables: _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"].makeTables({
+      User: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"],
+      Playlist: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Playlist"],
+      Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"]
     }),
     socket: null,
     timeout: 10000 //C 10 seconds
@@ -16947,26 +16938,23 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     getLiveData: state => subscription => {
       //C validate
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'getLiveData()',
-        reason: 'subscription is not an Subscription',
-        content: subscription
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"], 'Subscription')) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        message: 'subscription is not an Subscription',
+        state: subscription
       }); //C shorten
 
       var liveQuery = subscription.liveQuery;
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-        origin: 'getLiveData()',
-        reason: "liveQuery is not an LiveQuery",
-        content: liveQuery
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        message: "liveQuery is not an LiveQuery",
+        state: liveQuery
       }); //C get all liveQuery.cachedEntityRefs.entity
       //TODO Race condition here.
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-            origin: 'getLiveData()',
-            reason: 'cachedEntityRef is not a cachedEntity',
-            content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(cachedEntityRef)
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["CachedEntity"], 'CachedEntity')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'cachedEntityRef is not a cachedEntity',
+            state: cachedEntityRef
           });
         }
 
@@ -17098,13 +17086,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = liveQuery.table; //C add cachedEntity to table if it doesn't exist
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(context.getters.findCachedEntity({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(context.getters.findCachedEntity({
           table,
           entity
-        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
+        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["CachedEntity"], 'CachedEntity')) {
           context.commit('pushCachedEntity', {
             cachedEntities: table.cachedEntities,
-            cachedEntity: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"]({
+            cachedEntity: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["CachedEntity"]({
               table,
               entity
             })
@@ -17117,8 +17105,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           entity
         });
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["CachedEntity"], 'CachedEntity')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
         } //C shorthand
 
 
@@ -17129,7 +17117,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
 
         if (foundLiveQueryRef !== foundCachedEntityRef) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
             message: 'Either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen.',
             state: {
               foundLiveQueryRef,
@@ -17166,14 +17154,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref16;
         //C find both reference indexes
         var cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
-        if (cachedEntityRefIndex < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'removeCachedEntity()',
-          reason: 'cachedEntityRef not found in liveQuery'
+        if (cachedEntityRefIndex < 0) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+          message: 'cachedEntityRef not found in liveQuery'
         });
         var liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
-        if (liveQueryRefIndex < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'removeCachedEntity()',
-          reason: 'liveQueryRef not found in cachedEntity'
+        if (liveQueryRefIndex < 0) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+          message: 'liveQueryRef not found in cachedEntity'
         }); //C remove references from each other
 
         context.commit('spliceCachedEntityRef', {
@@ -17188,9 +17174,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         if (cachedEntity.liveQueryRefs.length <= 0) {
           //C remove the cachedEntity
           var cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
-          if (cachedEntityIndex < 0) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-            origin: 'removeCachedEntity()',
-            reason: 'cachedEntity not found in table'
+          if (cachedEntityIndex < 0) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+            message: 'cachedEntity not found in table'
           });
           context.commit('spliceCachedEntity', {
             cachedEntities: cachedEntity.table.cachedEntities,
@@ -17246,14 +17231,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref18;
 
         //C if the liveQuery cannot be found
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(context.getters.findLiveQuery({
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(context.getters.findLiveQuery({
           table,
           query
-        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) {
+        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
           //C add it
           context.commit('pushLiveQuery', {
             liveQueries: table.liveQueries,
-            liveQuery: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"]({
+            liveQuery: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"]({
               table,
               query
             })
@@ -17264,8 +17249,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           });
 
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
           } //C trigger the initial update
 
 
@@ -17292,10 +17277,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             liveQueries: table.liveQueries,
             index: liveQueryIndex
           });
-        } else throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'removeLiveQuery',
-          reason: 'liveQuery not found in table'
-        });
+        } else {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+            message: 'liveQuery not found in table'
+          });
+        }
       })();
     },
 
@@ -17321,7 +17307,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = liveQuery; //C don't trigger update for calls older than the existing data
 
         if (callTimestamp <= liveQuery.timestamp) {
-          new _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+          new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
             origin: 'update()',
             message: 'cachedEntities not updated because newer data has already been received',
             reason: "data timestamp: ".concat(liveQuery.timestamp, ", update timestamp: ").concat(callTimestamp)
@@ -17381,8 +17367,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             entity
           });
 
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["CachedEntity"], 'CachedEntity')) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["CachedEntity"], 'CachedEntity')) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
           } //C edit the cachedEntity (won't edit if data is old, or unchanged)
 
 
@@ -17440,12 +17426,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         }); //! this should never fail
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]();
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
         } //C create a new subscription
 
 
-        var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"](_objectSpread({}, options, {
+        var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"](_objectSpread({}, options, {
           liveQuery //C parent reference
 
         })); //C push and return
@@ -17470,10 +17456,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             subscriptions: liveQuery.subscriptions,
             index: subscriptionIndex
           });
-        } else throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'removeSubscription',
-          reason: 'subscription not found in liveQuery'
-        }); //C if liveQuery no longer has any subscriptions
+        } else {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+            message: 'subscription not found in liveQuery'
+          });
+        } //C if liveQuery no longer has any subscriptions
 
 
         if (liveQuery.subscriptions.length <= 0) yield context.dispatch('removeLiveQuery', liveQuery);
@@ -17489,31 +17476,41 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query,
           options = {}
         } = _ref22;
+
         //C validate
         //TODO how to check if class is subclass, because this is getting ridiculous
         //L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-        if (!Object.getPrototypeOf(Entity) === Entity) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'subscribe()',
-          reason: 'Entity is not an Entity',
-          content: Entity
-        });
-        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'subscribe()',
-          reason: 'query is not an Object',
-          content: query
-        });
-        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(options)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'subscribe()',
-          reason: 'options is not an Object',
-          content: options
-        }); //C shorten
+        if (!Object.getPrototypeOf(Entity) === Entity) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'Entity is not an Entity',
+            state: Entity
+          });
+        }
+
+        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'query is not an Object',
+            state: query
+          });
+        }
+
+        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(options)) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'options is not an Object',
+            state: options
+          });
+        } //C shorten
+
 
         var table = context.getters.findTable(Entity);
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'subscribe()',
-          reason: 'table is not an LiveTable',
-          content: table
-        }); //C subscribe on server 
+
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"], 'LiveTable')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'table is not an LiveTable',
+            state: table
+          });
+        } //C subscribe on server 
+
 
         var preparedQuery = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
         var processedQuery = yield context.dispatch('serverSubscribe', {
@@ -17540,40 +17537,55 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref23;
 
         //C validate //! return early if not a subscription
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"], 'Subscription')) {
-          if (strict) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-            origin: 'unsubscribe()',
-            reason: 'subscription is not an Subscription',
-            content: subscription
-          });else return null;
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"], 'Subscription')) {
+          if (strict) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+              message: 'subscription is not an Subscription',
+              state: subscription
+            });
+          } else {
+            return null;
+          }
         } //C shorten
 
 
         var liveQuery = subscription.liveQuery;
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'unsubscribe()',
-          reason: "liveQuery is not an LiveQuery",
-          content: liveQuery
-        });
+
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
+          throw newInvalidStateError({
+            message: "liveQuery is not an LiveQuery",
+            state: liveQuery
+          });
+        }
+
         var query = liveQuery.query;
-        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'unsubscribe()',
-          reason: 'query is not an Object',
-          content: query
-        });
+
+        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) {
+          throw newInvalidStateError({
+            message: 'query is not an Object',
+            state: query
+          });
+        }
+
         var table = liveQuery.table;
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'unsubscribe()',
-          reason: 'table is not an LiveTable',
-          content: table
-        });
+
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"], 'LiveTable')) {
+          throw newInvalidStateError({
+            message: 'table is not an LiveTable',
+            state: table
+          });
+        }
+
         var TargetEntity = table.Entity;
-        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'unsubscribe()',
-          reason: 'Entity is not an LiveTable',
-          content: TargetEntity
-        }); //C unsubscribe on server
+
+        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"]) {
+          throw newInvalidStateError({
+            message: 'Entity is not an LiveTable',
+            state: TargetEntity
+          });
+        } //C unsubscribe on server
         //? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
+
 
         var preparedQuery = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, TargetEntity.filters.getIn));
         var processedQuery = yield context.dispatch('serverUnsubscribe', {
@@ -17598,14 +17610,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query,
           options = {}
         } = _ref24;
+
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
         //C strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-        if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["Subscription"], 'Subscription')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'change()',
-          reason: 'subscription is not an Subscription',
-          content: subscription
-        }); //C subscribe to new
+        if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"], 'Subscription')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'subscription is not an Subscription',
+            state: subscription
+          });
+        } //C subscribe to new
+
 
         var newSubscription = yield context.dispatch('subscribe', {
           Entity,
@@ -17630,41 +17645,52 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query,
           timestamp
         } = _ref25;
+
         //C validate
-        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Entity"]) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'update()',
-          reason: 'Entity is not an Entity',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(TargetEntity)
-        });
-        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'update()',
-          reason: 'query is not an Object',
-          content: fclone__WEBPACK_IMPORTED_MODULE_0___default()(query)
-        });
+        if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"]) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'Entity is not an Entity',
+            state: TargetEntity
+          });
+        }
+
+        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].array.test(query)) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'query is not an Object',
+            state: query
+          });
+        }
+
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(timestamp)) timestamp = Date.now(); //C shorten
 
         var table = context.getters.findTable(TargetEntity);
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"], 'LiveTable')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'update()',
-          reason: 'table is not an LiveTable',
-          content: {
-            Entity: fclone__WEBPACK_IMPORTED_MODULE_0___default()(TargetEntity),
-            table: fclone__WEBPACK_IMPORTED_MODULE_0___default()(table)
-          }
-        });
+
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"], 'LiveTable')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: 'table is not an LiveTable',
+            state: {
+              TargetEntity,
+              table
+            }
+          });
+        }
+
         var liveQuery = context.getters.findLiveQuery({
           table,
           query
         });
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveQuery"], 'LiveQuery')) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-          origin: 'update()',
-          reason: "liveQuery is not an LiveQuery",
-          content: {
-            query: fclone__WEBPACK_IMPORTED_MODULE_0___default()(query),
-            table: fclone__WEBPACK_IMPORTED_MODULE_0___default()(table),
-            liveQuery: fclone__WEBPACK_IMPORTED_MODULE_0___default()(liveQuery)
-          }
-        }); //C update
+
+        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            message: "liveQuery is not an LiveQuery",
+            state: {
+              query,
+              table,
+              liveQuery
+            }
+          });
+        } //C update
+
 
         var pack = yield context.dispatch('updateLiveQuery', {
           liveQuery,
@@ -17699,9 +17725,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref26;
         return new Promise((resolve, reject) => {
           var clearTimer = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(context.state.timeout, () => {
-            reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-              log: true,
-              reason: 'socket - subscribe timed out'
+            reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+              message: 'socket - subscribe timed out'
             }));
           });
           context.state.socket.emit('subscribe', {
@@ -17709,11 +17734,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else {
+
+            if (_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_9__["sharedRegistry"].autoConstruct(result) instanceof Error) {
+              reject(result);
+            } else {
               resolve(result);
             }
           });
-        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
+        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
       })();
     },
 
@@ -17725,9 +17753,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref27;
         yield new Promise((resolve, reject) => {
           var clearTimer = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(context.state.timeout, () => {
-            reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-              log: true,
-              reason: 'socket - unsubscribe timed out'
+            reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+              message: 'socket - unsubscribe timed out'
             }));
           });
           context.state.socket.emit('unsubscribe', {
@@ -17735,9 +17762,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           }, result => {
             clearTimer();
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_7__["default"])(result, _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"], 'Err')) reject(result);else resolve(result);
+
+            if (_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_9__["sharedRegistry"].autoConstruct(result) instanceof Error) {
+              reject(result);
+            } else {
+              resolve(result);
+            }
           });
-        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"]);
+        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
       })();
     },
 
@@ -17829,7 +17861,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               query,
               timestamp
             } = _ref30;
-            var TargetEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_5__["LiveTable"].tableToEntity(table);
+            var TargetEntity = _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"].tableToEntity(table);
             context.dispatch('update', {
               Entity: TargetEntity,
               query,
@@ -19356,15 +19388,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
-/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -19388,8 +19419,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
-var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
   register: true,
@@ -19424,7 +19454,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       _this.credentials.expires = tokens.accessToken;
       _this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
 
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
         origin: 'spotify.auth()',
         message: 'authorized spotify'
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
@@ -19478,7 +19508,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
 
       var token = yield _this2.getAccessToken();
-      options.headers = _objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["JSON_HEADER"], {
+      options.headers = _objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["JSON_HEADER"], {
         Authorization: "Bearer ".concat(token)
       });
       return yield Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])(method, url, options);
@@ -19498,14 +19528,14 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
       var refresh = /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(function* (that) {
-          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["returnPropagate"]);
-          result = _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_11__["sharedRegistry"].autoConstruct(result);
+          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["returnPropagate"]);
+          result = _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_10__["sharedRegistry"].autoConstruct(result);
 
-          if (result instanceof _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["AuthRequired"]) {
+          if (result instanceof _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["AuthRequired"]) {
             //C call auth() if server doesn't have a refresh token
             yield that.auth();
-          } else if (result instanceof _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]) {
-            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["default"])(result);
+          } else if (result instanceof Error) {
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])(result);
           } else {
             //C assign spotify.credentials
             that.credentials.accessToken = result.accessToken;
@@ -19568,7 +19598,7 @@ spotify.search = /*#__PURE__*/function () {
 
     });
     return result.tracks.items.map(track => {
-      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]({
+      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"]({
         source: spotify,
         sourceId: track.id,
         name: track.name,
@@ -19584,7 +19614,7 @@ spotify.search = /*#__PURE__*/function () {
   };
 }();
 
-spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
   //G source-specific playback should be the basic playback functions that connects this app to the source's api
   state: {
     source: spotify
@@ -19597,7 +19627,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
           window.onSpotifyWebPlaybackSDKReady = function () {
             var player = new window.Spotify.Player({
               //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-              name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_7__["APP_NAME"],
+              name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["APP_NAME"],
               getOAuthToken: function () {
                 var _getOAuthToken = _asyncToGenerator(function* (callback) {
                   var token = yield spotify.getAccessToken();
@@ -19617,7 +19647,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
               if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(state)) return {};
               var t = state.track_window.current_track;
               return {
-                track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_5__["Track"]({
+                track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"]({
                   source: spotify,
                   sourceId: t.id,
                   name: t.name,
@@ -19654,7 +19684,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
 
                           yield context.dispatch('updatePlayback', state); //C resolve
 
-                          resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"](success)); //C prevent other exit points from executing their code
+                          resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"](success)); //C prevent other exit points from executing their code
 
                           resolved = true;
                         }
@@ -19675,8 +19705,8 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                       if (!resolved) {
                         _this4.removeListener('player_state_changed', callback);
 
-                        reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"](_objectSpread({}, error, {
-                          content: rejected
+                        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"](_objectSpread({}, error, {
+                          state: rejected
                         })));
                         resolved = true;
                       }
@@ -19688,12 +19718,12 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                     if (!resolved && stateCondition(context.state)) {
                       _this4.removeListener('player_state_changed', callback);
 
-                      resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"](success));
+                      resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"](success));
                       resolved = true;
                     } //C if timed out, reject
 
 
-                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_9__["default"].requestTimeout);
+                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_8__["default"].requestTimeout);
 
                     if (!resolved) {
                       _this4.removeListener('player_state_changed', callback);
@@ -19742,12 +19772,11 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                   play: false // keeps current playback state
 
                 }).catch(rejected => {
-                  reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
+                  reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
                     //code: JSON.parse(error.response).error.status,
-                    origin: 'spotify.loadPlayer()',
-                    message: 'spotify player could not be loaded',
                     //reason: JSON.parse(error.response).error.message,
-                    content: rejected
+                    userMessage: 'spotify player could not be loaded',
+                    state: rejected
                   }));
                 }); //C wait for device to transfer
                 //TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
@@ -19763,12 +19792,11 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                   delay = delay * 2; //C double the delay each time
 
                   return yield spotify.request('Get', 'me/player').catch(rejected => {
-                    reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-                      //code: JSON.parse(error.response).error.status,
-                      origin: 'spotify.loadPlayer()',
-                      message: 'spotify player could not be loaded',
+                    reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+                      userMessage: 'spotify player could not be loaded',
+                      state: rejected //code: JSON.parse(error.response).error.status,
                       //reason: JSON.parse(error.response).error.message,
-                      content: rejected
+
                     }));
                     return {
                       device: {
@@ -19783,13 +19811,13 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                     return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result.device) && result.device.id === device_id;
                   },
 
-                  timeout: _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"].requestTimeout * 2
+                  timeout: _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"].requestTimeout * 2
                 }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
 
                 yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
 
                 yield context.dispatch('pause');
-                resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+                resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
                   origin: 'spotify.loadPlayer()',
                   message: 'spotify player loaded',
                   content: player
@@ -19815,11 +19843,9 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                 message
               } = _ref12;
               //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-                log: true,
-                origin: 'spotify.loadPlayer()',
-                message: 'spotify player encountered an initialization error',
-                reason: message
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+                userMessage: 'spotify player encountered an initialization error',
+                message
               }));
             });
             player.on('authentication_error', (_ref13) => {
@@ -19827,11 +19853,9 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                 message
               } = _ref13;
               //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-                log: true,
-                origin: 'spotify.loadPlayer()',
-                message: 'spotify player encountered an authentication error',
-                reason: message
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+                userMessage: 'spotify player encountered an authentication error',
+                message
               }));
             });
             player.on('account_error', (_ref14) => {
@@ -19839,11 +19863,9 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
                 message
               } = _ref14;
               //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-              reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-                log: true,
-                origin: 'spotify.loadPlayer()',
-                message: 'this account does not have a valid Spotify Premium subscription',
-                reason: message
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+                userMessage: 'this account does not have a valid Spotify Premium subscription',
+                message
               }));
             }); //C ongoing listeners
 
@@ -19865,14 +19887,13 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
               //! do not resolve here, the player will trigger the 'ready' event when its truly ready
               if (!resolved) {
-                reject(new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-                  origin: 'spotify.loadPlayer()',
-                  message: 'spotify player failed to connect',
-                  reason: 'spotify.connect() failed'
+                reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+                  userMessage: 'spotify player failed to connect',
+                  message: 'spotify.connect() failed'
                 }));
               }
             }, rejected => {
-              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["UnreachableError"]());
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["UnreachableError"]());
             });
             /* //R
             	//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
@@ -20115,7 +20136,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
 
 
         context.commit('setState', newState);
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
           origin: 'spotify module command - updatePlayback()',
           message: 'spotify playback updated',
           content: newState
@@ -20128,17 +20149,15 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
         //C retrieves playback from api and updates it
         //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
         var state = yield context.state.player.getCurrentState().catch(rejected => {
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_3__["Err"]({
-            log: true,
-            //code: JSON.parse(rejected.response).error.status,
-            origin: 'spotify.checkPlayback()',
-            message: 'failed to check spotify playback state',
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+            userMessage: 'failed to check spotify playback state',
+            state: rejected //code: JSON.parse(rejected.response).error.status,
             //reason: JSON.parse(rejected.response).error.message,
-            content: rejected
+
           });
         });
         yield context.dispatch('updatePlayback', state);
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_4__["Success"]({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
           origin: 'spotify module command - checkPlayback()',
           message: 'spotify playback checked',
           content: context.state
@@ -20335,12 +20354,12 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
-/* harmony import */ var _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
-/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -20359,7 +20378,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
+var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
   name: 'youtube',
   register: true,
   idPrefix: 'https://www.youtube.com/watch?v=',
@@ -20374,10 +20393,8 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
       //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
-      var loaded = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        log: false,
-        origin: 'youtube.auth()',
-        reason: 'gapi loading timed out'
+      var loaded = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_6__["default"].requestTimeout, () => new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+        message: 'gapi loading timed out'
       }));
       Object.defineProperty(window, 'gapi', {
         configurable: true,
@@ -20483,7 +20500,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
         yield _this.auth();
       }
 
-      return yield new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         // Wraps goog.Thenable which doesn't support the catch method.
         gapi.client.request({
           method,
@@ -20502,15 +20519,14 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           		4. Creating new keys.
           	//L See here: https://stackoverflow.com/a/27491718
           */
-          throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-            reason: 'API key is invalid.',
-            message: 'YouTube credentials are invalid.',
-            content: rejected
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+            userMessage: 'YouTube credentials are invalid.',
+            state: rejected
           });
         } else {
           throw rejected;
         }
-      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
     })();
   }
 
@@ -20568,20 +20584,25 @@ youtube.search = /*#__PURE__*/function () {
       //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
       part: 'contentDetails'
     });
-    if (searchResults.length !== videoResult.result.items.length) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-      origin: 'youtube.search()',
-      reason: 'search result length not equal to video result length',
-      content: {
-        searchLength: searchResults.length,
-        videoLength: videoResult.result.items.length
-      }
-    });
+
+    if (searchResults.length !== videoResult.result.items.length) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+        message: 'search result length not equal to video result length',
+        state: {
+          searchLength: searchResults.length,
+          videoLength: videoResult.result.items.length
+        }
+      });
+    }
+
     videoResult.result.items.forEach((item, index) => {
       //C ensure that ids line up
-      if (searchResults[index].id.videoId !== item.id) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-        origin: 'youtube.search()',
-        reason: "search and video results at ".concat(index, " do not have the same id")
-      }); //C append contentDetails part to the search results
+      if (searchResults[index].id.videoId !== item.id) {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+          message: "search and video results at ".concat(index, " do not have the same id")
+        });
+      } //C append contentDetails part to the search results
+
 
       searchResults[index].contentDetails = item.contentDetails;
     });
@@ -20593,7 +20614,7 @@ youtube.search = /*#__PURE__*/function () {
         snippet,
         contentDetails
       } = _ref3;
-      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"](_objectSpread({
+      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"](_objectSpread({
         source: youtube,
         //! this is causing issues with fClone, its throwing a cross origin error
         sourceId: id,
@@ -20607,7 +20628,7 @@ youtube.search = /*#__PURE__*/function () {
   };
 }();
 
-youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
   state: {
     source: youtube
   },
@@ -20617,9 +20638,8 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
         //C load youtube iframe api
         yield runHTMLScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
-        var deferred = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout, () => new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-          origin: 'youtube loadPlayer()',
-          reason: 'youtube iframe player load timed out'
+        var deferred = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_6__["default"].requestTimeout, () => new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+          message: 'youtube iframe player load timed out'
         }));
 
         window.onYouTubeIframeAPIReady = function () {
@@ -20644,8 +20664,8 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
                 onReady(event) {
                   return _asyncToGenerator(function* () {
                     //TODO handle error?
-                    yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
-                    deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+                    yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
+                    deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
                       origin: 'youtube loadPlayer()',
                       reason: 'youtube iframe player loaded'
                     }));
@@ -20726,9 +20746,9 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           }
         }
 
-        state.track = new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"](track);
+        state.track = new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"](track);
         context.commit('setState', state);
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
+        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
           origin: 'youtube module action - checkPlayback()',
           message: 'youtube playback updated',
           content: state
@@ -20811,11 +20831,14 @@ youtube.formatContentDetails = function (contentDetails) {
   return pack;
 }, youtube.formatSnippet = function (snippet) {
   var pack = {};
-  if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(snippet)) throw new _shared_legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_2__["Err"]({
-    origin: 'youtube.formatSnippet()',
-    reason: 'snippet is not an object'
-  }); //C assuming title format of 'Artist - Title'
+
+  if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(snippet)) {
+    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+      message: 'snippet is not an object'
+    });
+  } //C assuming title format of 'Artist - Title'
   //C splits on dash between one or any whitespace
+
 
   var splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
 
@@ -38679,8 +38702,7 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _legacy_classes_error_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../legacy-classes/error.js */ "./source/shared/legacy-classes/error.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -38688,14 +38710,13 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
-
-/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["ClassParts"]({
+/* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["ClassParts"]({
   instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var {
       id
     } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       id,
       //R This has to be a variable because in some places entities are overwritten with entire other entities: Object.assign(E1, E2). Maybe this isn't ideal.
       filters: {}
@@ -38704,10 +38725,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
     var that = this;
     var staticFilters = this.constructor.filters;
-    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["getKeysOf"])(staticFilters).forEach(key => {
-      _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this.filters, {
+    Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["getKeysOf"])(staticFilters).forEach(key => {
+      _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].getter(this.filters, {
         get [key]() {
-          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(that, staticFilters[key]);
+          return Object(_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(that, staticFilters[key]);
         }
 
       });
@@ -38715,19 +38736,19 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   },
 
   static() {
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].getter(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].getter(this, {
       get table() {
         return "".concat(this.name.charAt(0).toLowerCase() + this.name.slice(1), "s"); //! lowercase, plural of name
       }
 
     }); //TODO Can this be locked down as a constant? (See updateFilters()).
 
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
       filters: {
         id: ['id']
       }
     });
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
+    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
       // Automatically create new filters based on schema.
       updateFilters() {
         var methodNames = ['add', 'get', 'edit', 'remove'];
@@ -39200,8 +39221,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return AuthRequired; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
+// Used to communicate to client that the server does not have the required tokens and that the client must authorize.
 
- // Used to communicate to client that the server does not have the required tokens and that the client must authorize.
 
 var sharedRegistryId = 'AuthRequired';
 class AuthRequired {
@@ -39232,7 +39253,11 @@ _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(AuthR
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return CustomError; });
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _class_registry_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../class-registry.js */ "./source/shared/class-registry.js");
 
+ // CustomError is registered to communicate an error via socket connection. See live-data-client.js
+
+var sharedRegistryId = 'CustomError';
 class CustomError extends Error {
   constructor() {
     var {
@@ -39250,9 +39275,11 @@ class CustomError extends Error {
         validator: _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate
       }
     });
+    _class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].defineId(this, sharedRegistryId);
   }
 
 }
+_class_registry_js__WEBPACK_IMPORTED_MODULE_1__["sharedRegistry"].register(CustomError, sharedRegistryId);
 
 /***/ }),
 
@@ -39451,6 +39478,7 @@ function _objectWithoutProperties(source, excluded) { if (source == null) return
 function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
 
 // Used for errors that get thrown in parallel.
+//TODO Consider replacing with AggregateError (remember to add it to sharedRegistry like CustomError is)
 
 
 class MultipleErrors extends _custom_error_js__WEBPACK_IMPORTED_MODULE_1__["default"] {
@@ -39703,40 +39731,6 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
   }
 
 });
-
-/***/ }),
-
-/***/ "./source/shared/legacy-classes/error.js":
-/*!***********************************************!*\
-  !*** ./source/shared/legacy-classes/error.js ***!
-  \***********************************************/
-/*! exports provided: Err */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Err", function() { return Err; });
-/* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-
-
-class Err extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      log = true,
-      code = 400,
-      type = 'Bad Request'
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      log,
-      code,
-      type
-    });
-  }
-
-}
 
 /***/ }),
 
@@ -40041,13 +40035,12 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 //L https://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 
  // Wraps the passed value in an Error instance if it isn't one. Then throws it.
+//TODO Consider replacing Error with CustomError so that it can be registered with the sharedRegistry. If this doesn't happen, there may be issues with error handling in live-data-client.js and socket errors.
 
 function propagate(value, overwriteOptions) {
   if (value instanceof Error) {
     throw value;
   } else {
-    console.log(value instanceof Error);
-    console.log(typeof value);
     throw new _errors_unexpected_value_thrown_js__WEBPACK_IMPORTED_MODULE_1__["default"](_objectSpread({
       message: "An unexpected value has been thrown: ".concat(Object(_derived_utility_safe_stringify_js__WEBPACK_IMPORTED_MODULE_0__["default"])(value)),
       userMessage: 'An unexpected error has occurred.'

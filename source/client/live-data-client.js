@@ -268,10 +268,6 @@ import {
 } from '../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 import {
-	Unreachable,
-	Err,
-} from '../shared/legacy-classes/error.js';
-import {
 	Entity,
 	User,
 	Playlist,
@@ -289,8 +285,10 @@ import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	UnreachableError,
 	InvalidStateError,
+	CustomError,
 } from '../shared/errors/index.js';
 import Warn from '../shared/warn.js';
+import {sharedRegistry} from '../shared/class-registry.js';
 // import {
 // 	spotify,
 // } from './sources/index.js';
@@ -327,18 +325,16 @@ export default {
 
 		getLiveData: state => subscription => {
 			//C validate
-			if (!isInstanceOf(subscription, Subscription, 'Subscription')) throw new Err({
-				origin: 'getLiveData()', 
-				reason: 'subscription is not an Subscription',
-				content: subscription,
+			if (!isInstanceOf(subscription, Subscription, 'Subscription')) throw new InvalidStateError({
+				message: 'subscription is not an Subscription',
+				state: subscription,
 			});
 
 			//C shorten
 			const liveQuery = subscription.liveQuery;
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Err({
-				origin: 'getLiveData()',
-				reason: `liveQuery is not an LiveQuery`,
-				content: liveQuery,
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new InvalidStateError({
+				message: `liveQuery is not an LiveQuery`,
+				state: liveQuery,
 			});
 
 			//C get all liveQuery.cachedEntityRefs.entity
@@ -346,10 +342,9 @@ export default {
 			//TODO Race condition here.
 			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
 				if (!isInstanceOf(cachedEntityRef, CachedEntity, 'CachedEntity')) {
-					throw new Err({
-						origin: 'getLiveData()',
-						reason: 'cachedEntityRef is not a cachedEntity',
-						content: fclone(cachedEntityRef),
+					throw new InvalidStateError({
+						message: 'cachedEntityRef is not a cachedEntity',
+						state: cachedEntityRef,
 					});
 				}
 				return cachedEntityRef.entity;
@@ -467,14 +462,12 @@ export default {
 		async removeCachedEntity(context, {cachedEntity, liveQuery}) {
 			//C find both reference indexes
 			const cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
-			if (cachedEntityRefIndex < 0) throw new Err({
-				origin: 'removeCachedEntity()',
-				reason: 'cachedEntityRef not found in liveQuery',
+			if (cachedEntityRefIndex < 0) throw new CustomError({
+				message: 'cachedEntityRef not found in liveQuery',
 			});
 			const liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
-			if (liveQueryRefIndex < 0) throw new Err({
-				origin: 'removeCachedEntity()',
-				reason: 'liveQueryRef not found in cachedEntity',
+			if (liveQueryRefIndex < 0) throw new CustomError({
+				message: 'liveQueryRef not found in cachedEntity',
 			});
 
 			//C remove references from each other
@@ -491,9 +484,8 @@ export default {
 			if (cachedEntity.liveQueryRefs.length <= 0) {
 				//C remove the cachedEntity
 				const cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
-				if (cachedEntityIndex < 0) throw new Err({
-					origin: 'removeCachedEntity()',
-					reason: 'cachedEntity not found in table',
+				if (cachedEntityIndex < 0) throw new CustomError({
+					message: 'cachedEntity not found in table',
 				});
 
 				context.commit('spliceCachedEntity', {
@@ -565,13 +557,14 @@ export default {
 			if (liveQueryIndex >= 0) {
 				//C remove it
 				context.commit('spliceLiveQuery', {
-					liveQueries: table.liveQueries, 
+					liveQueries: table.liveQueries,
 					index: liveQueryIndex,
 				});
-			} else throw new Err({
-				origin: 'removeLiveQuery',
-				reason: 'liveQuery not found in table',
-			});
+			} else {
+				throw new CustomError({
+					message: 'liveQuery not found in table',
+				});
+			}
 		},
 		async updateLiveQuery(context, {liveQuery, callTimestamp = Date.now()}) {
 			const pack = {
@@ -679,10 +672,11 @@ export default {
 					subscriptions: liveQuery.subscriptions,
 					index: subscriptionIndex,
 				});
-			} else throw new Err({
-				origin: 'removeSubscription',
-				reason: 'subscription not found in liveQuery',
-			});
+			} else {
+				throw new CustomError({
+					message: 'subscription not found in liveQuery',
+				});
+			}
 
 			//C if liveQuery no longer has any subscriptions
 			if (liveQuery.subscriptions.length <= 0) await context.dispatch('removeLiveQuery', liveQuery);
@@ -698,29 +692,33 @@ export default {
 			//C validate
 			//TODO how to check if class is subclass, because this is getting ridiculous
 			//L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-			if (!Object.getPrototypeOf(Entity) === Entity) throw new Err({
-				origin: 'subscribe()', 
-				reason: 'Entity is not an Entity',
-				content: Entity,
-			});
-			if (!rules.object.test(query) && !rules.array.test(query)) throw new Err({
-				origin: 'subscribe()', 
-				reason: 'query is not an Object',
-				content: query,
-			});
-			if (!rules.object.test(options)) throw new Err({
-				origin: 'subscribe()', 
-				reason: 'options is not an Object',
-				content: options,
-			});
+			if (!Object.getPrototypeOf(Entity) === Entity) {
+				throw new InvalidStateError({
+					message: 'Entity is not an Entity',
+					state: Entity,
+				});
+			}
+			if (!rules.object.test(query) && !rules.array.test(query)) {
+				throw new InvalidStateError({
+					message: 'query is not an Object',
+					state: query,
+				});
+			}
+			if (!rules.object.test(options)) {
+				throw new InvalidStateError({
+					message: 'options is not an Object',
+					state: options,
+				});
+			}
 
 			//C shorten
 			const table = context.getters.findTable(Entity);
-			if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-				origin: 'subscribe()', 
-				reason: 'table is not an LiveTable',
-				content: table,
-			});
+			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+				throw new InvalidStateError({
+					message: 'table is not an LiveTable',
+					state: table,
+				});
+			}
 
 			//C subscribe on server 
 			const preparedQuery = any(query).map((q) => pick(q, Entity.filters.getIn));
@@ -738,39 +736,45 @@ export default {
 		}) {
 			//C validate //! return early if not a subscription
 			if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
-				if (strict) throw new Err({
-					origin: 'unsubscribe()', 
-					reason: 'subscription is not an Subscription',
-					content: subscription,
-				});
-				else return null;
+				if (strict) {
+					throw new InvalidStateError({
+						message: 'subscription is not an Subscription',
+						state: subscription,
+					});
+				} else {
+					return null;
+				}
 			}
 			
 			//C shorten
 			const liveQuery = subscription.liveQuery;
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Err({
-				origin: 'unsubscribe()',
-				reason: `liveQuery is not an LiveQuery`,
-				content: liveQuery,
-			});
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+				throw  newInvalidStateError({
+					message: `liveQuery is not an LiveQuery`,
+					state: liveQuery,
+				});
+			}
 			const query = liveQuery.query;
-			if (!rules.object.test(query) && !rules.array.test(query)) throw new Err({
-				origin: 'unsubscribe()', 
-				reason: 'query is not an Object',
-				content: query,
-			});
+			if (!rules.object.test(query) && !rules.array.test(query)) {
+				throw  newInvalidStateError({
+					message: 'query is not an Object',
+					state: query,
+				});
+			}
 			const table = liveQuery.table;
-			if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-				origin: 'unsubscribe()', 
-				reason: 'table is not an LiveTable',
-				content: table,
-			});
+			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+				throw  newInvalidStateError({
+					message: 'table is not an LiveTable',
+					state: table,
+				});
+			}
 			const TargetEntity = table.Entity;
-			if (!Object.getPrototypeOf(TargetEntity) === Entity) throw new Err({
-				origin: 'unsubscribe()', 
-				reason: 'Entity is not an LiveTable',
-				content: TargetEntity,
-			});
+			if (!Object.getPrototypeOf(TargetEntity) === Entity) {
+				throw  newInvalidStateError({
+					message: 'Entity is not an LiveTable',
+					state: TargetEntity,
+				});
+			}
 			
 
 			//C unsubscribe on server
@@ -798,11 +802,12 @@ export default {
 
 			//C strict check here throws or lets function execute //! doesn't early return
 			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-			if (strict && !isInstanceOf(subscription, Subscription, 'Subscription')) throw new Err({
-				origin: 'change()', 
-				reason: 'subscription is not an Subscription',
-				content: subscription,
-			});
+			if (strict && !isInstanceOf(subscription, Subscription, 'Subscription')) {
+				throw new InvalidStateError({
+					message: 'subscription is not an Subscription',
+					state: subscription,
+				});
+			}
 			//C subscribe to new
 			const newSubscription = await context.dispatch('subscribe', {
 				Entity, //! Entity cannot be derived from the old subscription as it may not be an Subscription if the function call is not strict
@@ -820,38 +825,42 @@ export default {
 			timestamp,
 		}) {
 			//C validate
-			if (!Object.getPrototypeOf(TargetEntity) === Entity) throw new Err({
-				origin: 'update()', 
-				reason: 'Entity is not an Entity',
-				content: fclone(TargetEntity),
-			});
-			if (!rules.object.test(query) && !rules.array.test(query)) throw new Err({
-				origin: 'update()', 
-				reason: 'query is not an Object',
-				content: fclone(query),
-			});
+			if (!Object.getPrototypeOf(TargetEntity) === Entity) {
+				throw new InvalidStateError({
+					message: 'Entity is not an Entity',
+					state: TargetEntity,
+				});
+			}
+			if (!rules.object.test(query) && !rules.array.test(query)) {
+				throw new InvalidStateError({
+					message: 'query is not an Object',
+					state: query,
+				});
+		}
 			if (!rules.integer.test(timestamp)) timestamp = Date.now();
 
 			//C shorten
 			const table = context.getters.findTable(TargetEntity);
-			if (!isInstanceOf(table, LiveTable, 'LiveTable')) throw new Err({
-				origin: 'update()', 
-				reason: 'table is not an LiveTable',
-				content: {
-					Entity: fclone(TargetEntity),
-					table: fclone(table),
-				},
-			});
+			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+				throw new InvalidStateError({
+					message: 'table is not an LiveTable',
+					state: {
+						TargetEntity,
+						table,
+					},
+				});
+			}
 			const liveQuery = context.getters.findLiveQuery({table, query});
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new Err({
-				origin: 'update()',
-				reason: `liveQuery is not an LiveQuery`,
-				content: {
-					query: fclone(query),
-					table: fclone(table),
-					liveQuery: fclone(liveQuery),
-				},
-			});
+			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+				throw new InvalidStateError({
+					message: `liveQuery is not an LiveQuery`,
+					state: {
+						query,
+						table,
+						liveQuery,
+					},
+				});
+			}
 
 			//C update
 			const pack = await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: timestamp});
@@ -868,16 +877,16 @@ export default {
 		async serverSubscribe(context, {table, query}) {
 			return new Promise((resolve, reject) => {
 				const clearTimer = setTimer(context.state.timeout, () => {
-					reject(new Err({
-						log: true,
-						reason: 'socket - subscribe timed out',
+					reject(new CustomError({
+						message: 'socket - subscribe timed out',
 					}));
 				});
 
 				context.state.socket.emit('subscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
-					if (isInstanceOf(result, Err, 'Err')) reject(result);
-					else {
+					if (sharedRegistry.autoConstruct(result) instanceof Error) {
+						reject(result);
+					} else {
 						resolve(result);
 					}
 				});
@@ -886,16 +895,18 @@ export default {
 		async serverUnsubscribe(context, {table, query}) {
 			await new Promise((resolve, reject) => {
 				const clearTimer = setTimer(context.state.timeout, () => {
-					reject(new Err({
-						log: true,
-						reason: 'socket - unsubscribe timed out',
+					reject(new CustomError({
+						message: 'socket - unsubscribe timed out',
 					}));
 				});
 
 				context.state.socket.emit('unsubscribe', {table: table.Entity.table, query}, result => {
 					clearTimer();
-					if (isInstanceOf(result, Err, 'Err')) reject(result);
-					else resolve(result);
+					if (sharedRegistry.autoConstruct(result) instanceof Error) {
+						reject(result);
+					} else {
+						resolve(result);
+					}
 				});
 			}).then((result) => result.content).catch(propagate);
 		},

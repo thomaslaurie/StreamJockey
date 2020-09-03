@@ -1,10 +1,8 @@
 import database from '../db.js';
-import { 
-	Err,
-} from '../../shared/legacy-classes/error.js';
 import propagate from '../../shared/propagate.js';
+import {InvalidStateError} from '../../shared/errors/index.js';
 
-export default async function () {
+export default async function createDatabase() {
 	/*
 		const schema = {
 			name: 'sj',
@@ -34,7 +32,7 @@ export default async function () {
 	*/
 
 	// initialize
-	return database.tx(async function (t) {
+	return database.tx(async (t) => {
 		// TODO this will not alter tables if they do already exist (save this for migration)
 		
 		// schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
@@ -48,14 +46,10 @@ export default async function () {
 
 		if (false) { //! This resets the database (i'm pretty sure)
 			await t.none(`DROP SCHEMA IF EXISTS "sj" CASCADE`).catch(rejected => {
-				throw new Err({
-					log: true,
-					origin: 'schema initialization',
-					message: 'database error',
-					reason: rejected.message,
-					content: rejected,
-					target: 'notify',
-					cssClass: 'notifyError',
+				throw new InvalidStateError({
+					userMessage: 'database error',
+					message: rejected.message,
+					state: rejected,
 				});
 			});
 		}
@@ -64,14 +58,10 @@ export default async function () {
 		// !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
 		// !!! column names are camelCase (because they get converted to properties), everything else is underscore
 		return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-			throw new Err({
-				log: true,
-				origin: 'schema initialization',
-				message: 'database error',
-				reason: rejected.message,
-				content: rejected,
-				target: 'notify',
-				cssClass: 'notifyError',
+			throw new InvalidStateError({
+				userMessage: 'database error',
+				message: rejected.message,
+				state: rejected,
 			});
 		}).then(resolved => {
 			// https://www.postgresql.org/docs/9.1/static/sql-createtable.html
@@ -83,14 +73,10 @@ export default async function () {
 				"email" text CONSTRAINT "users_email_key" UNIQUE,
 				"spotifyRefreshToken" text
 			);`).catch(rejected => {
-				throw new Err({
-					log: true,
-					origin: 'users table initialization',
-					message: 'database error',
-					reason: rejected.message,
-					content: rejected,
-					target: 'notify',
-					cssClass: 'notifyError',
+				throw new InvalidStateError({
+					userMessage: 'database error',
+					message: rejected.message,
+					state: rejected,
 				});
 			});
 		}).then(resolved => {
@@ -100,14 +86,10 @@ export default async function () {
 				SELECT id, name, email 
 				FROM "sj"."users"
 			;`).catch(rejected => {
-				throw new Err({
-					log: true,
-					origin: 'users_self initialization',
-					message: 'database error',
-					reason: rejected.message,
-					content: rejected,
-					target: 'notify',
-					cssClass: 'notifyError',
+				throw new InvalidStateError({
+					userMessage: 'database error',
+					message: rejected.message,
+					state: rejected,
 				});
 			});
 		}).then(resolved => {
@@ -115,14 +97,10 @@ export default async function () {
 				SELECT id, name
 				FROM "sj"."users"
 			;`).catch(rejected => {
-				throw new Err({
-					log: true,
-					origin: 'users_public initialization',
-					message: 'database error',
-					reason: rejected.message,
-					content: rejected,
-					target: 'notify',
-					cssClass: 'notifyError',
+				throw new InvalidStateError({
+					userMessage: 'database error',
+					message: rejected.message,
+					state: rejected,
 				});
 			});
 		}).then(resolved => {
@@ -137,14 +115,10 @@ export default async function () {
 				
 				CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
 			);`).catch(rejected => {
-				throw new Err({
-					log: true,
-					origin: 'playlists table initialization',
-					message: 'database error',
-					reason: rejected.message,
-					content: rejected,
-					target: 'notify',
-					cssClass: 'notifyError',
+				throw new InvalidStateError({
+					userMessage: 'database error',
+					message: rejected.message,
+					state: rejected,
 				});
 			});
 		}).then(resolved => {
@@ -160,14 +134,10 @@ export default async function () {
 
 				CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
 			);`).catch(rejected => {
-				throw new Err({
-					log: true,
-					origin: 'tracks table initialization',
-					message: 'database error',
-					reason: rejected.message,
-					content: rejected,
-					target: 'notify',
-					cssClass: 'notifyError',
+				throw new InvalidStateError({
+					userMessage: 'database error',
+					message: rejected.message,
+					state: rejected,
 				});
 			});
 		}).catch(rejected => {

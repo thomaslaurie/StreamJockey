@@ -8,16 +8,12 @@ import {
 } from '../../shared/utility/index.js';
 import database from '../db.js';
 import {
-	Err,
-} from '../../shared/legacy-classes/error.js';
-import {
 	Success,
 } from '../../shared/legacy-classes/success.js';
 import {
 	entityParts,
 } from '../../shared/entityParts/index.js';
 import propagate from '../../shared/propagate.js';
-import parsePostgresError from '../parse-postgres-error.js';
 import {
 	buildValues,
 	buildWhere,
@@ -28,6 +24,7 @@ import {
 	MultipleErrors,
 } from '../../shared/errors/index.js';
 import ContentContainer from '../../shared/content-container.js';
+import PostgresError from '../errors/postgres-error.js';
 
 
 export default class Entity extends Success {
@@ -81,9 +78,8 @@ define.constant(Entity, {
 	// FRAME
 	async frame(db, anyEntities, methodName) {
 		//C catch Entity
-		if (this === Entity) throw new Err({
-			origin: 'Entity.[CRUD]',
-			reason: `cannot call CRUD method directly on Entity`,
+		if (this === Entity) throw new CustomError({
+			message: `cannot call CRUD method directly on Entity`,
 		});
 
 		//C cast as array
@@ -286,11 +282,10 @@ define.constant(Entity, {
 			$1:raw 
 			RETURNING *
 		`, [values]).catch((rejected) => {
-			throw parsePostgresError(rejected, new Err({
-				log: false,
-				origin: `${this.name}.add()`,
-				message: `could not add ${this.name}s`,
-			}));
+			throw new PostgresError({
+				postgresError: rejected,
+				userMessage: `Could not add ${this.name}s.`,
+			});
 		});
 	},
 	async getQuery(t, mappedEntity) {
@@ -302,11 +297,10 @@ define.constant(Entity, {
 			WHERE $1:raw
 			${this.queryOrder}
 		`, [where]).catch((rejected) => {
-			throw parsePostgresError(rejected, new Err({
-				log: false,
-				origin: `${this.name}.get()`,
-				message: `could not get ${this.name}s`,
-			}));
+			throw new PostgresError({
+				postgresError: rejected,
+				userMessage: `Could not get ${this.name}s.`,
+			});
 		});
 	},
 	async editQuery(t, mappedEntity) {
@@ -320,11 +314,10 @@ define.constant(Entity, {
 			WHERE $2:raw 
 			RETURNING *
 		`, [set, where]).catch((rejected) => {
-			throw parsePostgresError(rejected, new Err({
-				log: false,
-				origin: `${this.name}.edit()`,
-				message: `could not edit ${this.names}`,
-			}));
+			throw new PostgresError({
+				postgresError: rejected,
+				userMessage: `Could not edit ${this.name}s.`,
+			});
 		});
 	},
 	async removeQuery(t, mappedEntity) {
@@ -335,11 +328,10 @@ define.constant(Entity, {
 			WHERE $1:raw 
 			RETURNING *
 		`, where).catch((rejected) => {
-			throw parsePostgresError(rejected, new Err({
-				log: false,
-				origin: `${this.name}.remove()`,
-				message: `could not remove ${this.names}s`,
-			}));
+			throw new PostgresError({
+				postgresError: rejected,
+				userMessage: `Could not remove ${this.name}s.`,
+			});
 		});
 	},
 });

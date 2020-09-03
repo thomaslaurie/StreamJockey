@@ -6,15 +6,13 @@ import {
 	rules, define,
 } from '../../shared/utility/index.js';
 import {
-	Err,
-} from '../../shared/legacy-classes/error.js';
-import {
 	userParts,
 } from '../../shared/entityParts/index.js';
 import {
 	PASSWORD_SALT_ROUNDS,
 } from '../constants.js';
 import Entity from './entity.js';
+import { InvalidStateError } from '../../shared/errors/index.js';
 
 
 export default class User extends Entity {
@@ -35,12 +33,10 @@ async function basePrepare(t, user) {
 	//TODO might be a vulnerability here with this string check
 	if (rules.string.test(newUser.password)) {
 		newUser.password = await bcrypt.hash(newUser.password, PASSWORD_SALT_ROUNDS).catch(rejected => {
-			throw new Err({
-				log: true,
-				origin: 'User.add()',
-				message: 'failed to add user',
-				reason: 'hash failed',
-				content: rejected,
+			throw new InvalidStateError({
+				userMessage: 'failed to add user',
+				message: 'hash failed',
+				state: rejected,
 			});
 		});
 	}

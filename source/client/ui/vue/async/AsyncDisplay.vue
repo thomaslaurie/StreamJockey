@@ -10,9 +10,6 @@
 		any,
 	} from '../../../../shared/utility/index.js';
 	import {
-		Err,
-	} from '../../../../shared/legacy-classes/error.js';
-	import {
 		Entity,
 	} from '../../../entities/index.js';
 	import {
@@ -25,6 +22,7 @@
     import AsyncDelay from './AsyncDelay.vue';
     import AsyncLoading from './AsyncLoading.vue';
 	import AsyncError from './AsyncError.vue';
+import { CustomError, InvalidStateError } from '../../../../shared/errors/index.js';
 
 
 	//TODO consider adding different display types (for components representing the same type of data eg. track) instead of different components?
@@ -103,10 +101,9 @@
 					else return (a.prototype instanceof b);
 				};
 
-				if (!isSubclass(this.Entity, Entity)) throw new this.Err({
-						origin: 'AsyncDisplay usingQuery()',
-						reason: 'attempting to use a query but Entity is not a child class of Entity',
-						content: this.fclone(this.Entity),
+				if (!isSubclass(this.Entity, Entity)) throw new InvalidStateError({
+						message: 'attempting to use a query but Entity is not a child class of Entity',
+						state: this.fclone(this.Entity),
 					});
 				return !!(
 					(this.usingParent && this.pQuery) ||
@@ -167,9 +164,8 @@
 			},
 
 			startTimeouts() {
-				if (!isInstanceOf(this.refreshPromise, Deferred, 'Deferred')) throw new this.Err({
-					origin: 'AsyncContent startTimeouts()',
-					reason: 'refresh promise must be an instance of Deferred',
+				if (!isInstanceOf(this.refreshPromise, Deferred, 'Deferred')) throw new CustomError({
+					message: 'refresh promise must be an instance of Deferred',
 				});
 
                 this.clearDelay = setTimer(this.delay, () => {
@@ -178,9 +174,8 @@
                 });
                 this.clearTimeout = setTimer(this.timeout, () => {
 					//C reject after timeout time
-					this.refreshPromise.reject(new this.Err({
-                        origin: 'AsyncDisplay.load()',
-                        message: 'content request timed out',
+					this.refreshPromise.reject(new CustomError({
+                        userMessage: 'content request timed out',
                     }));
 				});
             },

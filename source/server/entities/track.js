@@ -8,9 +8,6 @@ import {
 } from '../../shared/utility/index.js';
 import database, {pgp} from '../db.js';
 import {
-	Err,
-} from '../../shared/legacy-classes/error.js';
-import {
 	Success,
 } from '../../shared/legacy-classes/success.js';
 import Source from '../../server/source.js';
@@ -19,12 +16,12 @@ import {
 } from '../../shared/entityParts/index.js';
 import {validateSource} from '../../shared/entityParts/track.js';
 import propagate from '../../shared/propagate.js';
-import parsePostgresError from '../parse-postgres-error.js';
 import isEmpty from '../legacy/is-empty.js';
 import {
-	MultipleErrors,
+	MultipleErrors, CustomError,
 } from '../../shared/errors/index.js';
 import Entity from './entity.js';
+import PostgresError from '../errors/postgres-error.js';
 
 export default class Track extends Entity {
 	constructor(...args) {
@@ -88,14 +85,11 @@ async function baseAccommodate(t, tracks) {
 	//L pg-promise transactions https://github.com/vitaly-t/pg-promise#transactions
 	//L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
 	//L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
-	await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-		throw parsePostgresError(rejected, new Err({
-			log: false,
-			origin: 'Track.move()',
-			message: 'could not order tracks, database error',
-			target: 'notify',
-			cssClass: 'notifyError',
-		}));
+	await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch((rejected) => {
+		throw new PostgresError({
+			postgresError: rejected,
+			userMessage: 'Could not order tracks, a database error has occurred.',
+		});
 	});
 	return await this.order(t, tracks).catch(propagate);
 }
@@ -151,7 +145,7 @@ define.constant(Track, {
 
 		//console.log('inputTracks.length:', inputTracks.length, '\n ---');
 
-		return await db.tx(async t => {
+		return db.tx(async t => {
 			const playlists = [];
 			const influencedTracks = [];
 			const inputIndex = Symbol();
@@ -159,14 +153,17 @@ define.constant(Track, {
 			//C retrieve track's playlist, group each track by playlist & moveType
 			await asyncMap(inputTracks, async (track, index) => {
 				const storePlaylist = function (playlistId, existingTracks) {
-					if (!rules.integer.test(playlistId)) throw new Err({
-						origin: 'Track.order()',
-						reason: `playlistId is not an integer: ${playlistId}`,
-					});
-					if (!rules.array.test(existingTracks)) throw new Err({
-						origin: 'Track.order()',
-						reason: `existingTracks is not an array: ${existingTracks}`,
-					});
+					if (!rules.integer.test(playlistId)) {
+						throw new CustomError({
+							message: `playlistId is not an integer: ${playlistId}`,
+						});
+					}
+
+					if (!rules.array.test(existingTracks)) {
+						throw new CustomError({
+							message: `existingTracks is not an array: ${existingTracks}`,
+						});
+					}
 
 					//C stores playlist in playlists if not already stored
 					let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
@@ -214,11 +211,10 @@ define.constant(Track, {
 					)
 				`, track.id);
 				const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-					throw parsePostgresError(rejected, new Err({
-						log: false,
-						origin: 'Track.order()',
-						message: 'could not move tracks',
-					}));
+					throw new PostgresError({
+						postgresError: rejected,
+						userMessage: 'Could not move tracks.',
+					});
 				});
 
 
@@ -242,11 +238,10 @@ define.constant(Track, {
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
 					`, track.playlistId).catch(rejected => {
-						throw parsePostgresError(rejected, new Err({
-							log: false,
-							origin: 'Track.order()',
-							message: 'could not move tracks',
-						}));
+						throw new PostgresError({
+							postgresError: rejected,
+							userMessage: 'Could not move tracks.',
+						});
 					});
 
 					const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
@@ -362,7 +357,7 @@ define.constant(Track, {
 			});
 
 			//C remove temporary symbol id from add tracks and null position from delete tracks
-			inputTracks.forEach(inputTrack => {
+			inputTracks.forEach((inputTrack) => {
 				if (typeof inputTrack.id === 'symbol') {
 					delete inputTrack.id;
 				}
