@@ -59,13 +59,13 @@ define.writable(BaseResult, {
 		} catch (e) {
 			//TODO figure out how to properly display newlines as strings inside objects
 
-			//C get stack
+			// get stack
 			const stackTrace0 = e.stack;
-			//C 'file:///' is removed (so that the URIs are clickable in node)
+			// 'file:///' is removed (so that the URIs are clickable in node)
 			const stackTrace1 = replaceAll(stackTrace0, 'file:///', '');
-			//C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+			// remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 			const stackTrace2 = replaceAll(stackTrace1, 'Error\n', '');
-			//C removes any line with Object.sj.trace
+			// removes any line with Object.sj.trace
 
 			let ignore = [
 				'Object.sj.trace',

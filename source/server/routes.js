@@ -144,7 +144,7 @@ export default function routes({replaceIndex}) {
 		async function addListener(depth) {
 			//TODO this is a mess, there has to be a much better way to do this
 
-			//C stop recursion if 10 layers deep
+			// stop recursion if 10 layers deep
 			depth = depth || 0;
 			if (depth >= 10) {
 				throw new Err({
@@ -313,7 +313,7 @@ export default function routes({replaceIndex}) {
 	router
 		.get('/*', async (ctx, next) => {
 			/*
-				//C pages are accessed through the base GET method, serve any public files here
+				// pages are accessed through the base GET method, serve any public files here
 				//! static resource references in index.html should be absolute '/foo', not relative './foo'
 
 				//! "Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header"
@@ -329,7 +329,7 @@ export default function routes({replaceIndex}) {
 				//TODO add it and remove this block
 			}
 
-			//C serve resources
+			// serve resources
 			if (fs.existsSync(path.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
 				await send(ctx, ctx.request.path, {root: root});
 				return;
@@ -337,7 +337,7 @@ export default function routes({replaceIndex}) {
 				//TODO webpack might have a better way to identify static resources
 			} 
 			
-			//C redirect if not logged in
+			// redirect if not logged in
 			if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
 				ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 				ctx.redirect('/login');
@@ -350,7 +350,7 @@ export default function routes({replaceIndex}) {
 				} 
 				else {
 			*/
-			//C otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
+			// otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
 			//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
 			await send(ctx, app, {root: root});
 		})

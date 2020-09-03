@@ -1,4 +1,4 @@
-//C Returns an absolute path relative to the source directory.
+// Returns an absolute path relative to the source directory.
 //G Use in places where __dirname would normally be required, like config options or non-webpack-recognized imports.
 /* //! Do NOT move this file. 
 	If it must be moved, 

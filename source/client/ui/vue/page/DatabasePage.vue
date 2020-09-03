@@ -99,7 +99,7 @@
 
 			handle(rejected) {
 				console.warn('error occured, result unchanged');
-				//C don't change
+				// don't change
 				return this.retrieved;
 			},
 

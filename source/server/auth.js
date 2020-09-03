@@ -58,8 +58,8 @@ let auth = {};
 //  ██║  ██║╚██████╔╝   ██║   ██║  ██║
 //  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
 
-//C generics
-auth.requestTimeout = 300000; //C 5 minutes
+// generics
+auth.requestTimeout = 300000; // 5 minutes
 auth.requestKeys = [];
 auth.addRequestKey = async function () {
     return await keyCode.addTo(this.requestKeys, this.requestTimeout);

@@ -187,7 +187,7 @@ const defaultTestGlob = 'shared/utility';
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(__dirname) {//C Returns an absolute path relative to the source directory.
+/* WEBPACK VAR INJECTION */(function(__dirname) {// Returns an absolute path relative to the source directory.
 //G Use in places where __dirname would normally be required, like config options or non-webpack-recognized imports.
 /* //! Do NOT move this file. 
 	If it must be moved, 
@@ -283,9 +283,9 @@ let auth = {}; //   █████╗ ██╗   ██╗██████�
 //  ██╔══██║██║   ██║   ██║   ██╔══██║
 //  ██║  ██║╚██████╔╝   ██║   ██║  ██║
 //  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
-//C generics
+// generics
 
-auth.requestTimeout = 300000; //C 5 minutes
+auth.requestTimeout = 300000; // 5 minutes
 
 auth.requestKeys = [];
 
@@ -496,7 +496,7 @@ __webpack_require__.r(__webpack_exports__);
 
 function buildValues(mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
-    //C this shouldn't insert anything
+    // this shouldn't insert anything
     return `("id") SELECT 0 WHERE 0 = 1`;
   } else {
     let columns = [];
@@ -505,11 +505,11 @@ function buildValues(mappedEntity) {
     Object.keys(mappedEntity).forEach((key, i) => {
       columns.push(key);
       values.push(mappedEntity[key]);
-      placeholders.push(`$${i + 1}`); //C $1 based placeholders
+      placeholders.push(`$${i + 1}`); // $1 based placeholders
     });
-    columns = columns.join('", "'); //C inner delimiter
+    columns = columns.join('", "'); // inner delimiter
 
-    columns = `("${columns}")`; //C outer
+    columns = `("${columns}")`; // outer
 
     placeholders = placeholders.join(', ');
     placeholders = `(${placeholders})`; //? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
@@ -521,16 +521,16 @@ function buildValues(mappedEntity) {
 function buildWhere(mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
-    //C return a false clause
+    // return a false clause
     return '0 = 1';
   } else {
-    //C pair as formatted string
+    // pair as formatted string
     let pairs = [];
     pairs = Object.keys(mappedEntity).map(key => {
-      //C wrap array in another array so that pgp doesn't think its values are for separate placeholders
+      // wrap array in another array so that pgp doesn't think its values are for separate placeholders
       let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
       return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
-    }); //C join with ' AND '
+    }); // join with ' AND '
 
     return pairs.join(' AND ');
   }
@@ -539,16 +539,16 @@ function buildWhere(mappedEntity) {
 function buildSet(mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
     //TODO hacky
-    //C don't make any change
+    // don't make any change
     //! this does have to reference a column that always exists (id)
     return '"id" = "id"';
   } else {
-    let pairs = []; //C pair as formatted string
+    let pairs = []; // pair as formatted string
 
     pairs = Object.keys(mappedEntity).map(key => {
       let input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
       return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input);
-    }); //C join with ', '
+    }); // join with ', '
 
     return pairs.join(', ');
   }
@@ -595,7 +595,7 @@ const config = {
   user: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'pgPassword'
 };
-const db = pgp(config); //C create a single db object for entire app
+const db = pgp(config); // create a single db object for entire app
 
 /* harmony default export */ __webpack_exports__["default"] = (db);
 
@@ -717,48 +717,48 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
   // FRAME
   async frame(db, anyEntities, methodName) {
-    //C catch Entity
+    // catch Entity
     if (this === Entity) throw new CustomError({
       message: `cannot call CRUD method directly on Entity`
-    }); //C cast as array
+    }); // cast as array
 
-    const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); //C shorthand
+    const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); // shorthand
 
-    const isGetMimic = methodName === 'getMimic'; //C store getMimic
+    const isGetMimic = methodName === 'getMimic'; // store getMimic
 
-    if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
+    if (isGetMimic) methodName = 'get'; // 'getMimic' === 'get' for functions: [methodName+'Function']
 
     const isGet = methodName === 'get';
     const accessory = {};
     const after = await db.tx(async t => {
-      //C process
-      const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); //C validate
+      // process
+      const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); // validate
 
-      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw); //C prepare
+      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => await this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw); // prepare
 
-      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw); //C accommodate
+      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => await this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw); // accommodate
 
-      const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]) : []; //C map
+      const influencedEntities = !isGet ? await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]) : []; // map
 
       const inputMapped = this.mapColumns(preparedEntities);
-      const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; //C execute SQL for inputs
+      const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : []; // execute SQL for inputs
 
       const inputBefore = [];
       const inputAfter = isGetMimic ? inputMapped : [];
 
       if (!isGetMimic) {
         await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputMapped, async entity => {
-          //C before, ignore add
+          // before, ignore add
           if (!isGet && methodName !== 'add') {
             const before = await this.getQuery(t, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(entity, this.filters.id)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
             inputBefore.push(...before);
-          } //C after, ignore remove (still needs to execute though)
+          } // after, ignore remove (still needs to execute though)
 
 
           const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
           if (methodName !== 'remove') inputAfter.push(...after);
         }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw);
-      } //C execute SQL for influenced
+      } // execute SQL for influenced
 
 
       const influencedBefore = [];
@@ -771,25 +771,25 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
           const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
           influencedAfter.push(...after);
         }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw);
-      } //C group for iteration
+      } // group for iteration
 
 
-      const all = [inputBefore, inputAfter, influencedBefore, influencedAfter]; //C unmap
+      const all = [inputBefore, inputAfter, influencedBefore, influencedAfter]; // unmap
 
-      const unmapped = all.map(list => this.unmapColumns(list)); //C process
+      const unmapped = all.map(list => this.unmapColumns(list)); // process
 
       return await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => await this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"].throw);
     }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
-    //C shake for subscriptions with getOut filter
+    // shake for subscriptions with getOut filter
 
-    const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); //C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+    const shookGet = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters.getOut))); // timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 
-    const timestamp = Date.now(); //C if get, don't notify
+    const timestamp = Date.now(); // if get, don't notify
 
-    if (!isGet) shookGet.forEach(list => this.notify(this, list, timestamp, methodName)); //C if getMimic, return shookGet-after
-    else if (isGetMimic) return shookGet[1]; //C shake for return
+    if (!isGet) shookGet.forEach(list => this.notify(this, list, timestamp, methodName)); // if getMimic, return shookGet-after
+    else if (isGetMimic) return shookGet[1]; // shake for return
 
-    const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); //C rebuild
+    const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); // rebuild
 
     const built = shook.map(list => list.map(entity => new this(entity)));
     return new _shared_content_container_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
@@ -1119,7 +1119,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
   removeBefore: baseBefore,
 
   async addPrepare(t, track) {
-    //C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
+    // set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
     let newTrack = { ...track,
       id: Symbol()
     };
@@ -1135,7 +1135,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
   },
 
   async removePrepare(t, track) {
-    //C set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
+    // set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
     return { ...track,
       position: null
     };
@@ -1180,21 +1180,21 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 
   // UTIL
   async order(db, tracks) {
-    //C takes a list of input tracks for an INSERT, UPDATE, or DELETE query
+    // takes a list of input tracks for an INSERT, UPDATE, or DELETE query
     //! properties should be validated at this point
     //! tracks to be added must have a Symbol() id, this will be removed
     //! tracks to be deleted must have a null position, this will be removed
-    //C modifies the input track's positions, if needed
-    //C returns a list of influenced tracks with modified positions, if needed
-    //C out-of-bounds positions will be repositioned at the start or end of the playlist
-    //C duplicate positions will be repositioned in order of input order
-    //C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
-    //C filter out tracks
-    let inputTracks = tracks.filter(track => //C without an id (including symbol)
-    (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.id) || typeof track.id === 'symbol') && ( //C and without a position (including null) or playlistId
-    !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.playlistId))); //C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+    // modifies the input track's positions, if needed
+    // returns a list of influenced tracks with modified positions, if needed
+    // out-of-bounds positions will be repositioned at the start or end of the playlist
+    // duplicate positions will be repositioned in order of input order
+    // in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
+    // filter out tracks
+    let inputTracks = tracks.filter(track => // without an id (including symbol)
+    (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.id) || typeof track.id === 'symbol') && ( // and without a position (including null) or playlistId
+    !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_7__["default"])(track.playlistId))); // filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
-    inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); //C return early if none are moving
+    inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); // return early if none are moving
 
     if (inputTracks.length === 0) {
       return [];
@@ -1204,7 +1204,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     return db.tx(async t => {
       const playlists = [];
       const influencedTracks = [];
-      const inputIndex = Symbol(); //C retrieve track's playlist, group each track by playlist & moveType
+      const inputIndex = Symbol(); // retrieve track's playlist, group each track by playlist & moveType
 
       await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
         const storePlaylist = function (playlistId, existingTracks) {
@@ -1218,7 +1218,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
             throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
               message: `existingTracks is not an array: ${existingTracks}`
             });
-          } //C stores playlist in playlists if not already stored
+          } // stores playlist in playlists if not already stored
 
 
           let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
@@ -1227,7 +1227,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
             playlists.push({
               id: playlistId,
               original: existingTracks,
-              //C move actions, these have priority positioning
+              // move actions, these have priority positioning
               inputsToMove: [],
               inputsToAdd: [],
               inputsToRemove: []
@@ -1236,12 +1236,12 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           }
 
           return existingPlaylist;
-        }; //C temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
+        }; // temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
 
 
-        track[inputIndex] = index; //C determine move action
+        track[inputIndex] = index; // determine move action
 
-        const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; //C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
+        const action = typeof track.id === 'symbol' ? 'Add' : track.position === null ? 'Remove' : 'Move'; // get current playlist by playlistId if action === 'add', else by track.id using a sub-query
         //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
         const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
@@ -1262,22 +1262,22 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
             postgresError: rejected,
             userMessage: 'Could not move tracks.'
           });
-        }); //C store
+        }); // store
 
         const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
-        //C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
+        // strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
 
         currentPlaylistStored.original.forEach(t => {
           delete t.playlistId;
         });
 
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) {
-          //C if not switching playlists
-          //C group by action
+          // if not switching playlists
+          // group by action
           currentPlaylistStored['inputsTo' + action].push(track);
         } else {
-          //C if switching playlists
-          //C this should catch tracks with playlistIds but no position
+          // if switching playlists
+          // this should catch tracks with playlistIds but no position
           const anotherPlaylist = await t.any(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
@@ -1291,7 +1291,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           const anotherPlaylistStored = storePlaylist(track.playlistId, anotherPlaylist);
           anotherPlaylistStored.original.forEach(t => {
             delete t.playlistId;
-          }); //C track is removed from its current playlist, and added to another playlist
+          }); // track is removed from its current playlist, and added to another playlist
 
           currentPlaylistStored.inputsToRemove.push(track);
           anotherPlaylistStored.inputsToAdd.push(track);
@@ -1307,37 +1307,37 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           errors: rejected
         });
       }); //console.log('playlists.length:', playlists.length, '\n ---');
-      //C calculate new track positions required to accommodate input tracks' positions
+      // calculate new track positions required to accommodate input tracks' positions
 
       playlists.forEach(playlist => {
-        //C populate others with tracks in original that are not in inputsTo Add, Remove, or Move
+        // populate others with tracks in original that are not in inputsTo Add, Remove, or Move
         //! inputsToRemove can be ignored from this point on, these tracks aren't included in others and wont be added to the final ordered list
         playlist.others = playlist.original.filter(originalTrack => !playlist.inputsToAdd.some(addingTrack => addingTrack.id === originalTrack.id) && !playlist.inputsToRemove.some(trackToRemove => trackToRemove.id === originalTrack.id) && !playlist.inputsToMove.some(movingTrack => movingTrack.id === originalTrack.id)); //console.log('playlist.others.length:', playlist.others.length);
-        //C combine both adding and moving, 
+        // combine both adding and moving, 
 
-        playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; //C give tracks with no position an Infinite position so they get added to the bottom of the playlist
+        playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove]; // give tracks with no position an Infinite position so they get added to the bottom of the playlist
 
         playlist.inputsToPosition.forEach(trackToPosition => {
           if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(trackToPosition.position)) {
             trackToPosition.position === Infinity;
           }
-        }); //C sort
+        }); // sort
 
-        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); //C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+        Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.others, (a, b) => a.position - b.position); // stable sort by inputIndex then position to resolve clashes by position then inputIndex
 
         Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
         Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["stableSort"])(playlist.inputsToPosition, (a, b) => a.position - b.position); //console.log('playlist.inputsToAdd.length:', playlist.inputsToAdd.length);
         //console.log('playlist.inputsToRemove.length:', playlist.inputsToRemove.length);
         //console.log('playlist.inputsToMove.length:', playlist.inputsToMove.length, '\n ---');
         //console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
-        //C inputIndex is no longer needed, remove it from anything it was added to
+        // inputIndex is no longer needed, remove it from anything it was added to
 
         playlist.inputsToPosition.forEach(trackToPosition => {
           delete trackToPosition[inputIndex];
         });
         playlist.inputsToRemove.forEach(trackToRemove => {
           delete trackToRemove[inputIndex];
-        }); //C populate merged by filling others tracks around combined tracks
+        }); // populate merged by filling others tracks around combined tracks
 
         playlist.merged = []; //! these are copies that will be emptied below
 
@@ -1347,28 +1347,28 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 
         while (playlist.othersCopy.length > 0) {
           if (playlist.inputsToPositionCopy.length > 0 && playlist.inputsToPositionCopy[0].position <= i) {
-            //C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
-            //C this will properly handle negative and duplicate positions
+            // if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
+            // this will properly handle negative and duplicate positions
             //G shift removes the first item of an array and returns that item
             playlist.merged.push(playlist.inputsToPositionCopy.shift());
           } else {
-            //C else - transfer the next others track
+            // else - transfer the next others track
             playlist.merged.push(playlist.othersCopy.shift());
           }
 
           i++;
-        } //C push rest of combined tracks
+        } // push rest of combined tracks
         //R this method was chosen over including combined.length > 0 in the while condition to prevent needless loops caused by ridiculously high positions, this was also chosen over original.length because adding + moving tracks could be greater the playlist length
         //L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
 
 
         playlist.merged.push(...playlist.inputsToPositionCopy);
         playlist.inputsToPositionCopy.length = 0; //! remove combined tracks for consistent behavior
-        //C populate playlist.influenced with all non-input tracks that have moved
+        // populate playlist.influenced with all non-input tracks that have moved
 
         playlist.influenced = playlist.merged.filter((mergedTrack, index) => {
           let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
-          let influenced = inOthers && index !== inOthers.position; //C assign new positions (inputTracks too)
+          let influenced = inOthers && index !== inOthers.position; // assign new positions (inputTracks too)
 
           mergedTrack.position = index;
           return influenced;
@@ -1378,7 +1378,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
         //console.log('playlist.influenced:\n', playlist.influenced, '\n ---');
 
         influencedTracks.push(...playlist.influenced);
-      }); //C remove temporary symbol id from add tracks and null position from delete tracks
+      }); // remove temporary symbol id from add tracks and null position from delete tracks
 
       inputTracks.forEach(inputTrack => {
         if (typeof inputTrack.id === 'symbol') {
@@ -1434,7 +1434,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     			there is a recursive loop hazard in here (basically if Track.get() is the function that calls sj.Track.order() - sj.Track.order() itself needs to call sj.Track.get(), therefore a loop), however if everything BUT sj.Track.get() calls sj.Track.order(), then sj.Track.order() can safely call sj.Track.get(), no, the same thing happens with sj.Track.edit() - so just include manual queries, no have it so: sj.Track.get() doesn't use either moveTracks() or orderTracks(), these two methods are then free to use sj.Track.get(), and then have each use their own manual update queries - basically add, edit, remove can use these and sj.Track.get() but not each other - this is written down in that paper chart
     
     		//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
-    				//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
+    				// for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
     		//! requires the INSERT command to be executed one at at a time for each input track
     		//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
     */
@@ -2086,19 +2086,19 @@ __webpack_require__.r(__webpack_exports__);
   app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
   const sessionConfig = {
     //TODO random keys: //L https://randomkeygen.com/
-    //C (string)(default is koa:sess) cookie key
+    // (string)(default is koa:sess) cookie key
     key: 'koa:sess',
-    //C (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
+    // (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
     maxAge: 86400000,
-    //C (boolean)(default true) can overwrite or not
+    // (boolean)(default true) can overwrite or not
     overwrite: true,
-    //C (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side script (so that they can only be opened by the server)
+    // (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side script (so that they can only be opened by the server)
     httpOnly: true,
-    //C (boolean)(default true) signed or not , signed cookies verify that the data is unchanged on the client side
+    // (boolean)(default true) signed or not , signed cookies verify that the data is unchanged on the client side
     signed: true,
-    //C (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
+    // (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
     rolling: true,
-    //C (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
+    // (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
     renew: false
   }; //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 
@@ -2328,7 +2328,7 @@ function routes({
   	async function addListener(depth) {
   		//TODO this is a mess, there has to be a much better way to do this
   
-  		//C stop recursion if 10 layers deep
+  		// stop recursion if 10 layers deep
   		depth = depth || 0;
   		if (depth >= 10) {
   			throw new Err({
@@ -2459,7 +2459,7 @@ function routes({
 
   router.get('/*', async (ctx, next) => {
     /*
-    	//C pages are accessed through the base GET method, serve any public files here
+    	// pages are accessed through the base GET method, serve any public files here
     	//! static resource references in index.html should be absolute '/foo', not relative './foo'
     			//! "Note: To deploy .mjs on the web, your web server needs to be configured to serve files with this extension using the appropriate Content-Type: text/javascript header"
     	//L https://developers.google.com/web/fundamentals/primers/modules
@@ -2469,7 +2469,7 @@ function routes({
     if (ctx.request.path === '/favicon.ico') {
       ctx.response.status = 204;
       return; //TODO add it and remove this block
-    } //C serve resources
+    } // serve resources
 
 
     if (fs__WEBPACK_IMPORTED_MODULE_1___default.a.existsSync(path__WEBPACK_IMPORTED_MODULE_0___default.a.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
@@ -2478,7 +2478,7 @@ function routes({
       });
       return; //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
       //TODO webpack might have a better way to identify static resources
-    } //C redirect if not logged in
+    } // redirect if not logged in
 
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
@@ -2494,7 +2494,7 @@ function routes({
     	} 
     	else {
     */
-    //C otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
+    // otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
     //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
 
 
@@ -2695,7 +2695,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/credentials.js */ "./source/shared/credentials.js");
 //TODO consider moving this over to the globals-server stuff
-//C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
+// this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 // EXTERNAL
 //import btoa from 'btoa';
  //L https://github.com/thelinmichael/spotify-web-api-node
@@ -2713,7 +2713,7 @@ const spotify = new _server_source_js__WEBPACK_IMPORTED_MODULE_3__["default"]({
   name: 'spotify',
   register: true,
   api: new spotify_web_api_node__WEBPACK_IMPORTED_MODULE_0___default.a({
-    //C create api object and set credentials in constructor
+    // create api object and set credentials in constructor
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
     redirectUri: process.env.SPOTIFY_REDIRECT_URI
@@ -2769,9 +2769,9 @@ Object.assign(spotify, {
   },
 
   async receiveAuthRequest(query) {
-    //C receives and transforms credentials from spotify after the user confirms the authorization
+    // receives and transforms credentials from spotify after the user confirms the authorization
 
-    /*//C spotify authorization guide
+    /*// spotify authorization guide
     	//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
     			if the user accepts the request:
     	code	An authorization code that can be exchanged for an access token.
@@ -2781,8 +2781,8 @@ Object.assign(spotify, {
     	state	The value of the state parameter supplied in the request.
     			//TODO create error parser for spotify api
     */
-    //C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
-    await auth.checkRequestKey(query.state); //C ensure that spotify sent the code
+    // ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
+    await auth.checkRequestKey(query.state); // ensure that spotify sent the code
 
     if (query.code === undefined) {
       emitter.emit(query.state, new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
@@ -2790,7 +2790,7 @@ Object.assign(spotify, {
         message: 'code is missing',
         state: query
       }));
-    } //C ensure that spotify didn't send an error
+    } // ensure that spotify didn't send an error
 
 
     if (query.error !== undefined) {
@@ -2799,7 +2799,7 @@ Object.assign(spotify, {
         message: query.error,
         state: query
       }));
-    } //C send the event and credentials for endAuthRequest() to pick up
+    } // send the event and credentials for endAuthRequest() to pick up
 
 
     emitter.emit(query.state, new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
@@ -2811,13 +2811,13 @@ Object.assign(spotify, {
   },
 
   endAuthRequest: async function (credentials) {
-    //C catches events emitted by receiveAuthRequest() and sends them to the waiting router request
+    // catches events emitted by receiveAuthRequest() and sends them to the waiting router request
     return await new Promise((resolve, reject) => {
       //! needs to be a promise wrapper because emitter.once uses a callback function
-      //C setup listener for authRequestKey
+      // setup listener for authRequestKey
       emitter.once(credentials.authRequestKey, result => {
         resolve(result);
-      }); //C setup timeout
+      }); // setup timeout
 
       Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["wait"])(credentials.authRequestTimeout).then(() => {
         reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
@@ -2827,10 +2827,10 @@ Object.assign(spotify, {
     });
   },
   exchangeToken: async function (ctx, credentials) {
-    //C exchange auth code for access and refresh tokens
-    //C exchangeToken() is only outside of endAuthRequest() because the auth window should close and not have to wait for the exchange to happen - to reduce flickering of the redirect page
-    //C grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
-    let timestamp = Date.now(); //C exchange the auth code for tokens
+    // exchange auth code for access and refresh tokens
+    // exchangeToken() is only outside of endAuthRequest() because the auth window should close and not have to wait for the exchange to happen - to reduce flickering of the redirect page
+    // grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
+    let timestamp = Date.now(); // exchange the auth code for tokens
     //L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 
     let result = await Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'https://accounts.spotify.com/api/token', {
@@ -2838,7 +2838,7 @@ Object.assign(spotify, {
         grant_type: 'authorization_code',
         code: credentials.authCode,
         redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-        //C only used for validation, no need to make a second redirect handler
+        // only used for validation, no need to make a second redirect handler
         client_id: process.env.SPOTIFY_CLIENT_ID,
         client_secret: process.env.SPOTIFY_CLIENT_SECRET // alternative to client_id and client_secret properties, put this in header: 'Authorization': `Basic ${btoa(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`)}`,
 
@@ -2850,32 +2850,32 @@ Object.assign(spotify, {
         message: 'token exchange failed',
         state: rejected
       });
-    }); //C store refresh token in database
-    //C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
+    }); // store refresh token in database
+    // while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 
     let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_6__["get"](ctx).then(result => result.content);
     await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].edit({
       id: me.id,
       spotifyRefreshToken: result.refresh_token
-    }).then(resolved => {}); //C repack and return
+    }).then(resolved => {}); // repack and return
 
     return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       accessToken: result.access_token,
       expires: timestamp + result.expires_in,
       //refreshToken: result.refresh_token,
-      scopes: result.scope.split(' ') //C result.token_type is the only omitted property, this is always 'Bearer'
+      scopes: result.scope.split(' ') // result.token_type is the only omitted property, this is always 'Bearer'
 
     });
   },
   refreshToken: async function (ctx) {
-    //C get the refresh token from the database
+    // get the refresh token from the database
     let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_6__["get"](ctx).then(result => result.content);
-    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); //C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); // if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].visibleString.test(refreshToken)) {
       throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["AuthRequired"]();
-    } //C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
+    } // send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 
 
     let timestamp = Date.now();
@@ -2893,16 +2893,16 @@ Object.assign(spotify, {
         message: 'token refresh failed',
         state: rejected
       });
-    }); //C if a new refresh token was sent
+    }); // if a new refresh token was sent
 
     if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].string.test(result.refresh_token)) {
       //? better validation?
-      //C store it
+      // store it
       await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].edit({
         id: me.id,
         spotifyRefreshToken: result.refresh_token
       });
-    } //C send only the accessToken and the expiry time
+    } // send only the accessToken and the expiry time
 
 
     return new _shared_credentials_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
@@ -4168,12 +4168,12 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
       throw Error('');
     } catch (e) {
       //TODO figure out how to properly display newlines as strings inside objects
-      //C get stack
-      const stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
+      // get stack
+      const stackTrace0 = e.stack; // 'file:///' is removed (so that the URIs are clickable in node)
 
-      const stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+      const stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); // remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-      const stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+      const stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); // removes any line with Object.sj.trace
 
       let ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
       ignore = replaceAll(ignore.join('|'), '.', '\.');
@@ -4199,7 +4199,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-// SUCCESS //C success and error objects are returned from functions (mostly async ones)
+// SUCCESS // success and error objects are returned from functions (mostly async ones)
 
 
 class Success extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -4783,8 +4783,8 @@ __webpack_require__.r(__webpack_exports__);
 //TODO consider replacing typechecks with a 'comparable' rule.
 
 /* harmony default export */ __webpack_exports__["default"] = (function (list, ascending, prop) {
-  //C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
-  //C ascending will flip the list into descending if false
+  // sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
+  // ascending will flip the list into descending if false
   if (ascending) {
     ascending = 1;
   } else {
@@ -4794,18 +4794,18 @@ __webpack_require__.r(__webpack_exports__);
   let compare;
 
   if (typeof prop === 'string') {
-    //C if prop is defined, compare props
+    // if prop is defined, compare props
     if (list.every(item => typeof item[prop] === 'number' || typeof item[prop] === 'boolean')) {
-      //C if values are numbers or boolean, do number compare
+      // if values are numbers or boolean, do number compare
       compare = function (a, b) {
         return (a[prop] - b[prop]) * ascending;
       };
     } else {
-      //C if values are strings, other, or mixed, do a string conversion and string compare
+      // if values are strings, other, or mixed, do a string conversion and string compare
       compare = function (a, b) {
-        //C convert to strings
+        // convert to strings
         let as = a[prop] + '';
-        let bs = b[prop] + ''; //C string compare
+        let bs = b[prop] + ''; // string compare
         //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
 
         return as.localeCompare(bs, 'en', {
@@ -4814,7 +4814,7 @@ __webpack_require__.r(__webpack_exports__);
       };
     }
   } else {
-    //C if no prop is defined, compare values
+    // if no prop is defined, compare values
     //! this is the exact same as above, just without the property
     if (list.every(item => typeof item === 'number' || typeof item === 'boolean')) {
       compare = function (a, b) {
@@ -4903,11 +4903,11 @@ __webpack_require__.r(__webpack_exports__);
 //L https://medium.com/@fsufitch/is-javascript-array-sort-stable-46b90822543f
 
 /* harmony default export */ __webpack_exports__["default"] = (function (array, compare = (a, b) => {
-  //C low to high
+  // low to high
   return a - b;
 }) {
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); //C Create new array where the original index is preserved.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); // Create new array where the original index is preserved.
 
   const preservedArray = array.map((value, index) => ({
     value,
@@ -4915,12 +4915,12 @@ __webpack_require__.r(__webpack_exports__);
   }));
 
   const stableCompare = (a, b) => {
-    const order = compare(a.value, b.value); //C If equal, sort based on original order, otherwise sort normally.
+    const order = compare(a.value, b.value); // If equal, sort based on original order, otherwise sort normally.
 
     return order === 0 ? a.index - b.index : order;
   };
 
-  preservedArray.sort(stableCompare); //C Overwrite original array with sorted values.
+  preservedArray.sort(stableCompare); // Overwrite original array with sorted values.
 
   for (let i = 0; i < array.length; i++) {
     array[i] = preservedArray[i].value;
@@ -5129,17 +5129,17 @@ function superStatic(Class) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return combinations; });
 function combinations(optionsObject) {
-  //C takes an options object with a set of own properties whose value is an array of all possible values for that property
-  //C returns an array of objects with all combinations of those property values
-  //C ensure optionsObject is an object
+  // takes an options object with a set of own properties whose value is an array of all possible values for that property
+  // returns an array of objects with all combinations of those property values
+  // ensure optionsObject is an object
   if (optionsObject === null || typeof optionsObject !== 'object') {
     throw new Error('Options object is not an object.');
-  } //C get all own property keys
+  } // get all own property keys
 
 
   const keys = [];
   keys.push(...Object.getOwnPropertyNames(optionsObject));
-  keys.push(...Object.getOwnPropertySymbols(optionsObject)); //C ensure all own properties are iterable
+  keys.push(...Object.getOwnPropertySymbols(optionsObject)); // ensure all own properties are iterable
 
   for (const key of keys) {
     if (!(optionsObject[key] instanceof Array)) {
@@ -5148,23 +5148,23 @@ function combinations(optionsObject) {
   }
 
   const combinations = [];
-  const combination = {}; //C return empty array if no own keys
+  const combination = {}; // return empty array if no own keys
 
-  if (keys.length <= 0) return combinations; //C start with the first property
+  if (keys.length <= 0) return combinations; // start with the first property
 
   const nest = function (index = 0) {
     const key = keys[index];
-    const options = optionsObject[key]; //C for each option
+    const options = optionsObject[key]; // for each option
 
     for (const option of options) {
-      //C set the option
+      // set the option
       combination[key] = option;
 
       if (index < keys.length - 1) {
-        //C move to the next property
+        // move to the next property
         nest(index + 1);
       } else {
-        //C or if at last property, save the combination
+        // or if at last property, save the combination
         combinations.push({ ...combination
         });
       }
@@ -6770,37 +6770,37 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = (function (encoded) {
-  //C decodes a list of encoded objects with '-i' suffixed property keys
+  // decodes a list of encoded objects with '-i' suffixed property keys
   //! any key not matching the format will be discarded
   const indexed = Object(_decode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"])(encoded);
   const list = [];
   const indexedKeys = Object.keys(indexed);
 
   for (let i = 0; i < indexedKeys.length; i++) {
-    //C validate delimiter
+    // validate delimiter
     const delimiterIndex = indexedKeys[i].lastIndexOf('-');
 
     if (delimiterIndex < 0) {
       break;
-    } //C validate index
+    } // validate index
 
 
-    const objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
+    const objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); // handles multiple digits & no digits properly
 
     if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(objectIndex)) {
       break;
-    } //C get the real key
+    } // get the real key
 
 
     const key = indexedKeys[i].slice(0, delimiterIndex);
 
     if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(list[objectIndex])) {
-      //C if the obj doesn't exist yet, add it with the prop
+      // if the obj doesn't exist yet, add it with the prop
       list[objectIndex] = {
         [key]: indexed[indexedKeys[i]]
       };
     } else {
-      //C otherwise add the prop to the existing object
+      // otherwise add the prop to the existing object
       list[objectIndex][key] = indexed[indexedKeys[i]];
     }
   }
@@ -6848,7 +6848,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = (function (list) {
-  //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
+  // return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
   //! not called automatically by request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
   const indexed = {};
   Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {

@@ -40,31 +40,31 @@ import { CustomError, InvalidStateError } from '../../../../shared/errors/index.
         data() {
             return {
 				// SWITCH BEHAVIOR
-				//C used with AsyncSwitch to switch between delay, loading, error components, and the slotted display makrup from this component
+				// used with AsyncSwitch to switch between delay, loading, error components, and the slotted display makrup from this component
 				//! at the moment, the 'delay' state will only appear at the start of the component's creation as it blends the transition from no-content to loading-content, however when there is already existing content, delay is not used as it would cause flickering when refreshing content
 				state: 'delay',
-				//C refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's clearDelay and clearTieout
+				// refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's clearDelay and clearTieout
 				refreshPromise: null, 
-				//C ms before switching to 'loading'
+				// ms before switching to 'loading'
 				//TODO I can still see delay flickering
                 delay: 1000,
 				clearDelay: null,
-				//C ms before throwing a timeout error and switching to 'error'
+				// ms before throwing a timeout error and switching to 'error'
                 timeout: Infinity,
 				clearTimeout: null,
 				
 				// GENERAL
-				Entity: null, //C subscription Entity type
+				Entity: null, // subscription Entity type
 				subscription: null,
 				deadContent: null,
-				//C error store so that a failed query doesn't overwrite older, good content
+				// error store so that a failed query doesn't overwrite older, good content
 				//R errors can't come from the parent as this would only happen with pContent, where in that case, the parent should handle the error
 				error: null,
 
 				// PASSABLE - SELF
-				sQuery: null, //C query for live & dead content
-				sDead: false, //C boolean indicating live or dead
-				sContent: null, //C static content
+				sQuery: null, // query for live & dead content
+				sDead: false, // boolean indicating live or dead
+				sContent: null, // static content
 			};
         },
         props: {
@@ -87,13 +87,13 @@ import { CustomError, InvalidStateError } from '../../../../shared/errors/index.
 			},
 
 			// PASSABLE - SORTING
-			//C parent prioritized over self
+			// parent prioritized over self
 			usingParent() {
-				//C if any prop from the parent is filled in, use parent as the origin
+				// if any prop from the parent is filled in, use parent as the origin
 				//! pDead does not trigger usingParent as it would never need to be used without an existing pQuery
 				return !!(this.pQuery || this.pContent);
 			},
-			//C query prioritized over static content
+			// query prioritized over static content
 			usingQuery() {
 				//TODO Inlined this function because it was only being used here. Figure out if this can be removed.
 				function isSubclass (a, b) {
@@ -140,10 +140,10 @@ import { CustomError, InvalidStateError } from '../../../../shared/errors/index.
 		},
         methods: {
 			async refresh(switchToState = 'delay') {
-				//C clear any old request
+				// clear any old request
 				this.clearTimeouts();
 
-				//C using a deferred promise here so that success, failure, and timeouts can all funnel into the same promise and handlers
+				// using a deferred promise here so that success, failure, and timeouts can all funnel into the same promise and handlers
 				this.refreshPromise = new Deferred();
 				this.state = switchToState;
 				
@@ -169,23 +169,23 @@ import { CustomError, InvalidStateError } from '../../../../shared/errors/index.
 				});
 
                 this.clearDelay = setTimer(this.delay, () => {
-					//C switch state to 'loading' after delay time
+					// switch state to 'loading' after delay time
 					this.state = 'loading';
                 });
                 this.clearTimeout = setTimer(this.timeout, () => {
-					//C reject after timeout time
+					// reject after timeout time
 					this.refreshPromise.reject(new CustomError({
                         userMessage: 'content request timed out',
                     }));
 				});
             },
             clearTimeouts() {
-				//C clear
+				// clear
 				this.clearDelay?.();
 				this.clearTimeout?.();
 				if (isInstanceOf(this.refreshPromise, Deferred, 'Deferred')) this.refreshPromise.cancel();
 
-				//C reset
+				// reset
 				this.clearDelay = null;
 				this.clearTimeout = null;
 				this.refreshPromise = null;
@@ -222,7 +222,7 @@ import { CustomError, InvalidStateError } from '../../../../shared/errors/index.
 		watch: {
 			query: {
 				handler(value) {
-					//C refresh() will be called when this.query changes, don't change the state to avoid flickering
+					// refresh() will be called when this.query changes, don't change the state to avoid flickering
 					this.refresh(this.state);
 				},
 

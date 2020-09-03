@@ -49,7 +49,7 @@
 		//OLD
 		let PlaylistListItem = Vue.component('playlist-list-item', () => {
 				return {
-					//C The component to load (should be a Promise)
+					// The component to load (should be a Promise)
 					//! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
 					//L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
 					component: (async function {
@@ -88,24 +88,24 @@
 						}
 					})(),
 
-					//C A component to use while the async component is loading
+					// A component to use while the async component is loading
 					loading: {
 						template: `
 							<p>LOADING</p>
 						`,
 					},
 
-					//C A component to use if the load fails
+					// A component to use if the load fails
 					error: {
 						template: `
 							<p>ERROR</p>
 						`,
 					},
 
-					//C Delay before showing the loading component. Default: 200ms.
+					// Delay before showing the loading component. Default: 200ms.
 					delay: 500,
 
-					//C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
+					// The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
 					//! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
 					//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
 					//timeout: 10000,
@@ -235,7 +235,7 @@ const router = new VueRouter({
 			],
         },
         {
-            //C login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
+            // login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
 			path: '/login',
 			component: EntryPage,
         },
@@ -252,7 +252,7 @@ const router = new VueRouter({
 			component: AuthRedirectPage,
         },
 		{ 
-			//C catch invalid url paths 
+			// catch invalid url paths 
 			path: '*',
 			component: NotFoundPage,
 		}

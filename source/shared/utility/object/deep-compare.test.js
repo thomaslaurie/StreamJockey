@@ -44,7 +44,7 @@ const nB = {
 	}
 };
 
-//C aF is subset of aG at first level, but then aG is a subset of aF at second level, this should fail subset
+// aF is subset of aG at first level, but then aG is a subset of aF at second level, this should fail subset
 const aF = [
 	{
 		a: 'a',

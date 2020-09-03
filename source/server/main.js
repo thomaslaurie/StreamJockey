@@ -140,19 +140,19 @@ import createDatabase from './database/create-database.js';
 	const sessionConfig = {
 		//TODO random keys: //L https://randomkeygen.com/
 
-		//C (string)(default is koa:sess) cookie key
+		// (string)(default is koa:sess) cookie key
 		key: 'koa:sess', 
-		//C (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
+		// (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
 		maxAge: 86400000, 
-		//C (boolean)(default true) can overwrite or not
+		// (boolean)(default true) can overwrite or not
 		overwrite: true,
-		//C (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side script (so that they can only be opened by the server)
+		// (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side script (so that they can only be opened by the server)
 		httpOnly: true,
-		//C (boolean)(default true) signed or not , signed cookies verify that the data is unchanged on the client side
+		// (boolean)(default true) signed or not , signed cookies verify that the data is unchanged on the client side
 		signed: true,
-		//C (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
+		// (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
 		rolling: true,
-		//C (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
+		// (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
 		renew: false, 
 	};
 

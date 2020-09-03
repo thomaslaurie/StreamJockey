@@ -39,19 +39,19 @@
 			},
 			prevTrack() {
 				return (
-					isInstanceOf(this.currentTrack, Track, 'Track') &&			//C currentTrack exists
-					rules.array.test(this.playlistTracks) &&				    //C playlistTrack exists
+					isInstanceOf(this.currentTrack, Track, 'Track') &&			// currentTrack exists
+					rules.array.test(this.playlistTracks) &&				    // playlistTrack exists
 					0 < this.currentTrack.position && 							//C//! currentTrack is after first track
-					this.currentTrack.position < this.playlistTracks.length		//C currentTrack is not above bounds
+					this.currentTrack.position < this.playlistTracks.length		// currentTrack is not above bounds
 						? this.playlistTracks[this.currentTrack.position-1] //!
 						: null
 				);
 			},
 			nextTrack() {
 				return (
-					isInstanceOf(this.currentTrack, Track, 'Track') &&			//C currentTrack exists
-					rules.array.test(this.playlistTracks) &&				//C playlistTrack exists
-					0 <= this.currentTrack.position && 							//C currentTrack is not below bounds
+					isInstanceOf(this.currentTrack, Track, 'Track') &&			// currentTrack exists
+					rules.array.test(this.playlistTracks) &&				// playlistTrack exists
+					0 <= this.currentTrack.position && 							// currentTrack is not below bounds
 					this.currentTrack.position < this.playlistTracks.length-1	//C//! currentTrack is before last track
 						? this.playlistTracks[this.currentTrack.position+1] //!
 						: null
@@ -62,22 +62,22 @@
 				if (!this.drag) {
 					return this.$store.getters["player/actualPlayback"].progress; //? should this be desired progress?
 				} else {
-					return this.manualProgress; //C this makes the slider use its own value
+					return this.manualProgress; // this makes the slider use its own value
 				}
 			},
 		},
 		watch: {
 			playlistId: {
-				//C ensure the playlistTracksSubscription is always the same as the currentTrack
+				// ensure the playlistTracksSubscription is always the same as the currentTrack
 				async handler(id, oldId) {
-					//C if playlistId doesn't exist
+					// if playlistId doesn't exist
 					if (id === null) {
-						//C wipe playlistTracksSubscription
+						// wipe playlistTracksSubscription
 						this.playlistTracksSubscription = await this.$store.dispatch('unsubscribe', {subscription: this.playlistTracksSubscription});
 
-					//C if the playlistId has changed or the playlistTracksSubscription doesn't exist
+					// if the playlistId has changed or the playlistTracksSubscription doesn't exist
 					} else if (id !== oldId || !isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription')) {
-						//C update the playlistTracksSubscription to the proper playlistId
+						// update the playlistTracksSubscription to the proper playlistId
 						this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
 							subscription: this.playlistTracksSubscription,
 							Entity: Track,
@@ -113,7 +113,7 @@
 				this.manualProgress = event.target.value;
 			},
 			async mousedown(event) {
-				this.manualProgress = event.target.value; //C prevents slider from flickering to 0 on first mousedown
+				this.manualProgress = event.target.value; // prevents slider from flickering to 0 on first mousedown
 				this.drag = true;
 			},
 			async mouseup(event) {

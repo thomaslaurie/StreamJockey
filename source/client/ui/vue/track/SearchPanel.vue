@@ -8,7 +8,7 @@
             SearchResults,
         },
         data() { return {
-			//C just use the first source instance
+			// just use the first source instance
 			source: Source.instances[0],
 			Source,
 		}; },

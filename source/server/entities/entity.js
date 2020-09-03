@@ -77,58 +77,58 @@ define.constant(Entity, {
 
 	// FRAME
 	async frame(db, anyEntities, methodName) {
-		//C catch Entity
+		// catch Entity
 		if (this === Entity) throw new CustomError({
 			message: `cannot call CRUD method directly on Entity`,
 		});
 
-		//C cast as array
+		// cast as array
 		const entities = any(anyEntities);
 
-		//C shorthand
-		const isGetMimic = methodName === 'getMimic'; //C store getMimic
-		if (isGetMimic) methodName = 'get'; //C 'getMimic' === 'get' for functions: [methodName+'Function']
+		// shorthand
+		const isGetMimic = methodName === 'getMimic'; // store getMimic
+		if (isGetMimic) methodName = 'get'; // 'getMimic' === 'get' for functions: [methodName+'Function']
 		const isGet = methodName === 'get';
 
 		const accessory = {};
 		
 
 		const after = await db.tx(async t => {
-			//C process
+			// process
 			const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
 
-			//C validate
+			// validate
 			const validatedEntities = await asyncMap(beforeEntities, async entity => await this.validate(entity, methodName).catch(propagate)).catch(MultipleErrors.throw);
 
-			//C prepare
+			// prepare
 			const preparedEntities = await asyncMap(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(propagate)).catch(MultipleErrors.throw);
 
-			//C accommodate
+			// accommodate
 			const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(propagate) : [];
 
-			//C map
+			// map
 			const inputMapped = this.mapColumns(preparedEntities);
 			const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : [];
 
 
-			//C execute SQL for inputs
+			// execute SQL for inputs
 			const inputBefore = [];
 			const inputAfter = isGetMimic ? inputMapped : [];
 			if (!isGetMimic) {
 				await asyncMap(inputMapped, async entity => {
-					//C before, ignore add
+					// before, ignore add
 					if (!isGet && methodName !== 'add') {
 						const before = await this.getQuery(t, pick(entity, this.filters.id)).then(any).catch(propagate)
 						inputBefore.push(...before);
 					}
 
-					//C after, ignore remove (still needs to execute though)
+					// after, ignore remove (still needs to execute though)
 					const after = await this[methodName+'Query'](t, entity).then(any).catch(propagate);
 					if (methodName !== 'remove') inputAfter.push(...after);
 				}).catch(MultipleErrors.throw);
 			}
 
-			//C execute SQL for influenced
+			// execute SQL for influenced
 			const influencedBefore = [];
 			const influencedAfter = [];
 			if (!isGet) {
@@ -142,31 +142,31 @@ define.constant(Entity, {
 			}
 
 
-			//C group for iteration
+			// group for iteration
 			const all = [inputBefore, inputAfter, influencedBefore, influencedAfter];
 
-			//C unmap
+			// unmap
 			const unmapped = all.map(list => this.unmapColumns(list));
 
-			//C process
+			// process
 			return await asyncMap(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(propagate)).catch(MultipleErrors.throw);
 		}).catch(propagate); //! finish the transaction here so that notify won't be called before the database has updated
 
-		//C shake for subscriptions with getOut filter
+		// shake for subscriptions with getOut filter
 		const shookGet = after.map(list => any(list).map((item) => pick(item, this.filters.getOut)));
 
-		//C timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
+		// timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 		const timestamp = Date.now();
 
-		//C if get, don't notify
+		// if get, don't notify
 		if (!isGet) shookGet.forEach(list => this.notify(this, list, timestamp, methodName));
-		//C if getMimic, return shookGet-after
+		// if getMimic, return shookGet-after
 		else if (isGetMimic) return shookGet[1]; 
 
-		//C shake for return
+		// shake for return
 		const shook = after.map(list => any(list).map((item) => pick(item, this.filters[methodName+'Out'])));
 
-		//C rebuild
+		// rebuild
 		const built = shook.map(list => list.map(entity => new this(entity)));
 
 		return new ContentContainer({

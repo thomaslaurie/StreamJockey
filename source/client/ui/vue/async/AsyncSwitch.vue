@@ -6,11 +6,11 @@
     import AsyncError from './AsyncError.vue';
 
     export default {
-		//C switches component/markup depending on the passed state prop
-		//C wraps around slotted markup for display
-		//C may be passed custom delay, loading, and error components
-		//C passes its error prop on to the error component
-		//C propagates refresh events from loaading and error components up to it's parent
+		// switches component/markup depending on the passed state prop
+		// wraps around slotted markup for display
+		// may be passed custom delay, loading, and error components
+		// passes its error prop on to the error component
+		// propagates refresh events from loaading and error components up to it's parent
 
         name: 'async-switch',
         mixins: [emitRefresh],
@@ -103,12 +103,12 @@
 		// however, I think there is another way - the main reason I used sj.dynamicTemplate() was to avoid repeating markup in the display template (if a component was to manage its own display state, each would have to repeat a conditional wrapper), what if the async-switch component was this conditional wrapper and the main display markup is filled into the default slot? (it minimizes this markup into one element, which is good because there needs to be a single root element anyways), the main hurdle is passing the custom components to it and switching to them
 
 		sj.dynamicTemplate = function (display, loading, error) {
-			//C use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared 
+			// use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared 
 			if (!sj.isType(display, 'string'))	display = `<display-component :display='display'></display-component>`;
 			if (!sj.isType(loading, 'string'))	loading = `<loading-component></loading-component>`;
 			if (!sj.isType(error, 'string'))	error = `<error-component :error='error'></error-component>`;
 
-			//C insert
+			// insert
 			return `
 				<div v-if='state === "display"'>
 					${display}
@@ -124,7 +124,7 @@
 
 
 <template>
-    <!-- //C v-if is used here because all parts can be destroyed and created at will because they (the slotted display markup & accessory loading & error components) don't process or store any information -->
+    <!-- // v-if is used here because all parts can be destroyed and created at will because they (the slotted display markup & accessory loading & error components) don't process or store any information -->
 	
     <div v-if='state === "display"'>
         <slot>

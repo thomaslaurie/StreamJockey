@@ -1,5 +1,5 @@
 //TODO consider moving this over to the globals-server stuff
-//C this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
+// this is only used in auth.startAuthRequest() for its spotify.makeAuthRequestURL() function
 
 // EXTERNAL
 //import btoa from 'btoa';
@@ -28,7 +28,7 @@ const spotify = new Source({
 	name: 'spotify',
 	register: true,
 	api: new SpotifyWebApi({
-		//C create api object and set credentials in constructor
+		// create api object and set credentials in constructor
 		clientId: process.env.SPOTIFY_CLIENT_ID,
 		clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
 		redirectUri: process.env.SPOTIFY_REDIRECT_URI,
@@ -94,8 +94,8 @@ Object.assign(spotify, {
 		});
 	},
 	async receiveAuthRequest(query) {
-		//C receives and transforms credentials from spotify after the user confirms the authorization
-		/*//C spotify authorization guide
+		// receives and transforms credentials from spotify after the user confirms the authorization
+		/*// spotify authorization guide
 			//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 
 			if the user accepts the request:
@@ -109,9 +109,9 @@ Object.assign(spotify, {
 			//TODO create error parser for spotify api
 		*/
 
-		//C ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
+		// ensure key is recognized, if its not (or timed out), nothing can be done, let it timeout on the client side too
 		await auth.checkRequestKey(query.state);
-		//C ensure that spotify sent the code
+		// ensure that spotify sent the code
 		if (query.code === undefined) {
 			emitter.emit(query.state, new InvalidStateError({
 				userMessage: 'spotify authorization failed',
@@ -119,7 +119,7 @@ Object.assign(spotify, {
 				state: query,
 			}));
 		}
-		//C ensure that spotify didn't send an error
+		// ensure that spotify didn't send an error
 		if (query.error !== undefined) {
 			emitter.emit(query.state, new InvalidStateError({
 				userMessage: 'spotify authorization failed',
@@ -128,22 +128,22 @@ Object.assign(spotify, {
 			}));
 		}
 
-		//C send the event and credentials for endAuthRequest() to pick up
+		// send the event and credentials for endAuthRequest() to pick up
 		emitter.emit(query.state, new Credentials({ //? sj.success here?
 			authRequestKey: query.state, //? is this needed anymore?
 			authCode: query.code,
 		}));
 	},
 	endAuthRequest: async function (credentials) {
-		//C catches events emitted by receiveAuthRequest() and sends them to the waiting router request
+		// catches events emitted by receiveAuthRequest() and sends them to the waiting router request
 
 		return await new Promise((resolve, reject) => { //! needs to be a promise wrapper because emitter.once uses a callback function
-			//C setup listener for authRequestKey
+			// setup listener for authRequestKey
 			emitter.once(credentials.authRequestKey, (result) => {
 				resolve(result);
 			});
 
-			//C setup timeout
+			// setup timeout
 			wait(credentials.authRequestTimeout).then(() => {
 				reject(new CustomError({
 					userMessage: 'request timeout',
@@ -152,18 +152,18 @@ Object.assign(spotify, {
 		});
 	},
 	exchangeToken: async function (ctx, credentials) {
-		//C exchange auth code for access and refresh tokens
-		//C exchangeToken() is only outside of endAuthRequest() because the auth window should close and not have to wait for the exchange to happen - to reduce flickering of the redirect page
+		// exchange auth code for access and refresh tokens
+		// exchangeToken() is only outside of endAuthRequest() because the auth window should close and not have to wait for the exchange to happen - to reduce flickering of the redirect page
 
-		//C grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
+		// grab timestamp before sending request so that the recorded expiry time is before the actual expiry time
 		let timestamp = Date.now();
-		//C exchange the auth code for tokens
+		// exchange the auth code for tokens
 		//L https://developer.spotify.com/documentation/general/guides/authorization-guide/
 		let result = await request('POST', 'https://accounts.spotify.com/api/token', {
 			body: encodeProperties({
 				grant_type: 'authorization_code',
 				code: credentials.authCode,
-				redirect_uri: process.env.SPOTIFY_REDIRECT_URI, //C only used for validation, no need to make a second redirect handler
+				redirect_uri: process.env.SPOTIFY_REDIRECT_URI, // only used for validation, no need to make a second redirect handler
 
 				client_id: process.env.SPOTIFY_CLIENT_ID,
 				client_secret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -178,33 +178,33 @@ Object.assign(spotify, {
 			});
 		});
 
-		//C store refresh token in database
-		//C while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
+		// store refresh token in database
+		// while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
 		let me = await session.get(ctx).then((result) => result.content);
 		await User.edit({ id: me.id, spotifyRefreshToken: result.refresh_token }).then(resolved => {
 		});
 
-		//C repack and return
+		// repack and return
 		return new Credentials({
 			accessToken: result.access_token,
 			expires: timestamp + result.expires_in,
 			//refreshToken: result.refresh_token,
 			scopes: result.scope.split(' '),
-			//C result.token_type is the only omitted property, this is always 'Bearer'
+			// result.token_type is the only omitted property, this is always 'Bearer'
 		});
 	},
 	refreshToken: async function (ctx) {
-		//C get the refresh token from the database
+		// get the refresh token from the database
 		let me = await session.get(ctx).then((result) => result.content);
 		let refreshToken = await User.get(me).then((result) => result.content).then(one).then(resolved => resolved.spotifyRefreshToken);
 
-		//C if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+		// if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 		//TODO reconsider this string test
 		if (!rules.visibleString.test(refreshToken)) {
 			throw new AuthRequired();
 		}
 
-		//C send a refresh request to spotify to get new access token, expiry time, and possible refresh token
+		// send a refresh request to spotify to get new access token, expiry time, and possible refresh token
 		let timestamp = Date.now();
 		let result = await request('POST', 'https://accounts.spotify.com/api/token', {
 			body: encodeProperties({
@@ -223,13 +223,13 @@ Object.assign(spotify, {
 			});
 		});
 
-		//C if a new refresh token was sent
+		// if a new refresh token was sent
 		if (rules.string.test(result.refresh_token)) { //? better validation?
-			//C store it
+			// store it
 			await User.edit({ id: me.id, spotifyRefreshToken: result.refresh_token });
 		}
 
-		//C send only the accessToken and the expiry time
+		// send only the accessToken and the expiry time
 		return new Credentials({
 			origin: 'sj.spotify.refreshToken()',
 			accessToken: result.access_token,

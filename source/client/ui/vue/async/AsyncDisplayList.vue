@@ -43,7 +43,7 @@
 			},
 
 			/* //G transparent components
-				//C child list components may be made transparent, so that any child listener is passed up to AsyncDisplayList and any attribute on AsyncDisplayList will be passed down to the child component
+				// child list components may be made transparent, so that any child listener is passed up to AsyncDisplayList and any attribute on AsyncDisplayList will be passed down to the child component
 				//G just add v-on='listeners' and v-bind='attrs' to any element that needs to be transparent
 
 				//G any listeners/attrs for this AsyncDisplayList component can be pulled out of those that are passed down by adding the name to the destructured object:

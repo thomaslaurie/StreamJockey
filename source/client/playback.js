@@ -81,12 +81,12 @@ define.constant(Playback, {
 				}));
 
 				const unwatch = context.watch(
-					//C pack desired state
+					// pack desired state
 					({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}),
-					//C evaluate state conditions
+					// evaluate state conditions
 					({sourceId, isPlaying, progress}) => {
 						if (
-							//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+							// track must have the right id, be playing, near the start (within the time from when the call was made to now)
 							sourceId === track.sourceId &&
 							isPlaying === true &&
 							progress <= (Date.now() - timeBefore) / duration
@@ -102,7 +102,7 @@ define.constant(Playback, {
 			await dispatch('baseStart', track);
 
 			/* //TODO same here
-				//C wait for desired state
+				// wait for desired state
 				await deferred;
 				unwatch();
 			*/
@@ -140,19 +140,19 @@ define.constant(Playback, {
 					reason: 'track is not an Track',
 				});
 
-				//C default local metadata as foreign track
+				// default local metadata as foreign track
 				let local = Track.filters.localMetadata.reduce((obj, key) => {
 					obj[key] = null;
 					return obj;
 				}, {});
 
-				//C set local as current or starting track if matching
+				// set local as current or starting track if matching
 				if (sj.isType(context.state.track, Object) &&
 				track.sourceId === context.state.track.sourceId)			local = context.state.track;
 				else if (sj.isType(context.state.startingTrack, Object) &&
 				track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;
 
-				//C return new track with localMetadata properties replaced
+				// return new track with localMetadata properties replaced
 				return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
 			},
 		*/
@@ -422,20 +422,20 @@ define.constant(Playback, {
 		/*
 			// PLAYBACK STATE
 			actualPlayback(state, getters) {
-				//C return null playback state if no source
+				// return null playback state if no source
 				if (state.source === null) return {...sj.Playback.baseState};
 
-				//C get the source state
+				// get the source state
 				const sourceState = state[state.source.name];
 
-				//C use inferredProgress or regular progress depending on isPlaying
+				// use inferredProgress or regular progress depending on isPlaying
 				//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
 				if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
 				else return sourceState;
 			},
 			inferredProgress(state) {
 				if (state.source === null) return -1;
-				//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
+				// this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
 				const sourceState = state[state.source.name];
 				const elapsedTime = state.clock - sourceState.timestamp;
 				const elapsedProgress = elapsedTime / sourceState.track.duration;

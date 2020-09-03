@@ -1764,4 +1764,4 @@ if (typeof module === 'object' && typeof module.exports === 'object') {
   module.exports = SpotifyWebApi;
 }
 
-export default SpotifyWebApi; //C manually added in for module support
+export default SpotifyWebApi; // manually added in for module support

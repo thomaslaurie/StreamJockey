@@ -28,7 +28,7 @@ const youtube = new Source({
 		//TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
 		
 
-		//C watch for gapi to be assigned by using a setter with a deferred promise
+		// watch for gapi to be assigned by using a setter with a deferred promise
 		//L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
 		//OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: Playback.requestTimeout});
 		//! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
@@ -49,13 +49,13 @@ const youtube = new Source({
 			},
 		});
 
-		//C loads gapi into global scope 
+		// loads gapi into global scope 
 		//TODO is there any way to make this more module-like?
 		await runHTMLScript('https://apis.google.com/js/api.js');
-		//C wait for gapi
+		// wait for gapi
 		await loaded;
 
-		//C remove the watcher
+		// remove the watcher
 		Object.defineProperty(window, 'gapi', {
 			configurable: true,
 			enumerable: true,
@@ -66,10 +66,10 @@ const youtube = new Source({
 		delete window.gapi2;
 
 
-		//C load client library
+		// load client library
 		await new Promise((resolve, reject) => {
 			//L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md
-			//C first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
+			// first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
 			gapi.load('client', {
 				callback(args) { //? no idea what the parameters passed here are
 					resolve(args);
@@ -84,14 +84,14 @@ const youtube = new Source({
 			});
 		});
 
-		//C get apiKey and clientId stored on server
+		// get apiKey and clientId stored on server
 		const {apiKey, clientId} = await serverRequest('GET', `youtube/credentials`);
 
 		//TODO Create specific rules for each API key.
 		rules.string.validate(apiKey);
 		rules.string.validate(clientId);
 
-		//C loads and performs authorization, short version of the code commented out below
+		// loads and performs authorization, short version of the code commented out below
 		//R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
 		await gapi.client.init({
 			//L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md#----gapiclientinitargs--
@@ -109,7 +109,7 @@ const youtube = new Source({
 		/* LONG IMPLEMENTATION
 			//! 'auth2:client' must be loaded above
 
-			//C init and signIn to OAuth
+			// init and signIn to OAuth
 			const googleAuth = await gapi.auth2.init({
 				//! may only be initialized once, and so client_id and scopes cannot be reinitialized
 				//L other options: https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
@@ -123,13 +123,13 @@ const youtube = new Source({
 				prompt: 'consent',
 			});
 
-			//C init and load client
+			// init and load client
 			gapi.client.setApiKey('key')
 			await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
 		*/
 	},
 	async request(method, path, content) {
-		//C check that user is authorized (signedIn)
+		// check that user is authorized (signedIn)
 		//TODO how do I check that the client library is loaded?
 		if (!window?.gapi?.auth2?.getAuthInstance?.()?.isSignedIn?.get?.()) {
 			await this.auth();
@@ -178,7 +178,7 @@ youtube.search = async function ({
 	rules.positiveInteger.validate(amount);
 
 
-	//C amass search result pages until the last requested search index is included
+	// amass search result pages until the last requested search index is included
 	//! this will drive api quotas up fast if the startIndex or amount are high (n*50)
 	//!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
 	/* //R
@@ -200,7 +200,7 @@ youtube.search = async function ({
 			type: 'video',
 			maxResults: 50,
 			q: term,
-			//C conditionally add pageToken
+			// conditionally add pageToken
 			//L https://stackoverflow.com/questions/11704267/in-javascript-how-to-conditionally-add-a-member-to-an-object/40560953#40560953
 			...(pageToken !== null && {pageToken}),
 		});
@@ -209,17 +209,17 @@ youtube.search = async function ({
 
 		limit--;
 	}
-	//C remove the unneeded results
+	// remove the unneeded results
 	const searchResults = allPageResults.slice(startIndex, startIndex + amount);
 
 
-	//C videoResults must also be searched because the contentDetails part is not available for the search request
+	// videoResults must also be searched because the contentDetails part is not available for the search request
 	//L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
 	const videoResult = await youtube.request('GET', 'videos', {
 		//L https://developers.google.com/youtube/v3/docs/videos/list
-		//C join the results ids
+		// join the results ids
 		id: searchResults.map(item => item.id.videoId).join(','),
-		//C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
+		// only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
 		part: 'contentDetails',
 	});
 	if (searchResults.length !== videoResult.result.items.length) {
@@ -232,13 +232,13 @@ youtube.search = async function ({
 		});
 	}
 	videoResult.result.items.forEach((item, index) => {
-		//C ensure that ids line up
+		// ensure that ids line up
 		if (searchResults[index].id.videoId !== item.id) {
 			throw new CustomError({
 				message: `search and video results at ${index} do not have the same id`,
 			});
 	}
-		//C append contentDetails part to the search results
+		// append contentDetails part to the search results
 		searchResults[index].contentDetails = item.contentDetails;
 	});
 
@@ -256,7 +256,7 @@ youtube.playback = new Playback({
 	},
 	actions: {
 		async loadPlayer(context) {
-			//C load youtube iframe api
+			// load youtube iframe api
 			await runHTMLScript('https://www.youtube.com/iframe_api');
 
 			//TODO choose timeout
@@ -318,7 +318,7 @@ youtube.playback = new Playback({
 			const player = context.state.player;
 
 			track.link = player.getVideoUrl();
-			//C remove the idPrefix or nullPrefix from youtube urls
+			// remove the idPrefix or nullPrefix from youtube urls
 			//! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 			track.sourceId = track.link.replace(
 				new RegExp(`${escapeRegExp(youtube.idPrefix)}|${escapeRegExp(youtube.nullPrefix)}`), 
@@ -327,7 +327,7 @@ youtube.playback = new Playback({
 
 			const playerDuration = player.getDuration();
 			//! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
-			//C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
+			// if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
 			track.duration = playerDuration === 0 ? Infinity : playerDuration;
 			state.progress = player.getCurrentTime() * 1000 / track.duration;
 
@@ -342,12 +342,12 @@ youtube.playback = new Playback({
 				5 video cued
 			*/
 
-			//C if muted: volume is 0, convert 0-100 to 0-1 range
-			state.volume = player.isMuted() ? 0 : player.getVolume() / 100; //C 
+			// if muted: volume is 0, convert 0-100 to 0-1 range
+			state.volume = player.isMuted() ? 0 : player.getVolume() / 100; // 
 
 			state.timestamp = Date.now();
 
-			//C get name and artists from current track, starting track, or an api call
+			// get name and artists from current track, starting track, or an api call
 			//R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
 			if (track.sourceId === context?.state?.track?.sourceId) {
 				track.name = context.state.track.name;
@@ -422,24 +422,24 @@ youtube.formatSnippet = function (snippet) {
 		});
 	}
 
-	//C assuming title format of 'Artist - Title'
-	//C splits on dash between one or any whitespace
+	// assuming title format of 'Artist - Title'
+	// splits on dash between one or any whitespace
 	const splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
-	if (splitTitle.length === 2)  { //C if splitTittle has the exact length of two
-		//C use the first part as the artists
-		//C splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
+	if (splitTitle.length === 2)  { // if splitTittle has the exact length of two
+		// use the first part as the artists
+		// splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
 		//TODO improve
 		pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g);
-		//C use the second part as the name
+		// use the second part as the name
 		pack.name = splitTitle[1];
 	} else {
-		//C use the channel title as the artist
+		// use the channel title as the artist
 		pack.artists = [snippet.channelTitle];
-		//C use the full title as the name
+		// use the full title as the name
 		pack.name = snippet.title;
 	}
 
-	//C apparently the titles are html encoded, (possibly the artist names too//?)
+	// apparently the titles are html encoded, (possibly the artist names too//?)
 	//L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
 	pack.artists = pack.artists.map(artist => he.decode(artist));
 	pack.name = he.decode(pack.name);

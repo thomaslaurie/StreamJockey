@@ -40,7 +40,7 @@ const spotify = new Source({
 	
 	//? where is this being called?
 	async auth() {
-		//C prompts the user to accept permissions in a new window, then receives an auth code from spotify
+		// prompts the user to accept permissions in a new window, then receives an auth code from spotify
 		/* //R
 			this was split in to multiple parts on the client side to have an automatically closing window
 			//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
@@ -49,21 +49,21 @@ const spotify = new Source({
 		*/
 		//TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
 	
-		//C request url
+		// request url
 		const requestCredentials = await serverRequestRequest('GET', 'spotify/authRequestStart');
 	
-		//C open spotify auth request window
+		// open spotify auth request window
 		//L https://www.w3schools.com/jsref/met_win_open.asp
 		const authWindow = window.open(requestCredentials.authRequestURL);
 	
-		//C listen for response from spotify
+		// listen for response from spotify
 		//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 		const authCredentials = await serverRequest('POST', 'spotify/authRequestEnd', requestCredentials);
 	
-		//C automatically close window when data is received
+		// automatically close window when data is received
 		authWindow.close();
 	
-		//C exchange auth code for tokens
+		// exchange auth code for tokens
 		const tokens = await serverRequest('POST', 'spotify/exchangeToken', authCredentials);
 		this.credentials.accessToken = tokens.accessToken;
 		this.credentials.expires = tokens.accessToken;
@@ -77,9 +77,9 @@ const spotify = new Source({
 		//TODO there needs to be a scopes (permissions) check in here somewhere
 	
 		/* //OLD
-			//C request authURL & authKey
+			// request authURL & authKey
 			return fetch(`${API_URL}/spotify/startAuthRequest`).then(resolved => {
-				//C open spotify auth request window
+				// open spotify auth request window
 				//L https://www.w3schools.com/jsref/met_win_open.asp
 				authRequestWindow = window.open(resolved.authRequestURL);
 				return resolved;
@@ -132,34 +132,34 @@ const spotify = new Source({
 	},
 	//? this is specific to spotify, maybe move this once optional options are implemented into classes
 	async getAccessToken() {
-		//C gets the api access token, handles all refreshing, initializing, errors, etc.
-		//C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
+		// gets the api access token, handles all refreshing, initializing, errors, etc.
+		// doing this here is useful because it removes the need to check on init, and only prompts when it is needed
 	
 		//TODO must respond to denials by spotify too
 	
-		//C refresh
+		// refresh
 		let that = this;
 		let refresh = async function (that) {
 			let result = await serverRequest('GET', `spotify/refreshToken`).catch(returnPropagate);
 			result = sharedRegistry.autoConstruct(result);
 			if (result instanceof AuthRequired) {
-				//C call auth() if server doesn't have a refresh token
+				// call auth() if server doesn't have a refresh token
 				await that.auth();
 			} else if (result instanceof Error) {
 				throw propagate(result);
 			} else {
-				//C assign spotify.credentials
+				// assign spotify.credentials
 				that.credentials.accessToken = result.accessToken;
 				that.credentials.expires = result.accessToken;
 			}	
 		};
 	
-		//C if client doesn't have token or if it has expired, refresh it immediately
+		// if client doesn't have token or if it has expired, refresh it immediately
 		//TODO reconsider this string test
 		if (!rules.visibleString.test(this.credentials.accessToken) || this.credentials.expires <= Date.now()) {
 			await refresh(that);
 		}
-		//C if token is soon to expire, refresh in the background, return the existing token
+		// if token is soon to expire, refresh in the background, return the existing token
 		if (this.credentials.expires <= Date.now() + this.refreshBuffer) {
 			refresh(that);
 		}
@@ -220,10 +220,10 @@ spotify.playback = new Playback({
 	actions: {
 		async loadPlayer(context) {
 			return await new Promise((resolve, reject) => {
-				//C this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
+				// this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
 				window.onSpotifyWebPlaybackSDKReady = function () {
 					const player = new window.Spotify.Player({ 
-						//C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
+						// "The name of the Spotify Connect player. It will be visible in other Spotify apps."
 						name: APP_NAME,
 						getOAuthToken: async callback => {
 							let token = await spotify.getAccessToken();
@@ -258,26 +258,26 @@ spotify.playback = new Playback({
 						timeoutError = new Error('awaitState timed out')
 					}) {
 						return new Promise(async (resolve, reject) => {
-							let resolved = false; //C resolved boolean is used to prevent later announcements of response objects
+							let resolved = false; // resolved boolean is used to prevent later announcements of response objects
 
 							const callback = async state => {
 								if (!resolved && stateCondition(player.formatState(state))) {
-									//C remove listener
+									// remove listener
 									this.removeListener('player_state_changed', callback);
-									//C update playback state
+									// update playback state
 									await context.dispatch('updatePlayback', state);
-									//C resolve
+									// resolve
 									resolve(new Success(success));
-									//C prevent other exit points from executing their code
+									// prevent other exit points from executing their code
 									resolved = true;
 								}
 							};
 
-							//C add the listener before the request is made, so that the event cannot be missed 
+							// add the listener before the request is made, so that the event cannot be missed 
 							//! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
 							this.addListener('player_state_changed', callback);
 		
-							//C if command failed, reject
+							// if command failed, reject
 							//! don't do anything when main() resolves, it only indicates that the command has been received
 							await command().catch(rejected => {
 								if (!resolved) {
@@ -287,7 +287,7 @@ spotify.playback = new Playback({
 								}
 							});
 
-							//C if playback is already in the proper state, resolve but don't update
+							// if playback is already in the proper state, resolve but don't update
 							//! this check is required because in this case spotify wont trigger a 'player_state_changed' event
 							await context.dispatch('checkPlayback');
 							if (!resolved && stateCondition(context.state)) {
@@ -296,7 +296,7 @@ spotify.playback = new Playback({
 								resolved = true;
 							}
 							
-							//C if timed out, reject
+							// if timed out, reject
 							await wait(Playback.requestTimeout);
 							if (!resolved) {
 								this.removeListener('player_state_changed', callback);
@@ -306,13 +306,13 @@ spotify.playback = new Playback({
 						});
 					},
 
-					//C events
+					// events
 					//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
 					player.on('ready', async ({device_id}) => {
-						//C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
+						// 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
 						//L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
 
-						//C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
+						// fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
 						const iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
 						if (iframe) {
 							iframe.style.display = 'block';
@@ -321,11 +321,11 @@ spotify.playback = new Playback({
 							iframe.style.left = '-1000px';
 						}
 
-						//C set the player as ready 
+						// set the player as ready 
 						//! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
 						context.commit('setState', {player});
 
-						//C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
+						// transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 						await spotify.request('PUT', 'me/player', {
 							device_ids: [device_id],
 							play: false, // keeps current playback state
@@ -338,18 +338,18 @@ spotify.playback = new Playback({
 							}));
 						});
 
-						//C wait for device to transfer
+						// wait for device to transfer
 						//TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
 						
-						//C starting delay
+						// starting delay
 						let delay = 100;
 						await repeat.async(async () => {
-							//C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
+							// because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
 							//L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
-							//C timeout is doubled here to work better with the doubling delay time.
-							//C using an object wrapper for the delay argument so that it can be modified between iterations
+							// timeout is doubled here to work better with the doubling delay time.
+							// using an object wrapper for the delay argument so that it can be modified between iterations
 							await wait(delay);
-							delay = delay*2; //C double the delay each time
+							delay = delay*2; // double the delay each time
 							return await spotify.request('Get', 'me/player').catch(rejected => {
 								reject(new InvalidStateError({
 									userMessage: 'spotify player could not be loaded',
@@ -358,12 +358,12 @@ spotify.playback = new Playback({
 									//reason: JSON.parse(error.response).error.message,
 								}));
 
-								return {device: {id: device_id}}; //C break the loop after rejecting
+								return {device: {id: device_id}}; // break the loop after rejecting
 							});
 						}, {
 							until(result) {
 								//L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
-								//C this is fine, it just means that it's not ready, so just catch anything.
+								// this is fine, it just means that it's not ready, so just catch anything.
 								return (
 									rules.object.test(result) 		 &&
 									rules.object.test(result.device) &&
@@ -373,10 +373,10 @@ spotify.playback = new Playback({
 							timeout: Playback.requestTimeout * 2,
 						});
 
-						//C check playback state //? this was commented out earlier and after pause, was this causing issues?
+						// check playback state //? this was commented out earlier and after pause, was this causing issues?
 						await context.dispatch('checkPlayback');
 
-						//C ensure that playback is not playing
+						// ensure that playback is not playing
 						await context.dispatch('pause');
 
 						resolve(new Success({
@@ -390,7 +390,7 @@ spotify.playback = new Playback({
 						console.error('not_ready', 'device_id:', device_id);
 					});
 		
-					//C errors
+					// errors
 					//TODO make better handlers
 					//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 					player.on('initialization_error', ({message}) => {
@@ -401,23 +401,23 @@ spotify.playback = new Playback({
 						}));
 					});
 					player.on('authentication_error', ({message}) => {
-						//C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+						// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
 						reject(new CustomError({
 							userMessage: 'spotify player encountered an authentication error',
 							message,
 						}));
 					});
 					player.on('account_error', ({message}) => {
-						//C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+						// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
 						reject(new CustomError({
 							userMessage: 'this account does not have a valid Spotify Premium subscription',
 							message,
 						}));
 					});
 		
-					//C ongoing listeners
+					// ongoing listeners
 					player.on('player_state_changed', state => {
-						//C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
+						// emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
 						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
 						context.dispatch('updatePlayback', state);
 					});
@@ -427,9 +427,9 @@ spotify.playback = new Playback({
 					});
 		
 		
-					//C connect player
+					// connect player
 					player.connect().then((resolved) => {
-						//C 'returns a promise with a boolean for whether or not the connection was successful'
+						// 'returns a promise with a boolean for whether or not the connection was successful'
 						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
 						//! do not resolve here, the player will trigger the 'ready' event when its truly ready
 						if (!resolved) {
@@ -464,7 +464,7 @@ spotify.playback = new Playback({
 					*/
 				};
 
-				//C dynamic import Spotify's SDK
+				// dynamic import Spotify's SDK
 				//! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
 				import(/* webpackChunkName: 'spotify-player' */ `../vendor/spotify-player.js`);
 			});
@@ -650,9 +650,9 @@ spotify.playback = new Playback({
 		},
 
 		
-		//C spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
+		// spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
 		async updatePlayback(context, state) {
-			//C formats and commits playback state
+			// formats and commits playback state
 
 			/* //R
 				when formattingState and checkState are executed, the track only gets metadata from the api and therefore looses it's playlistId, position, and other custom metadata, how to preserve this data so it can be used to know the currently playing track, playlist, and next/prev tracks
@@ -667,9 +667,9 @@ spotify.playback = new Playback({
 					//? are playlistId and position mutually required? is there a situation where playlistId or position would exist on their own? I don't think so
 			*/
 
-			//C formats given state and adds volume from getVolume() to it, commits to state
+			// formats given state and adds volume from getVolume() to it, commits to state
 			const formattedState = context.state.player.formatState(state);
-			//C these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
+			// these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
 			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
 			const volume = await context.state.player.getVolume(); 
 			const newState = {...formattedState, volume};
@@ -690,7 +690,7 @@ spotify.playback = new Playback({
 			});
 		},
 		async checkPlayback(context) {
-			//C retrieves playback from api and updates it
+			// retrieves playback from api and updates it
 
 			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
 			const state = await context.state.player.getCurrentState().catch(rejected => {
@@ -723,10 +723,10 @@ spotify.playback = new Playback({
 					uris: [`spotify:track:${track.sourceId}`],
 				}),
 				stateCondition: state => ( 
-					//C track must be playing, near the start (within the time from when the call was made to now), and the same track
+					// track must be playing, near the start (within the time from when the call was made to now), and the same track
 					state.isPlaying === true &&
 					//state.progress !== context.state.progress && //!
-					//state.progress !== 0 && //C track must be actually started
+					//state.progress !== 0 && // track must be actually started
 					state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration &&
 					state.track.sourceId === context.state.track.sourceId
 				),
@@ -780,7 +780,7 @@ spotify.playback = new Playback({
 
 			return await player.awaitState({
 				command: async () => await player.seek(ms),
-				//C state.position must be greater than the set position but less than the difference in time it took to call and resolve
+				// state.position must be greater than the set position but less than the difference in time it took to call and resolve
 				stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
 				success: {
 

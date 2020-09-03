@@ -309,7 +309,7 @@ export default {
 	state: {
 		tables: LiveTable.makeTables({User, Playlist, Track}),
 		socket: null,
-		timeout: 10000, //C 10 seconds
+		timeout: 10000, // 10 seconds
 	},
 	getters: {
 		// FINDERS //! return undefined when not found
@@ -324,20 +324,20 @@ export default {
 		},
 
 		getLiveData: state => subscription => {
-			//C validate
+			// validate
 			if (!isInstanceOf(subscription, Subscription, 'Subscription')) throw new InvalidStateError({
 				message: 'subscription is not an Subscription',
 				state: subscription,
 			});
 
-			//C shorten
+			// shorten
 			const liveQuery = subscription.liveQuery;
 			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) throw new InvalidStateError({
 				message: `liveQuery is not an LiveQuery`,
 				state: liveQuery,
 			});
 
-			//C get all liveQuery.cachedEntityRefs.entity
+			// get all liveQuery.cachedEntityRefs.entity
 			
 			//TODO Race condition here.
 			return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
@@ -406,16 +406,16 @@ export default {
 	},
 	actions: {
 		// CACHED ENTITY
-		//C these return a boolean indicating whether the action happened or if nothing changed
+		// these return a boolean indicating whether the action happened or if nothing changed
 		async addCachedEntity(context, {entity, liveQuery}) {
 			let added = false;
 
 
-			//C shorthand
+			// shorthand
 			const table = liveQuery.table;
 
 
-			//C add cachedEntity to table if it doesn't exist
+			// add cachedEntity to table if it doesn't exist
 			if (!isInstanceOf(context.getters.findCachedEntity({table, entity}), CachedEntity, 'CachedEntity')) {
 				context.commit('pushCachedEntity', {
 					cachedEntities: table.cachedEntities, 
@@ -424,17 +424,17 @@ export default {
 				//! don't set added here, because the cachedEntity could already exist and is just being added to a new liveQuery
 			}
 
-			//C find cachedEntity by entity
+			// find cachedEntity by entity
 			const cachedEntity = context.getters.findCachedEntity({table, entity});
 			if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) {
 				throw new UnreachableError();
 			}
 			
-			//C shorthand
+			// shorthand
 			const liveQueryRefs = cachedEntity.liveQueryRefs;
 			const cachedEntityRefs = liveQuery.cachedEntityRefs;
 
-			//C find references
+			// find references
 			const foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
 			const foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
 			if (foundLiveQueryRef !== foundCachedEntityRef) {
@@ -449,18 +449,18 @@ export default {
 				});
 			}
 
-			//C add refs to both liveQuery and cachedEntity if they don't exist
+			// add refs to both liveQuery and cachedEntity if they don't exist
 			if (!foundLiveQueryRef) {
 				context.commit('pushLiveQueryRef', {liveQueryRefs, liveQuery});
 				context.commit('pushCachedEntityRef', {cachedEntityRefs, cachedEntity});
 				added = true;
 			}
 
-			//C the entity is considered 'added' if it's cachedEntity and the passed liveQuery are getting new references to each other
+			// the entity is considered 'added' if it's cachedEntity and the passed liveQuery are getting new references to each other
 			return added;
 		},
 		async removeCachedEntity(context, {cachedEntity, liveQuery}) {
-			//C find both reference indexes
+			// find both reference indexes
 			const cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
 			if (cachedEntityRefIndex < 0) throw new CustomError({
 				message: 'cachedEntityRef not found in liveQuery',
@@ -470,7 +470,7 @@ export default {
 				message: 'liveQueryRef not found in cachedEntity',
 			});
 
-			//C remove references from each other
+			// remove references from each other
 			context.commit('spliceCachedEntityRef', {
 				cachedEntityRefs: liveQuery.cachedEntityRefs, 
 				index: cachedEntityRefIndex
@@ -480,9 +480,9 @@ export default {
 				index: liveQueryRefIndex
 			});
 
-			//C if cachedEntity no longer has any liveQueryRefs
+			// if cachedEntity no longer has any liveQueryRefs
 			if (cachedEntity.liveQueryRefs.length <= 0) {
-				//C remove the cachedEntity
+				// remove the cachedEntity
 				const cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
 				if (cachedEntityIndex < 0) throw new CustomError({
 					message: 'cachedEntity not found in table',
@@ -496,17 +496,17 @@ export default {
 
 			
 
-			//C the cachedEntity is considered 'removed' if it and the passed liveQuery losing their references to each other //! this shouldn't fail if proper arguments are passed
+			// the cachedEntity is considered 'removed' if it and the passed liveQuery losing their references to each other //! this shouldn't fail if proper arguments are passed
 			return true;
 		},
 		async updateCachedEntity(context, {cachedEntity, entity, timestamp}) {
 			let edited = false;
 
-			//C if new data
+			// if new data
 			if (timestamp > cachedEntity.timestamp) {
-				//C if different data
+				// if different data
 				if (!deepCompare(cachedEntity.entity, entity)) {
-					//C update data and timestamp
+					// update data and timestamp
 					context.commit('setCachedEntity', {
 						cachedEntity, 
 						entity, 
@@ -514,7 +514,7 @@ export default {
 					});
 					edited = true;
 				} else {
-					//C only update timestamp
+					// only update timestamp
 					context.commit('setCachedEntity', {
 						cachedEntity, 
 						entity: cachedEntity.entity,
@@ -523,39 +523,39 @@ export default {
 				}
 			}
 
-			//C the cachedEntity is considered edited if it's entity data has been changed
+			// the cachedEntity is considered edited if it's entity data has been changed
 			return edited;
 		},
 
 		// LIVE QUERY
 		async addLiveQuery(context, {table, query}) {
-			//C if the liveQuery cannot be found
+			// if the liveQuery cannot be found
 			if (!isInstanceOf(context.getters.findLiveQuery({table, query}), LiveQuery, 'LiveQuery')) {
-				//C add it
+				// add it
 				context.commit('pushLiveQuery', {liveQueries: table.liveQueries, liveQuery: new LiveQuery({table, query})});
 				
-				//C find liveQuery
+				// find liveQuery
 				const liveQuery = context.getters.findLiveQuery({table, query});
 				if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
 					throw new UnreachableError();
 				}
 
-				//C trigger the initial update
+				// trigger the initial update
 				await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: Date.now()});
 			};
 
 			//! do not update if it already exists, as this will cause cachedEntities to update without triggering callbacks
 		},
 		async removeLiveQuery(context, liveQuery) {
-			//C shorten
+			// shorten
 			const table = liveQuery.table;
 
 
-			//C find the liveQuery index
+			// find the liveQuery index
 			const liveQueryIndex = table.liveQueries.indexOf(liveQuery);
-			//C if it exists
+			// if it exists
 			if (liveQueryIndex >= 0) {
-				//C remove it
+				// remove it
 				context.commit('spliceLiveQuery', {
 					liveQueries: table.liveQueries,
 					index: liveQueryIndex,
@@ -574,10 +574,10 @@ export default {
 				removed: false,
 			};
 
-			//C shorten
+			// shorten
 			const {table, table: {Entity}, query} = liveQuery;
 
-			//C don't trigger update for calls older than the existing data
+			// don't trigger update for calls older than the existing data
 			if (callTimestamp <= liveQuery.timestamp) {
 				new Warn({
 					origin: 'update()',
@@ -588,20 +588,20 @@ export default {
 				return pack;
 			}
 
-			//C fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
+			// fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
 			const {content: entities, timestamp} = await Entity.get(query);
-			//C give the liveQuery the timestamp of the new data
+			// give the liveQuery the timestamp of the new data
 			context.commit('setLiveQuery', {liveQuery, timestamp});
-			//C updated is triggered only after entities are successfully retrieved from the server
+			// updated is triggered only after entities are successfully retrieved from the server
 			pack.updated = true;
 
 			//! do not use asyncMap loops here, these must be sequential because they use indexes which ended up getting messed up by parallel splices
 
-			//C for each existing cachedEntity
+			// for each existing cachedEntity
 			for (const cachedEntity of liveQuery.cachedEntityRefs) {
-				//C if it is no longer included in the fetched entities
+				// if it is no longer included in the fetched entities
 				if (entities.every(entity => entity.id !== cachedEntity.entity.id)) {
-					//C remove it from the liveQuery
+					// remove it from the liveQuery
 					const removed = await context.dispatch('removeCachedEntity', {cachedEntity, liveQuery});
 					if (removed) {
 						pack.removed = true;
@@ -609,21 +609,21 @@ export default {
 				}
 			}
 			
-			//C for each retrieved entity
+			// for each retrieved entity
 			for (const entity of entities) { //! not async for each, these need to be synchronous
-				//C add it's cachedEntity (won't add if it already exists)
+				// add it's cachedEntity (won't add if it already exists)
 				const added = await context.dispatch('addCachedEntity', {entity, liveQuery});
 				if (added) {
 					pack.added = true;
 				}
 
-				//C find it's cachedEntity
+				// find it's cachedEntity
 				const cachedEntity = await context.getters.findCachedEntity({table, entity});
 				if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) {
 					throw new UnreachableError();
 				}
 
-				//C edit the cachedEntity (won't edit if data is old, or unchanged)
+				// edit the cachedEntity (won't edit if data is old, or unchanged)
 				const edited = await context.dispatch('updateCachedEntity', {cachedEntity, entity, timestamp});
 				if (edited) {
 					pack.edited = true;
@@ -640,32 +640,32 @@ export default {
 
 		// SUBSCRIPTION 
 		async addSubscription(context, {table, query, options}) {
-			//C create a new liveQuery if one doesn't exist for the desired query
+			// create a new liveQuery if one doesn't exist for the desired query
 			if (context.getters.findLiveQuery({table, query}) === undefined) {
 				await context.dispatch('addLiveQuery', {table, query});
 			}
 
-			//C find the liveQuery
+			// find the liveQuery
 			const liveQuery = context.getters.findLiveQuery({table, query}); //! this should never fail
 			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
 				throw new UnreachableError();
 			}
 
-			//C create a new subscription
+			// create a new subscription
 			const subscription = new Subscription({
 				...options,
-				liveQuery, //C parent reference
+				liveQuery, // parent reference
 			});
 			
-			//C push and return
+			// push and return
 			context.commit('pushSubscription', {subscriptions: liveQuery.subscriptions, subscription});
 			return subscription;
 		},
 		async removeSubscription(context, subscription) {
-			//C shorten
+			// shorten
 			const liveQuery = subscription.liveQuery;
 
-			//C remove subscription
+			// remove subscription
 			const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
 			if (subscriptionIndex >= 0) {
 				context.commit('spliceSubscription', {
@@ -678,18 +678,18 @@ export default {
 				});
 			}
 
-			//C if liveQuery no longer has any subscriptions
+			// if liveQuery no longer has any subscriptions
 			if (liveQuery.subscriptions.length <= 0) await context.dispatch('removeLiveQuery', liveQuery);
 		},
 
 		// ENDPOINTS
-		//C these require argument validation
+		// these require argument validation
 		async subscribe(context, {
 			Entity, 
 			query, 
 			options = {}
 		}) {
-			//C validate
+			// validate
 			//TODO how to check if class is subclass, because this is getting ridiculous
 			//L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
 			if (!Object.getPrototypeOf(Entity) === Entity) {
@@ -711,7 +711,7 @@ export default {
 				});
 			}
 
-			//C shorten
+			// shorten
 			const table = context.getters.findTable(Entity);
 			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
 				throw new InvalidStateError({
@@ -720,21 +720,21 @@ export default {
 				});
 			}
 
-			//C subscribe on server 
+			// subscribe on server 
 			const preparedQuery = any(query).map((q) => pick(q, Entity.filters.getIn));
 			const processedQuery = await context.dispatch('serverSubscribe', {table, query: preparedQuery});
 
-			//C add subscriber, from this point data will live-update
+			// add subscriber, from this point data will live-update
 			const subscription = await context.dispatch('addSubscription', {table, query: processedQuery, options});
 
-			//C return the subscription
+			// return the subscription
 			return subscription;
 		},
 		async unsubscribe(context, {
 			subscription,
-			strict = false, //C subscription must be an Subscription and must be included in it's liveQuery.subscriptions
+			strict = false, // subscription must be an Subscription and must be included in it's liveQuery.subscriptions
 		}) {
-			//C validate //! return early if not a subscription
+			// validate //! return early if not a subscription
 			if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
 				if (strict) {
 					throw new InvalidStateError({
@@ -746,7 +746,7 @@ export default {
 				}
 			}
 			
-			//C shorten
+			// shorten
 			const liveQuery = subscription.liveQuery;
 			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
 				throw  newInvalidStateError({
@@ -777,15 +777,15 @@ export default {
 			}
 			
 
-			//C unsubscribe on server
+			// unsubscribe on server
 			//? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
 			const preparedQuery = any(query).map((q) => pick(q, TargetEntity.filters.getIn));
 			const processedQuery = await context.dispatch('serverUnsubscribe', {table, query: preparedQuery});
 
-			//C remove subscription from it's liveQuery
+			// remove subscription from it's liveQuery
 			if (strict || liveQuery.subscriptions.includes(subscription)) await context.dispatch('removeSubscription', subscription);
 
-			//C return null for null subscription
+			// return null for null subscription
 			return null;
 		},
 		async resubscribe(context, {
@@ -800,7 +800,7 @@ export default {
 		}) {
 			//G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
 
-			//C strict check here throws or lets function execute //! doesn't early return
+			// strict check here throws or lets function execute //! doesn't early return
 			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
 			if (strict && !isInstanceOf(subscription, Subscription, 'Subscription')) {
 				throw new InvalidStateError({
@@ -808,15 +808,15 @@ export default {
 					state: subscription,
 				});
 			}
-			//C subscribe to new
+			// subscribe to new
 			const newSubscription = await context.dispatch('subscribe', {
 				Entity, //! Entity cannot be derived from the old subscription as it may not be an Subscription if the function call is not strict
 				query,
 				options,
 			});
-			//C unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
+			// unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
 			context.dispatch('unsubscribe', {subscription, strict}); 
-			//C return new subscription
+			// return new subscription
 			return newSubscription;
 		},
 		async update(context, {
@@ -824,7 +824,7 @@ export default {
 			query, 
 			timestamp,
 		}) {
-			//C validate
+			// validate
 			if (!Object.getPrototypeOf(TargetEntity) === Entity) {
 				throw new InvalidStateError({
 					message: 'Entity is not an Entity',
@@ -839,7 +839,7 @@ export default {
 		}
 			if (!rules.integer.test(timestamp)) timestamp = Date.now();
 
-			//C shorten
+			// shorten
 			const table = context.getters.findTable(TargetEntity);
 			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
 				throw new InvalidStateError({
@@ -862,10 +862,10 @@ export default {
 				});
 			}
 
-			//C update
+			// update
 			const pack = await context.dispatch('updateLiveQuery', {liveQuery, callTimestamp: timestamp});
 
-			//C trigger callbacks
+			// trigger callbacks
 			if (pack.updated)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onUpdate'});
 			if (pack.added)		await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onAdd'});
 			if (pack.edited)	await context.dispatch('triggerCallback', {liveQuery, callbackName: 'onEdit'});
@@ -931,7 +931,7 @@ export default {
 			//G this should be called in the main vue created()
 
 			/* this feels wrong, because the context referenced here might not be the same context referenced by a component using these functions, thus there might be two different sets of liveData
-				//C sj.Entity classes have a subscribe() method that auto-fills the Entity type
+				// sj.Entity classes have a subscribe() method that auto-fills the Entity type
 				sj.Entity.augmentClass({
 					staticProperties: parent => ({
 						async subscribe(query, options) {
@@ -950,7 +950,7 @@ export default {
 						},	
 					}),
 				});
-				//C Subscription class has an unsubscribe() method that auto-fills the subscription itself
+				// Subscription class has an unsubscribe() method that auto-fills the subscription itself
 				Subscription.augmentClass({
 					prototypeProperties: parent => ({
 						async unsubscribe() {
@@ -967,10 +967,10 @@ export default {
 			*/
 
 
-			//C set socket
+			// set socket
 			context.commit('setSocket', socket);
 
-			//C set listeners
+			// set listeners
 			context.state.socket.on('connect', async () => {
 				await context.dispatch('reconnect');
 			});
@@ -983,7 +983,7 @@ export default {
 				context.dispatch('update', {Entity: TargetEntity, query, timestamp});
 			});
 
-			//C socket test
+			// socket test
 			//TODO rewrite this
 			/*
 			context.state.socket.test = async function () {
@@ -1007,7 +1007,7 @@ export default {
 				};
 			
 				let wrap = async function (Entity, queryPack, data, predoF, doF, undoF, data2) {
-					//C subscribe
+					// subscribe
 					let subscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('subscribe', queryPack, result => {
 							if (isInstanceOf(result, Success, 'Success')) {
@@ -1021,7 +1021,7 @@ export default {
 					let accessory = {};
 					let predoResult = await predoF(Entity, data, accessory, data2);
 			
-					//C make listener
+					// make listener
 					let notified = false;
 					let notifiedResult = {};
 					context.state.socket.on('notify', notifyResult => { //? when is this listener removed?
@@ -1029,16 +1029,16 @@ export default {
 						if (deepCompare(queryPack.query, notifyResult.changed, {subset: true})) notified = true;
 					});
 			
-					//C do
+					// do
 					let mainResult = await doF(Entity, data, accessory, data2);
 			
-					//C wait some time for notification to come back
+					// wait some time for notification to come back
 					await wait(1000);
 			
-					//C undo
+					// undo
 					let undoResult = await undoF(Entity, data, accessory, data2);
 			
-					//C unsubscribe
+					// unsubscribe
 					let unsubscribeResult = await new Promise((resolve, reject) => {
 						context.state.socket.emit('unsubscribe', queryPack, result => {
 							if (isInstanceOf(result, Success, 'Success')) {
@@ -1058,19 +1058,19 @@ export default {
 						async () => undefined, 
 						async (Entity, data, accessory) => {
 							let addResult = await Entity.add({
-								...Entity.placeholder, //C fill in missing data
+								...Entity.placeholder, // fill in missing data
 								...data,
 							});
 							accessory.id = one(addResult.content).id;
 							return addResult;
 						}, 
 						async (Entity, data, accessory) => {
-							return await Entity.remove({id: accessory.id}); //C delete generated id
+							return await Entity.remove({id: accessory.id}); // delete generated id
 						}
 					);
 				};
 				let edit = async function (Entity, queryPack, dataBefore, dataAfter) {
-					dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
+					dataAfter.id = dataBefore.id; // enforce before and after to have the same id
 			
 					return await wrap(Entity, queryPack, dataBefore,
 						async (Entity, dataBefore, accessory, dataAfter) => {
@@ -1134,7 +1134,7 @@ export default {
 			//await context.state.socket.test();
 
 			
-			//C module test
+			// module test
 			// await context.dispatch('test');
 		},
 
@@ -1142,7 +1142,7 @@ export default {
 		async test(context) {
 			//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
 
-			//C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
+			// this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
 			await wait(2000);
 
 			const tests = [];
@@ -1151,7 +1151,7 @@ export default {
 			const uniqueDuration = () => Math.round(Math.random()*100000);
 
 			let updated = false;
-			//C rapidly checks updated until it is true, then resets it
+			// rapidly checks updated until it is true, then resets it
 			const waitForUpdate = async function () {
 				let delay = 50;
 				await repeat.async(async () => {
@@ -1319,7 +1319,7 @@ export default {
 				...tests,
 			], 'liveQuery');
 
-			//C this refreshes the page until the test fails
+			// this refreshes the page until the test fails
 			if (passed) document.location.reload();
 		},
 		*/

@@ -26,7 +26,7 @@
 					return Source.instances.includes(value);
 				},
 			},
-			//C target playlist to add to
+			// target playlist to add to
 			playlistId: {
 				default: null,
 				validator(value) {
@@ -45,7 +45,7 @@
 			},
 
 			async add(track) { 
-				//C add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
+				// add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
 				track.playlistId = this.playlistId;
 				await Track.add(track);
 			},
@@ -74,33 +74,33 @@
 				},
 
 				async search() {
-					//C get existing searched tracks
+					// get existing searched tracks
 					const searchedTracks = await Track.get({
 						playlistId: this.playlistId,
 					}).then(this.sj.content);
 
-					//C remove them all
+					// remove them all
 					await Track.remove(this.sj.shake(searchedTracks, Track.filters.id));
 					
-					//C search the new term
+					// search the new term
 					this.results = await this.source.search({
 						term: this.term, 
 						startIndex: 0, 
 						amount: 5,
 					});
 
-					//C give them the search playlist id
+					// give them the search playlist id
 					for (const result of this.results) {
 						result.playlistId = this.playlistId;
 					}
 
-					//C add them all
+					// add them all
 					await Track.add(this.results);
 				},
 
 				async addPlaylist() {
 					console.log('ADD PLAYLIST CALLED');
-					//C add a search result playlist to store and play search results from
+					// add a search result playlist to store and play search results from
 					const currentUser = await session.get().then(this.sj.content);
 					this.playlist = await new this.sj.Playlist({
 						userId: currentUser.id,
@@ -110,7 +110,7 @@
 				},
 				async removePlaylist() {
 					console.log('REMOVE PLAYLIST CALLED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
-					//C remove the search result playlist
+					// remove the search result playlist
 					await this.playlist.remove();
 				},
 

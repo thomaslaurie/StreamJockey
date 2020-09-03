@@ -5,25 +5,25 @@
 import {rules} from '../validation/index.js';
 
 export default function (array, compare = (a, b) => {
-	//C low to high
+	// low to high
 	return a - b;
 }) {
 	rules.array.validate(array);
 	rules.func.validate(compare);
 
-	//C Create new array where the original index is preserved.
+	// Create new array where the original index is preserved.
 	const preservedArray = array.map((value, index) => ({value, index}));
 
 	const stableCompare = (a, b) => {
 		const order = compare(a.value, b.value);
 
-		//C If equal, sort based on original order, otherwise sort normally.
+		// If equal, sort based on original order, otherwise sort normally.
 		return (order === 0) ? a.index - b.index : order;
 	};
 
 	preservedArray.sort(stableCompare);
 
-	//C Overwrite original array with sorted values.
+	// Overwrite original array with sorted values.
 	for (let i = 0; i < array.length; i++) {
 		array[i] = preservedArray[i].value;
 	}

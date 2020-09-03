@@ -26,10 +26,10 @@
 			},
 			async remove() { //! shortened to del to avoid delete reserved word
 				await Track.remove(this.content);
-				this.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
+				this.$emit('update'); // communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
 			},
 			async add() {
-				//C does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
+				// does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
 				this.$emit('add', this.content);
 			},
         },

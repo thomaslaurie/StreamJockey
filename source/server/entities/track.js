@@ -65,7 +65,7 @@ define.constant(Track, {
 	removeBefore: baseBefore,
 	
 	async addPrepare(t, track) {
-		//C set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
+		// set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
 		let newTrack = {...track, id: Symbol()};
 		if (!rules.integer.test(newTrack.position)) {
 			let existingTracks = await Track.get({playlistId: newTrack.playlistId}, t).then((result) => result.content);
@@ -74,7 +74,7 @@ define.constant(Track, {
 		return newTrack;
 	},
 	async removePrepare(t, track) {
-		//C set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
+		// set position of tracks to be removed as null, so that Track.order() recognizes them as tracks to remove
 		return {...track, position: null};
 	},
 	
@@ -116,29 +116,29 @@ define.constant(Track, {
 	
 	// UTIL
 	async order(db, tracks) {
-		//C takes a list of input tracks for an INSERT, UPDATE, or DELETE query
+		// takes a list of input tracks for an INSERT, UPDATE, or DELETE query
 		//! properties should be validated at this point
 		//! tracks to be added must have a Symbol() id, this will be removed
 		//! tracks to be deleted must have a null position, this will be removed
 
-		//C modifies the input track's positions, if needed
-		//C returns a list of influenced tracks with modified positions, if needed
+		// modifies the input track's positions, if needed
+		// returns a list of influenced tracks with modified positions, if needed
 
-		//C out-of-bounds positions will be repositioned at the start or end of the playlist
-		//C duplicate positions will be repositioned in order of input order
-		//C in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
+		// out-of-bounds positions will be repositioned at the start or end of the playlist
+		// duplicate positions will be repositioned in order of input order
+		// in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
 		
 
-		//C filter out tracks
+		// filter out tracks
 		let inputTracks = tracks.filter(track => 
-			//C without an id (including symbol)
+			// without an id (including symbol)
 			(!isEmpty(track.id) || typeof track.id === 'symbol') 
-			//C and without a position (including null) or playlistId
+			// and without a position (including null) or playlistId
 			&& (!isEmpty(track.position) || track.position === null || !isEmpty(track.playlistId))); 
-		//C filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+		// filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 		inputTracks = inputTracks.filter((track, index, self) => self.slice(index+1).every(trackAfter => track.id !== trackAfter.id));
 
-		//C return early if none are moving
+		// return early if none are moving
 		if (inputTracks.length === 0) {
 			return [];
 		}
@@ -150,7 +150,7 @@ define.constant(Track, {
 			const influencedTracks = [];
 			const inputIndex = Symbol();
 
-			//C retrieve track's playlist, group each track by playlist & moveType
+			// retrieve track's playlist, group each track by playlist & moveType
 			await asyncMap(inputTracks, async (track, index) => {
 				const storePlaylist = function (playlistId, existingTracks) {
 					if (!rules.integer.test(playlistId)) {
@@ -165,7 +165,7 @@ define.constant(Track, {
 						});
 					}
 
-					//C stores playlist in playlists if not already stored
+					// stores playlist in playlists if not already stored
 					let existingPlaylist = playlists.find(playlist => playlist.id === playlistId);
 					if (!existingPlaylist) {
 						playlists.push({
@@ -173,7 +173,7 @@ define.constant(Track, {
 	
 							original: existingTracks,
 	
-							//C move actions, these have priority positioning
+							// move actions, these have priority positioning
 							inputsToMove: [],
 							inputsToAdd: [], 
 							inputsToRemove: [],
@@ -184,16 +184,16 @@ define.constant(Track, {
 					return existingPlaylist;
 				};
 
-				//C temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
+				// temporarily store inputIndex on track, this is required as the input order is lost when tracks are grouped by playlist
 				track[inputIndex] = index;
 
-				//C determine move action
+				// determine move action
 				const action =
 				typeof track.id === 'symbol' 	? 'Add' 	:
 				track.position === null 		? 'Remove' 	: 'Move';
 
 
-				//C get current playlist by playlistId if action === 'add', else by track.id using a sub-query
+				// get current playlist by playlistId if action === 'add', else by track.id using a sub-query
 				//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 				const currentQuery = action === 'Add' 
 				? pgp.as.format(`
@@ -218,21 +218,21 @@ define.constant(Track, {
 				});
 
 
-				//C store
+				// store
 				const currentPlaylistStored = storePlaylist(action === 'Add' ? track.playlistId : currentPlaylist[0].playlistId, currentPlaylist); //! track.playlistId might not be currentPlaylistId
-				//C strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
+				// strip playlistId from playlist, this is done so that only modified properties will remain on the track objects
 				currentPlaylistStored.original.forEach(t => {
 					delete t.playlistId;
 				});
 
 				
 				if (!rules.integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) { 
-					//C if not switching playlists
-					//C group by action
+					// if not switching playlists
+					// group by action
 					currentPlaylistStored['inputsTo'+action].push(track);
 				} else { 
-					//C if switching playlists
-					//C this should catch tracks with playlistIds but no position
+					// if switching playlists
+					// this should catch tracks with playlistIds but no position
 					const anotherPlaylist = await t.any(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
@@ -249,7 +249,7 @@ define.constant(Track, {
 						delete t.playlistId;
 					});
 
-					//C track is removed from its current playlist, and added to another playlist
+					// track is removed from its current playlist, and added to another playlist
 					currentPlaylistStored.inputsToRemove.push(track);
 					anotherPlaylistStored.inputsToAdd.push(track);
 				}
@@ -267,9 +267,9 @@ define.constant(Track, {
 
 			//console.log('playlists.length:', playlists.length, '\n ---');
 
-			//C calculate new track positions required to accommodate input tracks' positions
+			// calculate new track positions required to accommodate input tracks' positions
 			playlists.forEach(playlist => {
-				//C populate others with tracks in original that are not in inputsTo Add, Remove, or Move
+				// populate others with tracks in original that are not in inputsTo Add, Remove, or Move
 				//! inputsToRemove can be ignored from this point on, these tracks aren't included in others and wont be added to the final ordered list
 				playlist.others = playlist.original.filter(originalTrack => 
 					!playlist.inputsToAdd.some(addingTrack => addingTrack.id === originalTrack.id) &&
@@ -279,9 +279,9 @@ define.constant(Track, {
 
 				//console.log('playlist.others.length:', playlist.others.length);
 
-				//C combine both adding and moving, 
+				// combine both adding and moving, 
 				playlist.inputsToPosition = [...playlist.inputsToAdd, ...playlist.inputsToMove];
-				//C give tracks with no position an Infinite position so they get added to the bottom of the playlist
+				// give tracks with no position an Infinite position so they get added to the bottom of the playlist
 				playlist.inputsToPosition.forEach(trackToPosition => {
 					if (!rules.number.test(trackToPosition.position)) {
 						trackToPosition.position === Infinity;
@@ -289,9 +289,9 @@ define.constant(Track, {
 				});
 
 
-				//C sort
+				// sort
 				stableSort(playlist.others, (a, b) => a.position - b.position);
-				//C stable sort by inputIndex then position to resolve clashes by position then inputIndex
+				// stable sort by inputIndex then position to resolve clashes by position then inputIndex
 				stableSort(playlist.inputsToPosition, (a, b) => a[inputIndex] - b[inputIndex]);
 				stableSort(playlist.inputsToPosition, (a, b) => a.position - b.position);
 
@@ -301,7 +301,7 @@ define.constant(Track, {
 				//console.log('playlist.inputsToPosition.length:', playlist.inputsToPosition.length, '\n ---');
 				
 
-				//C inputIndex is no longer needed, remove it from anything it was added to
+				// inputIndex is no longer needed, remove it from anything it was added to
 				playlist.inputsToPosition.forEach(trackToPosition => {
 					delete trackToPosition[inputIndex];
 				});
@@ -310,7 +310,7 @@ define.constant(Track, {
 				});
 
 
-				//C populate merged by filling others tracks around combined tracks
+				// populate merged by filling others tracks around combined tracks
 				playlist.merged = [];
 				//! these are copies that will be emptied below
 				playlist.inputsToPositionCopy = [...playlist.inputsToPosition];
@@ -318,30 +318,30 @@ define.constant(Track, {
 				let i = 0;
 				while (playlist.othersCopy.length > 0) {
 					if (playlist.inputsToPositionCopy.length > 0 && playlist.inputsToPositionCopy[0].position <= i) {
-						//C if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
-						//C this will properly handle negative and duplicate positions
+						// if the next adding or moving track's position is at (or before, in the case of a duplicated position) the current index, transfer it to the merged list
+						// this will properly handle negative and duplicate positions
 						//G shift removes the first item of an array and returns that item
 						playlist.merged.push(playlist.inputsToPositionCopy.shift());
 					} else {
-						//C else - transfer the next others track
+						// else - transfer the next others track
 						playlist.merged.push(playlist.othersCopy.shift());
 					}
 					i++;
 				}
 
-				//C push rest of combined tracks
+				// push rest of combined tracks
 				//R this method was chosen over including combined.length > 0 in the while condition to prevent needless loops caused by ridiculously high positions, this was also chosen over original.length because adding + moving tracks could be greater the playlist length
 				//L .push() and spread: https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
 				playlist.merged.push(...playlist.inputsToPositionCopy);
 				playlist.inputsToPositionCopy.length = 0; //! remove combined tracks for consistent behavior
 
 
-				//C populate playlist.influenced with all non-input tracks that have moved
+				// populate playlist.influenced with all non-input tracks that have moved
 				playlist.influenced = playlist.merged.filter((mergedTrack, index) => {
 					let inOthers = playlist.others.find(otherTrack => otherTrack.id === mergedTrack.id);
 					let influenced = inOthers && index !== inOthers.position;
 
-					//C assign new positions (inputTracks too)
+					// assign new positions (inputTracks too)
 					mergedTrack.position = index;
 					
 					return influenced;
@@ -356,7 +356,7 @@ define.constant(Track, {
 				influencedTracks.push(...playlist.influenced);
 			});
 
-			//C remove temporary symbol id from add tracks and null position from delete tracks
+			// remove temporary symbol id from add tracks and null position from delete tracks
 			inputTracks.forEach((inputTrack) => {
 				if (typeof inputTrack.id === 'symbol') {
 					delete inputTrack.id;
@@ -416,7 +416,7 @@ define.constant(Track, {
 
 				//R moveTracks() cannot be done before INSERT (as in editTracks()) because the tracks don't exist yet, and the input tracks do not have their own id properties yet. the result tracks of the INSERT operation cannot be used for moveTracks() as they only have their current positions, so the result ids and input positions need to be combined for use in moveTracks(), but we don't want to position tracks don't have a custom position (1 to reduce cost, 2 to maintain the behavior of being added to the end of the list (if say n later tracks are positioned ahead of m former tracks, those m former tracks will end up being n positions from the end - not at the very end). so:
 
-				//C for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
+				// for tracks with a custom position, give the input tracks their result ids and the result tracks their custom positions
 				//! requires the INSERT command to be executed one at at a time for each input track
 				//R there is no way to pair input tracks with their output rows based on data because tracks have no unique properties (aside from the automatically assigned id), but because the INSERT statements are executed one at a time, the returned array is guaranteed to be in the same order as the input array, therefore we can use this to pair tracks
 		*/
