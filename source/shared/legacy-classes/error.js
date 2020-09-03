@@ -16,18 +16,3 @@ export class Err extends BaseResult {
 		});
 	}
 }
-
-// Wrapper for an array with one or more errors.
-export class ErrorList extends BaseResult {
-	constructor(options = {}) {
-		super(options);
-		const {
-			reason = 'one or more errors occurred with items',
-			content = [],
-		} = options;
-		define.writable(this, {
-			reason,
-			content,
-		});
-	}
-}

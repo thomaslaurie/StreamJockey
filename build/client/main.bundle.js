@@ -39710,13 +39710,12 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
 /*!***********************************************!*\
   !*** ./source/shared/legacy-classes/error.js ***!
   \***********************************************/
-/*! exports provided: Err, ErrorList */
+/*! exports provided: Err */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Err", function() { return Err; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ErrorList", function() { return ErrorList; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
 
@@ -39734,22 +39733,6 @@ class Err extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
       log,
       code,
       type
-    });
-  }
-
-} // Wrapper for an array with one or more errors.
-
-class ErrorList extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      reason = 'one or more errors occurred with items',
-      content = []
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      reason,
-      content
     });
   }
 
