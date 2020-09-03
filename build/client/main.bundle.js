@@ -353,32 +353,32 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   data() {
     return {
       // SWITCH BEHAVIOR
-      //C used with AsyncSwitch to switch between delay, loading, error components, and the slotted display makrup from this component
+      // used with AsyncSwitch to switch between delay, loading, error components, and the slotted display makrup from this component
       //! at the moment, the 'delay' state will only appear at the start of the component's creation as it blends the transition from no-content to loading-content, however when there is already existing content, delay is not used as it would cause flickering when refreshing content
       state: 'delay',
-      //C refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's clearDelay and clearTieout
+      // refresh promise is stored so that refresh requests can't ovelap (that is a old request won't resolve after a new one has, thus overwriting with probably timed-out content), this also prevents refresh requests from messing up each other's clearDelay and clearTieout
       refreshPromise: null,
-      //C ms before switching to 'loading'
+      // ms before switching to 'loading'
       //TODO I can still see delay flickering
       delay: 1000,
       clearDelay: null,
-      //C ms before throwing a timeout error and switching to 'error'
+      // ms before throwing a timeout error and switching to 'error'
       timeout: Infinity,
       clearTimeout: null,
       // GENERAL
       Entity: null,
-      //C subscription Entity type
+      // subscription Entity type
       subscription: null,
       deadContent: null,
-      //C error store so that a failed query doesn't overwrite older, good content
+      // error store so that a failed query doesn't overwrite older, good content
       //R errors can't come from the parent as this would only happen with pContent, where in that case, the parent should handle the error
       error: null,
       // PASSABLE - SELF
       sQuery: null,
-      //C query for live & dead content
+      // query for live & dead content
       sDead: false,
-      //C boolean indicating live or dead
-      sContent: null //C static content
+      // boolean indicating live or dead
+      sContent: null // static content
 
     };
   },
@@ -405,14 +405,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     // PASSABLE - SORTING
-    //C parent prioritized over self
+    // parent prioritized over self
     usingParent() {
-      //C if any prop from the parent is filled in, use parent as the origin
+      // if any prop from the parent is filled in, use parent as the origin
       //! pDead does not trigger usingParent as it would never need to be used without an existing pQuery
       return !!(this.pQuery || this.pContent);
     },
 
-    //C query prioritized over static content
+    // query prioritized over static content
     usingQuery() {
       //TODO Inlined this function because it was only being used here. Figure out if this can be removed.
       function isSubclass(a, b) {
@@ -459,8 +459,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(function* () {
         var switchToState = _arguments.length > 0 && _arguments[0] !== undefined ? _arguments[0] : 'delay';
 
-        //C clear any old request
-        _this.clearTimeouts(); //C using a deferred promise here so that success, failure, and timeouts can all funnel into the same promise and handlers
+        // clear any old request
+        _this.clearTimeouts(); // using a deferred promise here so that success, failure, and timeouts can all funnel into the same promise and handlers
 
 
         _this.refreshPromise = new _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"]();
@@ -485,11 +485,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         message: 'refresh promise must be an instance of Deferred'
       });
       this.clearDelay = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(this.delay, () => {
-        //C switch state to 'loading' after delay time
+        // switch state to 'loading' after delay time
         this.state = 'loading';
       });
       this.clearTimeout = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(this.timeout, () => {
-        //C reject after timeout time
+        // reject after timeout time
         this.refreshPromise.reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
           userMessage: 'content request timed out'
         }));
@@ -499,10 +499,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     clearTimeouts() {
       var _this$clearDelay, _this$clearTimeout;
 
-      //C clear
+      // clear
       (_this$clearDelay = this.clearDelay) === null || _this$clearDelay === void 0 ? void 0 : _this$clearDelay.call(this);
       (_this$clearTimeout = this.clearTimeout) === null || _this$clearTimeout === void 0 ? void 0 : _this$clearTimeout.call(this);
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) this.refreshPromise.cancel(); //C reset
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) this.refreshPromise.cancel(); // reset
 
       this.clearDelay = null;
       this.clearTimeout = null;
@@ -552,7 +552,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   watch: {
     query: {
       handler(value) {
-        //C refresh() will be called when this.query changes, don't change the state to avoid flickering
+        // refresh() will be called when this.query changes, don't change the state to avoid flickering
         this.refresh(this.state);
       },
 
@@ -621,7 +621,7 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
     },
 
     /* //G transparent components
-    	//C child list components may be made transparent, so that any child listener is passed up to AsyncDisplayList and any attribute on AsyncDisplayList will be passed down to the child component
+    	// child list components may be made transparent, so that any child listener is passed up to AsyncDisplayList and any attribute on AsyncDisplayList will be passed down to the child component
     	//G just add v-on='listeners' and v-bind='attrs' to any element that needs to be transparent
     		//G any listeners/attrs for this AsyncDisplayList component can be pulled out of those that are passed down by adding the name to the destructured object:
     	// const {listenerForThisList, ...listeners} = this.$listeners;
@@ -718,11 +718,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
-  //C switches component/markup depending on the passed state prop
-  //C wraps around slotted markup for display
-  //C may be passed custom delay, loading, and error components
-  //C passes its error prop on to the error component
-  //C propagates refresh events from loaading and error components up to it's parent
+  // switches component/markup depending on the passed state prop
+  // wraps around slotted markup for display
+  // may be passed custom delay, loading, and error components
+  // passes its error prop on to the error component
+  // propagates refresh events from loaading and error components up to it's parent
   name: 'async-switch',
   mixins: [_mixins_emitRefresh_js__WEBPACK_IMPORTED_MODULE_0__["default"]],
   props: {
@@ -803,11 +803,11 @@ __webpack_require__.r(__webpack_exports__);
 		// ^ this is what i did, and it was all and great until i got to the pages where I used the loaders without their display components - all wrapped up in to one component (they load their own data) this actually was really good but required no wrappers (or multiple layers if using wrappers) and the ability to nest this dynamic data, I feel like ive come full circle and the sj.dynamicTemplate() is the best option again
 		// however, I think there is another way - the main reason I used sj.dynamicTemplate() was to avoid repeating markup in the display template (if a component was to manage its own display state, each would have to repeat a conditional wrapper), what if the async-switch component was this conditional wrapper and the main display markup is filled into the default slot? (it minimizes this markup into one element, which is good because there needs to be a single root element anyways), the main hurdle is passing the custom components to it and switching to them
 		sj.dynamicTemplate = function (display, loading, error) {
-		//C use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared 
+		// use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared 
 		if (!sj.isType(display, 'string'))	display = `<display-component :display='display'></display-component>`;
 		if (!sj.isType(loading, 'string'))	loading = `<loading-component></loading-component>`;
 		if (!sj.isType(error, 'string'))	error = `<error-component :error='error'></error-component>`;
-			//C insert
+			// insert
 		return `
 			<div v-if='state === "display"'>
 				${display}
@@ -881,7 +881,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        //C me might have to be async retrieved and stored on the menu bar if info is to be displayed
+        // me might have to be async retrieved and stored on the menu bar if info is to be displayed
         var me = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]().then(result => result.content);
 
         _this.$router.push("/user/".concat(me.id));
@@ -944,18 +944,18 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     prevTrack() {
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && //C currentTrack exists
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) && //C playlistTrack exists
+      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && // currentTrack exists
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) && // playlistTrack exists
       0 < this.currentTrack.position && //C//! currentTrack is after first track
-      this.currentTrack.position < this.playlistTracks.length //C currentTrack is not above bounds
+      this.currentTrack.position < this.playlistTracks.length // currentTrack is not above bounds
       ? this.playlistTracks[this.currentTrack.position - 1] //!
       : null;
     },
 
     nextTrack() {
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && //C currentTrack exists
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) && //C playlistTrack exists
-      0 <= this.currentTrack.position && //C currentTrack is not below bounds
+      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && // currentTrack exists
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) && // playlistTrack exists
+      0 <= this.currentTrack.position && // currentTrack is not below bounds
       this.currentTrack.position < this.playlistTracks.length - 1 //C//! currentTrack is before last track
       ? this.playlistTracks[this.currentTrack.position + 1] //!
       : null;
@@ -965,26 +965,26 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       if (!this.drag) {
         return this.$store.getters["player/actualPlayback"].progress; //? should this be desired progress?
       } else {
-        return this.manualProgress; //C this makes the slider use its own value
+        return this.manualProgress; // this makes the slider use its own value
       }
     }
 
   },
   watch: {
     playlistId: {
-      //C ensure the playlistTracksSubscription is always the same as the currentTrack
+      // ensure the playlistTracksSubscription is always the same as the currentTrack
       handler(id, oldId) {
         var _this = this;
 
         return _asyncToGenerator(function* () {
-          //C if playlistId doesn't exist
+          // if playlistId doesn't exist
           if (id === null) {
-            //C wipe playlistTracksSubscription
+            // wipe playlistTracksSubscription
             _this.playlistTracksSubscription = yield _this.$store.dispatch('unsubscribe', {
               subscription: _this.playlistTracksSubscription
-            }); //C if the playlistId has changed or the playlistTracksSubscription doesn't exist
+            }); // if the playlistId has changed or the playlistTracksSubscription doesn't exist
           } else if (id !== oldId || !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(_this.playlistTracksSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) {
-            //C update the playlistTracksSubscription to the proper playlistId
+            // update the playlistTracksSubscription to the proper playlistId
             _this.playlistTracksSubscription = yield _this.$store.dispatch('resubscribe', {
               subscription: _this.playlistTracksSubscription,
               Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"],
@@ -1049,7 +1049,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this7 = this;
 
       return _asyncToGenerator(function* () {
-        _this7.manualProgress = event.target.value; //C prevents slider from flickering to 0 on first mousedown
+        _this7.manualProgress = event.target.value; // prevents slider from flickering to 0 on first mousedown
 
         _this7.drag = true;
       })();
@@ -1259,7 +1259,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     // 	'unsubscribe',
     // ]),
     handle(rejected) {
-      console.warn('error occured, result unchanged'); //C don't change
+      console.warn('error occured, result unchanged'); // don't change
 
       return this.retrieved;
     },
@@ -1520,7 +1520,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this2 = this;
 
       return _asyncToGenerator(function* () {
-        //C add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
+        // add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
         track.playlistId = _this2.content.id;
         yield _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"].add(track);
         yield _this2.refresh(); //TODO
@@ -1892,7 +1892,7 @@ __webpack_require__.r(__webpack_exports__);
 
   data() {
     return {
-      //C just use the first source instance
+      // just use the first source instance
       source: _source_js__WEBPACK_IMPORTED_MODULE_1__["default"].instances[0],
       Source: _source_js__WEBPACK_IMPORTED_MODULE_1__["default"]
     };
@@ -1948,7 +1948,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }
 
     },
-    //C target playlist to add to
+    // target playlist to add to
     playlistId: {
       default: null,
 
@@ -1976,7 +1976,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this2 = this;
 
       return _asyncToGenerator(function* () {
-        //C add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
+        // add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
         track.playlistId = _this2.playlistId;
         yield _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"].add(track);
       })();
@@ -2000,29 +2000,29 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     		else return null;
     	},
     		async search() {
-    		//C get existing searched tracks
+    		// get existing searched tracks
     		const searchedTracks = await Track.get({
     			playlistId: this.playlistId,
     		}).then(this.sj.content);
-    			//C remove them all
+    			// remove them all
     		await Track.remove(this.sj.shake(searchedTracks, Track.filters.id));
     		
-    		//C search the new term
+    		// search the new term
     		this.results = await this.source.search({
     			term: this.term, 
     			startIndex: 0, 
     			amount: 5,
     		});
-    			//C give them the search playlist id
+    			// give them the search playlist id
     		for (const result of this.results) {
     			result.playlistId = this.playlistId;
     		}
-    			//C add them all
+    			// add them all
     		await Track.add(this.results);
     	},
     		async addPlaylist() {
     		console.log('ADD PLAYLIST CALLED');
-    		//C add a search result playlist to store and play search results from
+    		// add a search result playlist to store and play search results from
     		const currentUser = await session.get().then(this.sj.content);
     		this.playlist = await new this.sj.Playlist({
     			userId: currentUser.id,
@@ -2032,7 +2032,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     	},
     	async removePlaylist() {
     		console.log('REMOVE PLAYLIST CALLED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
-    		//C remove the search result playlist
+    		// remove the search result playlist
     		await this.playlist.remove();
     	},
     			//! these are part of options
@@ -2109,7 +2109,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //! shortened to del to avoid delete reserved word
         yield _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"].remove(_this3.content);
 
-        _this3.$emit('update'); //C communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
+        _this3.$emit('update'); // communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
 
       })();
     },
@@ -2118,7 +2118,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this4 = this;
 
       return _asyncToGenerator(function* () {
-        //C does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
+        // does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
         _this4.$emit('add', _this4.content);
       })();
     }
@@ -16912,7 +16912,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       Track: _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"]
     }),
     socket: null,
-    timeout: 10000 //C 10 seconds
+    timeout: 10000 // 10 seconds
 
   },
   getters: {
@@ -16937,17 +16937,17 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }));
     },
     getLiveData: state => subscription => {
-      //C validate
+      // validate
       if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"], 'Subscription')) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
         message: 'subscription is not an Subscription',
         state: subscription
-      }); //C shorten
+      }); // shorten
 
       var liveQuery = subscription.liveQuery;
       if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
         message: "liveQuery is not an LiveQuery",
         state: liveQuery
-      }); //C get all liveQuery.cachedEntityRefs.entity
+      }); // get all liveQuery.cachedEntityRefs.entity
       //TODO Race condition here.
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
@@ -17075,16 +17075,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   },
   actions: {
     // CACHED ENTITY
-    //C these return a boolean indicating whether the action happened or if nothing changed
+    // these return a boolean indicating whether the action happened or if nothing changed
     addCachedEntity(context, _ref15) {
       return _asyncToGenerator(function* () {
         var {
           entity,
           liveQuery
         } = _ref15;
-        var added = false; //C shorthand
+        var added = false; // shorthand
 
-        var table = liveQuery.table; //C add cachedEntity to table if it doesn't exist
+        var table = liveQuery.table; // add cachedEntity to table if it doesn't exist
 
         if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(context.getters.findCachedEntity({
           table,
@@ -17097,7 +17097,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               entity
             })
           }); //! don't set added here, because the cachedEntity could already exist and is just being added to a new liveQuery
-        } //C find cachedEntity by entity
+        } // find cachedEntity by entity
 
 
         var cachedEntity = context.getters.findCachedEntity({
@@ -17107,11 +17107,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["CachedEntity"], 'CachedEntity')) {
           throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
-        } //C shorthand
+        } // shorthand
 
 
         var liveQueryRefs = cachedEntity.liveQueryRefs;
-        var cachedEntityRefs = liveQuery.cachedEntityRefs; //C find references
+        var cachedEntityRefs = liveQuery.cachedEntityRefs; // find references
 
         var foundLiveQueryRef = liveQueryRefs.includes(liveQuery);
         var foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
@@ -17126,7 +17126,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               liveQuery
             }
           });
-        } //C add refs to both liveQuery and cachedEntity if they don't exist
+        } // add refs to both liveQuery and cachedEntity if they don't exist
 
 
         if (!foundLiveQueryRef) {
@@ -17139,7 +17139,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             cachedEntity
           });
           added = true;
-        } //C the entity is considered 'added' if it's cachedEntity and the passed liveQuery are getting new references to each other
+        } // the entity is considered 'added' if it's cachedEntity and the passed liveQuery are getting new references to each other
 
 
         return added;
@@ -17152,7 +17152,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           cachedEntity,
           liveQuery
         } = _ref16;
-        //C find both reference indexes
+        // find both reference indexes
         var cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
         if (cachedEntityRefIndex < 0) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
           message: 'cachedEntityRef not found in liveQuery'
@@ -17160,7 +17160,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
         if (liveQueryRefIndex < 0) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
           message: 'liveQueryRef not found in cachedEntity'
-        }); //C remove references from each other
+        }); // remove references from each other
 
         context.commit('spliceCachedEntityRef', {
           cachedEntityRefs: liveQuery.cachedEntityRefs,
@@ -17169,10 +17169,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         context.commit('spliceLiveQueryRef', {
           liveQueryRefs: cachedEntity.liveQueryRefs,
           index: liveQueryRefIndex
-        }); //C if cachedEntity no longer has any liveQueryRefs
+        }); // if cachedEntity no longer has any liveQueryRefs
 
         if (cachedEntity.liveQueryRefs.length <= 0) {
-          //C remove the cachedEntity
+          // remove the cachedEntity
           var cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
           if (cachedEntityIndex < 0) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
             message: 'cachedEntity not found in table'
@@ -17181,7 +17181,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             cachedEntities: cachedEntity.table.cachedEntities,
             index: cachedEntityIndex
           });
-        } //C the cachedEntity is considered 'removed' if it and the passed liveQuery losing their references to each other //! this shouldn't fail if proper arguments are passed
+        } // the cachedEntity is considered 'removed' if it and the passed liveQuery losing their references to each other //! this shouldn't fail if proper arguments are passed
 
 
         return true;
@@ -17195,12 +17195,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           entity,
           timestamp
         } = _ref17;
-        var edited = false; //C if new data
+        var edited = false; // if new data
 
         if (timestamp > cachedEntity.timestamp) {
-          //C if different data
+          // if different data
           if (!Object(_shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__["default"])(cachedEntity.entity, entity)) {
-            //C update data and timestamp
+            // update data and timestamp
             context.commit('setCachedEntity', {
               cachedEntity,
               entity,
@@ -17208,14 +17208,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             });
             edited = true;
           } else {
-            //C only update timestamp
+            // only update timestamp
             context.commit('setCachedEntity', {
               cachedEntity,
               entity: cachedEntity.entity,
               timestamp
             });
           }
-        } //C the cachedEntity is considered edited if it's entity data has been changed
+        } // the cachedEntity is considered edited if it's entity data has been changed
 
 
         return edited;
@@ -17230,19 +17230,19 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         } = _ref18;
 
-        //C if the liveQuery cannot be found
+        // if the liveQuery cannot be found
         if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(context.getters.findLiveQuery({
           table,
           query
         }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
-          //C add it
+          // add it
           context.commit('pushLiveQuery', {
             liveQueries: table.liveQueries,
             liveQuery: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"]({
               table,
               query
             })
-          }); //C find liveQuery
+          }); // find liveQuery
 
           var liveQuery = context.getters.findLiveQuery({
             table,
@@ -17251,7 +17251,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
           if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
             throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
-          } //C trigger the initial update
+          } // trigger the initial update
 
 
           yield context.dispatch('updateLiveQuery', {
@@ -17266,13 +17266,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
     removeLiveQuery(context, liveQuery) {
       return _asyncToGenerator(function* () {
-        //C shorten
-        var table = liveQuery.table; //C find the liveQuery index
+        // shorten
+        var table = liveQuery.table; // find the liveQuery index
 
-        var liveQueryIndex = table.liveQueries.indexOf(liveQuery); //C if it exists
+        var liveQueryIndex = table.liveQueries.indexOf(liveQuery); // if it exists
 
         if (liveQueryIndex >= 0) {
-          //C remove it
+          // remove it
           context.commit('spliceLiveQuery', {
             liveQueries: table.liveQueries,
             index: liveQueryIndex
@@ -17296,7 +17296,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           added: false,
           edited: false,
           removed: false
-        }; //C shorten
+        }; // shorten
 
         var {
           table,
@@ -17304,7 +17304,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             Entity
           },
           query
-        } = liveQuery; //C don't trigger update for calls older than the existing data
+        } = liveQuery; // don't trigger update for calls older than the existing data
 
         if (callTimestamp <= liveQuery.timestamp) {
           new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
@@ -17313,26 +17313,26 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             reason: "data timestamp: ".concat(liveQuery.timestamp, ", update timestamp: ").concat(callTimestamp)
           });
           return pack;
-        } //C fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
+        } // fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
 
 
         var {
           content: entities,
           timestamp
-        } = yield Entity.get(query); //C give the liveQuery the timestamp of the new data
+        } = yield Entity.get(query); // give the liveQuery the timestamp of the new data
 
         context.commit('setLiveQuery', {
           liveQuery,
           timestamp
-        }); //C updated is triggered only after entities are successfully retrieved from the server
+        }); // updated is triggered only after entities are successfully retrieved from the server
 
         pack.updated = true; //! do not use asyncMap loops here, these must be sequential because they use indexes which ended up getting messed up by parallel splices
-        //C for each existing cachedEntity
+        // for each existing cachedEntity
 
         var _loop = function* _loop(cachedEntity) {
-          //C if it is no longer included in the fetched entities
+          // if it is no longer included in the fetched entities
           if (entities.every(entity => entity.id !== cachedEntity.entity.id)) {
-            //C remove it from the liveQuery
+            // remove it from the liveQuery
             var removed = yield context.dispatch('removeCachedEntity', {
               cachedEntity,
               liveQuery
@@ -17346,12 +17346,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         for (var cachedEntity of liveQuery.cachedEntityRefs) {
           yield* _loop(cachedEntity);
-        } //C for each retrieved entity
+        } // for each retrieved entity
 
 
         for (var entity of entities) {
           //! not async for each, these need to be synchronous
-          //C add it's cachedEntity (won't add if it already exists)
+          // add it's cachedEntity (won't add if it already exists)
           var added = yield context.dispatch('addCachedEntity', {
             entity,
             liveQuery
@@ -17359,7 +17359,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
           if (added) {
             pack.added = true;
-          } //C find it's cachedEntity
+          } // find it's cachedEntity
 
 
           var _cachedEntity = yield context.getters.findCachedEntity({
@@ -17369,7 +17369,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
           if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["CachedEntity"], 'CachedEntity')) {
             throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
-          } //C edit the cachedEntity (won't edit if data is old, or unchanged)
+          } // edit the cachedEntity (won't edit if data is old, or unchanged)
 
 
           var edited = yield context.dispatch('updateCachedEntity', {
@@ -17409,7 +17409,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           options
         } = _ref21;
 
-        //C create a new liveQuery if one doesn't exist for the desired query
+        // create a new liveQuery if one doesn't exist for the desired query
         if (context.getters.findLiveQuery({
           table,
           query
@@ -17418,7 +17418,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             table,
             query
           });
-        } //C find the liveQuery
+        } // find the liveQuery
 
 
         var liveQuery = context.getters.findLiveQuery({
@@ -17428,13 +17428,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
           throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["UnreachableError"]();
-        } //C create a new subscription
+        } // create a new subscription
 
 
         var subscription = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"](_objectSpread({}, options, {
-          liveQuery //C parent reference
+          liveQuery // parent reference
 
-        })); //C push and return
+        })); // push and return
 
         context.commit('pushSubscription', {
           subscriptions: liveQuery.subscriptions,
@@ -17446,8 +17446,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
     removeSubscription(context, subscription) {
       return _asyncToGenerator(function* () {
-        //C shorten
-        var liveQuery = subscription.liveQuery; //C remove subscription
+        // shorten
+        var liveQuery = subscription.liveQuery; // remove subscription
 
         var subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
 
@@ -17460,7 +17460,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
             message: 'subscription not found in liveQuery'
           });
-        } //C if liveQuery no longer has any subscriptions
+        } // if liveQuery no longer has any subscriptions
 
 
         if (liveQuery.subscriptions.length <= 0) yield context.dispatch('removeLiveQuery', liveQuery);
@@ -17468,7 +17468,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     // ENDPOINTS
-    //C these require argument validation
+    // these require argument validation
     subscribe(context, _ref22) {
       return _asyncToGenerator(function* () {
         var {
@@ -17477,7 +17477,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           options = {}
         } = _ref22;
 
-        //C validate
+        // validate
         //TODO how to check if class is subclass, because this is getting ridiculous
         //L: https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
         if (!Object.getPrototypeOf(Entity) === Entity) {
@@ -17499,7 +17499,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             message: 'options is not an Object',
             state: options
           });
-        } //C shorten
+        } // shorten
 
 
         var table = context.getters.findTable(Entity);
@@ -17509,20 +17509,20 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             message: 'table is not an LiveTable',
             state: table
           });
-        } //C subscribe on server 
+        } // subscribe on server 
 
 
         var preparedQuery = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["pick"])(q, Entity.filters.getIn));
         var processedQuery = yield context.dispatch('serverSubscribe', {
           table,
           query: preparedQuery
-        }); //C add subscriber, from this point data will live-update
+        }); // add subscriber, from this point data will live-update
 
         var subscription = yield context.dispatch('addSubscription', {
           table,
           query: processedQuery,
           options
-        }); //C return the subscription
+        }); // return the subscription
 
         return subscription;
       })();
@@ -17532,11 +17532,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       return _asyncToGenerator(function* () {
         var {
           subscription,
-          strict = false //C subscription must be an Subscription and must be included in it's liveQuery.subscriptions
+          strict = false // subscription must be an Subscription and must be included in it's liveQuery.subscriptions
 
         } = _ref23;
 
-        //C validate //! return early if not a subscription
+        // validate //! return early if not a subscription
         if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"], 'Subscription')) {
           if (strict) {
             throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
@@ -17546,7 +17546,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           } else {
             return null;
           }
-        } //C shorten
+        } // shorten
 
 
         var liveQuery = subscription.liveQuery;
@@ -17583,7 +17583,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             message: 'Entity is not an LiveTable',
             state: TargetEntity
           });
-        } //C unsubscribe on server
+        } // unsubscribe on server
         //? sometimes from PlaylistPage.vue, unsubscribe is being called on load, I think this may be happening because of async sequencing, and it might not be causing any problems, but it also could be
 
 
@@ -17591,9 +17591,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var processedQuery = yield context.dispatch('serverUnsubscribe', {
           table,
           query: preparedQuery
-        }); //C remove subscription from it's liveQuery
+        }); // remove subscription from it's liveQuery
 
-        if (strict || liveQuery.subscriptions.includes(subscription)) yield context.dispatch('removeSubscription', subscription); //C return null for null subscription
+        if (strict || liveQuery.subscriptions.includes(subscription)) yield context.dispatch('removeSubscription', subscription); // return null for null subscription
 
         return null;
       })();
@@ -17612,14 +17612,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref24;
 
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
-        //C strict check here throws or lets function execute //! doesn't early return
+        // strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
         if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_6__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["Subscription"], 'Subscription')) {
           throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
             message: 'subscription is not an Subscription',
             state: subscription
           });
-        } //C subscribe to new
+        } // subscribe to new
 
 
         var newSubscription = yield context.dispatch('subscribe', {
@@ -17627,12 +17627,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           //! Entity cannot be derived from the old subscription as it may not be an Subscription if the function call is not strict
           query,
           options
-        }); //C unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
+        }); // unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
 
         context.dispatch('unsubscribe', {
           subscription,
           strict
-        }); //C return new subscription
+        }); // return new subscription
 
         return newSubscription;
       })();
@@ -17646,7 +17646,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           timestamp
         } = _ref25;
 
-        //C validate
+        // validate
         if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"]) {
           throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
             message: 'Entity is not an Entity',
@@ -17661,7 +17661,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           });
         }
 
-        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(timestamp)) timestamp = Date.now(); //C shorten
+        if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(timestamp)) timestamp = Date.now(); // shorten
 
         var table = context.getters.findTable(TargetEntity);
 
@@ -17689,13 +17689,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               liveQuery
             }
           });
-        } //C update
+        } // update
 
 
         var pack = yield context.dispatch('updateLiveQuery', {
           liveQuery,
           callTimestamp: timestamp
-        }); //C trigger callbacks
+        }); // trigger callbacks
 
         if (pack.updated) yield context.dispatch('triggerCallback', {
           liveQuery,
@@ -17805,7 +17805,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //G this should be called in the main vue created()
 
         /* this feels wrong, because the context referenced here might not be the same context referenced by a component using these functions, thus there might be two different sets of liveData
-        	//C sj.Entity classes have a subscribe() method that auto-fills the Entity type
+        	// sj.Entity classes have a subscribe() method that auto-fills the Entity type
         	sj.Entity.augmentClass({
         		staticProperties: parent => ({
         			async subscribe(query, options) {
@@ -17824,7 +17824,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         			},	
         		}),
         	});
-        	//C Subscription class has an unsubscribe() method that auto-fills the subscription itself
+        	// Subscription class has an unsubscribe() method that auto-fills the subscription itself
         	Subscription.augmentClass({
         		prototypeProperties: parent => ({
         			async unsubscribe() {
@@ -17839,8 +17839,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         		}),
         	});
         */
-        //C set socket
-        context.commit('setSocket', socket); //C set listeners
+        // set socket
+        context.commit('setSocket', socket); // set listeners
 
         context.state.socket.on('connect', /*#__PURE__*/_asyncToGenerator(function* () {
           yield context.dispatch('reconnect');
@@ -17872,7 +17872,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           return function (_x2) {
             return _ref31.apply(this, arguments);
           };
-        }()); //C socket test
+        }()); // socket test
         //TODO rewrite this
 
         /*
@@ -17897,7 +17897,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         	};
         
         	let wrap = async function (Entity, queryPack, data, predoF, doF, undoF, data2) {
-        		//C subscribe
+        		// subscribe
         		let subscribeResult = await new Promise((resolve, reject) => {
         			context.state.socket.emit('subscribe', queryPack, result => {
         				if (isInstanceOf(result, Success, 'Success')) {
@@ -17911,7 +17911,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         		let accessory = {};
         		let predoResult = await predoF(Entity, data, accessory, data2);
         
-        		//C make listener
+        		// make listener
         		let notified = false;
         		let notifiedResult = {};
         		context.state.socket.on('notify', notifyResult => { //? when is this listener removed?
@@ -17919,16 +17919,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         			if (deepCompare(queryPack.query, notifyResult.changed, {subset: true})) notified = true;
         		});
         
-        		//C do
+        		// do
         		let mainResult = await doF(Entity, data, accessory, data2);
         
-        		//C wait some time for notification to come back
+        		// wait some time for notification to come back
         		await wait(1000);
         
-        		//C undo
+        		// undo
         		let undoResult = await undoF(Entity, data, accessory, data2);
         
-        		//C unsubscribe
+        		// unsubscribe
         		let unsubscribeResult = await new Promise((resolve, reject) => {
         			context.state.socket.emit('unsubscribe', queryPack, result => {
         				if (isInstanceOf(result, Success, 'Success')) {
@@ -17948,19 +17948,19 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         			async () => undefined, 
         			async (Entity, data, accessory) => {
         				let addResult = await Entity.add({
-        					...Entity.placeholder, //C fill in missing data
+        					...Entity.placeholder, // fill in missing data
         					...data,
         				});
         				accessory.id = one(addResult.content).id;
         				return addResult;
         			}, 
         			async (Entity, data, accessory) => {
-        				return await Entity.remove({id: accessory.id}); //C delete generated id
+        				return await Entity.remove({id: accessory.id}); // delete generated id
         			}
         		);
         	};
         	let edit = async function (Entity, queryPack, dataBefore, dataAfter) {
-        		dataAfter.id = dataBefore.id; //C enforce before and after to have the same id
+        		dataAfter.id = dataBefore.id; // enforce before and after to have the same id
         
         		return await wrap(Entity, queryPack, dataBefore,
         			async (Entity, dataBefore, accessory, dataAfter) => {
@@ -18022,21 +18022,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         };
         */
         //await context.state.socket.test();
-        //C module test
+        // module test
         // await context.dispatch('test');
       })();
     }
     /*
     async test(context) {
     	//TODO there is some issue in here where either the addCount or editCount is 1 lower than it should be, no idea whats causing it, and it happens fairly rarely (use the refresh functionality at the end to find the error), I don't think its being caused by the waitForUpdate() function because I ran it with a delay and it still errored
-    			//C this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
+    			// this delay exists to wait for any subscriptions on the page to process before executing these tests, as foreign activity interferes with the success of some of these tests
     	await wait(2000);
     			const tests = [];
     	
     	const uniqueName = () => `liveQuery${keyCode.create(7)}`;
     	const uniqueDuration = () => Math.round(Math.random()*100000);
     			let updated = false;
-    	//C rapidly checks updated until it is true, then resets it
+    	// rapidly checks updated until it is true, then resets it
     	const waitForUpdate = async function () {
     		let delay = 50;
     		await repeat.async(async () => {
@@ -18189,7 +18189,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     	const passed = await test([
     		...tests,
     	], 'liveQuery');
-    			//C this refreshes the page until the test fails
+    			// this refreshes the page until the test fails
     	if (passed) document.location.reload();
     },
     */
@@ -18289,7 +18289,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 		//OLD
 		let PlaylistListItem = Vue.component('playlist-list-item', () => {
 				return {
-					//C The component to load (should be a Promise)
+					// The component to load (should be a Promise)
 					//! immediately invoking async function because component must receive a promise, not a function (unlike the surrounding factory function)
 					//L parenthesis around function turns it from a definition into an expression (which is then invoked): https://flaviocopes.com/javascript-iife/
 					component: (async function {
@@ -18328,24 +18328,24 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 						}
 					})(),
 
-					//C A component to use while the async component is loading
+					// A component to use while the async component is loading
 					loading: {
 						template: `
 							<p>LOADING</p>
 						`,
 					},
 
-					//C A component to use if the load fails
+					// A component to use if the load fails
 					error: {
 						template: `
 							<p>ERROR</p>
 						`,
 					},
 
-					//C Delay before showing the loading component. Default: 200ms.
+					// Delay before showing the loading component. Default: 200ms.
 					delay: 500,
 
-					//C The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
+					// The error component will be displayed if a timeout is provided and exceeded. Default: Infinity.
 					//! though this cannot be 'Infinity' or large numbers(?) because of how setTimeout() works: 
 					//L https://stackoverflow.com/questions/3468607/why-does-settimeout-break-for-large-millisecond-delay-values
 					//timeout: 10000,
@@ -18451,7 +18451,7 @@ var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__[
       component: _ui_vue_page_TestPage_vue__WEBPACK_IMPORTED_MODULE_12__["default"]
     }]
   }, {
-    //C login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
+    // login is outside the AppMain component (it doesn't have a menu bar, player bar, etc.), its a barebones entry point
     path: '/login',
     component: _ui_vue_page_EntryPage_vue__WEBPACK_IMPORTED_MODULE_13__["default"]
   }, {
@@ -18464,7 +18464,7 @@ var router = new _vendor_vue_router_esm_browser_js__WEBPACK_IMPORTED_MODULE_1__[
     path: '/*/authRedirect',
     component: _ui_vue_page_AuthRedirectPage_vue__WEBPACK_IMPORTED_MODULE_14__["default"]
   }, {
-    //C catch invalid url paths 
+    // catch invalid url paths 
     path: '*',
     component: _ui_vue_page_NotFoundPage_vue__WEBPACK_IMPORTED_MODULE_16__["default"]
   }]
@@ -18592,12 +18592,12 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
         		reason: 'start state timed out',
         	}));
         			const unwatch = context.watch(
-        		//C pack desired state
+        		// pack desired state
         		({state: {isPlaying, progress}}, {sourceId}) => ({sourceId, isPlaying, progress}),
-        		//C evaluate state conditions
+        		// evaluate state conditions
         		({sourceId, isPlaying, progress}) => {
         			if (
-        				//C track must have the right id, be playing, near the start (within the time from when the call was made to now)
+        				// track must have the right id, be playing, near the start (within the time from when the call was made to now)
         				sourceId === track.sourceId &&
         				isPlaying === true &&
         				progress <= (Date.now() - timeBefore) / duration
@@ -18612,7 +18612,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
 
         yield dispatch('baseStart', track);
         /* //TODO same here
-        	//C wait for desired state
+        	// wait for desired state
         	await deferred;
         	unwatch();
         */
@@ -18652,17 +18652,17 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
     			origin: 'preserveLocalMetadata()',
     			reason: 'track is not an Track',
     		});
-    				//C default local metadata as foreign track
+    				// default local metadata as foreign track
     		let local = Track.filters.localMetadata.reduce((obj, key) => {
     			obj[key] = null;
     			return obj;
     		}, {});
-    				//C set local as current or starting track if matching
+    				// set local as current or starting track if matching
     		if (sj.isType(context.state.track, Object) &&
     		track.sourceId === context.state.track.sourceId)			local = context.state.track;
     		else if (sj.isType(context.state.startingTrack, Object) &&
     		track.sourceId === context.state.startingTrack.sourceId)	local = context.state.startingTrack;
-    				//C return new track with localMetadata properties replaced
+    				// return new track with localMetadata properties replaced
     		return new Track({...track, ...sj.shake(local, Track.filters.localMetadata)});
     	},
     */
@@ -19014,18 +19014,18 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
     /*
     	// PLAYBACK STATE
     	actualPlayback(state, getters) {
-    		//C return null playback state if no source
+    		// return null playback state if no source
     		if (state.source === null) return {...sj.Playback.baseState};
-    				//C get the source state
+    				// get the source state
     		const sourceState = state[state.source.name];
-    				//C use inferredProgress or regular progress depending on isPlaying
+    				// use inferredProgress or regular progress depending on isPlaying
     		//G//! anytime isPlaying is changed, the progress and timestamp (and probably track & volume) must be updated
     		if (sourceState.isPlaying) return {...sourceState, progress: getters.inferredProgress};
     		else return sourceState;
     	},
     	inferredProgress(state) {
     		if (state.source === null) return -1;
-    		//C this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
+    		// this is detached from actualPlayback() so that it's extra logic isn't repeated x-times per second every time inferredProgress updates
     		const sourceState = state[state.source.name];
     		const elapsedTime = state.clock - sourceState.timestamp;
     		const elapsedProgress = elapsedTime / sourceState.track.duration;
@@ -19429,7 +19429,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
     var _this = this;
 
     return _asyncToGenerator(function* () {
-      //C prompts the user to accept permissions in a new window, then receives an auth code from spotify
+      // prompts the user to accept permissions in a new window, then receives an auth code from spotify
 
       /* //R
       	this was split in to multiple parts on the client side to have an automatically closing window
@@ -19438,16 +19438,16 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
       
       */
       //TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
-      //C request url
-      var requestCredentials = yield serverRequestRequest('GET', 'spotify/authRequestStart'); //C open spotify auth request window
+      // request url
+      var requestCredentials = yield serverRequestRequest('GET', 'spotify/authRequestStart'); // open spotify auth request window
       //L https://www.w3schools.com/jsref/met_win_open.asp
 
-      var authWindow = window.open(requestCredentials.authRequestURL); //C listen for response from spotify
+      var authWindow = window.open(requestCredentials.authRequestURL); // listen for response from spotify
       //TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 
-      var authCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'spotify/authRequestEnd', requestCredentials); //C automatically close window when data is received
+      var authCredentials = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'spotify/authRequestEnd', requestCredentials); // automatically close window when data is received
 
-      authWindow.close(); //C exchange auth code for tokens
+      authWindow.close(); // exchange auth code for tokens
 
       var tokens = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('POST', 'spotify/exchangeToken', authCredentials);
       _this.credentials.accessToken = tokens.accessToken;
@@ -19460,9 +19460,9 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
       }); //TODO there needs to be a scopes (permissions) check in here somewhere
 
       /* //OLD
-      	//C request authURL & authKey
+      	// request authURL & authKey
       	return fetch(`${API_URL}/spotify/startAuthRequest`).then(resolved => {
-      		//C open spotify auth request window
+      		// open spotify auth request window
       		//L https://www.w3schools.com/jsref/met_win_open.asp
       		authRequestWindow = window.open(resolved.authRequestURL);
       		return resolved;
@@ -19520,10 +19520,10 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
     var _this3 = this;
 
     return _asyncToGenerator(function* () {
-      //C gets the api access token, handles all refreshing, initializing, errors, etc.
-      //C doing this here is useful because it removes the need to check on init, and only prompts when it is needed
+      // gets the api access token, handles all refreshing, initializing, errors, etc.
+      // doing this here is useful because it removes the need to check on init, and only prompts when it is needed
       //TODO must respond to denials by spotify too
-      //C refresh
+      // refresh
       var that = _this3;
 
       var refresh = /*#__PURE__*/function () {
@@ -19532,12 +19532,12 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
           result = _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_10__["sharedRegistry"].autoConstruct(result);
 
           if (result instanceof _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["AuthRequired"]) {
-            //C call auth() if server doesn't have a refresh token
+            // call auth() if server doesn't have a refresh token
             yield that.auth();
           } else if (result instanceof Error) {
             throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])(result);
           } else {
-            //C assign spotify.credentials
+            // assign spotify.credentials
             that.credentials.accessToken = result.accessToken;
             that.credentials.expires = result.accessToken;
           }
@@ -19546,13 +19546,13 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
         return function refresh(_x) {
           return _ref.apply(this, arguments);
         };
-      }(); //C if client doesn't have token or if it has expired, refresh it immediately
+      }(); // if client doesn't have token or if it has expired, refresh it immediately
       //TODO reconsider this string test
 
 
       if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].visibleString.test(_this3.credentials.accessToken) || _this3.credentials.expires <= Date.now()) {
         yield refresh(that);
-      } //C if token is soon to expire, refresh in the background, return the existing token
+      } // if token is soon to expire, refresh in the background, return the existing token
 
 
       if (_this3.credentials.expires <= Date.now() + _this3.refreshBuffer) {
@@ -19623,10 +19623,10 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
     loadPlayer(context) {
       return _asyncToGenerator(function* () {
         return yield new Promise((resolve, reject) => {
-          //C this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
+          // this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
           window.onSpotifyWebPlaybackSDKReady = function () {
             var player = new window.Spotify.Player({
-              //C "The name of the Spotify Connect player. It will be visible in other Spotify apps."
+              // "The name of the Spotify Connect player. It will be visible in other Spotify apps."
               name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["APP_NAME"],
               getOAuthToken: function () {
                 var _getOAuthToken = _asyncToGenerator(function* (callback) {
@@ -19673,18 +19673,18 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                 } = _ref4;
                 return new Promise( /*#__PURE__*/function () {
                   var _ref6 = _asyncToGenerator(function* (resolve, reject) {
-                    var resolved = false; //C resolved boolean is used to prevent later announcements of response objects
+                    var resolved = false; // resolved boolean is used to prevent later announcements of response objects
 
                     var callback = /*#__PURE__*/function () {
                       var _ref7 = _asyncToGenerator(function* (state) {
                         if (!resolved && stateCondition(player.formatState(state))) {
-                          //C remove listener
-                          _this4.removeListener('player_state_changed', callback); //C update playback state
+                          // remove listener
+                          _this4.removeListener('player_state_changed', callback); // update playback state
 
 
-                          yield context.dispatch('updatePlayback', state); //C resolve
+                          yield context.dispatch('updatePlayback', state); // resolve
 
-                          resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"](success)); //C prevent other exit points from executing their code
+                          resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"](success)); // prevent other exit points from executing their code
 
                           resolved = true;
                         }
@@ -19693,11 +19693,11 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                       return function callback(_x7) {
                         return _ref7.apply(this, arguments);
                       };
-                    }(); //C add the listener before the request is made, so that the event cannot be missed 
+                    }(); // add the listener before the request is made, so that the event cannot be missed 
                     //! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
 
 
-                    _this4.addListener('player_state_changed', callback); //C if command failed, reject
+                    _this4.addListener('player_state_changed', callback); // if command failed, reject
                     //! don't do anything when main() resolves, it only indicates that the command has been received
 
 
@@ -19710,7 +19710,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                         })));
                         resolved = true;
                       }
-                    }); //C if playback is already in the proper state, resolve but don't update
+                    }); // if playback is already in the proper state, resolve but don't update
                     //! this check is required because in this case spotify wont trigger a 'player_state_changed' event
 
                     yield context.dispatch('checkPlayback');
@@ -19720,7 +19720,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
                       resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"](success));
                       resolved = true;
-                    } //C if timed out, reject
+                    } // if timed out, reject
 
 
                     yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_8__["default"].requestTimeout);
@@ -19742,16 +19742,16 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               return function (_x4) {
                 return _ref5.apply(this, arguments);
               };
-            }(), //C events
+            }(), // events
             //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
             player.on('ready', /*#__PURE__*/function () {
               var _ref9 = _asyncToGenerator(function* (_ref8) {
                 var {
                   device_id
                 } = _ref8;
-                //C 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
+                // 'Emitted when the Web Playback SDK has successfully connected and is ready to stream content in the browser from Spotify.'
                 //L returns a WebPlaybackPlayer object with just a device_id property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-                //C fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
+                // fix for chrome //L iframe policy: https://github.com/spotify/web-playback-sdk/issues/75#issuecomment-487325589
                 var iframe = document.querySelector('iframe[src="https://sdk.scdn.co/embedded/index.html"]');
 
                 if (iframe) {
@@ -19759,13 +19759,13 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                   iframe.style.position = 'absolute';
                   iframe.style.top = '-1000px';
                   iframe.style.left = '-1000px';
-                } //C set the player as ready 
+                } // set the player as ready 
                 //! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
 
 
                 context.commit('setState', {
                   player
-                }); //C transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
+                }); // transfer playback //L https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-transfer-a-users-playback
 
                 yield spotify.request('PUT', 'me/player', {
                   device_ids: [device_id],
@@ -19778,18 +19778,18 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                     userMessage: 'spotify player could not be loaded',
                     state: rejected
                   }));
-                }); //C wait for device to transfer
+                }); // wait for device to transfer
                 //TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
-                //C starting delay
+                // starting delay
 
                 var delay = 100;
                 yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
-                  //C because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
+                  // because no notification is sent when the device is actually transferred, a get request must be sent to see if the device has been transferred. Because different environments may have different wait times, a static delay could just be too early. So, send a series of get requests (with an increasing delay each time, so that it doesn't create too many requests for long waits).
                   //L https://developer.spotify.com/documentation/web-api/reference/player/get-information-about-the-users-current-playback/
-                  //C timeout is doubled here to work better with the doubling delay time.
-                  //C using an object wrapper for the delay argument so that it can be modified between iterations
+                  // timeout is doubled here to work better with the doubling delay time.
+                  // using an object wrapper for the delay argument so that it can be modified between iterations
                   yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(delay);
-                  delay = delay * 2; //C double the delay each time
+                  delay = delay * 2; // double the delay each time
 
                   return yield spotify.request('Get', 'me/player').catch(rejected => {
                     reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
@@ -19802,19 +19802,19 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                       device: {
                         id: device_id
                       }
-                    }; //C break the loop after rejecting
+                    }; // break the loop after rejecting
                   });
                 }), {
                   until(result) {
                     //L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
-                    //C this is fine, it just means that it's not ready, so just catch anything.
+                    // this is fine, it just means that it's not ready, so just catch anything.
                     return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result.device) && result.device.id === device_id;
                   },
 
                   timeout: _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"].requestTimeout * 2
-                }); //C check playback state //? this was commented out earlier and after pause, was this causing issues?
+                }); // check playback state //? this was commented out earlier and after pause, was this causing issues?
 
-                yield context.dispatch('checkPlayback'); //C ensure that playback is not playing
+                yield context.dispatch('checkPlayback'); // ensure that playback is not playing
 
                 yield context.dispatch('pause');
                 resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
@@ -19834,7 +19834,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               } = _ref11;
               //? don't know what to do here
               console.error('not_ready', 'device_id:', device_id);
-            }); //C errors
+            }); // errors
             //TODO make better handlers
             //L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 
@@ -19852,7 +19852,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               var {
                 message
               } = _ref13;
-              //C 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
+              // 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
               reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
                 userMessage: 'spotify player encountered an authentication error',
                 message
@@ -19862,15 +19862,15 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               var {
                 message
               } = _ref14;
-              //C 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
+              // 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
               reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
                 userMessage: 'this account does not have a valid Spotify Premium subscription',
                 message
               }));
-            }); //C ongoing listeners
+            }); // ongoing listeners
 
             player.on('player_state_changed', state => {
-              //C emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
+              // emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
               context.dispatch('updatePlayback', state);
             });
@@ -19880,10 +19880,10 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               } = _ref15;
               //TODO this should be a listener, and not resolve or reject
               console.error('playback_error', message);
-            }); //C connect player
+            }); // connect player
 
             player.connect().then(resolved => {
-              //C 'returns a promise with a boolean for whether or not the connection was successful'
+              // 'returns a promise with a boolean for whether or not the connection was successful'
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
               //! do not resolve here, the player will trigger the 'ready' event when its truly ready
               if (!resolved) {
@@ -19915,7 +19915,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
             		window.dispatchEvent(new CustomEvent(eventName, {detail: {resolved: false, data}}));
             	}
             */
-          }; //C dynamic import Spotify's SDK
+          }; // dynamic import Spotify's SDK
           //! I downloaded this file for module use, however spotify says to import from the url: https://sdk.scdn.co/spotify-player.js
 
 
@@ -20102,10 +20102,10 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       })();
     },
 
-    //C spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
+    // spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
     updatePlayback(context, state) {
       return _asyncToGenerator(function* () {
-        //C formats and commits playback state
+        // formats and commits playback state
 
         /* //R
         	when formattingState and checkState are executed, the track only gets metadata from the api and therefore looses it's playlistId, position, and other custom metadata, how to preserve this data so it can be used to know the currently playing track, playlist, and next/prev tracks
@@ -20115,8 +20115,8 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
         			so the playlistId/position should hang out on the track until it is either replaced by a new track with its own playlistId/position or wiped out by a track with no playlistId/position
         		//? are playlistId and position mutually required? is there a situation where playlistId or position would exist on their own? I don't think so
         */
-        //C formats given state and adds volume from getVolume() to it, commits to state
-        var formattedState = context.state.player.formatState(state); //C these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
+        // formats given state and adds volume from getVolume() to it, commits to state
+        var formattedState = context.state.player.formatState(state); // these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
         //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
 
         var volume = yield context.state.player.getVolume();
@@ -20146,7 +20146,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
     checkPlayback(context) {
       return _asyncToGenerator(function* () {
-        //C retrieves playback from api and updates it
+        // retrieves playback from api and updates it
         //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
         var state = yield context.state.player.getCurrentState().catch(rejected => {
           throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
@@ -20187,9 +20187,9 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
             return command;
           }(),
-          stateCondition: state => //C track must be playing, near the start (within the time from when the call was made to now), and the same track
+          stateCondition: state => // track must be playing, near the start (within the time from when the call was made to now), and the same track
           state.isPlaying === true && //state.progress !== context.state.progress && //!
-          //state.progress !== 0 && //C track must be actually started
+          //state.progress !== 0 && // track must be actually started
           state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration && state.track.sourceId === context.state.track.sourceId,
           success: {},
           error: {
@@ -20293,7 +20293,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
             return command;
           }(),
-          //C state.position must be greater than the set position but less than the difference in time it took to call and resolve
+          // state.position must be greater than the set position but less than the difference in time it took to call and resolve
           stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
           success: {},
           error: {
@@ -20388,7 +20388,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
     return _asyncToGenerator(function* () {
       //L example code: https://developers.google.com/youtube/v3/docs/search/list
       //TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
-      //C watch for gapi to be assigned by using a setter with a deferred promise
+      // watch for gapi to be assigned by using a setter with a deferred promise
       //L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
       //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
@@ -20410,12 +20410,12 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
           loaded.resolve();
         }
 
-      }); //C loads gapi into global scope 
+      }); // loads gapi into global scope 
       //TODO is there any way to make this more module-like?
 
-      yield runHTMLScript('https://apis.google.com/js/api.js'); //C wait for gapi
+      yield runHTMLScript('https://apis.google.com/js/api.js'); // wait for gapi
 
-      yield loaded; //C remove the watcher
+      yield loaded; // remove the watcher
 
       Object.defineProperty(window, 'gapi', {
         configurable: true,
@@ -20423,11 +20423,11 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
         value: window.gapi2,
         writable: true
       });
-      delete window.gapi2; //C load client library
+      delete window.gapi2; // load client library
 
       yield new Promise((resolve, reject) => {
         //L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md
-        //C first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
+        // first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
         gapi.load('client', {
           callback(args) {
             //? no idea what the parameters passed here are
@@ -20445,7 +20445,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
           timeout: 60000 //TODO
 
         });
-      }); //C get apiKey and clientId stored on server
+      }); // get apiKey and clientId stored on server
 
       var {
         apiKey,
@@ -20453,7 +20453,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
       } = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('GET', "youtube/credentials"); //TODO Create specific rules for each API key.
 
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(apiKey);
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(clientId); //C loads and performs authorization, short version of the code commented out below
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.validate(clientId); // loads and performs authorization, short version of the code commented out below
       //R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
 
       yield gapi.client.init({
@@ -20468,7 +20468,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
       });
       /* LONG IMPLEMENTATION
       	//! 'auth2:client' must be loaded above
-      			//C init and signIn to OAuth
+      			// init and signIn to OAuth
       	const googleAuth = await gapi.auth2.init({
       		//! may only be initialized once, and so client_id and scopes cannot be reinitialized
       		//L other options: https://developers.google.com/identity/sign-in/web/reference#gapiauth2clientconfig
@@ -20481,7 +20481,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
       		//L consent, select_account, or none (can fail)
       		prompt: 'consent',
       	});
-      			//C init and load client
+      			// init and load client
       	gapi.client.setApiKey('key')
       	await gapi.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest');
       */
@@ -20494,7 +20494,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
     return _asyncToGenerator(function* () {
       var _window, _window$gapi, _window$gapi$auth, _window$gapi$auth$get, _window$gapi$auth$get2, _window$gapi$auth$get3, _window$gapi$auth$get4;
 
-      //C check that user is authorized (signedIn)
+      // check that user is authorized (signedIn)
       //TODO how do I check that the client library is loaded?
       if (!((_window = window) === null || _window === void 0 ? void 0 : (_window$gapi = _window.gapi) === null || _window$gapi === void 0 ? void 0 : (_window$gapi$auth = _window$gapi.auth2) === null || _window$gapi$auth === void 0 ? void 0 : (_window$gapi$auth$get = _window$gapi$auth.getAuthInstance) === null || _window$gapi$auth$get === void 0 ? void 0 : (_window$gapi$auth$get2 = _window$gapi$auth$get.call(_window$gapi$auth)) === null || _window$gapi$auth$get2 === void 0 ? void 0 : (_window$gapi$auth$get3 = _window$gapi$auth$get2.isSignedIn) === null || _window$gapi$auth$get3 === void 0 ? void 0 : (_window$gapi$auth$get4 = _window$gapi$auth$get3.get) === null || _window$gapi$auth$get4 === void 0 ? void 0 : _window$gapi$auth$get4.call(_window$gapi$auth$get3))) {
         yield _this.auth();
@@ -20542,7 +20542,7 @@ youtube.search = /*#__PURE__*/function () {
     // VALIDATE
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].visibleString.validate(term);
     _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].nonNegativeInteger.validate(startIndex);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveInteger.validate(amount); //C amass search result pages until the last requested search index is included
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].positiveInteger.validate(amount); // amass search result pages until the last requested search index is included
     //! this will drive api quotas up fast if the startIndex or amount are high (n*50)
     //!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
 
@@ -20571,17 +20571,17 @@ youtube.search = /*#__PURE__*/function () {
       allPageResults.push(...pageResults.result.items);
       pageToken = pageResults.nextPageToken;
       limit--;
-    } //C remove the unneeded results
+    } // remove the unneeded results
 
 
-    var searchResults = allPageResults.slice(startIndex, startIndex + amount); //C videoResults must also be searched because the contentDetails part is not available for the search request
+    var searchResults = allPageResults.slice(startIndex, startIndex + amount); // videoResults must also be searched because the contentDetails part is not available for the search request
     //L see search here only has snippet part available: https://developers.google.com/youtube/v3/determine_quota_cost
 
     var videoResult = yield youtube.request('GET', 'videos', {
       //L https://developers.google.com/youtube/v3/docs/videos/list
-      //C join the results ids
+      // join the results ids
       id: searchResults.map(item => item.id.videoId).join(','),
-      //C only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
+      // only retrieve the contentDetails, as the snippet has already been retrieved, this reduces the request cost
       part: 'contentDetails'
     });
 
@@ -20596,12 +20596,12 @@ youtube.search = /*#__PURE__*/function () {
     }
 
     videoResult.result.items.forEach((item, index) => {
-      //C ensure that ids line up
+      // ensure that ids line up
       if (searchResults[index].id.videoId !== item.id) {
         throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
           message: "search and video results at ".concat(index, " do not have the same id")
         });
-      } //C append contentDetails part to the search results
+      } // append contentDetails part to the search results
 
 
       searchResults[index].contentDetails = item.contentDetails;
@@ -20635,7 +20635,7 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
   actions: {
     loadPlayer(context) {
       return _asyncToGenerator(function* () {
-        //C load youtube iframe api
+        // load youtube iframe api
         yield runHTMLScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
         var deferred = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_6__["default"].requestTimeout, () => new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
@@ -20701,12 +20701,12 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
         var state = {};
         var track = {};
         var player = context.state.player;
-        track.link = player.getVideoUrl(); //C remove the idPrefix or nullPrefix from youtube urls
+        track.link = player.getVideoUrl(); // remove the idPrefix or nullPrefix from youtube urls
         //! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 
         track.sourceId = track.link.replace(new RegExp("".concat(escapeRegExp(youtube.idPrefix), "|").concat(escapeRegExp(youtube.nullPrefix))), '');
         var playerDuration = player.getDuration(); //! 'Note that getDuration() will return 0 until the video's metadata is loaded, which normally happens just after the video starts playing.'
-        //C if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
+        // if duration is zero, set it to infinity instead, so that the slider stays at the start until the duration is determined
 
         track.duration = playerDuration === 0 ? Infinity : playerDuration;
         state.progress = player.getCurrentTime() * 1000 / track.duration;
@@ -20720,11 +20720,11 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
         	3 buffering - this should be considered as playing, but not influence the progress
         	5 video cued
         */
-        //C if muted: volume is 0, convert 0-100 to 0-1 range
+        // if muted: volume is 0, convert 0-100 to 0-1 range
 
-        state.volume = player.isMuted() ? 0 : player.getVolume() / 100; //C 
+        state.volume = player.isMuted() ? 0 : player.getVolume() / 100; // 
 
-        state.timestamp = Date.now(); //C get name and artists from current track, starting track, or an api call
+        state.timestamp = Date.now(); // get name and artists from current track, starting track, or an api call
         //R cannot scrape name or artists from DOM element because of iframe cross-origin restrictions
 
         if (track.sourceId === (context === null || context === void 0 ? void 0 : (_context$state = context.state) === null || _context$state === void 0 ? void 0 : (_context$state$track = _context$state.track) === null || _context$state$track === void 0 ? void 0 : _context$state$track.sourceId)) {
@@ -20836,26 +20836,26 @@ youtube.formatContentDetails = function (contentDetails) {
     throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
       message: 'snippet is not an object'
     });
-  } //C assuming title format of 'Artist - Title'
-  //C splits on dash between one or any whitespace
+  } // assuming title format of 'Artist - Title'
+  // splits on dash between one or any whitespace
 
 
   var splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
 
   if (splitTitle.length === 2) {
-    //C if splitTittle has the exact length of two
-    //C use the first part as the artists
-    //C splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
+    // if splitTittle has the exact length of two
+    // use the first part as the artists
+    // splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
     //TODO improve
-    pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g); //C use the second part as the name
+    pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g); // use the second part as the name
 
     pack.name = splitTitle[1];
   } else {
-    //C use the channel title as the artist
-    pack.artists = [snippet.channelTitle]; //C use the full title as the name
+    // use the channel title as the artist
+    pack.artists = [snippet.channelTitle]; // use the full title as the name
 
     pack.name = snippet.title;
-  } //C apparently the titles are html encoded, (possibly the artist names too//?)
+  } // apparently the titles are html encoded, (possibly the artist names too//?)
   //L using he to decode: https://www.npmjs.com/package/he#hedecodehtml-options
 
 
@@ -39715,12 +39715,12 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
       throw Error('');
     } catch (e) {
       //TODO figure out how to properly display newlines as strings inside objects
-      //C get stack
-      var stackTrace0 = e.stack; //C 'file:///' is removed (so that the URIs are clickable in node)
+      // get stack
+      var stackTrace0 = e.stack; // 'file:///' is removed (so that the URIs are clickable in node)
 
-      var stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); //C remove leading 'Error\n    ', to reduce confusion because trace isn't an error
+      var stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); // remove leading 'Error\n    ', to reduce confusion because trace isn't an error
 
-      var stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); //C removes any line with Object.sj.trace
+      var stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); // removes any line with Object.sj.trace
 
       var ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
       ignore = replaceAll(ignore.join('|'), '.', '\.');
@@ -39746,7 +39746,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
 /* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
 /* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-// SUCCESS //C success and error objects are returned from functions (mostly async ones)
+// SUCCESS // success and error objects are returned from functions (mostly async ones)
 
 
 class Success extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -40390,8 +40390,8 @@ __webpack_require__.r(__webpack_exports__);
 //TODO consider replacing typechecks with a 'comparable' rule.
 
 /* harmony default export */ __webpack_exports__["default"] = (function (list, ascending, prop) {
-  //C sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
-  //C ascending will flip the list into descending if false
+  // sorts a list in ascending or descending order by the numeric or string-converted value of its items or their properties if a prop is defined
+  // ascending will flip the list into descending if false
   if (ascending) {
     ascending = 1;
   } else {
@@ -40401,18 +40401,18 @@ __webpack_require__.r(__webpack_exports__);
   var compare;
 
   if (typeof prop === 'string') {
-    //C if prop is defined, compare props
+    // if prop is defined, compare props
     if (list.every(item => typeof item[prop] === 'number' || typeof item[prop] === 'boolean')) {
-      //C if values are numbers or boolean, do number compare
+      // if values are numbers or boolean, do number compare
       compare = function compare(a, b) {
         return (a[prop] - b[prop]) * ascending;
       };
     } else {
-      //C if values are strings, other, or mixed, do a string conversion and string compare
+      // if values are strings, other, or mixed, do a string conversion and string compare
       compare = function compare(a, b) {
-        //C convert to strings
+        // convert to strings
         var as = a[prop] + '';
-        var bs = b[prop] + ''; //C string compare
+        var bs = b[prop] + ''; // string compare
         //L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
 
         return as.localeCompare(bs, 'en', {
@@ -40421,7 +40421,7 @@ __webpack_require__.r(__webpack_exports__);
       };
     }
   } else {
-    //C if no prop is defined, compare values
+    // if no prop is defined, compare values
     //! this is the exact same as above, just without the property
     if (list.every(item => typeof item === 'number' || typeof item === 'boolean')) {
       compare = function compare(a, b) {
@@ -40511,11 +40511,11 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ __webpack_exports__["default"] = (function (array) {
   var compare = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : (a, b) => {
-    //C low to high
+    // low to high
     return a - b;
   };
   _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.validate(array);
-  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); //C Create new array where the original index is preserved.
+  _validation_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(compare); // Create new array where the original index is preserved.
 
   var preservedArray = array.map((value, index) => ({
     value,
@@ -40523,12 +40523,12 @@ __webpack_require__.r(__webpack_exports__);
   }));
 
   var stableCompare = (a, b) => {
-    var order = compare(a.value, b.value); //C If equal, sort based on original order, otherwise sort normally.
+    var order = compare(a.value, b.value); // If equal, sort based on original order, otherwise sort normally.
 
     return order === 0 ? a.index - b.index : order;
   };
 
-  preservedArray.sort(stableCompare); //C Overwrite original array with sorted values.
+  preservedArray.sort(stableCompare); // Overwrite original array with sorted values.
 
   for (var i = 0; i < array.length; i++) {
     array[i] = preservedArray[i].value;
@@ -40755,17 +40755,17 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function combinations(optionsObject) {
-  //C takes an options object with a set of own properties whose value is an array of all possible values for that property
-  //C returns an array of objects with all combinations of those property values
-  //C ensure optionsObject is an object
+  // takes an options object with a set of own properties whose value is an array of all possible values for that property
+  // returns an array of objects with all combinations of those property values
+  // ensure optionsObject is an object
   if (optionsObject === null || typeof optionsObject !== 'object') {
     throw new Error('Options object is not an object.');
-  } //C get all own property keys
+  } // get all own property keys
 
 
   var keys = [];
   keys.push(...Object.getOwnPropertyNames(optionsObject));
-  keys.push(...Object.getOwnPropertySymbols(optionsObject)); //C ensure all own properties are iterable
+  keys.push(...Object.getOwnPropertySymbols(optionsObject)); // ensure all own properties are iterable
 
   for (var key of keys) {
     if (!(optionsObject[key] instanceof Array)) {
@@ -40774,24 +40774,24 @@ function combinations(optionsObject) {
   }
 
   var combinations = [];
-  var combination = {}; //C return empty array if no own keys
+  var combination = {}; // return empty array if no own keys
 
-  if (keys.length <= 0) return combinations; //C start with the first property
+  if (keys.length <= 0) return combinations; // start with the first property
 
   var nest = function nest() {
     var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
     var key = keys[index];
-    var options = optionsObject[key]; //C for each option
+    var options = optionsObject[key]; // for each option
 
     for (var option of options) {
-      //C set the option
+      // set the option
       combination[key] = option;
 
       if (index < keys.length - 1) {
-        //C move to the next property
+        // move to the next property
         nest(index + 1);
       } else {
-        //C or if at last property, save the combination
+        // or if at last property, save the combination
         combinations.push(_objectSpread({}, combination));
       }
     }
@@ -42477,37 +42477,37 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = (function (encoded) {
-  //C decodes a list of encoded objects with '-i' suffixed property keys
+  // decodes a list of encoded objects with '-i' suffixed property keys
   //! any key not matching the format will be discarded
   var indexed = Object(_decode_properties_js__WEBPACK_IMPORTED_MODULE_0__["default"])(encoded);
   var list = [];
   var indexedKeys = Object.keys(indexed);
 
   for (var i = 0; i < indexedKeys.length; i++) {
-    //C validate delimiter
+    // validate delimiter
     var delimiterIndex = indexedKeys[i].lastIndexOf('-');
 
     if (delimiterIndex < 0) {
       break;
-    } //C validate index
+    } // validate index
 
 
-    var objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); //C handles multiple digits & no digits properly
+    var objectIndex = parseInt(indexedKeys[i].slice(delimiterIndex + 1)); // handles multiple digits & no digits properly
 
     if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].integer.test(objectIndex)) {
       break;
-    } //C get the real key
+    } // get the real key
 
 
     var key = indexedKeys[i].slice(0, delimiterIndex);
 
     if (!_validation_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].object.test(list[objectIndex])) {
-      //C if the obj doesn't exist yet, add it with the prop
+      // if the obj doesn't exist yet, add it with the prop
       list[objectIndex] = {
         [key]: indexed[indexedKeys[i]]
       };
     } else {
-      //C otherwise add the prop to the existing object
+      // otherwise add the prop to the existing object
       list[objectIndex][key] = indexed[indexedKeys[i]];
     }
   }
@@ -42555,7 +42555,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /* harmony default export */ __webpack_exports__["default"] = (function (list) {
-  //C return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
+  // return a string of uri encoded key-value pairs for each property of each item, their keys suffixed with '-[index]'
   //! not called automatically by request() because its useful to see when a encodeList exists as it needs to be unpacked on the other end
   var indexed = {};
   Object(_array_any_js__WEBPACK_IMPORTED_MODULE_0__["default"])(list).forEach((object, index) => {
