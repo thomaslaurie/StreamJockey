@@ -882,7 +882,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return _asyncToGenerator(function* () {
         // me might have to be async retrieved and stored on the menu bar if info is to be displayed
-        var me = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]().then(result => result.content);
+        var me = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]();
 
         _this.$router.push("/user/".concat(me.id));
       })();
@@ -1118,7 +1118,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        var currentUser = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]().then(result => result.content);
+        var currentUser = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]();
         var playlist = yield _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Playlist"].add(_objectSpread({
           userId: currentUser.id
         }, _this)).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
@@ -1297,7 +1297,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         _this.currentUser = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_3__["login"]({
           name: _this.name,
           password: _this.password
-        }).then(result => result.content).catch(rejected => {
+        }).catch(rejected => {
           console.error(rejected);
         });
         _this.isLoggedIn = true;
@@ -16011,11 +16011,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Volume", function() { return Volume; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Start", function() { return Start; });
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -16050,7 +16049,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
 class Command {
   constructor() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -16061,45 +16059,42 @@ class Command {
     //! Non-instance sources are getting passed here (I think).
     //TODO Need to find a proper way to cast or ensure that source is an instance.
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
       source,
       sourceInstances,
       // Used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated.
       collapsedCommands: []
     }); // Promise resolve & reject functions will be stored on these properties so that the command can act as a deferred promise.
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].validatedVariable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].validatedVariable(this, {
       resolve: {
         value() {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
             message: 'command.resolve called but it has not been given a resolve function'
           });
         },
 
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate
       },
       reject: {
         value() {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
             message: 'command.reject called but it has not been given a reject function'
           });
         },
 
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].func.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate
       }
     });
   }
 
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Command.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Command.prototype, {
   fullResolve(success) {
     // Resolve collapsed commands.
     this.collapsedCommands.forEach(collapsedCommand => {
-      collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
-        origin: 'resolvePlus()',
-        reason: 'command was collapsed'
-      }));
+      collapsedCommand.resolve();
     }); // Resolve self.
 
     this.resolve(success);
@@ -16108,10 +16103,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Command
   fullReject(error) {
     //! RESOLVE collapsed commands.
     this.collapsedCommands.forEach(collapsedCommand => {
-      collapsedCommand.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
-        origin: 'resolvePlus()',
-        reason: 'command was collapsed'
-      }));
+      collapsedCommand.resolve();
     }); // Reject self.
 
     this.reject(error);
@@ -16128,7 +16120,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Command
 
   identicalCondition(otherCommand) {
     // otherCommand must be an Command, and have the same playback-state properties.
-    return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
+    return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
   },
 
   trigger(context) {
@@ -16149,31 +16141,31 @@ class Toggle extends Command {
     var {
       isPlaying
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].boolean.validate(isPlaying);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].boolean.validate(isPlaying);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
       isPlaying
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Toggle.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Toggle.prototype, {
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
   },
 
   //! Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
   annihilateCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
+    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
   },
 
   trigger(context) {
     var _this2 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Toggle).trigger.call(_this2, context);
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).trigger.call(_this2, context);
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(function* (source) {
           if (_this2.isPlaying && source === _this2.source) {
             // Resume target if resuming.
@@ -16187,7 +16179,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Toggle.
         return function (_x) {
           return _ref.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw);
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["MultipleErrors"].throw);
     })();
   }
 
@@ -16198,28 +16190,28 @@ class Seek extends Command {
     var {
       progress
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].unitInterval.validate(progress);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].unitInterval.validate(progress);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
       progress
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Seek.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Seek.prototype, {
   collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
   },
 
   trigger(context) {
     var _this3 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Seek).trigger.call(_this3, context);
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Seek).trigger.call(_this3, context);
       yield context.dispatch("".concat(_this3.source.name, "/seek"), _this3.progress);
     })();
   }
@@ -16231,30 +16223,30 @@ class Volume extends Command {
     var {
       volume
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].unitInterval.validate(volume);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].unitInterval.validate(volume);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
       volume
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Volume.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Volume.prototype, {
   collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
   },
 
   trigger(context) {
     var _this4 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
 
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
         var _ref2 = _asyncToGenerator(function* (source) {
           if (context.state[source.name].player !== null) {
             yield context.dispatch("".concat(source.name, "/volume"), _this4.volume);
@@ -16264,7 +16256,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Volume.
         return function (_x2) {
           return _ref2.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw);
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["MultipleErrors"].throw);
     })();
   }
 
@@ -16278,39 +16270,39 @@ class Start extends Command {
       progress = 0
     } = options;
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__["default"])(track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
         message: 'sj.Start instance.track must be an Track'
       });
     }
 
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
       track
     });
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].validatedVariable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].validatedVariable(this, {
       isPlaying: {
         value: isPlaying,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].boolean.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].boolean.validate
       },
       progress: {
         value: progress,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].unitInterval.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].unitInterval.validate
       }
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Start.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Start.prototype, {
   collapseCondition(otherCommand) {
     // Collapses parent condition, any Start, Toggle, or Seek.
     //TODO //? Tight coupling?
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
-    && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') //! Compare tracks by their sourceId not by their reference.
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
+    && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') //! Compare tracks by their sourceId not by their reference.
     && otherCommand.track.sourceId === this.track.sourceId && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
   },
 
@@ -16318,9 +16310,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Start.p
     var _this5 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_5__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
 
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
         var _ref3 = _asyncToGenerator(function* (source) {
           if (context.state[source.name].player !== null) {
             yield context.dispatch("".concat(source.name, "/pause"));
@@ -16330,7 +16322,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Start.p
         return function (_x3) {
           return _ref3.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
 
       context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
         subscription: context.state.startingTrackSubscription,
@@ -16371,7 +16363,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
+/* harmony import */ var _shared_legacy_classes_base_result_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/base-result.js */ "./source/shared/legacy-classes/base-result.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -16381,7 +16373,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-class Entity extends _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"] {
+class Entity extends _shared_legacy_classes_base_result_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
   constructor() {
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -17627,7 +17619,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           //! Entity cannot be derived from the old subscription as it may not be an Subscription if the function call is not strict
           query,
           options
-        }); // unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
+        }); // unsubscribe from old //! don't await here, we want the swap to happen as quick as possible.
 
         context.dispatch('unsubscribe', {
           subscription,
@@ -17741,7 +17733,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               resolve(result);
             }
           });
-        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+        }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
       })();
     },
 
@@ -17769,7 +17761,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
               resolve(result);
             }
           });
-        }).then(result => result.content).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
+        }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"]);
       })();
     },
 
@@ -18516,11 +18508,10 @@ var vm = new _vendor_vue_esm_browser_js__WEBPACK_IMPORTED_MODULE_0__["default"](
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Playback; });
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
+/* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
+/* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -18541,7 +18532,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
-
 class Playback {
   constructor() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -18553,7 +18543,7 @@ class Playback {
       modules
     } = options; //! New property objects must be created here so that instances do not all use the same reference.
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
       state: _objectSpread({}, this.constructor.baseState, {}, state),
       actions: _objectSpread({}, this.constructor.baseActions, {}, actions),
       mutations: _objectSpread({}, this.constructor.baseMutations, {}, mutations),
@@ -18563,7 +18553,7 @@ class Playback {
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playback, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playback, {
   requestTimeout: 5000,
   baseState: {
     source: null,
@@ -18618,9 +18608,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
         */
         // Wait for the desired state.
 
-        yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
+        yield _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["repeat"].async( /*#__PURE__*/_asyncToGenerator(function* () {
           var waitInterval = 100;
-          yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["wait"])(waitInterval);
+          yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["wait"])(waitInterval);
           return {
             sourceId: getters.sourceId,
             isPlaying: state.isPlaying,
@@ -18639,10 +18629,6 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
             return sourceId === track.sourceId && isPlaying === true && progress <= (Date.now() - timeBefore) / duration;
           }
 
-        });
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
-          origin: 'sj.Playback.baseActions.start()',
-          reason: 'start command completed'
         });
       })();
     }
@@ -18818,10 +18804,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
         if (push) {
           context.commit('pushQueuedCommand', command);
         } else {
-          command.fullResolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_1__["Success"]({
-            origin: 'pushCommand()',
-            reason: 'command was annihilated'
-          }));
+          command.fullResolve();
         } // Send next command.
         //! Do not await because the next command might not be this command, this just ensures that the nextCommand cycle is running every time a new command is pushed.
 
@@ -18859,7 +18842,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref4;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Start"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Start"]({
           source: track.source,
           //! Uses track's source.
           sourceInstances,
@@ -18879,7 +18862,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref5;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Toggle"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Toggle"]({
           source,
           //! other non-start basic playback functions just use the current desiredPlayback source
           sourceInstances,
@@ -18899,7 +18882,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref6;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Toggle"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Toggle"]({
           source,
           sourceInstances,
           isPlaying: true
@@ -18918,7 +18901,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref7;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Seek"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Seek"]({
           source,
           sourceInstances,
           progress
@@ -18938,7 +18921,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
           }
         } = _ref8;
         //TODO Volume should change volume on all sources.
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Volume"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Volume"]({
           source,
           sourceInstances,
           volume
@@ -18959,7 +18942,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref9;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_5__["Toggle"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Toggle"]({
           source,
           sourceInstances,
           isPlaying: !isPlaying
@@ -19050,10 +19033,10 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
     actualTrack: (state, getters) => {
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(sourceOrBaseTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(sourceOrBaseTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
         // If the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes.
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(getters.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(getters.startingTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(getters.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
+        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(getters.startingTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -19065,11 +19048,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
       var progress = getters.sourceOrBase('progress');
       var source = state === null || state === void 0 ? void 0 : state[state === null || state === void 0 ? void 0 : (_state$source = state.source) === null || _state$source === void 0 ? void 0 : _state$source.name];
 
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(source === null || source === void 0 ? void 0 : source.track) && (source === null || source === void 0 ? void 0 : source.isPlaying)) {
         // If playing, return inferred progress.
         var elapsedTime = state.clock - state[state.source.name].timestamp;
         var elapsedProgress = elapsedTime / state[state.source.name].track.duration;
-        progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
+        progress = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["clamp"])(state[state.source.name].progress + elapsedProgress, 0, 1);
       }
 
       return progress;
@@ -19086,9 +19069,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
     // DESIRED
     flattenPlayback: (state, getters) => key => {
       // Value starts as the actualValue.
-      var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["capitalizeFirstCharacter"])(key))]; // Then if defined, sentCommand.
+      var value = getters["actual".concat(Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["capitalizeFirstCharacter"])(key))]; // Then if defined, sentCommand.
 
-      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
+      if (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].object.test(state.sentCommand) && state.sentCommand[key] !== undefined) {
         value = state.sentCommand[key];
       } // Then if defined, each queuedCommand.
 
@@ -19113,15 +19096,15 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["define"].constant(Playbac
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) {
-        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) {
+        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));
       }
 
       return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) {
-        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) {
+        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));
       }
 
       return null;
@@ -19388,14 +19371,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/request.js */ "./source/shared/request.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
-/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../shared/class-registry.js */ "./source/shared/class-registry.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -19418,8 +19400,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
-var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
   //TODO make apiReady and playerReady checks
   name: 'spotify',
   register: true,
@@ -19453,11 +19434,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
       _this.credentials.accessToken = tokens.accessToken;
       _this.credentials.expires = tokens.accessToken;
       _this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
-
-      return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
-        origin: 'spotify.auth()',
-        message: 'authorized spotify'
-      }); //TODO there needs to be a scopes (permissions) check in here somewhere
+      //TODO there needs to be a scopes (permissions) check in here somewhere
 
       /* //OLD
       	// request authURL & authKey
@@ -19508,7 +19485,7 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
 
 
       var token = yield _this2.getAccessToken();
-      options.headers = _objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["JSON_HEADER"], {
+      options.headers = _objectSpread({}, _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__["JSON_HEADER"], {
         Authorization: "Bearer ".concat(token)
       });
       return yield Object(_shared_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])(method, url, options);
@@ -19528,14 +19505,14 @@ var spotify = new _source_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
 
       var refresh = /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(function* (that) {
-          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["returnPropagate"]);
-          result = _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_10__["sharedRegistry"].autoConstruct(result);
+          var result = yield Object(_server_request_js__WEBPACK_IMPORTED_MODULE_2__["default"])('GET', "spotify/refreshToken").catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["returnPropagate"]);
+          result = _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_9__["sharedRegistry"].autoConstruct(result);
 
-          if (result instanceof _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["AuthRequired"]) {
+          if (result instanceof _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["AuthRequired"]) {
             // call auth() if server doesn't have a refresh token
             yield that.auth();
           } else if (result instanceof Error) {
-            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["default"])(result);
+            throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"])(result);
           } else {
             // assign spotify.credentials
             that.credentials.accessToken = result.accessToken;
@@ -19598,7 +19575,7 @@ spotify.search = /*#__PURE__*/function () {
 
     });
     return result.tracks.items.map(track => {
-      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"]({
+      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"]({
         source: spotify,
         sourceId: track.id,
         name: track.name,
@@ -19614,7 +19591,7 @@ spotify.search = /*#__PURE__*/function () {
   };
 }();
 
-spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
   //G source-specific playback should be the basic playback functions that connects this app to the source's api
   state: {
     source: spotify
@@ -19627,7 +19604,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
           window.onSpotifyWebPlaybackSDKReady = function () {
             var player = new window.Spotify.Player({
               // "The name of the Spotify Connect player. It will be visible in other Spotify apps."
-              name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["APP_NAME"],
+              name: _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__["APP_NAME"],
               getOAuthToken: function () {
                 var _getOAuthToken = _asyncToGenerator(function* (callback) {
                   var token = yield spotify.getAccessToken();
@@ -19647,7 +19624,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(state)) return {};
               var t = state.track_window.current_track;
               return {
-                track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_4__["Track"]({
+                track: new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"]({
                   source: spotify,
                   sourceId: t.id,
                   name: t.name,
@@ -19667,7 +19644,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                 var {
                   command = () => {},
                   stateCondition = () => false,
-                  success = {},
                   error = {},
                   timeoutError = new Error('awaitState timed out')
                 } = _ref4;
@@ -19684,7 +19660,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
                           yield context.dispatch('updatePlayback', state); // resolve
 
-                          resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"](success)); // prevent other exit points from executing their code
+                          resolve(); // prevent other exit points from executing their code
 
                           resolved = true;
                         }
@@ -19705,7 +19681,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                       if (!resolved) {
                         _this4.removeListener('player_state_changed', callback);
 
-                        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"](_objectSpread({}, error, {
+                        reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"](_objectSpread({}, error, {
                           state: rejected
                         })));
                         resolved = true;
@@ -19718,12 +19694,12 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                     if (!resolved && stateCondition(context.state)) {
                       _this4.removeListener('player_state_changed', callback);
 
-                      resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"](success));
+                      resolve();
                       resolved = true;
                     } // if timed out, reject
 
 
-                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_8__["default"].requestTimeout);
+                    yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["wait"])(_playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout);
 
                     if (!resolved) {
                       _this4.removeListener('player_state_changed', callback);
@@ -19772,7 +19748,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                   play: false // keeps current playback state
 
                 }).catch(rejected => {
-                  reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+                  reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
                     //code: JSON.parse(error.response).error.status,
                     //reason: JSON.parse(error.response).error.message,
                     userMessage: 'spotify player could not be loaded',
@@ -19792,7 +19768,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                   delay = delay * 2; // double the delay each time
 
                   return yield spotify.request('Get', 'me/player').catch(rejected => {
-                    reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+                    reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
                       userMessage: 'spotify player could not be loaded',
                       state: rejected //code: JSON.parse(error.response).error.status,
                       //reason: JSON.parse(error.response).error.message,
@@ -19811,17 +19787,13 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                     return _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result) && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(result.device) && result.device.id === device_id;
                   },
 
-                  timeout: _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"].requestTimeout * 2
+                  timeout: _playback_js__WEBPACK_IMPORTED_MODULE_7__["default"].requestTimeout * 2
                 }); // check playback state //? this was commented out earlier and after pause, was this causing issues?
 
                 yield context.dispatch('checkPlayback'); // ensure that playback is not playing
 
                 yield context.dispatch('pause');
-                resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
-                  origin: 'spotify.loadPlayer()',
-                  message: 'spotify player loaded',
-                  content: player
-                }));
+                resolve();
               });
 
               return function (_x8) {
@@ -19843,7 +19815,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                 message
               } = _ref12;
               //C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
-              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
                 userMessage: 'spotify player encountered an initialization error',
                 message
               }));
@@ -19853,7 +19825,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                 message
               } = _ref13;
               // 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
-              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
                 userMessage: 'spotify player encountered an authentication error',
                 message
               }));
@@ -19863,7 +19835,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
                 message
               } = _ref14;
               // 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
-              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
                 userMessage: 'this account does not have a valid Spotify Premium subscription',
                 message
               }));
@@ -19887,13 +19859,13 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
               //! do not resolve here, the player will trigger the 'ready' event when its truly ready
               if (!resolved) {
-                reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+                reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
                   userMessage: 'spotify player failed to connect',
                   message: 'spotify.connect() failed'
                 }));
               }
             }, rejected => {
-              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["UnreachableError"]());
+              reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["UnreachableError"]());
             });
             /* //R
             	//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
@@ -20136,11 +20108,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 
 
         context.commit('setState', newState);
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
-          origin: 'spotify module command - updatePlayback()',
-          message: 'spotify playback updated',
-          content: newState
-        });
       })();
     },
 
@@ -20149,7 +20116,7 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
         // retrieves playback from api and updates it
         //L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
         var state = yield context.state.player.getCurrentState().catch(rejected => {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
             userMessage: 'failed to check spotify playback state',
             state: rejected //code: JSON.parse(rejected.response).error.status,
             //reason: JSON.parse(rejected.response).error.message,
@@ -20157,11 +20124,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
           });
         });
         yield context.dispatch('updatePlayback', state);
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_3__["Success"]({
-          origin: 'spotify module command - checkPlayback()',
-          message: 'spotify playback checked',
-          content: context.state
-        });
       })();
     },
 
@@ -20191,7 +20153,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
           state.isPlaying === true && //state.progress !== context.state.progress && //!
           //state.progress !== 0 && // track must be actually started
           state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration && state.track.sourceId === context.state.track.sourceId,
-          success: {},
           error: {
             //code: JSON.parse(rejected.response).error.status,
             origin: 'spotify.start()',
@@ -20226,7 +20187,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
             return command;
           }(),
           stateCondition: state => state.isPlaying === false,
-          success: {},
           error: {
             //code: JSON.parse(rejected.response).error.status,
             origin: 'spotify.pause()',
@@ -20258,7 +20218,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
             return command;
           }(),
           stateCondition: state => state.isPlaying === true,
-          success: {},
           error: {
             //code: JSON.parse(rejected.response).error.status,
             origin: 'spotify.resume()',
@@ -20295,7 +20254,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
           }(),
           // state.position must be greater than the set position but less than the difference in time it took to call and resolve
           stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
-          success: {},
           error: {
             //code: JSON.parse(rejected.response).error.status,
             origin: 'spotify.seek()',
@@ -20325,7 +20283,6 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
             return command;
           }(),
           stateCondition: state => state.volume === volume,
-          success: {},
           error: {
             //code: JSON.parse(rejected.response).error.status,
             origin: 'spotify.seek()',
@@ -20354,12 +20311,11 @@ spotify.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
-/* harmony import */ var _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/legacy-classes/success.js */ "./source/shared/legacy-classes/success.js");
-/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
-/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../client/entities/index.js */ "./source/client/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _source_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../source.js */ "./source/client/source.js");
+/* harmony import */ var _playback_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../playback.js */ "./source/client/playback.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -20377,8 +20333,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
-var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
+var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_4__["default"]({
   name: 'youtube',
   register: true,
   idPrefix: 'https://www.youtube.com/watch?v=',
@@ -20393,7 +20348,7 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
       //OLD alternative option was to use waitForCondition({condition: () => window.gapi !== undefined, timeout: Playback.requestTimeout});
       //! in case this is called more than once (where the script won't set gapi a second time), store gapi onto its temporary gapi2
       window.gapi2 = window.gapi;
-      var loaded = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_6__["default"].requestTimeout, () => new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+      var loaded = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_5__["default"].requestTimeout, () => new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
         message: 'gapi loading timed out'
       }));
       Object.defineProperty(window, 'gapi', {
@@ -20519,14 +20474,14 @@ var youtube = new _source_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
           		4. Creating new keys.
           	//L See here: https://stackoverflow.com/a/27491718
           */
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
             userMessage: 'YouTube credentials are invalid.',
             state: rejected
           });
         } else {
           throw rejected;
         }
-      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
+      }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
     })();
   }
 
@@ -20586,7 +20541,7 @@ youtube.search = /*#__PURE__*/function () {
     });
 
     if (searchResults.length !== videoResult.result.items.length) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
         message: 'search result length not equal to video result length',
         state: {
           searchLength: searchResults.length,
@@ -20598,7 +20553,7 @@ youtube.search = /*#__PURE__*/function () {
     videoResult.result.items.forEach((item, index) => {
       // ensure that ids line up
       if (searchResults[index].id.videoId !== item.id) {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
           message: "search and video results at ".concat(index, " do not have the same id")
         });
       } // append contentDetails part to the search results
@@ -20614,7 +20569,7 @@ youtube.search = /*#__PURE__*/function () {
         snippet,
         contentDetails
       } = _ref3;
-      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"](_objectSpread({
+      return new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Track"](_objectSpread({
         source: youtube,
         //! this is causing issues with fClone, its throwing a cross origin error
         sourceId: id,
@@ -20628,7 +20583,7 @@ youtube.search = /*#__PURE__*/function () {
   };
 }();
 
-youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
+youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_5__["default"]({
   state: {
     source: youtube
   },
@@ -20638,7 +20593,7 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
         // load youtube iframe api
         yield runHTMLScript('https://www.youtube.com/iframe_api'); //TODO choose timeout
 
-        var deferred = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_6__["default"].requestTimeout, () => new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+        var deferred = new Deferred().timeout(_playback_js__WEBPACK_IMPORTED_MODULE_5__["default"].requestTimeout, () => new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
           message: 'youtube iframe player load timed out'
         }));
 
@@ -20664,11 +20619,8 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
                 onReady(event) {
                   return _asyncToGenerator(function* () {
                     //TODO handle error?
-                    yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__["default"]);
-                    deferred.resolve(new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-                      origin: 'youtube loadPlayer()',
-                      reason: 'youtube iframe player loaded'
-                    }));
+                    yield context.dispatch('checkPlayback').catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
+                    deferred.resolve();
                   })();
                 },
 
@@ -20746,13 +20698,8 @@ youtube.playback = new _playback_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
           }
         }
 
-        state.track = new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Track"](track);
+        state.track = new _client_entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Track"](track);
         context.commit('setState', state);
-        return new _shared_legacy_classes_success_js__WEBPACK_IMPORTED_MODULE_2__["Success"]({
-          origin: 'youtube module action - checkPlayback()',
-          message: 'youtube playback updated',
-          content: state
-        });
       })();
     },
 
@@ -20833,7 +20780,7 @@ youtube.formatContentDetails = function (contentDetails) {
   var pack = {};
 
   if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(snippet)) {
-    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
       message: 'snippet is not an object'
     });
   } // assuming title format of 'Artist - Title'
@@ -39731,37 +39678,6 @@ _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
   }
 
 });
-
-/***/ }),
-
-/***/ "./source/shared/legacy-classes/success.js":
-/*!*************************************************!*\
-  !*** ./source/shared/legacy-classes/success.js ***!
-  \*************************************************/
-/*! exports provided: Success */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Success", function() { return Success; });
-/* harmony import */ var _base_result_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./base-result.js */ "./source/shared/legacy-classes/base-result.js");
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-// SUCCESS // success and error objects are returned from functions (mostly async ones)
-
-
-class Success extends _base_result_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    super(options);
-    var {
-      timestamp
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].writable(this, {
-      timestamp
-    });
-  }
-
-}
 
 /***/ }),
 

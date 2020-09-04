@@ -27,9 +27,6 @@
 import {
 	Track,
 } from './entities/index.js';
-import {
-	Success,
-} from '../shared/legacy-classes/success.js';
 import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	asyncMap,
@@ -87,10 +84,7 @@ define.constant(Command.prototype, {
 	fullResolve(success) {
 		// Resolve collapsed commands.
 		this.collapsedCommands.forEach((collapsedCommand) => {
-			collapsedCommand.resolve(new Success({
-				origin: 'resolvePlus()',
-				reason: 'command was collapsed',
-			}));
+			collapsedCommand.resolve();
 		});
 		// Resolve self.
 		this.resolve(success);
@@ -98,10 +92,7 @@ define.constant(Command.prototype, {
 	fullReject(error) {
 		//! RESOLVE collapsed commands.
 		this.collapsedCommands.forEach((collapsedCommand) => {
-			collapsedCommand.resolve(new Success({
-				origin: 'resolvePlus()',
-				reason: 'command was collapsed',
-			}));
+			collapsedCommand.resolve();
 		});
 		// Reject self.
 		this.reject(error);

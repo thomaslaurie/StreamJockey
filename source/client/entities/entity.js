@@ -9,11 +9,9 @@ import {
 	pick,
 	define,
 } from '../../shared/utility/index.js';
-import {
-	Success,
-} from '../../shared/legacy-classes/success.js';
+import BaseResult from '../../shared/legacy-classes/base-result.js';
 
-export default class Entity extends Success {
+export default class Entity extends BaseResult {
 	constructor(...args) {
 		entityParts.intercept(...args);
 		super(...args);

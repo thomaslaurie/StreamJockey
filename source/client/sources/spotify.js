@@ -9,9 +9,6 @@ import {
 import request from '../../shared/request.js';
 import serverRequest from '../server-request.js';
 import {
-	Success,
-} from '../../shared/legacy-classes/success.js';
-import {
 	Track,
 } from '../../client/entities/index.js';
 import {
@@ -68,11 +65,6 @@ const spotify = new Source({
 		this.credentials.accessToken = tokens.accessToken;
 		this.credentials.expires = tokens.accessToken;
 		this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
-	
-		return new Success({
-			origin: 'spotify.auth()',
-			message: 'authorized spotify',
-		});
 		
 		//TODO there needs to be a scopes (permissions) check in here somewhere
 	
@@ -252,8 +244,7 @@ spotify.playback = new Playback({
 					},
 					player.awaitState = async function ({
 						command = () => {}, 
-						stateCondition = () => false, 
-						success = {}, 
+						stateCondition = () => false,
 						error = {}, 
 						timeoutError = new Error('awaitState timed out')
 					}) {
@@ -267,7 +258,7 @@ spotify.playback = new Playback({
 									// update playback state
 									await context.dispatch('updatePlayback', state);
 									// resolve
-									resolve(new Success(success));
+									resolve();
 									// prevent other exit points from executing their code
 									resolved = true;
 								}
@@ -292,7 +283,7 @@ spotify.playback = new Playback({
 							await context.dispatch('checkPlayback');
 							if (!resolved && stateCondition(context.state)) {
 								this.removeListener('player_state_changed', callback);
-								resolve(new Success(success));
+								resolve();
 								resolved = true;
 							}
 							
@@ -379,11 +370,7 @@ spotify.playback = new Playback({
 						// ensure that playback is not playing
 						await context.dispatch('pause');
 
-						resolve(new Success({
-							origin: 'spotify.loadPlayer()',
-							message: 'spotify player loaded',
-							content: player,
-						}));
+						resolve();
 					});
 					player.on('not_ready', ({device_id}) => {
 						//? don't know what to do here
@@ -683,11 +670,6 @@ spotify.playback = new Playback({
 				);
 			*/
 			context.commit('setState', newState);
-			return new Success({
-				origin: 'spotify module command - updatePlayback()',
-				message: 'spotify playback updated',
-				content: newState,
-			});
 		},
 		async checkPlayback(context) {
 			// retrieves playback from api and updates it
@@ -703,11 +685,6 @@ spotify.playback = new Playback({
 			});
 
 			await context.dispatch('updatePlayback', state);
-			return new Success({
-				origin: 'spotify module command - checkPlayback()',
-				message: 'spotify playback checked',
-				content: context.state,
-			});
 		},
 		
 		//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
@@ -730,7 +707,6 @@ spotify.playback = new Playback({
 					state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration &&
 					state.track.sourceId === context.state.track.sourceId
 				),
-				success: {},
 				error: {
 					//code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.start()',
@@ -747,8 +723,6 @@ spotify.playback = new Playback({
 			return await player.awaitState({
 				command: async () => await player.pause(),
 				stateCondition: state => state.isPlaying === false,
-				success: {
-				},
 				error: {
 					//code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.pause()',
@@ -762,9 +736,6 @@ spotify.playback = new Playback({
 			return await player.awaitState({
 				command: async () => await player.resume(),
 				stateCondition: state => state.isPlaying === true,
-				success: {
-
-				},
 				error: {
 					//code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.resume()',
@@ -782,9 +753,6 @@ spotify.playback = new Playback({
 				command: async () => await player.seek(ms),
 				// state.position must be greater than the set position but less than the difference in time it took to call and resolve
 				stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
-				success: {
-
-				},
 				error: {
 					//code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.seek()',
@@ -798,9 +766,6 @@ spotify.playback = new Playback({
 			return await player.awaitState({
 				command: async () => await player.setVolume(volume),
 				stateCondition: state => state.volume === volume,
-				success: {
-
-				},
 				error: {
 					//code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.seek()',

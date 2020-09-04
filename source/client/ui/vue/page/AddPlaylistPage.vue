@@ -22,7 +22,7 @@
         },
         methods: {
             async submit() {
-				const currentUser = await session.get().then((result) => result.content);
+				const currentUser = await session.get();
                 const playlist = await Playlist.add({
                     userId: currentUser.id,
                     ...this,

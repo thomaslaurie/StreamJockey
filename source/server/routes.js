@@ -89,9 +89,6 @@ import {
 	ParseError, InvalidStateError,
 } from '../shared/errors/index.js';
 import {
-	Success,
-} from '../shared/legacy-classes/success.js';
-import {
 	User,
 	Playlist,
 	Track,
@@ -197,10 +194,7 @@ export default function routes({replaceIndex}) {
 		})
 
 		.post('/log', async (ctx, next) => {
-			ctx.response.body = new Success({
-				origin: 'routes.js /log POST',
-				message: 'received client log message',
-			});
+			ctx.response.body = 'received client log message';
 		})
 
 		// auth

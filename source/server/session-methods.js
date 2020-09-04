@@ -6,9 +6,6 @@ import {
 	User,
 } from './entities/index.js';
 import {
-	Success,
-} from '../shared/legacy-classes/success.js';
-import {
 	rules,
 } from '../shared/utility/index.js';
 import PostgresError from './errors/postgres-error.js';
@@ -57,11 +54,7 @@ export async function login(db, ctx, user) {
 	});
 
 	ctx.session.user = new User(user);
-	return new Success({
-		origin: 'login()',
-		message: 'user logged in',
-		content: ctx.session.user,
-	});
+	return ctx.session.user;
 }
 
 // READ
@@ -70,10 +63,7 @@ export async function get(ctx) {
 		//TODO Temporary until route error handling can be reworked.
 		console.log('Error in server api session.get()', rejected);
 	});
-	return new Success({
-		origin: 'getMe()',
-		content: ctx.session.user,
-	});
+	return ctx.session.user;
 }
 
 // UPDATE
@@ -82,13 +72,9 @@ export async function get(ctx) {
 // DELETE
 export async function logout(ctx) {
 	delete ctx.session.user;
-	return new Success({
-		origin: 'logout()',
-		message: 'user logged out',
-	});
 }
 
-
+//TODO Consider converting this to a boolean response.
 async function isLoggedIn(ctx) {
 	if (!(ctx.session.user instanceof User || ctx.session.user?.constructorName === 'User') || !rules.integer.test(ctx.session.user?.id)) {
 		throw new CustomError({
@@ -100,9 +86,4 @@ async function isLoggedIn(ctx) {
 	rules.integer.validate(ctx.session.user.id);
 
 	//TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
-
-	return new Success({
-		origin: 'isLoggedIn()',
-		message: 'user is logged in',
-	});
 }

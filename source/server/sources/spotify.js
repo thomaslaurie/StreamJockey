@@ -180,7 +180,7 @@ Object.assign(spotify, {
 
 		// store refresh token in database
 		// while the client triggers the refresh of the accessToken (so that the server doesn't have to keep track of which users are online), the refreshToken is stored server side so that the user doesn't have to re-auth between sessions
-		let me = await session.get(ctx).then((result) => result.content);
+		let me = await session.get(ctx);
 		await User.edit({ id: me.id, spotifyRefreshToken: result.refresh_token }).then(resolved => {
 		});
 
@@ -195,7 +195,7 @@ Object.assign(spotify, {
 	},
 	refreshToken: async function (ctx) {
 		// get the refresh token from the database
-		let me = await session.get(ctx).then((result) => result.content);
+		let me = await session.get(ctx);
 		let refreshToken = await User.get(me).then((result) => result.content).then(one).then(resolved => resolved.spotifyRefreshToken);
 
 		// if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()

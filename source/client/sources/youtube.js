@@ -3,9 +3,6 @@ import {
 } from '../../shared/utility/index.js';
 import serverRequest from '../server-request.js';
 import {
-	Success,
-} from '../../shared/legacy-classes/success.js';
-import {
 	Track,
 } from '../../client/entities/index.js';
 import {
@@ -286,10 +283,7 @@ youtube.playback = new Playback({
 							async onReady(event) {
 								//TODO handle error?
 								await context.dispatch('checkPlayback').catch(propagate);
-								deferred.resolve(new Success({
-									origin: 'youtube loadPlayer()',
-									reason: 'youtube iframe player loaded',
-								}));
+								deferred.resolve();
 							},
 							async onStateChange(event) {
 								//! onStateChange event only has the playbackState data, checkPlayback gets this anyways
@@ -368,11 +362,6 @@ youtube.playback = new Playback({
 
 
 			context.commit('setState', state);
-			return new Success({
-				origin: 'youtube module action - checkPlayback()',
-				message: 'youtube playback updated',
-				content: state,
-			});
 		},
 
 

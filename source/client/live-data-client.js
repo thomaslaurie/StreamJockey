@@ -814,14 +814,14 @@ export default {
 				query,
 				options,
 			});
-			// unsubscribe from old //! don't await here, we want the swap to happen as quick as possible 
-			context.dispatch('unsubscribe', {subscription, strict}); 
+			// unsubscribe from old //! don't await here, we want the swap to happen as quick as possible.
+			context.dispatch('unsubscribe', {subscription, strict});
 			// return new subscription
 			return newSubscription;
 		},
 		async update(context, {
-			Entity: TargetEntity, 
-			query, 
+			Entity: TargetEntity,
+			query,
 			timestamp,
 		}) {
 			// validate
@@ -890,7 +890,7 @@ export default {
 						resolve(result);
 					}
 				});
-			}).then((result) => result.content).catch(propagate);
+			}).catch(propagate);
 		},
 		async serverUnsubscribe(context, {table, query}) {
 			await new Promise((resolve, reject) => {
@@ -908,7 +908,7 @@ export default {
 						resolve(result);
 					}
 				});
-			}).then((result) => result.content).catch(propagate);
+			}).catch(propagate);
 		},
 		async reconnect(context) {
 			for (const table in context.state.tables) {

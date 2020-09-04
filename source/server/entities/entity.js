@@ -8,9 +8,6 @@ import {
 } from '../../shared/utility/index.js';
 import database from '../db.js';
 import {
-	Success,
-} from '../../shared/legacy-classes/success.js';
-import {
 	entityParts,
 } from '../../shared/entityParts/index.js';
 import propagate from '../../shared/propagate.js';
@@ -25,9 +22,10 @@ import {
 } from '../../shared/errors/index.js';
 import ContentContainer from '../../shared/content-container.js';
 import PostgresError from '../errors/postgres-error.js';
+import BaseResult from '../../shared/legacy-classes/base-result.js';
 
 
-export default class Entity extends Success {
+export default class Entity extends BaseResult {
 	constructor(...args) {
 		entityParts.intercept(...args);
 		super(...args);

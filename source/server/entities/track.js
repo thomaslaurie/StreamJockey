@@ -7,9 +7,6 @@ import {
 	define,
 } from '../../shared/utility/index.js';
 import database, {pgp} from '../db.js';
-import {
-	Success,
-} from '../../shared/legacy-classes/success.js';
 import Source from '../../server/source.js';
 import {
 	trackParts,
@@ -195,20 +192,20 @@ define.constant(Track, {
 
 				// get current playlist by playlistId if action === 'add', else by track.id using a sub-query
 				//L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
-				const currentQuery = action === 'Add' 
-				? pgp.as.format(`
-					SELECT "id", "position", "playlistId"
-					FROM "sj"."tracks" 
-					WHERE "playlistId" = $1
-				`, track.playlistId)
-				: pgp.as.format(`
-					SELECT "id", "position", "playlistId"
-					FROM "sj"."tracks" 
-					WHERE "playlistId" = (
-						SELECT "playlistId"
-						FROM "sj"."tracks"
-						WHERE "id" = $1
-					)
+				const currentQuery = action === 'Add'
+					? pgp.as.format(`
+						SELECT "id", "position", "playlistId"
+						FROM "sj"."tracks" 
+						WHERE "playlistId" = $1
+					`, track.playlistId)
+					: pgp.as.format(`
+						SELECT "id", "position", "playlistId"
+						FROM "sj"."tracks" 
+						WHERE "playlistId" = (
+							SELECT "playlistId"
+							FROM "sj"."tracks"
+							WHERE "id" = $1
+						)
 				`, track.id);
 				const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
 					throw new PostgresError({
@@ -225,12 +222,12 @@ define.constant(Track, {
 					delete t.playlistId;
 				});
 
-				
+
 				if (!rules.integer.test(track.playlistId) || track.playlistId === currentPlaylistStored.id) { 
 					// if not switching playlists
 					// group by action
 					currentPlaylistStored['inputsTo'+action].push(track);
-				} else { 
+				} else {
 					// if switching playlists
 					// this should catch tracks with playlistIds but no position
 					const anotherPlaylist = await t.any(`
@@ -253,16 +250,11 @@ define.constant(Track, {
 					currentPlaylistStored.inputsToRemove.push(track);
 					anotherPlaylistStored.inputsToAdd.push(track);
 				}
-
-				return new Success({
-					origin: 'Track.order()',
-					message: "retrieved track's playlist",
-				});
 			}).catch((rejected) => {
 				throw new MultipleErrors({
 					userMessage: `could not retrieve some track's playlist`,
 					errors: rejected,
-				})
+				});
 			});
 
 			//console.log('playlists.length:', playlists.length, '\n ---');

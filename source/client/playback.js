@@ -8,9 +8,6 @@ import {
 	Track,
 } from './entities/index.js';
 import {
-	Success,
-} from '../shared/legacy-classes/success.js';
-import {
 	Subscription,
 } from '../shared/live-data.js';
 import {
@@ -125,11 +122,6 @@ define.constant(Playback, {
 						&& progress  <=  (Date.now() - timeBefore) / duration
 					);
 				},
-			});
-
-			return new Success({
-				origin: 'sj.Playback.baseActions.start()',
-				reason: 'start command completed',
 			});
 		},
 
@@ -301,10 +293,7 @@ define.constant(Playback, {
 			if (push) {
 				context.commit('pushQueuedCommand', command);
 			} else {
-				command.fullResolve(new Success({
-					origin: 'pushCommand()',
-					reason: 'command was annihilated',
-				}));
+				command.fullResolve();
 			}
 
 			// Send next command.

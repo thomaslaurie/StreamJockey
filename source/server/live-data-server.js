@@ -17,9 +17,6 @@ import fclone from 'fclone';
 // INTERNAL
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
 import {
-	Success,
-} from '../shared/legacy-classes/success.js';
-import {
 	Entity,
 	User,
 	Playlist,
@@ -195,11 +192,7 @@ const liveDataServer = {
 		// Update user.
 		Object.assign(subscription.user, user);
 
-		return new Success({
-			origin: 'addSubscriber()',
-			message: 'added subscriber',
-			content: processedQuery,
-		});
+		return processedQuery;
 	},
 	async remove(Entity, query, user) {
 		//? if the client unsubscribes on the client-side but is unable to unsubscribe on the server-side, the subscription will sit there (and send messages) until the client disconnects, is this ok? maybe consider a timeout system?
@@ -252,12 +245,8 @@ const liveDataServer = {
 		if (liveQuery.subscriptions.length <= 0) {
 			this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
 		}
-
-		return new Success({
-			origin: 'removeSubscriber()',
-			message: 'removed subscriber',
-			content: processedQuery,
-		});
+		
+		return processedQuery;
 	},
 
 	async notify(Entity, entities, timestamp) {
