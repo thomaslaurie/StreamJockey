@@ -7,7 +7,9 @@ import {
 
 export default new ClassParts({
 	instance(options = {}) {
-		const {id} = options;
+		const {
+			id,
+		} = options;
 
 		define.writable(this, {
 			id,

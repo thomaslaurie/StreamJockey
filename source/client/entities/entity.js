@@ -9,12 +9,10 @@ import {
 	pick,
 	define,
 } from '../../shared/utility/index.js';
-import BaseResult from '../../shared/legacy-classes/base-result.js';
 
-export default class Entity extends BaseResult {
+export default class Entity {
 	constructor(...args) {
 		entityParts.intercept(...args);
-		super(...args);
 		entityParts.instance(this, ...args);
 	}
 }

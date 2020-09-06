@@ -589,6 +589,10 @@ export default {
 			}
 
 			// fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
+			/* //TODO
+				This is the only place 'timestamp' is used, and is why wrapping results in a ContentContainer in Entity.frame is required. This is a timestamp for the entire set, must figure out a way to elegantly extract this. Maybe create base crud methods that preserve the metadata (timestamp) and normal ones that strip it away.
+				When fixing this, rename the ContentContainer to something like 'query container' or something.
+			*/
 			const {content: entities, timestamp} = await Entity.get(query);
 			// give the liveQuery the timestamp of the new data
 			context.commit('setLiveQuery', {liveQuery, timestamp});

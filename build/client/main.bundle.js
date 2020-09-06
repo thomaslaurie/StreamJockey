@@ -16363,7 +16363,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _server_request_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../server-request.js */ "./source/client/server-request.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_legacy_classes_base_result_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/legacy-classes/base-result.js */ "./source/shared/legacy-classes/base-result.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -16372,15 +16371,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
-class Entity extends _shared_legacy_classes_base_result_js__WEBPACK_IMPORTED_MODULE_3__["default"] {
+class Entity {
   constructor() {
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].intercept(...args);
-    super(...args);
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].instance(this, ...args);
   }
 
@@ -17306,6 +17303,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           });
           return pack;
         } // fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
+
+        /* //TODO
+        	This is the only place 'timestamp' is used, and is why wrapping results in a ContentContainer in Entity.frame is required. This is a timestamp for the entire set, must figure out a way to elegantly extract this. Maybe create base crud methods that preserve the metadata (timestamp) and normal ones that strip it away.
+        	When fixing this, rename the ContentContainer to something like 'query container' or something.
+        */
 
 
         var {
@@ -39587,97 +39589,6 @@ __webpack_require__.r(__webpack_exports__);
 });
 ; // Things that are matching constructorName
 // User, Track
-
-/***/ }),
-
-/***/ "./source/shared/legacy-classes/base-result.js":
-/*!*****************************************************!*\
-  !*** ./source/shared/legacy-classes/base-result.js ***!
-  \*****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BaseResult; });
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/index.js */ "./source/shared/utility/index.js");
-function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
-
-function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
-
-
-class BaseResult {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-    var {
-      // debug
-      log = false,
-      // info
-      code = 200,
-      type = 'Ok',
-      origin = '',
-      trace = '',
-      // //! this traces when the object is created, not where announce is called - this might have to be changed, this on create property could replace origin though
-      // content
-      message = '',
-      reason = '',
-      content = {}
-    } = options,
-        rest = _objectWithoutProperties(options, ["log", "code", "type", "origin", "trace", "message", "reason", "content"]);
-
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
-      log,
-      code,
-      type,
-      origin,
-      trace,
-      message,
-      reason,
-      content // ...rest, this causes issues, child class instances (User) will become very large and take very long to stringify
-
-    });
-  }
-
-}
-_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult.prototype, {
-  announce() {
-    //R this replaces a need to log the result of functions and removes the intermediate steps need to do so (let result = new Object;, log;, return;)
-    console.log("\u25AE\n".concat(this.constructorName, " ").concat(this.origin, " ").concat(this.message, "\n").concat(this.constructor.trace(), "\n\u25AE")); //OLD//! Don't add these back in, they will be a circular dependency.
-    // if (this instanceof Error) {
-    // 	console.error(`✗ ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ ✗ `);
-    // } else if (this instanceof Warn) {
-    // 	console.warn(`W ▮ ${this.constructorName} ${this.origin} ${this.message} \n`, this, `\n▮ W `);
-    // } else {
-    // 	console.log(`✓ ▮ ${this.constructorName} ${this.origin} ${this.message}\n${this.trace()}`); //
-    // }
-  }
-
-});
-_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(BaseResult, {
-  allowUnknown: false,
-
-  trace() {
-    try {
-      throw Error('');
-    } catch (e) {
-      //TODO figure out how to properly display newlines as strings inside objects
-      // get stack
-      var stackTrace0 = e.stack; // 'file:///' is removed (so that the URIs are clickable in node)
-
-      var stackTrace1 = replaceAll(stackTrace0, 'file:///', ''); // remove leading 'Error\n    ', to reduce confusion because trace isn't an error
-
-      var stackTrace2 = replaceAll(stackTrace1, 'Error\n', ''); // removes any line with Object.sj.trace
-
-      var ignore = ['Object.sj.trace', 'new Base', 'new Error', 'Object.sj.catchUnexpected', 'Object.sj.propagate', 'sj.Error.announce'];
-      ignore = replaceAll(ignore.join('|'), '.', '\.');
-      var exp = new RegExp("(?:(?:\\n|\n|\r|$)* *at(?: |\\n|\n|\r|$))(?:".concat(ignore, ")(?:.+?(?=\\n|\n|\r|$))"), 'g');
-      var stackTrace3 = replaceAll(stackTrace2, exp, '');
-      return stackTrace0;
-    }
-  }
-
-});
 
 /***/ }),
 
