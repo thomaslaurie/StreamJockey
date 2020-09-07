@@ -18,9 +18,9 @@ import {
 } from '../database/sql-builders.js';
 import isEmpty from '../legacy/is-empty.js';
 import {
-	MultipleErrors,
+	MultipleErrors, CustomError,
 } from '../../shared/errors/index.js';
-import ContentContainer from '../../shared/content-container.js';
+import MetadataContainer from '../../shared/timestamped-data.js';
 import PostgresError from '../errors/postgres-error.js';
 
 
@@ -34,17 +34,17 @@ entityParts.prototype(Entity);
 entityParts.static(Entity);
 
 define.constant(Entity.prototype, {
-	async add(db) {
-		return this.constructor.add(this, db);
+	async add(...args) {
+		return this.constructor.add(this, ...args);
 	},
-	async get(db) {
-		return this.constructor.get(this, db);
+	async get(...args) {
+		return this.constructor.get(this, ...args);
 	},
-	async edit(db) {
-		return this.constructor.edit(this, db);
+	async edit(...args) {
+		return this.constructor.edit(this, ...args);
 	},
-	async remove(db) {
-		return this.constructor.remove(this, db);
+	async remove(...args) {
+		return this.constructor.remove(this, ...args);
 	},
 });
 define.writable(Entity, {
@@ -54,19 +54,24 @@ define.writable(Entity, {
 });
 define.constant(Entity, {
 	// CRUD METHODS
-	async add(query, db = database) {
-		return this.frame(db, query, 'add');
+	async add(query, {db = database, includeMetadata = false} = {}) {
+		return this.frame(db, query, 'add')
+			.then((result) => (includeMetadata ? result : result.data));
 	},
-	async get(query, db = database) {
-		return this.frame(db, query, 'get');
+	async get(query, {db = database, includeMetadata = false} = {}) {
+		return this.frame(db, query, 'get')
+			.then((result) => (includeMetadata ? result : result.data));
 	},
-	async edit(query, db = database) {
-		return this.frame(db, query, 'edit');
+	async edit(query, {db = database, includeMetadata = false} = {}) {
+		return this.frame(db, query, 'edit')
+			.then((result) => (includeMetadata ? result : result.data));
 	},
-	async remove(query, db = database) {
-		return this.frame(db, query, 'remove');
+	async remove(query, {db = database, includeMetadata = false} = {}) {
+		return this.frame(db, query, 'remove')
+			.then((result) => (includeMetadata ? result : result.data));
 	},
-	async getMimic(query, db = database) {
+
+	async getMimic(query, {db = database} = {}) {
 		// getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
 		return this.frame(db, query, 'getMimic');
 	},
@@ -74,9 +79,11 @@ define.constant(Entity, {
 	// FRAME
 	async frame(db, anyEntities, methodName) {
 		// catch Entity
-		if (this === Entity) throw new CustomError({
-			message: `cannot call CRUD method directly on Entity`,
-		});
+		if (this === Entity) {
+			throw new CustomError({
+				message: `cannot call CRUD method directly on Entity`,
+			});
+		}
 
 		// cast as array
 		const entities = any(anyEntities);
@@ -87,7 +94,7 @@ define.constant(Entity, {
 		const isGet = methodName === 'get';
 
 		const accessory = {};
-		
+
 
 		const after = await db.tx(async t => {
 			// process
@@ -165,9 +172,9 @@ define.constant(Entity, {
 		// rebuild
 		const built = shook.map(list => list.map(entity => new this(entity)));
 
-		return new ContentContainer({
+		return new MetadataContainer({
 			//R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
-			content: built[1],
+			data: built[1],
 			timestamp,
 		});
 	},

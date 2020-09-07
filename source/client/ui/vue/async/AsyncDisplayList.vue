@@ -62,7 +62,7 @@
         methods: {
 			// OVERWRITES
 			async deadRefresh() {
-				this.deadContent = await this.Entity.get(this.query).then((result) => result.content).then(any);
+				this.deadContent = await this.Entity.get(this.query).then(any);
 			},		
         },
 

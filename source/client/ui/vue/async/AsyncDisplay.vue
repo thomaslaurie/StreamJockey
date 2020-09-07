@@ -202,7 +202,7 @@ import { CustomError, InvalidStateError } from '../../../../shared/errors/index.
 			},
 			async deadRefresh() {
 				//! one item here, uses any() in AsyncDisplayList
-				this.deadContent = await this.Entity.get(this.query).then((result) => result.content).then(one);
+				this.deadContent = await this.Entity.get(this.query).then(one);
 			},
 
             handleSuccess(resolved) {

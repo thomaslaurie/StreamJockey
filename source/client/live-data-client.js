@@ -588,12 +588,8 @@ export default {
 				return pack;
 			}
 
-			// fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
-			/* //TODO
-				This is the only place 'timestamp' is used, and is why wrapping results in a ContentContainer in Entity.frame is required. This is a timestamp for the entire set, must figure out a way to elegantly extract this. Maybe create base crud methods that preserve the metadata (timestamp) and normal ones that strip it away.
-				When fixing this, rename the ContentContainer to something like 'query container' or something.
-			*/
-			const {content: entities, timestamp} = await Entity.get(query);
+			// fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions.
+			const {data: entities, timestamp} = await Entity.get(query, {includeMetadata: true});
 			// give the liveQuery the timestamp of the new data
 			context.commit('setLiveQuery', {liveQuery, timestamp});
 			// updated is triggered only after entities are successfully retrieved from the server
@@ -612,7 +608,7 @@ export default {
 					}
 				}
 			}
-			
+
 			// for each retrieved entity
 			for (const entity of entities) { //! not async for each, these need to be synchronous
 				// add it's cachedEntity (won't add if it already exists)

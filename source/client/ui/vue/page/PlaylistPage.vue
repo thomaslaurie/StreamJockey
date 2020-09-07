@@ -38,7 +38,7 @@
         methods: {
 			// NEW
             async search() {
-				this.searchResults = await spotify.search(this.searchTerm).then((result) => result.content);
+				this.searchResults = await spotify.search(this.searchTerm);
 			},
 			async add(track) { // add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
 				track.playlistId = this.content.id;

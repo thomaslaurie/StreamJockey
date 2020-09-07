@@ -20,47 +20,47 @@ entityParts.prototype(Entity);
 entityParts.static(Entity);
 
 define.constant(Entity.prototype, {
-	async add() {
-		return this.constructor.add(this);
+	async add(...args) {
+		return this.constructor.add(this, ...args);
 	},
-	async get() {
-		return this.constructor.get(this);
+	async get(...args) {
+		return this.constructor.get(this, ...args);
 	},
-	async edit() {
+	async edit(...args) {
 		//! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited.
-		return this.constructor.edit(this);
+		return this.constructor.edit(this, ...args);
 	},
-	async remove() {
-		return this.constructor.remove(this);
+	async remove(...args) {
+		return this.constructor.remove(this, ...args);
 	},
 });
 define.constant(Entity, {
-	async add(query) {
+	async add(query, {includeMetadata = false} = {}) {
 		return serverRequest(
 			'POST',
 			this.table,
 			any(query).map((q) => pick(q, this.filters.addIn)),
-		);
+		).then((result) => (includeMetadata ? result : result.data));
 	},
-	async get(query) {
+	async get(query, {includeMetadata = false} = {}) {
 		return serverRequest(
 			'GET',
 			this.table,
 			any(query).map((q) => pick(q, this.filters.getIn)),
-		);
+		).then((result) => (includeMetadata ? result : result.data));
 	},
-	async edit(query) {
+	async edit(query, {includeMetadata = false} = {}) {
 		return serverRequest(
 			'PATCH',
 			this.table,
 			any(query).map((q) => pick(q, this.filters.editIn)),
-		);
+		).then((result) => (includeMetadata ? result : result.data));
 	},
-	async remove(query) {
+	async remove(query, {includeMetadata = false} = {}) {
 		return serverRequest(
 			'DELETE',
 			this.table,
 			any(query).map((q) => pick(q,  this.filters.removeIn)),
-		);
+		).then((result) => (includeMetadata ? result : result.data));
 	},
 });

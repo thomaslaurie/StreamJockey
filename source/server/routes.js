@@ -244,44 +244,44 @@ export default function routes({replaceIndex}) {
 		//TODO condense this
 		// user
 		.post(`/${User.table}`, async (ctx, next) => {
-			ctx.response.body = await User.add(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await User.add(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.get(`/${User.table}`, async (ctx, next) => {
-			ctx.response.body = await User.get(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await User.get(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.patch(`/${User.table}`, async (ctx, next) => {
-			ctx.response.body = await User.edit(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await User.edit(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.delete(`/${User.table}`, async (ctx, next) => {
-			ctx.response.body = await User.remove(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await User.remove(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 
 		// playlist
 		.post(`/${Playlist.table}`, async (ctx, next) => {
-			ctx.response.body = await Playlist.add(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Playlist.add(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.get(`/${Playlist.table}`, async (ctx, next) => {
-			ctx.response.body = await Playlist.get(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Playlist.get(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.patch(`/${Playlist.table}`, async (ctx, next) => {
-			ctx.response.body = await Playlist.edit(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Playlist.edit(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.delete(`/${Playlist.table}`, async (ctx, next) => {
-			ctx.response.body = await Playlist.remove(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Playlist.remove(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 
 		// track
 		.post(`/${Track.table}`, async (ctx, next) => {
-			ctx.response.body = await Track.add(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Track.add(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.get(`/${Track.table}`, async (ctx, next) => {
-			ctx.response.body = await Track.get(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Track.get(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.patch(`/${Track.table}`, async (ctx, next) => {
-			ctx.response.body = await Track.edit(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Track.edit(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 		.delete(`/${Track.table}`, async (ctx, next) => {
-			ctx.response.body = await Track.remove(ctx.request.body).catch(returnPropagate);
+			ctx.response.body = await Track.remove(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 
 		// catch

@@ -528,7 +528,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return _asyncToGenerator(function* () {
         //! one item here, uses any() in AsyncDisplayList
-        _this3.deadContent = yield _this3.Entity.get(_this3.query).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
+        _this3.deadContent = yield _this3.Entity.get(_this3.query).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]);
       })();
     },
 
@@ -646,7 +646,7 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        _this.deadContent = yield _this.Entity.get(_this.query).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]);
+        _this.deadContent = yield _this.Entity.get(_this.query).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]);
       })();
     }
 
@@ -1121,7 +1121,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         var currentUser = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_1__["get"]();
         var playlist = yield _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Playlist"].add(_objectSpread({
           userId: currentUser.id
-        }, _this)).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
+        }, _this)).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["one"]).catch(rejected => {
           //TODO handle error
           console.error(rejected);
         });
@@ -1320,7 +1320,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this3 = this;
 
       return _asyncToGenerator(function* () {
-        _this3.result = yield _this3.Entity.add(_this3.input).then(result => result.content).catch(_this3.handle);
+        _this3.result = yield _this3.Entity.add(_this3.input).catch(_this3.handle);
       })();
     },
 
@@ -1328,7 +1328,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this4 = this;
 
       return _asyncToGenerator(function* () {
-        _this4.result = yield _this4.Entity.get(_this4.input).then(result => result.content).catch(_this4.handle);
+        _this4.result = yield _this4.Entity.get(_this4.input).catch(_this4.handle);
       })();
     },
 
@@ -1336,7 +1336,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this5 = this;
 
       return _asyncToGenerator(function* () {
-        _this5.result = yield _this5.Entity.edit(_this5.input).then(result => result.content).catch(_this5.handle);
+        _this5.result = yield _this5.Entity.edit(_this5.input).catch(_this5.handle);
       })();
     },
 
@@ -1344,7 +1344,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
       var _this6 = this;
 
       return _asyncToGenerator(function* () {
-        _this6.result = yield _this6.Entity.remove(_this6.input).then(result => result.content).catch(_this6.handle);
+        _this6.result = yield _this6.Entity.remove(_this6.input).catch(_this6.handle);
       })();
     },
 
@@ -1512,7 +1512,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this = this;
 
       return _asyncToGenerator(function* () {
-        _this.searchResults = yield _sources_index_js__WEBPACK_IMPORTED_MODULE_5__["spotify"].search(_this.searchTerm).then(result => result.content);
+        _this.searchResults = yield _sources_index_js__WEBPACK_IMPORTED_MODULE_5__["spotify"].search(_this.searchTerm);
       })();
     },
 
@@ -16386,69 +16386,105 @@ _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].prototy
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_0__["entityParts"].static(Entity);
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Entity.prototype, {
   add() {
-    var _this = this;
+    var _arguments = arguments,
+        _this = this;
 
     return _asyncToGenerator(function* () {
-      return _this.constructor.add(_this);
+      for (var _len2 = _arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = _arguments[_key2];
+      }
+
+      return _this.constructor.add(_this, ...args);
     })();
   },
 
   get() {
-    var _this2 = this;
+    var _arguments2 = arguments,
+        _this2 = this;
 
     return _asyncToGenerator(function* () {
-      return _this2.constructor.get(_this2);
+      for (var _len3 = _arguments2.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = _arguments2[_key3];
+      }
+
+      return _this2.constructor.get(_this2, ...args);
     })();
   },
 
   edit() {
-    var _this3 = this;
+    var _arguments3 = arguments,
+        _this3 = this;
 
     return _asyncToGenerator(function* () {
+      for (var _len4 = _arguments3.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = _arguments3[_key4];
+      }
+
       //! instance.edit() doesn't take any arguments, and therefore isn't very useful unless the instance itself is edited.
-      return _this3.constructor.edit(_this3);
+      return _this3.constructor.edit(_this3, ...args);
     })();
   },
 
   remove() {
-    var _this4 = this;
+    var _arguments4 = arguments,
+        _this4 = this;
 
     return _asyncToGenerator(function* () {
-      return _this4.constructor.remove(_this4);
+      for (var _len5 = _arguments4.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = _arguments4[_key5];
+      }
+
+      return _this4.constructor.remove(_this4, ...args);
     })();
   }
 
 });
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Entity, {
   add(query) {
-    var _this5 = this;
+    var _arguments5 = arguments,
+        _this5 = this;
 
     return _asyncToGenerator(function* () {
-      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn)));
+      var {
+        includeMetadata = false
+      } = _arguments5.length > 1 && _arguments5[1] !== undefined ? _arguments5[1] : {};
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('POST', _this5.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this5.filters.addIn))).then(result => includeMetadata ? result : result.data);
     })();
   },
 
   get(query) {
-    var _this6 = this;
+    var _arguments6 = arguments,
+        _this6 = this;
 
     return _asyncToGenerator(function* () {
-      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn)));
+      var {
+        includeMetadata = false
+      } = _arguments6.length > 1 && _arguments6[1] !== undefined ? _arguments6[1] : {};
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('GET', _this6.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this6.filters.getIn))).then(result => includeMetadata ? result : result.data);
     })();
   },
 
   edit(query) {
-    var _this7 = this;
+    var _arguments7 = arguments,
+        _this7 = this;
 
     return _asyncToGenerator(function* () {
-      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn)));
+      var {
+        includeMetadata = false
+      } = _arguments7.length > 1 && _arguments7[1] !== undefined ? _arguments7[1] : {};
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('PATCH', _this7.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this7.filters.editIn))).then(result => includeMetadata ? result : result.data);
     })();
   },
 
   remove(query) {
-    var _this8 = this;
+    var _arguments8 = arguments,
+        _this8 = this;
 
     return _asyncToGenerator(function* () {
-      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn)));
+      var {
+        includeMetadata = false
+      } = _arguments8.length > 1 && _arguments8[1] !== undefined ? _arguments8[1] : {};
+      return Object(_server_request_js__WEBPACK_IMPORTED_MODULE_1__["default"])('DELETE', _this8.table, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["any"])(query).map(q => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["pick"])(q, _this8.filters.removeIn))).then(result => includeMetadata ? result : result.data);
     })();
   }
 
@@ -17302,18 +17338,15 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             reason: "data timestamp: ".concat(liveQuery.timestamp, ", update timestamp: ").concat(callTimestamp)
           });
           return pack;
-        } // fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions
-
-        /* //TODO
-        	This is the only place 'timestamp' is used, and is why wrapping results in a ContentContainer in Entity.frame is required. This is a timestamp for the entire set, must figure out a way to elegantly extract this. Maybe create base crud methods that preserve the metadata (timestamp) and normal ones that strip it away.
-        	When fixing this, rename the ContentContainer to something like 'query container' or something.
-        */
+        } // fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions.
 
 
         var {
-          content: entities,
+          data: entities,
           timestamp
-        } = yield Entity.get(query); // give the liveQuery the timestamp of the new data
+        } = yield Entity.get(query, {
+          includeMetadata: true
+        }); // give the liveQuery the timestamp of the new data
 
         context.commit('setLiveQuery', {
           liveQuery,

@@ -644,7 +644,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
 /* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_content_container_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/content-container.js */ "./source/shared/content-container.js");
+/* harmony import */ var _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/timestamped-data.js */ "./source/shared/timestamped-data.js");
 /* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
 // INTERNAL
 
@@ -666,20 +666,20 @@ class Entity {
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["entityParts"].prototype(Entity);
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["entityParts"].static(Entity);
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity.prototype, {
-  async add(db) {
-    return this.constructor.add(this, db);
+  async add(...args) {
+    return this.constructor.add(this, ...args);
   },
 
-  async get(db) {
-    return this.constructor.get(this, db);
+  async get(...args) {
+    return this.constructor.get(this, ...args);
   },
 
-  async edit(db) {
-    return this.constructor.edit(this, db);
+  async edit(...args) {
+    return this.constructor.edit(this, ...args);
   },
 
-  async remove(db) {
-    return this.constructor.remove(this, db);
+  async remove(...args) {
+    return this.constructor.remove(this, ...args);
   }
 
 });
@@ -691,23 +691,37 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(Entity,
 });
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
   // CRUD METHODS
-  async add(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-    return this.frame(db, query, 'add');
+  async add(query, {
+    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    includeMetadata = false
+  } = {}) {
+    return this.frame(db, query, 'add').then(result => includeMetadata ? result : result.data);
   },
 
-  async get(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-    return this.frame(db, query, 'get');
+  async get(query, {
+    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    includeMetadata = false
+  } = {}) {
+    return this.frame(db, query, 'get').then(result => includeMetadata ? result : result.data);
   },
 
-  async edit(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-    return this.frame(db, query, 'edit');
+  async edit(query, {
+    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    includeMetadata = false
+  } = {}) {
+    return this.frame(db, query, 'edit').then(result => includeMetadata ? result : result.data);
   },
 
-  async remove(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
-    return this.frame(db, query, 'remove');
+  async remove(query, {
+    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    includeMetadata = false
+  } = {}) {
+    return this.frame(db, query, 'remove').then(result => includeMetadata ? result : result.data);
   },
 
-  async getMimic(query, db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+  async getMimic(query, {
+    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]
+  } = {}) {
     // getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
     return this.frame(db, query, 'getMimic');
   },
@@ -715,9 +729,12 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   // FRAME
   async frame(db, anyEntities, methodName) {
     // catch Entity
-    if (this === Entity) throw new CustomError({
-      message: `cannot call CRUD method directly on Entity`
-    }); // cast as array
+    if (this === Entity) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+        message: `cannot call CRUD method directly on Entity`
+      });
+    } // cast as array
+
 
     const entities = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(anyEntities); // shorthand
 
@@ -789,9 +806,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
     const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); // rebuild
 
     const built = shook.map(list => list.map(entity => new this(entity)));
-    return new _shared_content_container_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+    return new _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
       //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
-      content: built[1],
+      data: built[1],
       timestamp
     });
   }
@@ -1122,7 +1139,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(newTrack.position)) {
       let existingTracks = await Track.get({
         playlistId: newTrack.playlistId
-      }, t).then(result => result.content);
+      }, {
+        db: t
+      });
       newTrack.position = existingTracks.length;
     }
 
@@ -2391,31 +2410,55 @@ function routes({
   }) //TODO condense this
   // user
   .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].add(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].get(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].edit(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["User"].remove(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }) // playlist
   .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].add(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].get(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].edit(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Playlist"].remove(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }) // track
   .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].add(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].add(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].get(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].get(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].edit(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].edit(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].table}`, async (ctx, next) => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].remove(ctx.request.body).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
+    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_10__["Track"].remove(ctx.request.body, {
+      includeMetadata: true
+    }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_11__["returnPropagate"]);
   }) // catch
   .all('/*', async (ctx, next) => {
     ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
@@ -2827,7 +2870,7 @@ Object.assign(spotify, {
   refreshToken: async function (ctx) {
     // get the refresh token from the database
     let me = await _session_methods_js__WEBPACK_IMPORTED_MODULE_6__["get"](ctx);
-    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].get(me).then(result => result.content).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); // if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
+    let refreshToken = await _entities_index_js__WEBPACK_IMPORTED_MODULE_4__["User"].get(me).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"]).then(resolved => resolved.spotifyRefreshToken); // if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
     //TODO reconsider this string test
 
     if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].visibleString.test(refreshToken)) {
@@ -2992,30 +3035,6 @@ const URL_HEADER = Object.freeze({
 });
 const GET_BODY = encodeURIComponent('body');
 const APP_NAME = 'StreamJockey'; // Only used for Spotify player right now.
-
-/***/ }),
-
-/***/ "./source/shared/content-container.js":
-/*!********************************************!*\
-  !*** ./source/shared/content-container.js ***!
-  \********************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ContentContainer; });
-/* harmony import */ var _utility__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility */ "./source/shared/utility/index.js");
-//G Should have a 'content' property, but can also be used to include metadata, like a timestamp.
-//TODO Expand into specific classes. Eg. TimestampedContent
-
-class ContentContainer {
-  constructor(options = {}) {
-    _utility__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, { ...options
-    });
-  }
-
-}
 
 /***/ }),
 
@@ -4540,6 +4559,35 @@ __webpack_require__.r(__webpack_exports__);
   }
 
 }));
+
+/***/ }),
+
+/***/ "./source/shared/timestamped-data.js":
+/*!*******************************************!*\
+  !*** ./source/shared/timestamped-data.js ***!
+  \*******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MetadataContainer; });
+/* harmony import */ var _utility__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility */ "./source/shared/utility/index.js");
+// Holds timestamp metadata for data to be transferred.
+
+class MetadataContainer {
+  constructor(options = {}) {
+    const {
+      data,
+      timestamp = null
+    } = options;
+    _utility__WEBPACK_IMPORTED_MODULE_0__["define"].constant(this, {
+      data,
+      timestamp
+    });
+  }
+
+}
 
 /***/ }),
 

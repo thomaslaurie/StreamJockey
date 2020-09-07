@@ -196,7 +196,7 @@ Object.assign(spotify, {
 	refreshToken: async function (ctx) {
 		// get the refresh token from the database
 		let me = await session.get(ctx);
-		let refreshToken = await User.get(me).then((result) => result.content).then(one).then(resolved => resolved.spotifyRefreshToken);
+		let refreshToken = await User.get(me).then(one).then(resolved => resolved.spotifyRefreshToken);
 
 		// if there isn't one, throw the specific AuthRequired error, this will be identified on the client side and trigger spotify.auth()
 		//TODO reconsider this string test

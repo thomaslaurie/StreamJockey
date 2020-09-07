@@ -65,7 +65,7 @@ define.constant(Track, {
 		// set id of tracks to be added as a temporary symbol, so that Track.order() is able to identify tracks
 		let newTrack = {...track, id: Symbol()};
 		if (!rules.integer.test(newTrack.position)) {
-			let existingTracks = await Track.get({playlistId: newTrack.playlistId}, t).then((result) => result.content);
+			let existingTracks = await Track.get({playlistId: newTrack.playlistId}, {db: t});
 			newTrack.position = existingTracks.length;
 		}
 		return newTrack;
