@@ -46,9 +46,9 @@ export default new ClassParts({
 			updateFilters() {
 				const methodNames = ['add', 'get', 'edit', 'remove'];
 				const types = ['in', 'out', 'check'];
-		
+
 				const schemaFilters = {};
-		
+
 				Object.keys(this.schema).forEach((key) => { // For each property,
 					methodNames.forEach((methodName) => {   // for each crud method,
 						types.forEach((type) => {           // for each filter type:
@@ -60,7 +60,7 @@ export default new ClassParts({
 						});
 					});
 				});
-		
+
 				this.filters = {
 					...this.filters,
 					...schemaFilters,

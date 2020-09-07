@@ -12,7 +12,7 @@
 
 
 	Build Method \ Target             | Client                          | Server
-	___________________________________________________________________________________________________________          
+	___________________________________________________________________________________________________________
 	Hot      (init + auto update)     | webpack + w-hot + server        | (webpack + w-hot + w-server) + node
 	___________________________________________________________________________________________________________
 	Refresh  (init + auto refresh)    | webpack + w-middleware + server | webpack watch + nodemon
@@ -24,7 +24,7 @@
 	Raw      (manual refresh)         | server                          | node
 
 
-	[Client x Hot] and [Client x Refresh] 
+	[Client x Hot] and [Client x Refresh]
 		Require build initialization from the server side.
 		Only useful when running client code, therefore should not be used without a running server.
 		May use a webpack-dev-server instead of the homebrew server.
@@ -68,12 +68,12 @@ import {
 } from './project-paths.js';
 
 
-//   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗ 
-//  ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝ 
+//   ██████╗ ██████╗ ███╗   ██╗███████╗██╗ ██████╗
+//  ██╔════╝██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
 //  ██║     ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
 //  ██║     ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
 //  ╚██████╗╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
-//   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝ 
+//   ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
 
 // COMMON
 const common = {
@@ -218,7 +218,7 @@ export const serverOptions = (env, argv) => ({
 			//G //! Works with default node-global config settings (replaces node: {__dirname: true}).
 			apply(compiler) {
 				function setModuleConstant(expressionName, fn) {
-					compiler.hooks.normalModuleFactory.tap('MyPlugin', factory => {
+					compiler.hooks.normalModuleFactory.tap('MyPlugin', (factory) => {
 						factory.hooks.parser.for('javascript/auto').tap('MyPlugin', (parser, _options) => {
 							parser.hooks.expression.for(expressionName).tap('MyPlugin', () => {
 								parser.state.current.addVariable(expressionName, JSON.stringify(fn(parser.state.module)));
@@ -228,8 +228,8 @@ export const serverOptions = (env, argv) => ({
 					});
 				}
 
-				setModuleConstant('__filename', (module) => module.resource);
-				setModuleConstant('__dirname',  (module) => module.context);
+				setModuleConstant('__filename', module => module.resource);
+				setModuleConstant('__dirname',  module => module.context);
 			},
 		},
 		/* //OLD If bundling node_modules:

@@ -4,7 +4,7 @@
 //TODO Create test file. Had an error where value was being compared rather than value.length.
 
 //----------
-//TODO: server source maps, better route error handling, fix error handling specifically in session.login
+//TODO : server source maps, better route error handling, fix error handling specifically in session.login
 
 import {
 	Rule,
@@ -83,7 +83,7 @@ export const password = new Rule({
 		rules.trimmedString.validate(value);
 
 		if (!(passwordMinLength <= value.length && value.length <= passwordMaxLength)) {
-			throw new Error(`Password is not between ${passwordMinLength} and ${passwordMaxLength} characters long.`)
+			throw new Error(`Password is not between ${passwordMinLength} and ${passwordMaxLength} characters long.`);
 		}
 	},
 });

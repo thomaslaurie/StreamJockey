@@ -1,8 +1,8 @@
 import {
-	nonNaNNumber
+	nonNaNNumber,
 } from './validation/rules/index.js';
 
-export default function (input, min = -Infinity, max = Infinity) {
+export default function clamp(input, min = -Infinity, max = Infinity) {
 	// Throw if input is not defined, do not default to 0.
 	// Throw on NaN, because whether NaN is 'within' the bounds is implementation dependant on whether x>y or !(x<=y) is used for comparison. The consumer should not be expected to know which.
 	nonNaNNumber.validate(input);
@@ -13,4 +13,4 @@ export default function (input, min = -Infinity, max = Infinity) {
 	else if (input < min) return min;
 	else if (input > max) return max;
 	else return input;
-};
+}

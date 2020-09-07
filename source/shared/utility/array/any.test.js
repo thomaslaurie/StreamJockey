@@ -11,5 +11,3 @@ test('value in array', (t) => {
 	const x = Symbol();
 	t.assert(any(x)[0] === x);
 });
-
-

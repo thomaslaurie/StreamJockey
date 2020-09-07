@@ -6,8 +6,8 @@ test('plain sort', (t) => {
 });
 test('compare function', (t) => {
 	t.deepEqual(
-		stableSort([[2], [1], [0]], (a, b) => a[0] - b[0]), 
-		[[0], [1], [2]]
+		stableSort([[2], [1], [0]], (a, b) => a[0] - b[0]),
+		[[0], [1], [2]],
 	);
 });
 test('stable sort', (t) => {

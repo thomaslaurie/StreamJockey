@@ -1,8 +1,8 @@
 //TODO Test functions with [value] and [object, key] parameters.
 
 import test from 'ava';
-import { 
-	Interface, 
+import {
+	Interface,
 	SymbolInterface,
 } from './interface.js';
 
@@ -15,7 +15,7 @@ test('complete interface', (t) => {
 		jump: 'jump',
 		swim: 'swim',
 		fly:  'fly',
-	}))
+	}));
 });
 
 test('incomplete interface', (t) => {
@@ -177,8 +177,6 @@ test('options are passed to Rule constructor', (t) => {
 	const foo = new Interface({}, {caster});
 	t.is(foo.caster, caster);
 });
-
-
 
 
 /* //OLD

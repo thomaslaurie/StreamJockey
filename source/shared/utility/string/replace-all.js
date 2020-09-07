@@ -1,3 +1,3 @@
-export default function (input, search, replace) {
+export default function replaceAll(input, search, replace) {
 	return input.split(search).join(replace);
-};
+}

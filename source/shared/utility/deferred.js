@@ -14,36 +14,36 @@ export default class Deferred extends Promise {
 			isCanceled: false,
 		};
 		const interceptedExecutor = (resolve, reject) => {
-			closure.resolve = function (resolved) {
+			closure.resolve = (resolved) => {
 				if (!closure.isCanceled) {
 					closure.isPending = false;
 					resolve(resolved);
 				}
 			};
-			closure.reject = function (rejected) {
+			closure.reject = (rejected) => {
 				if (!closure.isCanceled) {
 					closure.isPending = false;
 					reject(rejected);
 				}
 			};
 			return executor(resolve, reject);
-		}
-		
+		};
+
 		super(interceptedExecutor);
 
 		// INSTANCE VARIABLES
 		define.getter(this, {
 			// Read-only access to closure.isPending and closure.isCanceled.
-			get isPending()  { return closure.isPending;  },
-			get isCanceled() { return closure.isCanceled; },
+			get isPending()  { return closure.isPending  },
+			get isCanceled() { return closure.isCanceled },
 		});
 		define.constant(this, {
 			// Access to resolve/reject functions.
 			resolve: closure.resolve,
 			reject:  closure.reject,
 			// Ability to prevent promise from settling.
-			cancel() { 
-				closure.isCanceled = true; 
+			cancel() {
+				closure.isCanceled = true;
 				return this;
 			},
 			// Ability to set automatic rejection upon timeout.
@@ -58,4 +58,4 @@ export default class Deferred extends Promise {
 			},
 		});
 	}
-};
+}

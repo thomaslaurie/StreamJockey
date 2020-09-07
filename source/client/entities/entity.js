@@ -39,28 +39,28 @@ define.constant(Entity, {
 		return serverRequest(
 			'POST',
 			this.table,
-			any(query).map((q) => pick(q, this.filters.addIn)),
-		).then((result) => (includeMetadata ? result : result.data));
+			any(query).map(q => pick(q, this.filters.addIn)),
+		).then(result => (includeMetadata ? result : result.data));
 	},
 	async get(query, {includeMetadata = false} = {}) {
 		return serverRequest(
 			'GET',
 			this.table,
-			any(query).map((q) => pick(q, this.filters.getIn)),
-		).then((result) => (includeMetadata ? result : result.data));
+			any(query).map(q => pick(q, this.filters.getIn)),
+		).then(result => (includeMetadata ? result : result.data));
 	},
 	async edit(query, {includeMetadata = false} = {}) {
 		return serverRequest(
 			'PATCH',
 			this.table,
-			any(query).map((q) => pick(q, this.filters.editIn)),
-		).then((result) => (includeMetadata ? result : result.data));
+			any(query).map(q => pick(q, this.filters.editIn)),
+		).then(result => (includeMetadata ? result : result.data));
 	},
 	async remove(query, {includeMetadata = false} = {}) {
 		return serverRequest(
 			'DELETE',
 			this.table,
-			any(query).map((q) => pick(q,  this.filters.removeIn)),
-		).then((result) => (includeMetadata ? result : result.data));
+			any(query).map(q => pick(q,  this.filters.removeIn)),
+		).then(result => (includeMetadata ? result : result.data));
 	},
 });

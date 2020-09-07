@@ -10,9 +10,9 @@ test('false return passes', (t) => {
 });
 
 test('any throw fails', (t) => {
-	t.assert(!boolCatch(() => { throw 'asdf'; }));
+	t.assert(!boolCatch(() => { throw 'asdf' }));
 });
 
 test('true throw fails', (t) => {
-	t.assert(!boolCatch(() => { throw true; }));
+	t.assert(!boolCatch(() => { throw true }));
 });

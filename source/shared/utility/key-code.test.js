@@ -11,16 +11,16 @@ test('uri safe', (t) => {
 });
 
 // Technically Flaky
-test('adds to list', (t) => { 
+test('adds to list', (t) => {
 	const list = [];
 	const first  = keyCode.addTo(list);
 	const second = keyCode.addTo(list);
 	const third  = keyCode.addTo(list);
-	
+
 	t.assert(list.length === 3);
-	t.assert(list.find((item) => item.key === first.key)  !== undefined);
-	t.assert(list.find((item) => item.key === second.key) !== undefined);
-	t.assert(list.find((item) => item.key === third.key)  !== undefined);
+	t.assert(list.find(item => item.key === first.key)  !== undefined);
+	t.assert(list.find(item => item.key === second.key) !== undefined);
+	t.assert(list.find(item => item.key === third.key)  !== undefined);
 });
 
 test('removes key from list', (t) => {

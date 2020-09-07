@@ -35,7 +35,7 @@ export const integer = new Rule({
 	},
 	caster(reference) {
 		number.validateCast(reference);
-		reference.value = Number.parseInt(reference.value);
+		reference.value = Number.parseInt(reference.value, 10);
 	},
 });
 

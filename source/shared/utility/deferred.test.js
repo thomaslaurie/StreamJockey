@@ -12,7 +12,7 @@ test('deferred can be rejected with reason', async (t) => {
 	const deferred = new Deferred();
 	const reason = Symbol();
 	deferred.reject(reason);
-	t.is(await deferred.catch((reason) => reason), reason);
+	t.is(await deferred.catch(reason => reason), reason);
 });
 test('modifiers are chain-able', (t) => {
 	const deferred = new Deferred();

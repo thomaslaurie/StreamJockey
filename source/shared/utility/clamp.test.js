@@ -25,20 +25,20 @@ test('no min and max', (t) => {
 	t.assert(clamp(6, undefined, 5) === 5); // OVer
 });
 test('throws min > max', (t) => {
-	t.throws(() => { clamp(5, 5, 4); });
+	t.throws(() => { clamp(5, 5, 4) });
 });
 
 // VALIDATION
 test('throws on NaN', (t) => {
-	t.throws(() => { clamp(NaN, 5, 5); });
-	t.throws(() => { clamp(5, NaN, 5); });
-	t.throws(() => { clamp(5, 5, NaN); });
+	t.throws(() => { clamp(NaN, 5, 5) });
+	t.throws(() => { clamp(5, NaN, 5) });
+	t.throws(() => { clamp(5, 5, NaN) });
 });
 test('throws on non-numbers', (t) => {
-	t.throws(() => { clamp('foo', 5, 5); });
-	t.throws(() => { clamp(5, 'foo', 5); });
-	t.throws(() => { clamp(5, 5, 'foo'); });
+	t.throws(() => { clamp('foo', 5, 5) });
+	t.throws(() => { clamp(5, 'foo', 5) });
+	t.throws(() => { clamp(5, 5, 'foo') });
 });
 test('throws input if not defined', (t) => {
-	t.throws(() => { clamp(undefined, 5, 5); });
+	t.throws(() => { clamp(undefined, 5, 5) });
 });

@@ -22,7 +22,7 @@ import {
 	InternalError,
 } from './errors/index.js';
 
-export default async function (method, URL, {
+export default async function request(method, URL, {
 	// Custom
 	queryParameters,
 	JSONBody,
@@ -34,7 +34,7 @@ export default async function (method, URL, {
 }) {
 	/* //!//G use UPPERCASE HTTP methods.
 		In the fetch API, 'PATCH' is case-sensitive where GET, POST, DELETE aren't
-		//L Its absurd, but apparently intentional: 
+		//L Its absurd, but apparently intentional:
 		//L https://stackoverflow.com/questions/34666680/fetch-patch-request-is-not-allowed
 		//L https://github.com/whatwg/fetch/issues/50
 		//L https://github.com/github/fetch/pull/243
@@ -42,7 +42,9 @@ export default async function (method, URL, {
 
 	// Transform jsonBody to body string.
 	if (JSONBody !== undefined) {
-		if (body !== undefined) throw new InternalError({message: 'Request may not use both a string body and a JSONBody.'});
+		if (body !== undefined) {
+			throw new InternalError({message: 'Request may not use both a string body and a JSONBody.'});
+		}
 		body = safeStringify(JSONBody);
 	}
 
@@ -87,7 +89,7 @@ export default async function (method, URL, {
 			});
 		}
 	}
-	
+
 	//L fetch: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
 	//L When fetch throws: https://www.tjvantoll.com/2015/09/13/fetch-and-errors
 	const result = await fetch(URL, {
@@ -98,7 +100,7 @@ export default async function (method, URL, {
 	}).catch(propagate); //TODO Add custom handlers for fetch errors.
 
 	// Return undefined if request was successful with no content returned.
-	if (result.status === 204) return;
+	if (result.status === 204) return undefined;
 
 	//TODO Consider adding custom handlers for other return types.
 
@@ -123,6 +125,6 @@ export default async function (method, URL, {
 
 	// If the parse fails, throw an error containing the raw result.
 	const parsedResult = await result.clone().json().catch(() => propagate(rawResult));
-	
+
 	return parsedResult;
-};
+}

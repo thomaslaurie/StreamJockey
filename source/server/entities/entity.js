@@ -56,19 +56,19 @@ define.constant(Entity, {
 	// CRUD METHODS
 	async add(query, {db = database, includeMetadata = false} = {}) {
 		return this.frame(db, query, 'add')
-			.then((result) => (includeMetadata ? result : result.data));
+			.then(result => (includeMetadata ? result : result.data));
 	},
 	async get(query, {db = database, includeMetadata = false} = {}) {
 		return this.frame(db, query, 'get')
-			.then((result) => (includeMetadata ? result : result.data));
+			.then(result => (includeMetadata ? result : result.data));
 	},
 	async edit(query, {db = database, includeMetadata = false} = {}) {
 		return this.frame(db, query, 'edit')
-			.then((result) => (includeMetadata ? result : result.data));
+			.then(result => (includeMetadata ? result : result.data));
 	},
 	async remove(query, {db = database, includeMetadata = false} = {}) {
 		return this.frame(db, query, 'remove')
-			.then((result) => (includeMetadata ? result : result.data));
+			.then(result => (includeMetadata ? result : result.data));
 	},
 
 	async getMimic(query, {db = database} = {}) {
@@ -90,43 +90,55 @@ define.constant(Entity, {
 
 		// shorthand
 		const isGetMimic = methodName === 'getMimic'; // store getMimic
-		if (isGetMimic) methodName = 'get'; // 'getMimic' === 'get' for functions: [methodName+'Function']
+		if (isGetMimic) {
+			methodName = 'get'; // 'getMimic' === 'get' for functions: [methodName+'Function']
+		}
 		const isGet = methodName === 'get';
 
 		const accessory = {};
 
 
-		const after = await db.tx(async t => {
+		const after = await db.tx(async (t) => {
 			// process
-			const beforeEntities = await this[methodName+'Before'](t, entities, accessory);
+			const beforeEntities = await this[methodName + 'Before'](t, entities, accessory);
 
 			// validate
-			const validatedEntities = await asyncMap(beforeEntities, async entity => await this.validate(entity, methodName).catch(propagate)).catch(MultipleErrors.throw);
+			const validatedEntities = await asyncMap(
+				beforeEntities,
+				async entity => this.validate(entity, methodName).catch(propagate),
+			).catch(MultipleErrors.throw);
 
 			// prepare
-			const preparedEntities = await asyncMap(validatedEntities, async entity => await this[methodName+'Prepare'](t, entity, accessory).catch(propagate)).catch(MultipleErrors.throw);
+			const preparedEntities = await asyncMap(
+				validatedEntities,
+				async entity => this[methodName + 'Prepare'](t, entity, accessory).catch(propagate),
+			).catch(MultipleErrors.throw);
 
 			// accommodate
-			const influencedEntities = !isGet ? await this[methodName+'Accommodate'](t, preparedEntities, accessory).catch(propagate) : [];
+			const influencedEntities = isGet
+				? []
+				: await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(propagate);
 
 			// map
 			const inputMapped = this.mapColumns(preparedEntities);
-			const influencedMapped = !isGet ? this.mapColumns(influencedEntities) : [];
+			const influencedMapped = isGet
+				? []
+				: this.mapColumns(influencedEntities);
 
 
 			// execute SQL for inputs
 			const inputBefore = [];
 			const inputAfter = isGetMimic ? inputMapped : [];
 			if (!isGetMimic) {
-				await asyncMap(inputMapped, async entity => {
+				await asyncMap(inputMapped, async (entity) => {
 					// before, ignore add
 					if (!isGet && methodName !== 'add') {
-						const before = await this.getQuery(t, pick(entity, this.filters.id)).then(any).catch(propagate)
+						const before = await this.getQuery(t, pick(entity, this.filters.id)).then(any).catch(propagate);
 						inputBefore.push(...before);
 					}
 
 					// after, ignore remove (still needs to execute though)
-					const after = await this[methodName+'Query'](t, entity).then(any).catch(propagate);
+					const after = await this[methodName + 'Query'](t, entity).then(any).catch(propagate);
 					if (methodName !== 'remove') inputAfter.push(...after);
 				}).catch(MultipleErrors.throw);
 			}
@@ -135,7 +147,7 @@ define.constant(Entity, {
 			const influencedBefore = [];
 			const influencedAfter = [];
 			if (!isGet) {
-				await asyncMap(influencedMapped, async influencedEntity => {
+				await asyncMap(influencedMapped, async (influencedEntity) => {
 					const before = await this.getQuery(t, pick(influencedEntity, this.filters.id)).then(any).catch(propagate);
 					influencedBefore.push(...before);
 
@@ -152,22 +164,30 @@ define.constant(Entity, {
 			const unmapped = all.map(list => this.unmapColumns(list));
 
 			// process
-			return await asyncMap(unmapped, async list => await this[methodName+'After'](t, list, accessory).catch(propagate)).catch(MultipleErrors.throw);
+			return asyncMap(
+				unmapped,
+				async list => this[methodName + 'After'](t, list, accessory).catch(propagate),
+			).catch(MultipleErrors.throw);
 		}).catch(propagate); //! finish the transaction here so that notify won't be called before the database has updated
 
 		// shake for subscriptions with getOut filter
-		const shookGet = after.map(list => any(list).map((item) => pick(item, this.filters.getOut)));
+		const shookGet = after.map(list => any(list).map(item => pick(item, this.filters.getOut)));
 
 		// timestamp, used for ignoring duplicate notifications in the case of before and after edits, and overlapping queries
 		const timestamp = Date.now();
 
 		// if get, don't notify
-		if (!isGet) shookGet.forEach(list => this.notify(this, list, timestamp, methodName));
-		// if getMimic, return shookGet-after
-		else if (isGetMimic) return shookGet[1]; 
+		if (!isGet) {
+			shookGet.forEach((list) => {
+				this.notify(this, list, timestamp, methodName);
+			});
+		} else if (isGetMimic) {
+			// if getMimic, return shookGet-after
+			return shookGet[1];
+		}
 
 		// shake for return
-		const shook = after.map(list => any(list).map((item) => pick(item, this.filters[methodName+'Out'])));
+		const shook = after.map(list => any(list).map(item => pick(item, this.filters[methodName + 'Out'])));
 
 		// rebuild
 		const built = shook.map(list => list.map(entity => new this(entity)));
@@ -259,7 +279,7 @@ define.constant(Entity, {
 		return mappedEntities.map((mappedEntity) => { // For each entity.
 			const entity = {};
 			Object.keys(mappedEntity).forEach((columnName) => { // For each columnName.
-				const key = Object.keys(this.schema).find((key) => this.schema[key].columnName === columnName); // Find key in schema with same columnName.
+				const key = Object.keys(this.schema).find(key => this.schema[key].columnName === columnName); // Find key in schema with same columnName.
 				if (rules.string.test(key)) {
 					// Set entity[key] as value of mappedEntity[columnName].
 					entity[key] = mappedEntity[columnName];
@@ -340,7 +360,7 @@ define.constant(Entity, {
 });
 
 // Processes all after execution.
-async function baseAfter(t, entities, accessory) {
+async function baseAfter(t, entities) {
 	return entities.slice();
 }
 define.constant(Entity, {

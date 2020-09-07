@@ -79,7 +79,7 @@ test('correct combinations', (t) => {
 	for (const location in locations) {
 		const target = locations[location].a.own ? child : parent;
 		const key = locations[location].k;
-		const isEnumerable = locations[location].a.enumerable ? true : false;
+		const isEnumerable = Boolean(locations[location].a.enumerable);
 
 		Object.defineProperty(target, key, {
 			value: null,
@@ -104,9 +104,8 @@ test('correct combinations', (t) => {
 		const retrievedLocations = keys.map((p) => {
 			if (typeof p === 'symbol') {
 				return p.toString().slice(7, -1);
-			} else {
-				return p;
 			}
+			return p;
 		});
 
 		for (const location in locations) {
@@ -117,7 +116,7 @@ test('correct combinations', (t) => {
 				// If location was not found, it shouldn't match the requested attributes.
 				t.assert(!deepCompare(locations[location].a, propertyCombination, {subset: true}));
 			}
-		}		
+		}
 	}
 });
 test('long chain', (t) => {
@@ -158,7 +157,7 @@ test('duplicate', (t) => {
 	const child = Object.create(parent);
 	child.same = same;
 
-	
+
 	const keys = getKeysOf(child, {
 		own: true,
 		inherited: true,

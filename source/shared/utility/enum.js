@@ -39,7 +39,7 @@ define.constant(Enum, {
 
 		const enumKeys = getKeysOf(e, this.keyAttributes);
 
-		return enumKeys.some((key) => e[key] === value);
+		return enumKeys.some(key => e[key] === value);
 	},
 	//G Useful for validating Enum keys from external data (JSON).
 	//! Matching values in this method have no guarantee of originating from the enum. Ie. they can be fabricated.
@@ -58,7 +58,7 @@ define.constant(Enum, {
 		this.instanceRule.validate(e);
 
 		const enumKeys = getKeysOf(e, this.keyAttributes);
-		const foundKey = enumKeys.find((key) => e[key] === value);
+		const foundKey = enumKeys.find(key => e[key] === value);
 
 		if (typeof foundKey !== 'symbol') {
 			throw new Error('Enum does not contain the passed value.');

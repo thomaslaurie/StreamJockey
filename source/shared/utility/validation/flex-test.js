@@ -1,4 +1,4 @@
-// Executes tests that take either 1 (value) argument or 2 (object, key) arguments with either 1 or 2 arguments. 
+// Executes tests that take either 1 (value) argument or 2 (object, key) arguments with either 1 or 2 arguments.
 // If the test takes 2 arguments but 2 arguments weren't passed, the first argument is simulated as an object property.
 
 //R Using (length === 2 else) rather than (length === 1 else) because otherwise if no arguments are passed undefined[undefined] won't work.
@@ -27,8 +27,7 @@ export default function flexTest(test, ...args) {
 		let key;
 
 		if (args.length === 2) {
-			object = args[0];
-			key = args[1];
+			[object, key] = args;
 		} else {
 			throw new Error(`${args.length} arguments not supported for tests with 2 parameters.`);
 		}
@@ -40,7 +39,6 @@ export default function flexTest(test, ...args) {
 			key = Symbol('simulated key');
 			object[key] = value;
 		*/
-	} else {
-		throw new Error(`Tests with ${test.length} arguments are not supported.`);
 	}
-};
+	throw new Error(`Tests with ${test.length} arguments are not supported.`);
+}

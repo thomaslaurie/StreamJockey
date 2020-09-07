@@ -45,7 +45,7 @@ define.constant(ClassRegistry.prototype, {
 		this.registry.push({Class, id});
 	},
 	autoConstruct(value) {
-		const registered = this.registry.find((registered) => registered.id === value?.[this.idKey]);
+		const registered = this.registry.find(registered => registered.id === value?.[this.idKey]);
 
 		return (registered === undefined) ? value : new registered.Class(value);
 	},

@@ -46,16 +46,16 @@ class VirtualInterface extends Rule {
 			// Use a custom validator for interfaces.
 			validator(object) {
 				rules.object.validate(object);
-	
+
 				forOwnKeysOf(this.tests, (tests, key) => {
 					const test = this.tests[key];
 					const subKey = this.keys[key];
-	
+
 					if (!test(object, subKey)) {
 						throw new Error(`Object does not fully implement interface. Object: ${JSON.stringify(object)}, Key: ${key}, SubKey: ${subKey}`);
-					};
+					}
 				});
-				
+
 				/* //OLD
 					//R Unnecessarily complicated for a feature that can probably just be permanently set to 'validate'.
 					if (precision === 'validate') {

@@ -8,15 +8,15 @@ import {nonNegativeNumber, func} from '../validation/rules/index.js';
 import {MAX_32_BIT_INTEGER} from '../constants.js';
 
 /**
- * Executes a function after a delay time. 
+ * Executes a function after a delay time.
  * Supports times longer than 2147483647 milliseconds, unlike setTimeout.
- * 
+ *
  * @param  {number}   delay - Delay in milliseconds, or Infinity.
  * @param  {function} callback  - Function executed after delay.
- * 
+ *
  * @returns {function}        Function that clears the timer.
  */
-export default function (delay, callback) {
+export default function setTimer(delay, callback) {
 	nonNegativeNumber.validate(delay);
 	func.validate(callback);
 
@@ -24,12 +24,12 @@ export default function (delay, callback) {
 		// Execute callback immediately.
 		callback();
 		// Return empty function, as an instantaneous timeout cannot be cleared.
-		return function () {};
+		return () => {};
 	}
 	if (delay === Infinity) {
 		// Never execute the function.
 		// Return empty function, as an infinite timeout is effectively cleared already.
-		return function () {};
+		return () => {};
 	}
 
 	// Remainder
@@ -46,7 +46,7 @@ export default function (delay, callback) {
 			timeoutId = setTimeout(() => {
 				// Upon finishing:
 				// Mark the time chunk as 'finished' by reducing the count.
-				overflowChunkCount--; 
+				overflowChunkCount--;
 				// Evaluate the time state again.
 				nestTimeout();
 			}, MAX_32_BIT_INTEGER);
@@ -57,7 +57,7 @@ export default function (delay, callback) {
 		}
 	})();
 
-	return function() {
+	return function clear() {
 		clearTimeout(timeoutId);
 	};
-};
+}

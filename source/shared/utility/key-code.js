@@ -30,7 +30,7 @@ export function create(length = 10) {
 
 	// Return.
 	return key;
-};
+}
 
 const defaultTimeout = 300000; // 5 minutes
 const tryLimit = 1000;
@@ -42,16 +42,16 @@ export function addTo(list, timeout = defaultTimeout) {
 
 	// Create.
 	const key = repeat(() => create(), {
-		until: (key) => !list.includes(key),
+		until: key => !list.includes(key),
 		countout: tryLimit,
-		onCountout() { 
+		onCountout() {
 			throw new Error(`Failed to add key to list, took over ${tryLimit} tries.`);
 		},
 	});
 	const timestamp = Date.now();
 	const pack = {
-		key, 
-		timestamp, 
+		key,
+		timestamp,
 		timeout: timestamp + timeout,
 	};
 
@@ -61,7 +61,7 @@ export function addTo(list, timeout = defaultTimeout) {
 	// Return.
 	list.push(pack);
 	return pack;
-};
+}
 
 // Checks if a list has a key. Cleans up timed-out keys.
 export function verify(list, key) {
@@ -84,18 +84,15 @@ export function verify(list, key) {
 			if (fresh) {
 				// and it hasn't timed out, remove the pack from the list and return it,
 				return list.splice(i, 1)[0];
-			} else  {
-				// else throw a timeout error.
-				throw new Error('Key timed out.');
 			}
-		} else {
+			// else throw a timeout error.
+			throw new Error('Key timed out.');
+		} else if (!fresh) {
 			// Remove non-matching packs if they've timed out.
-			if (!fresh) {
-				list.splice(i, 1);
-			}
+			list.splice(i, 1);
 		}
 	}
 
 	// If the key isn't found, throw an error.
 	throw new Error('Invalid key.');
-};
+}

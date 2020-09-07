@@ -1,3 +1,3 @@
-export default function (string) {
+export default function capitalizeFirstCharacter(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
 }

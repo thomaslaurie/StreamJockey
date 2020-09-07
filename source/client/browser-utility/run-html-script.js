@@ -4,17 +4,17 @@
 
 import {Deferred} from '../../shared/utility/index.js';
 
-export default async function (url) {
+export default async function runHTMLScript(url) {
 	const scriptElement = document.createElement('script');
 	const promise = new Deferred();
 
 	scriptElement.onerror = promise.reject;
 	scriptElement.onload  = promise.resolve;
-	
+
 	scriptElement.src = url;
 
 	// Add script to <head>
 	document.head.appendChild(scriptElement);
-	
-	return await promise;
-};
+
+	return promise;
+}

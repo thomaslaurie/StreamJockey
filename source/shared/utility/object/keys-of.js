@@ -15,7 +15,7 @@ const rules = {object, func};
 export function forKeysOf(object, optionsOrCallback = {}) {
 	// OPTIONS / VALIDATION
 	const options = (
-		typeof optionsOrCallback === 'function' 
+		typeof optionsOrCallback === 'function'
 			? {callback: optionsOrCallback}
 			: optionsOrCallback
 	);
@@ -77,7 +77,7 @@ export function forKeysOf(object, optionsOrCallback = {}) {
 export function getKeysOf(object, optionsOrFilter = {}) {
 	// OPTIONS / VALIDATION
 	const options = (
-		typeof optionsOrFilter === 'function' 
+		typeof optionsOrFilter === 'function'
 			? {filter: optionsOrFilter}
 			: optionsOrFilter
 	);

@@ -21,11 +21,11 @@ define.constant(LiveTable, {
 	tableEntities: [],
 	makeTables({User, Playlist, Track}) {
 		this.tableEntities.push(User, Playlist, Track);
-		return new Map(this.tableEntities.map((EntityClass) => [EntityClass, new this({Entity: EntityClass})]));
+		return new Map(this.tableEntities.map(EntityClass => [EntityClass, new this({Entity: EntityClass})]));
 	},
 	tableToEntity(tableName) {
 		//TODO Refactor this.
-		const FoundEntity = this.tableEntities.find((tableEntity) => tableEntity.table === tableName);
+		const FoundEntity = this.tableEntities.find(tableEntity => tableEntity.table === tableName);
 		if (FoundEntity === undefined) {
 			throw new Error(`Could not convert table name ${tableName} to an entity class. The corresponding entity class was not found.`);
 		}

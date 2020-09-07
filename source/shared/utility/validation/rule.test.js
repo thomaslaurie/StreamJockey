@@ -23,7 +23,7 @@ const populatedString = new Rule({
 	validator(value) {
 		string.validate(value);
 		if (value.trim() === '') {
-			throw new Error('String is empty.')
+			throw new Error('String is empty.');
 		}
 	},
 	caster(reference) {

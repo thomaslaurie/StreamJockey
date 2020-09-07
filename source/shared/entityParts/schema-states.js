@@ -1,5 +1,5 @@
 //TODO Make into class with validated properties.
-//TODO//OLD schema property states //TODO could these be static on sj.Entity and called via this.x ?
+//TODO //OLD schema property states //TODO could these be static on sj.Entity and called via this.x ?
 
 export const unused = {
 	in: false,

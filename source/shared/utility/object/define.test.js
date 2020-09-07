@@ -9,8 +9,8 @@ const object = {};
 // CONSTANT
 define.constant(object, {c: 'c'});
 test('cannot set constant', (t) => {
-	t.throws(() => { 
-		object.c = 'not c'; 
+	t.throws(() => {
+		object.c = 'not c';
 	});
 });
 test('cannot redefine constant', (t) => {
@@ -79,7 +79,7 @@ test('validated variable throws on invalid', (t) => {
 		foo: {
 			value: 'foo',
 			validator: (value) => {
-				if (typeof value !== 'string') throw new Error(); 
+				if (typeof value !== 'string') throw new Error();
 			},
 		},
 	});
@@ -92,7 +92,7 @@ test('validated variable succeeds on valid', (t) => {
 	define.validatedVariable(obj, {
 		foo: {
 			value: 'foo',
-			validator: (value) => typeof value === 'string',
+			validator: value => typeof value === 'string',
 		},
 	});
 	t.notThrows(() => {
@@ -110,7 +110,7 @@ test('validated variable is defined, not set', (t) => {
 	define.validatedVariable(obj, {
 		foo: {
 			value: 'foo',
-			validator: (value) => typeof value === 'string',
+			validator: value => typeof value === 'string',
 		},
 	});
 	obj.foo = 'some string';

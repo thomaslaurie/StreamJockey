@@ -9,7 +9,10 @@ import {
 	rules,
 } from '../shared/utility/index.js';
 import PostgresError from './errors/postgres-error.js';
-import { InvalidStateError, CustomError } from '../shared/errors/index.js';
+import {
+	InvalidStateError,
+	CustomError,
+} from '../shared/errors/index.js';
 
 
 // CREATE
@@ -32,7 +35,7 @@ export async function login(db, ctx, user) {
 	});
 
 	// Check password.
-	const isMatch = await bcrypt.compare(user.password, existingPassword).catch(rejected => {
+	const isMatch = await bcrypt.compare(user.password, existingPassword).catch((rejected) => {
 		throw new InvalidStateError({
 			userMessage: 'server error',
 			message: 'hash compare failed',
@@ -46,14 +49,14 @@ export async function login(db, ctx, user) {
 	}
 
 	// Get user
-	user = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch(rejected => {
+	const retrievedUser = await db.one('SELECT * FROM "sj"."users_self" WHERE "name" = $1', user.name).catch((rejected) => {
 		throw new PostgresError({
 			postgresError: rejected,
 			userMessage: 'Could not login, a database error has occurred.',
 		});
 	});
 
-	ctx.session.user = new User(user);
+	ctx.session.user = new User(retrievedUser);
 	return ctx.session.user;
 }
 

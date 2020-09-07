@@ -36,7 +36,7 @@ import {
 } from '../shared/utility/index.js';
 import {defaultSocketId} from '../shared/entityParts/user.js';
 import Warn from '../shared/warn.js';
-import { CustomError } from '../shared/errors/index.js';
+import {CustomError} from '../shared/errors/index.js';
 
 class Subscription {
 	constructor(options = {}) {
@@ -149,10 +149,10 @@ const liveDataServer = {
 		return this.tables.get(Entity);
 	},
 	findLiveQuery(table, query) {
-		return table.liveQueries.find((liveQuery) => deepCompare(query, liveQuery.query, {compareFunction: compareUnorderedArrays}));
+		return table.liveQueries.find(liveQuery => deepCompare(query, liveQuery.query, {compareFunction: compareUnorderedArrays}));
 	},
 	findSubscription(liveQuery, user) {
-		return liveQuery.subscriptions.find((subscription) => subscription.user.socketId === user.socketId);
+		return liveQuery.subscriptions.find(subscription => subscription.user.socketId === user.socketId);
 	},
 
 	// Subscribers/users are identified by their socketId, this is so that not-logged-in clients can still subscribe to data, while still allowing the full user object to be the subscriber.
@@ -245,7 +245,7 @@ const liveDataServer = {
 		if (liveQuery.subscriptions.length <= 0) {
 			this.findTable(Entity).liveQueries.splice(liveQueryIndex, 1);
 		}
-		
+
 		return processedQuery;
 	},
 

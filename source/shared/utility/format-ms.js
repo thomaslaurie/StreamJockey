@@ -2,8 +2,8 @@
 //TODO Format hours, days, etc.
 export default function (ms) {
 	// extract
-	var minutes = Math.floor(ms / 60000);
-	var seconds = Math.ceil(ms % 60000);
+	const minutes = Math.floor(ms / 60000);
+	let seconds = Math.ceil(ms % 60000);
 
 	// format
 	seconds = ('0' + seconds).slice(-2);

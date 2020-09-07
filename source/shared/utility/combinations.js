@@ -44,7 +44,7 @@ export default function combinations(optionsObject) {
 			}
 		}
 	};
-	
+
 	nest();
 	return combinations;
-};
+}

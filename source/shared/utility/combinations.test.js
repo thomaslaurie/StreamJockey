@@ -26,12 +26,12 @@ const optionsObjects = [
 		c: [],
 	},
 	{
-		[Symbol('foo')]: ['foo0', 'foo1'], 
+		[Symbol('foo')]: ['foo0', 'foo1'],
 		[Symbol('bar')]: ['bar0', 'bar1'],
 	},
 	{
 		a: ['a0', 'a1', 'a2'],
-		[Symbol('foo')]: ['foo0', 'foo1'], 
+		[Symbol('foo')]: ['foo0', 'foo1'],
 		[Symbol('bar')]: ['bar0', 'bar1'],
 	},
 	{ // takes ~ 0.2 seconds
@@ -62,14 +62,14 @@ const optionsObjects = [
 // number of combinations = a * b * c ...
 optionsObjects.forEach((optionsObject, index) => {
 	const optionsList = [];
-	optionsList.push(...Object.getOwnPropertyNames(optionsObject).map((key) => optionsObject[key]));
-	optionsList.push(...Object.getOwnPropertySymbols(optionsObject).map((key) => optionsObject[key]));
+	optionsList.push(...Object.getOwnPropertyNames(optionsObject).map(key => optionsObject[key]));
+	optionsList.push(...Object.getOwnPropertySymbols(optionsObject).map(key => optionsObject[key]));
 
 	let numberOfCombinations = 0;
 	if (optionsList.length > 0) {
 		numberOfCombinations = 1;
 		for (const options of optionsList) {
-			numberOfCombinations = numberOfCombinations * options.length;
+			numberOfCombinations *= options.length;
 		}
 	}
 

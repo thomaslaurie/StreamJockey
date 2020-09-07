@@ -1,24 +1,4 @@
-// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
-// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
-// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
-// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
-// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
-// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
-
-/*
-	//L process.env: https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
-	//L dotenv:  https://www.npmjs.com/package/dotenv
-*/
-
-
-//  ████████╗ ██████╗ ██████╗  ██████╗ 
-//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
-
-/* 
+/* //TODO
 	Put api keys into .env after creating methods to access them
 	Some best practices: https://www.codementor.io/mattgoldspink/nodejs-best-practices-du1086jja
 	Middleware best practices https://github.com/koajs/koa/blob/master/docs/guide.md
@@ -26,18 +6,8 @@
 	errors thrown in some places (like routes) still aren't caught
 */
 
-
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-
 // TOP
 import '../config/environment-variables.js';
-
-// BUILT-IN
 
 // EXTERNAL
 // import 'source-map-support/register';
@@ -54,17 +24,9 @@ import http from 'http'; //TODO consider changing to the https module?
 // INTERNAL
 // import { clientOptions, UIMainFileName } from '../config/webpack.config.js';
 
-import Router from './routes.js';
+import getRoutes from './routes.js';
 import liveData from './live-data-server.js';
 import createDatabase from './database/create-database.js';
-
-
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
 
 /* webpack-dev-middleware
 	// OPTIONS
@@ -97,7 +59,7 @@ import createDatabase from './database/create-database.js';
 */
 
 //TODO top level await
-(async function () {
+(async function main() {
 	// Initialize the database.
 	await createDatabase().catch((rejected) => {
 		console.error(rejected);
@@ -130,8 +92,9 @@ import createDatabase from './database/create-database.js';
 		}
 	*/
 
-	const router = Router(routerOptions);
+	const router = getRoutes(routerOptions);
 
+	//TODO nullish assignment
 	const PORT = process.env.PORT || 3000;
 
 	// KOA
@@ -141,9 +104,9 @@ import createDatabase from './database/create-database.js';
 		//TODO random keys: //L https://randomkeygen.com/
 
 		// (string)(default is koa:sess) cookie key
-		key: 'koa:sess', 
+		key: 'koa:sess',
 		// (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
-		maxAge: 86400000, 
+		maxAge: 86400000,
 		// (boolean)(default true) can overwrite or not
 		overwrite: true,
 		// (boolean)(default true) httpOnly or not , httpOnly cookies tell the browser not to expose them to client-side script (so that they can only be opened by the server)
@@ -153,7 +116,7 @@ import createDatabase from './database/create-database.js';
 		// (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
 		rolling: true,
 		// (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
-		renew: false, 
+		renew: false,
 	};
 
 	//L https://github.com/socketio/socket.io#in-conjunction-with-koa
@@ -166,8 +129,8 @@ import createDatabase from './database/create-database.js';
 
 	//  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
 	//  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
-	//  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗  
-	//  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝  
+	//  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗
+	//  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝
 	//  ██║ ╚═╝ ██║██║██████╔╝██████╔╝███████╗███████╗╚███╔███╔╝██║  ██║██║  ██║███████╗
 	//  ╚═╝     ╚═╝╚═╝╚═════╝ ╚═════╝ ╚══════╝╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝
 
@@ -200,7 +163,7 @@ import createDatabase from './database/create-database.js';
 			if (ctx.request.path !== '/favicon.ico') {
 				let n = ctx.session.views || 0;
 				ctx.session.views = ++n;
-			} 
+			}
 			//console.log(ctx.session.views + ' views');
 			await next();
 		});

@@ -4,7 +4,7 @@
 
 import {rules} from '../validation/index.js';
 
-export default function (array, compare = (a, b) => {
+export default function stableSort(array, compare = (a, b) => {
 	// low to high
 	return a - b;
 }) {
@@ -29,4 +29,4 @@ export default function (array, compare = (a, b) => {
 	}
 
 	return array;
-};
+}

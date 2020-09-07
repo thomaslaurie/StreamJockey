@@ -43,3 +43,6 @@ Delete = remove
 
 //G FUNCTION MODIFICATION VS RETURN NEW
 	modifying & returning passed objects in functions, in general I'm deciding to modify passed objects in functions and return the same reference, however when the data-structure changes (nesting, cloning, etc.), the passed object should not be modified. this can be seen in sj.Entity.common() validation, where any nested validated properties are flattened into a root object
+	
+//L process.env: https://www.twilio.com/blog/2017/08/working-with-environment-variables-in-node-js.html
+//L dotenv:  https://www.npmjs.com/package/dotenv

@@ -12,7 +12,7 @@ import {
 	PASSWORD_SALT_ROUNDS,
 } from '../constants.js';
 import Entity from './entity.js';
-import { InvalidStateError } from '../../shared/errors/index.js';
+import {InvalidStateError} from '../../shared/errors/index.js';
 
 
 export default class User extends Entity {
@@ -32,7 +32,7 @@ async function basePrepare(t, user) {
 	// Hash password.
 	//TODO might be a vulnerability here with this string check
 	if (rules.string.test(newUser.password)) {
-		newUser.password = await bcrypt.hash(newUser.password, PASSWORD_SALT_ROUNDS).catch(rejected => {
+		newUser.password = await bcrypt.hash(newUser.password, PASSWORD_SALT_ROUNDS).catch((rejected) => {
 			throw new InvalidStateError({
 				userMessage: 'failed to add user',
 				message: 'hash failed',

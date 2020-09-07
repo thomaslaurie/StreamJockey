@@ -3,6 +3,6 @@
 
 import {rules} from '../validation/index.js';
 
-export default function (value) {
+export default function one(value) {
 	return rules.array.test(value) ? value[0] : value;
-} 
+}

@@ -33,7 +33,7 @@ export default new ClassParts({
 			name,
 			duration,
 			link,
-			
+
 			//TODO Ensure that this is only used as an instance then remove this.
 			constructorName: 'Track',
 		});
@@ -44,7 +44,7 @@ export default new ClassParts({
 				id: {
 					columnName: 'id',
 					rule: projectRules.id.validate,
-		
+
 					add: auto,
 					get: optional,
 					edit: required,
@@ -53,7 +53,7 @@ export default new ClassParts({
 				playlistId: {
 					columnName: 'playlistId',
 					rule: projectRules.id.validate,
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -62,7 +62,7 @@ export default new ClassParts({
 				position: {
 					columnName: 'position',
 					rule: projectRules.position.validate,
-		
+
 					add: optional,
 					get: optional,
 					edit: optional,
@@ -71,7 +71,7 @@ export default new ClassParts({
 				name: {
 					columnName: 'name',
 					rule: projectRules.name.validate,
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -80,7 +80,7 @@ export default new ClassParts({
 				duration: {
 					columnName: 'duration',
 					rule: rules.nonNegativeInteger.validate, //TODO Expand
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -91,7 +91,7 @@ export default new ClassParts({
 					//TODO Split source schema validation between client and server because they use different instances.
 					rule: () => {},
 					// rule: Source.validateRegistration.bind(Source),
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -100,7 +100,7 @@ export default new ClassParts({
 				sourceId: {
 					columnName: 'sourceId',
 					rule: rules.string.validate, //TODO Expand
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -109,7 +109,7 @@ export default new ClassParts({
 				artists: {
 					columnName: 'artists',
 					rule: rules.array.validate, //TODO Expand
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -134,7 +134,7 @@ export function validateSource({instance, SourceClass, value}) {
 	//R Must be defined on client/server because they use different Source classes.
 	let source = null;
 	if (rules.object.test(value)) {
-		const found = SourceClass.instances.find((sourceInstance) => sourceInstance.name === value.name);
+		const found = SourceClass.instances.find(sourceInstance => sourceInstance.name === value.name);
 		if (found) {
 			source = found;
 		} else {

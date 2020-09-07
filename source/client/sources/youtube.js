@@ -1,5 +1,7 @@
 import {
 	rules,
+	Deferred,
+	escapeRegExp,
 } from '../../shared/utility/index.js';
 import serverRequest from '../server-request.js';
 import {
@@ -11,19 +13,24 @@ import {
 import Source from '../source.js';
 import Playback from '../playback.js';
 import {CustomError, InvalidStateError} from '../../shared/errors/index.js';
+import {
+	runHTMLScript,
+} from '../browser-utility/index.js';
+import moment from 'moment';
+import he from 'he';
 
 const youtube = new Source({
 	name: 'youtube',
 	register: true,
 	idPrefix:	'https://www.youtube.com/watch?v=',
 	nullPrefix:	'https://www.youtube.com/watch',
-	
+
 
 	async auth() {
 		//L example code: https://developers.google.com/youtube/v3/docs/search/list
 
 		//TODO redirect uri has to be whitelisted on https://console.developers.google.com/apis/credentials/oauthclient/575534136905-vgdfpnd34q1o701grha9i9pfuhm1lvck.apps.googleusercontent.com?authuser=1&project=streamlist-184622&supportedpurview=project
-		
+
 
 		// watch for gapi to be assigned by using a setter with a deferred promise
 		//L https://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript
@@ -46,7 +53,7 @@ const youtube = new Source({
 			},
 		});
 
-		// loads gapi into global scope 
+		// loads gapi into global scope \
 		//TODO is there any way to make this more module-like?
 		await runHTMLScript('https://apis.google.com/js/api.js');
 		// wait for gapi
@@ -67,7 +74,7 @@ const youtube = new Source({
 		await new Promise((resolve, reject) => {
 			//L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md
 			// first arg is 'A colon (:) separated list of gapi libraries. Ex: "client:auth2"'
-			gapi.load('client', {
+			window.gapi.load('client', {
 				callback(args) { //? no idea what the parameters passed here are
 					resolve(args);
 				},
@@ -90,15 +97,15 @@ const youtube = new Source({
 
 		// loads and performs authorization, short version of the code commented out below
 		//R after client is loaded (on its own), gapi.client.init() can load the auth2 api and perform OAuth by itself, it merges the below functions, however I am keeping them separate for better understanding of google's apis, plus, auth2 api may only be initialized once, so it may be problematic to use gapi.client.init() more than once
-		await gapi.client.init({
+		await window.gapi.client.init({
 			//L https://github.com/google/google-api-javascript-client/blob/master/docs/reference.md#----gapiclientinitargs--
 			//TODO move keys
 			apiKey,
 			discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
 			clientId,
 
-			//https://www.googleapis.com/auth/youtube.force-ssl
-			//https://www.googleapis.com/auth/youtube
+			//L https://www.googleapis.com/auth/youtube.force-ssl
+			//L https://www.googleapis.com/auth/youtube
 			scope: 'https://www.googleapis.com/auth/youtube.readonly',
 		});
 
@@ -134,15 +141,15 @@ const youtube = new Source({
 
 		return new Promise((resolve, reject) => {
 			// Wraps goog.Thenable which doesn't support the catch method.
-			gapi.client.request({
+			window.gapi.client.request({
 				method,
 				path: `/youtube/v3/${path}`,
 				params: content,
 			}).then(resolve, reject);
 		}).catch((rejected) => {
 			if (
-				rejected?.code === 403 &&
-				rejected?.result?.error?.errors[0]?.message?.startsWith?.('Access Not Configured.')
+				rejected?.code === 403
+				&& rejected?.result?.error?.errors[0]?.message?.startsWith?.('Access Not Configured.')
 			) {
 				/* The key has probably been invalidated.
 					If the API is still enabled, try resetting the API by:
@@ -164,7 +171,7 @@ const youtube = new Source({
 });
 
 // External due to youtube self reference.
-youtube.search = async function ({
+youtube.search = async function search({
 	term = '',
 	startIndex = 0,
 	amount = 1,
@@ -177,19 +184,19 @@ youtube.search = async function ({
 
 	// amass search result pages until the last requested search index is included
 	//! this will drive api quotas up fast if the startIndex or amount are high (n*50)
-	//!//TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
+	//! //TODO the way the search functionality is probably going to work, is when the user scrolls down, more and more searches get queried just with a different startingIndex, however this will drive up the quota cost for youtube since each startingIndex lower on the list will do multi-page searches for that below, maybe find a way to store the next page token for a specific query and then use that on successive searches
 	/* //R
 		default quota limit is 10 000 units per day (or not? I don't see a limit in the quotas tab of the api dashboard)
 		/search costs 100 per page, (so only allowed to search 100 times per day)
 		increasing the maxResults doesn't seem to increase the quota cost, but increasing the number of pages per search (by increasing startIndex or amount) will,
 		so the best solution to adapting this page system to my start/amount system would be to request the maximum number of results per page (50), then requesting the next page until the last result is retrieved - this will require the minimum number of pages
-	*/		
+	*/
 
 	let limit = 1; //TODO temp safeguard
 
 	const allPageResults  = [];
 	let pageToken = null;
-	
+
 	while (allPageResults.length < startIndex + amount && limit > 0) {
 		const pageResults = await youtube.request('GET', 'search', {
 			//L https://developers.google.com/youtube/v3/docs/search/list#parameters
@@ -234,7 +241,7 @@ youtube.search = async function ({
 			throw new CustomError({
 				message: `search and video results at ${index} do not have the same id`,
 			});
-	}
+		}
 		// append contentDetails part to the search results
 		searchResults[index].contentDetails = item.contentDetails;
 	});
@@ -261,12 +268,12 @@ youtube.playback = new Playback({
 				message: 'youtube iframe player load timed out',
 			}));
 
-			window.onYouTubeIframeAPIReady = function () {
+			window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
 				context.commit('setState', {
-					player: new YT.Player('youtubeIFrame', { //! this won't throw any error if the element id doesn't exist
+					player: new window.YT.Player('youtubeIFrame', { //! this won't throw any error if the element id doesn't exist
 						width: '640',
 						height: '390',
-						//videoId: 'M71c1UVf-VE',
+						// videoId: 'M71c1UVf-VE',
 						// host: 'https://www.youtube.com', //? doesn't seem to help
 						playerVars: {
 							controls: 0,
@@ -280,12 +287,12 @@ youtube.playback = new Playback({
 
 						//L https://developers.google.com/youtube/iframe_api_reference#Events
 						events: {
-							async onReady(event) {
+							async onReady() {
 								//TODO handle error?
 								await context.dispatch('checkPlayback').catch(propagate);
 								deferred.resolve();
 							},
-							async onStateChange(event) {
+							async onStateChange() {
 								//! onStateChange event only has the playbackState data, checkPlayback gets this anyways
 								await context.dispatch('checkPlayback');
 							},
@@ -293,13 +300,12 @@ youtube.playback = new Playback({
 								//TODO
 								console.error('youtube player onError:', event);
 							},
-							
 						},
 					}),
 				});
 			};
 
-			return await deferred;
+			return deferred;
 		},
 
 		async checkPlayback(context) {
@@ -315,8 +321,8 @@ youtube.playback = new Playback({
 			// remove the idPrefix or nullPrefix from youtube urls
 			//! idPrefix must be matched first because it contains nullPrefix (which would escape early and leave ?v=)
 			track.sourceId = track.link.replace(
-				new RegExp(`${escapeRegExp(youtube.idPrefix)}|${escapeRegExp(youtube.nullPrefix)}`), 
-				''
+				new RegExp(`${escapeRegExp(youtube.idPrefix)}|${escapeRegExp(youtube.nullPrefix)}`, 'u'),
+				'',
 			);
 
 			const playerDuration = player.getDuration();
@@ -326,7 +332,7 @@ youtube.playback = new Playback({
 			state.progress = player.getCurrentTime() * 1000 / track.duration;
 
 			const playerState = player.getPlayerState();
-			state.isPlaying = playerState === 1 || playerState === 3; 
+			state.isPlaying = playerState === 1 || playerState === 3;
 			/* //G
 				-1 un-started
 				0 ended
@@ -337,7 +343,7 @@ youtube.playback = new Playback({
 			*/
 
 			// if muted: volume is 0, convert 0-100 to 0-1 range
-			state.volume = player.isMuted() ? 0 : player.getVolume() / 100; // 
+			state.volume = player.isMuted() ? 0 : player.getVolume() / 100; //
 
 			state.timestamp = Date.now();
 
@@ -365,12 +371,12 @@ youtube.playback = new Playback({
 		},
 
 
-		async baseStart({state: {player}, dispatch}, {sourceId}) {
+		async baseStart({state: {player}}, {sourceId}) {
 			player.loadVideoById({
 				videoId: sourceId,
-				//startSeconds
-				//endSeconds
-				//suggestedQuality
+				// startSeconds
+				// endSeconds
+				// suggestedQuality
 			});
 		},
 
@@ -384,7 +390,7 @@ youtube.playback = new Playback({
 			player.playVideo();
 			//TODO return
 		},
-		async seek({state: {player}}, progress) {
+		async seek({state: {player, track}}, progress) {
 			const seconds = progress * track.duration * 0.001;
 			player.seekTo(seconds, true);
 			//TODO return
@@ -398,12 +404,12 @@ youtube.playback = new Playback({
 });
 
 //TODO move inside
-youtube.formatContentDetails = function (contentDetails) {
+youtube.formatContentDetails = function formatContentDetails(contentDetails) {
 	const pack = {};
 	pack.duration = moment.duration(contentDetails.duration, moment.ISO_8601).asMilliseconds();
 	return pack;
-},
-youtube.formatSnippet = function (snippet) {
+};
+youtube.formatSnippet = function formatSnippet(snippet) {
 	const pack = {};
 	if (!rules.object.test(snippet)) {
 		throw new CustomError({
@@ -413,14 +419,14 @@ youtube.formatSnippet = function (snippet) {
 
 	// assuming title format of 'Artist - Title'
 	// splits on dash between one or any whitespace
-	const splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/g);
+	const splitTitle = snippet.title.split(/(?:\s+[-|]\s+)/gu);
 	if (splitTitle.length === 2)  { // if splitTittle has the exact length of two
 		// use the first part as the artists
 		// splits on commas between none or any whitespace, splits on &xX| between one or any whitespace
 		//TODO improve
-		pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/g);
+		pack.artists = splitTitle[0].split(/(?:\s*[,]\s*)|(?:\s+[&xX|]\s+)/gu);
 		// use the second part as the name
-		pack.name = splitTitle[1];
+		[, pack.name] = splitTitle;
 	} else {
 		// use the channel title as the artist
 		pack.artists = [snippet.channelTitle];

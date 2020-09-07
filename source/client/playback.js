@@ -39,11 +39,11 @@ export default class Playback {
 
 		//! New property objects must be created here so that instances do not all use the same reference.
 		define.constant(this, {
-			state:     {...this.constructor.baseState,     ...state    },
-			actions:   {...this.constructor.baseActions,   ...actions  },
+			state:     {...this.constructor.baseState,     ...state},
+			actions:   {...this.constructor.baseActions,   ...actions},
 			mutations: {...this.constructor.baseMutations, ...mutations},
-			getters:   {...this.constructor.baseGetters,   ...getters  },
-			modules:   {...this.constructor.baseModules,   ...modules  },
+			getters:   {...this.constructor.baseGetters,   ...getters},
+			modules:   {...this.constructor.baseModules,   ...modules},
 		});
 	}
 }
@@ -162,8 +162,8 @@ define.constant(Playback, {
 	},
 	baseGetters: {
 		// Safe getters for track properties.
-		sourceId: (state) => state?.track?.sourceId,
-		duration: (state) => state?.track?.duration,
+		sourceId: state => state?.track?.sourceId,
+		duration: state => state?.track?.duration,
 
 		// State conditions for command resolution.
 		isStarted:	(state, {sourceId, duration}) => (id, timeBefore) => (
@@ -181,7 +181,7 @@ define.constant(Playback, {
 	baseModules: {
 	},
 
-	universalState: (sourceInstances) => ({
+	universalState: sourceInstances => ({
 		// CLOCK
 		// Basically a reactive Date.now(), so far just used for updating playback progress.
 		clock: Date.now(),
@@ -313,8 +313,8 @@ define.constant(Playback, {
 
 			// Trigger and resolve the command.
 			await context.state.sentCommand.trigger(context).then(
-				(resolved) => context.state.sentCommand.fullResolve(resolved),
-				(rejected) => context.state.sentCommand.fullReject(rejected),
+				resolved => context.state.sentCommand.fullResolve(resolved),
+				rejected => context.state.sentCommand.fullReject(rejected),
 			);
 
 			// Mark the sent command as finished.
@@ -333,7 +333,7 @@ define.constant(Playback, {
 				track,
 			}));
 		},
-		async pause( {dispatch, getters: {desiredSource: source}, state: {sourceInstances}}) {
+		async pause({dispatch, getters: {desiredSource: source}, state: {sourceInstances}}) {
 			return dispatch('pushCommand', new Toggle({
 				source, //! other non-start basic playback functions just use the current desiredPlayback source
 				sourceInstances,
@@ -347,7 +347,7 @@ define.constant(Playback, {
 				isPlaying: true,
 			}));
 		},
-		async seek(  {dispatch, getters: {desiredSource: source}, state: {sourceInstances}}, progress) {
+		async seek({dispatch, getters: {desiredSource: source}, state: {sourceInstances}}, progress) {
 			return dispatch('pushCommand', new Seek({
 				source,
 				sourceInstances,
@@ -437,7 +437,7 @@ define.constant(Playback, {
 		*/
 
 		// ACTUAL
-		sourceOrBase: (state) => (key) => {
+		sourceOrBase: state => (key) => {
 			if (state.source === null) {
 				return Playback.baseState[key];
 			}

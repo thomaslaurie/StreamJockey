@@ -1,80 +1,23 @@
-// ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
-// ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
-// ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
-// ██║╚██╗██║██║   ██║   ██║   ██╔══╝  ╚════██║
-// ██║ ╚████║╚██████╔╝   ██║   ███████╗███████║
-// ╚═╝  ╚═══╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝
+//TODO consider just writing native api functions, because they are fairly simple, and the spotify-web-api-node
+//L https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
 
-/*
-    //TODO consider just writing native api functions, because they are fairly simple, and the spotify-web-api-node
-    //L https://beta.developer.spotify.com/documentation/general/guides/authorization-guide/
+//TODO remove exports. from internal functions
 
-    //TODO remove exports. from internal functions
-
-*/
-
-//  ████████╗ ██████╗ ██████╗  ██████╗ 
-//  ╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ██║   ██║██║  ██║██║   ██║
-//     ██║   ╚██████╔╝██████╔╝╚██████╔╝
-//     ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
-
-/*
-*/
-
-
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-
-// BUILT-IN
-import EventEmitter from 'events';
+//TODO Convert to instantiatable class.
 
 // INTERNAL
 import {
 	keyCode,
 } from '../shared/utility/index.js';
 
-//  ██╗███╗   ██╗██╗████████╗
-//  ██║████╗  ██║██║╚══██╔══╝
-//  ██║██╔██╗ ██║██║   ██║   
-//  ██║██║╚██╗██║██║   ██║   
-//  ██║██║ ╚████║██║   ██║   
-//  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   
-
-// events
-const emitter = new EventEmitter();
-
-let auth = {};
-
-//   █████╗ ██╗   ██╗████████╗██╗  ██╗
-//  ██╔══██╗██║   ██║╚══██╔══╝██║  ██║
-//  ███████║██║   ██║   ██║   ███████║
-//  ██╔══██║██║   ██║   ██║   ██╔══██║
-//  ██║  ██║╚██████╔╝   ██║   ██║  ██║
-//  ╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝
-
-// generics
-auth.requestTimeout = 300000; // 5 minutes
-auth.requestKeys = [];
-auth.addRequestKey = async function () {
-    return await keyCode.addTo(this.requestKeys, this.requestTimeout);
+export default {
+	requestTimeout: 300000, // 5 minutes
+	requestKeys: [],
+	async addRequestKey() {
+		return keyCode.addTo(this.requestKeys, this.requestTimeout);
+	},
+	async checkRequestKey(key) {
+		const pack = await keyCode.verify(this.requestKeys, key);
+		return {authRequestKey: pack.key, authRequestTimestamp: pack.timestamp};
+	},
 };
-auth.checkRequestKey = async function (key) {
-    let pack = await keyCode.verify(this.requestKeys, key);
-    return {authRequestKey: pack.key, authRequestTimestamp: pack.timestamp};
-};
-
-
-//  ███████╗ ██████╗ ██╗   ██╗██████╗  ██████╗███████╗
-//  ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔════╝██╔════╝
-//  ███████╗██║   ██║██║   ██║██████╔╝██║     █████╗  
-//  ╚════██║██║   ██║██║   ██║██╔══██╗██║     ██╔══╝  
-//  ███████║╚██████╔╝╚██████╔╝██║  ██║╚██████╗███████╗
-//  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝╚══════╝
-
-export default auth;

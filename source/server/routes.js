@@ -20,7 +20,7 @@
 
 	//G only use await next(); inside a route when the request should be further processed down the chain (ie. to finally result at .all), I cant think of a reason why this would be wanted (just use more middleware instead to do this)
 
-	//L 
+	//L
 	path parameters vs query parameters: https://stackoverflow.com/questions/3198492/rest-standard-path-parameters-or-request-parameters
 	use path parameters to retrieve a specific item (via unique identifier)
 	use query parameters to retrieve a list of items (via 'query parameters')
@@ -29,7 +29,7 @@
 	https://github.com/alexmingoia/koa-router#url-parameters
 
 
-	//G all methods (except get) should pass parameters as their respective sj.Base 
+	//G all methods (except get) should pass parameters as their respective sj.Base
 	//G get uses name as the identifier, TODO but should also accept id in the future
 
 	node module.exports (unused, switched to ES Modules)
@@ -56,14 +56,6 @@
 		This was causing requests to return early and 404 all the time.
 */
 
-
-//  ██████╗ ███████╗██████╗ ███████╗███╗   ██╗██████╗ ███████╗███╗   ██╗ ██████╗██╗███████╗███████╗
-//  ██╔══██╗██╔════╝██╔══██╗██╔════╝████╗  ██║██╔══██╗██╔════╝████╗  ██║██╔════╝██║██╔════╝██╔════╝
-//  ██║  ██║█████╗  ██████╔╝█████╗  ██╔██╗ ██║██║  ██║█████╗  ██╔██╗ ██║██║     ██║█████╗  ███████╗
-//  ██║  ██║██╔══╝  ██╔═══╝ ██╔══╝  ██║╚██╗██║██║  ██║██╔══╝  ██║╚██╗██║██║     ██║██╔══╝  ╚════██║
-//  ██████╔╝███████╗██║     ███████╗██║ ╚████║██████╔╝███████╗██║ ╚████║╚██████╗██║███████╗███████║
-//  ╚═════╝ ╚══════╝╚═╝     ╚══════╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═══╝ ╚═════╝╚═╝╚══════╝╚══════╝
-
 // BUILT-IN
 import path from 'path';
 import fs from 'fs';
@@ -76,12 +68,10 @@ import send from 'koa-send'; //L https://github.com/koajs/send
 import {
 	rules,
 } from '../shared/utility/index.js';
-import sourcePath from '../node-utility/source-path.cjs';
 import {
 	UIMainFileName,
 	clientBuildDirectory,
 } from '../config/project-paths.js';
-import auth from './auth.js'; //! side-effects
 import {
 	GET_BODY,
 } from '../shared/constants.js';
@@ -111,7 +101,7 @@ import {
 //  ██║██║ ╚████║██║   ██║
 //  ╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝
 
-export default function routes({replaceIndex}) {
+export default function getRoutes({replaceIndex}) {
 	// path
 	//L make own __dirname since it isn't exposed in modules: https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
 	//L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
@@ -193,99 +183,99 @@ export default function routes({replaceIndex}) {
 			await next();
 		})
 
-		.post('/log', async (ctx, next) => {
+		.post('/log', async (ctx) => {
 			ctx.response.body = 'received client log message';
 		})
 
 		// auth
-		.get('/spotify/authRequestStart', async (ctx, next) => {
+		.get('/spotify/authRequestStart', async (ctx) => {
 			// Retrieves an auth request URL and it's respective local key (for event handling).
 			ctx.response.body = await spotify.startAuthRequest().catch(returnPropagate);
 		})
-		.get('/spotify/authRedirect', async (ctx, next) => { 
+		.get('/spotify/authRedirect', async (ctx) => {
 			// Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
 			//! This URL is sensitive to the url given to spotify developer site (I think).
 			await spotify.receiveAuthRequest(ctx.request.query).catch(returnPropagate);
-			await send(ctx, app, {root: root});
+			await send(ctx, app, {root});
 		})
-		.post('/spotify/authRequestEnd', async (ctx, next) => {
+		.post('/spotify/authRequestEnd', async (ctx) => {
 			ctx.response.body = await spotify.endAuthRequest(ctx.request.body).catch(returnPropagate);
 		})
-		.post('/spotify/exchangeToken', async (ctx, next) => {
+		.post('/spotify/exchangeToken', async (ctx) => {
 			ctx.response.body = await spotify.exchangeToken(ctx, ctx.request.body).catch(returnPropagate);
 		})
-		.get('/spotify/refreshToken', async (ctx, next) => {
+		.get('/spotify/refreshToken', async (ctx) => {
 			ctx.response.body = await spotify.refreshToken(ctx).catch(returnPropagate);
 		})
 
-		.get('/youtube/credentials', async (ctx, next) => {
+		.get('/youtube/credentials', async (ctx) => {
 			ctx.response.body = await youtube.getCredentials().catch(returnPropagate);
 		})
 
 		// session
 		//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
 		//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
-		.post('/session', async (ctx, next) => {
+		.post('/session', async (ctx) => {
 			//----------
 			//TODO //! returnPropagate isnt doing jack here, throwing inside session.login() wasn't showing any errors/
-			ctx.response.body = await session.login(database, ctx, ctx.request.body).catch(e => {
+			ctx.response.body = await session.login(database, ctx, ctx.request.body).catch((e) => {
 				console.error(e);
 			});
 		})
-		.get('/session', async (ctx, next) => {
+		.get('/session', async (ctx) => {
 			//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
 			ctx.response.body = await session.get(ctx).catch(returnPropagate);
 		})
-		.delete('/session', async (ctx, next) => {
+		.delete('/session', async (ctx) => {
 			ctx.response.body = await session.logout(ctx).catch(returnPropagate);
 		})
 
 
 		//TODO condense this
 		// user
-		.post(`/${User.table}`, async (ctx, next) => {
+		.post(`/${User.table}`, async (ctx) => {
 			ctx.response.body = await User.add(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.get(`/${User.table}`, async (ctx, next) => {
+		.get(`/${User.table}`, async (ctx) => {
 			ctx.response.body = await User.get(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.patch(`/${User.table}`, async (ctx, next) => {
+		.patch(`/${User.table}`, async (ctx) => {
 			ctx.response.body = await User.edit(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.delete(`/${User.table}`, async (ctx, next) => {
+		.delete(`/${User.table}`, async (ctx) => {
 			ctx.response.body = await User.remove(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 
 		// playlist
-		.post(`/${Playlist.table}`, async (ctx, next) => {
+		.post(`/${Playlist.table}`, async (ctx) => {
 			ctx.response.body = await Playlist.add(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.get(`/${Playlist.table}`, async (ctx, next) => {
+		.get(`/${Playlist.table}`, async (ctx) => {
 			ctx.response.body = await Playlist.get(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.patch(`/${Playlist.table}`, async (ctx, next) => {
+		.patch(`/${Playlist.table}`, async (ctx) => {
 			ctx.response.body = await Playlist.edit(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.delete(`/${Playlist.table}`, async (ctx, next) => {
+		.delete(`/${Playlist.table}`, async (ctx) => {
 			ctx.response.body = await Playlist.remove(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 
 		// track
-		.post(`/${Track.table}`, async (ctx, next) => {
+		.post(`/${Track.table}`, async (ctx) => {
 			ctx.response.body = await Track.add(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.get(`/${Track.table}`, async (ctx, next) => {
+		.get(`/${Track.table}`, async (ctx) => {
 			ctx.response.body = await Track.get(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.patch(`/${Track.table}`, async (ctx, next) => {
+		.patch(`/${Track.table}`, async (ctx) => {
 			ctx.response.body = await Track.edit(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
-		.delete(`/${Track.table}`, async (ctx, next) => {
+		.delete(`/${Track.table}`, async (ctx) => {
 			ctx.response.body = await Track.remove(ctx.request.body, {includeMetadata: true}).catch(returnPropagate);
 		})
 
 		// catch
-		.all('/*', async (ctx, next) => {
+		.all('/*', async (ctx) => {
 			ctx.response.body = new InvalidStateError({
 				userMessage: 'could not process request',
 				message: 'invalid api command',
@@ -294,18 +284,11 @@ export default function routes({replaceIndex}) {
 		});
 
 	//L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
-	router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); 
+	router.use('/api', apiRouter.routes(), apiRouter.allowedMethods());
 
-
-	//  ██████╗  █████╗  ██████╗ ███████╗
-	//  ██╔══██╗██╔══██╗██╔════╝ ██╔════╝
-	//  ██████╔╝███████║██║  ███╗█████╗  
-	//  ██╔═══╝ ██╔══██║██║   ██║██╔══╝  
-	//  ██║     ██║  ██║╚██████╔╝███████╗
-	//  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
-
+	// PAGE
 	router
-		.get('/*', async (ctx, next) => {
+		.get('/*', async (ctx) => {
 			/*
 				// pages are accessed through the base GET method, serve any public files here
 				//! static resource references in index.html should be absolute '/foo', not relative './foo'
@@ -325,12 +308,12 @@ export default function routes({replaceIndex}) {
 
 			// serve resources
 			if (fs.existsSync(path.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
-				await send(ctx, ctx.request.path, {root: root});
+				await send(ctx, ctx.request.path, {root});
 				return;
 				//TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
 				//TODO webpack might have a better way to identify static resources
-			} 
-			
+			}
+
 			// redirect if not logged in
 			if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
 				ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
@@ -341,15 +324,15 @@ export default function routes({replaceIndex}) {
 			/* webpack-dev-middleware
 				if (replaceIndex !== undefined) {
 					replaceIndex(ctx);
-				} 
+				}
 				else {
 			*/
 			// otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
 			//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-			await send(ctx, app, {root: root});
+			await send(ctx, app, {root});
 		})
 		.all('/*', async (ctx, next) => {
-			ctx.body = ctx.body + '.all /* reached';
+			ctx.body += '.all /* reached';
 			//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
 		});
 

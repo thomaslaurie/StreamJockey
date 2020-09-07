@@ -117,11 +117,11 @@ export function compareUnorderedArrays(a, b, options) {
 		// Match if:
 		let result = true;
 		// All items of a exist in b.
-		if (a.some((item) => !b.includes(item))) result = false;
+		if (a.some(item => !b.includes(item))) result = false;
 		// And if not a subset comparison.
 		if (!options.subset) {
 			// All items of b exist in a.
-			if (b.some((item) => !a.includes(item))) result = false;
+			if (b.some(item => !a.includes(item))) result = false;
 		}
 		return result;
 	}

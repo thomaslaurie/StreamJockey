@@ -21,7 +21,7 @@
         methods: {
 			// NEW
             async logout() {
-                await session.logout().catch(rejected => {
+                await session.logout().catch((rejected) =>{
                     //TODO handle error
                     console.error(rejected);
                 });

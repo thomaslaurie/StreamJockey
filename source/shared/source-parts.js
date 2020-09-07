@@ -58,7 +58,7 @@ export default new ClassParts({
 				this.instances.push(source);
 			},
 			find(name) {
-				return this.instances.find((instance) => instance.name === name);
+				return this.instances.find(instance => instance.name === name);
 			},
 			isRegistered(name) {
 				return this.find(name) !== undefined;

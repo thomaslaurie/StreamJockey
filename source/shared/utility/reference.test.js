@@ -1,7 +1,7 @@
 import test from 'ava';
 import {
-	Reference, 
-	formReferences, 
+	Reference,
+	formReferences,
 	extractValues,
 } from './reference.js';
 
@@ -19,7 +19,7 @@ test('value persists through functions', (t) => {
 	const reference = new Reference('foo');
 	function modify(reference) {
 		reference.value = 'bar';
-	};
+	}
 	modify(reference);
 	t.assert(reference.value = 'bar');
 });

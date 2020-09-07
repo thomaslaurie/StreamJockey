@@ -43,7 +43,7 @@ export default new ClassParts({
 				id: {
 					columnName: 'id',
 					rule: projectRules.id.validate,
-		
+
 					add: auto,
 					get: optional,
 					edit: required,
@@ -52,7 +52,7 @@ export default new ClassParts({
 				name: {
 					columnName: 'name',
 					rule: projectRules.name.validate,
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -61,7 +61,7 @@ export default new ClassParts({
 				email: {
 					columnName: 'email',
 					rule: rules.string.validate, //TODO Email rule.
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -70,7 +70,7 @@ export default new ClassParts({
 				password: {
 					columnName: 'password',
 					rule: projectRules.password.validate,
-		
+
 					add: required,
 					get: unused,
 					edit: {
@@ -83,7 +83,7 @@ export default new ClassParts({
 				spotifyRefreshToken: {
 					columnName: 'spotifyRefreshToken',
 					rule: () => {}, //TODO empty for now
-		
+
 					add: unused,
 					get: {
 						in: false,

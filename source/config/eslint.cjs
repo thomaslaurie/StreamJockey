@@ -105,7 +105,8 @@ const rules = {
 			'no-empty-pattern':     [on],
 			'prefer-destructuring': [on, {
 				array:  true,
-				object: true,
+				// Object destructuring doesn't really make the assignment any clearer. Plus it is not compatible with optional chaining ?.
+				object: false,
 			}, {
 				enforceForRenamedProperties: false,
 			}],
@@ -349,7 +350,10 @@ const rules = {
 		'no-useless-call':          [off],
 		arrow:                      {
 			'implicit-arrow-linebreak': [on, 'beside'],
-			'arrow-parens':             [on, 'always'],
+			// Requires parentheses in all cases except when there is one parameter and an implicit return.
+			'arrow-parens':             [on, 'as-needed', {
+				requireForBlockBody: true,
+			}],
 			'prefer-arrow-callback':    [on, {
 				allowNamedFunctions: false,
 				allowUnboundThis:    true,
@@ -505,6 +509,10 @@ const rules = {
 				anonymous:  'always',
 				asyncArrow: 'always',
 			}],
+			'arrow-spacing': [on, {
+				before: true,
+				after:  true,
+			}],
 			'func-call-spacing':   [on, 'never'],
 			'space-before-blocks': [on, 'always'],
 			'rest-spread-spacing': [on, 'never'],
@@ -558,7 +566,7 @@ const rules = {
 					'R',
 					'!',
 					'?',
-					//TODO Add tag letters here.
+					'OLD',
 				],
 			}],
 

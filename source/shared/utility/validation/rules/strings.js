@@ -23,7 +23,7 @@ export const trimmedString = new Rule({
 		//TODO See https://en.wikipedia.org/wiki/Whitespace_character
 		//! If this gets changed, ensure the caster .trim() function is updated too.
 		//L From the trim() polyfill at: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/Trim#Polyfill
-		if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g.test(value)) {
+		if (/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/gu.test(value)) {
 			throw new Error('String has leading and/or trailing whitespace.');
 		}
 	},

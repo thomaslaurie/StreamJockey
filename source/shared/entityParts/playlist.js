@@ -37,7 +37,7 @@ export default new ClassParts({
 				id: {
 					columnName: 'id',
 					rule: projectRules.id.validate,
-		
+
 					add: auto,
 					get: optional,
 					edit: required,
@@ -46,7 +46,7 @@ export default new ClassParts({
 				userId: {
 					columnName: 'userId',
 					rule: projectRules.id.validate,
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -55,7 +55,7 @@ export default new ClassParts({
 				name: {
 					columnName: 'name',
 					rule: projectRules.name.validate,
-		
+
 					add: required,
 					get: optional,
 					edit: optional,
@@ -64,7 +64,7 @@ export default new ClassParts({
 				description: {
 					columnName: 'description',
 					rule: projectRules.description.validate,
-		
+
 					add: optional,
 					get: optional,
 					edit: optional,
@@ -73,7 +73,7 @@ export default new ClassParts({
 				visibility: {
 					columnName: 'visibility',
 					rule: projectRules.visibilityState.validate,
-		
+
 					add: optional,
 					get: optional,
 					edit: optional,
@@ -82,7 +82,7 @@ export default new ClassParts({
 				image: {
 					columnName: 'image',
 					rule: rules.string.validate, //TODO Image url rule.
-		
+
 					add: optional,
 					get: optional,
 					edit: optional,
@@ -91,7 +91,7 @@ export default new ClassParts({
 				color: {
 					columnName: 'color',
 					rule: projectRules.color.validate,
-		
+
 					add: optional,
 					get: optional,
 					edit: optional,

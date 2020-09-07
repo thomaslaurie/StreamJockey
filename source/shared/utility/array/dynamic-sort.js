@@ -20,18 +20,18 @@ export default function (list, ascending, prop) {
 			// if values are numbers or boolean, do number compare
 			compare = function (a, b) {
 				return (a[prop] - b[prop]) * ascending;
-			}
+			};
 		} else {
 			// if values are strings, other, or mixed, do a string conversion and string compare
 			compare = function (a, b) {
 				// convert to strings
-				let as = a[prop] + '';
-				let bs = b[prop] + '';
+				const as = String(a[prop]);
+				const bs = String(b[prop]);
 
 				// string compare
 				//L https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare
 				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
-			}
+			};
 		}
 	} else {
 		// if no prop is defined, compare values
@@ -39,15 +39,15 @@ export default function (list, ascending, prop) {
 		if (list.every(item => (typeof item === 'number') || typeof item === 'boolean')) {
 			compare = function (a, b) {
 				return (a - b) * ascending;
-			}
-		} else {
-			compare = function (a, b) {
-				let as = a + '';
-				let bs = b + '';
-				return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
-			}
+			};
 		}
+
+		compare = function (a, b) {
+			const as = String(a);
+			const bs = String(b);
+			return as.localeCompare(bs, 'en', {sensitivity: 'base'}) * ascending;
+		};
 	}
 
 	return stableSort(list, compare);
-};
+}

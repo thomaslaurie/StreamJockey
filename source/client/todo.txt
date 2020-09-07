@@ -2,3 +2,11 @@ Workout api keys & info storage between server & client, its kind of a mixed bac
 
 Is there a significant discrepancy between potential synchronous/local sources (listeners) and asynchronous api calls for progress checks? Which information sources are synchronous/local? Should their information override the api information?
 	Implement some way to see how accurate the timestamps of sources are? by tracking the local timestamp, returned timestamp, and then another local timestamp to gain knowledge of an error margin? then using that to translate timestamps to local time?
+
+//TODO//L list transitions: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
+
+//TODO //L dynamic list rendering: https://medium.freecodecamp.org/an-introduction-to-dynamic-list-rendering-in-vue-js-a70eea3e321
+
+//? is v-model secure? it updates a variable with whatever is in the input
+
+//TODO Change name from index.js to something else, (remember to update webpack config). Maybe 'main' or something vue related because this mainly wires up vue.

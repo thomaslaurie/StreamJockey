@@ -108,8 +108,8 @@ export default {
 		for (const key of ownKeys(properties)) {
 			let closureValue = properties[key];
 			Object.defineProperty(target, key, {
-				get() { return closureValue; },
-				set(value) { closureValue = value; },
+				get() { return closureValue },
+				set(value) { closureValue = value },
 				enumerable:   false,
 				configurable: false,
 			});

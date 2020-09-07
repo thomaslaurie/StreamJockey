@@ -4,26 +4,26 @@ import sourcePath from '../node-utility/source-path.cjs';
 import escapeRegExp from '../shared/utility/string/escape-reg-exp.js';
 import {defaultTestGlob, testSuffix} from '../config/project-paths.js';
 
-const isFilePath = new RegExp(`${escapeRegExp(testSuffix)}$`);
+const isFilePath = new RegExp(`${escapeRegExp(testSuffix)}$`, 'u');
 
 (async () => {
 	const parser = await getModule('minimist', 'devDependencies');
 	// Get first non-option argument.
 	// It should be a source-relative directory or file path.
 	const {
-		_: [path = defaultTestGlob], 
-		verbose, 
+		_: [path = defaultTestGlob],
+		verbose,
 		watch,
 	} = parser(process.argv.slice(2), {
 		boolean: [
-			'verbose', 
+			'verbose',
 			'watch',
 		],
 		alias: {
 			v: 'verbose',
 			w: 'watch',
 		},
-	}); 
+	});
 
 	// Get the absolute path.
 	let fullPath = sourcePath(path);
@@ -31,10 +31,10 @@ const isFilePath = new RegExp(`${escapeRegExp(testSuffix)}$`);
 	if (!(isFilePath.test(fullPath))) {
 		fullPath += `/**/*${testSuffix}`;
 	}
-	
+
 	const verboseFlag = verbose ? '--verbose' : '';
 	const watchFlag   = watch   ? '--watch'   : '';
-	
+
 	// Run tests with ava.
 	await asyncSpawn(`npx ava ${fullPath} ${verboseFlag} ${watchFlag}`);
 })().catch((error) => {
@@ -46,11 +46,9 @@ const isFilePath = new RegExp(`${escapeRegExp(testSuffix)}$`);
 });
 
 /* RegExp Replace
-
 	\['(.*?)', *(.*?)\],
 
 	test($1, (t) => {
 		t.assert($2);
 	});
-
 */

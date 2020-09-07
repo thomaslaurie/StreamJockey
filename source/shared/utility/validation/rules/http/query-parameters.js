@@ -22,7 +22,7 @@ export default new Rule({
 			callback(obj, key) {
 				const parameterValue = obj[key];
 				if (!(
-					string.test(parameterValue) 
+					string.test(parameterValue)
 					|| number.test(parameterValue)
 					|| boolean.test(parameterValue)
 				)) {

@@ -1,4 +1,4 @@
-// Used for errors that are caused by internal mistakes in the code. 
+// Used for errors that are caused by internal mistakes in the code.
 // ie. Not the user's fault.
 
 import CustomError from './custom-error.js';

@@ -39,7 +39,7 @@ export default async function (method, url, body) {
 	// For GET requests with a body, put the body in a query parameter.
 	if (method === 'GET' && body !== undefined) {
 		// Ensure the URL doesn't contain the reserved query parameter.
-		if ((new RegExp(`[?&]${escapeRegExp(GET_BODY)}`)).test(url)) {
+		if ((new RegExp(`[?&]${escapeRegExp(GET_BODY)}`, 'u')).test(url)) {
 			throw new HTTPError({
 				message: `Server request URL cannot use the query parameter '${GET_BODY}' as it is reserved.`,
 			});
@@ -64,7 +64,7 @@ export default async function (method, url, body) {
 
 	// Always use the JSON_HEADER for server requests.
 	return request(method, url, {
-		JSONBody, 
+		JSONBody,
 		headers: constants.JSON_HEADER,
 	});
-};
+}

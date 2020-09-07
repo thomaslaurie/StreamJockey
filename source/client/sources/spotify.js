@@ -1,5 +1,5 @@
-//import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
-//import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
+// import './vendor/spotify-player.js'; //! creates window.onSpotifyWebPlaybackSDKReady and window.Spotify, this is supposed to be imported dynamically from https://sdk.scdn.co/spotify-player.js, it may change without notice, wont work here because onSpotifyWebPlaybackSDKReady is undefined
+// import SpotifyWebApi from './vendor/spotify-web-api.js'; //L api endpoint wrapper: https://github.com/jmperez/spotify-web-api-js
 
 import {
 	wait,
@@ -33,8 +33,8 @@ const spotify = new Source({
 	//TODO make apiReady and playerReady checks
 	name: 'spotify',
 	register: true,
-	
-	
+
+
 	//? where is this being called?
 	async auth() {
 		// prompts the user to accept permissions in a new window, then receives an auth code from spotify
@@ -42,40 +42,40 @@ const spotify = new Source({
 			this was split in to multiple parts on the client side to have an automatically closing window
 			//L https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
 			//! cannot load this url in an iframe as spotify has set X-Frame-Options to deny, loading this in a new window is probably the best idea to not interrupt the app
-	
+
 		*/
 		//TODO transfer-playback permission is required, or else if spotify is connected to another device, playback requests will return 403 Restriction Violated.
-	
+
 		// request url
 		const requestCredentials = await serverRequestRequest('GET', 'spotify/authRequestStart');
-	
+
 		// open spotify auth request window
 		//L https://www.w3schools.com/jsref/met_win_open.asp
 		const authWindow = window.open(requestCredentials.authRequestURL);
-	
+
 		// listen for response from spotify
 		//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 		const authCredentials = await serverRequest('POST', 'spotify/authRequestEnd', requestCredentials);
-	
+
 		// automatically close window when data is received
 		authWindow.close();
-	
+
 		// exchange auth code for tokens
 		const tokens = await serverRequest('POST', 'spotify/exchangeToken', authCredentials);
 		this.credentials.accessToken = tokens.accessToken;
 		this.credentials.expires = tokens.accessToken;
 		this.credentials.scopes = tokens.scopes; //TODO scopes wont be refreshed between sessions
-		
+
 		//TODO there needs to be a scopes (permissions) check in here somewhere
-	
+
 		/* //OLD
 			// request authURL & authKey
-			return fetch(`${API_URL}/spotify/startAuthRequest`).then(resolved => {
+			return fetch(`${API_URL}/spotify/startAuthRequest`).then((resolved) =>{
 				// open spotify auth request window
 				//L https://www.w3schools.com/jsref/met_win_open.asp
 				authRequestWindow = window.open(resolved.authRequestURL);
 				return resolved;
-			}).then(resolved => {
+			}).then((resolved) =>{
 				//TODO there is a chance to miss the event if the window is resolved before the fetch request reaches the server
 				return fetch(`${API_URL}/spotify/endAuthRequest`,  {
 					method: 'post',
@@ -85,12 +85,12 @@ const spotify = new Source({
 					},
 					body: JSON.stringify(resolved),
 				});
-			}).then(resolved => {
+			}).then((resolved) =>{
 				return resolved.json();
-			}).then(resolved => {
+			}).then((resolved) =>{
 				authRequestWindow.close();
 				return resolved;
-			}).catch(rejected => {
+			}).catch((rejected) =>{
 				throw propagate(rejected);
 			});
 		*/
@@ -126,12 +126,12 @@ const spotify = new Source({
 	async getAccessToken() {
 		// gets the api access token, handles all refreshing, initializing, errors, etc.
 		// doing this here is useful because it removes the need to check on init, and only prompts when it is needed
-	
+
 		//TODO must respond to denials by spotify too
-	
+
 		// refresh
-		let that = this;
-		let refresh = async function (that) {
+		const that = this;
+		const refresh = async function (that) {
 			let result = await serverRequest('GET', `spotify/refreshToken`).catch(returnPropagate);
 			result = sharedRegistry.autoConstruct(result);
 			if (result instanceof AuthRequired) {
@@ -143,9 +143,9 @@ const spotify = new Source({
 				// assign spotify.credentials
 				that.credentials.accessToken = result.accessToken;
 				that.credentials.expires = result.accessToken;
-			}	
+			}
 		};
-	
+
 		// if client doesn't have token or if it has expired, refresh it immediately
 		//TODO reconsider this string test
 		if (!rules.visibleString.test(this.credentials.accessToken) || this.credentials.expires <= Date.now()) {
@@ -155,13 +155,13 @@ const spotify = new Source({
 		if (this.credentials.expires <= Date.now() + this.refreshBuffer) {
 			refresh(that);
 		}
-	
+
 		return this.credentials.accessToken;
 	},
 });
 
 // External due to spotify self reference.
-spotify.search = async function ({
+spotify.search = async function search({
 	term = '',
 	startIndex = 0,
 	amount = 1,
@@ -180,7 +180,7 @@ spotify.search = async function ({
 		// include_external: 'audio',
 
 		/* //G
-			type: 
+			type:
 				'A comma-separated list of item types to search across. Valid types are: album , artist, playlist, and track.'
 			market:
 				'An ISO 3166-1 alpha-2 country code or the string from_token. If a country code is specified, only artists, albums, and tracks with content that is playable in that market is returned. Note: Playlist results are not affected by the market parameter. If market is set to from_token, and a valid access token is specified in the request header, only content playable in the country associated with the user account, is returned. Users can view the country that is associated with their account in the account settings. A user must grant access to the user-read-private scope prior to when the access token is issued.'
@@ -193,7 +193,7 @@ spotify.search = async function ({
 		*/
 	});
 
-	return result.tracks.items.map(track => {
+	return result.tracks.items.map((track) => {
 		return new Track({
 			source: spotify,
 			sourceId: track.id,
@@ -211,22 +211,22 @@ spotify.playback = new Playback({
 	},
 	actions: {
 		async loadPlayer(context) {
-			return await new Promise((resolve, reject) => {
+			return new Promise((resolve, reject) => {
 				// this is a callback that the SpotifyWebPlaybackSDK module calls when it is ready
-				window.onSpotifyWebPlaybackSDKReady = function () {
-					const player = new window.Spotify.Player({ 
+				window.onSpotifyWebPlaybackSDKReady = function onSpotifyWebPlaybackSDKReady() {
+					const player = new window.Spotify.Player({
 						// "The name of the Spotify Connect player. It will be visible in other Spotify apps."
 						name: APP_NAME,
-						getOAuthToken: async callback => {
-							let token = await spotify.getAccessToken();
+						getOAuthToken: async (callback) => {
+							const token = await spotify.getAccessToken();
 							callback(token);
 						},
-						//volume: 1, //TODO initialize with a custom volume (default is 1)
+						// volume: 1, //TODO initialize with a custom volume (default is 1)
 					});
-					player.formatState = function (state) {
+					player.formatState = function formatState(state) {
 						//TODO state could be anything from the callback, better validate it somehow
 						if (!rules.object.test(state)) return {};
-						const t = state.track_window.current_track; 
+						const t = state.track_window.current_track;
 						return {
 							track: new Track({
 								source: spotify,
@@ -238,20 +238,20 @@ spotify.playback = new Playback({
 							}),
 							isPlaying: !state.paused,
 							progress: state.position / t.duration_ms,
-		
+
 							timestamp: state.timestamp, //! this isn't in the documentation, but the property exists
 						};
-					},
-					player.awaitState = async function ({
-						command = () => {}, 
+					};
+					player.awaitState = async function awaitState({
+						command = () => {},
 						stateCondition = () => false,
-						error = {}, 
-						timeoutError = new Error('awaitState timed out')
+						error = {},
+						timeoutError = new Error('awaitState timed out'),
 					}) {
 						return new Promise(async (resolve, reject) => {
 							let resolved = false; // resolved boolean is used to prevent later announcements of response objects
 
-							const callback = async state => {
+							const callback = async (state) => {
 								if (!resolved && stateCondition(player.formatState(state))) {
 									// remove listener
 									this.removeListener('player_state_changed', callback);
@@ -264,13 +264,13 @@ spotify.playback = new Playback({
 								}
 							};
 
-							// add the listener before the request is made, so that the event cannot be missed 
+							// add the listener before the request is made, so that the event cannot be missed
 							//! this may allow unprompted events (from spotify, not from this app because no requests should overlap because of the queue system) to resolve the request if they meet the conditions, but I can't think of any reason why this would happen and any situation where if this happened it would cause issues
 							this.addListener('player_state_changed', callback);
-		
+
 							// if command failed, reject
 							//! don't do anything when main() resolves, it only indicates that the command has been received
-							await command().catch(rejected => {
+							await command().catch((rejected) => {
 								if (!resolved) {
 									this.removeListener('player_state_changed', callback);
 									reject(new InvalidStateError({...error, state: rejected}));
@@ -286,7 +286,7 @@ spotify.playback = new Playback({
 								resolve();
 								resolved = true;
 							}
-							
+
 							// if timed out, reject
 							await wait(Playback.requestTimeout);
 							if (!resolved) {
@@ -295,7 +295,7 @@ spotify.playback = new Playback({
 								resolved = true;
 							}
 						});
-					},
+					};
 
 					// events
 					//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
@@ -312,7 +312,7 @@ spotify.playback = new Playback({
 							iframe.style.left = '-1000px';
 						}
 
-						// set the player as ready 
+						// set the player as ready
 						//! this must go before playback is transferred. because after, events start firing that checkPlayback() and use the player
 						context.commit('setState', {player});
 
@@ -320,10 +320,10 @@ spotify.playback = new Playback({
 						await spotify.request('PUT', 'me/player', {
 							device_ids: [device_id],
 							play: false, // keeps current playback state
-						}).catch(rejected => {
+						}).catch((rejected) => {
 							reject(new InvalidStateError({
-								//code: JSON.parse(error.response).error.status,
-								//reason: JSON.parse(error.response).error.message,
+								// code: JSON.parse(error.response).error.status,
+								// reason: JSON.parse(error.response).error.message,
 								userMessage: 'spotify player could not be loaded',
 								state: rejected,
 							}));
@@ -331,7 +331,7 @@ spotify.playback = new Playback({
 
 						// wait for device to transfer
 						//TODO this scaling call of recursiveAsyncTime is used twice sofar, would it be good to create a method for this?
-						
+
 						// starting delay
 						let delay = 100;
 						await repeat.async(async () => {
@@ -340,13 +340,13 @@ spotify.playback = new Playback({
 							// timeout is doubled here to work better with the doubling delay time.
 							// using an object wrapper for the delay argument so that it can be modified between iterations
 							await wait(delay);
-							delay = delay*2; // double the delay each time
-							return await spotify.request('Get', 'me/player').catch(rejected => {
+							delay *= 2; // double the delay each time
+							return spotify.request('Get', 'me/player').catch((rejected) => {
 								reject(new InvalidStateError({
 									userMessage: 'spotify player could not be loaded',
 									state: rejected,
-									//code: JSON.parse(error.response).error.status,
-									//reason: JSON.parse(error.response).error.message,
+									// code: JSON.parse(error.response).error.status,
+									// reason: JSON.parse(error.response).error.message,
 								}));
 
 								return {device: {id: device_id}}; // break the loop after rejecting
@@ -356,9 +356,9 @@ spotify.playback = new Playback({
 								//L 'When no available devices are found, the request will return a 200 OK response but with no data populated.'
 								// this is fine, it just means that it's not ready, so just catch anything.
 								return (
-									rules.object.test(result) 		 &&
-									rules.object.test(result.device) &&
-									result.device.id === device_id
+									rules.object.test(result)
+									&& 		 rules.object.test(result.device)
+									&& result.device.id === device_id
 								);
 							},
 							timeout: Playback.requestTimeout * 2,
@@ -376,12 +376,12 @@ spotify.playback = new Playback({
 						//? don't know what to do here
 						console.error('not_ready', 'device_id:', device_id);
 					});
-		
+
 					// errors
 					//TODO make better handlers
 					//L returns an object with just a message property: https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-error
 					player.on('initialization_error', ({message}) => {
-						//C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
+						// C	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
 						reject(new CustomError({
 							userMessage: 'spotify player encountered an initialization error',
 							message,
@@ -401,9 +401,9 @@ spotify.playback = new Playback({
 							message,
 						}));
 					});
-		
+
 					// ongoing listeners
-					player.on('player_state_changed', state => {
+					player.on('player_state_changed', (state) => {
 						// emits a WebPlaybackState object when the state of the local playback has changed. It may be also executed in random intervals.
 						//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-state
 						context.dispatch('updatePlayback', state);
@@ -412,8 +412,8 @@ spotify.playback = new Playback({
 						//TODO this should be a listener, and not resolve or reject
 						console.error('playback_error', message);
 					});
-		
-		
+
+
 					// connect player
 					player.connect().then((resolved) => {
 						// 'returns a promise with a boolean for whether or not the connection was successful'
@@ -422,13 +422,13 @@ spotify.playback = new Playback({
 						if (!resolved) {
 							reject(new CustomError({
 								userMessage: 'spotify player failed to connect',
-								message:'spotify.connect() failed',
+								message: 'spotify.connect() failed',
 							}));
 						}
-					}, (rejected) => {
+					}, () => {
 						reject(new UnreachableError());
 					});
-		
+
 					/* //R
 						//R custom event listeners not actually needed because a closure is created and window.onSpotifyWebPlaybackSDKReady() can directly call resolve() and reject()
 						//L events: https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
@@ -460,31 +460,31 @@ spotify.playback = new Playback({
 				// sets up a local Spotify Connect device, but cannot play or search tracks (limited to modifying playback state, but don't do that here)
 				// API can make playback requests to the currently active device, but wont do anything if there isn't one active, this launches one
 				// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
-		
-				// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated? 
-		
+
+				// TODO requires spotifyAccessToken, if this changes (ie. token refresh, account swap) how does player get updated?
+
 				return new Promise(function (resolve, reject) {
 					// setup resolve/reject listeners
 					window.addEventListener('spotifyLoadPlayerSuccess', function (e) {
 						resolve(e.detail);
 						e.currentTarget.removeEventListener(e.type, function () {});
 					});
-		
+
 					window.addEventListener('spotifyLoadPlayerFailure', function (e) {
 						reject(e.detail);
 						e.currentTarget.removeEventListener(e.type, function () {});
 					});
-		
+
 					// simplify event triggers
 					function triggerResolve(data) {
 						window.dispatchEvent(new CustomEvent('spotifyLoadPlayerSuccess', {detail: data}));
 					}
-		
+
 					function triggerReject(data) {
 						window.dispatchEvent(new CustomEvent('spotifyLoadPlayerFailure', {detail: data}));
 					}
-					
-					
+
+
 					window.onSpotifyWebPlaybackSDKReady = function () {
 						// onSpotifyWebPlaybackSDKReady must be immediately after(isn't this before?) spotify-player.js, acts as the callback function
 						try {
@@ -493,17 +493,17 @@ spotify.playback = new Playback({
 								name: WEB_PLAYER_NAME,
 								getOAuthToken: cb => { cb(spotifyAccessToken); }
 							});
-		
+
 							// configure listeners
 							// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
-							
+
 							// ({param}) destructuring: https://stackoverflow.com/questions/37661166/what-do-function-parameter-lists-inside-of-curly-braces-do-in-es6
-		
-							player.addListener('playback_error', function ({message}) { 
-								console.error(message); 
+
+							player.addListener('playback_error', function ({message}) {
+								console.error(message);
 								// TODO handle me
 							});
-		
+
 							// playback status updates
 							player.addListener('player_state_changed', function (state) {
 								// https://developer.spotify.com/documentation/web-playback-sdk/reference/#events
@@ -517,15 +517,15 @@ spotify.playback = new Playback({
 									title: state.track_window.current_track.name,
 									duration: state.track_window.current_track.duration_ms,
 								}
-		
+
 								// fill artists
 								state.track_window.current_track.artists.forEach(function (artist, i) {
 									spotify.playback.track.artists[i] = artist.name;
 								});
 							});
-		
+
 							// error handling
-							player.addListener('initialization_error', function ({message}) { 
+							player.addListener('initialization_error', function ({message}) {
 								//	'Emitted when the Spotify.Player fails to instantiate a player capable of playing content in the current environment. Most likely due to the browser not supporting EME protection.'
 								triggerReject(new Err({
 										log: true,
@@ -535,8 +535,8 @@ spotify.playback = new Playback({
 									})
 								);
 							});
-		
-							player.addListener('authentication_error', function ({message}) { 
+
+							player.addListener('authentication_error', function ({message}) {
 								// 'Emitted when the Spotify.Player fails to instantiate a valid Spotify connection from the access token provided to getOAuthToken.'
 								triggerReject(new Err({
 										log: true,
@@ -546,7 +546,7 @@ spotify.playback = new Playback({
 									})
 								);
 							});
-		
+
 							player.addListener('account_error', function ({message}) {
 								// 'Emitted when the user authenticated does not have a valid Spotify Premium subscription.'
 								triggerReject(new Err({
@@ -557,18 +557,18 @@ spotify.playback = new Playback({
 									})
 								);
 							});
-		
+
 							// ready
 							player.addListener('ready', function ({device_id}) {
 								// returns a WebPlaybackPlayer object which just contains the created device_id
 								// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#object-web-playback-player
-		
+
 								spotifyApi.transferMyPlayback([device_id], {}).then(function (resolved) {
 									triggerResolve(new Success({
 										origin: 'spotify.loadPlayer()',
 										message: 'spotify player loaded',
 									}));
-		
+
 									// TODO updatePlayback(); ?
 								}, function (rejected) {
 									triggerReject(new Err({
@@ -588,7 +588,7 @@ spotify.playback = new Playback({
 									}));
 								});
 							});
-		
+
 							// connect to player
 							player.connect().then(function (resolved) {
 								// https://beta.developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-connect
@@ -622,8 +622,8 @@ spotify.playback = new Playback({
 							}));
 						}
 					}
-					
-		
+
+
 					$.getScript('https://sdk.scdn.co/spotify-player.js').catch(function (jqXHR, settings, exception) {
 						triggerReject(new Err({
 							log: true,
@@ -636,7 +636,7 @@ spotify.playback = new Playback({
 			*/
 		},
 
-		
+
 		// spotify has a separate updatePlayback action because from events & the awaitState function, the state is already retrieved and doesn't need to be retrieved a second time (except for volume)
 		async updatePlayback(context, state) {
 			// formats and commits playback state
@@ -658,7 +658,7 @@ spotify.playback = new Playback({
 			const formattedState = context.state.player.formatState(state);
 			// these player functions I'm pretty sure are local and don't send GET requests and therefore don't have rate limits and should be fairly fast
 			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getvolume
-			const volume = await context.state.player.getVolume(); 
+			const volume = await context.state.player.getVolume();
 			const newState = {...formattedState, volume};
 			/*
 				console.log(
@@ -675,19 +675,19 @@ spotify.playback = new Playback({
 			// retrieves playback from api and updates it
 
 			//L https://developer.spotify.com/documentation/web-playback-sdk/reference/#api-spotify-player-getcurrentstate
-			const state = await context.state.player.getCurrentState().catch(rejected => {
+			const state = await context.state.player.getCurrentState().catch((rejected) => {
 				throw new InvalidStateError({
 					userMessage: 'failed to check spotify playback state',
 					state: rejected,
-					//code: JSON.parse(rejected.response).error.status,
-					//reason: JSON.parse(rejected.response).error.message,
+					// code: JSON.parse(rejected.response).error.status,
+					// reason: JSON.parse(rejected.response).error.message,
 				});
 			});
 
 			await context.dispatch('updatePlayback', state);
 		},
-		
-		//G//TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
+
+		//G //TODO if a source can't handle redundant requests (like pause when already paused) then a filter needs to be coded into the function itself - ie all the methods should be idempotent (toggle functionality is done client-side so that state is known)
 		//G should resolve only when the playback command is applied
 
 		// PLAYBACK COMMANDS
@@ -696,22 +696,22 @@ spotify.playback = new Playback({
 		async start(context, track) {
 			const timeBeforeCall = Date.now();
 			const result = await context.state.player.awaitState({
-				command: async () => await context.state.source.request('PUT', 'me/player/play', {
+				command: async () => context.state.source.request('PUT', 'me/player/play', {
 					uris: [`spotify:track:${track.sourceId}`],
 				}),
-				stateCondition: state => ( 
+				stateCondition: state => (
 					// track must be playing, near the start (within the time from when the call was made to now), and the same track
-					state.isPlaying === true &&
-					//state.progress !== context.state.progress && //!
-					//state.progress !== 0 && // track must be actually started
-					state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration &&
-					state.track.sourceId === context.state.track.sourceId
+					state.isPlaying === true
+					// state.progress !== context.state.progress && //!
+					// state.progress !== 0 && // track must be actually started
+					&& state.progress <= (Date.now() - timeBeforeCall) / context.state.track.duration
+					&& state.track.sourceId === context.state.track.sourceId
 				),
 				error: {
-					//code: JSON.parse(rejected.response).error.status,
+					// code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.start()',
 					message: 'spotify track could not be started',
-					//reason: JSON.parse(rejected.response).error.message,
+					// reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: new Error('spotify.playback.actions.start() timed out'),
 			});
@@ -720,57 +720,57 @@ spotify.playback = new Playback({
 			return result;
 		},
 		async pause({state: {player}}) {
-			return await player.awaitState({
-				command: async () => await player.pause(),
+			return player.awaitState({
+				command: async () => player.pause(),
 				stateCondition: state => state.isPlaying === false,
 				error: {
-					//code: JSON.parse(rejected.response).error.status,
+					// code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.pause()',
 					message: 'spotify track could not be paused',
-					//reason: JSON.parse(rejected.response).error.message,
+					// reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: new Error('spotify.playback.actions.pause() timed out'),
 			});
 		},
 		async resume({state: {player}}) {
-			return await player.awaitState({
-				command: async () => await player.resume(),
+			return player.awaitState({
+				command: async () => player.resume(),
 				stateCondition: state => state.isPlaying === true,
 				error: {
-					//code: JSON.parse(rejected.response).error.status,
+					// code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.resume()',
 					message: 'spotify track could not be resumed',
-					//reason: JSON.parse(rejected.response).error.message,
+					// reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: new Error('spotify.playback.actions.resume() timed out '),
 			});
 		},
-		async seek({state, state: {player, track}}, progress) {
+		async seek({state: {player, track}}, progress) {
 			const ms = progress * track.duration;
 			const timeBeforeCall = Date.now();
 
-			return await player.awaitState({
-				command: async () => await player.seek(ms),
+			return player.awaitState({
+				command: async () => player.seek(ms),
 				// state.position must be greater than the set position but less than the difference in time it took to call and resolve
 				stateCondition: state => state.progress >= progress && state.progress - progress <= (Date.now() - timeBeforeCall) / track.duration,
 				error: {
-					//code: JSON.parse(rejected.response).error.status,
+					// code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.seek()',
 					message: 'spotify track could not be seeked',
-					//reason: JSON.parse(rejected.response).error.message,
+					// reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: new Error('spotify.playback.actions.seek() timed out'),
 			});
 		},
 		async volume({state: player}, volume) {
-			return await player.awaitState({
-				command: async () => await player.setVolume(volume),
+			return player.awaitState({
+				command: async () => player.setVolume(volume),
 				stateCondition: state => state.volume === volume,
 				error: {
-					//code: JSON.parse(rejected.response).error.status,
+					// code: JSON.parse(rejected.response).error.status,
 					origin: 'spotify.seek()',
 					message: 'spotify volume could not be set',
-					//reason: JSON.parse(rejected.response).error.message,
+					// reason: JSON.parse(rejected.response).error.message,
 				},
 				timeoutError: new Error('spotify.playback.actions.volume() timed out '),
 			});
@@ -779,4 +779,3 @@ spotify.playback = new Playback({
 });
 
 export default spotify;
-

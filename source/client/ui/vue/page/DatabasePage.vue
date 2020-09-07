@@ -133,13 +133,13 @@
 
 
             async login() {
-                this.currentUser = await session.login({name: this.name, password: this.password}).catch(rejected => {
+                this.currentUser = await session.login({name: this.name, password: this.password}).catch((rejected) =>{
                     console.error(rejected);
 				});
 				this.isLoggedIn = true;
 			},
 			async logout() {
-				await session.logout().catch(rejected => {
+				await session.logout().catch((rejected) =>{
 					console.error(rejected);
 				});
 				this.isLoggedIn = false;

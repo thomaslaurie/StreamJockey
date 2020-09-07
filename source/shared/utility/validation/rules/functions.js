@@ -6,6 +6,6 @@ import Rule from '../rule.js';
 
 export const func = new Rule({
 	validator(value) {
-		if (typeof value !== 'function') throw new Error('Value is not a function.')
+		if (typeof value !== 'function') throw new Error('Value is not a function.');
 	},
 });

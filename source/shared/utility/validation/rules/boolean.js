@@ -7,6 +7,6 @@ export default new Rule({
 		}
 	},
 	caster(reference) {
-		reference.value = !!reference.value;
+		reference.value = Boolean(reference.value);
 	},
 });

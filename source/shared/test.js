@@ -11,7 +11,6 @@ export default async function test(tests, origin) {
 	if (failCount === 0) {
 		console.log(`%c${origin} - all tests passed`, 'background-color: #d0efd8');
 		return true;
-	} else {
-		return false;
 	}
-};
+	return false;
+}

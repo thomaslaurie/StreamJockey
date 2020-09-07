@@ -12,5 +12,3 @@ test('value to value', (t) => {
 test('empty array to undefined', (t) => {
 	t.assert(one([]) === undefined);
 });
-
-

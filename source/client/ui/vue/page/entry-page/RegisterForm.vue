@@ -16,12 +16,12 @@
         },
         methods: {
             async submit() {
-                await User.add(this).catch(rejected => {
+                await User.add(this).catch((rejected) =>{
                     //TODO handle error
                     console.error(rejected);
                 });
                 
-                let me = await session.login(this).catch(rejected => {
+                let me = await session.login(this).catch((rejected) =>{
                     //TODO handle error
                     console.error(rejected);
             	});
