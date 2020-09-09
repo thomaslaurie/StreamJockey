@@ -6,9 +6,14 @@
 	],
 	"settings": {
 		"cSpell.words": [
+			"castable",
+			"constructables",
 			"postgres",
 			"spotify",
 			"youtube"
-		]
-	}
+		],
+		"eslint.options": {
+			"configFile": "source/config/eslint.cjs"
+		}
+	},
 }

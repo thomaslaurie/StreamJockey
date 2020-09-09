@@ -1,0 +1,25 @@
+<!doctype html>
+
+<html lang='en' >
+	<head>
+		<meta charset='utf-8'>
+		<title>StreamJockey</title>
+		<base href='/'> <!-- //R
+			//R when using history mode, and in a nested route, and using a dynamic import: resources weren't being requested relative to the root, they were being requested relative to the current url (root/user/resource.ext)
+			//L I searched through a bunch of similar issues: https://github.com/webpack/webpack/issues/7077, https://laracasts.com/discuss/channels/vue/vue-router-on-history-mode-static-assets-wont-load, https://stackoverflow.com/questions/33058823/how-do-i-resolve-absolute-require-paths-with-webpack, https://spin.atomicobject.com/2017/10/07/absolute-paths-javascript/
+			//L and finally found the actual solution: https://github.com/webpack/webpack-dev-server/issues/333#issuecomment-326834151, https://github.com/gaearon/react-hot-loader/issues/620
+			//G the <base href='/'> tag in html5 is used to specify the base path that resources should be fetched from when using features that modify the url and push history - ie. vue history mode
+		-->
+		
+		<!-- <link rel='stylesheet' href='/css/normalize.css'> -->
+		<!-- <link rel='stylesheet' href='/src/css/main.css'> added in webpack config sass-loader -->
+    </head>
+
+    <body>
+        <div id="app">
+            <router-view></router-view>
+		</div>
+		<!-- <script src='https://apis.google.com/js/api.js'></script> -->
+    <script type="text/javascript" src="/main.bundle.js"></script></body>
+    <!-- <script src='../../build/client/index.bundle.js' type='module'></script> added in html-webpack-plugin -->
+</html>

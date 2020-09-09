@@ -1,0 +1,24 @@
+	// PRODUCTION
+		tree-shake any objects that don't need to be exported (remove from sj.x, just hae them locally defined)
+		after functions are mostly debugged - remove a lot of the .catch(propagate) - this is mainly tracing and unhandled error
+
+	// BEST PRACTICE
+		//L best practices: https://www.vinaysahni.com/best-practices-for-a-pragmatic-restful-api
+		//L review common pg-promise mistakes: https://github.com/vitaly-t/pg-promise/wiki/Common-Mistakes#invalid-query-formatting-with-manual-string-concatenation-and-es6-template-strings
+
+	// SECURITY
+
+		issue for private query variables (eg password), if someone queries for users where password = x, the passwords wont be returned, but they will still receive a list of users that that query matches
+
+		//? user id being in the session.user object is basically the user's access key -> how do I ensure this is secure too? (aside from using a secure connection), it has to do with koa-session and how the session keys work - figure this out - I think this info is never sent to the client, just stored in the server and accessed via cookie key
+		
+		permissions: [admin, self, password, link, public, etc.]
+
+		track names that don't fit the requirements (too short, too long, etc. will throw an error when trying to add, this isn't desirable because all the track names will be external) should use casting if those restrictions are necesary
+
+	// CONSIDER
+    	delegating unexpected error catches to only top-level entry points, (so that catchUnexpected() doesn't have to be repeated for every single 
+
+	// GENERAL
+		//! IMPORTANT //! check any CRUD functions (like addTrack()) that rely on the current state of the database for information - because asyncMap() functions are executed in parallel, and not in series, this could cause collisions
+		replace all database variables, column names, etc. with constants inside this file (or the db file)

@@ -1,3 +1,4 @@
+const sj = {};
 sj.typeOf = function (input) { //TODO legacy
 	if (input === null) {
 		return 'null';
@@ -18,7 +19,7 @@ sj.typeOf = function (input) { //TODO legacy
 	}
 
 	return typeof input;
-}
+};
 sj.filterList = async function (list, type, successList, errorList) { //TODO legacy
 	//TODO go over this
 
@@ -47,7 +48,7 @@ sj.filterList = async function (list, type, successList, errorList) { //TODO leg
 
 	successList.announce();
 	return successList;
-}
+};
 sj.wrapAll = async function (list, type, success, error) {
 	//C wraps a list in a success or error object based on it's contents, keeps all contents on error
 	//! do not log success or error objects, one of the two is announced by this function
@@ -62,7 +63,7 @@ sj.wrapAll = async function (list, type, success, error) {
 		error.announce();
 		throw error;
 	}
-}
+};
 sj.wrapPure = async function (list, type, success, error) {
 	//C like sj.wrapAll, however discards non-errors on error
 
@@ -82,4 +83,46 @@ sj.wrapPure = async function (list, type, success, error) {
 		error.announce();
 		throw error;
 	}
-}
+};
+sj.rebuild = function (input, strict) {
+	//C turns a bare object back into its custom class if it has a valid constructorName property
+
+	if (sj.isType(input, String)) { //C parse if string
+		try {
+			input = JSON.parse(input);
+		} catch (e) {
+			return new sj.Error({
+				log: true,
+				origin: 'sj.rebuild()',
+				message: 'failed to recreate object',
+				reason: e,
+				content: input,
+			});
+		}
+	}
+	if (!sj.isType(input, Object)) { //C throw if not object
+		return new sj.Error({
+			log: true,
+			origin: 'sj.rebuild()',
+			message: 'failed to recreate object',
+			reason: 'data is not an object',
+			content: input,
+		});
+	}
+
+
+	let rebuilt = input;
+	if (sj.isType(input, sj.Base)) { //C rebuild if possible
+		rebuilt = new sj[input.constructorName](input);
+	} else if (strict) { //C throw if not possible and strict
+		return new sj.Error({
+			log: true,
+			origin: 'sj.rebuild()',
+			message: 'failed to recreate object',
+			reason: 'object is not a valid sj.Base',
+			content: input,
+		});
+	}
+
+	return rebuilt;
+};

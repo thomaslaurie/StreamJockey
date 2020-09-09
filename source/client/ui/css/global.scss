@@ -1,0 +1,19 @@
+//TODO figure out how to import normalize here
+//L partial: https://sass-lang.com/documentation/file.SASS_REFERENCE.html#directives, https://stackoverflow.com/questions/8061166/syntax-to-include-separate-sass-file, https://sass-lang.com/documentation/file.SASS_REFERENCE.html#partials
+@import 'normalize';
+@import 'skeleton';
+
+// variables
+$test-color: red;
+$list-item-color: rgb(220, 220, 220);
+
+// styles
+ul {
+	list-style-type: none;
+}
+
+#youtubePlayerWrapper {
+	width: 400px;
+	height: 300px;
+	/* display: none; */
+}
