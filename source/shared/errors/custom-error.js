@@ -1,3 +1,5 @@
+//TODO Error's message property is non-enumerable. This prevents it from being passed to the client.
+
 import {
 	define,
 	rules,
@@ -19,7 +21,7 @@ export default class CustomError extends Error {
 		super(message);
 
 		define.validatedVariable(this, {
-			reason: {
+			userMessage: {
 				value: userMessage,
 				validator: rules.string.validate,
 			},

@@ -29,9 +29,10 @@ define.constant(ClassRegistry.prototype, {
 			[this.idKey]: id,
 		});
 	},
-	register(Class, id) {
+	register(Class, id, reconstructor = (Class, value) => (new Class(value))) {
 		rules.constructor.validate(Class);
 		rules.string.validate(id);
+		rules.func.validate(reconstructor);
 
 		this.registry.forEach((registered) => {
 			if (registered.Class === Class) {
@@ -42,12 +43,15 @@ define.constant(ClassRegistry.prototype, {
 			}
 		});
 
-		this.registry.push({Class, id});
+		this.registry.push({Class, id, reconstructor});
 	},
 	autoConstruct(value) {
 		const registered = this.registry.find(registered => registered.id === value?.[this.idKey]);
 
-		return (registered === undefined) ? value : new registered.Class(value);
+		return (registered === undefined) ? value : registered.reconstructor(registered.Class, value);
+	},
+	isRegistered(value) {
+		return this.registry.some(registered => registered.id === value?.[this.idKey]);
 	},
 });
 
