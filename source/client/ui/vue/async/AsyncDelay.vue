@@ -1,7 +1,7 @@
 <script>
-    export default {
-        name: 'async-delay',
-    }
+export default {
+	name: 'async-delay',
+};
 </script>
 
 

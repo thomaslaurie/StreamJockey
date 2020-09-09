@@ -1,131 +1,132 @@
 <script>
-	// EXTERNAL
-	import fclone from 'fclone';
+// EXTERNAL
+import fclone from 'fclone';
 
-	import {
-		Track,
-	} from '../../../entities/index.js';
-	import {
-		Subscription,
-	} from '../../../../shared/live-data.js';
-	import {
-		rules,
-	} from '../../../../shared/utility/index.js';
-	import isInstanceOf from '../../../../shared/is-instance-of.js';
+import {
+	Track,
+} from '../../../entities/index.js';
+import {
+	Subscription,
+} from '../../../../shared/live-data.js';
+import {
+	rules,
+} from '../../../../shared/utility/index.js';
+import isInstanceOf from '../../../../shared/is-instance-of.js';
 
-    export default {
-		name: 'player-bar',
+export default {
+	name: 'player-bar',
 
-		data() { return {
+	data() {
+		return {
 			drag: false,
 			manualProgress: 0,
 
 			playlistTracksSubscription: null,
-		}; },
-		computed: {
-			currentTrack() {
-				return this.$store.getters['player/desiredTrack'];
-			},
-			playlistId() {
-				//TODO replace with playlistId rule
-				return (rules.object.test(this.currentTrack) && rules.integer.test(this.currentTrack.playlistId))
-					? this.currentTrack.playlistId
-					: null;
-			},
-			playlistTracks() {
-				return isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription') 
-					? this.$store.getters.getLiveData(this.playlistTracksSubscription)
-					: null;
-			},
-			prevTrack() {
-				return (
-					isInstanceOf(this.currentTrack, Track, 'Track') &&			// currentTrack exists
-					rules.array.test(this.playlistTracks) &&				    // playlistTrack exists
-					0 < this.currentTrack.position && 							//C//! currentTrack is after first track
-					this.currentTrack.position < this.playlistTracks.length		// currentTrack is not above bounds
-						? this.playlistTracks[this.currentTrack.position-1] //!
-						: null
-				);
-			},
-			nextTrack() {
-				return (
-					isInstanceOf(this.currentTrack, Track, 'Track') &&			// currentTrack exists
-					rules.array.test(this.playlistTracks) &&				// playlistTrack exists
-					0 <= this.currentTrack.position && 							// currentTrack is not below bounds
-					this.currentTrack.position < this.playlistTracks.length-1	//C//! currentTrack is before last track
-						? this.playlistTracks[this.currentTrack.position+1] //!
-						: null
-				);
-			},
-
-			sliderProgress() {
-				if (!this.drag) {
-					return this.$store.getters["player/actualPlayback"].progress; //? should this be desired progress?
-				} else {
-					return this.manualProgress; // this makes the slider use its own value
-				}
-			},
+		};
+	},
+	computed: {
+		currentTrack() {
+			return this.$store.getters['player/desiredTrack'];
 		},
-		watch: {
-			playlistId: {
-				// ensure the playlistTracksSubscription is always the same as the currentTrack
-				async handler(id, oldId) {
-					// if playlistId doesn't exist
-					if (id === null) {
-						// wipe playlistTracksSubscription
-						this.playlistTracksSubscription = await this.$store.dispatch('unsubscribe', {subscription: this.playlistTracksSubscription});
+		playlistId() {
+			//TODO replace with playlistId rule
+			return (rules.object.test(this.currentTrack) && rules.integer.test(this.currentTrack.playlistId))
+				? this.currentTrack.playlistId
+				: null;
+		},
+		playlistTracks() {
+			return isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription')
+				? this.$store.getters.getLiveData(this.playlistTracksSubscription)
+				: null;
+		},
+		prevTrack() {
+			return (
+				isInstanceOf(this.currentTrack, Track, 'Track')			// currentTrack exists
+					&& rules.array.test(this.playlistTracks)				    // playlistTrack exists
+					&& this.currentTrack.position > 0 							// C//! currentTrack is after first track
+					&& this.currentTrack.position < this.playlistTracks.length		// currentTrack is not above bounds
+					? this.playlistTracks[this.currentTrack.position - 1] //!
+					: null
+			);
+		},
+		nextTrack() {
+			return (
+				isInstanceOf(this.currentTrack, Track, 'Track')			// currentTrack exists
+					&& rules.array.test(this.playlistTracks)				// playlistTrack exists
+					&& this.currentTrack.position >= 0 							// currentTrack is not below bounds
+					&& this.currentTrack.position < this.playlistTracks.length - 1	// C//! currentTrack is before last track
+					? this.playlistTracks[this.currentTrack.position + 1] //!
+					: null
+			);
+		},
+
+		sliderProgress() {
+			if (!this.drag) {
+				return this.$store.getters['player/actualPlayback'].progress; //? should this be desired progress?
+			}
+			return this.manualProgress; // this makes the slider use its own value
+		},
+	},
+	watch: {
+		playlistId: {
+			// ensure the playlistTracksSubscription is always the same as the currentTrack
+			async handler(id, oldId) {
+				// if playlistId doesn't exist
+				if (id === null) {
+					// wipe playlistTracksSubscription
+					this.playlistTracksSubscription = await this.$store.dispatch('unsubscribe', {subscription: this.playlistTracksSubscription});
 
 					// if the playlistId has changed or the playlistTracksSubscription doesn't exist
-					} else if (id !== oldId || !isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription')) {
-						// update the playlistTracksSubscription to the proper playlistId
-						this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
-							subscription: this.playlistTracksSubscription,
-							Entity: Track,
-							query: {playlistId: id},
-						});
-					}
-				},
-				deep: true,
-				immediate: true,
+				} else if (id !== oldId || !isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription')) {
+					// update the playlistTracksSubscription to the proper playlistId
+					this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
+						subscription: this.playlistTracksSubscription,
+						Entity: Track,
+						query: {playlistId: id},
+					});
+				}
 			},
+			deep: true,
+			immediate: true,
 		},
-		methods: {
-			async test() {
-				console.log('%c---------', 'background-color: orange');
-				
-				console.log('prevTrack', fclone(this.prevTrack));
-				console.log('nextTrack', fclone(this.nextTrack));
-			},
+	},
+	methods: {
+		async test() {
+			console.log('%c---------', 'background-color: orange');
 
-			// BUTTONS
-			async toggle() {
-				await this.$store.dispatch('player/toggle');
-			},
-			async prev(track) {
-				await this.$store.dispatch('player/start', this.prevTrack);
-			},
-			async next(track) {
-				await this.$store.dispatch('player/start', this.nextTrack);
-			},
-
-			// SLIDER
-			async input(event) {
-				this.manualProgress = event.target.value;
-			},
-			async mousedown(event) {
-				this.manualProgress = event.target.value; // prevents slider from flickering to 0 on first mousedown
-				this.drag = true;
-			},
-			async mouseup(event) {
-				//! drag released here instead of on change because change won't fire on a stationary click
-				this.manualProgress = event.target.value;
-				await this.$store.dispatch('player/seek', event.target.value);
-				this.drag = false;
-			},
-			async change(event) {
-			},
+			console.log('prevTrack', fclone(this.prevTrack));
+			console.log('nextTrack', fclone(this.nextTrack));
 		},
-	}
+
+		// BUTTONS
+		async toggle() {
+			await this.$store.dispatch('player/toggle');
+		},
+		async prev(track) {
+			await this.$store.dispatch('player/start', this.prevTrack);
+		},
+		async next(track) {
+			await this.$store.dispatch('player/start', this.nextTrack);
+		},
+
+		// SLIDER
+		async input(event) {
+			this.manualProgress = event.target.value;
+		},
+		async mousedown(event) {
+			this.manualProgress = event.target.value; // prevents slider from flickering to 0 on first mousedown
+			this.drag = true;
+		},
+		async mouseup(event) {
+			//! drag released here instead of on change because change won't fire on a stationary click
+			this.manualProgress = event.target.value;
+			await this.$store.dispatch('player/seek', event.target.value);
+			this.drag = false;
+		},
+		async change(event) {
+		},
+	},
+};
 </script>
 
 
@@ -136,12 +137,12 @@
 		<button @click='next' :disabled='nextTrack === null' :class='{notAvailable: nextTrack === null}'>Next</button>
 		<button @click='toggle'>Toggle</button>
 		<!-- //L https://css-tricks.com/sliding-nightmare-understanding-range-input -->
-		<input 
-			type='range' 
-			min='0' 
-			max='1' 
-			step='0.0001' 
-			:value='sliderProgress' 
+		<input
+			type='range'
+			min='0'
+			max='1'
+			step='0.0001'
+			:value='sliderProgress'
 			id='slider'
 
 			@mousedown='mousedown($event)'

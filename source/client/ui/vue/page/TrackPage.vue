@@ -1,26 +1,28 @@
 <script>
-	import AsyncDisplay from '../async/AsyncDisplay.vue';
-	import {
-		Track,
-	} from '../../../entities/index.js';
+import AsyncDisplay from '../async/AsyncDisplay.vue';
+import {
+	Track,
+} from '../../../entities/index.js';
 
-    export default {
-        name: 'track-page',
-		extends: AsyncDisplay,
-		data() { return {
-			// OVERWRITES
+export default {
+	name: 'track-page',
+	extends: AsyncDisplay,
+	data() {
+		return {
+		// OVERWRITES
 			Entity: Track,
 			sQuery: {id: Number.parseInt(this.$route.params.id)}, //TODO Properly cast
-		}; },
-    }
+		};
+	},
+};
 </script>
 
 <template>
-    <async-switch 
-		:state='state' 
-		:error='error' 
-		@refresh='refresh' 
-		:loading-component='$options.components.LoadingComponent' 
+    <async-switch
+		:state='state'
+		:error='error'
+		@refresh='refresh'
+		:loading-component='$options.components.LoadingComponent'
 		:error-component='$options.components.ErrorComponent'
 		v-slot='slotProps'
 	>

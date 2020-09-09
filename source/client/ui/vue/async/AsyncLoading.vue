@@ -1,10 +1,10 @@
 <script>
-    import emitRefresh from '../mixins/emitRefresh.js';
+import emitRefresh from '../mixins/emitRefresh.js';
 
-    export default {
-        name: 'async-loading',
-        mixins: [emitRefresh],
-    };
+export default {
+	name: 'async-loading',
+	mixins: [emitRefresh],
+};
 </script>
 
 

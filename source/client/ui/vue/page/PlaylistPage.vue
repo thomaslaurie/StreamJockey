@@ -1,60 +1,60 @@
 <script>
-    import AsyncDisplay from '../async/AsyncDisplay.vue';
-	import TrackDisplayList from '../track/TrackDisplayList.vue';
-	import SearchPanel from '../track/SearchPanel.vue';
+import AsyncDisplay from '../async/AsyncDisplay.vue';
+import TrackDisplayList from '../track/TrackDisplayList.vue';
+import SearchPanel from '../track/SearchPanel.vue';
 
-	import {
-		rules,
-	} from '../../../../shared/utility/index.js';
+import {
+	rules,
+} from '../../../../shared/utility/index.js';
 
-	import {
-		Playlist,
-		Track,
-	} from '../../../entities/index.js';
+import {
+	Playlist,
+	Track,
+} from '../../../entities/index.js';
 
-	import {
-		spotify,
-	} from '../../../sources/index.js';
+import {
+	spotify,
+} from '../../../sources/index.js';
 
-    export default {
-        name: 'playlist-page',
-        extends: AsyncDisplay,
-        components: {
-			TrackDisplayList,
-			SearchPanel,
-        },
-        data() {
-            return {
-				// OVERWRITES
-				Entity: Playlist,
-				sQuery: {id: rules.nonNegativeInteger.validateCast(this.$route.params.id)[0]},
+export default {
+	name: 'playlist-page',
+	extends: AsyncDisplay,
+	components: {
+		TrackDisplayList,
+		SearchPanel,
+	},
+	data() {
+		return {
+			// OVERWRITES
+			Entity: Playlist,
+			sQuery: {id: rules.nonNegativeInteger.validateCast(this.$route.params.id)[0]},
 
-				// NEW
-                edit: true,
-				searchTerm: '',
-				searchResults: [],
-            };
-		},
-        methods: {
 			// NEW
-            async search() {
-				this.searchResults = await spotify.search(this.searchTerm);
-			},
-			async add(track) { // add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
-				track.playlistId = this.content.id;
-				await Track.add(track);
-				await this.refresh(); //TODO
-			},
+			edit: true,
+			searchTerm: '',
+			searchResults: [],
+		};
+	},
+	methods: {
+		// NEW
+		async search() {
+			this.searchResults = await spotify.search(this.searchTerm);
 		},
-    }
+		async add(track) { // add cant be on SearchTrackDisplayList because it can't see TrackDisplayList
+			track.playlistId = this.content.id;
+			await Track.add(track);
+			await this.refresh(); //TODO
+		},
+	},
+};
 </script>
 
 <template>
-    <async-switch 
-		:state='state' 
-		:error='error' 
-		@refresh='refresh' 
-		:loading-component='$options.components.LoadingComponent' 
+    <async-switch
+		:state='state'
+		:error='error'
+		@refresh='refresh'
+		:loading-component='$options.components.LoadingComponent'
 		:error-component='$options.components.ErrorComponent'
 		v-slot='slotProps'
 	class='playlist-page'>

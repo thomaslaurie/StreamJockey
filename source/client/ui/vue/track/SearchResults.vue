@@ -1,56 +1,58 @@
 <script>
-	import {
-		one,
-		keyCode,
-		rules,
-	} from '../../../../shared/utility/index.js';
-	import Source from '../../../../client/source.js';
-	import TrackDisplayList from '../track/TrackDisplayList.vue';
-	import {
-		Track,
-	} from '../../../entities/index.js';
+import {
+	one,
+	keyCode,
+	rules,
+} from '../../../../shared/utility/index.js';
+import Source from '../../../../client/source.js';
+import TrackDisplayList from '../track/TrackDisplayList.vue';
+import {
+	Track,
+} from '../../../entities/index.js';
 
-    export default {
-        name: 'search-results',
-        components: {
-            TrackDisplayList,
-        },
-        data() { return {
+export default {
+	name: 'search-results',
+	components: {
+		TrackDisplayList,
+	},
+	data() {
+		return {
 			term: '',
 			results: [],
-		}; },
-		props: {
-			source: {
-				default: null,
-				validator(value) {
-					return Source.instances.includes(value);
-				},
-			},
-			// target playlist to add to
-			playlistId: {
-				default: null,
-				validator(value) {
-					//! validator cannot reference this, must use a separately imported sj reference
-					return value === null || rules.positiveInteger.test(value);
-				},
+		};
+	},
+	props: {
+		source: {
+			default: null,
+			validator(value) {
+				return Source.instances.includes(value);
 			},
 		},
-        methods: {
-			async search() {
-				this.results = await this.source.search({
-					term: this.term,
-					startIndex: 0,
-					amount: 5,
-				});
+		// target playlist to add to
+		playlistId: {
+			default: null,
+			validator(value) {
+				//! validator cannot reference this, must use a separately imported sj reference
+				return value === null || rules.positiveInteger.test(value);
 			},
+		},
+	},
+	methods: {
+		async search() {
+			this.results = await this.source.search({
+				term: this.term,
+				startIndex: 0,
+				amount: 5,
+			});
+		},
 
-			async add(track) { 
-				// add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
-				track.playlistId = this.playlistId;
-				await Track.add(track);
-			},
+		async add(track) {
+			// add must be here and not on TrackDisplayList because TrackDisplayList doesn't have access to the target playlist
+			track.playlistId = this.playlistId;
+			await Track.add(track);
+		},
 
-			/* //R having search results be a temporary database playlist
+		/* //R having search results be a temporary database playlist
 
 				deleting the playlist on window close is difficult and doesn't trigger vue destory hooks
 
@@ -60,7 +62,7 @@
 				also, the only reason this was being done was so that next/prev behavior works with the search list
 				however, this isn't super neccessary, and the name displayed for the currently playing playlist will be weird (search key)
 			*/
-			/* //OLD
+		/* //OLD
 				//! existing playlist prop gets swapped to 'targetPlaylist'
 
 				//! this goes into data
@@ -81,11 +83,11 @@
 
 					// remove them all
 					await Track.remove(this.sj.shake(searchedTracks, Track.filters.id));
-					
+
 					// search the new term
 					this.results = await this.source.search({
-						term: this.term, 
-						startIndex: 0, 
+						term: this.term,
+						startIndex: 0,
 						amount: 5,
 					});
 
@@ -127,8 +129,8 @@
 				//! this is an attribute of track-display-list
 				:p-query:'{playlistId}'
 			*/
-		},
-    };
+	},
+};
 </script>
 
 <template>

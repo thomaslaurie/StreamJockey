@@ -1,8 +1,8 @@
 <script>
-    export default {
-        name: 'not-found',
-        //TODO communicate this to the server
-    }
+export default {
+	name: 'not-found',
+	//TODO communicate this to the server
+};
 </script>
 
 

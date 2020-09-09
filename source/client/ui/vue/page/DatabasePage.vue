@@ -1,178 +1,180 @@
 <script>
-	import {
-		any,
-	} from '../../../../shared/utility/index.js';
+import {
+	any,
+} from '../../../../shared/utility/index.js';
 
-	import {
-		User,
-		Playlist,
-		Track,
-	} from '../../../entities/index.js';
-	import {
-		Subscription,
-	} from '../../../../shared/live-data.js';
-	import * as session from '../../../session-methods.js';
-	import isInstanceOf from '../../../../shared/is-instance-of.js';
-	
-	import TrackDisplayList from '../track/TrackDisplayList.vue';
-	import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
-	import UserDisplayList from '../user/UserDisplayList.vue';
+import {
+	User,
+	Playlist,
+	Track,
+} from '../../../entities/index.js';
+import {
+	Subscription,
+} from '../../../../shared/live-data.js';
+import * as session from '../../../session-methods.js';
+import isInstanceOf from '../../../../shared/is-instance-of.js';
 
-    export default {
-		name: 'database-page',
-		components: {
-			TrackDisplayList,
-			PlaylistDisplayList,
-			UserDisplayList,
+import TrackDisplayList from '../track/TrackDisplayList.vue';
+import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
+import UserDisplayList from '../user/UserDisplayList.vue';
+
+export default {
+	name: 'database-page',
+	components: {
+		TrackDisplayList,
+		PlaylistDisplayList,
+		UserDisplayList,
+	},
+	data() {
+		return {
+			isLoggedIn: false,
+			currentUser: {},
+			name: 'jon',
+			password: 'password',
+
+			entityType: 'track',
+			methodType: 'get',
+
+			inputTrack: {
+				id: '',
+				playlistId: '',
+				position: '',
+				source: {name: ''},
+				sourceId: '',
+				name: '',
+				duration: '',
+				artists: [],
+			},
+			inputSource: '',
+			inputArtists: '',
+
+			inputPlaylist: {
+				id: '',
+				userId: '',
+				name: '',
+				description: '',
+			},
+			inputUser: {
+				id: '',
+				name: '',
+				email: '',
+				password: '',
+				password2: '',
+			},
+
+			result: [],
+			subscription: undefined,
+		};
+	},
+	computed: {
+		Entity() {
+			if (this.entityType === 'track') return Track;
+			else if (this.entityType === 'playlist') return Playlist;
+			else if (this.entityType === 'user') return User;
 		},
-        data() {
-            return {
-				isLoggedIn: false,
-				currentUser: {},
-				name: 'jon',
-				password: 'password',
-
-				entityType: 'track',
-				methodType: 'get',
-				
-				inputTrack: {
-					id: '',
-					playlistId: '',
-					position: '',
-					source: {name: ''},
-					sourceId: '',
-					name: '',
-					duration: '',
-					artists: [],
-				},
-				inputSource: '',
-				inputArtists: '',
-
-				inputPlaylist: {
-					id: '',
-					userId: '',
-					name: '',
-					description: '',
-				},
-				inputUser: {
-					id: '',
-					name: '',
-					email: '',
-					password: '',
-					password2: '',
-				},
-
-				result: [],
-				subscription: undefined,
-            };
+		input() {
+			if (this.entityType === 'track') return {...this.defaultTrack, ...this.inputTrack};
+			else if (this.entityType === 'playlist') return {...this.defaultPlaylist, ...this.inputPlaylist};
+			else if (this.entityType === 'user') return {...this.defaultUser, ...this.inputUser};
 		},
-		computed: {
-			Entity: function () {
-				if (this.entityType === 'track') return Track;
-				else if (this.entityType === 'playlist') return Playlist;
-				else if (this.entityType === 'user') return User;
-			},
-			input: function () {
-				if (this.entityType === 'track') return {...this.defaultTrack, ...this.inputTrack};
-				else if (this.entityType === 'playlist') return {...this.defaultPlaylist, ...this.inputPlaylist};
-				else if (this.entityType === 'user') return {...this.defaultUser, ...this.inputUser};
-			},
 
-			subscriptionData: function () {
-				//TODO I think this is old, transition to the new AsyncDisplay
-				if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return any(this.$store.getters.getLiveData(this.subscription));
-			},
+		subscriptionData() {
+			//TODO I think this is old, transition to the new AsyncDisplay
+			if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return any(this.$store.getters.getLiveData(this.subscription));
 		},
-		watch: {
-			inputSource: function (value) {
-				this.inputTrack.source.name = value;
-			},
-			inputArtists: function (value) {
-				this.inputTrack.artists = value.split(',');
-			},
+	},
+	watch: {
+		inputSource(value) {
+			this.inputTrack.source.name = value;
 		},
-		methods: {
-			// ...mapActions([
-			// 	'subscribe',
-			// 	'unsubscribe',
-			// ]),
+		inputArtists(value) {
+			this.inputTrack.artists = value.split(',');
+		},
+	},
+	methods: {
+		// ...mapActions([
+		// 	'subscribe',
+		// 	'unsubscribe',
+		// ]),
 
-			handle(rejected) {
-				console.warn('error occured, result unchanged');
-				// don't change
-				return this.retrieved;
-			},
+		handle(rejected) {
+			console.warn('error occured, result unchanged');
+			// don't change
+			return this.retrieved;
+		},
 
-			autoFill() {
-				if (this.entityType === 'track') {
-					Object.assign(this.inputTrack, {
-						id: 0,
-						playlistId: 1,
-						position: 1000,
-						sourceId: 'abcdefg',
-						name: 'default name',
-						duration: 1000,
-					});
-					this.inputSource = 'spotify';
-					this.inputArtists = 'default artist A,default artist B';
-				}
-				else if (this.entityType === 'playlist') Object.assign(this.inputPlaylist, {
+		autoFill() {
+			if (this.entityType === 'track') {
+				Object.assign(this.inputTrack, {
+					id: 0,
+					playlistId: 1,
+					position: 1000,
+					sourceId: 'abcdefg',
+					name: 'default name',
+					duration: 1000,
+				});
+				this.inputSource = 'spotify';
+				this.inputArtists = 'default artist A,default artist B';
+			} else if (this.entityType === 'playlist') {
+				Object.assign(this.inputPlaylist, {
 					id: 0,
 					userId: 1,
 					name: 'default name',
 					description: 'default description',
 				});
-				else if (this.entityType === 'user') Object.assign(this.inputUser, {
+			} else if (this.entityType === 'user') {
+				Object.assign(this.inputUser, {
 					id: 0,
 					name: 'default name',
 					email: 'default email',
 					password: 'default password',
 					password2: 'default password',
 				});
-			},
-
-
-            async login() {
-                this.currentUser = await session.login({name: this.name, password: this.password}).catch((rejected) =>{
-                    console.error(rejected);
-				});
-				this.isLoggedIn = true;
-			},
-			async logout() {
-				await session.logout().catch((rejected) =>{
-					console.error(rejected);
-				});
-				this.isLoggedIn = false;
-				this.currentUser = {};
-			},
-			
-
-			async add() {
-				this.result = await this.Entity.add(this.input).catch(this.handle);
-			},
-			async get() {
-				this.result = await this.Entity.get(this.input).catch(this.handle);
-			},
-			async edit() {
-				this.result = await this.Entity.edit(this.input).catch(this.handle);
-			},
-			async remove() {
-				this.result = await this.Entity.remove(this.input).catch(this.handle);
-			},
-
-			async subscribe() {
-				this.subscription = await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.input, subscriber: this});
-			},
-
+			}
 		},
-    }
+
+
+		async login() {
+			this.currentUser = await session.login({name: this.name, password: this.password}).catch((rejected) => {
+				console.error(rejected);
+			});
+			this.isLoggedIn = true;
+		},
+		async logout() {
+			await session.logout().catch((rejected) => {
+				console.error(rejected);
+			});
+			this.isLoggedIn = false;
+			this.currentUser = {};
+		},
+
+
+		async add() {
+			this.result = await this.Entity.add(this.input).catch(this.handle);
+		},
+		async get() {
+			this.result = await this.Entity.get(this.input).catch(this.handle);
+		},
+		async edit() {
+			this.result = await this.Entity.edit(this.input).catch(this.handle);
+		},
+		async remove() {
+			this.result = await this.Entity.remove(this.input).catch(this.handle);
+		},
+
+		async subscribe() {
+			this.subscription = await this.$store.dispatch('subscribe', {Entity: this.Entity, query: this.input, subscriber: this});
+		},
+
+	},
+};
 </script>
 
 
 <template>
     <div>
 		<section>
-			<form @submit.prevent='login' v-if='!isLoggedIn'> 
+			<form @submit.prevent='login' v-if='!isLoggedIn'>
 				<input v-model='name'       placeholder='name'		>
 				<input v-model='password'   placeholder='password'	>
 				<input type='submit' value='Login'>
@@ -222,20 +224,20 @@
 		</keep-alive>
 
 		<section>
-			
-			
-			<!-- 
+
+
+			<!--
 				<input type='radio' name='methodType' v-model='method' value='add' id='addRadio'>
 				<label for='addRadio'>Add</label>
 
 				<input type='radio' name='methodType' v-model='method' value='get' id='getRadio' checked>
 				<label for='getRadio'>Get</label>
-				
+
 				<input type='radio' name='methodType' v-model='method' value='edit' id='editRadio'>
 				<label for='editRadio'>Edit</label>
 
 				<input type='radio' name='methodType' v-model='method' value='remove' id='removeRadio'>
-				<label for='removeRadio'>Delete</label> 
+				<label for='removeRadio'>Delete</label>
 			-->
 		</section>
 

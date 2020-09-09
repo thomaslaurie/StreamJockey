@@ -1,38 +1,40 @@
 <script>
-	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
-	import TrackDisplay from './TrackDisplay.vue';
+import AsyncDisplayList from '../async/AsyncDisplayList.vue';
+import TrackDisplay from './TrackDisplay.vue';
 
-	import {
-		Track,
-	} from '../../../entities/index.js';
-	
-    export default {
-        name: 'track-display-list',
-		extends: AsyncDisplayList,
-		components: {
-			TrackDisplay,
-		},
-		data() { return {
+import {
+	Track,
+} from '../../../entities/index.js';
+
+export default {
+	name: 'track-display-list',
+	extends: AsyncDisplayList,
+	components: {
+		TrackDisplay,
+	},
+	data() {
+		return {
 			Entity: Track,
-		}; },
-    }
+		};
+	},
+};
 </script>
 
 
 <template>
-    <async-switch 
-		:state='state' 
-		:error='error' 
-		@refresh='refresh' 
-		:loading-component='$options.components.LoadingComponent' 
+    <async-switch
+		:state='state'
+		:error='error'
+		@refresh='refresh'
+		:loading-component='$options.components.LoadingComponent'
 		:error-component='$options.components.ErrorComponent'
 		v-slot='slotProps'
 		class='track-display-list'
 	>
         <ul>
             <li
-                v-for='track in content' 
-                :key='track.id' 
+                v-for='track in content'
+                :key='track.id'
                 :display='track'
             >
 				<track-display :p-content='track' v-bind='attrs' v-on='listeners'></track-display>

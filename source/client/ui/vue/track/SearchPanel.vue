@@ -1,34 +1,36 @@
 <script>
-	import SearchResults from '../track/SearchResults.vue';
-	import Source from '../../../source.js';
-	
-    export default {
-		name: 'search-panel',
-		components: {
-            SearchResults,
-        },
-        data() { return {
-			// just use the first source instance
+import SearchResults from '../track/SearchResults.vue';
+import Source from '../../../source.js';
+
+export default {
+	name: 'search-panel',
+	components: {
+		SearchResults,
+	},
+	data() {
+		return {
+		// just use the first source instance
 			source: Source.instances[0],
 			Source,
-		}; },
-		props: {
-			playlistId: Number,
-		},
-    };
+		};
+	},
+	props: {
+		playlistId: Number,
+	},
+};
 </script>``
 
 <template>
 	<div>
 		<!-- //!//G two v-for directives at the same level, cannot use the same keys, just differentiate them by adding onto the string -->
 		<div v-for='(sourceInstance, index) in Source.instances' :key='`${sourceInstance.name}Radio`'>
-			<input 
-				type='radio' 
+			<input
+				type='radio'
 				:id='`${sourceInstance.name}SearchRadio`'
 				:value='sourceInstance'
 				v-model='source'
 			>
-        	<label 
+        	<label
 				:for='`${sourceInstance.name}SearchRadio`'
 			>
 				{{sourceInstance.name}}

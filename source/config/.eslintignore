@@ -1,1 +1,3 @@
 source/client/vendor/**/*
+# TODO ESLint cannot parse dynamic imports.
+source/client/sources/spotify.js

@@ -1,32 +1,32 @@
 <script>
-    import LoginForm from './entry-page/LoginForm.vue';
-    import RegisterForm from './entry-page/RegisterForm.vue';
-    import GuestForm from './entry-page/GuestForm.vue';
+import LoginForm from './entry-page/LoginForm.vue';
+import RegisterForm from './entry-page/RegisterForm.vue';
+import GuestForm from './entry-page/GuestForm.vue';
 
-    export default {
-        name: 'entry-page',
-        components: {
-            LoginForm,
-            RegisterForm,
-            GuestForm,
-        },
-        data() {
-            return {
-                entryType: 'login',
-            };
-        },
-        computed: {
-            dynamicComponent() {
-                if(this.entryType === 'login') {
-                    return this.$options.components.LoginForm;
-                } else if (this.entryType === 'register') {
-                    return this.$options.components.RegisterForm;
-                } else if (this.entryType === 'guest') {
-                    return this.$options.components.GuestForm;
-                }
-            },
-        },
-    }
+export default {
+	name: 'entry-page',
+	components: {
+		LoginForm,
+		RegisterForm,
+		GuestForm,
+	},
+	data() {
+		return {
+			entryType: 'login',
+		};
+	},
+	computed: {
+		dynamicComponent() {
+			if (this.entryType === 'login') {
+				return this.$options.components.LoginForm;
+			} else if (this.entryType === 'register') {
+				return this.$options.components.RegisterForm;
+			} else if (this.entryType === 'guest') {
+				return this.$options.components.GuestForm;
+			}
+		},
+	},
+};
 </script>
 
 

@@ -631,9 +631,11 @@ function selectRules(nestedRules, selection = '*') {
 }
 
 module.exports = {
-	parser:        'babel-eslint', //? Not sure where babel gets its config from.
+	parser: 'vue-eslint-parser',
 	parserOptions: {
-		sourceType:   'module',
+		parser: 'babel-eslint',
+		sourceType: 'module',
+		// allowImportExportEverywhere: true,
 		ecmaFeatures: {
 			impliedStrict: true,
 		},

@@ -1,12 +1,12 @@
 <script>
-    import EntryPage from './EntryPage.vue';
+import EntryPage from './EntryPage.vue';
 
-    export default {
-        name: 'home-page',
-        methods: {
-            
-        },
-    }
+export default {
+	name: 'home-page',
+	methods: {
+
+	},
+};
 </script>
 
 

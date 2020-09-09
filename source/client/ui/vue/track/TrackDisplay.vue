@@ -1,49 +1,51 @@
 <script>
-	import AsyncDisplay from '../async/AsyncDisplay.vue';
+import AsyncDisplay from '../async/AsyncDisplay.vue';
 
-	import {
-		Track,
-	} from '../../../entities/index.js';
-	
-    export default {
-        name: 'track-display',
-		extends: AsyncDisplay,
-		props: {
-			addButton: Boolean,
-			removeButton: Boolean,
-		},
-		data() { return {
-			//OVERWRITES
+import {
+	Track,
+} from '../../../entities/index.js';
+
+export default {
+	name: 'track-display',
+	extends: AsyncDisplay,
+	props: {
+		addButton: Boolean,
+		removeButton: Boolean,
+	},
+	data() {
+		return {
+		// OVERWRITES
 			Entity: Track,
-		}; },
-        methods: {
-			// NEW
-			async open(id) {
-                this.$router.push(`/track/${id}`);
-            },
-            async play() {
-				await this.$store.dispatch('player/start', this.content);
-			},
-			async remove() { //! shortened to del to avoid delete reserved word
-				await Track.remove(this.content);
-				this.$emit('update'); // communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
-			},
-			async add() {
-				// does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
-				this.$emit('add', this.content);
-			},
-        },
-    }
+		};
+	},
+	methods: {
+		// NEW
+		async open(id) {
+			this.$router.push(`/track/${id}`);
+		},
+		async play() {
+			await this.$store.dispatch('player/start', this.content);
+		},
+		async remove() { //! shortened to del to avoid delete reserved word
+			await Track.remove(this.content);
+			this.$emit('update'); // communicates to the parent that this has updated, and that the parent should refresh too, //? however this is only really useful for removes because this component can get it's own content
+		},
+		async add() {
+			// does not manupulate database because this component doesn't know what its being added too, will just send itself to the parent to be handled
+			this.$emit('add', this.content);
+		},
+	},
+};
 </script>
 
 <template>
-    <async-switch 
-		:state='state' 
-		:error='error' 
-		@refresh='refresh' 
-		:loading-component='$options.components.LoadingComponent' 
+    <async-switch
+		:state='state'
+		:error='error'
+		@refresh='refresh'
+		:loading-component='$options.components.LoadingComponent'
 		:error-component='$options.components.ErrorComponent'
-		v-slot='slotProps' 
+		v-slot='slotProps'
 		class='track-display'
 	>
 		<div id='left'>

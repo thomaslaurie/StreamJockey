@@ -1,51 +1,50 @@
 <script>
-    import emitRefresh from '../mixins/emitRefresh.js';
+import emitRefresh from '../mixins/emitRefresh.js';
 
-    import AsyncDelay from './AsyncDelay.vue';
-    import AsyncLoading from './AsyncLoading.vue';
-    import AsyncError from './AsyncError.vue';
+import AsyncDelay from './AsyncDelay.vue';
+import AsyncLoading from './AsyncLoading.vue';
+import AsyncError from './AsyncError.vue';
 
-    export default {
-		// switches component/markup depending on the passed state prop
-		// wraps around slotted markup for display
-		// may be passed custom delay, loading, and error components
-		// passes its error prop on to the error component
-		// propagates refresh events from loaading and error components up to it's parent
+export default {
+	// switches component/markup depending on the passed state prop
+	// wraps around slotted markup for display
+	// may be passed custom delay, loading, and error components
+	// passes its error prop on to the error component
+	// propagates refresh events from loaading and error components up to it's parent
 
-        name: 'async-switch',
-        mixins: [emitRefresh],
-        props: {
-            state: String,
-            error: [Object, Error], //TODO will warn if not Object or Error, any way to catch stray data types?
-            DelayComponent: {
-                type: Object,
-                default() {
-                    return AsyncDelay;
-                },
-            },
-            LoadingComponent: {
-                type: Object,
-                default() {
-                    return AsyncLoading;
-                },
-            },
-            ErrorComponent: {
-                type: Object,
-                default() {
-                    return AsyncError;
-                },
-            },
+	name: 'async-switch',
+	mixins: [emitRefresh],
+	props: {
+		state: String,
+		error: [Object, Error], //TODO will warn if not Object or Error, any way to catch stray data types?
+		DelayComponent: {
+			type: Object,
+			default() {
+				return AsyncDelay;
+			},
 		},
-	}
-	
-	/* //R Thought Process
+		LoadingComponent: {
+			type: Object,
+			default() {
+				return AsyncLoading;
+			},
+		},
+		ErrorComponent: {
+			type: Object,
+			default() {
+				return AsyncError;
+			},
+		},
+	},
+};
+
+/* //R Thought Process
 		//R
 		// I don't want a wrapper component that switches display, loading, and error states in addition to the display component; because the async display getter function has to be defined inside the wrapper, that means that for every async component i need to write a new extended wrapper and display component, in addition to possible custom loading and error components.
 		// I want to simply write the single async component extending from the BaseLoader and optional loading and error components extending from BaseLoading and BaseError, this can't happen because vue's dynamic components can only switch components and not templates (they cant switch the component itself for another).
 		// I also dont want to have to pass every custom property down from the loader to the display component
 		// Therefore a custom switch for templates is needed: vue's v-if directive works for this, however this would have to be repeated for every extended component.
 		// So I made a template builder function that allows the writing of the main display template, and then optional loading or error components all in one component.
-
 
 
 		//TODO the problem now is that to be able to use this method in the components extending from base-loading, ill need to import the sj module to be able to call it, (what if the base imports then provides a method to render?)
@@ -79,7 +78,7 @@
 		//? what is the issue with having a component that manages it's own display state? right... it was the repeated markup needed
 
 
-		// I want to: easily write an async component that loads its own data and displays other components when its loading or errored, and I want to write the display markup in itself without having to repeat wrapper markup 
+		// I want to: easily write an async component that loads its own data and displays other components when its loading or errored, and I want to write the display markup in itself without having to repeat wrapper markup
 		// - but I cant avoid wrapper markup with out a dynamic template function (no) or a wrapper component (maybe)
 		// - but then I have to figure out a way to use a wrapper component without making specific wrapper components, this requires the verbose markup (maybe)
 		// like:
@@ -103,7 +102,7 @@
 		// however, I think there is another way - the main reason I used sj.dynamicTemplate() was to avoid repeating markup in the display template (if a component was to manage its own display state, each would have to repeat a conditional wrapper), what if the async-switch component was this conditional wrapper and the main display markup is filled into the default slot? (it minimizes this markup into one element, which is good because there needs to be a single root element anyways), the main hurdle is passing the custom components to it and switching to them
 
 		sj.dynamicTemplate = function (display, loading, error) {
-			// use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared 
+			// use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared
 			if (!sj.isType(display, 'string'))	display = `<display-component :display='display'></display-component>`;
 			if (!sj.isType(loading, 'string'))	loading = `<loading-component></loading-component>`;
 			if (!sj.isType(error, 'string'))	error = `<error-component :error='error'></error-component>`;
@@ -125,7 +124,7 @@
 
 <template>
     <!-- // v-if is used here because all parts can be destroyed and created at will because they (the slotted display markup & accessory loading & error components) don't process or store any information -->
-	
+
     <div v-if='state === "display"'>
         <slot>
             <h2>No Slotted Display Content</h2>
@@ -146,7 +145,7 @@
     ></component>
 
     <!-- //OLD
-        //L rather than v-if, v-show keeps components alive, but cannot use v-else  https://vuejs.org/v2/guide/conditional.html#v-show 
+        //L rather than v-if, v-show keeps components alive, but cannot use v-else  https://vuejs.org/v2/guide/conditional.html#v-show
 
         <div>
             <slot v-show="state === 'display'">
@@ -160,7 +159,7 @@
             <slot v-show="state === 'error'"    name='error'>
                 <default-error></default-error>
             </slot>
-        </div> 
+        </div>
     -->
 </template>
 

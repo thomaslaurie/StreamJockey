@@ -1,39 +1,41 @@
 <script>
-	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
-	import UserDisplay from './UserDisplay.vue';
+import AsyncDisplayList from '../async/AsyncDisplayList.vue';
+import UserDisplay from './UserDisplay.vue';
 
-	import {
-		User,
-	} from '../../../entities/index.js';
+import {
+	User,
+} from '../../../entities/index.js';
 
 
-    export default {
-        name: 'user-display-list',
-		extends: AsyncDisplayList,
-		components:  {
-			UserDisplay,
-		},
-		data() { return {
-			// OVERWRITES
+export default {
+	name: 'user-display-list',
+	extends: AsyncDisplayList,
+	components:  {
+		UserDisplay,
+	},
+	data() {
+		return {
+		// OVERWRITES
 			Entity: User,
-		}; },
-    }
+		};
+	},
+};
 </script>
 
 
 <template>
-    <async-switch 
-		:state='state' 
-		:error='error' 
-		@refresh='refresh' 
-		:loading-component='$options.components.LoadingComponent' 
+    <async-switch
+		:state='state'
+		:error='error'
+		@refresh='refresh'
+		:loading-component='$options.components.LoadingComponent'
 		:error-component='$options.components.ErrorComponent'
 		v-slot='slotProps'
 	class='user-display-list'>
         <ul>
             <li
-                v-for='user in content' 
-                :key='user.id' 
+                v-for='user in content'
+                :key='user.id'
                 :display='user'
             >
 				<user-display :p-content='user' v-bind='attrs' v-on='listeners'></user-display>

@@ -1,38 +1,40 @@
 <script>
-	import AsyncDisplayList from '../async/AsyncDisplayList.vue';
-	import PlaylistDisplay from './PlaylistDisplay.vue';
-	import {
-		Playlist,
-	} from '../../../entities/index.js';
+import AsyncDisplayList from '../async/AsyncDisplayList.vue';
+import PlaylistDisplay from './PlaylistDisplay.vue';
+import {
+	Playlist,
+} from '../../../entities/index.js';
 
-    export default {
-        name: 'playlist-display-list',
-		extends: AsyncDisplayList,
-		components:  {
-			PlaylistDisplay,
-		},
-		data() { return {
-			//OVERWRITES
+export default {
+	name: 'playlist-display-list',
+	extends: AsyncDisplayList,
+	components:  {
+		PlaylistDisplay,
+	},
+	data() {
+		return {
+		// OVERWRITES
 			Entity: Playlist,
-		}; },
-    }
+		};
+	},
+};
 </script>
 
 
 <template>
-    <async-switch 
-		:state='state' 
-		:error='error' 
-		@refresh='refresh' 
-		:loading-component='$options.components.LoadingComponent' 
+    <async-switch
+		:state='state'
+		:error='error'
+		@refresh='refresh'
+		:loading-component='$options.components.LoadingComponent'
 		:error-component='$options.components.ErrorComponent'
 		v-slot='slotProps'
 		class='playlist-display-list'
 	>
         <ul>
             <li
-                v-for='playlist in content' 
-                :key='playlist.id' 
+                v-for='playlist in content'
+                :key='playlist.id'
                 :display='playlist'
             >
 				<playlist-display :p-content='playlist' v-bind='attrs' v-on='listeners'></playlist-display>

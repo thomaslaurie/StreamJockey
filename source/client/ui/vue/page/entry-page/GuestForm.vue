@@ -1,13 +1,13 @@
 <script>
-    export default {
-        name: 'guest-form',
-        methods: {
-            async submit() {
-                //TODO
-                console.warn('TODO guest form');
-            }
-        },
-    }
+export default {
+	name: 'guest-form',
+	methods: {
+		async submit() {
+			//TODO
+			console.warn('TODO guest form');
+		},
+	},
+};
 </script>
 
 

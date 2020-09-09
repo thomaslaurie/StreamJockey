@@ -1,18 +1,18 @@
 <script>
-    import emitRefresh from '../mixins/emitRefresh.js';
+import emitRefresh from '../mixins/emitRefresh.js';
 
-    export default {
-        name: 'async-error',
-        mixins: [emitRefresh],
-        props: {
-            error: [Object, Error],
+export default {
+	name: 'async-error',
+	mixins: [emitRefresh],
+	props: {
+		error: [Object, Error],
+	},
+	methods: {
+		logError() {
+			console.error(this.error);
 		},
-		methods: {
-			logError() {
-				console.error(this.error);
-			},
-		},
-    };
+	},
+};
 </script>
 
 
