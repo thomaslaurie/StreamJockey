@@ -399,7 +399,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     liveContent() {
       //! one item here, uses any() in AsyncDisplayList
       //? should this type check go into usingLive?
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));else return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));
+      return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
       //R however the real issue was that because I am using slotted content, even though it isn't rendering due to the state property, the elements still require their data references (unlike v-if and other methods)
       //L using a custom directive was a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
     },
@@ -409,32 +410,36 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     usingParent() {
       // if any prop from the parent is filled in, use parent as the origin
       //! pDead does not trigger usingParent as it would never need to be used without an existing pQuery
-      return !!(this.pQuery || this.pContent);
+      return Boolean(this.pQuery || this.pContent);
     },
 
     // query prioritized over static content
     usingQuery() {
       //TODO Inlined this function because it was only being used here. Figure out if this can be removed.
       function isSubclass(a, b) {
-        if (typeof a !== 'function' || typeof b !== 'function') return false;else return a.prototype instanceof b;
+        if (typeof a !== 'function' || typeof b !== 'function') return false;
+        return a.prototype instanceof b;
       }
 
-      ;
-      if (!isSubclass(this.Entity, _entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Entity"])) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
-        message: 'attempting to use a query but Entity is not a child class of Entity',
-        state: this.fclone(this.Entity)
-      });
-      return !!(this.usingParent && this.pQuery || !this.usingParent && this.sQuery);
+      if (!isSubclass(this.Entity, _entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Entity"])) {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+          message: 'attempting to use a query but Entity is not a child class of Entity',
+          state: this.fclone(this.Entity)
+        });
+      }
+
+      return Boolean(this.usingParent && this.pQuery || !this.usingParent && this.sQuery);
     },
 
     usingLive() {
-      return !!(this.usingParent && !this.pDead || !this.usingParent && !this.sDead);
+      return Boolean(this.usingParent && !this.pDead || !this.usingParent && !this.sDead);
     },
 
     // PASSABLE - ACCESSORS
     //R setters aren't used here as they would only be setting the self origin properties, just set these directly for clairty
     query() {
-      if (!this.usingQuery) return null;else if (this.usingParent) return this.pQuery;else return this.sQuery;
+      if (!this.usingQuery) return null;else if (this.usingParent) return this.pQuery;
+      return this.sQuery;
     },
 
     dead() {
@@ -444,10 +449,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
     content() {
       if (this.usingQuery) {
-        if (this.usingLive) return this.liveContent;else return this.deadContent;
-      } else {
-        if (this.usingParent) return this.pContent;else return this.sContent;
+        if (this.usingLive) return this.liveContent;
+        return this.deadContent;
       }
+
+      if (this.usingParent) return this.pContent;
+      return this.sContent;
     }
 
   },
@@ -481,9 +488,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     startTimeouts() {
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
-        message: 'refresh promise must be an instance of Deferred'
-      });
+      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+          message: 'refresh promise must be an instance of Deferred'
+        });
+      }
+
       this.clearDelay = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(this.delay, () => {
         // switch state to 'loading' after delay time
         this.state = 'loading';
@@ -612,7 +622,8 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
     // OVERWRITES
     liveContent() {
       //! These seem to be incrementally added. Maybe create a more efficient function that adds all at once/
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));else return [];
+      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
+      return [];
     },
 
     // NEW
@@ -621,12 +632,12 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
     },
 
     /* //G transparent components
-    	// child list components may be made transparent, so that any child listener is passed up to AsyncDisplayList and any attribute on AsyncDisplayList will be passed down to the child component
-    	//G just add v-on='listeners' and v-bind='attrs' to any element that needs to be transparent
-    		//G any listeners/attrs for this AsyncDisplayList component can be pulled out of those that are passed down by adding the name to the destructured object:
-    	// const {listenerForThisList, ...listeners} = this.$listeners;
-    	//L https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
-    */
+    		// child list components may be made transparent, so that any child listener is passed up to AsyncDisplayList and any attribute on AsyncDisplayList will be passed down to the child component
+    		//G just add v-on='listeners' and v-bind='attrs' to any element that needs to be transparent
+    				//G any listeners/attrs for this AsyncDisplayList component can be pulled out of those that are passed down by adding the name to the destructured object:
+    		// const {listenerForThisList, ...listeners} = this.$listeners;
+    		//L https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
+    	*/
     attrs() {
       var attrs = _extends({}, this.$attrs);
 
@@ -756,69 +767,86 @@ __webpack_require__.r(__webpack_exports__);
   }
 });
 /* //R Thought Process
-	//R
-	// I don't want a wrapper component that switches display, loading, and error states in addition to the display component; because the async display getter function has to be defined inside the wrapper, that means that for every async component i need to write a new extended wrapper and display component, in addition to possible custom loading and error components.
-	// I want to simply write the single async component extending from the BaseLoader and optional loading and error components extending from BaseLoading and BaseError, this can't happen because vue's dynamic components can only switch components and not templates (they cant switch the component itself for another).
-	// I also dont want to have to pass every custom property down from the loader to the display component
-	// Therefore a custom switch for templates is needed: vue's v-if directive works for this, however this would have to be repeated for every extended component.
-	// So I made a template builder function that allows the writing of the main display template, and then optional loading or error components all in one component.
+		//R
+		// I don't want a wrapper component that switches display, loading, and error states in addition to the display component; because the async display getter function has to be defined inside the wrapper, that means that for every async component i need to write a new extended wrapper and display component, in addition to possible custom loading and error components.
+		// I want to simply write the single async component extending from the BaseLoader and optional loading and error components extending from BaseLoading and BaseError, this can't happen because vue's dynamic components can only switch components and not templates (they cant switch the component itself for another).
+		// I also dont want to have to pass every custom property down from the loader to the display component
+		// Therefore a custom switch for templates is needed: vue's v-if directive works for this, however this would have to be repeated for every extended component.
+		// So I made a template builder function that allows the writing of the main display template, and then optional loading or error components all in one component.
+
 
 		//TODO the problem now is that to be able to use this method in the components extending from base-loading, ill need to import the sj module to be able to call it, (what if the base imports then provides a method to render?)
+
 		//L this is what i need: https://stackoverflow.com/questions/50800945/vue-wrap-another-component-passing-props-and-events
-	//L https://vuejs.org/v2/api/#vm-attrs, //! defined props aren't included in $attrs, but because they are 'known' they can just as easily be passed down
-	//L https://vuejs.org/v2/api/#vm-listeners
-	//L https://vuejs.org/v2/api/#inheritAttrs //! inheritAttrs = false will prevent non-prop attributes from being applied to the root element of the template (incase some other desired functionality is desired, like modifying them in the wrapper before they are re-attached), I dont think this is needed for this wrapper
-	//! all these don't affect the class and style attributes
-	//! v-bind= and v-on= (these don't have arguments) are used specifically for the $attr, and $listeners case - "When used without an argument, can be used to bind an object containing attribute name-value pairs."
-	//L they're called 'transparent components', this might have some advanced info TODO: https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
-	// as far as I understand that article, it details pulling props & listeners out of the list of ones passed to child components if there actually are some specific props needed for the wrapper component (and not needed in the child components) - 'semi-transparency'
+		//L https://vuejs.org/v2/api/#vm-attrs, //! defined props aren't included in $attrs, but because they are 'known' they can just as easily be passed down
+		//L https://vuejs.org/v2/api/#vm-listeners
+		//L https://vuejs.org/v2/api/#inheritAttrs //! inheritAttrs = false will prevent non-prop attributes from being applied to the root element of the template (incase some other desired functionality is desired, like modifying them in the wrapper before they are re-attached), I dont think this is needed for this wrapper
+		//! all these don't affect the class and style attributes
+		//! v-bind= and v-on= (these don't have arguments) are used specifically for the $attr, and $listeners case - "When used without an argument, can be used to bind an object containing attribute name-value pairs."
+		//L they're called 'transparent components', this might have some advanced info TODO: https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
+		// as far as I understand that article, it details pulling props & listeners out of the list of ones passed to child components if there actually are some specific props needed for the wrapper component (and not needed in the child components) - 'semi-transparency'
 
-	//TODO while this does solve passing stuff to child, it still requires making both the loader and the child
-	// // i think the solution is to write a generic loader component, then have the display component have the data loading function, then use events up to the parent to communicate switching (which will also let the error, and loading components to communicate a retry)
+
+		//TODO while this does solve passing stuff to child, it still requires making both the loader and the child
+		// // i think the solution is to write a generic loader component, then have the display component have the data loading function, then use events up to the parent to communicate switching (which will also let the error, and loading components to communicate a retry)
+
 		//L communication: https://alligator.io/vuejs/component-communication/
-	//L best way to manage state//?: https://vuejs.org/v2/api/#model
+		//L best way to manage state//?: https://vuejs.org/v2/api/#model
 
-	// display updates display value and switches to display comp
-	// loading switches to loading comp
-	// error updates error value and switches to error comp
+
+		// display updates display value and switches to display comp
+		// loading switches to loading comp
+		// error updates error value and switches to error comp
+
 		//TODO issue: if the display component loads the data, it needs to be initially loaded
+
 		//TODO other issue: even if this all works, either different loaders will have to be created for each display component (re-introducing the two component issue) or there will have to be some slot system where the base-loader is referenced each time with the specific display, loader, and error components slotted in - which is also very verbose
-	// // the only reason this sj.dynamicTemplate() function was created was to avoid having to repeat template markup (the v-if directives, or dynamic component stuff) for each descendant of the base-loader
+		// // the only reason this sj.dynamicTemplate() function was created was to avoid having to repeat template markup (the v-if directives, or dynamic component stuff) for each descendant of the base-loader
+
 		//? what is the issue with having a component that manages it's own display state? right... it was the repeated markup needed
 
-	// I want to: easily write an async component that loads its own data and displays other components when its loading or errored, and I want to write the display markup in itself without having to repeat wrapper markup 
-	// - but I cant avoid wrapper markup with out a dynamic template function (no) or a wrapper component (maybe)
-	// - but then I have to figure out a way to use a wrapper component without making specific wrapper components, this requires the verbose markup (maybe)
-	// like:
-	// <loader>
-	// 	<display component>
-	// </loader>
-		// display component can be the one to specify custom loader/error components because they will always be coupled to it
-	// these display components will (probably) always have to be coupled to the loader wrapper, but it saves having to write a custom loader for each one (and might actually allow a static version of the display component), actually no, is it better to write the wrapper template in the display components or every time when they are used?
-		// >>> so far the best idea seems to be use a wrapper that has slots, where custom display, loading, and error components can be passed into the slots
-	//! using slots also completely avoids the property passing issue because the slot components are rendered in the parent's context
 
-	// now, fall back is to use dynamic components and events - though this requires two components per,
+		// I want to: easily write an async component that loads its own data and displays other components when its loading or errored, and I want to write the display markup in itself without having to repeat wrapper markup
+		// - but I cant avoid wrapper markup with out a dynamic template function (no) or a wrapper component (maybe)
+		// - but then I have to figure out a way to use a wrapper component without making specific wrapper components, this requires the verbose markup (maybe)
+		// like:
+		// <loader>
+		// 	<display component>
+		// </loader>
+
+		// display component can be the one to specify custom loader/error components because they will always be coupled to it
+		// these display components will (probably) always have to be coupled to the loader wrapper, but it saves having to write a custom loader for each one (and might actually allow a static version of the display component), actually no, is it better to write the wrapper template in the display components or every time when they are used?
+
+		// >>> so far the best idea seems to be use a wrapper that has slots, where custom display, loading, and error components can be passed into the slots
+		//! using slots also completely avoids the property passing issue because the slot components are rendered in the parent's context
+
+
+		// now, fall back is to use dynamic components and events - though this requires two components per,
+
 		// other idea is to have the child in a slot emit a parent's event and listen to parent's event
+
 		// ^ this is what i did, and it was all and great until i got to the pages where I used the loaders without their display components - all wrapped up in to one component (they load their own data) this actually was really good but required no wrappers (or multiple layers if using wrappers) and the ability to nest this dynamic data, I feel like ive come full circle and the sj.dynamicTemplate() is the best option again
+
 		// however, I think there is another way - the main reason I used sj.dynamicTemplate() was to avoid repeating markup in the display template (if a component was to manage its own display state, each would have to repeat a conditional wrapper), what if the async-switch component was this conditional wrapper and the main display markup is filled into the default slot? (it minimizes this markup into one element, which is good because there needs to be a single root element anyways), the main hurdle is passing the custom components to it and switching to them
+
 		sj.dynamicTemplate = function (display, loading, error) {
-		// use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared 
-		if (!sj.isType(display, 'string'))	display = `<display-component :display='display'></display-component>`;
-		if (!sj.isType(loading, 'string'))	loading = `<loading-component></loading-component>`;
-		if (!sj.isType(error, 'string'))	error = `<error-component :error='error'></error-component>`;
+			// use declared components if custom template is not defined, //! BaseLoader has(must) have defaults declared
+			if (!sj.isType(display, 'string'))	display = `<display-component :display='display'></display-component>`;
+			if (!sj.isType(loading, 'string'))	loading = `<loading-component></loading-component>`;
+			if (!sj.isType(error, 'string'))	error = `<error-component :error='error'></error-component>`;
+
 			// insert
-		return `
-			<div v-if='state === "display"'>
-				${display}
-			</div><div v-else-if='state === "loading"'>
-				${loading}
-			</div><div v-else-if='state === "error"'>
-				${error}
-			</div>
-		`;
-	}
-*/
+			return `
+				<div v-if='state === "display"'>
+					${display}
+				</div><div v-else-if='state === "loading"'>
+					${loading}
+				</div><div v-else-if='state === "error"'>
+					${error}
+				</div>
+			`;
+		}
+	*/
 
 /***/ }),
 
@@ -944,29 +972,29 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     prevTrack() {
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && // currentTrack exists
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) && // playlistTrack exists
-      0 < this.currentTrack.position && //C//! currentTrack is after first track
-      this.currentTrack.position < this.playlistTracks.length // currentTrack is not above bounds
+      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') // currentTrack exists
+      && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
+      && this.currentTrack.position > 0 // C//! currentTrack is after first track
+      && this.currentTrack.position < this.playlistTracks.length // currentTrack is not above bounds
       ? this.playlistTracks[this.currentTrack.position - 1] //!
       : null;
     },
 
     nextTrack() {
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') && // currentTrack exists
-      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) && // playlistTrack exists
-      0 <= this.currentTrack.position && // currentTrack is not below bounds
-      this.currentTrack.position < this.playlistTracks.length - 1 //C//! currentTrack is before last track
+      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') // currentTrack exists
+      && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
+      && this.currentTrack.position >= 0 // currentTrack is not below bounds
+      && this.currentTrack.position < this.playlistTracks.length - 1 // C//! currentTrack is before last track
       ? this.playlistTracks[this.currentTrack.position + 1] //!
       : null;
     },
 
     sliderProgress() {
       if (!this.drag) {
-        return this.$store.getters["player/actualPlayback"].progress; //? should this be desired progress?
-      } else {
-        return this.manualProgress; // this makes the slider use its own value
+        return this.$store.getters['player/actualPlayback'].progress; //? should this be desired progress?
       }
+
+      return this.manualProgress; // this makes the slider use its own value
     }
 
   },
@@ -1234,24 +1262,29 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
   },
 
   computed: {
-    Entity: function Entity() {
+    Entity() {
       if (this.entityType === 'track') return _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"];else if (this.entityType === 'playlist') return _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Playlist"];else if (this.entityType === 'user') return _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"];
     },
-    input: function input() {
+
+    input() {
       if (this.entityType === 'track') return _objectSpread({}, this.defaultTrack, {}, this.inputTrack);else if (this.entityType === 'playlist') return _objectSpread({}, this.defaultPlaylist, {}, this.inputPlaylist);else if (this.entityType === 'user') return _objectSpread({}, this.defaultUser, {}, this.inputUser);
     },
-    subscriptionData: function subscriptionData() {
+
+    subscriptionData() {
       //TODO I think this is old, transition to the new AsyncDisplay
       if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
     }
+
   },
   watch: {
-    inputSource: function inputSource(value) {
+    inputSource(value) {
       this.inputTrack.source.name = value;
     },
-    inputArtists: function inputArtists(value) {
+
+    inputArtists(value) {
       this.inputTrack.artists = value.split(',');
     }
+
   },
   methods: {
     // ...mapActions([
@@ -1276,18 +1309,22 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         });
         this.inputSource = 'spotify';
         this.inputArtists = 'default artist A,default artist B';
-      } else if (this.entityType === 'playlist') Object.assign(this.inputPlaylist, {
-        id: 0,
-        userId: 1,
-        name: 'default name',
-        description: 'default description'
-      });else if (this.entityType === 'user') Object.assign(this.inputUser, {
-        id: 0,
-        name: 'default name',
-        email: 'default email',
-        password: 'default password',
-        password2: 'default password'
-      });
+      } else if (this.entityType === 'playlist') {
+        Object.assign(this.inputPlaylist, {
+          id: 0,
+          userId: 1,
+          name: 'default name',
+          description: 'default description'
+        });
+      } else if (this.entityType === 'user') {
+        Object.assign(this.inputUser, {
+          id: 0,
+          name: 'default name',
+          email: 'default email',
+          password: 'default password',
+          password2: 'default password'
+        });
+      }
     },
 
     login() {
@@ -1630,7 +1667,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
   data() {
     return {
-      //OVERWRITES
+      // OVERWRITES
       Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["User"],
       sQuery: {
         id: Number.parseInt(this.$route.params.id)
@@ -1703,7 +1740,7 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 
- //import {mapState} from '../../../../client/vendor/vuex.esm.browser.js'; 
+ // import {mapState} from '../../../../client/vendor/vuex.esm.browser.js';
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'login-form',
@@ -1724,8 +1761,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var result = yield _session_methods_js__WEBPACK_IMPORTED_MODULE_1__["login"](_this).catch(rejected => {
           //TODO handle error
           throw rejected; // console.error(rejected); //TODO//! If the login is invalid or the quest fails for some reason, this would've still continue to the home page.
-        }); //let me = one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
-        //this.$store.commit('setMe', me);
+        }); // let me = one(result.content); //TODO this store stuff is old, but also rememer that sesssion doesnt return arrays, it returns just a single object
+        // this.$store.commit('setMe', me);
 
         _this.$router.push('/');
       })();
@@ -1818,7 +1855,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
   data() {
     return {
-      //OVERWRITES
+      // OVERWRITES
       Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Playlist"]
     };
   },
@@ -1862,7 +1899,7 @@ __webpack_require__.r(__webpack_exports__);
 
   data() {
     return {
-      //OVERWRITES
+      // OVERWRITES
       Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Playlist"]
     };
   }
@@ -1982,69 +2019,69 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       })();
     }
     /* //R having search results be a temporary database playlist
-    		deleting the playlist on window close is difficult and doesn't trigger vue destory hooks
-    		an option is to create a temporary entity type
-    	however, it is still difficult to ensure their destruction if the server closes/crashes
-    		also, the only reason this was being done was so that next/prev behavior works with the search list
-    	however, this isn't super neccessary, and the name displayed for the currently playing playlist will be weird (search key)
-    */
+    				deleting the playlist on window close is difficult and doesn't trigger vue destory hooks
+    				an option is to create a temporary entity type
+    		however, it is still difficult to ensure their destruction if the server closes/crashes
+    				also, the only reason this was being done was so that next/prev behavior works with the search list
+    		however, this isn't super neccessary, and the name displayed for the currently playing playlist will be weird (search key)
+    	*/
 
     /* //OLD
-    	//! existing playlist prop gets swapped to 'targetPlaylist'
-    		//! this goes into data
-    	playlist: null,
-    		//! this goes into computed
-    	playlistId() {
-    		const id = this.sj.deepAccess(this, ['playlist', 'id']);
-    		if (this.sj.Rule2.positiveInteger.check(id)) return id;
-    		else return null;
-    	},
-    		async search() {
-    		// get existing searched tracks
-    		const searchedTracks = await Track.get({
-    			playlistId: this.playlistId,
-    		}).then(this.sj.content);
-    			// remove them all
-    		await Track.remove(this.sj.shake(searchedTracks, Track.filters.id));
-    		
-    		// search the new term
-    		this.results = await this.source.search({
-    			term: this.term, 
-    			startIndex: 0, 
-    			amount: 5,
-    		});
-    			// give them the search playlist id
-    		for (const result of this.results) {
-    			result.playlistId = this.playlistId;
-    		}
-    			// add them all
-    		await Track.add(this.results);
-    	},
-    		async addPlaylist() {
-    		console.log('ADD PLAYLIST CALLED');
-    		// add a search result playlist to store and play search results from
-    		const currentUser = await session.get().then(this.sj.content);
-    		this.playlist = await new this.sj.Playlist({
-    			userId: currentUser.id,
-    			name: `searchPlaylist${keyCode.create(10)}`,
-    		}).add().then(this.sj.content).then(one);
-    		console.log('PLAYLIST ADDED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
-    	},
-    	async removePlaylist() {
-    		console.log('REMOVE PLAYLIST CALLED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
-    		// remove the search result playlist
-    		await this.playlist.remove();
-    	},
-    			//! these are part of options
-    	created() {
-    		this.addPlaylist();
-    	},
-    		beforeDestroy() {
-    		this.removePlaylist();
-    	},
-    		//! this is an attribute of track-display-list
-    	:p-query:'{playlistId}'
-    */
+    		//! existing playlist prop gets swapped to 'targetPlaylist'
+    				//! this goes into data
+    		playlist: null,
+    				//! this goes into computed
+    		playlistId() {
+    			const id = this.sj.deepAccess(this, ['playlist', 'id']);
+    			if (this.sj.Rule2.positiveInteger.check(id)) return id;
+    			else return null;
+    		},
+    				async search() {
+    			// get existing searched tracks
+    			const searchedTracks = await Track.get({
+    				playlistId: this.playlistId,
+    			}).then(this.sj.content);
+    					// remove them all
+    			await Track.remove(this.sj.shake(searchedTracks, Track.filters.id));
+    					// search the new term
+    			this.results = await this.source.search({
+    				term: this.term,
+    				startIndex: 0,
+    				amount: 5,
+    			});
+    					// give them the search playlist id
+    			for (const result of this.results) {
+    				result.playlistId = this.playlistId;
+    			}
+    					// add them all
+    			await Track.add(this.results);
+    		},
+    				async addPlaylist() {
+    			console.log('ADD PLAYLIST CALLED');
+    			// add a search result playlist to store and play search results from
+    			const currentUser = await session.get().then(this.sj.content);
+    			this.playlist = await new this.sj.Playlist({
+    				userId: currentUser.id,
+    				name: `searchPlaylist${keyCode.create(10)}`,
+    			}).add().then(this.sj.content).then(one);
+    			console.log('PLAYLIST ADDED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
+    		},
+    		async removePlaylist() {
+    			console.log('REMOVE PLAYLIST CALLED', this.sj.deepAccess(this, 'playlist', 'id'), this.sj.deepAccess(this, 'playlist', 'name'));
+    			// remove the search result playlist
+    			await this.playlist.remove();
+    		},
+    
+    		//! these are part of options
+    		created() {
+    			this.addPlaylist();
+    		},
+    				beforeDestroy() {
+    			this.removePlaylist();
+    		},
+    				//! this is an attribute of track-display-list
+    		:p-query:'{playlistId}'
+    	*/
 
 
   }
@@ -2079,7 +2116,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
   data() {
     return {
-      //OVERWRITES
+      // OVERWRITES
       Entity: _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"]
     };
   },
