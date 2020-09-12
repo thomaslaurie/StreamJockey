@@ -90,7 +90,6 @@ import {
 	spotify,
 	youtube,
 } from './sources/index.js';
-import serverRegistry from './server-registry.js';
 
 //L Race-condition in koa-router appears to be a false positive: https://github.com/koajs/koa/issues/1351
 /* eslint-disable require-atomic-updates */

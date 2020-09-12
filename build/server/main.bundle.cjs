@@ -2059,7 +2059,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./session-methods.js */ "./source/server/session-methods.js");
 /* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
-/* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./server-registry.js */ "./source/server/server-registry.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2123,7 +2122,6 @@ __webpack_require__.r(__webpack_exports__);
 
  //L https://github.com/koajs/send
 // INTERNAL
-
 
 
 
