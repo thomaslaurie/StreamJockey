@@ -85,7 +85,7 @@ import {
 } from './entities/index.js';
 import {returnPropagate} from '../shared/propagate.js';
 import * as session from '../server/session-methods.js';
-import database from './db.js';
+import database from './database/database.js';
 import {
 	spotify,
 	youtube,

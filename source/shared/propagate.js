@@ -48,5 +48,5 @@ export function returnPropagate(thrownValue) {
 // Propagates a value, but logs it.
 // The error should be considered 'handled'.
 export function logPropagate(thrownValue) {
-	console.error(logPropagate(thrownValue));
+	console.error(propagate(thrownValue));
 }

@@ -1,13 +1,9 @@
-import {
-	rules,
-} from '../../shared/utility/index.js';
-import {
-	pgp,
-} from '../db.js';
+import {rules} from '../../shared/utility/index.js';
+import {pgp} from './database.js';
 
 export function buildValues(mappedEntity) {
 	if (Object.keys(mappedEntity).length === 0) {
-		// this shouldn't insert anything
+		// This shouldn't insert anything.
 		return `("id") SELECT 0 WHERE 0 = 1`;
 	}
 
@@ -27,17 +23,18 @@ export function buildValues(mappedEntity) {
 	placeholders = placeholders.join(', ');
 	placeholders = `(${placeholders})`;
 
-	//? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
+	//? This should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...].
 	return pgp.as.format(`${columns} VALUES ${placeholders}`, values);
 }
 
 export function buildWhere(mappedEntity) {
-	if (Object.keys(mappedEntity).length === 0) { //TODO hacky
-		// return a false clause
+	if (Object.keys(mappedEntity).length === 0) {
+		// Return a false clause.
+		//TODO hacky
 		return '0 = 1';
 	}
 
-	// pair as formatted string
+	// Pair as formatted string.
 	let pairs = [];
 	pairs = Object.keys(mappedEntity).map((key) => {
 		// wrap array in another array so that pgp doesn't think its values are for separate placeholders
@@ -45,23 +42,24 @@ export function buildWhere(mappedEntity) {
 		return pgp.as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
 	});
 
-	// join with ' AND '
+	// Join with ' AND '
 	return pairs.join(' AND ');
 }
 
 export function buildSet(mappedEntity) {
-	if (Object.keys(mappedEntity).length === 0) { //TODO hacky
-		// don't make any change
-		//! this does have to reference a column that always exists (id)
+	if (Object.keys(mappedEntity).length === 0) {
+		// Don't make any change.
+		//! This does have to reference a column that always exists (id).
+		//TODO hacky
 		return '"id" = "id"';
 	}
 
 	let pairs = [];
-	// pair as formatted string
+	// Pair as formatted string.
 	pairs = Object.keys(mappedEntity).map((key) => {
 		const input = (rules.array.test(mappedEntity[key])) ? [mappedEntity[key]] : mappedEntity[key];
 		return pgp.as.format(`"${key}" = $1`, input);
 	});
-	// join with ', '
+	// Join with ', '
 	return pairs.join(', ');
 }

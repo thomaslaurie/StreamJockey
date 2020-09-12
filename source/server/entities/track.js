@@ -6,7 +6,7 @@ import {
 	rules,
 	define,
 } from '../../shared/utility/index.js';
-import database, {pgp} from '../db.js';
+import database, {pgp} from '../database/database.js';
 import Source from '../../server/source.js';
 import {
 	trackParts,

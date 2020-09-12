@@ -54,7 +54,8 @@ const rules = {
 			}],
 			'new-cap': [on, {
 				newIsCap:           true,
-				capIsNew:           true,
+				// It is useful to capitalize factory functions. They usually come from external modules.
+				capIsNew:           false,
 				newIsCapExceptions: [],
 				capIsNewExceptions: [],
 			}],

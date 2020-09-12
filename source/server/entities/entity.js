@@ -6,7 +6,7 @@ import {
 	rules,
 	define,
 } from '../../shared/utility/index.js';
-import database from '../db.js';
+import database from '../database/database.js';
 import {
 	entityParts,
 } from '../../shared/entityParts/index.js';

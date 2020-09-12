@@ -61656,7 +61656,7 @@ function returnPropagate(thrownValue) {
 // The error should be considered 'handled'.
 
 function logPropagate(thrownValue) {
-  console.error(logPropagate(thrownValue));
+  console.error(propagate(thrownValue));
 }
 
 /***/ }),

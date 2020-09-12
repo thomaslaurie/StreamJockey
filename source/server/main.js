@@ -10,23 +10,25 @@
 import '../config/environment-variables.js';
 
 // EXTERNAL
-// import 'source-map-support/register';
-import parser from 'minimist';
 import Koa from 'koa'; //L https://github.com/koajs
-import koaWebpack from 'koa-webpack';
 import bodyParser from 'koa-bodyparser'; //L https://github.com/koajs/bodyparser
 import session from 'koa-session'; //L https://github.com/koajs/session
+
+// import 'source-map-support/register';
+// import parser from 'minimist';
+// import koaWebpack from 'koa-webpack';
 
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 import SocketIO from 'socket.io'; //L socket io: https://socket.io/docs/emit-cheatsheet
 import http from 'http'; //TODO consider changing to the https module?
 
 // INTERNAL
-// import { clientOptions, UIMainFileName } from '../config/webpack.config.js';
+// import {clientOptions, UIMainFileName} from '../config/webpack.config.js';
 
 import getRoutes from './routes.js';
 import liveData from './live-data-server.js';
 import createDatabase from './database/create-database.js';
+import {logPropagate} from '../shared/propagate.js';
 
 /* webpack-dev-middleware
 	// OPTIONS
@@ -61,9 +63,7 @@ import createDatabase from './database/create-database.js';
 //TODO top level await
 (async function main() {
 	// Initialize the database.
-	await createDatabase().catch((rejected) => {
-		console.error(rejected);
-	});
+	await createDatabase();
 
 	const routerOptions = {};
 
@@ -94,8 +94,7 @@ import createDatabase from './database/create-database.js';
 
 	const router = getRoutes(routerOptions);
 
-	//TODO nullish assignment
-	const PORT = process.env.PORT || 3000;
+	const PORT = process.env.PORT ?? 3000;
 
 	// KOA
 	const app = new Koa();
@@ -203,9 +202,9 @@ import createDatabase from './database/create-database.js';
 		console.log(`SERVER LISTENING ON PORT ${PORT}`);
 	});
 
-	//L unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar
+	//L Unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar
 	process.on('unhandledRejection', (reason, p) => {
-		console.log('Unhandled Rejection at:', p, '\n Reason:', reason);
+		console.error('Unhandled Rejection at:', p, '\n Reason:', reason);
 		//TODO handle
 	});
-})();
+})().catch(logPropagate);

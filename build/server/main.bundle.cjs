@@ -284,146 +284,132 @@ const PASSWORD_SALT_ROUNDS = 10;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return createDatabase; });
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+/* harmony import */ var _database_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./database.js */ "./source/server/database/database.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
 
 
 
-async function createDatabase() {
-  /*
-  	const schema = {
-  		name: 'sj',
-  		tables: {
-  			users: {
-  				name: 'users',
-  				columns: {
-  					id: {
-  						name: 'id',
-  					},
-  					name: {
-  						name: 'name',
-  					},
-  					password: {
-  						name: 'password',
-  					},
-  					email: {
-  						name: 'email',
-  					},
-  					spotifyRefreshToken: {
-  						name: 'spotifyRefreshToken',
-  					},
-  				},
-  			},
-  		},
-  	};
+/* harmony default export */ __webpack_exports__["default"] = (async () => _database_js__WEBPACK_IMPORTED_MODULE_0__["default"].tx(async t => {
+  //TODO This will not alter tables if they do already exist (save this for migration).
+  //L schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
+  //L constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
+  // foreign keys - REFERENCES otherTable (column) *if the column is omitted then the primary key of the referenced table is used
+  // ON DELETE CASCADE also removes any referencing rows when the referenced row is removed
+  //TODO CHECK constraint that visibility, source matches possible  states
+  //L quotes: https://stackoverflow.com/questions/41396195/what-is-the-difference-between-single-quotes-and-double-quotes-in-postgresql
+  //L default constraint names: https://stackoverflow.com/questions/4107915/postgresql-default-constraint-names
+
+  /* //! Resets the database.
+  	await t.none(`DROP SCHEMA IF EXISTS "sj" CASCADE`).catch((rejected) => {
+  		throw new InvalidStateError({
+  			userMessage: 'database error',
+  			message: rejected.message,
+  			state: rejected,
+  		});
+  	});
   */
-  // initialize
-  return _db_js__WEBPACK_IMPORTED_MODULE_0__["default"].tx(async t => {
-    // TODO this will not alter tables if they do already exist (save this for migration)
-    // schema: https://www.postgresql.org/docs/9.3/static/sql-createschema.html
-    // constraints: https://www.postgresql.org/docs/9.4/static/ddl-constraints.html
-    // foreign keys - REFERENCES otherTable (column) *if the column is omitted then the primary key of the referenced table is used
-    // ON DELETE CASCADE also removes any referencing rows when the referenced row is removed
-    // TODO CHECK constraint that visibility, source matches possible  states
-    // quotes: https://stackoverflow.com/questions/41396195/what-is-the-difference-between-single-quotes-and-double-quotes-in-postgresql
-    // default constraint names: https://stackoverflow.com/questions/4107915/postgresql-default-constraint-names
-    if (false) {} // TODO add self, public, & private VIEWs for tables (if relevant)
-    // !!!  remember to add error messages for constraint violations to parsePostgresError() in functions.js
-    // !!! column names are camelCase (because they get converted to properties), everything else is underscore
+  // SCHEMA
+  //TODO add self, public, & private VIEWs for tables (if relevant).
+  //! Remember to add error messages for constraint violations to parsePostgresError() in functions.js
+  //! Column names are camelCase (because they get converted to properties), everything else is underscore.
+  await t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`); // USERS
+  //L https://www.postgresql.org/docs/9.1/static/sql-createtable.html
+  //! spotifyRefreshToken is specifically pascal case to match object property names
 
+  await t.none(`
+		CREATE TABLE IF NOT EXISTS "sj"."users" (
+			"id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
+			"name" text CONSTRAINT "users_name_key" UNIQUE,
+			"password" text,
+			"email" text CONSTRAINT "users_email_key" UNIQUE,
+			"spotifyRefreshToken" text
+		);
+	`); //L views: https://www.postgresql.org/docs/8.1/static/tutorial-views.html
+  //L create or replace: https://stackoverflow.com/questions/48662843/what-is-the-equivalent-of-create-view-if-not-exists-in-postresql
 
-    return t.none(`CREATE SCHEMA IF NOT EXISTS "sj"`).catch(rejected => {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
-        userMessage: 'database error',
-        message: rejected.message,
-        state: rejected
-      });
-    }).then(() => {
-      // https://www.postgresql.org/docs/9.1/static/sql-createtable.html
-      //! spotifyRefreshToken is specifically pascal case to match object property names
-      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."users" (
-				"id" SERIAL CONSTRAINT "users_id_pkey" PRIMARY KEY,
-				"name" text CONSTRAINT "users_name_key" UNIQUE,
-				"password" text,
-				"email" text CONSTRAINT "users_email_key" UNIQUE,
-				"spotifyRefreshToken" text
-			);`).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
-          userMessage: 'database error',
-          message: rejected.message,
-          state: rejected
-        });
-      });
-    }).then(() => {
-      //L views: https://www.postgresql.org/docs/8.1/static/tutorial-views.html
-      //L create or replace: https://stackoverflow.com/questions/48662843/what-is-the-equivalent-of-create-view-if-not-exists-in-postresql
-      return t.none(`CREATE OR REPLACE VIEW "sj"."users_self" AS
-				SELECT id, name, email 
-				FROM "sj"."users"
-			;`).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
-          userMessage: 'database error',
-          message: rejected.message,
-          state: rejected
-        });
-      });
-    }).then(() => {
-      return t.none(`CREATE OR REPLACE VIEW "sj"."users_public" AS
-				SELECT id, name
-				FROM "sj"."users"
-			;`).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
-          userMessage: 'database error',
-          message: rejected.message,
-          state: rejected
-        });
-      });
-    }).then(() => {
-      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."playlists" (
-				"id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
-				"userId" integer CONSTRAINT "playlists_userId_fkey" REFERENCES "sj"."users" ON DELETE CASCADE ON UPDATE CASCADE,
-				"name" text,
-				"visibility" text,
-				"description" text,
-				"image" text,
-				"color" text,
-				
-				CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
-			);`).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
-          userMessage: 'database error',
-          message: rejected.message,
-          state: rejected
-        });
-      });
-    }).then(() => {
-      return t.none(`CREATE TABLE IF NOT EXISTS "sj"."tracks" (
-				"id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
-				"playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
-				"position" integer,
-				"source" text,
-				"sourceId" text,
-				"name" text,
-				"duration" integer,
-				"artists" text ARRAY DEFAULT ARRAY[]::text[],
+  await t.none(`
+		CREATE OR REPLACE VIEW "sj"."users_self" AS
+			SELECT id, name, email 
+			FROM "sj"."users"
+		;
+	`);
+  await t.none(`
+		CREATE OR REPLACE VIEW "sj"."users_public" AS
+			SELECT id, name
+			FROM "sj"."users"
+		;
+	`); // PLAYLISTS
 
-				CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
-			);`).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
-          userMessage: 'database error',
-          message: rejected.message,
-          state: rejected
-        });
-      });
-    }).catch(rejected => {
-      throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__["default"])(rejected);
-    });
-  }).catch(rejected => {
-    throw Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__["default"])(rejected);
+  await t.none(`
+		CREATE TABLE IF NOT EXISTS "sj"."playlists" (
+			"id" SERIAL CONSTRAINT "playlists_id_pkey" PRIMARY KEY,
+			"userId" integer CONSTRAINT "playlists_userId_fkey" REFERENCES "sj"."users" ON DELETE CASCADE ON UPDATE CASCADE,
+			"name" text,
+			"visibility" text,
+			"description" text,
+			"image" text,
+			"color" text,
+			
+			CONSTRAINT "playlists_userId_name_key" UNIQUE ("userId", "name")
+		);
+	`); // TRACKS
+
+  await t.none(`
+		CREATE TABLE IF NOT EXISTS "sj"."tracks" (
+			"id" SERIAL CONSTRAINT "tracks_id_pkey" PRIMARY KEY,
+			"playlistId" integer CONSTRAINT "tracks_playlistId_fkey" REFERENCES "sj"."playlists" ON DELETE CASCADE ON UPDATE CASCADE,
+			"position" integer,
+			"source" text,
+			"sourceId" text,
+			"name" text,
+			"duration" integer,
+			"artists" text ARRAY DEFAULT ARRAY[]::text[],
+
+			CONSTRAINT "tracks_playlistId_position_key" UNIQUE ("playlistId", "position") DEFERRABLE INITIALLY IMMEDIATE 
+		);
+	`);
+}).catch(rejected => {
+  throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["InvalidStateError"]({
+    userMessage: 'database error',
+    message: rejected.message,
+    state: rejected
   });
-}
+}).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_1__["default"])); //TODO Should a better error be used than InvalidStateError?
+//TODO Is propagate required here?
+
+/***/ }),
+
+/***/ "./source/server/database/database.js":
+/*!********************************************!*\
+  !*** ./source/server/database/database.js ***!
+  \********************************************/
+/*! exports provided: default, pgp */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pgp", function() { return pgp; });
+/* harmony import */ var pg_promise__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! pg-promise */ "pg-promise");
+/* harmony import */ var pg_promise__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(pg_promise__WEBPACK_IMPORTED_MODULE_0__);
+var _process$env$DB_HOST, _process$env$DB_PORT, _process$env$DB_NAME, _process$env$DB_USERN, _process$env$DB_PASSW;
+
+
+const pgp = pg_promise__WEBPACK_IMPORTED_MODULE_0___default()({//TODO Initialization options go here.
+  //L http://vitaly-t.github.io/pg-promise/module-pg-promise.html
+});
+const database = pgp({
+  //L https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax#configuration-object
+  //TODO Create new database user with restricted capabilities.
+  host: (_process$env$DB_HOST = process.env.DB_HOST) !== null && _process$env$DB_HOST !== void 0 ? _process$env$DB_HOST : 'localhost',
+  port: (_process$env$DB_PORT = process.env.DB_PORT) !== null && _process$env$DB_PORT !== void 0 ? _process$env$DB_PORT : '5432',
+  database: (_process$env$DB_NAME = process.env.DB_NAME) !== null && _process$env$DB_NAME !== void 0 ? _process$env$DB_NAME : 'test',
+  user: (_process$env$DB_USERN = process.env.DB_USERNAME) !== null && _process$env$DB_USERN !== void 0 ? _process$env$DB_USERN : 'postgres',
+  password: (_process$env$DB_PASSW = process.env.DB_PASSWORD) !== null && _process$env$DB_PASSW !== void 0 ? _process$env$DB_PASSW : 'pgPassword'
+}); // Create a single database object for entire app.
+
+/* harmony default export */ __webpack_exports__["default"] = (database);
+
 
 /***/ }),
 
@@ -440,12 +426,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildWhere", function() { return buildWhere; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "buildSet", function() { return buildSet; });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+/* harmony import */ var _database_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./database.js */ "./source/server/database/database.js");
 
 
 function buildValues(mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
-    // this shouldn't insert anything
+    // This shouldn't insert anything.
     return `("id") SELECT 0 WHERE 0 = 1`;
   }
 
@@ -462,76 +448,44 @@ function buildValues(mappedEntity) {
   columns = `("${columns}")`; // outer
 
   placeholders = placeholders.join(', ');
-  placeholders = `(${placeholders})`; //? this should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...]
+  placeholders = `(${placeholders})`; //? This should be able to format arrays just as any other value, otherwise the format is: ARRAY[value1, value2, ...].
 
-  return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
+  return _database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`${columns} VALUES ${placeholders}`, values);
 }
 function buildWhere(mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
+    // Return a false clause.
     //TODO hacky
-    // return a false clause
     return '0 = 1';
-  } // pair as formatted string
+  } // Pair as formatted string.
 
 
   let pairs = [];
   pairs = Object.keys(mappedEntity).map(key => {
     // wrap array in another array so that pgp doesn't think its values are for separate placeholders
     const input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
-    return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
-  }); // join with ' AND '
+    return _database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input); //! if the value here is undefined, it wont format, it will simply leave the string as '"key" = $1'
+  }); // Join with ' AND '
 
   return pairs.join(' AND ');
 }
 function buildSet(mappedEntity) {
   if (Object.keys(mappedEntity).length === 0) {
+    // Don't make any change.
+    //! This does have to reference a column that always exists (id).
     //TODO hacky
-    // don't make any change
-    //! this does have to reference a column that always exists (id)
     return '"id" = "id"';
   }
 
-  let pairs = []; // pair as formatted string
+  let pairs = []; // Pair as formatted string.
 
   pairs = Object.keys(mappedEntity).map(key => {
     const input = _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(mappedEntity[key]) ? [mappedEntity[key]] : mappedEntity[key];
-    return _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input);
-  }); // join with ', '
+    return _database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`"${key}" = $1`, input);
+  }); // Join with ', '
 
   return pairs.join(', ');
 }
-
-/***/ }),
-
-/***/ "./source/server/db.js":
-/*!*****************************!*\
-  !*** ./source/server/db.js ***!
-  \*****************************/
-/*! exports provided: default, pgp */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "pgp", function() { return pgp; });
-/* harmony import */ var pg_promise__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! pg-promise */ "pg-promise");
-/* harmony import */ var pg_promise__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(pg_promise__WEBPACK_IMPORTED_MODULE_0__);
-// EXTERNAL
-
-const pgp = pg_promise__WEBPACK_IMPORTED_MODULE_0___default()({//TODO initialization options here: //L http://vitaly-t.github.io/pg-promise/module-pg-promise.html
-});
-const config = {
-  // https://github.com/vitaly-t/pg-promise/wiki/Connection-Syntax#configuration-object
-  // TODO create new db user with restricted capabilities
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || '5432',
-  database: process.env.DB_NAME || 'test',
-  user: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD || 'pgPassword'
-};
-const db = pgp(config); // Create a single db object for entire app.
-
-/* harmony default export */ __webpack_exports__["default"] = (db);
-
 
 /***/ }),
 
@@ -546,7 +500,7 @@ const db = pgp(config); // Create a single db object for entire app.
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Entity; });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+/* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
@@ -600,35 +554,35 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(Entity,
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity, {
   // CRUD METHODS
   async add(query, {
-    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'add').then(result => includeMetadata ? result : result.data);
   },
 
   async get(query, {
-    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'get').then(result => includeMetadata ? result : result.data);
   },
 
   async edit(query, {
-    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'edit').then(result => includeMetadata ? result : result.data);
   },
 
   async remove(query, {
-    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"],
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"],
     includeMetadata = false
   } = {}) {
     return this.frame(db, query, 'remove').then(result => includeMetadata ? result : result.data);
   },
 
   async getMimic(query, {
-    db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]
+    db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"]
   } = {}) {
     // getMimic runs a query through the main database function to be formatted the exact same as any result from a get query, the difference is that it doesn't execute any SQL and returns the data that would be set off in liveData.notify()
     return this.frame(db, query, 'getMimic');
@@ -987,7 +941,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Playlis
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Track; });
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../db.js */ "./source/server/db.js");
+/* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _server_source_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../server/source.js */ "./source/server/source.js");
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entityParts/track.js */ "./source/shared/entityParts/track.js");
@@ -1026,7 +980,7 @@ class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_8__["default"] {
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["trackParts"].prototype(Track);
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["trackParts"].static(Track);
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track.prototype, {
-  async order(db = _db_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
+  async order(db = _database_database_js__WEBPACK_IMPORTED_MODULE_1__["default"]) {
     return this.constructor.order(db, Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this));
   }
 
@@ -1183,11 +1137,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
         //L sub-query = vs IN: https://stackoverflow.com/questions/13741582/differences-between-equal-sign-and-in-with-subquery
 
 
-        const currentQuery = action === 'Add' ? _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
+        const currentQuery = action === 'Add' ? _database_database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
-					`, track.playlistId) : _db_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
+					`, track.playlistId) : _database_database_js__WEBPACK_IMPORTED_MODULE_1__["pgp"].as.format(`
 						SELECT "id", "position", "playlistId"
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = (
@@ -1858,23 +1812,20 @@ _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["Entity"].notify = liveDataServe
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _config_environment_variables_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config/environment-variables.js */ "./source/config/environment-variables.js");
-/* harmony import */ var minimist__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! minimist */ "minimist");
-/* harmony import */ var minimist__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(minimist__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa */ "koa");
-/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var koa_webpack__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-webpack */ "koa-webpack");
-/* harmony import */ var koa_webpack__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_webpack__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! koa-bodyparser */ "koa-bodyparser");
-/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(koa_bodyparser__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! koa-session */ "koa-session");
-/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(koa_session__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! socket.io */ "socket.io");
-/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(socket_io__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! http */ "http");
-/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
-/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
-/* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
+/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! koa */ "koa");
+/* harmony import */ var koa__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(koa__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! koa-bodyparser */ "koa-bodyparser");
+/* harmony import */ var koa_bodyparser__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa_bodyparser__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-session */ "koa-session");
+/* harmony import */ var koa_session__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_session__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! socket.io */ "socket.io");
+/* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(socket_io__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! http */ "http");
+/* harmony import */ var http__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
+/* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
+/* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* //TODO
 	Put api keys into .env after creating methods to access them
 	Some best practices: https://www.codementor.io/mattgoldspink/nodejs-best-practices-du1086jja
@@ -1884,22 +1835,23 @@ __webpack_require__.r(__webpack_exports__);
 */
 // TOP
  // EXTERNAL
-// import 'source-map-support/register';
-
 
  //L https://github.com/koajs
-
 
  //L https://github.com/koajs/bodyparser
 
  //L https://github.com/koajs/session
+// import 'source-map-support/register';
+// import parser from 'minimist';
+// import koaWebpack from 'koa-webpack';
 //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 
  //L socket io: https://socket.io/docs/emit-cheatsheet
 
  //TODO consider changing to the https module?
 // INTERNAL
-// import { clientOptions, UIMainFileName } from '../config/webpack.config.js';
+// import {clientOptions, UIMainFileName} from '../config/webpack.config.js';
+
 
 
 
@@ -1936,10 +1888,10 @@ __webpack_require__.r(__webpack_exports__);
 //TODO top level await
 
 (async function main() {
+  var _process$env$PORT;
+
   // Initialize the database.
-  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_10__["default"])().catch(rejected => {
-    console.error(rejected);
-  });
+  await Object(_database_create_database_js__WEBPACK_IMPORTED_MODULE_8__["default"])();
   const routerOptions = {};
   /* webpack-dev-middleware
   	const config = clientOptions({}, {
@@ -1966,11 +1918,10 @@ __webpack_require__.r(__webpack_exports__);
   	}
   */
 
-  const router = Object(_routes_js__WEBPACK_IMPORTED_MODULE_8__["default"])(routerOptions); //TODO nullish assignment
+  const router = Object(_routes_js__WEBPACK_IMPORTED_MODULE_6__["default"])(routerOptions);
+  const PORT = (_process$env$PORT = process.env.PORT) !== null && _process$env$PORT !== void 0 ? _process$env$PORT : 3000; // KOA
 
-  const PORT = process.env.PORT || 3000; // KOA
-
-  const app = new koa__WEBPACK_IMPORTED_MODULE_2___default.a();
+  const app = new koa__WEBPACK_IMPORTED_MODULE_1___default.a();
   app.keys = [process.env.APP_KEY || 'imJustSomeKey'];
   const sessionConfig = {
     //TODO random keys: //L https://randomkeygen.com/
@@ -1990,10 +1941,10 @@ __webpack_require__.r(__webpack_exports__);
     renew: false
   }; //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 
-  const server = http__WEBPACK_IMPORTED_MODULE_7___default.a.createServer(app.callback()); // SOCKET IO
+  const server = http__WEBPACK_IMPORTED_MODULE_5___default.a.createServer(app.callback()); // SOCKET IO
 
-  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_6___default.a(server);
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
+  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_4___default.a(server);
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
   //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
   //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗
   //  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝
@@ -2017,9 +1968,9 @@ __webpack_require__.r(__webpack_exports__);
   */
   // BODY PARSER
 
-  app.use(koa_bodyparser__WEBPACK_IMPORTED_MODULE_4___default()()); // SESSION
+  app.use(koa_bodyparser__WEBPACK_IMPORTED_MODULE_2___default()()); // SESSION
 
-  app.use(koa_session__WEBPACK_IMPORTED_MODULE_5___default()(sessionConfig, app));
+  app.use(koa_session__WEBPACK_IMPORTED_MODULE_3___default()(sessionConfig, app));
   /* View Counter
   	app.use(async (ctx, next) => {
   		// ignore favicon
@@ -2044,7 +1995,7 @@ __webpack_require__.r(__webpack_exports__);
 
   app.use(router.allowedMethods()); // LIVE DATA
 
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_9__["default"].start({
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].start({
     app,
     socket: socketIO.of('/live-data')
   }); //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
@@ -2059,12 +2010,12 @@ __webpack_require__.r(__webpack_exports__);
   server.listen(PORT, () => {
     console.log(`\n█████████████████████████████`);
     console.log(`SERVER LISTENING ON PORT ${PORT}`);
-  }); //L unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar
+  }); //L Unhandled errors: https://stackoverflow.com/questions/43834559/how-to-find-which-promises-are-unhandled-in-node-js-unhandledpromiserejectionwar
 
   process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at:', p, '\n Reason:', reason); //TODO handle
+    console.error('Unhandled Rejection at:', p, '\n Reason:', reason); //TODO handle
   });
-})();
+})().catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["logPropagate"]);
 
 /***/ }),
 
@@ -2093,7 +2044,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
-/* harmony import */ var _db_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./db.js */ "./source/server/db.js");
+/* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
@@ -2259,7 +2210,7 @@ function getRoutes({
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async ctx => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["login"](_db_js__WEBPACK_IMPORTED_MODULE_11__["default"], ctx, ctx.request.body);
+    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["login"](_database_database_js__WEBPACK_IMPORTED_MODULE_11__["default"], ctx, ctx.request.body);
   }).get('/session', async ctx => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
     ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx);
@@ -4290,7 +4241,7 @@ function returnPropagate(thrownValue) {
 // The error should be considered 'handled'.
 
 function logPropagate(thrownValue) {
-  console.error(logPropagate(thrownValue));
+  console.error(propagate(thrownValue));
 }
 
 /***/ }),
@@ -8089,28 +8040,6 @@ module.exports = require("koa-send");
 /***/ (function(module, exports) {
 
 module.exports = require("koa-session");
-
-/***/ }),
-
-/***/ "koa-webpack":
-/*!******************************!*\
-  !*** external "koa-webpack" ***!
-  \******************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("koa-webpack");
-
-/***/ }),
-
-/***/ "minimist":
-/*!***************************!*\
-  !*** external "minimist" ***!
-  \***************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = require("minimist");
 
 /***/ }),
 
