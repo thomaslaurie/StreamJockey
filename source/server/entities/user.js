@@ -13,17 +13,23 @@ import {
 } from '../constants.js';
 import Entity from './entity.js';
 import {InvalidStateError} from '../../shared/errors/index.js';
+import serverRegistry from '../server-registry.js';
 
+const serverRegistryId = 'User';
 
 export default class User extends Entity {
 	constructor(...args) {
 		userParts.intercept(...args);
 		super(...args);
 		userParts.instance(this, ...args);
+
+		serverRegistry.defineId(this, serverRegistryId);
 	}
 }
 userParts.prototype(User);
 userParts.static(User);
+
+serverRegistry.register(User, serverRegistryId);
 
 
 async function basePrepare(t, user) {

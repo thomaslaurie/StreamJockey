@@ -1346,6 +1346,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../constants.js */ "./source/server/constants.js");
 /* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../server-registry.js */ "./source/server/server-registry.js");
 // EXTERNAL
  // INTERNAL
 
@@ -1354,16 +1355,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+const serverRegistryId = 'User';
 class User extends _entity_js__WEBPACK_IMPORTED_MODULE_4__["default"] {
   constructor(...args) {
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].intercept(...args);
     super(...args);
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].instance(this, ...args);
+    _server_registry_js__WEBPACK_IMPORTED_MODULE_6__["default"].defineId(this, serverRegistryId);
   }
 
 }
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].prototype(User);
 _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__["userParts"].static(User);
+_server_registry_js__WEBPACK_IMPORTED_MODULE_6__["default"].register(User, serverRegistryId);
 
 async function basePrepare(t, user) {
   const newUser = new User(user); // Hash password.
@@ -1495,6 +1500,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entityParts/user.js */ "./source/shared/entityParts/user.js");
 /* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./server-registry.js */ "./source/server/server-registry.js");
 //! Side-effects
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
@@ -1505,6 +1511,7 @@ __webpack_require__.r(__webpack_exports__);
  //TODO consider changing to the https module?
 
  // INTERNAL
+
 
 
 
@@ -1557,9 +1564,12 @@ const liveDataServer = {
     this.socket.on('connect', socket => {
       try {
         console.log('CONNECT', socket.id); // If user is logged in, give the socketId to the session.
-        //! I don't think the cookie session receives this, though it isn't needed there so far
+        //! I don't think the cookie session receives this, though it isn't needed there so far.
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"], 'User')) socket.session.user.socketId = socket.id;
+        if (_server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
+          socket.session.user.socketId = socket.id;
+        }
+
         socket.on('disconnect', async () => {
           try {
             console.log('DISCONNECT', socket.id);
@@ -1568,7 +1578,7 @@ const liveDataServer = {
               console.error('subscription disconnect error:', rejected);
             }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-            if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"], 'User')) {
+            if (_server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
               socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_8__["defaultSocketId"];
             }
           } catch (error) {
@@ -1583,7 +1593,7 @@ const liveDataServer = {
             console.log('SUBSCRIBE', socket.id); // if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
             //TODO socketId validator, this is all that really matters here
 
-            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
+            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
               socketId: socket.id
             }); //! using LiveTable.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
@@ -1602,7 +1612,7 @@ const liveDataServer = {
         }, callback) => {
           try {
             console.log('UNSUBSCRIBE', socket.id);
-            const user = Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(socket.session.user, _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"], 'User') ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
+            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
               socketId: socket.id
             });
             const result = await this.remove(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"].tableToEntity(table), query, user);
@@ -2049,6 +2059,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./session-methods.js */ "./source/server/session-methods.js");
 /* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
+/* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./server-registry.js */ "./source/server/server-registry.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2112,6 +2123,7 @@ __webpack_require__.r(__webpack_exports__);
 
  //L https://github.com/koajs/send
 // INTERNAL
+
 
 
 
@@ -2234,7 +2246,7 @@ function createRouter()
         root
       }); //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
       //TODO webpack might have a better way to identify static resources
-    } else if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+    } else if (!_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["isLoggedIn"](ctx) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
       // Redirect if not logged in.
       //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
@@ -2262,11 +2274,26 @@ function createRouter()
 
 /***/ }),
 
+/***/ "./source/server/server-registry.js":
+/*!******************************************!*\
+  !*** ./source/server/server-registry.js ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _shared_class_registry__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/class-registry */ "./source/shared/class-registry.js");
+
+/* harmony default export */ __webpack_exports__["default"] = (new _shared_class_registry__WEBPACK_IMPORTED_MODULE_0__["default"]('serverRegistryIdKey'));
+
+/***/ }),
+
 /***/ "./source/server/session-methods.js":
 /*!******************************************!*\
   !*** ./source/server/session-methods.js ***!
   \******************************************/
-/*! exports provided: login, get, logout */
+/*! exports provided: login, get, logout, isLoggedIn */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2274,14 +2301,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "login", function() { return login; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "get", function() { return get; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "logout", function() { return logout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isLoggedIn", function() { return isLoggedIn; });
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bcryptjs */ "bcryptjs");
 /* harmony import */ var bcryptjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bcryptjs__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./server-registry.js */ "./source/server/server-registry.js");
 // EXTERNAL
  // INTERNAL
+
 
 
 
@@ -2329,31 +2359,26 @@ async function login(db, ctx, user) {
 } // READ
 
 async function get(ctx) {
-  await isLoggedIn(ctx).catch(rejected => {
-    //TODO Temporary until route error handling can be reworked.
-    console.log('Error in server api session.get()', rejected);
+  if (isLoggedIn(ctx)) {
+    return ctx.session.user;
+  }
+
+  throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
+    userMessage: 'You are not logged in.',
+    message: 'User is not logged in.'
   });
-  return ctx.session.user;
 } // UPDATE
 //?
 // DELETE
 
 async function logout(ctx) {
   delete ctx.session.user;
-} //TODO Consider converting this to a boolean response.
+} //TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
 
-async function isLoggedIn(ctx) {
-  var _ctx$session$user, _ctx$session$user2;
+function isLoggedIn(ctx) {
+  var _ctx$session$user;
 
-  if (!(ctx.session.user instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] || ((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.constructorName) === 'User') || !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].integer.test((_ctx$session$user2 = ctx.session.user) === null || _ctx$session$user2 === void 0 ? void 0 : _ctx$session$user2.id)) {
-    throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_4__["CustomError"]({
-      userMessage: 'you must be logged in to do this',
-      message: 'user is not logged in'
-    });
-  } // Redundancy check to make sure id is right format.
-
-
-  _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].integer.validate(ctx.session.user.id); //TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
+  return _server_registry_js__WEBPACK_IMPORTED_MODULE_5__["default"].autoConstruct(ctx.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["User"] && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].integer.test((_ctx$session$user = ctx.session.user) === null || _ctx$session$user === void 0 ? void 0 : _ctx$session$user.id);
 }
 
 /***/ }),

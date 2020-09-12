@@ -37,6 +37,7 @@ import {
 import {defaultSocketId} from '../shared/entityParts/user.js';
 import Warn from '../shared/warn.js';
 import {CustomError} from '../shared/errors/index.js';
+import serverRegistry from './server-registry.js';
 
 class Subscription {
 	constructor(options = {}) {
@@ -75,8 +76,10 @@ const liveDataServer = {
 				console.log('CONNECT', socket.id);
 
 				// If user is logged in, give the socketId to the session.
-				//! I don't think the cookie session receives this, though it isn't needed there so far
-				if (isInstanceOf(socket.session.user, User, 'User')) socket.session.user.socketId = socket.id;
+				//! I don't think the cookie session receives this, though it isn't needed there so far.
+				if (serverRegistry.autoConstruct(socket.session.user) instanceof User) {
+					socket.session.user.socketId = socket.id;
+				}
 
 				socket.on('disconnect', async () => {
 					try {
@@ -88,7 +91,7 @@ const liveDataServer = {
 						});
 
 						//? socket won't be used anymore, so does anything really need to be deleted here?
-						if (isInstanceOf(socket.session.user, User, 'User')) {
+						if (serverRegistry.autoConstruct(socket.session.user) instanceof User) {
 							socket.session.user.socketId = defaultSocketId;
 						}
 					} catch (error) {
@@ -102,7 +105,7 @@ const liveDataServer = {
 
 						// if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
 						//TODO socketId validator, this is all that really matters here
-						const user = isInstanceOf(socket.session.user, User, 'User')
+						const user = (serverRegistry.autoConstruct(socket.session.user) instanceof User)
 							? socket.session.user
 							: new User({socketId: socket.id});
 
@@ -121,7 +124,7 @@ const liveDataServer = {
 					try {
 						console.log('UNSUBSCRIBE', socket.id);
 
-						const user = isInstanceOf(socket.session.user, User, 'User')
+						const user = (serverRegistry.autoConstruct(socket.session.user) instanceof User)
 							? socket.session.user
 							: new User({socketId: socket.id});
 

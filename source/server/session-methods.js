@@ -13,6 +13,7 @@ import {
 	InvalidStateError,
 	CustomError,
 } from '../shared/errors/index.js';
+import serverRegistry from './server-registry.js';
 
 
 // CREATE
@@ -62,11 +63,13 @@ export async function login(db, ctx, user) {
 
 // READ
 export async function get(ctx) {
-	await isLoggedIn(ctx).catch((rejected) => {
-		//TODO Temporary until route error handling can be reworked.
-		console.log('Error in server api session.get()', rejected);
+	if (isLoggedIn(ctx)) {
+		return ctx.session.user;
+	}
+	throw new CustomError({
+		userMessage: 'You are not logged in.',
+		message: 'User is not logged in.',
 	});
-	return ctx.session.user;
 }
 
 // UPDATE
@@ -77,16 +80,10 @@ export async function logout(ctx) {
 	delete ctx.session.user;
 }
 
-//TODO Consider converting this to a boolean response.
-async function isLoggedIn(ctx) {
-	if (!(ctx.session.user instanceof User || ctx.session.user?.constructorName === 'User') || !rules.integer.test(ctx.session.user?.id)) {
-		throw new CustomError({
-			userMessage: 'you must be logged in to do this',
-			message: 'user is not logged in',
-		});
-	}
-	// Redundancy check to make sure id is right format.
-	rules.integer.validate(ctx.session.user.id);
-
-	//TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
+//TODO This doesn't check if the user exists however, though wouldn't this be expensive? searching the database every time the user wants to know if they're logged in, (every page).
+export function isLoggedIn(ctx) {
+	return (
+		serverRegistry.autoConstruct(ctx.session.user) instanceof User
+		&& rules.integer.test(ctx.session.user?.id)
+	);
 }

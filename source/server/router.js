@@ -90,6 +90,7 @@ import {
 	spotify,
 	youtube,
 } from './sources/index.js';
+import serverRegistry from './server-registry.js';
 
 //L Race-condition in koa-router appears to be a false positive: https://github.com/koajs/koa/issues/1351
 /* eslint-disable require-atomic-updates */
@@ -226,7 +227,7 @@ export default function createRouter(/* {replaceIndex}*/) {
 				//TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
 				//TODO webpack might have a better way to identify static resources
 			} else if (
-				!rules.populatedObject.test(ctx.session.user)
+				!session.isLoggedIn(ctx)
 				&& ctx.request.path !== '/login'
 				&& ctx.request.path !== '/database'
 			) {
