@@ -25,7 +25,7 @@ import http from 'http'; //TODO consider changing to the https module?
 // INTERNAL
 // import {clientOptions, UIMainFileName} from '../config/webpack.config.js';
 
-import getRoutes from './routes.js';
+import createRouter from './router.js';
 import liveData from './live-data-server.js';
 import createDatabase from './database/create-database.js';
 import {logPropagate} from '../shared/propagate.js';
@@ -92,7 +92,7 @@ import {logPropagate} from '../shared/propagate.js';
 		}
 	*/
 
-	const router = getRoutes(routerOptions);
+	const router = createRouter(routerOptions);
 
 	const PORT = process.env.PORT ?? 3000;
 

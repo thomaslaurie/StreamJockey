@@ -352,6 +352,7 @@ const rules = {
 		arrow:                      {
 			'implicit-arrow-linebreak': [on, 'beside'],
 			// Requires parentheses in all cases except when there is one parameter and an implicit return.
+			//TODO Reconsider this, curried functions where the last one has a block looks ugly: foo => (bar) => {...}
 			'arrow-parens':             [on, 'as-needed', {
 				requireForBlockBody: true,
 			}],

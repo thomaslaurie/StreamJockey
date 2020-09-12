@@ -25,6 +25,9 @@
 		This initially didn't work because it was actually just using the directory node was being run from.
 			However, with a custom node globals polyfill: //L https://github.com/webpack/webpack/issues/1599#issuecomment-550291610 __dirname can now be properly polyfilled.
 		Even though __dirname will now work properly, this cjs workaround is still the preferred way as it can be used in raw ES Modules.
+	Other links:
+		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
+		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
 */
 //R Currying this function won't work. __dirname will only apply to the exact file it is used in.
 

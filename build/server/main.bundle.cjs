@@ -214,6 +214,9 @@ const defaultTestGlob = 'shared/utility';
 		This initially didn't work because it was actually just using the directory node was being run from.
 			However, with a custom node globals polyfill: //L https://github.com/webpack/webpack/issues/1599#issuecomment-550291610 __dirname can now be properly polyfilled.
 		Even though __dirname will now work properly, this cjs workaround is still the preferred way as it can be used in raw ES Modules.
+	Other links:
+		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
+		//L https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
 */
 //R Currying this function won't work. __dirname will only apply to the exact file it is used in.
 
@@ -1822,7 +1825,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var socket_io__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(socket_io__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! http */ "http");
 /* harmony import */ var http__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(http__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _routes_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./routes.js */ "./source/server/routes.js");
+/* harmony import */ var _router_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./router.js */ "./source/server/router.js");
 /* harmony import */ var _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./live-data-server.js */ "./source/server/live-data-server.js");
 /* harmony import */ var _database_create_database_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./database/create-database.js */ "./source/server/database/create-database.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
@@ -1918,7 +1921,7 @@ __webpack_require__.r(__webpack_exports__);
   	}
   */
 
-  const router = Object(_routes_js__WEBPACK_IMPORTED_MODULE_6__["default"])(routerOptions);
+  const router = Object(_router_js__WEBPACK_IMPORTED_MODULE_6__["default"])(routerOptions);
   const PORT = (_process$env$PORT = process.env.PORT) !== null && _process$env$PORT !== void 0 ? _process$env$PORT : 3000; // KOA
 
   const app = new koa__WEBPACK_IMPORTED_MODULE_1___default.a();
@@ -2019,16 +2022,16 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./source/server/routes.js":
+/***/ "./source/server/router.js":
 /*!*********************************!*\
-  !*** ./source/server/routes.js ***!
+  !*** ./source/server/router.js ***!
   \*********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return getRoutes; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return createRouter; });
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! path */ "path");
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var fs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! fs */ "fs");
@@ -2043,7 +2046,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../server/session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./session-methods.js */ "./source/server/session-methods.js");
 /* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
 /* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
@@ -2118,53 +2121,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+ //L Race-condition in koa-router appears to be a false positive: https://github.com/koajs/koa/issues/1351
 
-function getRoutes({
-  replaceIndex
-}) {
-  // path
-  //L make own __dirname since it isn't exposed in modules: https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
-  //L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
-  //TODO there has to be a cleaner way of doing this (especially the replace manipulation)
-  //R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
-  // const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-  const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__["clientBuildDirectory"];
-  const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__["UIMainFileName"]}`; // router
+/* eslint-disable require-atomic-updates */
 
-  const router = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a();
-  const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a();
-  /*
-  	let listenerList = [
-  	];
-  
-  	async function addListener(depth) {
-  		//TODO this is a mess, there has to be a much better way to do this
-  
-  		// stop recursion if 10 layers deep
-  		depth = depth || 0;
-  		if (depth >= 10) {
-  			throw new Err({
-  				log: true,
-  				origin: 'addListener()',
-  				message: 'could not handle request, timeout error',
-  				reason: 'addListener timeout',
-  			});
-  		}
-  
-  		let f = Math.random();
-  
-  		if (listeners.indexOf(f) !== -1) {
-  			f = await addListener(depth+1); //! recursive call
-  		}
-  
-  		if (depth === 0) {
-  			listeners.push(f);
-  		}
-  
-  		return f;
-  	}
-  */
-  // server-side data & processing requests
+const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__["clientBuildDirectory"];
+const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__["UIMainFileName"]}`;
+
+function createAPIRouter() {
+  const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a(); // Database CRUD and server-side processing.
 
   apiRouter // Catches and propagates all errors, but assigns them to the response body rather than throwing.
   .all('/*', async (ctx, next) => {
@@ -2187,7 +2152,34 @@ function getRoutes({
     }
 
     await next();
-  }) // auth
+  });
+
+  function addCRUD(router, Entity) {
+    const path = `/${Entity.table}`;
+
+    const action = method => async ctx => {
+      ctx.response.body = await method(ctx.request.body, {
+        includeMetadata: true
+      });
+    };
+
+    return router.post(path, action(Entity.add.bind(Entity))).get(path, action(Entity.get.bind(Entity))).patch(path, action(Entity.edit.bind(Entity))).delete(path, action(Entity.remove.bind(Entity)));
+  }
+
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"]);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"]);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"]);
+  apiRouter // SESSION
+  //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
+  //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
+  .post('/session', async ctx => {
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__["login"](_database_database_js__WEBPACK_IMPORTED_MODULE_11__["default"], ctx, ctx.request.body);
+  }).get('/session', async ctx => {
+    //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx);
+  }).delete('/session', async ctx => {
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__["logout"](ctx);
+  }) // AUTH
   .get('/spotify/authRequestStart', async ctx => {
     // Retrieves an auth request URL and it's respective local key (for event handling).
     ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["spotify"].startAuthRequest();
@@ -2206,68 +2198,6 @@ function getRoutes({
     ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["spotify"].refreshToken(ctx);
   }).get('/youtube/credentials', async ctx => {
     ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["youtube"].getCredentials();
-  }) // session
-  //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
-  //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
-  .post('/session', async ctx => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["login"](_database_database_js__WEBPACK_IMPORTED_MODULE_11__["default"], ctx, ctx.request.body);
-  }).get('/session', async ctx => {
-    //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx);
-  }).delete('/session', async ctx => {
-    ctx.response.body = await _server_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["logout"](ctx);
-  }) //TODO condense this
-  // user
-  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].add(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].get(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].edit(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"].remove(ctx.request.body, {
-      includeMetadata: true
-    });
-  }) // playlist
-  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].add(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].get(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].edit(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"].remove(ctx.request.body, {
-      includeMetadata: true
-    });
-  }) // track
-  .post(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].add(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).get(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].get(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).patch(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].edit(ctx.request.body, {
-      includeMetadata: true
-    });
-  }).delete(`/${_entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].table}`, async ctx => {
-    ctx.response.body = await _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"].remove(ctx.request.body, {
-      includeMetadata: true
-    });
   }) // catch
   .all('/*', async ctx => {
     ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
@@ -2275,11 +2205,22 @@ function getRoutes({
       message: 'invalid api command',
       state: ctx.request.body
     });
-  }); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
+  });
+  return apiRouter;
+}
+
+function createRouter()
+/* {replaceIndex}*/
+{
+  const router = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a();
+  const apiRouter = createAPIRouter(); //L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 
   router.use('/api', apiRouter.routes(), apiRouter.allowedMethods()); // PAGE
 
-  router.get('/*', async ctx => {
+  router.get('/favicon.ico', async ctx => {
+    //L Temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+    ctx.response.status = 204;
+  }).get('/*', async ctx => {
     /*
     	// pages are accessed through the base GET method, serve any public files here
     	//! static resource references in index.html should be absolute '/foo', not relative './foo'
@@ -2287,28 +2228,24 @@ function getRoutes({
     	//L https://developers.google.com/web/fundamentals/primers/modules
     			//TODO //! errors thrown here aren't caught - fix this here and everywhere else
     */
-    //L temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
-    if (ctx.request.path === '/favicon.ico') {
-      ctx.response.status = 204;
-      return; //TODO add it and remove this block
-    } // serve resources
-
-
+    // Serve resources.
     if (fs__WEBPACK_IMPORTED_MODULE_1___default.a.existsSync(path__WEBPACK_IMPORTED_MODULE_0___default.a.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
       await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, ctx.request.path, {
         root
-      });
-      return; //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
+      }); //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
       //TODO webpack might have a better way to identify static resources
-    } // redirect if not logged in
-
-
-    if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+    } else if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__["rules"].populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+      // Redirect if not logged in.
       //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 
       ctx.redirect('/login');
-      return;
+    } else {
+      // Otherwise always return the index.js file, this is the root app and vue will handle the routing client-side.
+      //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+      await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
+        root
+      });
     }
     /* webpack-dev-middleware
     	if (replaceIndex !== undefined) {
@@ -2316,14 +2253,8 @@ function getRoutes({
     	}
     	else {
     */
-    // otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
-    //L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
 
-
-    await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
-      root
-    });
-  }).all('/*', async (ctx, next) => {
+  }).all('/*', async ctx => {
     ctx.body += '.all /* reached'; //G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
   });
   return router;

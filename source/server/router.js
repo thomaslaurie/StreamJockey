@@ -61,7 +61,7 @@ import path from 'path';
 import fs from 'fs';
 
 // EXTERNAL
-import Router from 'koa-router'; //L https://github.com/alexmingoia/koa-router
+import KoaRouter from 'koa-router'; //L https://github.com/alexmingoia/koa-router
 import send from 'koa-send'; //L https://github.com/koajs/send
 
 // INTERNAL
@@ -84,60 +84,23 @@ import {
 	Track,
 } from './entities/index.js';
 import {returnPropagate} from '../shared/propagate.js';
-import * as session from '../server/session-methods.js';
+import * as session from './session-methods.js';
 import database from './database/database.js';
 import {
 	spotify,
 	youtube,
 } from './sources/index.js';
 
-export default function getRoutes({replaceIndex}) {
-	// path
-	//L make own __dirname since it isn't exposed in modules: https://stackoverflow.com/questions/46745014/alternative-for-dirname-in-node-when-using-the-experimental-modules-flag
-	//L remove 'file:///' because it messes up the parsing and creates 'C:/C:/': https://github.com/tc39/proposal-import-meta/issues/13
-	//TODO there has to be a cleaner way of doing this (especially the replace manipulation)
-	//R this was needed when running raw modules as __dirname was not accessible, however webpack now handles that
-	// const __dirname = path.dirname(new URL(import.meta.url.replace(/^file:\/\/\//, '')).pathname);
-	const root = clientBuildDirectory;
-	const app = `/${UIMainFileName}`;
+//L Race-condition in koa-router appears to be a false positive: https://github.com/koajs/koa/issues/1351
+/* eslint-disable require-atomic-updates */
 
-	// router
-	const router = new Router();
-	const apiRouter = new Router();
+const root = clientBuildDirectory;
+const app = `/${UIMainFileName}`;
 
-	/*
-		let listenerList = [
-		];
+function createAPIRouter() {
+	const apiRouter = new KoaRouter();
 
-		async function addListener(depth) {
-			//TODO this is a mess, there has to be a much better way to do this
-
-			// stop recursion if 10 layers deep
-			depth = depth || 0;
-			if (depth >= 10) {
-				throw new Err({
-					log: true,
-					origin: 'addListener()',
-					message: 'could not handle request, timeout error',
-					reason: 'addListener timeout',
-				});
-			}
-
-			let f = Math.random();
-
-			if (listeners.indexOf(f) !== -1) {
-				f = await addListener(depth+1); //! recursive call
-			}
-
-			if (depth === 0) {
-				listeners.push(f);
-			}
-
-			return f;
-		}
-	*/
-
-	// server-side data & processing requests
+	// Database CRUD and server-side processing.
 	apiRouter
 		// Catches and propagates all errors, but assigns them to the response body rather than throwing.
 		.all('/*', async (ctx, next) => {
@@ -160,9 +123,40 @@ export default function getRoutes({replaceIndex}) {
 			}
 
 			await next();
+		});
+
+	function addCRUD(router, Entity) {
+		const path = `/${Entity.table}`;
+		const action = method => async (ctx) => {
+			ctx.response.body = await method(ctx.request.body, {includeMetadata: true});
+		};
+		return router
+			.post(path, action(Entity.add.bind(Entity)))
+			.get(path, action(Entity.get.bind(Entity)))
+			.patch(path, action(Entity.edit.bind(Entity)))
+			.delete(path, action(Entity.remove.bind(Entity)));
+	}
+
+	addCRUD(apiRouter, User);
+	addCRUD(apiRouter, Playlist);
+	addCRUD(apiRouter, Track);
+
+	apiRouter
+		// SESSION
+		//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
+		//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
+		.post('/session', async (ctx) => {
+			ctx.response.body = await session.login(database, ctx, ctx.request.body);
+		})
+		.get('/session', async (ctx) => {
+			//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
+			ctx.response.body = await session.get(ctx);
+		})
+		.delete('/session', async (ctx) => {
+			ctx.response.body = await session.logout(ctx);
 		})
 
-		// auth
+		// AUTH
 		.get('/spotify/authRequestStart', async (ctx) => {
 			// Retrieves an auth request URL and it's respective local key (for event handling).
 			ctx.response.body = await spotify.startAuthRequest();
@@ -187,64 +181,6 @@ export default function getRoutes({replaceIndex}) {
 			ctx.response.body = await youtube.getCredentials();
 		})
 
-		// session
-		//R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
-		//? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
-		.post('/session', async (ctx) => {
-			ctx.response.body = await session.login(database, ctx, ctx.request.body);
-		})
-		.get('/session', async (ctx) => {
-			//R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-			ctx.response.body = await session.get(ctx);
-		})
-		.delete('/session', async (ctx) => {
-			ctx.response.body = await session.logout(ctx);
-		})
-
-
-		//TODO condense this
-		// user
-		.post(`/${User.table}`, async (ctx) => {
-			ctx.response.body = await User.add(ctx.request.body, {includeMetadata: true});
-		})
-		.get(`/${User.table}`, async (ctx) => {
-			ctx.response.body = await User.get(ctx.request.body, {includeMetadata: true});
-		})
-		.patch(`/${User.table}`, async (ctx) => {
-			ctx.response.body = await User.edit(ctx.request.body, {includeMetadata: true});
-		})
-		.delete(`/${User.table}`, async (ctx) => {
-			ctx.response.body = await User.remove(ctx.request.body, {includeMetadata: true});
-		})
-
-		// playlist
-		.post(`/${Playlist.table}`, async (ctx) => {
-			ctx.response.body = await Playlist.add(ctx.request.body, {includeMetadata: true});
-		})
-		.get(`/${Playlist.table}`, async (ctx) => {
-			ctx.response.body = await Playlist.get(ctx.request.body, {includeMetadata: true});
-		})
-		.patch(`/${Playlist.table}`, async (ctx) => {
-			ctx.response.body = await Playlist.edit(ctx.request.body, {includeMetadata: true});
-		})
-		.delete(`/${Playlist.table}`, async (ctx) => {
-			ctx.response.body = await Playlist.remove(ctx.request.body, {includeMetadata: true});
-		})
-
-		// track
-		.post(`/${Track.table}`, async (ctx) => {
-			ctx.response.body = await Track.add(ctx.request.body, {includeMetadata: true});
-		})
-		.get(`/${Track.table}`, async (ctx) => {
-			ctx.response.body = await Track.get(ctx.request.body, {includeMetadata: true});
-		})
-		.patch(`/${Track.table}`, async (ctx) => {
-			ctx.response.body = await Track.edit(ctx.request.body, {includeMetadata: true});
-		})
-		.delete(`/${Track.table}`, async (ctx) => {
-			ctx.response.body = await Track.remove(ctx.request.body, {includeMetadata: true});
-		})
-
 		// catch
 		.all('/*', async (ctx) => {
 			ctx.response.body = new InvalidStateError({
@@ -254,11 +190,22 @@ export default function getRoutes({replaceIndex}) {
 			});
 		});
 
+	return apiRouter;
+}
+
+export default function createRouter(/* {replaceIndex}*/) {
+	const router = new KoaRouter();
+	const apiRouter = createAPIRouter();
+
 	//L nested routers: https://github.com/alexmingoia/koa-router#nested-routers
 	router.use('/api', apiRouter.routes(), apiRouter.allowedMethods());
 
 	// PAGE
 	router
+		.get('/favicon.ico', async (ctx) => {
+			//L Temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
+			ctx.response.status = 204;
+		})
 		.get('/*', async (ctx) => {
 			/*
 				// pages are accessed through the base GET method, serve any public files here
@@ -270,26 +217,27 @@ export default function getRoutes({replaceIndex}) {
 				//TODO //! errors thrown here aren't caught - fix this here and everywhere else
 			*/
 
-			//L temporarily ignore favicon request: https://stackoverflow.com/questions/35408729/express-js-prevent-get-favicon-ico
-			if (ctx.request.path === '/favicon.ico') {
-				ctx.response.status = 204;
-				return;
-				//TODO add it and remove this block
-			}
-
-			// serve resources
-			if (fs.existsSync(path.join(root, ctx.request.path)) && ctx.request.path.indexOf('.') >= 0) {
+			// Serve resources.
+			if (
+				fs.existsSync(path.join(root, ctx.request.path))
+				&& ctx.request.path.indexOf('.') >= 0
+			) {
 				await send(ctx, ctx.request.path, {root});
-				return;
 				//TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
 				//TODO webpack might have a better way to identify static resources
-			}
-
-			// redirect if not logged in
-			if (!rules.populatedObject.test(ctx.session.user) && ctx.request.path !== '/login' && ctx.request.path !== '/database') { //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
+			} else if (
+				!rules.populatedObject.test(ctx.session.user)
+				&& ctx.request.path !== '/login'
+				&& ctx.request.path !== '/database'
+			) {
+				// Redirect if not logged in.
+				//TODO this should use isLoggedIn, though that isn't perfect yet and it's async
 				ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
 				ctx.redirect('/login');
-				return;
+			} else {
+				// Otherwise always return the index.js file, this is the root app and vue will handle the routing client-side.
+				//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
+				await send(ctx, app, {root});
 			}
 
 			/* webpack-dev-middleware
@@ -298,11 +246,8 @@ export default function getRoutes({replaceIndex}) {
 				}
 				else {
 			*/
-			// otherwise always return the index.js file, this is the root app and vue will handle the routing client-side
-			//L https://router.vuejs.org/guide/essentials/history-mode.html#example-server-configurations
-			await send(ctx, app, {root});
 		})
-		.all('/*', async (ctx, next) => {
+		.all('/*', async (ctx) => {
 			ctx.body += '.all /* reached';
 			//G only use	await next();	when we want the request to be further processed down the chain (ie. to finally result at .all)
 		});
