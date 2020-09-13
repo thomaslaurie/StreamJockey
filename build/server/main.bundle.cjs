@@ -1910,7 +1910,7 @@ __webpack_require__.r(__webpack_exports__);
   const sessionConfig = {
     //TODO random keys: //L https://randomkeygen.com/
     // (string)(default is koa:sess) cookie key
-    key: 'koa:sess',
+    key: 'koa.sess',
     // (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
     maxAge: 86400000,
     // (boolean)(default true) can overwrite or not
@@ -1922,13 +1922,20 @@ __webpack_require__.r(__webpack_exports__);
     // (boolean)(default false) Force a session identifier cookie to be set on every response. The expiration is reset to the original maxAge, resetting the expiration countdown. , I think this means that the session is reset after every request? (that is that the maxAge is basically since the last time the user made a request)
     rolling: true,
     // (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
-    renew: false
+    renew: false,
+    // (boolean) secure cookie option
+    // secure: true,
+    // (string) session cookie sameSite options (default null, don't set it)
+    sameSite: 'Lax'
   }; //L https://github.com/socketio/socket.io#in-conjunction-with-koa
 
   const server = http__WEBPACK_IMPORTED_MODULE_5___default.a.createServer(app.callback()); // SOCKET IO
 
-  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_4___default.a(server);
-  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].socket = socketIO.of('/live-data'); //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
+  const socketIO = new socket_io__WEBPACK_IMPORTED_MODULE_4___default.a(server, {
+    cookie: false
+  });
+  _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].socket = socketIO.of('/live-data'); //? See liveData.start below
+  //  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
   //  ████╗ ████║██║██╔══██╗██╔══██╗██║     ██╔════╝██║    ██║██╔══██╗██╔══██╗██╔════╝
   //  ██╔████╔██║██║██║  ██║██║  ██║██║     █████╗  ██║ █╗ ██║███████║██████╔╝█████╗
   //  ██║╚██╔╝██║██║██║  ██║██║  ██║██║     ██╔══╝  ██║███╗██║██╔══██║██╔══██╗██╔══╝
@@ -1981,7 +1988,8 @@ __webpack_require__.r(__webpack_exports__);
 
   _live_data_server_js__WEBPACK_IMPORTED_MODULE_7__["default"].start({
     app,
-    socket: socketIO.of('/live-data')
+    socket: socketIO.of('/live-data') //? See liveData.socket above
+
   }); //  ██╗     ██╗███████╗████████╗███████╗███╗   ██╗
   //  ██║     ██║██╔════╝╚══██╔══╝██╔════╝████╗  ██║
   //  ██║     ██║███████╗   ██║   █████╗  ██╔██╗ ██║

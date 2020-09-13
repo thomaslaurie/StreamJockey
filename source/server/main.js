@@ -103,7 +103,7 @@ import {logPropagate} from '../shared/propagate.js';
 		//TODO random keys: //L https://randomkeygen.com/
 
 		// (string)(default is koa:sess) cookie key
-		key: 'koa:sess',
+		key: 'koa.sess',
 		// (number || 'session')(default is 1 days) maxAge in ms, 'session' will result in a cookie that expires when session/browser is closed, Warning: If a session cookie is stolen, this cookie will never expire
 		maxAge: 86400000,
 		// (boolean)(default true) can overwrite or not
@@ -116,14 +116,20 @@ import {logPropagate} from '../shared/propagate.js';
 		rolling: true,
 		// (boolean)(default is false) renew session when session is nearly expired, so we can always keep user logged in, //? does this mean never expiring sessions?
 		renew: false,
+		// (boolean) secure cookie option
+		// secure: true,
+		// (string) session cookie sameSite options (default null, don't set it)
+		sameSite: 'Lax',
 	};
 
 	//L https://github.com/socketio/socket.io#in-conjunction-with-koa
 	const server = http.createServer(app.callback());
 
 	// SOCKET IO
-	const socketIO = new SocketIO(server);
-	liveData.socket = socketIO.of('/live-data');
+	const socketIO = new SocketIO(server, {
+		cookie: false,
+	});
+	liveData.socket = socketIO.of('/live-data'); //? See liveData.start below
 
 
 	//  ███╗   ███╗██╗██████╗ ██████╗ ██╗     ███████╗██╗    ██╗ █████╗ ██████╗ ███████╗
@@ -184,7 +190,7 @@ import {logPropagate} from '../shared/propagate.js';
 	// LIVE DATA
 	liveData.start({
 		app,
-		socket: socketIO.of('/live-data'),
+		socket: socketIO.of('/live-data'), //? See liveData.socket above
 	});
 
 
