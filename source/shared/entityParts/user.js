@@ -16,10 +16,10 @@ export const defaultSocketId = null;
 export default new ClassParts({
 	instance(options = {}) {
 		const {
-			name      = '',
-			email     = '',
-			password  = '',
-			password2 = '',
+			name      = null,
+			email     = null,
+			password  = null,
+			password2 = null,
 			spotifyRefreshToken = null, //?
 			socketId = defaultSocketId,
 		} = options;

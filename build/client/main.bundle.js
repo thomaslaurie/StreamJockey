@@ -60790,10 +60790,10 @@ var defaultSocketId = null;
   instance() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
     var {
-      name = '',
-      email = '',
-      password = '',
-      password2 = '',
+      name = null,
+      email = null,
+      password = null,
+      password2 = null,
       spotifyRefreshToken = null,
       //?
       socketId = defaultSocketId

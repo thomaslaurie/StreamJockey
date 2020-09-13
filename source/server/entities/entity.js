@@ -16,7 +16,6 @@ import {
 	buildWhere,
 	buildSet,
 } from '../database/sql-builders.js';
-import isEmpty from '../legacy/is-empty.js';
 import {
 	MultipleErrors, CustomError,
 } from '../../shared/errors/index.js';
@@ -228,7 +227,7 @@ define.constant(Entity, {
 
 			const value = entity[key];
 
-			if (isRequired || (isOptional && !isEmpty(value))) {
+			if (isRequired || (isOptional && !(value === undefined || value === null))) {
 				await validator(value);
 				validated[key] = value;
 			}

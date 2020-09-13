@@ -13,7 +13,6 @@ import {
 } from '../../shared/entityParts/index.js';
 import {validateSource} from '../../shared/entityParts/track.js';
 import propagate from '../../shared/propagate.js';
-import isEmpty from '../legacy/is-empty.js';
 import {
 	MultipleErrors, CustomError,
 } from '../../shared/errors/index.js';
@@ -129,9 +128,9 @@ define.constant(Track, {
 		// filter out tracks
 		let inputTracks = tracks.filter(track => (
 			// without an id (including symbol)
-			(!isEmpty(track.id) || typeof track.id === 'symbol')
+			(rules.number.test(track.id) || typeof track.id === 'symbol')
 			// and without a position (including null) or playlistId
-			&& (!isEmpty(track.position) || track.position === null || !isEmpty(track.playlistId))
+			&& (rules.number.test(track.position) || track.position === null || rules.number.test(track.playlistId))
 		));
 		// filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 		inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id));

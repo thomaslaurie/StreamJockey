@@ -507,12 +507,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
 /* harmony import */ var _database_sql_builders_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../database/sql-builders.js */ "./source/server/database/sql-builders.js");
-/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/timestamped-data.js */ "./source/shared/timestamped-data.js");
-/* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/timestamped-data.js */ "./source/shared/timestamped-data.js");
+/* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
 // INTERNAL
-
 
 
 
@@ -595,7 +593,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
   async frame(db, anyEntities, methodName) {
     // catch Entity
     if (this === Entity) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
         message: `cannot call CRUD method directly on Entity`
       });
     } // cast as array
@@ -615,9 +613,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       // process
       const beforeEntities = await this[methodName + 'Before'](t, entities, accessory); // validate
 
-      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw); // prepare
+      const validatedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(beforeEntities, async entity => this.validate(entity, methodName).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw); // prepare
 
-      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw); // accommodate
+      const preparedEntities = await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(validatedEntities, async entity => this[methodName + 'Prepare'](t, entity, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw); // accommodate
 
       const influencedEntities = isGet ? [] : await this[methodName + 'Accommodate'](t, preparedEntities, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]); // map
 
@@ -638,7 +636,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
           const after = await this[methodName + 'Query'](t, entity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
           if (methodName !== 'remove') inputAfter.push(...after);
-        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
       } // execute SQL for influenced
 
 
@@ -651,7 +649,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
           influencedBefore.push(...before);
           const after = await this.editQuery(t, influencedEntity).then(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"]).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]);
           influencedAfter.push(...after);
-        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw);
+        }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
       } // group for iteration
 
 
@@ -659,7 +657,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 
       const unmapped = all.map(list => this.unmapColumns(list)); // process
 
-      return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw);
+      return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(unmapped, async list => this[methodName + 'After'](t, list, accessory).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"])).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
     }).catch(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_3__["default"]); //! finish the transaction here so that notify won't be called before the database has updated
     // shake for subscriptions with getOut filter
 
@@ -680,7 +678,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
     const shook = after.map(list => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(list).map(item => Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["pick"])(item, this.filters[methodName + 'Out']))); // rebuild
 
     const built = shook.map(list => list.map(entity => new this(entity)));
-    return new _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
+    return new _shared_timestamped_data_js__WEBPACK_IMPORTED_MODULE_6__["default"]({
       //R content is the inputAfter, for removals this will be an empty array, if in the future some 'undo' functionality is needed consider: returned data should still be filtered by removeOut, and therefore might destroy data if this returned data is used to restore it
       data: built[1],
       timestamp
@@ -716,11 +714,11 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
       _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].func.validate(validator);
       const value = entity[key];
 
-      if (isRequired || isOptional && !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_5__["default"])(value)) {
+      if (isRequired || isOptional && !(value === undefined || value === null)) {
         await validator(value);
         validated[key] = value;
       }
-    }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"].throw);
+    }).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["MultipleErrors"].throw);
     return validated;
   }
 
@@ -800,7 +798,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			$1:raw 
 			RETURNING *
 		`, [values]).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
         postgresError: rejected,
         userMessage: `Could not add ${this.name}s.`
       });
@@ -815,7 +813,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			WHERE $1:raw
 			${this.queryOrder}
 		`, [where]).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
         postgresError: rejected,
         userMessage: `Could not get ${this.name}s.`
       });
@@ -837,7 +835,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			WHERE $2:raw 
 			RETURNING *
 		`, [set, where]).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
         postgresError: rejected,
         userMessage: `Could not edit ${this.name}s.`
       });
@@ -851,7 +849,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Entity,
 			WHERE $1:raw 
 			RETURNING *
 		`, where).catch(rejected => {
-      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
+      throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_7__["default"]({
         postgresError: rejected,
         userMessage: `Could not remove ${this.name}s.`
       });
@@ -949,10 +947,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../shared/entityParts/index.js */ "./source/shared/entityParts/index.js");
 /* harmony import */ var _shared_entityParts_track_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../shared/entityParts/track.js */ "./source/shared/entityParts/track.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../legacy/is-empty.js */ "./source/server/legacy/is-empty.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
-/* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _entity_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./entity.js */ "./source/server/entities/entity.js");
+/* harmony import */ var _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../errors/postgres-error.js */ "./source/server/errors/postgres-error.js");
 // INTERNAL
 
 
@@ -963,8 +960,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_8__["default"] {
+class Track extends _entity_js__WEBPACK_IMPORTED_MODULE_7__["default"] {
   constructor(...args) {
     _shared_entityParts_index_js__WEBPACK_IMPORTED_MODULE_3__["trackParts"].intercept(...args);
     super(...args);
@@ -1037,7 +1033,7 @@ async function baseAccommodate(t, tracks) {
   //L deferrable constraints  https://www.postgresql.org/docs/9.1/static/sql-set-constraints.html
   //L https://stackoverflow.com/questions/2679854/postgresql-disabling-constraints
   await t.none(`SET CONSTRAINTS "sj"."tracks_playlistId_position_key" DEFERRED`).catch(rejected => {
-    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
       postgresError: rejected,
       userMessage: 'Could not order tracks, a database error has occurred.'
     });
@@ -1078,8 +1074,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
     // in the case of repositioned tracks that still overlap with other input tracks, all will be repositioned in order of input position
     // filter out tracks
     let inputTracks = tracks.filter(track => // without an id (including symbol)
-    (!Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_6__["default"])(track.id) || typeof track.id === 'symbol') && ( // and without a position (including null) or playlistId
-    !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_6__["default"])(track.position) || track.position === null || !Object(_legacy_is_empty_js__WEBPACK_IMPORTED_MODULE_6__["default"])(track.playlistId))); // filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
+    (_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(track.id) || typeof track.id === 'symbol') && ( // and without a position (including null) or playlistId
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(track.position) || track.position === null || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(track.playlistId))); // filter out duplicate tracks (by id, keeping last), by filtering for tracks where every track after does not have the same id
 
     inputTracks = inputTracks.filter((track, index, self) => self.slice(index + 1).every(trackAfter => track.id !== trackAfter.id)); // return early if none are moving
 
@@ -1096,13 +1092,13 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
       await Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["asyncMap"])(inputTracks, async (track, index) => {
         const storePlaylist = function (playlistId, existingTracks) {
           if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].integer.test(playlistId)) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
               message: `playlistId is not an integer: ${playlistId}`
             });
           }
 
           if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(existingTracks)) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["CustomError"]({
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
               message: `existingTracks is not an array: ${existingTracks}`
             });
           } // stores playlist in playlists if not already stored
@@ -1154,7 +1150,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 						)
 				`, track.id);
         const currentPlaylist = await t.any('$1:raw', currentQuery).catch(rejected => {
-          throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+          throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
             postgresError: rejected,
             userMessage: 'Could not move tracks.'
           });
@@ -1179,7 +1175,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
 						FROM "sj"."tracks" 
 						WHERE "playlistId" = $1
 					`, track.playlistId).catch(rejected => {
-            throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+            throw new _errors_postgres_error_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
               postgresError: rejected,
               userMessage: 'Could not move tracks.'
             });
@@ -1193,7 +1189,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].constant(Track, 
           anotherPlaylistStored.inputsToAdd.push(track);
         }
       }).catch(rejected => {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["MultipleErrors"]({
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["MultipleErrors"]({
           userMessage: `could not retrieve some track's playlist`,
           errors: rejected
         });
@@ -1451,29 +1447,6 @@ class PostgresError extends _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_0__
     });
   }
 
-}
-
-/***/ }),
-
-/***/ "./source/server/legacy/is-empty.js":
-/*!******************************************!*\
-  !*** ./source/server/legacy/is-empty.js ***!
-  \******************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return isEmpty; });
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/utility/index.js */ "./source/shared/utility/index.js");
-//TODO refactor this function out in favor of more specific validators.
-// global-server is the last place that uses this because there are some places where the validators use isEmpty but I couldn't figure out if they were intentionally generic.
-
-function isEmpty(input) {
-  // null, undefined, and whitespace-only strings are 'empty' //! also objects and arrays
-  return !(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].boolean.test(input) || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].number.test(input) // Check for empty and whitespace strings and string conversions of null and undefined.
-  //TODO //! this will cause issues if a user inputs any combination of these values, ban them at the user input step.
-  || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].string.test(input) && input.trim() !== '' && input.trim() !== 'null' && input.trim() !== 'undefined' || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(input) && Object.keys(input).length > 0 || _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(input) && input.length > 0);
 }
 
 /***/ }),
@@ -3396,10 +3369,10 @@ const defaultSocketId = null;
 /* harmony default export */ __webpack_exports__["default"] = (new _utility_index_js__WEBPACK_IMPORTED_MODULE_2__["ClassParts"]({
   instance(options = {}) {
     const {
-      name = '',
-      email = '',
-      password = '',
-      password2 = '',
+      name = null,
+      email = null,
+      password = null,
+      password2 = null,
       spotifyRefreshToken = null,
       //?
       socketId = defaultSocketId
