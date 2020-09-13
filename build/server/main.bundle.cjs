@@ -1494,13 +1494,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_object_deep_compare_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/object/deep-compare.js */ "./source/shared/utility/object/deep-compare.js");
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/entityParts/user.js */ "./source/shared/entityParts/user.js");
-/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./server-registry.js */ "./source/server/server-registry.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/entityParts/user.js */ "./source/shared/entityParts/user.js");
+/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _server_registry_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./server-registry.js */ "./source/server/server-registry.js");
 //! Side-effects
 //TODO there is a stack overflow error here somewhere, recursive loop?, usually lead by this error: 'no subscriber found for this user'
 // when refreshing the playlist page, all the lists will subscribe fine, until at some point unsubscribe is called (for an empty query [ {} ] , or maybe could be anything) upon which no subscriber is called, and the thing goes to a 'RangeError: Maximum call stack size exceeded' error
@@ -1522,14 +1521,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 class Subscription {
   constructor(options = {}) {
     _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["subscriptionParts"].instance(this, options);
     const {
       user = null
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_7__["define"].writable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_6__["define"].writable(this, {
       user
     });
   }
@@ -1566,7 +1564,7 @@ const liveDataServer = {
         console.log('CONNECT', socket.id); // If user is logged in, give the socketId to the session.
         //! I don't think the cookie session receives this, though it isn't needed there so far.
 
-        if (_server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
+        if (_server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
           socket.session.user.socketId = socket.id;
         }
 
@@ -1578,11 +1576,11 @@ const liveDataServer = {
               console.error('subscription disconnect error:', rejected);
             }); //? socket won't be used anymore, so does anything really need to be deleted here?
 
-            if (_server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
-              socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_8__["defaultSocketId"];
+            if (_server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]) {
+              socket.session.user.socketId = _shared_entityParts_user_js__WEBPACK_IMPORTED_MODULE_7__["defaultSocketId"];
             }
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
           }
         });
         socket.on('subscribe', async ({
@@ -1593,7 +1591,7 @@ const liveDataServer = {
             console.log('SUBSCRIBE', socket.id); // if user is not logged in, create an empty user with just it's socketId (this is how subscribers are identified)
             //TODO socketId validator, this is all that really matters here
 
-            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
+            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
               socketId: socket.id
             }); //! using LiveTable.tableToEntity(table) instead of just a table string so that the function can basically function as a validator
 
@@ -1603,7 +1601,7 @@ const liveDataServer = {
 
             callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
           }
         });
         socket.on('unsubscribe', async ({
@@ -1612,24 +1610,24 @@ const liveDataServer = {
         }, callback) => {
           try {
             console.log('UNSUBSCRIBE', socket.id);
-            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_11__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
+            const user = _server_registry_js__WEBPACK_IMPORTED_MODULE_10__["default"].autoConstruct(socket.session.user) instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"] ? socket.session.user : new _entities_index_js__WEBPACK_IMPORTED_MODULE_3__["User"]({
               socketId: socket.id
             });
             const result = await this.remove(_shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"].tableToEntity(table), query, user);
             callback(fclone__WEBPACK_IMPORTED_MODULE_1___default()(result));
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
           }
         });
         socket.on('error', reason => {
           try {
             console.error('ERROR', socket.id, reason);
           } catch (error) {
-            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["logPropagate"])(error);
+            Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
           }
         });
       } catch (error) {
-        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_6__["logPropagate"])(error);
+        Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_5__["logPropagate"])(error);
       }
     });
   },
@@ -1656,8 +1654,8 @@ const liveDataServer = {
 
     const table = this.findTable(Entity);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"], 'LiveTable')) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["CustomError"]({
+    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"])) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
         message: 'table is not an LiveTable'
       });
     } // Find liveQuery, add if it doesn't exist.
@@ -1665,7 +1663,7 @@ const liveDataServer = {
 
     let liveQuery = this.findLiveQuery(table, processedQuery);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery')) {
+    if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"])) {
       liveQuery = new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"]({
         table,
         query: processedQuery
@@ -1676,7 +1674,7 @@ const liveDataServer = {
 
     let subscription = this.findSubscription(liveQuery, user);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(subscription, Subscription, 'Subscription')) {
+    if (!(subscription instanceof Subscription)) {
       subscription = new Subscription({
         liveQuery,
         user
@@ -1696,8 +1694,8 @@ const liveDataServer = {
 
     const table = this.findTable(Entity);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"], 'LiveTable')) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["CustomError"]({
+    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"])) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
         message: 'table is not an LiveTable'
       });
     } // Find liveQuery index.
@@ -1706,8 +1704,8 @@ const liveDataServer = {
     const liveQuery = this.findLiveQuery(table, processedQuery);
     const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"], 'LiveQuery') || liveQueryIndex < 0) {
-      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveQuery"]) || liveQueryIndex < 0) {
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
         origin: 'Subscriptions.remove()',
         message: 'no subscription found for this query',
         content: {
@@ -1722,8 +1720,8 @@ const liveDataServer = {
     const subscription = this.findSubscription(liveQuery, user);
     const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) {
-      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_9__["default"]({
+    if (!(subscription instanceof Subscription) || subscriptionIndex < 0) {
+      return new _shared_warn_js__WEBPACK_IMPORTED_MODULE_8__["default"]({
         origin: 'Subscriptions.remove()',
         message: 'no subscriber found for this user',
         content: {
@@ -1748,8 +1746,8 @@ const liveDataServer = {
     // For each liveQuery.
     const table = this.findTable(Entity);
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"], 'LiveTable')) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_10__["CustomError"]({
+    if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_4__["LiveTable"])) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
         message: 'table is not an LiveTable'
       });
     }
@@ -2050,15 +2048,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var koa_router__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(koa_router__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! koa-send */ "koa-send");
 /* harmony import */ var koa_send__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(koa_send__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
-/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
-/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./session-methods.js */ "./source/server/session-methods.js");
-/* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
-/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
+/* harmony import */ var _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../config/project-paths.js */ "./source/config/project-paths.js");
+/* harmony import */ var _shared_constants_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/constants.js */ "./source/shared/constants.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./entities/index.js */ "./source/server/entities/index.js");
+/* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
+/* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./session-methods.js */ "./source/server/session-methods.js");
+/* harmony import */ var _database_database_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./database/database.js */ "./source/server/database/database.js");
+/* harmony import */ var _sources_index_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./sources/index.js */ "./source/server/sources/index.js");
 // ███╗   ██╗ ██████╗ ████████╗███████╗███████╗
 // ████╗  ██║██╔═══██╗╚══██╔══╝██╔════╝██╔════╝
 // ██╔██╗ ██║██║   ██║   ██║   █████╗  ███████╗
@@ -2130,13 +2127,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
  //L Race-condition in koa-router appears to be a false positive: https://github.com/koajs/koa/issues/1351
 
 /* eslint-disable require-atomic-updates */
 
-const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__["clientBuildDirectory"];
-const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_5__["UIMainFileName"]}`;
+const root = _config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__["clientBuildDirectory"];
+const app = `/${_config_project_paths_js__WEBPACK_IMPORTED_MODULE_4__["UIMainFileName"]}`;
 
 function createAPIRouter() {
   const apiRouter = new koa_router__WEBPACK_IMPORTED_MODULE_2___default.a(); // Database CRUD and server-side processing.
@@ -2144,17 +2140,17 @@ function createAPIRouter() {
   apiRouter // Catches and propagates all errors, but assigns them to the response body rather than throwing.
   .all('/*', async (ctx, next) => {
     await next().catch(rejected => {
-      ctx.response.body = Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_9__["returnPropagate"])(rejected);
+      ctx.response.body = Object(_shared_propagate_js__WEBPACK_IMPORTED_MODULE_8__["returnPropagate"])(rejected);
     });
   }) // Set GET request bodies as the parsed body parameter (if it exists).
   .get('/*', async (ctx, next) => {
-    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_6__["GET_BODY"]];
+    const queryBody = ctx.request.query[_shared_constants_js__WEBPACK_IMPORTED_MODULE_5__["GET_BODY"]];
 
     try {
       ctx.request.body = queryBody === undefined ? {} : JSON.parse(queryBody);
     } catch (error) {
       ctx.response.body = 400;
-      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["ParseError"]({
+      ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["ParseError"]({
         message: error.message,
         userMessage: 'Request failed due to an internal error.',
         input: queryBody
@@ -2176,41 +2172,41 @@ function createAPIRouter() {
     return router.post(path, action(Entity.add.bind(Entity))).get(path, action(Entity.get.bind(Entity))).patch(path, action(Entity.edit.bind(Entity))).delete(path, action(Entity.remove.bind(Entity)));
   }
 
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["User"]);
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Playlist"]);
-  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_8__["Track"]);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__["User"]);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Playlist"]);
+  addCRUD(apiRouter, _entities_index_js__WEBPACK_IMPORTED_MODULE_7__["Track"]);
   apiRouter // SESSION
   //R //L login/logout are create/remove for sessions: https://stackoverflow.com/questions/31089221/what-is-the-difference-between-put-post-and-patch, https://stackoverflow.com/questions/5868786/what-method-should-i-use-for-a-login-authentication-request
   //? what is the 'update' equivalent of user session? isn't this all done server-side by refreshing the cookie? or is this just the login put because there is no post equivalent instead
   .post('/session', async ctx => {
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__["login"](_database_database_js__WEBPACK_IMPORTED_MODULE_11__["default"], ctx, ctx.request.body);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__["login"](_database_database_js__WEBPACK_IMPORTED_MODULE_10__["default"], ctx, ctx.request.body);
   }).get('/session', async ctx => {
     //R thought about moving this to user, but with 'self' permissions, but if its a me request, the user specifically needs to know who they are - in get user cases, the user already knows what they're searching for an just needs the rest of the information
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__["get"](ctx);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__["get"](ctx);
   }).delete('/session', async ctx => {
-    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_10__["logout"](ctx);
+    ctx.response.body = await _session_methods_js__WEBPACK_IMPORTED_MODULE_9__["logout"](ctx);
   }) // AUTH
   .get('/spotify/authRequestStart', async ctx => {
     // Retrieves an auth request URL and it's respective local key (for event handling).
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["spotify"].startAuthRequest();
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].startAuthRequest();
   }).get('/spotify/authRedirect', async ctx => {
     // Receives credentials sent from spotify, emits an event & payload that can then be sent back to the original client.
     //! This URL is sensitive to the url given to spotify developer site (I think).
-    await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["spotify"].receiveAuthRequest(ctx.request.query);
+    await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].receiveAuthRequest(ctx.request.query);
     await koa_send__WEBPACK_IMPORTED_MODULE_3___default()(ctx, app, {
       root
     });
   }).post('/spotify/authRequestEnd', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["spotify"].endAuthRequest(ctx.request.body);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].endAuthRequest(ctx.request.body);
   }).post('/spotify/exchangeToken', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["spotify"].exchangeToken(ctx, ctx.request.body);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].exchangeToken(ctx, ctx.request.body);
   }).get('/spotify/refreshToken', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["spotify"].refreshToken(ctx);
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["spotify"].refreshToken(ctx);
   }).get('/youtube/credentials', async ctx => {
-    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_12__["youtube"].getCredentials();
+    ctx.response.body = await _sources_index_js__WEBPACK_IMPORTED_MODULE_11__["youtube"].getCredentials();
   }) // catch
   .all('/*', async ctx => {
-    ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_7__["InvalidStateError"]({
+    ctx.response.body = new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
       userMessage: 'could not process request',
       message: 'invalid api command',
       state: ctx.request.body
@@ -2244,7 +2240,7 @@ function createRouter()
         root
       }); //TODO find a better way to differentiate a valid file from a just a valid path (other than indexOf('.'))
       //TODO webpack might have a better way to identify static resources
-    } else if (!_session_methods_js__WEBPACK_IMPORTED_MODULE_10__["isLoggedIn"](ctx) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
+    } else if (!_session_methods_js__WEBPACK_IMPORTED_MODULE_9__["isLoggedIn"](ctx) && ctx.request.path !== '/login' && ctx.request.path !== '/database') {
       // Redirect if not logged in.
       //TODO this should use isLoggedIn, though that isn't perfect yet and it's async
       ctx.request.path = '/'; //! ctx.redirect() will not redirect if ctx.request.path is anything but '/', no idea why
@@ -3266,9 +3262,7 @@ __webpack_require__.r(__webpack_exports__);
       artists,
       name,
       duration,
-      link,
-      //TODO Ensure that this is only used as an instance then remove this.
-      constructorName: 'Track'
+      link
     });
   },
 
@@ -3416,9 +3410,7 @@ const defaultSocketId = null;
       password,
       password2,
       spotifyRefreshToken,
-      socketId,
-      //TODO Ensure that this is only used as an instance then remove this.
-      constructorName: 'User'
+      socketId
     });
   },
 
@@ -3875,23 +3867,6 @@ class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["de
   }
 
 }
-
-/***/ }),
-
-/***/ "./source/shared/is-instance-of.js":
-/*!*****************************************!*\
-  !*** ./source/shared/is-instance-of.js ***!
-  \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-//TODO Replace all references to this function with an instanceof or interface test.
-/* harmony default export */ __webpack_exports__["default"] = (function (value, Class, className) {
-  return value instanceof Class || (value === null || value === void 0 ? void 0 : value.constructorName) === className;
-}); // Things that are matching constructorName
-// User, Track
 
 /***/ }),
 

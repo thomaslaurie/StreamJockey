@@ -6,7 +6,6 @@ import {
 import {
 	Subscription,
 } from '../../../../shared/live-data.js';
-import isInstanceOf from '../../../../shared/is-instance-of.js';
 
 import AsyncDisplay from './AsyncDisplay.vue';
 
@@ -32,9 +31,10 @@ export default {
 	computed: {
 		// OVERWRITES
 		liveContent() {
-			//! These seem to be incrementally added. Maybe create a more efficient function that adds all at once/
-			if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return any(this.$store.getters.getLiveData(this.subscription));
-			return [];
+			//! These seem to be incrementally added. Maybe create a more efficient function that adds all at once.
+			return (this.subscription instanceof Subscription)
+				? any(this.$store.getters.getLiveData(this.subscription))
+				: [];
 		},
 
 		// NEW
@@ -51,9 +51,9 @@ export default {
 				//L https://zendev.com/2018/05/31/transparent-wrapper-components-in-vue.html
 			*/
 		attrs() {
-    			const {...attrs} = this.$attrs;
-    			return attrs;
-  			},
+			const {...attrs} = this.$attrs;
+			return attrs;
+		},
 		listeners() {
 			const {...listeners} = this.$listeners;
 			return listeners;

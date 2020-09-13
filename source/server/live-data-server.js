@@ -27,7 +27,6 @@ import {
 	LiveQuery,
 	subscriptionParts,
 } from '../shared/live-data.js';
-import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	logPropagate,
 } from '../shared/propagate.js';
@@ -166,7 +165,7 @@ const liveDataServer = {
 
 		// Find table.
 		const table = this.findTable(Entity);
-		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+		if (!(table instanceof LiveTable)) {
 			throw new CustomError({
 				message: 'table is not an LiveTable',
 			});
@@ -174,7 +173,7 @@ const liveDataServer = {
 
 		// Find liveQuery, add if it doesn't exist.
 		let liveQuery = this.findLiveQuery(table, processedQuery);
-		if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+		if (!(liveQuery instanceof LiveQuery)) {
 			liveQuery = new LiveQuery({
 				table,
 				query: processedQuery,
@@ -184,7 +183,7 @@ const liveDataServer = {
 
 		// Find subscription, add if it doesn't exist.
 		let subscription = this.findSubscription(liveQuery, user);
-		if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
+		if (!(subscription instanceof Subscription)) {
 			subscription = new Subscription({
 				liveQuery,
 				user,
@@ -205,7 +204,7 @@ const liveDataServer = {
 
 		// Find table.
 		const table = this.findTable(Entity);
-		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+		if (!(table instanceof LiveTable)) {
 			throw new CustomError({
 				message: 'table is not an LiveTable',
 			});
@@ -214,7 +213,7 @@ const liveDataServer = {
 		// Find liveQuery index.
 		const liveQuery = this.findLiveQuery(table, processedQuery);
 		const liveQueryIndex = this.findTable(Entity).liveQueries.indexOf(liveQuery);
-		if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery') || liveQueryIndex < 0) {
+		if (!(liveQuery instanceof LiveQuery) || liveQueryIndex < 0) {
 			return new Warn({
 				origin: 'Subscriptions.remove()',
 				message: 'no subscription found for this query',
@@ -229,7 +228,7 @@ const liveDataServer = {
 		// Find subscription.
 		const subscription = this.findSubscription(liveQuery, user);
 		const subscriptionIndex = liveQuery.subscriptions.indexOf(subscription);
-		if (!isInstanceOf(subscription, Subscription, 'Subscription') || subscriptionIndex < 0) {
+		if (!(subscription instanceof Subscription) || subscriptionIndex < 0) {
 			return new Warn({
 				origin: 'Subscriptions.remove()',
 				message: 'no subscriber found for this user',
@@ -255,7 +254,7 @@ const liveDataServer = {
 	async notify(Entity, entities, timestamp) {
 		// For each liveQuery.
 		const table = this.findTable(Entity);
-		if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+		if (!(table instanceof LiveTable)) {
 			throw new CustomError({
 				message: 'table is not an LiveTable',
 			});

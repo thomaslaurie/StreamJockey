@@ -27,7 +27,6 @@
 import {
 	Track,
 } from './entities/index.js';
-import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	asyncMap,
 	define,
@@ -107,8 +106,7 @@ define.constant(Command.prototype, {
 	},
 	identicalCondition(otherCommand) {
 		// otherCommand must be an Command, and have the same playback-state properties.
-		return isInstanceOf(otherCommand, Command, 'Command')
-			&& otherCommand.source === this.source;
+		return otherCommand?.source === this.source;
 	},
 
 	async trigger(context) {
@@ -231,7 +229,7 @@ export class Start extends Command {
 			progress = 0,
 		} = options;
 
-		if (!isInstanceOf(track, Track, 'Track')) {
+		if (!(track instanceof Track)) {
 			throw new CustomError({
 				message: 'sj.Start instance.track must be an Track',
 			});
@@ -265,9 +263,9 @@ define.constant(Start.prototype, {
 	},
 	identicalCondition(otherCommand) {
 		return (
-			   superPrototype(Start).identicalCondition.call(this, otherCommand)
+			superPrototype(Start).identicalCondition.call(this, otherCommand)
 			// Catch non-Tracks.
-			&& isInstanceOf(otherCommand.track, Track, 'Track')
+			&& (otherCommand.track instanceof Track)
 			//! Compare tracks by their sourceId not by their reference.
 			&& otherCommand.track.sourceId === this.track.sourceId
 			&& otherCommand.isPlaying === this.isPlaying

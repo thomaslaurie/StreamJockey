@@ -19,7 +19,6 @@ import {
 	rules,
 	define,
 } from '../shared/utility/index.js';
-import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	Start,
 	Toggle,
@@ -448,13 +447,14 @@ define.constant(Playback, {
 			return state.source;
 		},
 		actualTrack:     (state, getters) => {
+			// If the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes.
 			const sourceOrBaseTrack = getters.sourceOrBase('track');
-			if (isInstanceOf(sourceOrBaseTrack, Track, 'Track')) {
-				// If the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes.
-				if (isInstanceOf(getters.currentTrack, Track, 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-				if (isInstanceOf(getters.startingTrack, Track, 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+			if (sourceOrBaseTrack?.sourceId === getters.currentTrack?.sourceId) {
+				return getters.currentTrack;
 			}
-
+			if (sourceOrBaseTrack?.sourceId === getters.startingTrack?.sourceId) {
+				return getters.startingTrack;
+			}
 			return sourceOrBaseTrack;
 		},
 		actualIsPlaying: (state, getters) => getters.sourceOrBase('isPlaying'),
@@ -516,13 +516,13 @@ define.constant(Playback, {
 
 		// LOCAL TRACKS
 		currentTrack:  (state, getters, rootState, rootGetters) => {
-			if (isInstanceOf(state.currentTrackSubscription, Subscription, 'Subscription')) {
+			if (state.currentTrackSubscription instanceof Subscription) {
 				return one(rootGetters.getLiveData(state.currentTrackSubscription));
 			}
 			return null;
 		},
 		startingTrack: (state, getters, rootState, rootGetters) => {
-			if (isInstanceOf(state.startingTrackSubscription, Subscription, 'Subscription')) {
+			if (state.startingTrackSubscription instanceof Subscription) {
 				return one(rootGetters.getLiveData(state.startingTrackSubscription));
 			}
 			return null;

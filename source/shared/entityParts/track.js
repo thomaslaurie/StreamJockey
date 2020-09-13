@@ -33,9 +33,6 @@ export default new ClassParts({
 			name,
 			duration,
 			link,
-
-			//TODO Ensure that this is only used as an instance then remove this.
-			constructorName: 'Track',
 		});
 	},
 	static() {

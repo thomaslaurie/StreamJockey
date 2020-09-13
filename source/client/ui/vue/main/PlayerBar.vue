@@ -11,7 +11,6 @@ import {
 import {
 	rules,
 } from '../../../../shared/utility/index.js';
-import isInstanceOf from '../../../../shared/is-instance-of.js';
 
 export default {
 	name: 'player-bar',
@@ -35,13 +34,13 @@ export default {
 				: null;
 		},
 		playlistTracks() {
-			return isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription')
+			return (this.playlistTracksSubscription instanceof Subscription)
 				? this.$store.getters.getLiveData(this.playlistTracksSubscription)
 				: null;
 		},
 		prevTrack() {
 			return (
-				isInstanceOf(this.currentTrack, Track, 'Track')			// currentTrack exists
+				(this.currentTrack instanceof Track)			// currentTrack exists
 					&& rules.array.test(this.playlistTracks)				    // playlistTrack exists
 					&& this.currentTrack.position > 0 							// C//! currentTrack is after first track
 					&& this.currentTrack.position < this.playlistTracks.length		// currentTrack is not above bounds
@@ -51,7 +50,7 @@ export default {
 		},
 		nextTrack() {
 			return (
-				isInstanceOf(this.currentTrack, Track, 'Track')			// currentTrack exists
+				(this.currentTrack instanceof Track)			// currentTrack exists
 					&& rules.array.test(this.playlistTracks)				// playlistTrack exists
 					&& this.currentTrack.position >= 0 							// currentTrack is not below bounds
 					&& this.currentTrack.position < this.playlistTracks.length - 1	// C//! currentTrack is before last track
@@ -77,7 +76,7 @@ export default {
 					this.playlistTracksSubscription = await this.$store.dispatch('unsubscribe', {subscription: this.playlistTracksSubscription});
 
 					// if the playlistId has changed or the playlistTracksSubscription doesn't exist
-				} else if (id !== oldId || !isInstanceOf(this.playlistTracksSubscription, Subscription, 'Subscription')) {
+				} else if (id !== oldId || !(this.playlistTracksSubscription instanceof Subscription)) {
 					// update the playlistTracksSubscription to the proper playlistId
 					this.playlistTracksSubscription = await this.$store.dispatch('resubscribe', {
 						subscription: this.playlistTracksSubscription,

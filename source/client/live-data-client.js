@@ -246,11 +246,7 @@
 import {
 	pick,
 	setTimer,
-	// wait,
-	// one,
 	any,
-	// repeat,
-	// keyCode,
 	rules,
 } from '../shared/utility/index.js';
 import deepCompare, {compareUnorderedArrays} from '../shared/utility/object/deep-compare.js';
@@ -268,13 +264,11 @@ import {
 } from '../shared/live-data.js';
 import propagate from '../shared/propagate.js';
 // import test from '../shared/test.js';
-import isInstanceOf from '../shared/is-instance-of.js';
 import {
 	UnreachableError,
 	InvalidStateError,
 	CustomError,
 } from '../shared/errors/index.js';
-import Warn from '../shared/warn.js';
 import {sharedRegistry} from '../shared/class-registry.js';
 
 // Used for commented out test below.
@@ -296,7 +290,7 @@ export default {
 	getters: {
 		// FINDERS //! return undefined when not found
 		findTable: state => (Entity) => {
-			return state.tables.get(Entity);
+			return state.tables.get(Entity); //? Where is .get defined?
 		},
 		findCachedEntity: () => ({table, entity}) => {
 			return table.cachedEntities.find(cachedEntity => cachedEntity.entity.id === entity.id);
@@ -307,7 +301,7 @@ export default {
 
 		getLiveData: () => (subscription) => {
 			// validate
-			if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
+			if (!(subscription instanceof Subscription)) {
 				throw new InvalidStateError({
 					message: 'subscription is not an Subscription',
 					state: subscription,
@@ -316,7 +310,7 @@ export default {
 
 			// shorten
 			const liveQuery = subscription.liveQuery;
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+			if (!(liveQuery instanceof LiveQuery)) {
 				throw new InvalidStateError({
 					message: `liveQuery is not an LiveQuery`,
 					state: liveQuery,
@@ -327,7 +321,7 @@ export default {
 
 			//TODO Race condition here.
 			return liveQuery.cachedEntityRefs.map((cachedEntityRef) => {
-				if (!isInstanceOf(cachedEntityRef, CachedEntity, 'CachedEntity')) {
+				if (!(cachedEntityRef instanceof CachedEntity)) {
 					throw new InvalidStateError({
 						message: 'cachedEntityRef is not a cachedEntity',
 						state: cachedEntityRef,
@@ -402,7 +396,7 @@ export default {
 
 
 			// add cachedEntity to table if it doesn't exist
-			if (!isInstanceOf(context.getters.findCachedEntity({table, entity}), CachedEntity, 'CachedEntity')) {
+			if (!(context.getters.findCachedEntity({table, entity}) instanceof CachedEntity)) {
 				context.commit('pushCachedEntity', {
 					cachedEntities: table.cachedEntities,
 					cachedEntity: new CachedEntity({table, entity}),
@@ -412,7 +406,7 @@ export default {
 
 			// find cachedEntity by entity
 			const cachedEntity = context.getters.findCachedEntity({table, entity});
-			if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) {
+			if (!(cachedEntity instanceof CachedEntity)) {
 				throw new UnreachableError();
 			}
 
@@ -521,13 +515,13 @@ export default {
 		// LIVE QUERY
 		async addLiveQuery(context, {table, query}) {
 			// if the liveQuery cannot be found
-			if (!isInstanceOf(context.getters.findLiveQuery({table, query}), LiveQuery, 'LiveQuery')) {
+			if (!(context.getters.findLiveQuery({table, query}) instanceof LiveQuery)) {
 				// add it
 				context.commit('pushLiveQuery', {liveQueries: table.liveQueries, liveQuery: new LiveQuery({table, query})});
 
 				// find liveQuery
 				const liveQuery = context.getters.findLiveQuery({table, query});
-				if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+				if (!(liveQuery instanceof LiveQuery)) {
 					throw new UnreachableError();
 				}
 
@@ -577,6 +571,11 @@ export default {
 
 			// fetch entities //TODO maybe put a timeout here? or just on the global Entity crud functions.
 			const {data: entities, timestamp} = await Entity.get(query, {includeMetadata: true});
+
+			//! Super important, this is the only place that entities get reconstructed.
+			//TODO What happens if this fails?
+			const reconstructedEntities = entities.map(entity => new Entity(entity));
+
 			// give the liveQuery the timestamp of the new data
 			context.commit('setLiveQuery', {liveQuery, timestamp});
 			// updated is triggered only after entities are successfully retrieved from the server
@@ -587,7 +586,7 @@ export default {
 			// for each existing cachedEntity
 			for (const cachedEntity of liveQuery.cachedEntityRefs) {
 				// if it is no longer included in the fetched entities
-				if (entities.every(entity => entity.id !== cachedEntity.entity.id)) {
+				if (reconstructedEntities.every(entity => entity.id !== cachedEntity.entity.id)) {
 					// remove it from the liveQuery
 					const removed = await context.dispatch('removeCachedEntity', {cachedEntity, liveQuery});
 					if (removed) {
@@ -597,7 +596,7 @@ export default {
 			}
 
 			// for each retrieved entity
-			for (const entity of entities) { //! not async for each, these need to be synchronous
+			for (const entity of reconstructedEntities) { //! not async for each, these need to be synchronous
 				// add it's cachedEntity (won't add if it already exists)
 				const added = await context.dispatch('addCachedEntity', {entity, liveQuery});
 				if (added) {
@@ -606,7 +605,7 @@ export default {
 
 				// find it's cachedEntity
 				const cachedEntity = await context.getters.findCachedEntity({table, entity});
-				if (!isInstanceOf(cachedEntity, CachedEntity, 'CachedEntity')) {
+				if (!(cachedEntity instanceof CachedEntity)) {
 					throw new UnreachableError();
 				}
 
@@ -634,7 +633,7 @@ export default {
 
 			// find the liveQuery
 			const liveQuery = context.getters.findLiveQuery({table, query}); //! this should never fail
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+			if (!(liveQuery instanceof LiveQuery)) {
 				throw new UnreachableError();
 			}
 
@@ -700,7 +699,7 @@ export default {
 
 			// shorten
 			const table = context.getters.findTable(Entity);
-			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+			if (!(table instanceof LiveTable)) {
 				throw new InvalidStateError({
 					message: 'table is not an LiveTable',
 					state: table,
@@ -722,7 +721,7 @@ export default {
 			strict = false, // subscription must be an Subscription and must be included in it's liveQuery.subscriptions
 		}) {
 			// validate //! return early if not a subscription
-			if (!isInstanceOf(subscription, Subscription, 'Subscription')) {
+			if (!(subscription instanceof Subscription)) {
 				if (strict) {
 					throw new InvalidStateError({
 						message: 'subscription is not an Subscription',
@@ -735,7 +734,7 @@ export default {
 
 			// shorten
 			const liveQuery = subscription.liveQuery;
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+			if (!(liveQuery instanceof LiveQuery)) {
 				throw  new InvalidStateError({
 					message: `liveQuery is not an LiveQuery`,
 					state: liveQuery,
@@ -749,7 +748,7 @@ export default {
 				});
 			}
 			const table = liveQuery.table;
-			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+			if (!(table instanceof LiveTable)) {
 				throw  new InvalidStateError({
 					message: 'table is not an LiveTable',
 					state: table,
@@ -789,7 +788,7 @@ export default {
 
 			// strict check here throws or lets function execute //! doesn't early return
 			//R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-			if (strict && !isInstanceOf(subscription, Subscription, 'Subscription')) {
+			if (strict && !(subscription instanceof Subscription)) {
 				throw new InvalidStateError({
 					message: 'subscription is not an Subscription',
 					state: subscription,
@@ -828,7 +827,7 @@ export default {
 
 			// shorten
 			const table = context.getters.findTable(TargetEntity);
-			if (!isInstanceOf(table, LiveTable, 'LiveTable')) {
+			if (!(table instanceof LiveTable)) {
 				throw new InvalidStateError({
 					message: 'table is not an LiveTable',
 					state: {
@@ -838,7 +837,7 @@ export default {
 				});
 			}
 			const liveQuery = context.getters.findLiveQuery({table, query});
-			if (!isInstanceOf(liveQuery, LiveQuery, 'LiveQuery')) {
+			if (!(liveQuery instanceof LiveQuery)) {
 				throw new InvalidStateError({
 					message: `liveQuery is not an LiveQuery`,
 					state: {

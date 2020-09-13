@@ -317,12 +317,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/client/ui/vue/async/AsyncSwitch.vue");
-/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/client/ui/vue/async/AsyncDelay.vue");
-/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/client/ui/vue/async/AsyncLoading.vue");
-/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/client/ui/vue/async/AsyncError.vue");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../../../../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./AsyncSwitch.vue */ "./source/client/ui/vue/async/AsyncSwitch.vue");
+/* harmony import */ var _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AsyncDelay.vue */ "./source/client/ui/vue/async/AsyncDelay.vue");
+/* harmony import */ var _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./AsyncLoading.vue */ "./source/client/ui/vue/async/AsyncLoading.vue");
+/* harmony import */ var _AsyncError_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./AsyncError.vue */ "./source/client/ui/vue/async/AsyncError.vue");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../../shared/errors/index.js */ "./source/shared/errors/index.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -337,17 +336,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
  //TODO consider adding different display types (for components representing the same type of data eg. track) instead of different components?
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display',
   components: {
-    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    AsyncSwitch: _AsyncSwitch_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
     //TODO make actual default components
-    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
-    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_7__["default"],
-    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_8__["default"]
+    DelayComponent: _AsyncDelay_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    LoadingComponent: _AsyncLoading_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
+    ErrorComponent: _AsyncError_vue__WEBPACK_IMPORTED_MODULE_7__["default"]
   },
 
   data() {
@@ -399,7 +397,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     liveContent() {
       //! one item here, uses any() in AsyncDisplayList
       //? should this type check go into usingLive?
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));
+      if (this.subscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"]) {
+        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["one"])(this.$store.getters.getLiveData(this.subscription));
+      }
+
       return null; //R there should be an issue here with properties of content erroring when accessed, a hacky fix was to just return an empty object here, but that only solves the problem for the top layer, and now it would just be beter to use optional chaining
       //R however the real issue was that because I am using slotted content, even though it isn't rendering due to the state property, the elements still require their data references (unlike v-if and other methods)
       //L using a custom directive was a possible solution: https://stackoverflow.com/questions/43293401/conditionally-rendering-parent-element-keep-inner-html/43299828, https://vuejs.org/v2/guide/custom-directive.html
@@ -422,7 +423,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }
 
       if (!isSubclass(this.Entity, _entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Entity"])) {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["InvalidStateError"]({
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["InvalidStateError"]({
           message: 'attempting to use a query but Entity is not a child class of Entity',
           state: this.fclone(this.Entity)
         });
@@ -483,13 +484,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //? what happens to then? if this promise doesn't resolve or reject is this eventually garbage collected?
 
 
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(_this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) _this.refreshPromise.then(_this.handleSuccess, _this.handleError);
+        if (_this.refreshPromise instanceof _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"]) _this.refreshPromise.then(_this.handleSuccess, _this.handleError);
       })();
     },
 
     startTimeouts() {
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+      if (!(this.refreshPromise instanceof _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"])) {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
           message: 'refresh promise must be an instance of Deferred'
         });
       }
@@ -500,7 +501,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       });
       this.clearTimeout = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["setTimer"])(this.timeout, () => {
         // reject after timeout time
-        this.refreshPromise.reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_9__["CustomError"]({
+        this.refreshPromise.reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_8__["CustomError"]({
           userMessage: 'content request timed out'
         }));
       });
@@ -512,7 +513,11 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       // clear
       (_this$clearDelay = this.clearDelay) === null || _this$clearDelay === void 0 ? void 0 : _this$clearDelay.call(this);
       (_this$clearTimeout = this.clearTimeout) === null || _this$clearTimeout === void 0 ? void 0 : _this$clearTimeout.call(this);
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.refreshPromise, _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"], 'Deferred')) this.refreshPromise.cancel(); // reset
+
+      if (this.refreshPromise instanceof _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["Deferred"]) {
+        this.refreshPromise.cancel();
+      } // reset
+
 
       this.clearDelay = null;
       this.clearTimeout = null;
@@ -586,8 +591,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../../shared/utility/index.js */ "./source/shared/utility/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../../shared/live-data.js */ "./source/shared/live-data.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./AsyncDisplay.vue */ "./source/client/ui/vue/async/AsyncDisplay.vue");
+/* harmony import */ var _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./AsyncDisplay.vue */ "./source/client/ui/vue/async/AsyncDisplay.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -597,10 +601,9 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
 
 
 
-
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'async-display-list',
-  extends: _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_3__["default"],
+  extends: _AsyncDisplay_vue__WEBPACK_IMPORTED_MODULE_2__["default"],
 
   data() {
     return {
@@ -621,9 +624,8 @@ function _extends() { _extends = Object.assign || function (target) { for (var i
   computed: {
     // OVERWRITES
     liveContent() {
-      //! These seem to be incrementally added. Maybe create a more efficient function that adds all at once/
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_2__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
-      return [];
+      //! These seem to be incrementally added. Maybe create a more efficient function that adds all at once.
+      return this.subscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"] ? Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription)) : [];
     },
 
     // NEW
@@ -935,13 +937,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 // EXTERNAL
-
 
 
 
@@ -968,12 +968,12 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     playlistTracks() {
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.playlistTracksSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription') ? this.$store.getters.getLiveData(this.playlistTracksSubscription) : null;
+      return this.playlistTracksSubscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"] ? this.$store.getters.getLiveData(this.playlistTracksSubscription) : null;
     },
 
     prevTrack() {
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') // currentTrack exists
-      && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
+      return this.currentTrack instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"] && // currentTrack exists
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
       && this.currentTrack.position > 0 // C//! currentTrack is after first track
       && this.currentTrack.position < this.playlistTracks.length // currentTrack is not above bounds
       ? this.playlistTracks[this.currentTrack.position - 1] //!
@@ -981,8 +981,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
 
     nextTrack() {
-      return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"], 'Track') // currentTrack exists
-      && _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
+      return this.currentTrack instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_1__["Track"] && // currentTrack exists
+      _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_3__["rules"].array.test(this.playlistTracks) // playlistTrack exists
       && this.currentTrack.position >= 0 // currentTrack is not below bounds
       && this.currentTrack.position < this.playlistTracks.length - 1 // C//! currentTrack is before last track
       ? this.playlistTracks[this.currentTrack.position + 1] //!
@@ -1011,7 +1011,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             _this.playlistTracksSubscription = yield _this.$store.dispatch('unsubscribe', {
               subscription: _this.playlistTracksSubscription
             }); // if the playlistId has changed or the playlistTracksSubscription doesn't exist
-          } else if (id !== oldId || !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(_this.playlistTracksSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) {
+          } else if (id !== oldId || !(_this.playlistTracksSubscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"])) {
             // update the playlistTracksSubscription to the proper playlistId
             _this.playlistTracksSubscription = yield _this.$store.dispatch('resubscribe', {
               subscription: _this.playlistTracksSubscription,
@@ -1191,10 +1191,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _session_methods_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../session-methods.js */ "./source/client/session-methods.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/client/ui/vue/track/TrackDisplayList.vue");
-/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/client/ui/vue/playlist/PlaylistDisplayList.vue");
-/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/client/ui/vue/user/UserDisplayList.vue");
+/* harmony import */ var _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../track/TrackDisplayList.vue */ "./source/client/ui/vue/track/TrackDisplayList.vue");
+/* harmony import */ var _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../playlist/PlaylistDisplayList.vue */ "./source/client/ui/vue/playlist/PlaylistDisplayList.vue");
+/* harmony import */ var _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../user/UserDisplayList.vue */ "./source/client/ui/vue/user/UserDisplayList.vue");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -1212,13 +1211,12 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
-
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'database-page',
   components: {
-    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
-    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_6__["default"],
-    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_7__["default"]
+    TrackDisplayList: _track_TrackDisplayList_vue__WEBPACK_IMPORTED_MODULE_4__["default"],
+    PlaylistDisplayList: _playlist_PlaylistDisplayList_vue__WEBPACK_IMPORTED_MODULE_5__["default"],
+    UserDisplayList: _user_UserDisplayList_vue__WEBPACK_IMPORTED_MODULE_6__["default"]
   },
 
   data() {
@@ -1272,7 +1270,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
     subscriptionData() {
       //TODO I think this is old, transition to the new AsyncDisplay
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_4__["default"])(this.subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"], 'Subscription')) return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
+      if (this.subscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_2__["Subscription"]) {
+        return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["any"])(this.$store.getters.getLiveData(this.subscription));
+      }
     }
 
   },
@@ -37859,10 +37859,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Volume", function() { return Volume; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Start", function() { return Start; });
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
+/* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/utility/class-parts.js */ "./source/shared/utility/class-parts.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -37896,7 +37895,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
-
 class Command {
   constructor() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -37907,38 +37905,38 @@ class Command {
     //! Non-instance sources are getting passed here (I think).
     //TODO Need to find a proper way to cast or ensure that source is an instance.
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       source,
       sourceInstances,
       // Used to store any collapsed or annihilated commands so that they may be resolved when this command either resolves or is annihilated.
       collapsedCommands: []
     }); // Promise resolve & reject functions will be stored on these properties so that the command can act as a deferred promise.
 
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].validatedVariable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].validatedVariable(this, {
       resolve: {
         value() {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["CustomError"]({
             message: 'command.resolve called but it has not been given a resolve function'
           });
         },
 
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].func.validate
       },
       reject: {
         value() {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["CustomError"]({
             message: 'command.reject called but it has not been given a reject function'
           });
         },
 
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].func.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].func.validate
       }
     });
   }
 
 }
 
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Command.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Command.prototype, {
   fullResolve(success) {
     // Resolve collapsed commands.
     this.collapsedCommands.forEach(collapsedCommand => {
@@ -37968,7 +37966,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Command
 
   identicalCondition(otherCommand) {
     // otherCommand must be an Command, and have the same playback-state properties.
-    return Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__["default"])(otherCommand, Command, 'Command') && otherCommand.source === this.source;
+    return (otherCommand === null || otherCommand === void 0 ? void 0 : otherCommand.source) === this.source;
   },
 
   trigger(context) {
@@ -37989,31 +37987,31 @@ class Toggle extends Command {
     var {
       isPlaying
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].boolean.validate(isPlaying);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.validate(isPlaying);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       isPlaying
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Toggle.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Toggle.prototype, {
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
   },
 
   //! Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
   annihilateCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
+    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
   },
 
   trigger(context) {
     var _this2 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Toggle).trigger.call(_this2, context);
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).trigger.call(_this2, context);
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this2.sourceInstances, /*#__PURE__*/function () {
         var _ref = _asyncToGenerator(function* (source) {
           if (_this2.isPlaying && source === _this2.source) {
             // Resume target if resuming.
@@ -38027,7 +38025,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Toggle.
         return function (_x) {
           return _ref.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["MultipleErrors"].throw);
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["MultipleErrors"].throw);
     })();
   }
 
@@ -38038,28 +38036,28 @@ class Seek extends Command {
     var {
       progress
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].unitInterval.validate(progress);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.validate(progress);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       progress
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Seek.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Seek.prototype, {
   collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
   },
 
   trigger(context) {
     var _this3 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Seek).trigger.call(_this3, context);
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).trigger.call(_this3, context);
       yield context.dispatch("".concat(_this3.source.name, "/seek"), _this3.progress);
     })();
   }
@@ -38071,30 +38069,30 @@ class Volume extends Command {
     var {
       volume
     } = options;
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].unitInterval.validate(volume);
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.validate(volume);
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       volume
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Volume.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Volume.prototype, {
   collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
   },
 
   trigger(context) {
     var _this4 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).trigger.call(_this4, context); // Adjust volume on all sources.
 
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this4.sourceInstances, /*#__PURE__*/function () {
         var _ref2 = _asyncToGenerator(function* (source) {
           if (context.state[source.name].player !== null) {
             yield context.dispatch("".concat(source.name, "/volume"), _this4.volume);
@@ -38104,7 +38102,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Volume.
         return function (_x2) {
           return _ref2.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["MultipleErrors"].throw);
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["MultipleErrors"].throw);
     })();
   }
 
@@ -38118,39 +38116,39 @@ class Start extends Command {
       progress = 0
     } = options;
 
-    if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__["default"])(track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
-      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["CustomError"]({
+    if (!(track instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"])) {
+      throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["CustomError"]({
         message: 'sj.Start instance.track must be an Track'
       });
     }
 
     super(options);
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(this, {
       track
     });
-    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].validatedVariable(this, {
+    _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].validatedVariable(this, {
       isPlaying: {
         value: isPlaying,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].boolean.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].boolean.validate
       },
       progress: {
         value: progress,
-        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["rules"].unitInterval.validate
+        validator: _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["rules"].unitInterval.validate
       }
     });
   }
 
 }
-_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Start.prototype, {
+_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Start.prototype, {
   collapseCondition(otherCommand) {
     // Collapses parent condition, any Start, Toggle, or Seek.
     //TODO //? Tight coupling?
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
   },
 
   identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
-    && Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_1__["default"])(otherCommand.track, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') //! Compare tracks by their sourceId not by their reference.
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
+    && otherCommand.track instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"] //! Compare tracks by their sourceId not by their reference.
     && otherCommand.track.sourceId === this.track.sourceId && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
   },
 
@@ -38158,9 +38156,9 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Start.p
     var _this5 = this;
 
     return _asyncToGenerator(function* () {
-      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_4__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
+      yield Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).trigger.call(_this5, context); // Pause all.
 
-      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
+      yield Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["asyncMap"])(_this5.sourceInstances, /*#__PURE__*/function () {
         var _ref3 = _asyncToGenerator(function* (source) {
           if (context.state[source.name].player !== null) {
             yield context.dispatch("".concat(source.name, "/pause"));
@@ -38170,7 +38168,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Start.p
         return function (_x3) {
           return _ref3.apply(this, arguments);
         };
-      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_3__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
+      }()).catch(_shared_errors_index_js__WEBPACK_IMPORTED_MODULE_2__["MultipleErrors"].throw); // Change startingTrackSubscription to subscription of the new track.
 
       context.commit('setStartingTrackSubscription', (yield context.dispatch('resubscribe', {
         subscription: context.state.startingTrackSubscription,
@@ -38487,10 +38485,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_propagate_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../shared/propagate.js */ "./source/shared/propagate.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
-/* harmony import */ var _shared_warn_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../shared/warn.js */ "./source/shared/warn.js");
-/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../shared/class-registry.js */ "./source/shared/class-registry.js");
+/* harmony import */ var _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../shared/errors/index.js */ "./source/shared/errors/index.js");
+/* harmony import */ var _shared_class_registry_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../shared/class-registry.js */ "./source/shared/class-registry.js");
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -38752,8 +38748,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  // import test from '../shared/test.js';
 
 
-
-
  // Used for commented out test below.
 // import {
 // 	spotify,
@@ -38775,7 +38769,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
   getters: {
     // FINDERS //! return undefined when not found
     findTable: state => Entity => {
-      return state.tables.get(Entity);
+      return state.tables.get(Entity); //? Where is .get defined?
     },
     findCachedEntity: () => (_ref) => {
       var {
@@ -38795,8 +38789,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
     },
     getLiveData: () => subscription => {
       // validate
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+      if (!(subscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"])) {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
           message: 'subscription is not an Subscription',
           state: subscription
         });
@@ -38805,8 +38799,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       var liveQuery = subscription.liveQuery;
 
-      if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"], 'LiveQuery')) {
-        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+      if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"])) {
+        throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
           message: "liveQuery is not an LiveQuery",
           state: liveQuery
         });
@@ -38815,8 +38809,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
       return liveQuery.cachedEntityRefs.map(cachedEntityRef => {
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(cachedEntityRef, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"], 'CachedEntity')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+        if (!(cachedEntityRef instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'cachedEntityRef is not a cachedEntity',
             state: cachedEntityRef
           });
@@ -38950,10 +38944,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = liveQuery.table; // add cachedEntity to table if it doesn't exist
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(context.getters.findCachedEntity({
+        if (!(context.getters.findCachedEntity({
           table,
           entity
-        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"], 'CachedEntity')) {
+        }) instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"])) {
           context.commit('pushCachedEntity', {
             cachedEntities: table.cachedEntities,
             cachedEntity: new _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"]({
@@ -38969,8 +38963,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           entity
         });
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"], 'CachedEntity')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["UnreachableError"]();
+        if (!(cachedEntity instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["UnreachableError"]();
         } // shorthand
 
 
@@ -38981,7 +38975,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var foundCachedEntityRef = cachedEntityRefs.includes(cachedEntity);
 
         if (foundLiveQueryRef !== foundCachedEntityRef) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'Either cachedEntity or liveQuery had a reference to the other, but not in return, this should never happen.',
             state: {
               foundLiveQueryRef,
@@ -39020,7 +39014,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var cachedEntityRefIndex = liveQuery.cachedEntityRefs.indexOf(cachedEntity);
 
         if (cachedEntityRefIndex < 0) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
             message: 'cachedEntityRef not found in liveQuery'
           });
         }
@@ -39028,7 +39022,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var liveQueryRefIndex = cachedEntity.liveQueryRefs.indexOf(liveQuery);
 
         if (liveQueryRefIndex < 0) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
             message: 'liveQueryRef not found in cachedEntity'
           });
         } // remove references from each other
@@ -39048,7 +39042,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           var cachedEntityIndex = cachedEntity.table.cachedEntities.indexOf(cachedEntity);
 
           if (cachedEntityIndex < 0) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
               message: 'cachedEntity not found in table'
             });
           }
@@ -39107,10 +39101,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref18;
 
         // if the liveQuery cannot be found
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(context.getters.findLiveQuery({
+        if (!(context.getters.findLiveQuery({
           table,
           query
-        }), _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"], 'LiveQuery')) {
+        }) instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"])) {
           // add it
           context.commit('pushLiveQuery', {
             liveQueries: table.liveQueries,
@@ -39125,8 +39119,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             query
           });
 
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"], 'LiveQuery')) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["UnreachableError"]();
+          if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"])) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["UnreachableError"]();
           } // trigger the initial update
 
 
@@ -39153,7 +39147,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             index: liveQueryIndex
           });
         } else {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
             message: 'liveQuery not found in table'
           });
         }
@@ -39192,7 +39186,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           timestamp
         } = yield Entity.get(query, {
           includeMetadata: true
-        }); // give the liveQuery the timestamp of the new data
+        }); //! Super important, this is the only place that entities get reconstructed.
+        //TODO What happens if this fails?
+
+        var reconstructedEntities = entities.map(entity => new Entity(entity)); // give the liveQuery the timestamp of the new data
 
         context.commit('setLiveQuery', {
           liveQuery,
@@ -39204,7 +39201,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var _loop = function* _loop(cachedEntity) {
           // if it is no longer included in the fetched entities
-          if (entities.every(entity => entity.id !== cachedEntity.entity.id)) {
+          if (reconstructedEntities.every(entity => entity.id !== cachedEntity.entity.id)) {
             // remove it from the liveQuery
             var removed = yield context.dispatch('removeCachedEntity', {
               cachedEntity,
@@ -39222,7 +39219,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } // for each retrieved entity
 
 
-        for (var entity of entities) {
+        for (var entity of reconstructedEntities) {
           //! not async for each, these need to be synchronous
           // add it's cachedEntity (won't add if it already exists)
           var added = yield context.dispatch('addCachedEntity', {
@@ -39240,8 +39237,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             entity
           });
 
-          if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(_cachedEntity, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"], 'CachedEntity')) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["UnreachableError"]();
+          if (!(_cachedEntity instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["CachedEntity"])) {
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["UnreachableError"]();
           } // edit the cachedEntity (won't edit if data is old, or unchanged)
 
 
@@ -39299,8 +39296,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         }); //! this should never fail
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"], 'LiveQuery')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["UnreachableError"]();
+        if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["UnreachableError"]();
         } // create a new subscription
 
 
@@ -39330,7 +39327,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
             index: subscriptionIndex
           });
         } else {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
             message: 'subscription not found in liveQuery'
           });
         } // if liveQuery no longer has any subscriptions
@@ -39354,21 +39351,21 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //TODO how to check if class is subclass, because this is getting ridiculous
         //L : https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
         if (!Object.getPrototypeOf(Entity) === Entity) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'Entity is not an Entity',
             state: Entity
           });
         }
 
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(query)) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'query is not an Object',
             state: query
           });
         }
 
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(options)) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'options is not an Object',
             state: options
           });
@@ -39377,8 +39374,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = context.getters.findTable(Entity);
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveTable"], 'LiveTable')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+        if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveTable"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'table is not an LiveTable',
             state: table
           });
@@ -39410,9 +39407,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref23;
 
         // validate //! return early if not a subscription
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) {
+        if (!(subscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"])) {
           if (strict) {
-            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+            throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
               message: 'subscription is not an Subscription',
               state: subscription
             });
@@ -39424,8 +39421,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var liveQuery = subscription.liveQuery;
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"], 'LiveQuery')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+        if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: "liveQuery is not an LiveQuery",
             state: liveQuery
           });
@@ -39434,7 +39431,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var query = liveQuery.query;
 
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(query)) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'query is not an Object',
             state: query
           });
@@ -39442,8 +39439,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = liveQuery.table;
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveTable"], 'LiveTable')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+        if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveTable"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'table is not an LiveTable',
             state: table
           });
@@ -39452,7 +39449,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         var TargetEntity = table.Entity;
 
         if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Entity"]) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'Entity is not an LiveTable',
             state: TargetEntity
           });
@@ -39487,8 +39484,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         //G subscribes to a new subscription, unsubscribes from an old one, essentially a shorthand
         // strict check here throws or lets function execute //! doesn't early return
         //R strict check is done here in addition to unsubscribe so that the new subscription is not added if the strict check fails
-        if (strict && !Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(subscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"], 'Subscription')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+        if (strict && !(subscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["Subscription"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'subscription is not an Subscription',
             state: subscription
           });
@@ -39521,14 +39518,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         // validate
         if (!Object.getPrototypeOf(TargetEntity) === _entities_index_js__WEBPACK_IMPORTED_MODULE_2__["Entity"]) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'Entity is not an Entity',
             state: TargetEntity
           });
         }
 
         if (!_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].object.test(query) && !_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["rules"].array.test(query)) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'query is not an Object',
             state: query
           });
@@ -39538,8 +39535,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
         var table = context.getters.findTable(TargetEntity);
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(table, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveTable"], 'LiveTable')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+        if (!(table instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveTable"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: 'table is not an LiveTable',
             state: {
               TargetEntity,
@@ -39553,8 +39550,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           query
         });
 
-        if (!Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_5__["default"])(liveQuery, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"], 'LiveQuery')) {
-          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["InvalidStateError"]({
+        if (!(liveQuery instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_3__["LiveQuery"])) {
+          throw new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["InvalidStateError"]({
             message: "liveQuery is not an LiveQuery",
             state: {
               query,
@@ -39598,7 +39595,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref26;
         return new Promise((resolve, reject) => {
           var clearTimer = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["setTimer"])(context.state.timeout, () => {
-            reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+            reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
               message: 'socket - subscribe timed out'
             }));
           });
@@ -39608,7 +39605,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }, result => {
             clearTimer();
 
-            if (_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_8__["sharedRegistry"].autoConstruct(result) instanceof Error) {
+            if (_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_6__["sharedRegistry"].autoConstruct(result) instanceof Error) {
               reject(result);
             } else {
               resolve(result);
@@ -39626,7 +39623,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
         } = _ref27;
         yield new Promise((resolve, reject) => {
           var clearTimer = Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_0__["setTimer"])(context.state.timeout, () => {
-            reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_6__["CustomError"]({
+            reject(new _shared_errors_index_js__WEBPACK_IMPORTED_MODULE_5__["CustomError"]({
               message: 'socket - unsubscribe timed out'
             }));
           });
@@ -39636,7 +39633,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
           }, result => {
             clearTimer();
 
-            if (_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_8__["sharedRegistry"].autoConstruct(result) instanceof Error) {
+            if (_shared_class_registry_js__WEBPACK_IMPORTED_MODULE_6__["sharedRegistry"].autoConstruct(result) instanceof Error) {
               reject(result);
             } else {
               resolve(result);
@@ -40211,8 +40208,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _entities_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./entities/index.js */ "./source/client/entities/index.js");
 /* harmony import */ var _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/live-data.js */ "./source/shared/live-data.js");
 /* harmony import */ var _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/utility/index.js */ "./source/shared/utility/index.js");
-/* harmony import */ var _shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/is-instance-of.js */ "./source/shared/is-instance-of.js");
-/* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
+/* harmony import */ var _commands_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./commands.js */ "./source/client/commands.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -40228,7 +40224,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 	sj.Toggle: toggle or resume & pause or both? they all deal with one playback property but toggle out of all the commands is the only one that is dependant on an existing state - how to classify this? when do resume & pause merge into toggle - source, command, or playback level?
 */
-
 
 
 
@@ -40543,7 +40538,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref4;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Start"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Start"]({
           source: track.source,
           //! Uses track's source.
           sourceInstances,
@@ -40563,7 +40558,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref5;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Toggle"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
           source,
           //! other non-start basic playback functions just use the current desiredPlayback source
           sourceInstances,
@@ -40583,7 +40578,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref6;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Toggle"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
           source,
           sourceInstances,
           isPlaying: true
@@ -40602,7 +40597,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref7;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Seek"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Seek"]({
           source,
           sourceInstances,
           progress
@@ -40622,7 +40617,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
           }
         } = _ref8;
         //TODO Volume should change volume on all sources.
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Volume"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Volume"]({
           source,
           sourceInstances,
           volume
@@ -40643,7 +40638,7 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
             sourceInstances
           }
         } = _ref9;
-        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_4__["Toggle"]({
+        return dispatch('pushCommand', new _commands_js__WEBPACK_IMPORTED_MODULE_3__["Toggle"]({
           source,
           sourceInstances,
           isPlaying: !isPlaying
@@ -40732,12 +40727,17 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
       return state.source;
     },
     actualTrack: (state, getters) => {
+      var _getters$currentTrack, _getters$startingTrac;
+
+      // If the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes.
       var sourceOrBaseTrack = getters.sourceOrBase('track');
 
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(sourceOrBaseTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track')) {
-        // If the source track matches the current or starting track (by sourceId), return the current or starting track instead, so that it may be reactive to any data changes.
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(getters.currentTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.currentTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.currentTrack;
-        if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(getters.startingTrack, _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"], 'Track') && getters.startingTrack.sourceId === sourceOrBaseTrack.sourceId) return getters.startingTrack;
+      if ((sourceOrBaseTrack === null || sourceOrBaseTrack === void 0 ? void 0 : sourceOrBaseTrack.sourceId) === ((_getters$currentTrack = getters.currentTrack) === null || _getters$currentTrack === void 0 ? void 0 : _getters$currentTrack.sourceId)) {
+        return getters.currentTrack;
+      }
+
+      if ((sourceOrBaseTrack === null || sourceOrBaseTrack === void 0 ? void 0 : sourceOrBaseTrack.sourceId) === ((_getters$startingTrac = getters.startingTrack) === null || _getters$startingTrac === void 0 ? void 0 : _getters$startingTrac.sourceId)) {
+        return getters.startingTrack;
       }
 
       return sourceOrBaseTrack;
@@ -40797,14 +40797,14 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
     }),
     // LOCAL TRACKS
     currentTrack: (state, getters, rootState, rootGetters) => {
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(state.currentTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) {
+      if (state.currentTrackSubscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"]) {
         return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.currentTrackSubscription));
       }
 
       return null;
     },
     startingTrack: (state, getters, rootState, rootGetters) => {
-      if (Object(_shared_is_instance_of_js__WEBPACK_IMPORTED_MODULE_3__["default"])(state.startingTrackSubscription, _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"], 'Subscription')) {
+      if (state.startingTrackSubscription instanceof _shared_live_data_js__WEBPACK_IMPORTED_MODULE_1__["Subscription"]) {
         return Object(_shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["one"])(rootGetters.getLiveData(state.startingTrackSubscription));
       }
 
@@ -60654,9 +60654,7 @@ __webpack_require__.r(__webpack_exports__);
       artists,
       name,
       duration,
-      link,
-      //TODO Ensure that this is only used as an instance then remove this.
-      constructorName: 'Track'
+      link
     });
   },
 
@@ -60806,9 +60804,7 @@ var defaultSocketId = null;
       password,
       password2,
       spotifyRefreshToken,
-      socketId,
-      //TODO Ensure that this is only used as an instance then remove this.
-      constructorName: 'User'
+      socketId
     });
   },
 
@@ -61330,23 +61326,6 @@ class UnreachableError extends _custom_error_js__WEBPACK_IMPORTED_MODULE_0__["de
   }
 
 }
-
-/***/ }),
-
-/***/ "./source/shared/is-instance-of.js":
-/*!*****************************************!*\
-  !*** ./source/shared/is-instance-of.js ***!
-  \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-//TODO Replace all references to this function with an instanceof or interface test.
-/* harmony default export */ __webpack_exports__["default"] = (function (value, Class, className) {
-  return value instanceof Class || (value === null || value === void 0 ? void 0 : value.constructorName) === className;
-}); // Things that are matching constructorName
-// User, Track
 
 /***/ }),
 
@@ -65513,39 +65492,6 @@ __webpack_require__.r(__webpack_exports__);
   }
 
 }));
-
-/***/ }),
-
-/***/ "./source/shared/warn.js":
-/*!*******************************!*\
-  !*** ./source/shared/warn.js ***!
-  \*******************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Warn; });
-/* harmony import */ var _utility_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utility/index.js */ "./source/shared/utility/index.js");
-
-class Warn {
-  constructor() {
-    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    var {
-      log = true,
-      message,
-      reason,
-      content
-    } = options;
-    _utility_index_js__WEBPACK_IMPORTED_MODULE_0__["define"].writable(this, {
-      log,
-      message,
-      reason,
-      content
-    });
-  }
-
-}
 
 /***/ }),
 

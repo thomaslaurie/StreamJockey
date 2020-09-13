@@ -12,7 +12,6 @@ import {
 	Subscription,
 } from '../../../../shared/live-data.js';
 import * as session from '../../../session-methods.js';
-import isInstanceOf from '../../../../shared/is-instance-of.js';
 
 import TrackDisplayList from '../track/TrackDisplayList.vue';
 import PlaylistDisplayList from '../playlist/PlaylistDisplayList.vue';
@@ -80,7 +79,9 @@ export default {
 
 		subscriptionData() {
 			//TODO I think this is old, transition to the new AsyncDisplay
-			if (isInstanceOf(this.subscription, Subscription, 'Subscription')) return any(this.$store.getters.getLiveData(this.subscription));
+			if ((this.subscription instanceof Subscription)) {
+				return any(this.$store.getters.getLiveData(this.subscription));
+			}
 		},
 	},
 	watch: {
