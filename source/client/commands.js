@@ -97,16 +97,16 @@ define.constant(Command.prototype, {
 		this.reject(error);
 	},
 
-	collapseCondition(otherCommand) {
-		// Collapse if identical.
-		return this.identicalCondition(otherCommand);
-	},
-	annihilateCondition()  {
-		return false;
-	},
-	identicalCondition(otherCommand) {
+	isIdenticalTo(otherCommand) {
 		// otherCommand must be an Command, and have the same playback-state properties.
 		return otherCommand?.source === this.source;
+	},
+	collapsesInto(otherCommand) {
+		// Collapse if identical.
+		return this.isIdenticalTo(otherCommand);
+	},
+	annihilates()  {
+		return false;
 	},
 
 	async trigger(context) {
@@ -129,19 +129,19 @@ export class Toggle extends Command {
 	}
 }
 define.constant(Toggle.prototype, {
-	identicalCondition(otherCommand) {
+	isIdenticalTo(otherCommand) {
 		return (
-			   superPrototype(Toggle).identicalCondition.call(this, otherCommand)
+			   superPrototype(Toggle).isIdenticalTo.call(this, otherCommand)
 			&& otherCommand.isPlaying === this.isPlaying
 		);
 	},
-	//! Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
-	annihilateCondition(otherCommand) {
+	//! Toggle doesn't have a unique collapsesInto because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
+	annihilates(otherCommand) {
 		return (
-			superPrototype(Toggle).annihilateCondition.call(this, otherCommand)
+			superPrototype(Toggle).annihilates.call(this, otherCommand)
 			|| (
 				// Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-				superPrototype(Toggle).identicalCondition.call(this, otherCommand)
+				superPrototype(Toggle).isIdenticalTo.call(this, otherCommand)
 				&& otherCommand.isPlaying === !this.isPlaying
 				&& otherCommand.constructor === this.constructor
 			)
@@ -174,12 +174,12 @@ export class Seek extends Command {
 	}
 }
 define.constant(Seek.prototype, {
-	collapseCondition(otherCommand) {
-		return superPrototype(Seek).collapseCondition.call(this, otherCommand)
+	collapsesInto(otherCommand) {
+		return superPrototype(Seek).collapsesInto.call(this, otherCommand)
 			|| otherCommand.constructor === Seek;
 	},
-	identicalCondition(otherCommand) {
-		return superPrototype(Seek).identicalCondition.call(this, otherCommand)
+	isIdenticalTo(otherCommand) {
+		return superPrototype(Seek).isIdenticalTo.call(this, otherCommand)
 			&& otherCommand.progress === this.progress;
 	},
 	async trigger(context) {
@@ -201,12 +201,12 @@ export class Volume extends Command {
 	}
 }
 define.constant(Volume.prototype, {
-	collapseCondition(otherCommand) {
-		return superPrototype(Volume).collapseCondition.call(this, otherCommand)
+	collapsesInto(otherCommand) {
+		return superPrototype(Volume).collapsesInto.call(this, otherCommand)
 			|| otherCommand.constructor === Volume;
 	},
-	identicalCondition(otherCommand) {
-		return superPrototype(Volume).identicalCondition.call(this, otherCommand)
+	isIdenticalTo(otherCommand) {
+		return superPrototype(Volume).isIdenticalTo.call(this, otherCommand)
 			&& otherCommand.volume === this.volume;
 	},
 	async trigger(context) {
@@ -253,17 +253,17 @@ export class Start extends Command {
 	}
 }
 define.constant(Start.prototype, {
-	collapseCondition(otherCommand) {
+	collapsesInto(otherCommand) {
 		// Collapses parent condition, any Start, Toggle, or Seek.
 		//TODO //? Tight coupling?
-		return superPrototype(Start).collapseCondition.call(this, otherCommand)
+		return superPrototype(Start).collapsesInto.call(this, otherCommand)
 			|| otherCommand.constructor === Start
 			|| otherCommand.constructor === Toggle
 			|| otherCommand.constructor === Seek;
 	},
-	identicalCondition(otherCommand) {
+	isIdenticalTo(otherCommand) {
 		return (
-			superPrototype(Start).identicalCondition.call(this, otherCommand)
+			superPrototype(Start).isIdenticalTo.call(this, otherCommand)
 			// Catch non-Tracks.
 			&& (otherCommand.track instanceof Track)
 			//! Compare tracks by their sourceId not by their reference.

@@ -37955,18 +37955,18 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Command
     this.reject(error);
   },
 
-  collapseCondition(otherCommand) {
-    // Collapse if identical.
-    return this.identicalCondition(otherCommand);
-  },
-
-  annihilateCondition() {
-    return false;
-  },
-
-  identicalCondition(otherCommand) {
+  isIdenticalTo(otherCommand) {
     // otherCommand must be an Command, and have the same playback-state properties.
     return (otherCommand === null || otherCommand === void 0 ? void 0 : otherCommand.source) === this.source;
+  },
+
+  collapsesInto(otherCommand) {
+    // Collapse if identical.
+    return this.isIdenticalTo(otherCommand);
+  },
+
+  annihilates() {
+    return false;
   },
 
   trigger(context) {
@@ -37996,14 +37996,14 @@ class Toggle extends Command {
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Toggle.prototype, {
-  identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
+  isIdenticalTo(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === this.isPlaying;
   },
 
-  //! Toggle doesn't have a unique collapseCondition because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
-  annihilateCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).annihilateCondition.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
-    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).identicalCondition.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
+  //! Toggle doesn't have a unique collapsesInto because the otherCommand is either identical (and collapses by default) or is opposite and annihilates.
+  annihilates(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).annihilates.call(this, otherCommand) || // Same source, inverse isPlaying, both are sj.Toggle (ie. don't annihilate pauses with starts).
+    Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Toggle).isIdenticalTo.call(this, otherCommand) && otherCommand.isPlaying === !this.isPlaying && otherCommand.constructor === this.constructor;
   },
 
   trigger(context) {
@@ -38045,12 +38045,12 @@ class Seek extends Command {
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Seek.prototype, {
-  collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Seek;
+  collapsesInto(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Seek;
   },
 
-  identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).identicalCondition.call(this, otherCommand) && otherCommand.progress === this.progress;
+  isIdenticalTo(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Seek).isIdenticalTo.call(this, otherCommand) && otherCommand.progress === this.progress;
   },
 
   trigger(context) {
@@ -38078,12 +38078,12 @@ class Volume extends Command {
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Volume.prototype, {
-  collapseCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Volume;
+  collapsesInto(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Volume;
   },
 
-  identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).identicalCondition.call(this, otherCommand) && otherCommand.volume === this.volume;
+  isIdenticalTo(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Volume).isIdenticalTo.call(this, otherCommand) && otherCommand.volume === this.volume;
   },
 
   trigger(context) {
@@ -38140,14 +38140,14 @@ class Start extends Command {
 
 }
 _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_1__["define"].constant(Start.prototype, {
-  collapseCondition(otherCommand) {
+  collapsesInto(otherCommand) {
     // Collapses parent condition, any Start, Toggle, or Seek.
     //TODO //? Tight coupling?
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).collapseCondition.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).collapsesInto.call(this, otherCommand) || otherCommand.constructor === Start || otherCommand.constructor === Toggle || otherCommand.constructor === Seek;
   },
 
-  identicalCondition(otherCommand) {
-    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).identicalCondition.call(this, otherCommand) // Catch non-Tracks.
+  isIdenticalTo(otherCommand) {
+    return Object(_shared_utility_class_parts_js__WEBPACK_IMPORTED_MODULE_3__["superPrototype"])(Start).isIdenticalTo.call(this, otherCommand) // Catch non-Tracks.
     && otherCommand.track instanceof _entities_index_js__WEBPACK_IMPORTED_MODULE_0__["Track"] //! Compare tracks by their sourceId not by their reference.
     && otherCommand.track.sourceId === this.track.sourceId && otherCommand.isPlaying === this.isPlaying && otherCommand.progress === this.progress;
   },
@@ -40457,24 +40457,27 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
     pushCommand(context, command) {
       return _asyncToGenerator(function* () {
         // Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
+        //? Why doesn't the command collapse into the sent command or the current playback state?
         var push = true; // Remove redundant commands if necessary.
 
         var compact = function compact(i) {
           if (i >= 0) {
-            //R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
-            if (command.collapseCondition(context.state.commandQueue[i])) {
+            //R Collapse is required to use the new command rather than just using the existing command because Start collapses different commands than itself.
+            var otherCommand = context.state.commandQueue[i];
+
+            if (command.collapsesInto(otherCommand)) {
               // If last otherCommand collapses, this command gets pushed.
               push = true; // Store otherCommand on this command.
 
-              command.collapsedCommands.unshift(context.state.commandQueue[i]); // Remove otherCommand.
+              command.collapsedCommands.unshift(otherCommand); // Remove otherCommand.
 
               context.commit('removeQueuedCommand', i); // Analyze next otherCommand.
 
               compact(i - 1);
-            } else if (command.annihilateCondition(context.state.commandQueue[i])) {
+            } else if (command.annihilates(otherCommand)) {
               // If last otherCommand annihilates, this command doesn't get pushed.
               push = false;
-              command.collapsedCommands.unshift(context.state.commandQueue[i]);
+              command.collapsedCommands.unshift(otherCommand);
               context.commit('removeQueuedCommand', i);
               compact(i - 1);
             } // If otherCommand does not collapse or annihilate, escape.
@@ -40485,8 +40488,8 @@ _shared_utility_index_js__WEBPACK_IMPORTED_MODULE_2__["define"].constant(Playbac
         compact(context.state.commandQueue.length - 1);
 
         if ( // If there is a sent command and identical to the sent command,
-        context.state.sentCommand !== null && command.identicalCondition(context.state.sentCommand) || // or if there isn't a sent command and identical to the actual playback.
-        context.state.sentCommand === null && command.identicalCondition(context.getters.actualPlayback)) {
+        context.state.sentCommand !== null && command.isIdenticalTo(context.state.sentCommand) || // or if there isn't a sent command and identical to the actual playback.
+        context.state.sentCommand === null && command.isIdenticalTo(context.getters.actualPlayback)) {
           // Don't push.
           push = false;
         } // Route command resolve/reject to this result promise.

@@ -243,26 +243,28 @@ define.constant(Playback, {
 		//TODO there seems to be a bug in the command queue where eventually an command will stall until (either it or something ahead of it, im not sure which) times out, upon which the command in question will be fulfilled
 		async pushCommand(context, command) {
 			// Attempts to push a new command the current command queue. Will collapse and/or annihilate commands ahead of it in the queue if conditions are met. Command will not be pushed if it annihilates or if it is identical to the sent command or if there is no sent command and it is identical to the current playback state.
+			//? Why doesn't the command collapse into the sent command or the current playback state?
 
 			let push = true;
 
 			// Remove redundant commands if necessary.
 			const compact = function (i) {
 				if (i >= 0) {
-					//R collapse is required to use the new command rather than just using the existing command because sj.Start collapses different commands than itself
-					if (command.collapseCondition(context.state.commandQueue[i])) {
+					//R Collapse is required to use the new command rather than just using the existing command because Start collapses different commands than itself.
+					const otherCommand = context.state.commandQueue[i];
+					if (command.collapsesInto(otherCommand)) {
 						// If last otherCommand collapses, this command gets pushed.
 						push = true;
 						// Store otherCommand on this command.
-						command.collapsedCommands.unshift(context.state.commandQueue[i]);
+						command.collapsedCommands.unshift(otherCommand);
 						// Remove otherCommand.
 						context.commit('removeQueuedCommand', i);
 						// Analyze next otherCommand.
 						compact(i - 1);
-					} else if (command.annihilateCondition(context.state.commandQueue[i])) {
+					} else if (command.annihilates(otherCommand)) {
 						// If last otherCommand annihilates, this command doesn't get pushed.
 						push = false;
-						command.collapsedCommands.unshift(context.state.commandQueue[i]);
+						command.collapsedCommands.unshift(otherCommand);
 						context.commit('removeQueuedCommand', i);
 						compact(i - 1);
 					}
@@ -273,10 +275,10 @@ define.constant(Playback, {
 
 			if (( // If there is a sent command and identical to the sent command,
 				context.state.sentCommand !== null
-				&& command.identicalCondition(context.state.sentCommand)
+				&& command.isIdenticalTo(context.state.sentCommand)
 			) || ( // or if there isn't a sent command and identical to the actual playback.
 				context.state.sentCommand === null
-				&& command.identicalCondition(context.getters.actualPlayback)
+				&& command.isIdenticalTo(context.getters.actualPlayback)
 			)) {
 				// Don't push.
 				push = false;
